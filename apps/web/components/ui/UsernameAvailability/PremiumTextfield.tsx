@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -46,6 +47,7 @@ const obtainNewUsernameChangeCondition = ({
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
+  const { data: session, update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -94,6 +96,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
+      await update();
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {

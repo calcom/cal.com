@@ -32,11 +32,17 @@ export const AvailableTimeSlots = ({
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const onTimeSelect = (time: string) => {
+  const onTimeSelect = (
+    time: string,
+    attendees: number,
+    seatsPerTimeSlot?: number | null,
+    bookingUid?: string
+  ) => {
     setSelectedTimeslot(time);
     if (selectedDateAndTime && setSelectedDateAndTime) {
       const selectedSlots = selectedDateAndTime[selectedDate as string] ?? [];
@@ -60,6 +66,19 @@ export const AvailableTimeSlots = ({
         [selectedDate as string]: [...selectedSlots, time],
       }));
     }
+
+    if (seatsPerTimeSlot) {
+      setSeatedEventData({
+        seatsPerTimeSlot,
+        attendees,
+        bookingUid,
+      });
+
+      if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
+        return;
+      }
+    }
+
     if (!event.data) return;
   };
 
@@ -109,12 +128,12 @@ export const AvailableTimeSlots = ({
             <AvailableTimes
               className="w-full"
               key={slots.date}
-              showTimeformatToggle={!isMultipleDates}
-              onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeslot={seatsPerTimeslot}
               selectedSlots={selectedDateAndTime ? selectedDateAndTime[selectedDate as string] : null}
+              onTimeSelect={onTimeSelect}
+              showTimeFormatToggle={!isMultipleDates}
             />
           ))}
     </div>

@@ -41,6 +41,7 @@ import {
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -55,6 +56,7 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -1010,6 +1012,7 @@ async function handler(
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
   let evt: CalendarEvent = {
+    bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -1132,6 +1135,40 @@ async function handler(
     return deletedReferences;
   };
 
+  // data needed for triggering webhooks
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: requiresConfirmation || null,
+    price: paymentAppData.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+
+  const teamId = await getTeamId({ eventType });
+
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+    teamId,
+  };
+
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
+
+  subscriberOptions.triggerEvent = eventTrigger;
+
+  const subscriberOptionsMeetingEnded = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    teamId,
+  };
+
+  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -1141,6 +1178,7 @@ async function handler(
           message?: string;
         })
       | null = null;
+
     const booking = await prisma.booking.findFirst({
       where: {
         OR: [
@@ -1152,6 +1190,7 @@ async function handler(
             startTime: evt.startTime,
           },
         ],
+        status: BookingStatus.ACCEPTED,
       },
       select: {
         uid: true,
@@ -1162,6 +1201,9 @@ async function handler(
         startTime: true,
         user: true,
         status: true,
+        smsReminderNumber: true,
+        endTime: true,
+        scheduledJobs: true,
       },
     });
 
@@ -1184,6 +1226,7 @@ async function handler(
         where: {
           startTime: evt.startTime,
           eventTypeId: eventType.id,
+          status: BookingStatus.ACCEPTED,
         },
         select: {
           id: true,
@@ -1270,6 +1313,7 @@ async function handler(
             },
             data: {
               startTime: evt.startTime,
+              endTime: evt.endTime,
               cancellationReason: rescheduleReason,
             },
             include: {
@@ -1295,7 +1339,7 @@ async function handler(
 
           const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-          evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+          evt.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
 
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
@@ -1466,82 +1510,83 @@ async function handler(
       const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
       if (seatAttendee) {
         seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-      }
-      // If there is no booking then remove the attendee from the old booking and create a new one
-      if (!newTimeSlotBooking) {
-        await prisma.attendee.delete({
-          where: {
-            id: seatAttendee?.id,
-          },
-        });
 
-        // Update the original calendar event by removing the attendee that is rescheduling
-        if (originalBookingEvt && originalRescheduledBooking) {
-          // Event would probably be deleted so we first check than instead of updating references
-          const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-            return attendee.email !== bookerEmail;
+        // If there is no booking then remove the attendee from the old booking and create a new one
+        if (!newTimeSlotBooking) {
+          await prisma.attendee.delete({
+            where: {
+              id: seatAttendee?.id,
+            },
           });
-          const deletedReference = await lastAttendeeDeleteBooking(
-            originalRescheduledBooking,
-            filteredAttendees,
-            originalBookingEvt
-          );
 
-          if (!deletedReference) {
-            await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+          // Update the original calendar event by removing the attendee that is rescheduling
+          if (originalBookingEvt && originalRescheduledBooking) {
+            // Event would probably be deleted so we first check than instead of updating references
+            const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+              return attendee.email !== bookerEmail;
+            });
+            const deletedReference = await lastAttendeeDeleteBooking(
+              originalRescheduledBooking,
+              filteredAttendees,
+              originalBookingEvt
+            );
+
+            if (!deletedReference) {
+              await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+            }
           }
+
+          // We don't want to trigger rescheduling logic of the original booking
+          originalRescheduledBooking = null;
+
+          return null;
         }
 
-        // We don't want to trigger rescheduling logic of the original booking
-        originalRescheduledBooking = null;
+        // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
+        // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
+        if (seatAttendee?.id && bookingSeat?.id) {
+          await Promise.all([
+            await prisma.attendee.update({
+              where: {
+                id: seatAttendee.id,
+              },
+              data: {
+                bookingId: newTimeSlotBooking.id,
+              },
+            }),
+            await prisma.bookingSeat.update({
+              where: {
+                id: bookingSeat.id,
+              },
+              data: {
+                bookingId: newTimeSlotBooking.id,
+              },
+            }),
+          ]);
+        }
 
-        return null;
+        const copyEvent = cloneDeep(evt);
+
+        const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+        const results = updateManager.results;
+
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+        evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult?.updatedEvent[0]?.iCalUID
+          : calendarResult?.updatedEvent?.iCalUID || undefined;
+
+        await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+        const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+          return attendee.email !== bookerEmail;
+        });
+        await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
+
+        const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
+
+        resultBooking = { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
       }
-
-      // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
-      // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-      if (seatAttendee?.id && bookingSeat?.id) {
-        await Promise.all([
-          await prisma.attendee.update({
-            where: {
-              id: seatAttendee.id,
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-            },
-          }),
-          await prisma.bookingSeat.update({
-            where: {
-              id: bookingSeat.id,
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-            },
-          }),
-        ]);
-      }
-
-      const copyEvent = cloneDeep(evt);
-
-      const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
-
-      const results = updateManager.results;
-
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
-
-      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
-      const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-        return attendee.email !== bookerEmail;
-      });
-      await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
-
-      const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
-
-      resultBooking = { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
     } else {
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
@@ -1668,9 +1713,11 @@ async function handler(
         resultBooking = { ...foundBooking };
         resultBooking["message"] = "Payment required";
         resultBooking["paymentUid"] = payment?.uid;
+      } else {
+        resultBooking = { ...foundBooking };
       }
 
-      resultBooking = { ...foundBooking, seatReferenceUid: evt.attendeeSeatId };
+      resultBooking["seatReferenceUid"] = evt.attendeeSeatId;
     }
 
     // Here we should handle every after action that needs to be done after booking creation
@@ -1690,6 +1737,25 @@ async function handler(
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
     }
+
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId: booking?.id,
+      rescheduleUid,
+      rescheduleStartTime: originalRescheduledBooking?.startTime
+        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+        : undefined,
+      rescheduleEndTime: originalRescheduledBooking?.endTime
+        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+        : undefined,
+      metadata: { ...metadata, ...reqBody.metadata },
+      eventTypeId,
+      status: "ACCEPTED",
+      smsReminderNumber: booking?.smsReminderNumber || undefined,
+    };
+
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
     return resultBooking;
   };
@@ -1817,8 +1883,6 @@ async function handler(
           newBookingData.attendees.createMany.data = attendeesData.filter(
             (attendee) => attendee.email === bookerEmail
           );
-        } else {
-          newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
         }
       }
       if (originalRescheduledBooking.recurringEventId) {
@@ -1969,6 +2033,8 @@ async function handler(
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+          deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
         }
       });
     } catch (error) {
@@ -2221,14 +2287,6 @@ async function handler(
       }
     : undefined;
 
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: eventType.title,
-    eventDescription: eventType.description,
-    requiresConfirmation: requiresConfirmation || null,
-    price: paymentAppData.price,
-    currency: eventType.currency,
-    length: eventType.length,
-  };
   const webhookData = {
     ...evt,
     ...eventTypeInfo,
@@ -2245,30 +2303,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
-
-  const teamId = await getTeamId({ eventType });
-
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUser.id,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId,
-  };
-
   if (isConfirmedByDefault) {
-    const eventTrigger: WebhookTriggerEvents = rescheduleUid
-      ? WebhookTriggerEvents.BOOKING_RESCHEDULED
-      : WebhookTriggerEvents.BOOKING_CREATED;
-
-    subscriberOptions.triggerEvent = eventTrigger;
-
-    const subscriberOptionsMeetingEnded = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId,
-    };
-
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
@@ -13,9 +13,9 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent, org }: PageProps) {
   return (
     <main className="flex h-full min-h-[100dvh] items-center justify-center">
       <BookerSeo
@@ -23,14 +23,16 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, isTe
         eventSlug={slug}
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
+        org={org}
       />
       <Booker
         username={user}
         eventSlug={slug}
-        rescheduleBooking={booking}
+        bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
+        org={org}
       />
     </main>
   );
@@ -42,6 +44,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -100,14 +103,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`);
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent });
+  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent, org });
 
   if (!eventData) {
     return {
@@ -117,6 +120,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      org,
       booking,
       away: user?.away,
       user: username,
