@@ -12,6 +12,8 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeslot?: number | null;
+  selectedDateAndTime?: any;
+  setSelectedDateAndTime?: any;
 };
 
 /**
@@ -21,7 +23,13 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  limitHeight,
+  seatsPerTimeslot,
+  selectedDateAndTime,
+  setSelectedDateAndTime,
+}: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
@@ -30,7 +38,28 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
 
   const onTimeSelect = (time: string) => {
     setSelectedTimeslot(time);
-
+    if (selectedDateAndTime && setSelectedDateAndTime) {
+      const selectedSlots = selectedDateAndTime[selectedDate as string] ?? [];
+      if (selectedSlots?.includes(time)) {
+        if (selectedDateAndTime[selectedDate as string]?.length > 1) {
+          setSelectedDateAndTime((prev: any) => ({
+            ...prev,
+            [selectedDate as string]: selectedSlots?.filter((slot: any) => slot !== time),
+          }));
+        } else {
+          setSelectedDateAndTime((prevState: any) => {
+            const nextState = { ...prevState };
+            delete nextState[selectedDate as string];
+            return nextState;
+          });
+        }
+        return;
+      }
+      setSelectedDateAndTime((prev: any) => ({
+        ...prev,
+        [selectedDate as string]: [...selectedSlots, time],
+      }));
+    }
     if (!event.data) return;
   };
 
@@ -85,6 +114,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeslot={seatsPerTimeslot}
+              selectedSlots={selectedDateAndTime ? selectedDateAndTime[selectedDate as string] : null}
             />
           ))}
     </div>

@@ -5,14 +5,18 @@ import type { TFunction } from "next-i18next";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { MutableRefObject, RefObject } from "react";
-import { createRef, forwardRef, useRef, useState } from "react";
+import { createRef, forwardRef, useRef, useState, useEffect } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
+import { shallow } from "zustand/shallow";
 
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { AvailableTimeSlots } from "@calcom/features/bookings/Booker/components/AvailableTimeSlots";
 import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
-import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useInitializeBookerStore, useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,7 +37,7 @@ import {
   ColorPicker,
   Select,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
+import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
 
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 type EmbedFramework = "react" | "HTML";
@@ -758,13 +762,25 @@ const ChooseEmbedTypesDialogContent = () => {
   );
 };
 
-const EmailEmbed = ({ eventType }: { eventType?: any }) => {
+const EmailEmbed = ({
+  eventType,
+  selectedDateAndTime,
+  setSelectedDateAndTime,
+  timezone,
+}: {
+  eventType?: any;
+  selectedDateAndTime: any;
+  setSelectedDateAndTime: any;
+  timezone: any;
+}) => {
   const { t } = useLocale();
+
+  const [selectTime, setSelectTime] = useState(true);
 
   const { data } = useSession();
 
   useInitializeBookerStore({
-    username: data?.user.name ?? "",
+    username: data?.user.username ?? "",
     eventSlug: eventType.slug,
     eventId: eventType.id,
     rescheduleUid: null,
@@ -772,25 +788,72 @@ const EmailEmbed = ({ eventType }: { eventType?: any }) => {
     layout: BookerLayouts.MONTH_VIEW,
   });
 
+  const [selectedDates, selectedDate] = useBookerStore(
+    (state) => [state.selectedDates, state.selectedDate],
+    shallow
+  );
+  const [setSelectedDate, setSelectedDates] = useBookerStore(
+    (state) => [state.setSelectedDate, state.setSelectedDates],
+    shallow
+  );
+
+  useEffect(() => {
+    const onMountSelectedDates = selectedDates.filter((date) => selectedDateAndTime[date]?.length > 0);
+    setSelectedDates(onMountSelectedDates);
+  }, []);
+
+  const onChange = (date: Dayjs) => {
+    const formattedDate = date.format("YYYY-MM-DD");
+
+    if (
+      selectedDate &&
+      (!selectedDateAndTime[selectedDate] || selectedDateAndTime[selectedDate].length === 0)
+    ) {
+      const updatedSelectedDates = selectedDates.filter((date) => date !== selectedDate);
+      setSelectedDates([...updatedSelectedDates, formattedDate]);
+      const updatedDateAndTime = { ...selectedDateAndTime };
+      delete updatedDateAndTime[selectedDate];
+      setSelectedDateAndTime(updatedDateAndTime);
+    } else {
+      setSelectedDates([...selectedDates, formattedDate]);
+    }
+
+    setSelectedDate(formattedDate);
+  };
+
   return (
     <div className="flex flex-col">
-      <div className="font-medium">
+      <div className="mb-[9px] font-medium">
         <Collapsible open>
           <CollapsibleContent>
-            <div className="text-default mb-[9px] text-sm">Select Date</div>
-            <DatePicker />
+            <div className="text-default text-sm">Select Date</div>
+            <DatePicker onChange={onChange} />
           </CollapsibleContent>
         </Collapsible>
       </div>
-      <div className="font-medium">
-        <Collapsible open>
-          <CollapsibleContent>
-            <div className="text-default mb-[9px] text-sm">Select Time</div>
-            {false ? <></> : <AvailableTimeSlots />}
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-      <div className="font-medium">
+      {selectedDate ? (
+        <div className="mt-[9px] font-medium ">
+          <Collapsible open>
+            <CollapsibleContent>
+              <div
+                className="text-default mb-[9px] flex cursor-pointer items-center justify-between text-sm"
+                onClick={() => setSelectTime((prev) => !prev)}>
+                <p>Select Time</p>{" "}
+                <>
+                  {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
+                </>
+              </div>
+              {selectTime && selectedDate ? (
+                <AvailableTimeSlots
+                  selectedDateAndTime={selectedDateAndTime}
+                  setSelectedDateAndTime={setSelectedDateAndTime}
+                />
+              ) : null}
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      ) : null}
+      <div className="mb-[9px] font-medium ">
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">Duration</div>
@@ -803,11 +866,11 @@ const EmailEmbed = ({ eventType }: { eventType?: any }) => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-      <div className="font-medium">
+      <div className="mb-[9px] font-medium ">
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">Timezone</div>
-            <TimezoneSelect id="timezone" value="America/Detroit" />
+            <TimezoneSelect id="timezone" value={timezone} isDisabled />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -825,13 +888,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   eventType?: any;
 }) => {
   const { t } = useLocale();
-
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
   const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const contentRef = useRef(null);
+  const [selectedDateAndTime, setSelectedDateAndTime] = useState<{ [key: string]: string[] }>({});
+  const [timeFormat, timezone] = useTimePreferences((state: any) => [state.timeFormat, state.timezone]);
+  const { data } = useSession();
+  const [month] = useBookerStore((state) => [state.month], shallow);
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -958,27 +1024,31 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const EmailsEmbedFooter = () => {
     return (
-      <div className="flex h-full items-center justify-center border font-medium" ref={contentRef}>
-        <div className="border p-4">
+      <div className="flex h-full items-center justify-center border last:font-medium">
+        <div className="max-h-full border bg-white p-4">
           <div
             style={{
               paddingBottom: "3px",
               fontSize: "13px",
               color: "rgb(26, 26, 26)",
-              backgroundColor: "white",
               lineHeight: "1.4",
-              width: "344px",
-            }}>
+              width: "30vw",
+              maxHeight: "60vh",
+              overflowY: "auto",
+              backgroundColor: "white",
+            }}
+            ref={contentRef}>
             <div
               style={{
                 fontStyle: "normal",
+                fontSize: "20px",
                 fontWeight: "bold",
-                fontSize: "16px",
                 lineHeight: "19px",
-                color: "rgb(26, 26, 26)",
+                color: "rgb(51, 51, 51)",
                 marginTop: "15px",
+                marginBottom: "15px",
               }}>
-              Tets
+              <b style={{ color: "rgb(26, 26, 26)" }}> {eventType.title}</b>
             </div>
             <div
               style={{
@@ -988,7 +1058,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 lineHeight: "17px",
                 color: "rgb(51, 51, 51)",
               }}>
-              30 mins
+              Duration: <b style={{ color: "rgb(26, 26, 26)" }}>{eventType.length} mins</b>
             </div>
             <div>
               <b style={{ color: "rgb(26, 26, 26)" }}>
@@ -1000,199 +1070,136 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     lineHeight: "17px",
                     color: "rgb(51, 51, 51)",
                   }}>
-                  Time zone: Kathmandu Time&nbsp;
+                  Time zone: <b style={{ color: "rgb(26, 26, 26)" }}>{timezone}</b>
                 </span>
-                <a
-                  style={{ marginLeft: "3px" }}
-                  href="https://calendly.com/28pradumn/tets?source=email&timezone=Asia%2FKathmandu&timezone_picker=true">
-                  Change
-                </a>
               </b>
             </div>
             <b style={{ color: "rgb(26, 26, 26)" }}>
-              <table
-                style={{
-                  marginTop: "16px",
-                  textAlign: "left",
-                  borderCollapse: "collapse",
-                  borderSpacing: "0px",
-                  width: "362px",
-                }}>
-                <tbody>
-                  <tr>
-                    <td style={{ textAlign: "left", marginTop: "16px" }}>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          lineHeight: "16px",
-                          paddingBottom: "8px",
-                          color: "rgb(26, 26, 26)",
-                          fontWeight: "bold",
-                        }}>
-                        Tuesday, July 18&nbsp;
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
-                        <tbody>
-                          <tr style={{ height: "25px" }}>
-                            <td
+              <>
+                {Object.keys(selectedDateAndTime).map((key) => {
+                  const date = new Date(key);
+                  return (
+                    <table
+                      key={key}
+                      style={{
+                        marginTop: "16px",
+                        textAlign: "left",
+                        borderCollapse: "collapse",
+                        borderSpacing: "0px",
+                      }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ textAlign: "left", marginTop: "16px" }}>
+                            <span
                               style={{
-                                padding: "0px",
-                                width: "64px",
-                                display: "inline-block",
-                                marginRight: "4px",
-                                height: "22px",
-                                float: "left",
-                                border: "1px solid rgb(0, 105, 255)",
-                                borderRadius: "3px",
+                                fontSize: "14px",
+                                lineHeight: "16px",
+                                paddingBottom: "8px",
+                                color: "rgb(26, 26, 26)",
+                                fontWeight: "bold",
                               }}>
-                              <table style={{ height: "21px" }}>
-                                <tbody>
-                                  <tr style={{ height: "21px" }}>
-                                    <td style={{ width: "7px" }} />
-                                    <td
-                                      style={{
-                                        width: "50px",
-                                        textAlign: "center",
-                                        marginRight: "1px",
-                                      }}>
-                                      <a
-                                        href="https://calendly.com/28pradumn/tets/20230718T0500Z?source=email&timezone=Asia%2FKathmandu"
-                                        className="spot"
+                              {date.toLocaleDateString("en-US", {
+                                weekday: "long",
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                              &nbsp;
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                              <tbody>
+                                <tr style={{ height: "25px" }}>
+                                  {selectedDateAndTime[key].map((time) => {
+                                    const bookingURL = `http://localhost:3000/${data?.user.username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                    return (
+                                      <td
+                                        key={time}
                                         style={{
-                                          fontFamily: '"Proxima Nova", sans-serif',
-                                          textDecoration: "none",
-                                          textAlign: "center",
-                                          color: "rgb(0, 105, 255)",
-                                          fontSize: "12px",
-                                          lineHeight: "16px",
+                                          padding: "0px",
+                                          width: "64px",
+                                          display: "inline-block",
+                                          marginRight: "4px",
+                                          height: "22px",
+                                          float: "left",
+                                          border: "1px solid rgb(0, 105, 255)",
+                                          borderRadius: "3px",
                                         }}>
-                                        <b
-                                          style={{
-                                            fontWeight: "normal",
-                                            textDecoration: "none",
-                                          }}>
-                                          10:45am&nbsp;
-                                        </b>
-                                      </a>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </td>
-                            <td
-                              style={{
-                                padding: "0px",
-                                width: "64px",
-                                display: "inline-block",
-                                marginRight: "4px",
-                                height: "22px",
-                                float: "left",
-                                border: "1px solid rgb(0, 105, 255)",
-                                borderRadius: "3px",
-                              }}>
-                              <table style={{ height: "21px" }}>
-                                <tbody>
-                                  <tr style={{ height: "21px" }}>
-                                    <td style={{ width: "7px" }} />
-                                    <td
-                                      style={{
-                                        width: "50px",
-                                        textAlign: "center",
-                                        marginRight: "1px",
-                                      }}>
-                                      <a
-                                        href="https://calendly.com/28pradumn/tets/20230718T0530Z?source=email&timezone=Asia%2FKathmandu"
-                                        className="spot"
-                                        style={{
-                                          fontFamily: '"Proxima Nova", sans-serif',
-                                          textDecoration: "none",
-                                          textAlign: "center",
-                                          color: "rgb(0, 105, 255)",
-                                          fontSize: "12px",
-                                          lineHeight: "16px",
-                                        }}>
-                                        <b
-                                          style={{
-                                            fontWeight: "normal",
-                                            textDecoration: "none",
-                                          }}>
-                                          11:15am&nbsp;
-                                        </b>
-                                      </a>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </td>
-                            <td
-                              style={{
-                                padding: "0px",
-                                width: "64px",
-                                display: "inline-block",
-                                marginRight: "4px",
-                                height: "22px",
-                                float: "left",
-                                border: "1px solid rgb(0, 105, 255)",
-                                borderRadius: "3px",
-                              }}>
-                              <table style={{ height: "21px" }}>
-                                <tbody>
-                                  <tr style={{ height: "21px" }}>
-                                    <td style={{ width: "7px" }} />
-                                    <td
-                                      style={{
-                                        width: "50px",
-                                        textAlign: "center",
-                                        marginRight: "1px",
-                                      }}>
-                                      <a
-                                        href="https://calendly.com/28pradumn/tets/20230718T0600Z?source=email&timezone=Asia%2FKathmandu"
-                                        className="spot"
-                                        style={{
-                                          fontFamily: '"Proxima Nova", sans-serif',
-                                          textDecoration: "none",
-                                          textAlign: "center",
-                                          color: "rgb(0, 105, 255)",
-                                          fontSize: "12px",
-                                          lineHeight: "16px",
-                                        }}>
-                                        <b
-                                          style={{
-                                            fontWeight: "normal",
-                                            textDecoration: "none",
-                                          }}>
-                                          11:45am&nbsp;
-                                        </b>
-                                      </a>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div style={{ marginTop: "13px" }}>
-                <a
-                  className="more"
-                  href="https://calendly.com/28pradumn/tets?source=email&timezone=Asia%2FKathmandu"
-                  style={{
-                    textDecoration: "none",
-                    cursor: "pointer",
-                    color: "rgb(0, 105, 255)",
-                  }}>
-                  See all available times
-                </a>
-              </div>
+                                        <table style={{ height: "21px" }}>
+                                          <tbody>
+                                            <tr style={{ height: "21px" }}>
+                                              <td style={{ width: "7px" }} />
+                                              <td
+                                                style={{
+                                                  width: "50px",
+                                                  textAlign: "center",
+                                                  marginRight: "1px",
+                                                }}>
+                                                <a
+                                                  href={bookingURL}
+                                                  className="spot"
+                                                  style={{
+                                                    fontFamily: '"Proxima Nova", sans-serif',
+                                                    textDecoration: "none",
+                                                    textAlign: "center",
+                                                    color: "rgb(0, 105, 255)",
+                                                    fontSize: "12px",
+                                                    lineHeight: "16px",
+                                                  }}>
+                                                  <b
+                                                    style={{
+                                                      fontWeight: "normal",
+                                                      textDecoration: "none",
+                                                    }}>
+                                                    {dayjs.utc(time).tz(timezone).format(timeFormat)}&nbsp;
+                                                  </b>
+                                                </a>
+                                              </td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  );
+                })}
+                <div style={{ marginTop: "13px" }}>
+                  <a
+                    className="more"
+                    href={`http://localhost:3000/${data?.user.username}/${eventType.slug}`}
+                    style={{
+                      textDecoration: "none",
+                      cursor: "pointer",
+                      color: "rgb(0, 105, 255)",
+                    }}>
+                    See all available times
+                  </a>
+                </div>
+              </>
             </b>
+            <div className="w-full" />
+            <div
+              className="w-full text-right"
+              style={{
+                borderTop: "1px solid var(--color-grey-3, #CCCCCC)",
+                marginTop: "8px",
+                paddingTop: "8px",
+              }}>
+              <span>powered by</span>{" "}
+              <b style={{ color: "rgb(26, 26, 26)" }}>
+                <span> Cal.com</span>
+              </b>
+            </div>
           </div>
           <b style={{ color: "rgb(26, 26, 26)" }} />
         </div>
@@ -1243,13 +1250,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent
-      ref={dialogContentRef}
-      className="overflow-y-scroll rounded-lg p-0.5 sm:max-w-[80rem]"
-      // enableOverflow
-      type="creation">
-      <div className="flex max-h-[90%]">
-        <div className="bg-muted flex h-full w-1/3 flex-col overflow-y-scroll p-8">
+    <DialogContent ref={dialogContentRef} className="rounded-lg p-0.5 sm:max-w-[80rem]" type="creation">
+      <div className="flex">
+        <div className="bg-muted flex h-[90vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -1264,7 +1267,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           {embedType === "email" ? (
-            <EmailEmbed eventType={eventType} />
+            <EmailEmbed
+              eventType={eventType}
+              selectedDateAndTime={selectedDateAndTime}
+              setSelectedDateAndTime={setSelectedDateAndTime}
+              timezone={timezone}
+            />
           ) : (
             <div className="flex flex-col">
               <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
@@ -1541,7 +1549,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flex h-full w-2/3 flex-col overflow-hidden p-8">
+        <div className="flex h-[90vh] w-2/3 flex-col overflow-y-auto p-8">
           <HorizontalTabs
             data-testid="embed-tabs"
             tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
@@ -1617,7 +1625,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       handleCopyText();
                       showToast(t("code_copied"), "success");
                     }}>
-                    {t("copy_code")}
+                    {embedType === "email" ? t("copy") : t("copy_code")}
                   </Button>
                 </DialogFooter>
               </div>

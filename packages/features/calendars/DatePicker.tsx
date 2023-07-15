@@ -1,6 +1,9 @@
+import { shallow } from "zustand/shallow";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -138,6 +141,19 @@ const Days = ({
     days.push(date);
   }
 
+  const [selectedDates] = useBookerStore((state) => [state.selectedDates], shallow);
+
+  const isActive = (day: any) => {
+    if (selectedDates && selectedDates.length > 0) {
+      return selectedDates.some((date) => {
+        return yyyymmdd(dayjs(date)) === yyyymmdd(day);
+      });
+    }
+
+    if (selected) return yyyymmdd(selected) === yyyymmdd(day);
+    return false;
+  };
+
   return (
     <>
       {days.map((day, idx) => (
@@ -161,7 +177,7 @@ const Days = ({
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
               }
-              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+              active={isActive(day)}
             />
           )}
         </div>
