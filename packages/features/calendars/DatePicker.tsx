@@ -35,6 +35,8 @@ export type DatePickerProps = {
   className?: string;
   /** Shows a small loading spinner next to the month name */
   isLoading?: boolean;
+  /** used to query the multiple selected dates */
+  eventSlug?: string;
 };
 
 export const Day = ({
@@ -103,6 +105,7 @@ const Days = ({
   selected,
   month,
   nextMonthButton,
+  eventSlug,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -141,17 +144,25 @@ const Days = ({
     days.push(date);
   }
 
-  const [selectedDates] = useBookerStore((state) => [state.selectedDates], shallow);
+  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
-  const isActive = (day: any) => {
+  const isActive = (day: dayjs.Dayjs) => {
+    if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
+      return true;
+    }
+
     // for multiple dates select
-    if (selectedDates && selectedDates.length > 0) {
-      return selectedDates.some((date) => {
+    if (
+      eventSlug &&
+      selectedDatesAndTimes &&
+      selectedDatesAndTimes[eventSlug as string] &&
+      Object.keys(selectedDatesAndTimes[eventSlug as string]).length > 0
+    ) {
+      return Object.keys(selectedDatesAndTimes[eventSlug as string]).some((date) => {
         return yyyymmdd(dayjs(date)) === yyyymmdd(day);
       });
     }
 
-    if (selected) return yyyymmdd(selected) === yyyymmdd(day);
     return false;
   };
 

@@ -65,8 +65,11 @@ export type BookerStore = {
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
   addToSelectedDate: (days: number) => void;
-  selectedDates: string[];
-  setSelectedDates: (dates: string[]) => void;
+  /**
+   * Multiple Selected Dates and Times
+   */
+  selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } } | null;
+  setSelectedDatesAndTimes: (selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } }) => void;
   /**
    * Selected event duration in minutes.
    */
@@ -145,9 +148,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       updateQueryParam("month", newSelection.format("YYYY-MM"));
     }
   },
-  selectedDates: [],
-  setSelectedDates: (selectedDates: string[]) => {
-    set({ selectedDates });
+  selectedDatesAndTimes: null,
+  setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
+    set({ selectedDatesAndTimes });
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);

@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-export const DatePicker = ({ onMultipleDatesSelect }: { onMultipleDatesSelect?: (date: Dayjs) => void }) => {
+export const DatePicker = ({ eventSlug }: { eventSlug?: string }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth] = useBookerStore(
@@ -24,9 +24,7 @@ export const DatePicker = ({ onMultipleDatesSelect }: { onMultipleDatesSelect?: 
   return (
     <DatePickerComponent
       isLoading={schedule.isLoading}
-      onChange={(date: Dayjs) =>
-        onMultipleDatesSelect ? onMultipleDatesSelect(date) : setSelectedDate(date.format("YYYY-MM-DD"))
-      }
+      onChange={(date: Dayjs) => setSelectedDate(date.format("YYYY-MM-DD"))}
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
@@ -36,6 +34,7 @@ export const DatePicker = ({ onMultipleDatesSelect }: { onMultipleDatesSelect?: 
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+      eventSlug={eventSlug}
     />
   );
 };

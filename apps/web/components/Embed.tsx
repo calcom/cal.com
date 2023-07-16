@@ -4,14 +4,12 @@ import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
-import type { MutableRefObject, RefObject, Dispatch, SetStateAction } from "react";
-import { useEffect } from "react";
+import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimeSlots } from "@calcom/features/bookings/Booker/components/AvailableTimeSlots";
 import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
@@ -770,69 +768,21 @@ const ChooseEmbedTypesDialogContent = () => {
   );
 };
 
-const EmailEmbed = ({
-  eventType,
-  selectedDateAndTime,
-  setSelectedDateAndTime,
-  timezone,
-}: {
-  eventType?: any;
-  selectedDateAndTime: { [key: string]: string[] };
-  setSelectedDateAndTime: Dispatch<
-    SetStateAction<{
-      [key: string]: string[];
-    }>
-  >;
-  timezone: string;
-}) => {
+const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string }) => {
   const { t } = useLocale();
+
+  const [timezone] = useTimePreferences((state: any) => [state.timezone]);
 
   const [selectTime, setSelectTime] = useState(false);
 
-  const { data } = useSession();
-
   useInitializeBookerStore({
-    username: data?.user.username ?? "",
+    username,
     eventSlug: eventType.slug,
     eventId: eventType.id,
     layout: BookerLayouts.MONTH_VIEW,
   });
 
-  const [selectedDates, selectedDate] = useBookerStore(
-    (state) => [state.selectedDates, state.selectedDate],
-    shallow
-  );
-  const [setSelectedDate, setSelectedDates] = useBookerStore(
-    (state) => [state.setSelectedDate, state.setSelectedDates],
-    shallow
-  );
-
-  const onMultipleDatesSelect = (date: Dayjs) => {
-    const formattedDate = date.format("YYYY-MM-DD");
-
-    if (
-      selectedDate &&
-      (!selectedDateAndTime[selectedDate] || selectedDateAndTime[selectedDate].length === 0)
-    ) {
-      const updatedSelectedDates = selectedDates.filter((date: string) => date !== selectedDate);
-      setSelectedDates([...updatedSelectedDates, formattedDate]);
-      const updatedDateAndTime = { ...selectedDateAndTime };
-      delete updatedDateAndTime[selectedDate];
-      setSelectedDateAndTime(updatedDateAndTime);
-    } else {
-      setSelectedDates([...selectedDates, formattedDate]);
-    }
-
-    setSelectedDate(formattedDate);
-  };
-
-  // used to sync the local and stored state on mount
-  useEffect(() => {
-    const onMountSelectedDates = selectedDates.filter(
-      (date: string) => selectedDateAndTime[date]?.length > 0
-    );
-    setSelectedDates(onMountSelectedDates);
-  }, []);
+  const [selectedDate] = useBookerStore((state) => [state.selectedDate], shallow);
 
   return (
     <div className="flex flex-col">
@@ -840,7 +790,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
-            <DatePicker onMultipleDatesSelect={onMultipleDatesSelect} />
+            <DatePicker eventSlug={eventType.slug} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -856,12 +806,7 @@ const EmailEmbed = ({
                   {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
                 </>
               </div>
-              {selectTime && selectedDate ? (
-                <AvailableTimeSlots
-                  selectedDateAndTime={selectedDateAndTime}
-                  setSelectedDateAndTime={setSelectedDateAndTime}
-                />
-              ) : null}
+              {selectTime && selectedDate ? <AvailableTimeSlots eventSlug={eventType.slug} /> : null}
             </CollapsibleContent>
           </Collapsible>
         </div>
@@ -891,6 +836,206 @@ const EmailEmbed = ({
   );
 };
 
+const EmailEmbedPreview = ({
+  eventType,
+  emailContentRef,
+  username,
+  month,
+  selectedDateAndTime,
+}: {
+  eventType: any;
+  timezone?: string;
+  emailContentRef: any;
+  username?: string;
+  month?: string;
+  selectedDateAndTime: { [key: string]: string[] };
+}) => {
+  const [timeFormat, timezone] = useTimePreferences((state: any) => [state.timeFormat, state.timezone]);
+
+  return (
+    <div className="flex h-full items-center justify-center border last:font-medium">
+      <div className="m-5 max-h-full border bg-white p-4">
+        <div
+          style={{
+            paddingBottom: "3px",
+            fontSize: "13px",
+            color: "black",
+            lineHeight: "1.4",
+            minWidth: "30vw",
+            maxHeight: "60vh",
+            overflowY: "auto",
+            backgroundColor: "white",
+          }}
+          ref={emailContentRef}>
+          <div
+            style={{
+              fontStyle: "normal",
+              fontSize: "20px",
+              fontWeight: "bold",
+              lineHeight: "19px",
+              marginTop: "15px",
+              marginBottom: "15px",
+            }}>
+            <b style={{ color: "black" }}> {eventType.title}</b>
+          </div>
+          <div
+            style={{
+              fontStyle: "normal",
+              fontWeight: "normal",
+              fontSize: "14px",
+              lineHeight: "17px",
+              color: "#333333",
+            }}>
+            Duration: <b style={{ color: "black" }}>{eventType.length} mins</b>
+          </div>
+          <div>
+            <b style={{ color: "black" }}>
+              <span
+                style={{
+                  fontStyle: "normal",
+                  fontWeight: "normal",
+                  fontSize: "14px",
+                  lineHeight: "17px",
+                  color: "#333333",
+                }}>
+                Time zone: <b style={{ color: "black" }}>{timezone}</b>
+              </span>
+            </b>
+          </div>
+          <b style={{ color: "black" }}>
+            <>
+              {selectedDateAndTime &&
+                Object.keys(selectedDateAndTime).map((key) => {
+                  const date = new Date(key);
+                  return (
+                    <table
+                      key={key}
+                      style={{
+                        marginTop: "16px",
+                        textAlign: "left",
+                        borderCollapse: "collapse",
+                        borderSpacing: "0px",
+                      }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ textAlign: "left", marginTop: "16px" }}>
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "16px",
+                                paddingBottom: "8px",
+                                color: "rgb(26, 26, 26)",
+                                fontWeight: "bold",
+                              }}>
+                              {date.toLocaleDateString("en-US", {
+                                weekday: "long",
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                              &nbsp;
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                              <tbody>
+                                <tr style={{ height: "25px" }}>
+                                  {selectedDateAndTime[key]?.length > 0 &&
+                                    selectedDateAndTime[key].map((time) => {
+                                      const bookingURL = `http://localhost:3000/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                      return (
+                                        <td
+                                          key={time}
+                                          style={{
+                                            padding: "0px",
+                                            width: "64px",
+                                            display: "inline-block",
+                                            marginRight: "4px",
+                                            height: "22px",
+                                            float: "left",
+                                            border: "1px solid blue",
+                                            borderRadius: "3px",
+                                          }}>
+                                          <table style={{ height: "21px" }}>
+                                            <tbody>
+                                              <tr style={{ height: "21px" }}>
+                                                <td style={{ width: "7px" }} />
+                                                <td
+                                                  style={{
+                                                    width: "50px",
+                                                    textAlign: "center",
+                                                    marginRight: "1px",
+                                                  }}>
+                                                  <a
+                                                    href={bookingURL}
+                                                    className="spot"
+                                                    style={{
+                                                      fontFamily: '"Proxima Nova", sans-serif',
+                                                      textDecoration: "none",
+                                                      textAlign: "center",
+                                                      color: "blue",
+                                                      fontSize: "12px",
+                                                      lineHeight: "16px",
+                                                    }}>
+                                                    <b
+                                                      style={{
+                                                        fontWeight: "normal",
+                                                        textDecoration: "none",
+                                                      }}>
+                                                      {dayjs.utc(time).tz(timezone).format(timeFormat)}&nbsp;
+                                                    </b>
+                                                  </a>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                        </td>
+                                      );
+                                    })}
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  );
+                })}
+              <div style={{ marginTop: "13px" }}>
+                <a
+                  className="more"
+                  href={`http://localhost:3000/${username}/${eventType.slug}`}
+                  style={{
+                    textDecoration: "none",
+                    cursor: "pointer",
+                    color: "blue",
+                  }}>
+                  See all available times
+                </a>
+              </div>
+            </>
+          </b>
+          <div
+            className="w-full text-right"
+            style={{
+              borderTop: "1px solid #CCCCCC",
+              marginTop: "8px",
+              paddingTop: "8px",
+            }}>
+            <span>powered by</span>{" "}
+            <b style={{ color: "black" }}>
+              <span> Cal.com</span>
+            </b>
+          </div>
+        </div>
+        <b style={{ color: "black" }} />
+      </div>
+    </div>
+  );
+};
+
 const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
@@ -905,10 +1050,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const flags = useFlagMap();
   const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
-  const [selectedDateAndTime, setSelectedDateAndTime] = useState<{ [key: string]: string[] }>({});
-  const [timeFormat, timezone] = useTimePreferences((state: any) => [state.timeFormat, state.timezone]);
   const { data } = useSession();
-  const [month] = useBookerStore((state) => [state.month], shallow);
+  const [month, selectedDatesAndTimes, setSelectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDatesAndTimes, state.setSelectedDatesAndTimes],
+    shallow
+  );
   const eventId = getQueryParam("eventId");
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
@@ -1034,191 +1180,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     }
   };
 
-  const EmailEmbedPreview = () => {
-    if (!eventTypeData?.eventType) return null;
-
-    return (
-      <div className="flex h-full items-center justify-center border last:font-medium">
-        <div className="m-5 max-h-full border bg-white p-4">
-          <div
-            style={{
-              paddingBottom: "3px",
-              fontSize: "13px",
-              color: "black",
-              lineHeight: "1.4",
-              minWidth: "30vw",
-              maxHeight: "60vh",
-              overflowY: "auto",
-              backgroundColor: "white",
-            }}
-            ref={emailContentRef}>
-            <div
-              style={{
-                fontStyle: "normal",
-                fontSize: "20px",
-                fontWeight: "bold",
-                lineHeight: "19px",
-                marginTop: "15px",
-                marginBottom: "15px",
-              }}>
-              <b style={{ color: "black" }}> {eventTypeData?.eventType.title}</b>
-            </div>
-            <div
-              style={{
-                fontStyle: "normal",
-                fontWeight: "normal",
-                fontSize: "14px",
-                lineHeight: "17px",
-                color: "#333333",
-              }}>
-              Duration: <b style={{ color: "black" }}>{eventTypeData?.eventType.length} mins</b>
-            </div>
-            <div>
-              <b style={{ color: "black" }}>
-                <span
-                  style={{
-                    fontStyle: "normal",
-                    fontWeight: "normal",
-                    fontSize: "14px",
-                    lineHeight: "17px",
-                    color: "#333333",
-                  }}>
-                  Time zone: <b style={{ color: "black" }}>{timezone}</b>
-                </span>
-              </b>
-            </div>
-            <b style={{ color: "black" }}>
-              <>
-                {Object.keys(selectedDateAndTime).map((key) => {
-                  const date = new Date(key);
-                  return (
-                    <table
-                      key={key}
-                      style={{
-                        marginTop: "16px",
-                        textAlign: "left",
-                        borderCollapse: "collapse",
-                        borderSpacing: "0px",
-                      }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ textAlign: "left", marginTop: "16px" }}>
-                            <span
-                              style={{
-                                fontSize: "14px",
-                                lineHeight: "16px",
-                                paddingBottom: "8px",
-                                color: "rgb(26, 26, 26)",
-                                fontWeight: "bold",
-                              }}>
-                              {date.toLocaleDateString("en-US", {
-                                weekday: "long",
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                              &nbsp;
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
-                              <tbody>
-                                <tr style={{ height: "25px" }}>
-                                  {selectedDateAndTime[key].map((time) => {
-                                    const bookingURL = `http://localhost:3000/${data?.user.username}/${eventTypeData?.eventType.slug}?duration=${eventTypeData?.eventType.length}&date=${key}&month=${month}&slot=${time}`;
-                                    return (
-                                      <td
-                                        key={time}
-                                        style={{
-                                          padding: "0px",
-                                          width: "64px",
-                                          display: "inline-block",
-                                          marginRight: "4px",
-                                          height: "22px",
-                                          float: "left",
-                                          border: "1px solid blue",
-                                          borderRadius: "3px",
-                                        }}>
-                                        <table style={{ height: "21px" }}>
-                                          <tbody>
-                                            <tr style={{ height: "21px" }}>
-                                              <td style={{ width: "7px" }} />
-                                              <td
-                                                style={{
-                                                  width: "50px",
-                                                  textAlign: "center",
-                                                  marginRight: "1px",
-                                                }}>
-                                                <a
-                                                  href={bookingURL}
-                                                  className="spot"
-                                                  style={{
-                                                    fontFamily: '"Proxima Nova", sans-serif',
-                                                    textDecoration: "none",
-                                                    textAlign: "center",
-                                                    color: "blue",
-                                                    fontSize: "12px",
-                                                    lineHeight: "16px",
-                                                  }}>
-                                                  <b
-                                                    style={{
-                                                      fontWeight: "normal",
-                                                      textDecoration: "none",
-                                                    }}>
-                                                    {dayjs.utc(time).tz(timezone).format(timeFormat)}&nbsp;
-                                                  </b>
-                                                </a>
-                                              </td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              </tbody>
-                            </table>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  );
-                })}
-                <div style={{ marginTop: "13px" }}>
-                  <a
-                    className="more"
-                    href={`http://localhost:3000/${data?.user.username}/${eventTypeData?.eventType.slug}`}
-                    style={{
-                      textDecoration: "none",
-                      cursor: "pointer",
-                      color: "blue",
-                    }}>
-                    See all available times
-                  </a>
-                </div>
-              </>
-            </b>
-            <div
-              className="w-full text-right"
-              style={{
-                borderTop: "1px solid #CCCCCC",
-                marginTop: "8px",
-                paddingTop: "8px",
-              }}>
-              <span>powered by</span>{" "}
-              <b style={{ color: "black" }}>
-                <span> Cal.com</span>
-              </b>
-            </div>
-          </div>
-          <b style={{ color: "black" }} />
-        </div>
-      </div>
-    );
-  };
-
   if (embedType === "floating-popup") {
     previewInstruction({
       name: "floatingButton",
@@ -1279,12 +1240,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           {eventTypeData?.eventType && embedType === "email" ? (
-            <EmailEmbed
-              eventType={eventTypeData?.eventType}
-              selectedDateAndTime={selectedDateAndTime}
-              setSelectedDateAndTime={setSelectedDateAndTime}
-              timezone={timezone}
-            />
+            <EmailEmbed eventType={eventTypeData?.eventType} username={data?.user.username as string} />
           ) : (
             <div className="flex flex-col">
               <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
@@ -1625,7 +1581,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             return (
               <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
                 <div className="flex h-[55vh] flex-grow flex-col">
-                  <EmailEmbedPreview />
+                  <EmailEmbedPreview
+                    eventType={eventTypeData?.eventType}
+                    emailContentRef={emailContentRef}
+                    username={data?.user.username as string}
+                    month={month as string}
+                    selectedDateAndTime={
+                      selectedDatesAndTimes
+                        ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
+                        : {}
+                    }
+                  />
                 </div>
                 <DialogFooter
                   className="mt-10 flex flex-row-reverse gap-x-2"
