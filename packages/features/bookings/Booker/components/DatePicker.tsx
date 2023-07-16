@@ -24,7 +24,9 @@ export const DatePicker = ({ eventSlug }: { eventSlug?: string }) => {
   return (
     <DatePickerComponent
       isLoading={schedule.isLoading}
-      onChange={(date: Dayjs) => setSelectedDate(date.format("YYYY-MM-DD"))}
+      onChange={(date: Dayjs) => {
+        setSelectedDate(date.format("YYYY-MM-DD"));
+      }}
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));

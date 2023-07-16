@@ -771,14 +771,14 @@ const ChooseEmbedTypesDialogContent = () => {
 const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string }) => {
   const { t } = useLocale();
 
-  const [timezone] = useTimePreferences((state: any) => [state.timezone]);
+  const [timezone] = useTimePreferences((state) => [state.timezone]);
 
   const [selectTime, setSelectTime] = useState(false);
 
   useInitializeBookerStore({
     username,
-    eventSlug: eventType.slug,
-    eventId: eventType.id,
+    eventSlug: eventType?.slug ?? "",
+    eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
   });
 
@@ -790,7 +790,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
-            <DatePicker eventSlug={eventType.slug} />
+            <DatePicker eventSlug={eventType?.slug} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -806,7 +806,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
                   {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
                 </>
               </div>
-              {selectTime && selectedDate ? <AvailableTimeSlots eventSlug={eventType.slug} /> : null}
+              {selectTime && selectedDate ? <AvailableTimeSlots eventSlug={eventType?.slug} /> : null}
             </CollapsibleContent>
           </Collapsible>
         </div>
@@ -818,7 +818,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
             <TextField
               disabled
               label={t("duration")}
-              defaultValue={eventType.length ?? 15}
+              defaultValue={eventType?.length ?? 15}
               addOnSuffix={<>{t("minutes")}</>}
             />
           </CollapsibleContent>
@@ -845,12 +845,12 @@ const EmailEmbedPreview = ({
 }: {
   eventType: any;
   timezone?: string;
-  emailContentRef: any;
+  emailContentRef: RefObject<HTMLDivElement>;
   username?: string;
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
 }) => {
-  const [timeFormat, timezone] = useTimePreferences((state: any) => [state.timeFormat, state.timezone]);
+  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
 
   return (
     <div className="flex h-full items-center justify-center border last:font-medium">
