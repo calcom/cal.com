@@ -99,7 +99,10 @@ export const AvailableTimes = ({
               data-disabled={bookingFull}
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)}
-              className="min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-col justify-center py-2"
+              className={classNames(
+                "min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-col justify-center py-2",
+                selectedSlots?.includes(slot.time) && "border-brand-default"
+              )}
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}

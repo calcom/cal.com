@@ -144,6 +144,7 @@ const Days = ({
   const [selectedDates] = useBookerStore((state) => [state.selectedDates], shallow);
 
   const isActive = (day: any) => {
+    // for multiple dates select
     if (selectedDates && selectedDates.length > 0) {
       return selectedDates.some((date) => {
         return yyyymmdd(dayjs(date)) === yyyymmdd(day);

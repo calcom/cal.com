@@ -4,8 +4,9 @@ import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
-import type { MutableRefObject, RefObject } from "react";
-import { createRef, forwardRef, useRef, useState, useEffect } from "react";
+import type { MutableRefObject, RefObject, Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
+import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
@@ -21,6 +22,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import { TimezoneSelect } from "@calcom/ui";
 import {
   Button,
@@ -97,6 +99,12 @@ const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
   });
 
   router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
+};
+
+const getQueryParam = (queryParam: string) => {
+  const params = new URLSearchParams(window.location.search);
+
+  return params.get(queryParam);
 };
 
 /**
@@ -562,8 +570,8 @@ const embeds = (t: TFunction) =>
         ),
       },
       {
-        title: "Email embed",
-        subtitle: "Add to your emails",
+        title: t("email_embed"),
+        subtitle: t("add_times_to_your_email"),
         type: "email",
         illustration: (
           <svg
@@ -769,13 +777,17 @@ const EmailEmbed = ({
   timezone,
 }: {
   eventType?: any;
-  selectedDateAndTime: any;
-  setSelectedDateAndTime: any;
-  timezone: any;
+  selectedDateAndTime: { [key: string]: string[] };
+  setSelectedDateAndTime: Dispatch<
+    SetStateAction<{
+      [key: string]: string[];
+    }>
+  >;
+  timezone: string;
 }) => {
   const { t } = useLocale();
 
-  const [selectTime, setSelectTime] = useState(true);
+  const [selectTime, setSelectTime] = useState(false);
 
   const { data } = useSession();
 
@@ -783,8 +795,6 @@ const EmailEmbed = ({
     username: data?.user.username ?? "",
     eventSlug: eventType.slug,
     eventId: eventType.id,
-    rescheduleUid: null,
-    rescheduleBooking: null,
     layout: BookerLayouts.MONTH_VIEW,
   });
 
@@ -797,19 +807,14 @@ const EmailEmbed = ({
     shallow
   );
 
-  useEffect(() => {
-    const onMountSelectedDates = selectedDates.filter((date) => selectedDateAndTime[date]?.length > 0);
-    setSelectedDates(onMountSelectedDates);
-  }, []);
-
-  const onChange = (date: Dayjs) => {
+  const onMultipleDatesSelect = (date: Dayjs) => {
     const formattedDate = date.format("YYYY-MM-DD");
 
     if (
       selectedDate &&
       (!selectedDateAndTime[selectedDate] || selectedDateAndTime[selectedDate].length === 0)
     ) {
-      const updatedSelectedDates = selectedDates.filter((date) => date !== selectedDate);
+      const updatedSelectedDates = selectedDates.filter((date: string) => date !== selectedDate);
       setSelectedDates([...updatedSelectedDates, formattedDate]);
       const updatedDateAndTime = { ...selectedDateAndTime };
       delete updatedDateAndTime[selectedDate];
@@ -821,13 +826,21 @@ const EmailEmbed = ({
     setSelectedDate(formattedDate);
   };
 
+  // used to sync the local and stored state on mount
+  useEffect(() => {
+    const onMountSelectedDates = selectedDates.filter(
+      (date: string) => selectedDateAndTime[date]?.length > 0
+    );
+    setSelectedDates(onMountSelectedDates);
+  }, []);
+
   return (
     <div className="flex flex-col">
       <div className="mb-[9px] font-medium">
         <Collapsible open>
           <CollapsibleContent>
-            <div className="text-default text-sm">Select Date</div>
-            <DatePicker onChange={onChange} />
+            <div className="text-default text-sm">{t("select_date")}</div>
+            <DatePicker onMultipleDatesSelect={onMultipleDatesSelect} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -838,7 +851,7 @@ const EmailEmbed = ({
               <div
                 className="text-default mb-[9px] flex cursor-pointer items-center justify-between text-sm"
                 onClick={() => setSelectTime((prev) => !prev)}>
-                <p>Select Time</p>{" "}
+                <p>{t("select_time")}</p>{" "}
                 <>
                   {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
                 </>
@@ -881,11 +894,9 @@ const EmailEmbed = ({
 const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
-  eventType,
 }: {
   embedType: EmbedType;
   embedUrl: string;
-  eventType?: any;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -893,11 +904,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
   const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
-  const contentRef = useRef(null);
+  const emailContentRef = useRef<HTMLDivElement>(null);
   const [selectedDateAndTime, setSelectedDateAndTime] = useState<{ [key: string]: string[] }>({});
   const [timeFormat, timezone] = useTimePreferences((state: any) => [state.timeFormat, state.timezone]);
   const { data } = useSession();
   const [month] = useBookerStore((state) => [state.month], shallow);
+  const eventId = getQueryParam("eventId");
+  const calLink = decodeURIComponent(embedUrl);
+  const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
+    { id: parseInt(eventId as string) },
+    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+  );
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -948,8 +965,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     close();
     return null;
   }
-
-  const calLink = decodeURIComponent(embedUrl);
 
   const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
@@ -1002,53 +1017,51 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   });
 
-  const handleCopyText = () => {
-    const contentElement = contentRef.current;
+  const handleCopyEmailText = () => {
+    const contentElement = emailContentRef.current;
     if (contentElement !== null) {
-      try {
-        const range = document.createRange();
-        range.selectNode(contentElement);
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(range);
-          document.execCommand("copy");
-          selection.removeAllRanges();
-        }
-        console.log("Text copied to clipboard");
-      } catch (err) {
-        console.log(err);
+      const range = document.createRange();
+      range.selectNode(contentElement);
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("copy");
+        selection.removeAllRanges();
       }
+
+      showToast(t("code_copied"), "success");
     }
   };
 
-  const EmailsEmbedFooter = () => {
+  const EmailEmbedPreview = () => {
+    if (!eventTypeData?.eventType) return null;
+
     return (
       <div className="flex h-full items-center justify-center border last:font-medium">
-        <div className="max-h-full border bg-white p-4">
+        <div className="m-5 max-h-full border bg-white p-4">
           <div
             style={{
               paddingBottom: "3px",
               fontSize: "13px",
-              color: "rgb(26, 26, 26)",
+              color: "black",
               lineHeight: "1.4",
-              width: "30vw",
+              minWidth: "30vw",
               maxHeight: "60vh",
               overflowY: "auto",
               backgroundColor: "white",
             }}
-            ref={contentRef}>
+            ref={emailContentRef}>
             <div
               style={{
                 fontStyle: "normal",
                 fontSize: "20px",
                 fontWeight: "bold",
                 lineHeight: "19px",
-                color: "rgb(51, 51, 51)",
                 marginTop: "15px",
                 marginBottom: "15px",
               }}>
-              <b style={{ color: "rgb(26, 26, 26)" }}> {eventType.title}</b>
+              <b style={{ color: "black" }}> {eventTypeData?.eventType.title}</b>
             </div>
             <div
               style={{
@@ -1056,25 +1069,25 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 fontWeight: "normal",
                 fontSize: "14px",
                 lineHeight: "17px",
-                color: "rgb(51, 51, 51)",
+                color: "#333333",
               }}>
-              Duration: <b style={{ color: "rgb(26, 26, 26)" }}>{eventType.length} mins</b>
+              Duration: <b style={{ color: "black" }}>{eventTypeData?.eventType.length} mins</b>
             </div>
             <div>
-              <b style={{ color: "rgb(26, 26, 26)" }}>
+              <b style={{ color: "black" }}>
                 <span
                   style={{
                     fontStyle: "normal",
                     fontWeight: "normal",
                     fontSize: "14px",
                     lineHeight: "17px",
-                    color: "rgb(51, 51, 51)",
+                    color: "#333333",
                   }}>
-                  Time zone: <b style={{ color: "rgb(26, 26, 26)" }}>{timezone}</b>
+                  Time zone: <b style={{ color: "black" }}>{timezone}</b>
                 </span>
               </b>
             </div>
-            <b style={{ color: "rgb(26, 26, 26)" }}>
+            <b style={{ color: "black" }}>
               <>
                 {Object.keys(selectedDateAndTime).map((key) => {
                   const date = new Date(key);
@@ -1114,7 +1127,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               <tbody>
                                 <tr style={{ height: "25px" }}>
                                   {selectedDateAndTime[key].map((time) => {
-                                    const bookingURL = `http://localhost:3000/${data?.user.username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                    const bookingURL = `http://localhost:3000/${data?.user.username}/${eventTypeData?.eventType.slug}?duration=${eventTypeData?.eventType.length}&date=${key}&month=${month}&slot=${time}`;
                                     return (
                                       <td
                                         key={time}
@@ -1125,7 +1138,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                                           marginRight: "4px",
                                           height: "22px",
                                           float: "left",
-                                          border: "1px solid rgb(0, 105, 255)",
+                                          border: "1px solid blue",
                                           borderRadius: "3px",
                                         }}>
                                         <table style={{ height: "21px" }}>
@@ -1145,7 +1158,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                                                     fontFamily: '"Proxima Nova", sans-serif',
                                                     textDecoration: "none",
                                                     textAlign: "center",
-                                                    color: "rgb(0, 105, 255)",
+                                                    color: "blue",
                                                     fontSize: "12px",
                                                     lineHeight: "16px",
                                                   }}>
@@ -1176,32 +1189,31 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 <div style={{ marginTop: "13px" }}>
                   <a
                     className="more"
-                    href={`http://localhost:3000/${data?.user.username}/${eventType.slug}`}
+                    href={`http://localhost:3000/${data?.user.username}/${eventTypeData?.eventType.slug}`}
                     style={{
                       textDecoration: "none",
                       cursor: "pointer",
-                      color: "rgb(0, 105, 255)",
+                      color: "blue",
                     }}>
                     See all available times
                   </a>
                 </div>
               </>
             </b>
-            <div className="w-full" />
             <div
               className="w-full text-right"
               style={{
-                borderTop: "1px solid var(--color-grey-3, #CCCCCC)",
+                borderTop: "1px solid #CCCCCC",
                 marginTop: "8px",
                 paddingTop: "8px",
               }}>
               <span>powered by</span>{" "}
-              <b style={{ color: "rgb(26, 26, 26)" }}>
+              <b style={{ color: "black" }}>
                 <span> Cal.com</span>
               </b>
             </div>
           </div>
-          <b style={{ color: "rgb(26, 26, 26)" }} />
+          <b style={{ color: "black" }} />
         </div>
       </div>
     );
@@ -1266,9 +1278,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             {embed.title}
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
-          {embedType === "email" ? (
+          {eventTypeData?.eventType && embedType === "email" ? (
             <EmailEmbed
-              eventType={eventType}
+              eventType={eventTypeData?.eventType}
               selectedDateAndTime={selectedDateAndTime}
               setSelectedDateAndTime={setSelectedDateAndTime}
               timezone={timezone}
@@ -1608,12 +1620,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               );
             }
 
-            if (embedType === "email" && tab.name !== "Preview") return;
+            if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
 
             return (
               <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
                 <div className="flex h-[55vh] flex-grow flex-col">
-                  <EmailsEmbedFooter />
+                  <EmailEmbedPreview />
                 </div>
                 <DialogFooter
                   className="mt-10 flex flex-row-reverse gap-x-2"
@@ -1622,8 +1634,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <DialogClose />
                   <Button
                     onClick={() => {
-                      handleCopyText();
-                      showToast(t("code_copied"), "success");
+                      handleCopyEmailText();
                     }}>
                     {embedType === "email" ? t("copy") : t("copy_code")}
                   </Button>
@@ -1637,7 +1648,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 };
 
-export const EmbedDialog = ({ eventType }: { eventType?: any }) => {
+export const EmbedDialog = () => {
   const router = useRouter();
   const embedUrl: string = router.query.embedUrl as string;
   return (
@@ -1648,7 +1659,6 @@ export const EmbedDialog = ({ eventType }: { eventType?: any }) => {
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={router.query.embedType as EmbedType}
           embedUrl={embedUrl}
-          eventType={eventType}
         />
       )}
     </Dialog>
@@ -1659,6 +1669,7 @@ type EmbedButtonProps<T> = {
   children?: React.ReactNode;
   className?: string;
   as?: T;
+  eventId?: number;
 };
 
 export const EmbedButton = <T extends React.ElementType>({
@@ -1666,6 +1677,7 @@ export const EmbedButton = <T extends React.ElementType>({
   children,
   className = "",
   as,
+  eventId,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
@@ -1673,6 +1685,7 @@ export const EmbedButton = <T extends React.ElementType>({
   const openEmbedModal = () => {
     goto(router, {
       dialog: "embed",
+      eventId: eventId ? eventId.toString() : "",
       embedUrl,
     });
   };

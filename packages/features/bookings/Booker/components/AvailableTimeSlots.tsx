@@ -44,16 +44,19 @@ export const AvailableTimeSlots = ({
     bookingUid?: string
   ) => {
     setSelectedTimeslot(time);
+
+    // Used for selecting multiple time slots and assigning the selected values to a date
     if (selectedDateAndTime && setSelectedDateAndTime) {
       const selectedSlots = selectedDateAndTime[selectedDate as string] ?? [];
+      // Checks whether a user has removed all their timeSlots and thus removes it from the selectedDateAndTime state
       if (selectedSlots?.includes(time)) {
-        if (selectedDateAndTime[selectedDate as string]?.length > 1) {
-          setSelectedDateAndTime((prev: any) => ({
-            ...prev,
-            [selectedDate as string]: selectedSlots?.filter((slot: any) => slot !== time),
+        if (selectedSlots?.length > 1) {
+          setSelectedDateAndTime((prevState: { [key: string]: string }) => ({
+            ...prevState,
+            [selectedDate as string]: selectedSlots?.filter((slot: string) => slot !== time),
           }));
         } else {
-          setSelectedDateAndTime((prevState: any) => {
+          setSelectedDateAndTime((prevState: { [key: string]: string }) => {
             const nextState = { ...prevState };
             delete nextState[selectedDate as string];
             return nextState;
@@ -61,6 +64,7 @@ export const AvailableTimeSlots = ({
         }
         return;
       }
+
       setSelectedDateAndTime((prev: any) => ({
         ...prev,
         [selectedDate as string]: [...selectedSlots, time],
@@ -130,7 +134,7 @@ export const AvailableTimeSlots = ({
               key={slots.date}
               date={dayjs(slots.date)}
               slots={slots.slots}
-              seatsPerTimeslot={seatsPerTimeslot}
+              seatsPerTimeSlot={seatsPerTimeslot}
               selectedSlots={selectedDateAndTime ? selectedDateAndTime[selectedDate as string] : null}
               onTimeSelect={onTimeSelect}
               showTimeFormatToggle={!isMultipleDates}

@@ -318,6 +318,7 @@ function EventTypeSingleLayout({
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
+                  eventId={eventType.id}
                 />
               </>
             )}
