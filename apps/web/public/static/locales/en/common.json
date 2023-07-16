@@ -1942,9 +1942,9 @@
   "insights_user_filter": "User: {{userName}}",
   "insights_subtitle": "View booking insights across your events",
   "custom_plan": "Custom Plan",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "email_embed": "Email Embed",
   "add_times_to_your_email": "Add times to your Email",
   "select_time": "Select Time",
-  "select_date": "Select Date"
+  "select_date": "Select Date",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
