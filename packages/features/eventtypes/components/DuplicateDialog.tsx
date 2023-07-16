@@ -141,7 +141,7 @@ const DuplicateDialog = () => {
               <TextField
                 type="number"
                 required
-                min="10"
+                min="1"
                 placeholder="15"
                 label={t("length")}
                 {...register("length", { valueAsNumber: true })}
