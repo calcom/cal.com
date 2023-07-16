@@ -135,13 +135,12 @@ export const VerifyCodeDialog = ({
   );
 };
 
-export const CreateANewOrganizationForm = () => {
+export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
-  const { slug } = router.query;
 
   const newOrganizationFormMethods = useForm<{
     name: string;
