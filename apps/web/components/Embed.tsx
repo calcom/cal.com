@@ -17,6 +17,7 @@ import { useInitializeBookerStore, useBookerStore } from "@calcom/features/booki
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { CAL_URL } from "@calcom/lib/constants";
 import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -944,7 +945,7 @@ const EmailEmbedPreview = ({
                                 <tr style={{ height: "25px" }}>
                                   {selectedDateAndTime[key]?.length > 0 &&
                                     selectedDateAndTime[key].map((time) => {
-                                      const bookingURL = `http://localhost:3000/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                      const bookingURL = `${CAL_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
                                       return (
                                         <td
                                           key={time}
@@ -1006,7 +1007,7 @@ const EmailEmbedPreview = ({
               <div style={{ marginTop: "13px" }}>
                 <a
                   className="more"
-                  href={`http://localhost:3000/${username}/${eventType.slug}`}
+                  href={`${CAL_URL}/${username}/${eventType.slug}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
