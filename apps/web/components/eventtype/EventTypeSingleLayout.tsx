@@ -452,7 +452,7 @@ function EventTypeSingleLayout({
           </p>
         </ConfirmationDialogContent>
       </Dialog>
-      <EmbedDialog eventType={eventType} />
+      <EmbedDialog />
     </Shell>
   );
 }
