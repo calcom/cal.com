@@ -814,7 +814,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
       <div className="mb-[9px] font-medium ">
         <Collapsible open>
           <CollapsibleContent>
-            <div className="text-default mb-[9px] text-sm">Duration</div>
+            <div className="text-default mb-[9px] text-sm">{t("duration")}</div>
             <TextField
               disabled
               label={t("duration")}
@@ -827,7 +827,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
       <div className="mb-[9px] font-medium ">
         <Collapsible open>
           <CollapsibleContent>
-            <div className="text-default mb-[9px] text-sm">Timezone</div>
+            <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
             <TimezoneSelect id="timezone" value={timezone} isDisabled />
           </CollapsibleContent>
         </Collapsible>
