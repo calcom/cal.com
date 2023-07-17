@@ -397,7 +397,7 @@ async function expectCurrentFormToHaveFields(
   types: string[]
 ) {
   for (const [index, field] of Object.entries(fields)) {
-    expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
+    expect(await page.inputValue(`[data-testid="fields.${index}.label"]`)).toBe(field.label);
     expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
       types[field.typeIndex]
     );
@@ -519,7 +519,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
 
   if (form.field) {
-    await page.fill(`[name="fields.${nextFieldIndex}.label"]`, form.field.label);
+    await page.fill(`[data-testid="fields.${nextFieldIndex}.label"]`, form.field.label);
     await page
       .locator('[data-testid="field"]')
       .nth(nextFieldIndex)

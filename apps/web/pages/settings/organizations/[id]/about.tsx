@@ -6,6 +6,8 @@ import { WizardLayout, Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
+export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+
 const AboutOrganizationPage = () => {
   const { t } = useLocale();
   const router = useRouter();

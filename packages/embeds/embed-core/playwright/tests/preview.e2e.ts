@@ -1,9 +1,8 @@
 import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { testBothBookers } from "@calcom/web/playwright/lib/new-booker";
 
-testBothBookers.describe("Preview", () => {
+test.describe("Preview", () => {
   test("Preview - embed-core should load", async ({ page }) => {
     await page.goto("http://localhost:3000/embed/preview.html");
     const libraryLoaded = await page.evaluate(() => {

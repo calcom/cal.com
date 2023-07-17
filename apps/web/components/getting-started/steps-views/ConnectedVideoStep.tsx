@@ -16,6 +16,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
+    sortByMostPopular: true,
   });
   const { t } = useLocale();
 

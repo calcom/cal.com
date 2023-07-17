@@ -5,6 +5,10 @@ import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/
  * @param hostname
  */
 export function getOrgSlug(hostname: string) {
+  if (!hostname.includes(".")) {
+    // A no-dot domain can never be org domain. It automatically handles localhost
+    return null;
+  }
   // Find which hostname is being currently used
   const currentHostname = ALLOWED_HOSTNAMES.find((ahn) => {
     const url = new URL(WEBAPP_URL);
@@ -33,5 +37,6 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
+  // TODO: It is a replacement for WEBAPP_URL and that doesn't have / in the end.  Remove / after ensuring that it works reliably everywhere
   return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}/`;
 }

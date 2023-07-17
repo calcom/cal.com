@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 const scopes = ["crm.objects.contacts.read", "crm.objects.contacts.write"];
@@ -18,6 +19,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
 
   const redirectUri = WEBAPP_URL + "/api/integrations/hubspot/callback";
-  const url = hubspotClient.oauth.getAuthorizationUrl(client_id, redirectUri, scopes.join(" "));
+  const url = hubspotClient.oauth.getAuthorizationUrl(
+    client_id,
+    redirectUri,
+    scopes.join(" "),
+    undefined,
+    encodeOAuthState(req)
+  );
   res.status(200).json({ url });
 }

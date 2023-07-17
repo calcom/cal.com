@@ -25,7 +25,6 @@ export const CreateANewTeamForm = () => {
   const router = useRouter();
   const telemetry = useTelemetry();
   const parsedQuery = querySchema.safeParse(router.query);
-  console.log({ parsedQuery });
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const orgBranding = useOrgBrandingValues();
 
