@@ -8,6 +8,7 @@ const callback = function (e) {
 
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const calLink = searchParams.get("cal-link");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -331,7 +332,7 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro",
+    calLink: calLink || "pro",
     config: {
       iframeAttrs: {
         id: "floatingtest",
