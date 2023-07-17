@@ -17,6 +17,7 @@
   "verify_email_banner_body": "Verify your email address to guarantee the best email and calendar deliverability",
   "verify_email_email_header": "Verify your email address",
   "verify_email_email_button": "Verify email",
+  "copy_somewhere_safe": "Save this API key somewhere safe. You will not be able to view it again.",
   "verify_email_email_body": "Please verify your email address by clicking the button below.",
   "verify_email_email_link_text": "Here's the link in case you don't like clicking buttons:",
   "email_sent": "Email sent successfully",

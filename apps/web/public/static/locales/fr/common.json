@@ -17,6 +17,7 @@
   "verify_email_banner_body": "Vérifiez votre adresse e-mail pour garantir la meilleure délivrabilité des e-mails et des calendriers",
   "verify_email_email_header": "Vérifiez votre adresse e-mail",
   "verify_email_email_button": "Vérifier l'adresse e-mail",
+  "copy_somewhere_safe": "Sauvegardez cette clé API dans un endroit sûr. Vous ne pourrez plus la revoir.",
   "verify_email_email_body": "Veuillez vérifier votre adresse e-mail en cliquant sur le bouton ci-dessous.",
   "verify_email_email_link_text": "Si vous n'aimez pas cliquer sur les boutons, voici le lien :",
   "email_sent": "E-mail envoyé avec succès",
