@@ -121,6 +121,8 @@ const LayoutToggle = ({
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   const { t } = useLocale();
+  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
+  // There is a Embed API to control the layout toggle from outside of the iframe.
   if (isEmbed) {
     return null;
   }
