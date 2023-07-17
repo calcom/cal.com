@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
@@ -23,17 +24,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
   }
-
   const webhook = await prisma.webhook.findFirst({
     where: {
       id,
+      userId: validKey.userId,
+      teamId: validKey.teamId,
     },
   });
 
+  if (!webhook) {
+    return res.status(401).json({ message: "Not authorized to delete this webhook" });
+  }
   if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
+    const where: Prisma.BookingWhereInput = {};
+    if (validKey.teamId) where.eventType = { teamId: validKey.teamId };
+    else where.userId = validKey.userId;
     const bookingsWithScheduledJobs = await prisma.booking.findMany({
       where: {
-        userId: validKey.userId,
+        ...where,
         scheduledJobs: {
           isEmpty: false,
         },

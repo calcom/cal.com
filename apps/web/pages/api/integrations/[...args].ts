@@ -56,6 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
+    if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     let redirectUrl = "/apps/installed";
     if (typeof handler === "undefined")

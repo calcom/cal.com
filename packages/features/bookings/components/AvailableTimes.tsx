@@ -17,9 +17,14 @@ import { TimeFormatToggle } from "./TimeFormatToggle";
 type AvailableTimesProps = {
   date: Dayjs;
   slots: Slots[string];
-  onTimeSelect: (time: string) => void;
-  seatsPerTimeslot?: number | null;
-  showTimeformatToggle?: boolean;
+  onTimeSelect: (
+    time: string,
+    attendees: number,
+    seatsPerTimeSlot?: number | null,
+    bookingUid?: string
+  ) => void;
+  seatsPerTimeSlot?: number | null;
+  showTimeFormatToggle?: boolean;
   className?: string;
 };
 
@@ -27,13 +32,14 @@ export const AvailableTimes = ({
   date,
   slots,
   onTimeSelect,
-  seatsPerTimeslot,
-  showTimeformatToggle = true,
+  seatsPerTimeSlot,
+  showTimeFormatToggle = true,
   className,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
-  const hasTimeSlots = !!seatsPerTimeslot;
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const hasTimeSlots = !!seatsPerTimeSlot;
   const [layout] = useBookerStore((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
@@ -60,7 +66,7 @@ export const AvailableTimes = ({
           </span>
         </span>
 
-        {showTimeformatToggle && (
+        {showTimeFormatToggle && (
           <div className="ml-auto">
             <TimeFormatToggle />
           </div>
@@ -70,22 +76,27 @@ export const AvailableTimes = ({
         {!slots.length && (
           <div className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
-            <p className={classNames("text-muted", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
+            <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
             </p>
           </div>
         )}
 
         {slots.map((slot) => {
-          const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeslot);
+          const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
+          const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
+          const isNearlyFull =
+            slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+
+          const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
           return (
             <Button
               key={slot.time}
-              disabled={bookingFull}
+              disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === bookingData?.uid)}
               data-testid="time"
               data-disabled={bookingFull}
               data-time={slot.time}
-              onClick={() => onTimeSelect(slot.time)}
+              onClick={() => onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)}
               className="min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
@@ -93,19 +104,12 @@ export const AvailableTimes = ({
               {hasTimeSlots && !bookingFull && (
                 <p className="flex items-center text-sm lowercase">
                   <span
-                    className={classNames(
-                      slot.attendees && slot.attendees / seatsPerTimeslot >= 0.8
-                        ? "bg-rose-600"
-                        : slot.attendees && slot.attendees / seatsPerTimeslot >= 0.33
-                        ? "bg-yellow-500"
-                        : "bg-emerald-400",
-                      "mr-1 inline-block h-2 w-2 rounded-full"
-                    )}
+                    className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                     aria-hidden
                   />
-                  {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
+                  {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot}{" "}
                   {t("seats_available", {
-                    count: slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot,
+                    count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
                   })}
                 </p>
               )}
