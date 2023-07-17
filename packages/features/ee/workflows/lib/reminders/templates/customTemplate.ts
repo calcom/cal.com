@@ -26,6 +26,7 @@ const customTemplate = (
   locale: string,
   isBrandingDisabled?: boolean
 ) => {
+  console.log(locale);
   const translatedDate = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     month: "long",

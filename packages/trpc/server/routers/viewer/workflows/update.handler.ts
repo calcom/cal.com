@@ -257,7 +257,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       steps.forEach(async (step) => {
-        if (step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.WHATSAPP_ATTENDEE) {
+        if (
+          step.action !== WorkflowActions.SMS_ATTENDEE &&
+          step.action !== WorkflowActions.WHATSAPP_ATTENDEE
+        ) {
           //as we do not have attendees phone number (user is notified about that when setting this action)
           bookingsForReminders.forEach(async (booking) => {
             const bookingInfo = {
@@ -267,12 +270,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   name: attendee.name,
                   email: attendee.email,
                   timeZone: attendee.timeZone,
-                  language: { locale: attendee.locale || "" },
+                  language: { locale: attendee.locale || "en" },
                 };
               }),
               organizer: booking.user
                 ? {
-                    language: { locale: booking.user.locale || "" },
+                    language: { locale: booking.user.locale || "en" },
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
@@ -281,7 +284,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               startTime: booking.startTime.toISOString(),
               endTime: booking.endTime.toISOString(),
               title: booking.title,
-              language: { locale: booking?.user?.locale || "" },
+              language: { locale: booking?.user?.locale || "en" },
               eventType: {
                 slug: booking.eventType?.slug,
               },
@@ -489,12 +492,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 name: attendee.name,
                 email: attendee.email,
                 timeZone: attendee.timeZone,
-                language: { locale: attendee.locale || "" },
+                language: { locale: attendee.locale || "en" },
               };
             }),
             organizer: booking.user
               ? {
-                  language: { locale: booking.user.locale || "" },
+                  language: { locale: booking.user.locale || "en" },
                   name: booking.user.name || "",
                   email: booking.user.email,
                   timeZone: booking.user.timeZone,
@@ -503,7 +506,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             startTime: booking.startTime.toISOString(),
             endTime: booking.endTime.toISOString(),
             title: booking.title,
-            language: { locale: booking?.user?.locale || "" },
+            language: { locale: booking?.user?.locale || "en" },
             eventType: {
               slug: booking.eventType?.slug,
             },
@@ -610,7 +613,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (
           (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
           eventTypesToCreateReminders &&
-          step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.WHATSAPP_ATTENDEE
+          step.action !== WorkflowActions.SMS_ATTENDEE &&
+          step.action !== WorkflowActions.WHATSAPP_ATTENDEE
         ) {
           const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
@@ -634,7 +638,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   name: attendee.name,
                   email: attendee.email,
                   timeZone: attendee.timeZone,
-                  language: { locale: attendee.locale || "" },
+                  language: { locale: attendee.locale || "en" },
                 };
               }),
               organizer: booking.user
@@ -642,13 +646,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
-                    language: { locale: booking.user.locale || "" },
+                    language: { locale: booking.user.locale || "en" },
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
               startTime: booking.startTime.toISOString(),
               endTime: booking.endTime.toISOString(),
               title: booking.title,
-              language: { locale: booking?.user?.locale || "" },
+              language: { locale: booking?.user?.locale || "en" },
               eventType: {
                 slug: booking.eventType?.slug,
               },

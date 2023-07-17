@@ -116,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || ""
+          locale || "en"
         );
         message = customMessage.text;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {

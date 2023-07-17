@@ -162,7 +162,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             name: attendee.name,
             email: attendee.email,
             timeZone: attendee.timeZone,
-            language: { locale: attendee.locale || "" },
+            language: { locale: attendee.locale || "en" },
           };
         }),
         organizer: booking.user
@@ -170,13 +170,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               name: booking.user.name || "",
               email: booking.user.email,
               timeZone: booking.user.timeZone,
-              language: { locale: booking.user.locale || "" },
+              language: { locale: booking.user.locale || "en" },
             }
           : { name: "", email: "", timeZone: "", language: { locale: "" } },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         title: booking.title,
-        language: { locale: booking?.user?.locale || "" },
+        language: { locale: booking?.user?.locale || "en" },
         eventType: {
           slug: booking.eventType?.slug,
         },
