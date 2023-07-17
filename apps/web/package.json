@@ -58,6 +58,7 @@
     "@radix-ui/react-tooltip": "^1.0.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
+    "@tanem/react-nprogress": "^5.0.44",
     "@tanstack/react-query": "^4.3.9",
     "@tremor/react": "^2.0.0",
     "@types/turndown": "^5.0.1",
