@@ -128,7 +128,7 @@ test.describe("Stripe integration", () => {
 
     });
 
-    test("Paid booking should be able to be cancelled", async ({ page }) => {
+    test("Paid booking should be able to be cancelled and refunded", async ({ page }) => {
       await user.bookAndPaidEvent(eventType);
       await expect(page.getByText("This meeting is scheduled")).toBeVisible();
       await page.goto(`/bookings/upcoming`);
@@ -137,20 +137,9 @@ test.describe("Stripe integration", () => {
       await page.getByTestId('cancel_reason').fill('Cancelled by e2e');
       await page.getByTestId('confirm_cancel').click();
       await expect(page.getByTestId('cancelled-headline')).toBeVisible();
-    });
 
-    test("Cancelled paid booking should be refunded", async ({ page }) => {
-      await user.bookAndPaidEvent(eventType);
-      await expect(page.getByText("This meeting is scheduled")).toBeVisible();
-      await page.goto(`/bookings/upcoming`);
-      await expect(page.getByText('Paid', { exact: true })).toBeVisible();
-      await page.getByTestId('cancel').click();
-      await page.getByTestId('cancel_reason').fill('Cancelled by e2e');
-      await page.getByTestId('confirm_cancel').click();
-      await expect(page.getByTestId('cancelled-headline')).toBeVisible();
       await page.goto(`/bookings/cancelled`);
-
-      //TODO: change the Paid to 'Cancelled' when is implemented
+      //TODO: change the Paid to 'Cancelled and Refunded' when is implemented
       await expect(page.getByText('Paid', { exact: true })).toBeVisible();
     });
   });
