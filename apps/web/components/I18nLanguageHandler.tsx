@@ -19,7 +19,7 @@ export function useViewerI18n() {
 /**
  * Auto-switches locale client-side to the logged in user's preference
  */
-const useI18nLanguageHandler = (): null => {
+const useI18nLanguageHandler = () => {
   const { i18n } = useTranslation("common");
   const locale = useViewerI18n().data?.locale || i18n.language;
 
