@@ -190,7 +190,7 @@ test.describe("Popup Tests", () => {
       await expect(html).toHaveAttribute("class", "dark");
     });
 
-    test.only("should open embed iframe(Event Booking Page) with dark theme", async ({
+    test("should open embed iframe(Event Booking Page) with dark theme", async ({
       page,
       addEmbedListeners,
       getActionFiredDetails,
