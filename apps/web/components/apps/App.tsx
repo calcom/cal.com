@@ -29,6 +29,8 @@ import {
   Avatar,
 } from "@calcom/ui";
 import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
+
 
 /* These app slugs all require Google Cal to be installed */
 
@@ -441,7 +443,16 @@ const InstallAppButtonChild = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuContent>
+        <DropdownMenuContent
+        onInteractOutside={(event) => {
+          if (mutation.isLoading) event.preventDefault();
+        }}
+        >
+          {mutation.isLoading && (
+              <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <Spinner />
+              </div>
+            )}
           <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
           {userAdminTeams.map((team) => {
             
