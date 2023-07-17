@@ -42,7 +42,7 @@ const Cell = ({ children, widthClassNames }: TableProps & DynamicWidth) => (
 );
 
 export const Table = ({ children }: TableProps) => (
-  <div className="bg-default border-subtle overflow-x-auto rounded-md border">
+  <div className="bg-default border-subtle overflow-x-auto overflow-y-hidden rounded-md border">
     <table className="divide-subtle w-full divide-y rounded-md">{children}</table>
   </div>
 );

@@ -2,7 +2,7 @@ import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
@@ -21,6 +21,7 @@ const mapUserToOption = (user: User): Option => ({
 
 export const UserListInTeam = () => {
   const { t } = useLocale();
+  const bookerUrl = useBookerUrl();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
@@ -67,7 +68,7 @@ export const UserListInTeam = () => {
             icon={
               <Avatar
                 alt={`${member?.value} avatar`}
-                imageSrc={member.username ? `${WEBAPP_URL}/${member.username}/avatar.png` : undefined}
+                imageSrc={member.username ? `${bookerUrl}/${member.username}/avatar.png` : undefined}
                 size="xs"
               />
             }

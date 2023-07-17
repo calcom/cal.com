@@ -47,7 +47,6 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
- *                 example: my-event
  *               hosts:
  *                 type: array
  *                 items:
@@ -168,9 +167,9 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                             type: string
  *                           displayLocationPublicly:
  *                             type: boolean
- *           example:
+ *           examples:
  *              event-type:
- *                summary: An example of event type POST request
+ *                summary: An example of an individual event type POST request
  *                value:
  *                  title: Hello World
  *                  slug: hello-world
@@ -205,6 +204,42 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                      }
  *                    }
  *                  }
+ *              team-event-type:
+ *                summary: An example of a team event type POST request
+ *                value:
+ *                  title: "Tennis class"
+ *                  slug: "tennis-class-{{$guid}}"
+ *                  length: 60
+ *                  hidden: false
+ *                  position: 0
+ *                  teamId: 3
+ *                  eventName: null
+ *                  timeZone: null
+ *                  periodType: "UNLIMITED"
+ *                  periodStartDate: null
+ *                  periodEndDate: null
+ *                  periodDays: null
+ *                  periodCountCalendarDays: null
+ *                  requiresConfirmation: true
+ *                  recurringEvent:
+ *                    interval: 2
+ *                    count: 10
+ *                    freq: 2
+ *                  disableGuests: false
+ *                  hideCalendarNotes: false
+ *                  minimumBookingNotice: 120
+ *                  beforeEventBuffer: 0
+ *                  afterEventBuffer: 0
+ *                  schedulingType: "COLLECTIVE"
+ *                  price: 0
+ *                  currency: "usd"
+ *                  slotInterval: null
+ *                  successRedirectUrl: null
+ *                  description: null
+ *                  locations:
+ *                    - address: "London"
+ *                      type: "inPerson"
+ *                  metadata: {}
  *     tags:
  *     - event-types
  *     externalDocs:

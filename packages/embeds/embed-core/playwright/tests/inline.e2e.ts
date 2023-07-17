@@ -1,11 +1,10 @@
 import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { testBothBookers } from "@calcom/web/playwright/lib/new-booker";
 
 import { bookFirstEvent, deleteAllBookingsByEmail, getEmbedIframe, todo } from "../lib/testUtils";
 
-testBothBookers.describe("Inline Iframe", (bookerVariant) => {
+test.describe("Inline Iframe", () => {
   test("Inline Iframe - Configured with Dark Theme", async ({
     page,
     getActionFiredDetails,
@@ -26,7 +25,7 @@ testBothBookers.describe("Inline Iframe", (bookerVariant) => {
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
-    await bookFirstEvent("pro", embedIframe, page, bookerVariant);
+    await bookFirstEvent("pro", embedIframe, page);
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
