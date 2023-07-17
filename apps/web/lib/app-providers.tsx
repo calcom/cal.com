@@ -224,7 +224,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const { pageProps, ...rest } = props;
   const { _nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
-    ...restPageProps,
+    pageProps: {
+      ...restPageProps,
+    },
     ...rest,
   };
 
