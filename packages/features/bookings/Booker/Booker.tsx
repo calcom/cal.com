@@ -23,6 +23,7 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
+import { getQueryParam } from './utils/query-param';
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -107,6 +108,21 @@ const BookerComponent = ({
       setLayout(defaultLayout);
     }
   }, [isMobile, setLayout, layout, defaultLayout]);
+
+  //setting layout from query param
+  useEffect(() => {
+    const layout = getQueryParam("layout") as BookerLayouts;
+    if (
+      !isMobile &&
+      !isEmbed &&
+      validateLayout(layout) &&
+      bookerLayouts?.enabledLayouts?.length &&
+      layout !== _layout
+    ) {
+      const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
+      validLayout && setLayout(validLayout)
+    }
+  }, [bookerLayouts, validateLayout, setLayout,_layout]);
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
