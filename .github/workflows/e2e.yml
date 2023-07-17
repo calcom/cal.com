@@ -27,8 +27,15 @@ jobs:
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
+      - run: |
+          curl -sLO https://github.com/stripe/stripe-cli/releases/download/v${{VERSION}}/stripe_${{VERSION}}_linux_amd64.deb
+          dpkg -i stripe_${{VERSION}}_linux_amd64.deb
+        with:
+          VERSION: 1.16.0
+      - run: echo "STRIPE_WEBHOOK_SECRET=$(stripe listen --api-key $STRIPE_PRIVATE_KEY  --print-secret)" >> $GITHUB_ENV
       - name: Run Tests
-        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        run: |
+          npx -y npm-run-all -r -p -y -l "stripe:listen" "e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}"
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results

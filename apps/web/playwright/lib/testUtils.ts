@@ -77,23 +77,18 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
   }
 }
 
-export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
-  // Let current month dates fully render.
+async function selectAvailableTimeSlotNextMonth(page: Page, index: number) {
   await page.click('[data-testid="incrementMonth"]');
-
-  // Waiting for full month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(index).click();
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
+export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
+  await selectAvailableTimeSlotNextMonth(page, 0);
+}
+
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
-  // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
-
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-
-  await page.locator('[data-testid="time"]').nth(0).click();
+  await selectAvailableTimeSlotNextMonth(page, 1);
 }
 
 async function bookEventOnThisPage(page: Page) {

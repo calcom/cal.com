@@ -321,15 +321,15 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
     schedules:
       opts?.completedOnboarding ?? true
         ? {
-            create: {
-              name: "Working Hours",
-              availability: {
-                createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-                },
+          create: {
+            name: "Working Hours",
+            availability: {
+              createMany: {
+                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
               },
             },
-          }
+          },
+        }
         : undefined,
   };
 };
@@ -400,6 +400,7 @@ export async function bookAndPaidEvent(
   await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
   await makePaymentUsingStripe(page);
+
 }
 
 export async function makePaymentUsingStripe(page: Page) {
