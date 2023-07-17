@@ -48,10 +48,10 @@ type AppPropsWithChildren = AppProps & {
   children: ReactNode;
 };
 
-const getEmbedNamespace = (query: Record<string, string>) => {
+const getEmbedNamespace = (query: ReturnType<typeof useRouter>["query"]) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined" ? window.getEmbedNamespace() : query.embed;
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : query.embed || null;
 };
 
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {

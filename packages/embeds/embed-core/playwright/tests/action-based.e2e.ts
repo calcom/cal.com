@@ -44,6 +44,7 @@ async function bookFirstFreeUserEventThroughEmbed({
   return booking;
 }
 
+//TODO: Change these tests to use a user/eventType per embed type atleast. This is so that we can test different themes,layouts configured in App or per EventType
 test.describe("Popup Tests", () => {
   test.afterEach(async () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
@@ -137,81 +138,111 @@ test.describe("Popup Tests", () => {
     await expect(embedIframe.locator("text=Seeded Form - Pro")).toBeVisible();
   });
 
-  test.describe("Floating Button Popup", () => {
-    test("should open embed iframe with light theme", async ({
-      page,
-      addEmbedListeners,
-      getActionFiredDetails,
-    }) => {
-      const calNamespace = "floatingButton";
-      await addEmbedListeners(calNamespace);
-      await page.goto("/?only=ns:floatingButton");
+  test.describe.only("Floating Button Popup", () => {
+    test.describe("Pro User - Configured in App with default setting of system theme", () => {
+      test("should open embed iframe according to system theme when no theme is configured through Embed API", async ({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      }) => {
+        const calNamespace = "floatingButton";
+        await addEmbedListeners(calNamespace);
+        await page.goto("/?only=ns:floatingButton");
 
-      await page.click('[data-cal-namespace="floatingButton"] > button');
+        await page.click('[data-cal-namespace="floatingButton"] > button');
 
-      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
-        pathname: "/pro",
+        const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+        await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+          pathname: "/pro",
+        });
+
+        if (!embedIframe) {
+          throw new Error("Embed iframe not found");
+        }
+        const html = embedIframe.locator("html");
+        // Expect "light" theme as configured in App for pro user.
+        await expect(html).toHaveAttribute("class", "light");
+        const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page);
+        const booking = await getBooking(bookingId);
+
+        expect(booking.attendees.length).toBe(3);
       });
 
-      if (!embedIframe) {
-        throw new Error("Embed iframe not found");
-      }
+      test("should open embed iframe according to system theme when configured with 'auto' theme using Embed API", async ({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      }) => {
+        const calNamespace = "floatingButton";
+        await addEmbedListeners(calNamespace);
+        await page.goto("/?only=ns:floatingButton");
 
-      const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page);
-      const booking = await getBooking(bookingId);
+        await page.click('[data-cal-namespace="floatingButton"] > button');
 
-      expect(booking.attendees.length).toBe(3);
-      const html = embedIframe.locator("html");
-      await expect(html).toHaveAttribute("class", "light");
-    });
+        const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+        await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+          pathname: "/pro",
+        });
 
-    test("should open embed iframe(Booker Profile Page) with dark theme", async ({
-      page,
-      addEmbedListeners,
-      getActionFiredDetails,
-    }) => {
-      const calNamespace = "floatingButton";
-      await addEmbedListeners(calNamespace);
-      await page.goto("/?only=ns:floatingButton");
+        if (!embedIframe) {
+          throw new Error("Embed iframe not found");
+        }
 
-      await page.click('[data-cal-namespace="floatingButton"] > button');
-
-      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
-        pathname: "/pro",
+        const html = embedIframe.locator("html");
+        const prefersDarkScheme = await page.evaluate(() => {
+          return window.matchMedia("(prefers-color-scheme: dark)").matches;
+        });
+        // Detect browser preference and expect accordingly
+        await expect(html).toHaveAttribute("class", prefersDarkScheme ? "dark" : "light");
       });
 
-      if (!embedIframe) {
-        throw new Error("Embed iframe not found");
-      }
+      test("should open embed iframe(Booker Profile Page) with dark theme when configured with dark theme using Embed API", async ({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      }) => {
+        const calNamespace = "floatingButton";
+        await addEmbedListeners(calNamespace);
+        await page.goto("/?only=ns:floatingButton&theme=dark");
 
-      const html = embedIframe.locator("html");
-      await expect(html).toHaveAttribute("class", "dark");
-    });
+        await page.click('[data-cal-namespace="floatingButton"] > button');
 
-    test("should open embed iframe(Event Booking Page) with dark theme", async ({
-      page,
-      addEmbedListeners,
-      getActionFiredDetails,
-    }) => {
-      const calNamespace = "floatingButton";
-      await addEmbedListeners(calNamespace);
-      await page.goto("/?only=ns:floatingButton&cal-link=pro/30min");
+        const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+        await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+          pathname: "/pro",
+        });
 
-      await page.click('[data-cal-namespace="floatingButton"] > button');
+        if (!embedIframe) {
+          throw new Error("Embed iframe not found");
+        }
 
-      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro/30min" });
-      await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
-        pathname: "/pro/30min",
+        const html = embedIframe.locator("html");
+        await expect(html).toHaveAttribute("class", "dark");
       });
 
-      if (!embedIframe) {
-        throw new Error("Embed iframe not found");
-      }
+      test("should open embed iframe(Event Booking Page) with dark theme when configured with dark theme using Embed API", async ({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      }) => {
+        const calNamespace = "floatingButton";
+        await addEmbedListeners(calNamespace);
+        await page.goto("/?only=ns:floatingButton&cal-link=pro/30min&theme=dark");
 
-      const html = embedIframe.locator("html");
-      await expect(html).toHaveAttribute("class", "dark");
+        await page.click('[data-cal-namespace="floatingButton"] > button');
+
+        const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro/30min" });
+        await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+          pathname: "/pro/30min",
+        });
+
+        if (!embedIframe) {
+          throw new Error("Embed iframe not found");
+        }
+
+        const html = embedIframe.locator("html");
+        await expect(html).toHaveAttribute("class", "dark");
+      });
     });
   });
 });

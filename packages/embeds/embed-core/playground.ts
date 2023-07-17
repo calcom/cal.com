@@ -8,6 +8,15 @@ const callback = function (e) {
 
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const themeInParam = searchParams.get("theme");
+const validThemes = ["light", "dark", "auto"] as const;
+const theme = validThemes.includes((themeInParam as (typeof validThemes)[number]) || "")
+  ? (themeInParam as (typeof validThemes)[number])
+  : null;
+if (themeInParam && !theme) {
+  throw new Error(`Invalid theme: ${themeInParam}`);
+}
+
 const calLink = searchParams.get("cal-link");
 
 if (only === "all" || only === "ns:default") {
@@ -341,7 +350,7 @@ if (only === "all" || only == "ns:floatingButton") {
       email: "johndoe@gmail.com",
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
-      theme: "dark",
+      ...(theme ? { theme } : {}),
     },
   });
 }
