@@ -34,19 +34,6 @@ const webServer: PlaywrightTestConfig["webServer"] = [
   },
 ];
 
-// if (process.env.STRIPE_PRIVATE_KEY) {
-//   const stripe_cli_exists = child_process.spawnSync('which', ['stripe']).status === 0;
-//   if (stripe_cli_exists) {
-//     webServer.push({
-//       command: `stripe listen --api-key ${process.env.STRIPE_PRIVATE_KEY} --forward-to ${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/stripepayment/webhook --skip-verify -s`,
-//       timeout: 60_000,
-//       url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/stripepayment/webhook?isStripe=1`,
-//       reuseExistingServer: !process.env.CI,
-//     });
-//   }
-//
-// }
-
 if (IS_EMBED_TEST) {
   ensureAppServerIsReadyToServeEmbed(webServer[0]);
 
