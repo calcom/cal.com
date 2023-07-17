@@ -1,4 +1,5 @@
-import { Frame, PlaywrightTestConfig, devices, expect } from "@playwright/test";
+import type { Frame, PlaywrightTestConfig } from "@playwright/test";
+import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
@@ -21,8 +22,6 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
-
-
 
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
@@ -144,7 +143,6 @@ const config: PlaywrightTestConfig = {
     },
   ],
 };
-
 
 export type ExpectedUrlDetails = {
   searchParams?: Record<string, string | string[]>;
