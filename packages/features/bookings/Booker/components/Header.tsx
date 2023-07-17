@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -28,6 +28,7 @@ export function Header({
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
+  const [isEmbed, setIsEmbed] = useState(false);
   const today = dayjs();
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
@@ -42,7 +43,12 @@ export function Header({
     [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts) return null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setIsEmbed(window?.isEmbed?.() ?? false);
+  });
+
+  if (isMobile || isEmbed || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -118,14 +124,7 @@ const LayoutToggle = ({
   layout: string;
   enabledLayouts?: BookerLayouts[];
 }) => {
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
-
   const { t } = useLocale();
-  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
-  // There is a Embed API to control the layout toggle from outside of the iframe.
-  if (isEmbed) {
-    return null;
-  }
   const layoutOptions = useMemo(() => {
     return [
       {

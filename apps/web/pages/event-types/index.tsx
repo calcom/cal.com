@@ -925,12 +925,12 @@ const EventTypesPage = () => {
 
                 {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
 
-                <EmbedDialog />
                 {router.query.dialog === "duplicate" && <DuplicateDialog />}
               </>
             );
           }}
         />
+        <EmbedDialog />
       </Shell>
     </div>
   );
