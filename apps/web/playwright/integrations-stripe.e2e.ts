@@ -128,7 +128,7 @@ test.describe("Stripe integration", () => {
 
     });
 
-    test.only("Paid booking should be able to be cancelled and refunded", async ({ page }) => {
+    test("Paid booking should be able to be cancelled and refunded", async ({ page }) => {
       await user.bookAndPaidEvent(eventType);
       await expect(page.getByText("This meeting is scheduled")).toBeVisible();
       await page.goto(`/bookings/upcoming`);
