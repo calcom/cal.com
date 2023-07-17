@@ -51,7 +51,6 @@
   "team_info": "Πληροφορίες Ομάδας",
   "request_another_invitation_email": "Αν προτιμάτε να μην χρησιμοποιείτε το {{toEmail}} ως {{appName}} email σας ή να έχετε ήδη λογαριασμό {{appName}} , παρακαλώ ζητήστε μια άλλη πρόσκληση σε αυτό το email.",
   "you_have_been_invited": "Έχετε προσκληθεί να γίνετε μέλος της ομάδας {{teamName}}",
-  "user_invited_you": "Ο χρήστης {{user}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{team}} στο {{appName}}",
   "hidden_team_member_title": "Είστε κρυμμένοι σε αυτήν την ομάδα",
   "link_expires": "Υ.Γ. Λήγει σε {{expiresIn}} ώρες.",
   "upgrade_banner_action": "Αναβάθμισε εδώ",

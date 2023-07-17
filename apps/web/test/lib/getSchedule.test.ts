@@ -1028,7 +1028,7 @@ describe("getSchedule", () => {
         [
           //`04:00:00.000Z`, - Blocked with User 101
           `04:15:00.000Z`,
-          //`05:30:00.000Z`, - Blocked with User 102 in event 2
+          //`05:00:00.000Z`, - Blocked with User 102 in event 2
           `05:45:00.000Z`,
           `06:30:00.000Z`,
           `07:15:00.000Z`,
