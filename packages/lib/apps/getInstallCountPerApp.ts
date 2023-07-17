@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-const getMostPopularApps = async () => {
+const getInstallCountPerApp = async () => {
   const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
     await prisma.$queryRaw`
     SELECT
@@ -24,4 +24,4 @@ const getMostPopularApps = async () => {
   }, {} as Record<string, number>);
 };
 
-export default getMostPopularApps;
+export default getInstallCountPerApp;
