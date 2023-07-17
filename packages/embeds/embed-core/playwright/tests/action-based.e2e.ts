@@ -138,7 +138,7 @@ test.describe("Popup Tests", () => {
     await expect(embedIframe.locator("text=Seeded Form - Pro")).toBeVisible();
   });
 
-  test.describe.only("Floating Button Popup", () => {
+  test.describe("Floating Button Popup", () => {
     test.describe("Pro User - Configured in App with default setting of system theme", () => {
       test("should open embed iframe according to system theme when no theme is configured through Embed API", async ({
         page,
