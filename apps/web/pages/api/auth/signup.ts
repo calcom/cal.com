@@ -6,6 +6,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
+import { validateUsernameInOrg } from "@calcom/lib/validateUsernameInOrg";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -70,6 +71,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(409).json({ message });
   }
 
+  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+  if (token) {
+    foundToken = await prisma.verificationToken.findFirst({
+      where: {
+        token,
+      },
+      select: {
+        id: true,
+        expires: true,
+        teamId: true,
+      },
+    });
+
+    if (!foundToken) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+
+    if (dayjs(foundToken?.expires).isBefore(dayjs())) {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    if (foundToken?.teamId) {
+      const isValidUsername = await validateUsernameInOrg(username, foundToken?.teamId);
+
+      if (!isValidUsername) {
+        return res.status(409).json({ message: "Username already taken" });
+      }
+    }
+  }
+
   const hashedPassword = await hashPassword(password);
 
   const user = await prisma.user.upsert({
@@ -88,91 +118,75 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  if (token) {
-    const foundToken = await prisma.verificationToken.findFirst({
+  if (foundToken && foundToken?.teamId) {
+    const team = await prisma.team.findUnique({
       where: {
-        token,
+        id: foundToken.teamId,
       },
     });
 
-    if (!foundToken) {
-      return res.status(401).json({ message: "Invalid Token" });
-    }
+    if (team) {
+      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+      if (teamMetadata?.isOrganization) {
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            organizationId: team.id,
+          },
+        });
+      }
 
-    if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-      return res.status(401).json({ message: "Token expired" });
-    }
-
-    if (foundToken.teamId) {
-      const team = await prisma.team.findUnique({
+      const membership = await prisma.membership.update({
         where: {
-          id: foundToken.teamId,
+          userId_teamId: { userId: user.id, teamId: team.id },
+        },
+        data: {
+          accepted: true,
         },
       });
+      closeComUpsertTeamUser(team, user, membership.role);
 
-      if (team) {
-        const teamMetadata = teamMetadataSchema.parse(team?.metadata);
-        if (teamMetadata?.isOrganization) {
-          await prisma.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              organizationId: team.id,
-            },
-          });
-        }
-
-        const membership = await prisma.membership.update({
+      // Accept any child team invites for orgs.
+      if (team.parentId) {
+        // Join ORG
+        await prisma.user.update({
           where: {
-            userId_teamId: { userId: user.id, teamId: team.id },
+            id: user.id,
+          },
+          data: {
+            organizationId: team.parentId,
+          },
+        });
+
+        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
+        await prisma.membership.updateMany({
+          where: {
+            userId: user.id,
+            team: {
+              id: team.parentId,
+            },
+            accepted: false,
           },
           data: {
             accepted: true,
           },
         });
-        closeComUpsertTeamUser(team, user, membership.role);
 
-        // Accept any child team invites for orgs.
-        if (team.parentId) {
-          // Join ORG
-          await prisma.user.update({
-            where: {
-              id: user.id,
+        // Join any other invites
+        await prisma.membership.updateMany({
+          where: {
+            userId: user.id,
+            team: {
+              parentId: team.parentId,
             },
-            data: {
-              organizationId: team.parentId,
-            },
-          });
-
-          /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
-          await prisma.membership.updateMany({
-            where: {
-              userId: user.id,
-              team: {
-                id: team.parentId,
-              },
-              accepted: false,
-            },
-            data: {
-              accepted: true,
-            },
-          });
-
-          // Join any other invites
-          await prisma.membership.updateMany({
-            where: {
-              userId: user.id,
-              team: {
-                parentId: team.parentId,
-              },
-              accepted: false,
-            },
-            data: {
-              accepted: true,
-            },
-          });
-        }
+            accepted: false,
+          },
+          data: {
+            accepted: true,
+          },
+        });
       }
     }
 
