@@ -77,7 +77,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "fadeIn bg-default fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle pt-8 px-8 pb-0",
+            "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md px-8 pb-0 pt-8 text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"
               ? "sm:max-w-[90rem]"
               : props.size == "lg"
@@ -147,7 +147,7 @@ export function DialogFooter(props: {
       )}
       <div
         className={classNames(
-          "flex justify-end space-x-2 pt-4 rtl:space-x-reverse pb-4",
+          "flex justify-end space-x-2 pb-4 pt-4 rtl:space-x-reverse",
           props.showDivider && "-mb-4"
         )}>
         {props.children}
