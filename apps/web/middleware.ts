@@ -10,10 +10,6 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  /**
-   * We are using env variable to toggle new-booker because using flags would be an unnecessary delay for booking pages
-   * Also, we can't easily identify the booker page requests here(to just fetch the flags for those requests)
-   */
 
   if (isIpInBanlist(req) && url.pathname !== "/api/nope") {
     // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback

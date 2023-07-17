@@ -299,8 +299,9 @@ export const FormBuilder = function FormBuilder({
             const fieldType = FieldTypesMap[field.type];
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+            const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
-            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
+            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional && !isFieldEditableSystemButHidden;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -368,7 +369,7 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !disabled && (
+                    {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
                         disabled={isFieldEditableSystem}
