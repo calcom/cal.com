@@ -22,7 +22,7 @@ function RenderIcon({
     <img
       src={eventLocationType.iconUrl}
       className={classNames(
-        "me-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100",
+        "me-[10px]  h-4 w-4 opacity-70 dark:opacity-100",
         !eventLocationType.iconUrl?.startsWith("/app-store") ? "dark:invert-[.65]" : "",
         !eventLocationType.iconUrl?.startsWith("/app-store") && isTooltip && "invert"
       )}
@@ -35,7 +35,8 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
   const { t } = useLocale();
 
   return (
-    <div className="my-2 me-2 flex w-full flex-col space-y-4 break-words text-sm">
+    <div className="my-2 me-2 flex w-full flex-col space-y-3 break-words">
+      <p>{t("select_on_next_step")}</p>
       {locations.map(
         (
           location: Pick<Partial<LocationObject>, "link" | "address"> &
@@ -48,7 +49,7 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
           }
           const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
           return (
-            <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
+            <div key={`${location.type}-${index}`} className="font-sm flex flex-row items-center">
               <RenderIcon eventLocationType={eventLocationType} isTooltip />
               <p className="line-clamp-1">{translatedLocation}</p>
             </div>
@@ -99,7 +100,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
     <div className="flex flex-row items-center text-sm font-medium">
       <img
         src="/map-pin.svg"
-        className={classNames("me-[10px] ml-[2px] h-4 w-4 opacity-70 dark:invert")}
+        className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
         alt="map-pin"
       />
       <Tooltip content={<RenderLocationTooltip locations={locations} />}>
