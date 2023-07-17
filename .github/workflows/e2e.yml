@@ -30,7 +30,7 @@ jobs:
       - run: |
           curl -sLO https://github.com/stripe/stripe-cli/releases/download/v${{VERSION}}/stripe_${{VERSION}}_linux_amd64.deb
           dpkg -i stripe_${{VERSION}}_linux_amd64.deb
-        with:
+        env:
           VERSION: 1.16.0
       - run: echo "STRIPE_WEBHOOK_SECRET=$(stripe listen --api-key $STRIPE_PRIVATE_KEY  --print-secret)" >> $GITHUB_ENV
       - name: Run Tests
