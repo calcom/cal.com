@@ -7,6 +7,7 @@ export const ZIntegrationsInputSchema = z.object({
   includeTeamInstalledApps: z.boolean().optional(),
   extendsFeature: z.literal("EventType").optional(),
   teamId: z.union([z.number(), z.null()]).optional(),
+  sortByMostPopular: z.boolean().optional(),
 });
 
 export type TIntegrationsInputSchema = z.infer<typeof ZIntegrationsInputSchema>;

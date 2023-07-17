@@ -3843,7 +3843,7 @@ __metadata:
     eslint: ^8.34.0
     eslint-config-next: ^13.2.1
     next: ^13.4.6
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     postcss: ^8.4.18
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -3932,7 +3932,7 @@ __metadata:
     client-only: ^0.0.1
     eslint: ^8.34.0
     next: ^13.4.6
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     next-i18next: ^13.2.2
     postcss: ^8.4.18
     prisma: ^4.16.0
@@ -4169,7 +4169,7 @@ __metadata:
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     nodemailer: ^6.7.8
     otplib: ^12.0.1
   languageName: unknown
@@ -4299,7 +4299,7 @@ __metadata:
     next-i18next: ^13.2.2
     react-hot-toast: ^2.3.0
     rrule: ^2.7.1
-    tailwind-merge: ^1.8.1
+    tailwind-merge: ^1.13.2
     tsdav: 2.0.3
     tslog: ^3.2.1
     typescript: ^4.9.4
@@ -4792,7 +4792,7 @@ __metadata:
     module-alias: ^2.2.2
     msw: ^0.42.3
     next: ^13.4.6
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
@@ -4867,13 +4867,13 @@ __metadata:
     "@hookform/resolvers": ^2.9.7
     "@juggle/resize-observer": ^3.4.0
     "@next/bundle-analyzer": ^13.1.6
-    "@radix-ui/react-accordion": ^1.1.2
+    "@radix-ui/react-accordion": ^1.0.0
     "@radix-ui/react-dropdown-menu": ^2.0.5
-    "@radix-ui/react-navigation-menu": ^1.1.3
-    "@radix-ui/react-portal": ^1.0.3
-    "@radix-ui/react-slider": ^1.1.2
-    "@radix-ui/react-tabs": ^1.0.4
-    "@radix-ui/react-tooltip": ^1.0.6
+    "@radix-ui/react-navigation-menu": ^1.0.0
+    "@radix-ui/react-portal": ^1.0.0
+    "@radix-ui/react-slider": ^1.0.0
+    "@radix-ui/react-tabs": ^1.0.0
+    "@radix-ui/react-tooltip": ^1.0.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^4.3.9
     "@typeform/embed-react": ^1.2.4
@@ -4890,6 +4890,7 @@ __metadata:
     "@vercel/og": ^0.5.0
     autoprefixer: ^10.4.12
     bcryptjs: ^2.4.3
+    clsx: ^1.2.1
     cobe: ^0.4.1
     concurrently: ^7.6.0
     cross-env: ^7.0.3
@@ -4907,7 +4908,7 @@ __metadata:
     lucide-react: ^0.171.0
     micro: ^10.0.1
     next: ^13.4.6
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
@@ -4932,6 +4933,7 @@ __metadata:
     remark: ^14.0.2
     remark-html: ^14.0.1
     stripe: ^9.16.0
+    tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.1
     typescript: ^4.9.4
     wait-on: ^7.0.1
@@ -7796,7 +7798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-accordion@npm:^1.1.2":
+"@radix-ui/react-accordion@npm:^1.0.0":
   version: 1.1.2
   resolution: "@radix-ui/react-accordion@npm:1.1.2"
   dependencies:
@@ -8230,7 +8232,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-navigation-menu@npm:^1.1.3":
+"@radix-ui/react-navigation-menu@npm:^1.0.0":
   version: 1.1.3
   resolution: "@radix-ui/react-navigation-menu@npm:1.1.3"
   dependencies:
@@ -8340,7 +8342,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-portal@npm:1.0.3, @radix-ui/react-portal@npm:^1.0.0, @radix-ui/react-portal@npm:^1.0.3":
+"@radix-ui/react-portal@npm:1.0.3, @radix-ui/react-portal@npm:^1.0.0":
   version: 1.0.3
   resolution: "@radix-ui/react-portal@npm:1.0.3"
   dependencies:
@@ -8500,7 +8502,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slider@npm:^1.0.0, @radix-ui/react-slider@npm:^1.1.2":
+"@radix-ui/react-slider@npm:^1.0.0":
   version: 1.1.2
   resolution: "@radix-ui/react-slider@npm:1.1.2"
   dependencies:
@@ -8584,7 +8586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tabs@npm:^1.0.4":
+"@radix-ui/react-tabs@npm:^1.0.0":
   version: 1.0.4
   resolution: "@radix-ui/react-tabs@npm:1.0.4"
   dependencies:
@@ -8659,7 +8661,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tooltip@npm:^1.0.0, @radix-ui/react-tooltip@npm:^1.0.6":
+"@radix-ui/react-tooltip@npm:^1.0.0":
   version: 1.0.6
   resolution: "@radix-ui/react-tooltip@npm:1.0.6"
   dependencies:
@@ -16002,7 +16004,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^1.0.4":
+"clsx@npm:^1.0.4, clsx@npm:^1.2.1":
   version: 1.2.1
   resolution: "clsx@npm:1.2.1"
   checksum: 30befca8019b2eb7dbad38cff6266cf543091dae2825c856a62a8ccf2c3ab9c2907c4d12b288b73101196767f66812365400a227581484a05f968b0307cfaf12
@@ -26437,9 +26439,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-auth@npm:^4.20.1":
-  version: 4.20.1
-  resolution: "next-auth@npm:4.20.1"
+"next-auth@npm:^4.22.1":
+  version: 4.22.1
+  resolution: "next-auth@npm:4.22.1"
   dependencies:
     "@babel/runtime": ^7.20.13
     "@panva/hkdf": ^1.0.2
@@ -26458,7 +26460,7 @@ __metadata:
   peerDependenciesMeta:
     nodemailer:
       optional: true
-  checksum: f3414533716e7cc4f80bf070e4eec95e4dced331694e6dd446704b73145804585962be6e107946bdedab05d392b20dad7a7b62ac6cd0bfade0482a0a9d741c0b
+  checksum: 42bae16b62bac4b3d215d991c7c964dfc071a84df32900a28d4cbc20d4b6a65689b3ba9f10633780a22ff0cbc420248d012614a5b0d82918f9bbb56f7f92f7c5
   languageName: node
   linkType: hard
 
@@ -33373,10 +33375,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:^1.8.1":
-  version: 1.8.1
-  resolution: "tailwind-merge@npm:1.8.1"
-  checksum: ec1320c07aab3803845b9e4df6e3e96c86ddeeb6ed00c13f6040e6612655c74c98f9275d7ae13c8110cc2c9f9a591d5e3d3225794aea465b6b8434c3bf654641
+"tailwind-merge@npm:^1.13.2":
+  version: 1.13.2
+  resolution: "tailwind-merge@npm:1.13.2"
+  checksum: 8f9de3bd1e6271f5980f863ab85e0103f062bf84d814d3188bf6870af7eb43725ea40493ef0693dedd652b668cbdfcd6544235b16b70d438ed20bca6118a9066
   languageName: node
   linkType: hard
 

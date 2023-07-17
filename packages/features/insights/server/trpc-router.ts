@@ -1239,6 +1239,7 @@ export const insightsRouter = router({
               select: UserSelect,
             },
           },
+          distinct: ["userId"],
         });
         return usersInTeam.map((membership) => membership.user);
       }
@@ -1274,6 +1275,7 @@ export const insightsRouter = router({
             select: UserSelect,
           },
         },
+        distinct: ["userId"],
       });
 
       return usersInTeam.map((membership) => membership.user);

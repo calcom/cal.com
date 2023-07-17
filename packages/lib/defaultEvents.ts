@@ -94,7 +94,6 @@ const commons = {
   parentId: null,
   owner: null,
   workflows: [],
-  parentId: null,
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
