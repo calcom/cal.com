@@ -3,7 +3,6 @@ import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMeth
 
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 
 import * as twilio from "./smsProviders/twilioProvider";
@@ -67,15 +66,13 @@ export const scheduleWhatsappReminder = async (
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
-  const timeFormat = getTimeFormatStringFromUserTimeFormat(evt.organizer.timeFormat);
-
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message =
         whatsappReminderTemplate(
           false,
           action,
-          timeFormat,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -88,7 +85,7 @@ export const scheduleWhatsappReminder = async (
         whatsappEventCancelledTemplate(
           false,
           action,
-          timeFormat,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -101,7 +98,7 @@ export const scheduleWhatsappReminder = async (
         whatsappEventRescheduledTemplate(
           false,
           action,
-          timeFormat,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -114,7 +111,7 @@ export const scheduleWhatsappReminder = async (
         whatsappEventCompletedTemplate(
           false,
           action,
-          timeFormat,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -127,7 +124,7 @@ export const scheduleWhatsappReminder = async (
         whatsappReminderTemplate(
           false,
           action,
-          timeFormat,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
