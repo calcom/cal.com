@@ -27,7 +27,7 @@ export const whatsappEventCancelledTemplate = (
     name = action === WorkflowActions.WHATSAPP_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
-    startTime = dayjs(startTime).tz(timeZone).format("h:mmA");
+    startTime = dayjs(startTime).tz(timeZone).format(currentTimeFormat);
   }
 
   const templateOne = `Hi${
