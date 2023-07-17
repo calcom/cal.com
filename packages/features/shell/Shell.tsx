@@ -73,11 +73,11 @@ import {
   ChevronDown,
   Copy,
   Settings,
-  Slack,
   Users,
   Zap,
   User as UserIcon,
 } from "@calcom/ui/components/icon";
+import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
@@ -424,7 +424,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
+                    StartIcon={(props) => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
