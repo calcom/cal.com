@@ -51,7 +51,7 @@ type AppPropsWithChildren = AppProps & {
 const getEmbedNamespace = (query: ReturnType<typeof useRouter>["query"]) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined" ? window.getEmbedNamespace() : query.embed || null;
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
 };
 
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
