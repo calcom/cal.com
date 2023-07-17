@@ -6,8 +6,8 @@ import type { Maybe } from "@calcom/trpc/server";
 
 /**
  * It should be called once per route and only if you want to use app configured theme. System only theme works automatically by using ThemeProvider
- * Calling it without a theme will just returns the current theme.
- * It handles embed configured theme as well.
+ * It handles embed configured theme automatically
+ * Calling it without `themeToSet` will return the current theme without handling embed theme
  */
 export default function useTheme(themeToSet?: Maybe<string>) {
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
@@ -35,7 +35,6 @@ export default function useTheme(themeToSet?: Maybe<string>) {
   }, [themeToSet, setTheme, embedTheme]);
   return {
     resolvedTheme,
-    setTheme,
     forcedTheme,
     activeTheme,
   };
