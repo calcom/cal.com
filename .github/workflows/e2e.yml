@@ -1,6 +1,7 @@
 name: E2E test
 on:
   workflow_call:
+  pull_request:
 jobs:
   e2e:
     timeout-minutes: 20
