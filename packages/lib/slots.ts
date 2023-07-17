@@ -166,41 +166,21 @@ function buildSlotsWithDateRanges({
 
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
-    let previousStartTime;
-    // check if we we already have slots on that day (in organizer's timezone)
-    if (
-      slots.length &&
-      dayjs
-        .utc(range.start)
-        .add(range.start.utcOffset())
-        .isSame(dayjs.utc(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
-    ) {
-      previousStartTime = slots[slots.length - 1].time;
-    }
+    let interval = 15;
 
-    if (!previousStartTime) {
-      let interval = 15;
+    const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
 
-      const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
-
-      for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-        if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-          interval = intervalsWithDefinedStartTimes[i];
-          break;
-        }
+    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+        interval = intervalsWithDefinedStartTimes[i];
+        break;
       }
-
-      slotStartTime =
-        slotStartTime.utc().minute() % interval !== 0
-          ? slotStartTime
-              .startOf("hour")
-              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-          : slotStartTime;
-    } else {
-      const minuteOffset =
-        Math.ceil(slotStartTime.diff(previousStartTime, "minutes") / frequency) * frequency;
-      slotStartTime = previousStartTime.add(minuteOffset, "minutes");
     }
+
+    slotStartTime =
+      slotStartTime.utc().minute() % interval !== 0
+        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+        : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
