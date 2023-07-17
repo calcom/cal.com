@@ -198,7 +198,7 @@ const BookerComponent = ({
                   )}
               </BookerSection>
 
-              <BookerSection visible={layout !== BookerLayouts.MONTH_VIEW} className="">
+              <BookerSection visible={!isEmbed && layout !== BookerLayouts.MONTH_VIEW} className="">
                 <LegalNotice />
               </BookerSection>
             </StickyOnDesktop>
@@ -273,7 +273,7 @@ const BookerComponent = ({
         </m.span>
       </div>
 
-      {layout === BookerLayouts.MONTH_VIEW || layout === "mobile" ? (
+      {(!isEmbed && layout === BookerLayouts.MONTH_VIEW) || layout === "mobile" ? (
         <div className="bg-default dark:bg-muted w-screen md:fixed md:bottom-0">
           <LegalNotice />
         </div>

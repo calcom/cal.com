@@ -1,15 +1,9 @@
-import { useIsEmbed } from "@calcom/embed-core/src/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 const LegalNotice = () => {
   const { t } = useLocale();
-  const isEmbed = useIsEmbed();
   const { data: deployment } = trpc.viewer.deploymentSetup.get.useQuery();
-
-  if (isEmbed) {
-    return null;
-  }
 
   if (deployment === undefined) {
     return null;

@@ -27,7 +27,7 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { Verified, ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight, Verified } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -38,6 +38,7 @@ import LegalNotice from "@components/ui/LegalNotice";
 import { ssrInit } from "@server/lib/ssr";
 
 export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+
 export function UserPage(props: UserPageProps) {
   const {
     users,
@@ -202,9 +203,11 @@ export function UserPage(props: UserPageProps) {
           </div>
 
           {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
-          <div className="bg-default dark:bg-muted fixed bottom-0 left-0 w-screen">
-            <LegalNotice />
-          </div>
+          {!isEmbed ? (
+            <div className="bg-default dark:bg-muted fixed bottom-0 left-0 w-screen">
+              <LegalNotice />
+            </div>
+          ) : null}
         </main>
         <Toaster position="bottom-right" />
       </div>
