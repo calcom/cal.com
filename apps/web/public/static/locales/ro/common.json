@@ -1909,5 +1909,8 @@
   "email_already_used": "E-mailul este utilizat deja",
   "organization_admin_invited_heading": "Ați fost invitat să faceți parte din {{orgName}}",
   "organization_admin_invited_body": "Alăturați-vă echipei din de la {{orgName}} și începeți să vă concentrați pe întâlniri, nu pe organizarea acestora!",
+  "duplicated_slugs_warning": "Următoarele echipe nu au putut fi create din cauza unor sluguri duplicat: {{slugs}}",
+  "team_names_empty": "Numele de echipă nu pot fi necompletate",
+  "team_names_repeated": "Numele de echipă nu pot fi repetate",
   "insights_all_org_filter": "Toate aplicațiile"
 }
