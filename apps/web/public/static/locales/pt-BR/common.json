@@ -882,6 +882,8 @@
   "installed_app_conferencing_description": "Configure quais aplicativos de conferência serão usados",
   "installed_app_automation_description": "Configure quais aplicativos de automação serão usados",
   "installed_app_web3_description": "Configure quais aplicativos web3 serão usados nas suas páginas de reservas",
+  "installed_app_messaging_description": "Configure quais aplicativos de mensagem usar para definir lembretes e notificações",
+  "installed_app_crm_description": "Configure quais aplicativos CRM usar para acompanhar os integrantes das suas reuniões",
   "analytics": "Análise",
   "empty_installed_apps_headline": "Nenhum app instalado",
   "empty_installed_apps_description": "Os aplicativos permitem que você melhore o fluxo de trabalho e melhore significativamente sua vida de agendamento.",
