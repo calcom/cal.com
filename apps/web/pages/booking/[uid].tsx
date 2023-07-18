@@ -278,7 +278,7 @@ export default function Success(props: SuccessProps) {
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
-  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
+  useTheme(isSuccessBookingPage ? props.profile.theme : "system");
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
