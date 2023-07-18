@@ -42,6 +42,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, org 
 }
 
 Type.PageWrapper = PageWrapper;
+Type.isBookingPage = true;
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),

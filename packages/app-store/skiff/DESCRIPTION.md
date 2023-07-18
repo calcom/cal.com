@@ -12,6 +12,7 @@ items:
 Skiff is a privacy-first, end-to-end encrypted workspace with Mail, Pages, Drive, and Calendar applications. Skiff Calendar integrates with Cal.com, enabling you to schedule appointments, organize events, and use your preferred video conferencing product.
 
 ## Features
+
 - **Full workspace** — beyond email and calendar, Skiff enables writing and collaborating on end-to-end encrypted notes or wikis. You can also upload, preview, and share files.
 - **Native applications** — Skiff has native macOS, Windows, iOS, and Android applications, ensuring you can stay on top of your schedule from any device.
 - **Multiple accounts** — all Skiff products support multiple accounts, or sharing your entire team to collaborate inside one workspace.
