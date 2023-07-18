@@ -1922,5 +1922,7 @@
   "my_settings": "Setările mele",
   "crm": "CRM",
   "messaging": "Mesagerie",
+  "sender_id_info": "Numele sau numărul afișat ca expeditor al unui SMS (unele țări nu permit ID-uri alfanumerice ale expeditorului)",
+  "org_admins_can_create_new_teams": "Numai administratorul organizației dvs. poate crea echipe noi",
   "insights_all_org_filter": "Toate aplicațiile"
 }
