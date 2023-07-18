@@ -2,6 +2,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,7 +30,7 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { Form, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -193,6 +194,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     data: { tabName },
   } = useTypedQuery(querySchema);
 
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+
   const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: props.eventType.team?.id || props.eventType.parent?.teamId,
@@ -287,6 +290,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
@@ -518,7 +522,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }
             const { availability, ...rest } = input;
 
-            console.log(getObjectDifference({ ...values, bookingLimits, durationLimits }, defaultValues));
+            const unsavedChanges = getObjectDifference(
+              { ...values, bookingLimits, durationLimits },
+              defaultValues
+            );
+
+            if (Object.keys(unsavedChanges).length > 0) {
+              setUnsavedDialogOpen(true);
+              return;
+            }
+
+            console.log({ ...values, bookingLimits, durationLimits }, defaultValues);
 
             updateMutation.mutate({
               ...rest,
@@ -558,6 +572,33 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }}
         />
       ) : null}
+
+      <Dialog open={unsavedDialogOpen} onOpenChange={setUnsavedDialogOpen}>
+        <ConfirmationDialogContent
+          isLoading={false}
+          variety="danger"
+          cancelBtnText="Discard Changes"
+          // confirmBtnText="Keep Editing"
+          title={t(`delete${"_managed"}_event_type`)}
+          confirmBtnText={t(`Save Changes`)}
+          loadingText={t(`Save Changes`)}
+          onConfirm={(e) => {
+            e.preventDefault();
+            setUnsavedDialogOpen(false);
+            // deleteMutation.mutate({ id: eventType.id });
+          }}>
+          <p className="mt-5">
+            <Trans i18nKey="SaveChanges" components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
+          </p>
+        </ConfirmationDialogContent>
+      </Dialog>
     </>
   );
 };
