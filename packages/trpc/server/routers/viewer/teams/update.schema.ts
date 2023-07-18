@@ -8,6 +8,7 @@ export const ZUpdateInputSchema = z.object({
   slug: z.string().optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),
+  isPrivate: z.boolean().optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),

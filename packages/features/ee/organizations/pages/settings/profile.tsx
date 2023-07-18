@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon, Trash2 } from "lucide-react";
+import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -18,9 +19,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Form,
   ImageUploader,
   Label,
@@ -106,7 +104,7 @@ const OrgProfileView = () => {
   }
 
   return (
-    <>
+    <LicenseRequired>
       <Meta title={t("profile")} description={t("profile_org_description")} />
       {!isLoading && (
         <>
@@ -224,9 +222,9 @@ const OrgProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="border-subtle my-8 border" />
-
-          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
+          {/* Disable Org disbanding */}
+          {/* <hr className="border-subtle my-8 border" /> 
+           <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {currentOrganisation?.user.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>
@@ -242,11 +240,11 @@ const OrgProfileView = () => {
                 {t("disband_org_confirmation_message")}
               </ConfirmationDialogContent>
             </Dialog>
-          ) : null}
+          ) : null} */}
           {/* LEAVE ORG should go above here ^ */}
         </>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 

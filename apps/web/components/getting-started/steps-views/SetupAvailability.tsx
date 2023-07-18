@@ -19,15 +19,15 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
   const { t } = useLocale();
   const { nextStep } = props;
-  let queryAvailability;
-  if (defaultScheduleId) {
-    queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-      { scheduleId: defaultScheduleId },
-      {
-        enabled: true,
-      }
-    );
-  }
+
+  const router = useRouter();
+
+  const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId: defaultScheduleId! },
+    {
+      enabled: router.isReady && !!defaultScheduleId,
+    }
+  );
 
   const availabilityForm = useForm({
     defaultValues: {

@@ -95,6 +95,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
             Icon={Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
+            className="w-full"
             buttonRaw={<NewScheduleButton />}
           />
         </div>

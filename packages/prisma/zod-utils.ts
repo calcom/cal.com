@@ -16,6 +16,7 @@ import type {
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -113,7 +114,7 @@ export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T>
 export const bookingResponses = z
   .object({
     email: z.string(),
-    name: z.string(),
+    name: z.string().refine((value: string) => value.trim().length > 0),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z
@@ -136,6 +137,7 @@ export const eventTypeLocations = z.array(
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
+    credentialId: z.number().optional(),
   })
 );
 
@@ -201,7 +203,7 @@ export const bookingCreateBodySchema = z.object({
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
-  timeZone: z.string(),
+  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
@@ -575,4 +577,12 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
+};
+
+// The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
+// version that will include updates in the above PR.
+export const emailSchemaRefinement = (value: string) => {
+  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
+  return emailRegex.test(value);
 };

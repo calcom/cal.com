@@ -1,5 +1,4 @@
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
@@ -136,14 +135,12 @@ export const VerifyCodeDialog = ({
   );
 };
 
-export const CreateANewOrganizationForm = () => {
-  const searchParams = useSearchParams();
+export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
-  const { slug } = Object.fromEntries(searchParams?.entries() ?? []);
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -152,7 +149,7 @@ export const CreateANewOrganizationForm = () => {
     adminUsername: string;
   }>({
     defaultValues: {
-      slug: `${slug}`,
+      slug: `${slug ?? ""}`,
     },
   });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
@@ -180,6 +177,11 @@ export const CreateANewOrganizationForm = () => {
         });
       } else if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
+        newOrganizationFormMethods.setError("slug", {
+          type: "custom",
+          message: t("problem_registering_domain"),
+        });
       } else {
         setServerErrorMessage(err.message);
       }

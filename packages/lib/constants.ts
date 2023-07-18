@@ -23,8 +23,16 @@ export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.
 // As website isn't setup for preview environments, use the webapp url instead
 export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
 
+export const IS_CALCOM =
+  WEBAPP_URL &&
+  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+
 export const CONSOLE_URL =
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || process.env.NODE_ENV !== "production"
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
+  new URL(WEBAPP_URL).hostname.endsWith(".cal-staging.com") ||
+  process.env.NODE_ENV !== "production"
     ? `https://console.cal.dev`
     : `https://console.cal.com`;
 export const IS_SELF_HOSTED = !(
@@ -48,7 +56,7 @@ export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
-export const JOIN_SLACK = "https://cal.com/slack";
+export const JOIN_DISCORD = "https://go.cal.com/discord";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
