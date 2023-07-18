@@ -136,6 +136,41 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
+function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
+  const router = useRouter();
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { offsetHeight } = entries[0].target as HTMLElement;
+      setBannersHeight(offsetHeight);
+    });
+
+    const currentBannerRef = bannerRef.current;
+
+    if (currentBannerRef) {
+      resizeObserver.observe(currentBannerRef);
+    }
+
+    return () => {
+      if (currentBannerRef) {
+        resizeObserver.unobserve(currentBannerRef);
+      }
+    };
+  }, [bannerRef]);
+
+  return (
+    <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
+      <NProgressNextRouter router={router} />
+      <TeamsUpgradeBanner />
+      <OrgUpgradeBanner />
+      <ImpersonatingBanner />
+      <AdminPasswordBanner />
+      <VerifyEmailBanner />
+    </div>
+  );
+}
+
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
@@ -163,29 +198,8 @@ function useRedirectToOnboardingIfNeeded() {
 }
 
 const Layout = (props: LayoutProps) => {
-  const router = useRouter();
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
-
-  useIsomorphicLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const { offsetHeight } = entries[0].target as HTMLElement;
-      setBannersHeight(offsetHeight);
-    });
-
-    const currentBannerRef = bannerRef.current;
-
-    if (currentBannerRef) {
-      resizeObserver.observe(currentBannerRef);
-    }
-
-    return () => {
-      if (currentBannerRef) {
-        resizeObserver.unobserve(currentBannerRef);
-      }
-    };
-  }, [bannerRef]);
+  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   return (
     <>
@@ -202,14 +216,7 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-          <NProgressNextRouter router={router} />
-          <TeamsUpgradeBanner />
-          <OrgUpgradeBanner />
-          <ImpersonatingBanner />
-          <AdminPasswordBanner />
-          <VerifyEmailBanner />
-        </div>
+        <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
