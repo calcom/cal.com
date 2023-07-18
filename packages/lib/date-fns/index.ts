@@ -31,6 +31,19 @@ export const formatTime = (
 };
 
 /**
+ * Checks if a provided timeZone string is recognized as a valid timezone by the Intl API.
+ * 
+ * @param {string} timeZone - The timezone string to be verified.
+ * @returns {boolean} - Returns 'true' if the provided timezone string is recognized as a valid timezone by the Intl API. Otherwise, returns 'false'.
+ * 
+ */
+export const isSupportedTimeZone = (timeZone: string) => {
+  const validTimezones = Intl.supportedValuesOf("timeZone");
+  return validTimezones.includes(timeZone);
+};
+
+
+/**
  * Returns a localized and translated date or time, based on the native
  * Intl.DateTimeFormat available to JS. Undefined values mean the browser's
  * locale will be used.
