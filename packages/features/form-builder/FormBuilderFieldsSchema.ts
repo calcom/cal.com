@@ -20,6 +20,7 @@ const fieldTypeEnum = z.enum([
 export const EditableSchema = z.enum([
   "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
   "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
   "user", // Fully editable
   "user-readonly", // All fields are readOnly.
 ]);
@@ -70,13 +71,7 @@ const fieldSchema = z.object({
 
   required: z.boolean().default(false).optional(),
   hidden: z.boolean().optional(),
-  editable: z
-    .enum([
-      "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
-      "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
-      "user", // Fully editable
-      "user-readonly", // All fields are readOnly.
-    ])
+  editable: EditableSchema
     .default("user")
     .optional(),
   sources: z

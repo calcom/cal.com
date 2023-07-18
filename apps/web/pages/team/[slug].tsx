@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -64,7 +65,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
@@ -152,9 +153,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted dark:text-inverted p-8 text-center">
             <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
-              {" " + t("no_teams_yet")}
+              {" " + t("org_no_teams_yet")}
             </h2>
-            <p className="mx-auto max-w-md">{t("no_teams_yet_description")}</p>
+            <p className="mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
       </div>
@@ -245,6 +246,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const flags = await getFeatureFlagMap(prisma);
 
   const team = await getTeamWithMembers(undefined, slug);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
@@ -253,7 +255,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (
     (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization)
+    (!isValidOrgDomain && !!metadata?.isOrganization) ||
+    flags["organizations"] !== true
   ) {
     return { notFound: true } as const;
   }

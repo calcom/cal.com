@@ -26,20 +26,22 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       include: {
         team: {
           include: {
-            inviteToken: true,
+            inviteTokens: true,
           },
         },
       },
       orderBy: { role: "desc" },
     });
 
-    const isOrgAdmin = !!(await isOrganisationAdmin(ctx.user.id, ctx.user?.organization?.id ?? -1)); // Org id exists here as we're inside a conditional TS complaining for some reason
+    const isOrgAdmin = !!(await isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)); // Org id exists here as we're inside a conditional TS complaining for some reason
 
-    return membershipsWithoutParent.map(({ team, ...membership }) => ({
+    return membershipsWithoutParent.map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
       isOrgAdmin,
-      ...team,
+      ..._team,
+      /** To prevent breaking we only return non-email attached token here, if we have one */
+      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
     }));
   }
 
@@ -50,7 +52,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     include: {
       team: {
         include: {
-          inviteToken: true,
+          inviteTokens: true,
         },
       },
     },
@@ -62,9 +64,11 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       const metadata = teamMetadataSchema.parse(mmship.team.metadata);
       return !metadata?.isOrganization;
     })
-    .map(({ team, ...membership }) => ({
+    .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
-      ...team,
+      ..._team,
+      /** To prevent breaking we only return non-email attached token here, if we have one */
+      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
     }));
 };
