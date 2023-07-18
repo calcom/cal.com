@@ -4477,6 +4477,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/skiff@workspace:packages/app-store/skiff":
+  version: 0.0.0-use.local
+  resolution: "@calcom/skiff@workspace:packages/app-store/skiff"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/storybook@workspace:apps/storybook":
   version: 0.0.0-use.local
   resolution: "@calcom/storybook@workspace:apps/storybook"
@@ -4733,6 +4742,7 @@ __metadata:
     "@radix-ui/react-tooltip": ^1.0.0
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
+    "@tanem/react-nprogress": ^5.0.44
     "@tanstack/react-query": ^4.3.9
     "@testing-library/react": ^13.3.0
     "@tremor/react": ^2.0.0
@@ -11119,6 +11129,19 @@ __metadata:
   peerDependencies:
     tailwindcss: "*"
   checksum: 016f27266e07fd9966ab785c4182e5ad97c06a2198ff8df739cac90a544ee9c7ac2ac968a4fe9280a1378c3ac8943a315a9f09e70085f21f2839ebc080c88fd8
+  languageName: node
+  linkType: hard
+
+"@tanem/react-nprogress@npm:^5.0.44":
+  version: 5.0.44
+  resolution: "@tanem/react-nprogress@npm:5.0.44"
+  dependencies:
+    "@babel/runtime": ^7.22.5
+    hoist-non-react-statics: ^3.3.2
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: ada4f28cdad5aad378f5721561a6863f0b58fd0934a76fc9cd4b3c0a6961e359f267254362bbdbdaf89537358dba38465ef0b699154cf8d12c3a9e43a9980a4f
   languageName: node
   linkType: hard
 
