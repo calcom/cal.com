@@ -17,7 +17,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import { EditableSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema"
+import { EditableSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
@@ -87,7 +87,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           return {
             ...field,
             hidden: !enabled,
-            editable: (!enabled ? "system-but-hidden" : "system-but-optional") as z.infer<typeof EditableSchema>
+            editable: (!enabled ? "system-but-hidden" : "system-but-optional") as z.infer<
+              typeof EditableSchema
+            >,
           };
         }
         return field;
