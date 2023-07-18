@@ -37,4 +37,5 @@ export default function Page(props: Props) {
   return <UserPage {...(props as UserPageProps)} />;
 }
 
+Page.isBookingPage = true;
 Page.PageWrapper = PageWrapper;
