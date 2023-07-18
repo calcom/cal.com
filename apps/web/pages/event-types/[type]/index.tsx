@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -141,8 +142,8 @@ function getObjectDifference(obj1: FormValues, obj2: FormValues): DiffResult {
   const diff: DiffResult = {};
 
   for (const key in obj1) {
-    if (obj1.hasOwnProperty(key)) {
-      if (!obj2.hasOwnProperty(key)) {
+    if (obj1?.hasOwnProperty(key)) {
+      if (!obj2?.hasOwnProperty(key)) {
         diff[key] = obj1[key];
       } else if (typeof obj1[key] === "object" && typeof obj2[key] === "object") {
         const nestedDiff = getObjectDifference(obj1[key], obj2[key]);
@@ -156,7 +157,7 @@ function getObjectDifference(obj1: FormValues, obj2: FormValues): DiffResult {
   }
 
   for (const key in obj2) {
-    if (obj2.hasOwnProperty(key) && !obj1.hasOwnProperty(key)) {
+    if (obj2?.hasOwnProperty(key) && !obj1?.hasOwnProperty(key)) {
       diff[key] = obj2[key];
     }
   }
@@ -189,12 +190,14 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
   const telemetry = useTelemetry();
   const {
     data: { tabName },
   } = useTypedQuery(querySchema);
 
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+  const [newRoute, setNewRoute] = useState("");
 
   const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
@@ -279,7 +282,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       hideCalendarNotes: eventType.hideCalendarNotes,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
-      description: eventType.description ?? undefined,
+      description: eventType.description || "",
       schedule: eventType.schedule || undefined,
       slug: eventType.slug,
       bookingLimits: eventType.bookingLimits || undefined,
@@ -349,6 +352,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
+
   let numberOfActiveApps = 0;
 
   if (appsMetadata) {
@@ -438,9 +442,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
-    const { availability, ...rest } = input;
     updateMutation.mutate({
-      ...rest,
+      ...input,
       locations,
       recurringEvent,
       periodStartDate: periodDates.startDate,
@@ -458,6 +461,34 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       children,
     });
   };
+
+  const handleBeforeChange = (url: string) => {
+    const unsavedChanges = getObjectDifference({ ...formMethods.getValues() }, defaultValues);
+
+    if (unsavedChanges["availability"]) {
+      delete unsavedChanges["availability"];
+    }
+
+    if (Object.keys(unsavedChanges).length > 0) {
+      console.log({ ...formMethods.getValues() }, defaultValues, unsavedChanges);
+      setUnsavedDialogOpen(true);
+      setNewRoute(url);
+      router.events.emit("routeChangeError");
+      throw "navigation aborted";
+    }
+
+    router.events.off("routeChangeStart", handleBeforeChange);
+  };
+
+  useEffect(() => {
+    // Subscribe to the beforeChange event
+    router.events.on("routeChangeStart", handleBeforeChange);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      router.events.off("routeChangeStart", handleBeforeChange);
+    };
+  }, []); // Empty dependency array ensures the effect runs only once
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const slug = formMethods.watch("slug") ?? eventType.slug;
@@ -520,19 +551,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-            const { availability, ...rest } = input;
-
-            const unsavedChanges = getObjectDifference(
-              { ...values, bookingLimits, durationLimits },
-              defaultValues
-            );
-
-            if (Object.keys(unsavedChanges).length > 0) {
-              setUnsavedDialogOpen(true);
-              return;
-            }
-
-            console.log({ ...values, bookingLimits, durationLimits }, defaultValues);
+            const { ...rest } = input;
 
             updateMutation.mutate({
               ...rest,
@@ -585,6 +604,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           onConfirm={(e) => {
             e.preventDefault();
             setUnsavedDialogOpen(false);
+            router.push(newRoute);
             // deleteMutation.mutate({ id: eventType.id });
           }}>
           <p className="mt-5">
