@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -38,7 +37,7 @@ export async function getAppRegistry() {
     select: { dirName: true, slug: true, categories: true, enabled: true },
   });
   const apps = [] as App[];
-  const mostPopularApps = await getMostPopularApps();
+  const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -51,7 +50,7 @@ export async function getAppRegistry() {
       category: app.category || "other",
       installed:
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
-      installCount: mostPopularApps[dbapp.slug] || 0,
+      installCount: installCountPerApp[dbapp.slug] || 0,
     });
   }
   return apps;
@@ -95,7 +94,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     credentials: Credential[];
     isDefault?: boolean;
   })[];
-  const mostPopularApps = await getMostPopularApps();
+  const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -122,33 +121,11 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
       categories: dbapp.categories,
       credentials: dbapp.credentials,
       installed: true,
-      installCount: mostPopularApps[dbapp.slug] || 0,
+      installCount: installCountPerApp[dbapp.slug] || 0,
       isDefault: usersDefaultApp === dbapp.slug,
       ...(app.dependencies && { dependencyData }),
     });
   }
 
   return apps;
-}
-
-async function getMostPopularApps() {
-  const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
-    await prisma.$queryRaw`
-    SELECT
-      c."appId",
-      COUNT(*)::integer AS "installCount"
-    FROM
-      "Credential" c
-    WHERE
-      c."appId" IS NOT NULL
-    GROUP BY
-      c."appId"
-    ORDER BY
-      "installCount" DESC
-    `
-  );
-  return mostPopularApps.reduce((acc, { appId, installCount }) => {
-    acc[appId] = installCount;
-    return acc;
-  }, {} as Record<string, number>);
 }
