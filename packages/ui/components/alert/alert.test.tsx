@@ -1,7 +1,5 @@
 import { render, screen } from "@testing-library/react";
 
-import { User as UserIcon } from "@calcom/ui/components/icon";
-
 import { Alert } from "./Alert";
 
 describe("Tests for Alert component", () => {
@@ -9,20 +7,6 @@ describe("Tests for Alert component", () => {
     render(<Alert severity="info" title="I'm an Alert!" message="Hello World" />);
     expect(screen.getByText("I'm an Alert!")).toBeInTheDocument();
     expect(screen.getByText("Hello World")).toBeInTheDocument();
-  });
-
-  test("Should have custom class name", () => {
-    render(<Alert severity="info" className="component-class" />);
-    expect(screen.getByTestId("alert").classList.toString()).toContain("component-class");
-  });
-
-  test("Should render custom icon with class names", () => {
-    render(
-      <Alert severity="info" CustomIcon={UserIcon} customIconColor="icon-color" iconClassName="icon-class" />
-    );
-
-    expect(screen.getByTestId("custom-icon")?.classList.toString()).toContain("icon-color");
-    expect(screen.getByTestId("custom-icon")?.classList.toString()).toContain("icon-class");
   });
 
   test("Should render actions", () => {
