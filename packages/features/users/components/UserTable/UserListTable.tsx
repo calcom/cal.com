@@ -2,8 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, StopCircle, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
-import { DeleteMemberModal } from "users/components/UserTable/DeleteMemberModal";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -11,6 +11,7 @@ import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
+import { DeleteMemberModal } from "./DeleteMemberModal";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
@@ -23,6 +24,7 @@ export interface User {
   role: MembershipRole;
   accepted: boolean;
   disableImpersonation: boolean;
+  completedOnboarding: boolean;
   teams: {
     id: number;
     name: string;
@@ -146,7 +148,12 @@ export function UserListTable() {
           const { username, email } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={domain + "/" + username + "/avatar.png"} />
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={domain + "/" + username + "/avatar.png"}
+                gravatarFallbackMd5="fallback"
+              />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
