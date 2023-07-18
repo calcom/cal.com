@@ -1799,5 +1799,8 @@
   "organization_admin_invited_body": "Schließen Sie sich Ihrem Team bei {{orgName}} an und konzentrieren Sie sich auf Ihre Meetings, nicht auf das Planen von Meetings!",
   "team_names_empty": "Teamnamen dürfen nicht leer sein",
   "team_names_repeated": "Teamnamen dürfen nicht wiederholt vorkommen",
+  "user_belongs_organization": "Der Benutzer gehört einer Organisation an",
+  "org_no_teams_yet": "Diese Organisation hat noch keine Teams",
+  "set_up": "Einrichten",
   "insights_all_org_filter": "Alle Apps"
 }

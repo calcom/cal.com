@@ -1692,6 +1692,7 @@
   "booking_questions_title": "Pytania dotyczące rezerwacji",
   "booking_questions_description": "Dostosuj pytania zadawane na stronie rezerwacji",
   "add_a_booking_question": "Dodaj pytanie",
+  "identifier": "Identyfikator",
   "duplicate_email": "Adres e-mail jest zduplikowany",
   "booking_with_payment_cancelled": "Nie można już zapłacić za to wydarzenie",
   "booking_with_payment_cancelled_already_paid": "Zwrot środków za tę rezerwację jest już w drodze.",
