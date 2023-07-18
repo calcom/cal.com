@@ -1801,6 +1801,16 @@
   "team_names_repeated": "Teamnamen dürfen nicht wiederholt vorkommen",
   "user_belongs_organization": "Der Benutzer gehört einer Organisation an",
   "org_no_teams_yet": "Diese Organisation hat noch keine Teams",
+  "org_no_teams_yet_description": "Falls Sie ein Administrator sind, sollten Sie unbedingt Teams erstellen, welche hier angezeigt werden können.",
   "set_up": "Einrichten",
+  "set_up_your_profile": "Richten Sie Ihr Profil ein",
+  "my_profile": "Mein Profil",
+  "my_settings": "Meine Einstellungen",
+  "crm": "CRM",
+  "org_name": "Name der Organisation",
+  "org_url": "URL der Organisation",
+  "copy_link_org": "Link zur Organisation kopieren",
+  "404_the_org": "Die Organisation",
+  "404_the_team": "Das Team",
   "insights_all_org_filter": "Alle Apps"
 }
