@@ -198,6 +198,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [newRoute, setNewRoute] = useState("");
+  const [shouldWarnUnsaved, setShouldWarnUnsaved] = useState(true);
 
   const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
@@ -442,7 +443,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
-    updateMutation.mutate({
+    await updateMutation.mutateAsync({
       ...input,
       locations,
       recurringEvent,
@@ -460,35 +461,34 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       customInputs,
       children,
     });
+
+    setUnsavedDialogOpen(false);
   };
 
-  const handleBeforeChange = (url: string) => {
-    const unsavedChanges = getObjectDifference({ ...formMethods.getValues() }, defaultValues);
-
-    if (unsavedChanges["availability"]) {
-      delete unsavedChanges["availability"];
-    }
-
-    if (Object.keys(unsavedChanges).length > 0) {
-      console.log({ ...formMethods.getValues() }, defaultValues, unsavedChanges);
-      setUnsavedDialogOpen(true);
-      setNewRoute(url);
-      router.events.emit("routeChangeError");
-      throw "navigation aborted";
-    }
-
-    router.events.off("routeChangeStart", handleBeforeChange);
-  };
-
+  // Warning users for unsaved changes
   useEffect(() => {
-    // Subscribe to the beforeChange event
+    const handleBeforeChange = (url: string) => {
+      if (shouldWarnUnsaved) {
+        const unsavedChanges = getObjectDifference({ ...formMethods.getValues() }, defaultValues);
+
+        if (unsavedChanges["availability"]) {
+          delete unsavedChanges["availability"];
+        }
+
+        if (Object.keys(unsavedChanges).length > 0) {
+          setUnsavedDialogOpen(true);
+          setNewRoute(url);
+          router.events.emit("routeChangeError");
+          throw "navigation aborted";
+        }
+      }
+    };
     router.events.on("routeChangeStart", handleBeforeChange);
 
-    // Clean up the event listener when the component unmounts
     return () => {
       router.events.off("routeChangeStart", handleBeforeChange);
     };
-  }, []); // Empty dependency array ensures the effect runs only once
+  }, [shouldWarnUnsaved]); // Empty dependency array ensures the effect runs only once
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const slug = formMethods.watch("slug") ?? eventType.slug;
@@ -594,18 +594,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
       <Dialog open={unsavedDialogOpen} onOpenChange={setUnsavedDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={false}
+          isLoading={updateMutation.isLoading}
           variety="danger"
           cancelBtnText="Discard Changes"
           // confirmBtnText="Keep Editing"
           title={t(`delete${"_managed"}_event_type`)}
           confirmBtnText={t(`Save Changes`)}
           loadingText={t(`Save Changes`)}
-          onConfirm={(e) => {
+          onConfirm={async (e) => {
+            setShouldWarnUnsaved(false);
             e.preventDefault();
-            setUnsavedDialogOpen(false);
+            await handleSubmit(formMethods.getValues());
             router.push(newRoute);
-            // deleteMutation.mutate({ id: eventType.id });
           }}>
           <p className="mt-5">
             <Trans i18nKey="SaveChanges" components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
