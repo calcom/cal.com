@@ -191,22 +191,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
+        const emailLocale = locale || "en";
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",
           variables,
-          locale || "",
+          emailLocale,
           !!reminder.booking.user?.hideBranding
         ).text;
         emailContent.emailSubject = emailSubject;
         emailContent.emailBody = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || "",
+          emailLocale,
           !!reminder.booking.user?.hideBranding
         ).html;
 
         emailBodyEmpty =
-          customTemplate(reminder.workflowStep.reminderBody || "", variables, locale || "").text.length === 0;
+          customTemplate(reminder.workflowStep.reminderBody || "", variables, emailLocale).text.length ===
+          0;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
         emailContent = emailReminderTemplate(
           false,

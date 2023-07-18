@@ -12,6 +12,8 @@
   "have_any_questions": "Có câu hỏi? Chúng tôi luôn ở đây để giúp bạn.",
   "reset_password_subject": "{{appName}}: Hướng dẫn thay đổi mật khẩu",
   "verify_email_subject": "{{appName}}; Xác minh tài khoản của bạn",
+  "check_your_email": "Kiểm tra email của bạn",
+  "verify_email_page_body": "Chúng tôi đã gửi một email đến {{email}}. Điều quan trọng là cần xác minh địa chỉ email để bảo đảm {{appName}} có thể gửi được email và lịch đến một cách ổn thoả nhất.",
   "event_declined_subject": "Đã từ chối: {{title}} tại {{date}}",
   "event_cancelled_subject": "Đã huỷ: {{title}} vào {{date}}",
   "event_request_declined": "Lời mời sự kiện của bạn đã bị từ chối",
