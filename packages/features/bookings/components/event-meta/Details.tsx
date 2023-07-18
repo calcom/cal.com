@@ -5,11 +5,11 @@ import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
+import { AvailableEventLocations } from "@calcom/web/components/booking/AvailableEventLocations";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { EventDuration } from "./Duration";
-import { EventLocations } from "./Locations";
 import { EventOccurences } from "./Occurences";
 import { EventPrice } from "./Price";
 
@@ -63,7 +63,7 @@ export const EventMetaBlock = ({
   highlight,
   contentClassName,
   className,
-  isDark
+  isDark,
 }: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
@@ -81,9 +81,10 @@ export const EventMetaBlock = ({
           // @TODO: Use SVG's instead of images, so we can get rid of the filter.
           className={classNames(
             "mr-2 mt-[2px] h-4 w-4 flex-shrink-0",
-            isDark===undefined && "[filter:invert(0.5)_brightness(0.5)]",
-            (isDark===undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
-          )}/>
+            isDark === undefined && "[filter:invert(0.5)_brightness(0.5)]",
+            (isDark === undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
+          )}
+        />
       ) : (
         <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />}</>
       )}
@@ -128,7 +129,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event?.locations?.length) return null;
             return (
               <React.Fragment key={block}>
-                <EventLocations event={event} />
+                <AvailableEventLocations locations={event.locations} />
               </React.Fragment>
             );
 
