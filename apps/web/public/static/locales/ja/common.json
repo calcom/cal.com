@@ -1878,5 +1878,7 @@
   "install_app_on": "次にアプリをインストール",
   "create_for": "作成対象",
   "setup_organization": "Organization をセットアップ",
+  "organization_banner_description": "チームがラウンドロビンスケジューリングや一括スケジューリングで、共有アプリ、ワークフロー、イベントの種類を作成できる環境を作成します。",
+  "organization_banner_title": "複数のチームを持つ組織を管理",
   "insights_all_org_filter": "すべて"
 }
