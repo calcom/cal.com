@@ -48,6 +48,12 @@ type AppPropsWithChildren = AppProps & {
   children: ReactNode;
 };
 
+const getEmbedNamespace = (query: ReturnType<typeof useRouter>["query"]) => {
+  // Mostly embed query param should be available on server. Use that there.
+  // Use the most reliable detection on client
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
+};
+
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
@@ -87,7 +93,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
-  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
+  const embedNamespace = getEmbedNamespace(router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
   return (
@@ -158,10 +164,10 @@ function getThemeProviderProps({
     ? ThemeSupport.None
     : ThemeSupport.App;
 
-  const isBookingPageThemSupportRequired = themeSupport === ThemeSupport.Booking;
+  const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
 
-  if ((isBookingPageThemSupportRequired || isEmbedMode) && !themeBasis) {
+  if ((isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );
@@ -184,7 +190,7 @@ function getThemeProviderProps({
       `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
     : themeSupport === ThemeSupport.App
     ? "app-theme"
-    : isBookingPageThemSupportRequired
+    : isBookingPageThemeSupportRequired
     ? `booking-theme${appearanceIdSuffix}`
     : undefined;
 
