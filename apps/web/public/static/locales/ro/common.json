@@ -1936,5 +1936,6 @@
   "404_claim_entity_team": "Revendicați această echipă și începeți să gestionați programele în mod colectiv",
   "insights_all_org_filter": "Toate aplicațiile",
   "insights_team_filter": "Echipă: {{teamName}}",
-  "insights_user_filter": "Utilizator: {{userName}}"
+  "insights_user_filter": "Utilizator: {{userName}}",
+  "insights_subtitle": "Vizualizați perspective cu privire la rezervări pentru toate evenimentele dvs."
 }
