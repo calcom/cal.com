@@ -1819,5 +1819,8 @@
   "404_the_team": "Das Team",
   "404_claim_entity_org": "Beanspruchen Sie Ihre Subdomain für Ihre Organisation",
   "insights_all_org_filter": "Alle Apps",
+  "insights_team_filter": "Team: {{teamName}}",
+  "insights_user_filter": "Benutzer: {{userName}}",
+  "custom_plan": "Benutzerdefinierter Plan",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
