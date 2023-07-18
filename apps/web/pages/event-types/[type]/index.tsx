@@ -280,6 +280,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       eventName: eventType.eventName,
       afterBufferTime: eventType.afterEventBuffer,
       beforeBufferTime: eventType.beforeEventBuffer,
+      slotInterval: eventType.slotInterval,
+      periodDays: eventType.periodDays,
       hideCalendarNotes: eventType.hideCalendarNotes,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
@@ -300,7 +302,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      metadata,
+      metadata: eventType.metadata,
+      requiresConfirmation: eventType.requiresConfirmation,
+      // seatsPerTimeSlotEnabled: eventType.,
+      successRedirectUrl: eventType.successRedirectUrl,
       hosts: eventType.hosts,
       children: eventType.children.map((ch) => ({
         ...ch,
@@ -443,8 +448,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    const { availability, ...rest } = input;
+
     await updateMutation.mutateAsync({
-      ...input,
+      ...rest,
       locations,
       recurringEvent,
       periodStartDate: periodDates.startDate,
@@ -468,7 +475,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   // Warning users for unsaved changes
   useEffect(() => {
     const handleBeforeChange = (url: string) => {
-      if (shouldWarnUnsaved) {
+      const currentUrl = router.asPath;
+      const newUrl = url;
+
+      const urlChanged = currentUrl.split("?")[0] === newUrl.split("?")[0];
+      // Check if the query parameters have changed
+
+      if (shouldWarnUnsaved && !urlChanged) {
         const unsavedChanges = getObjectDifference({ ...formMethods.getValues() }, defaultValues);
 
         if (unsavedChanges["availability"]) {
@@ -476,6 +489,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         }
 
         if (Object.keys(unsavedChanges).length > 0) {
+          console.log(unsavedChanges, formMethods.getValues(), defaultValues);
           setUnsavedDialogOpen(true);
           setNewRoute(url);
           router.events.emit("routeChangeError");
@@ -551,7 +565,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-            const { ...rest } = input;
+            const { availability, ...rest } = input;
 
             updateMutation.mutate({
               ...rest,
