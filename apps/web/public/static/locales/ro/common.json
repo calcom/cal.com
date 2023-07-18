@@ -1924,5 +1924,13 @@
   "messaging": "Mesagerie",
   "sender_id_info": "Numele sau numărul afișat ca expeditor al unui SMS (unele țări nu permit ID-uri alfanumerice ale expeditorului)",
   "org_admins_can_create_new_teams": "Numai administratorul organizației dvs. poate crea echipe noi",
+  "google_new_spam_policy": "Noua politică de spam a Google vă poate împiedica să primiți orice notificare prin e-mail sau calendar cu privire la această rezervare.",
+  "resolve": "Rezolvați",
+  "no_organization_slug": "A survenit o eroare la crearea echipelor pentru această organizație. Slug URL lipsă.",
+  "org_name": "Nume organizație",
+  "org_url": "Adresă URL organizație",
+  "copy_link_org": "Copiați linkul către organizație",
+  "404_the_org": "Organizația",
+  "404_the_team": "Echipa",
   "insights_all_org_filter": "Toate aplicațiile"
 }
