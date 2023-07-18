@@ -1,5 +1,6 @@
-import dayjs from "@calcom/dayjs";
 import { WorkflowActions } from "@prisma/client";
+
+import dayjs from "@calcom/dayjs";
 
 export const whatsappEventCancelledTemplate = (
   isEditingMode: boolean,
@@ -26,8 +27,8 @@ export const whatsappEventCancelledTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, your meeting (*${eventName}*) with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been canceled.`
-  
+  }, your meeting (*${eventName}*) with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been canceled.`;
+
   //Twilio supports up to 1024 characters for whatsapp template messages
   if (templateOne.length <= 1024) return templateOne;
 

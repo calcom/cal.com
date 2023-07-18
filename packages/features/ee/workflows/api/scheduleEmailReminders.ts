@@ -207,8 +207,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ).html;
 
         emailBodyEmpty =
-          customTemplate(reminder.workflowStep.reminderBody || "", variables, emailLocale).text.length ===
-          0;
+          customTemplate(reminder.workflowStep.reminderBody || "", variables, emailLocale).text.length === 0;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
         emailContent = emailReminderTemplate(
           false,
