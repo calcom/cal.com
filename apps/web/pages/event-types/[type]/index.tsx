@@ -132,6 +132,37 @@ export type FormValues = {
   bookerLayouts: BookerLayoutSettings;
 };
 
+interface DiffResult {
+  [key: string]: any;
+}
+
+function getObjectDifference(obj1: FormValues, obj2: FormValues): DiffResult {
+  const diff: DiffResult = {};
+
+  for (const key in obj1) {
+    if (obj1.hasOwnProperty(key)) {
+      if (!obj2.hasOwnProperty(key)) {
+        diff[key] = obj1[key];
+      } else if (typeof obj1[key] === "object" && typeof obj2[key] === "object") {
+        const nestedDiff = getObjectDifference(obj1[key], obj2[key]);
+        if (Object.keys(nestedDiff).length > 0) {
+          diff[key] = nestedDiff;
+        }
+      } else if (obj1[key] !== obj2[key]) {
+        diff[key] = obj1[key];
+      }
+    }
+  }
+
+  for (const key in obj2) {
+    if (obj2.hasOwnProperty(key) && !obj1.hasOwnProperty(key)) {
+      diff[key] = obj2[key];
+    }
+  }
+
+  return diff;
+}
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
@@ -239,10 +270,15 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const defaultValues: any = useMemo(() => {
     return {
       title: eventType.title,
+      eventName: eventType.eventName,
+      afterBufferTime: eventType.afterEventBuffer,
+      beforeBufferTime: eventType.beforeEventBuffer,
+      hideCalendarNotes: eventType.hideCalendarNotes,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
+      slug: eventType.slug,
       bookingLimits: eventType.bookingLimits || undefined,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
@@ -481,6 +517,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
             }
             const { availability, ...rest } = input;
+
+            console.log(getObjectDifference({ ...values, bookingLimits, durationLimits }, defaultValues));
+
             updateMutation.mutate({
               ...rest,
               locations,
