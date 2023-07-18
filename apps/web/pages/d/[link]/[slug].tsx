@@ -39,6 +39,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, isTe
 }
 
 Type.PageWrapper = PageWrapper;
+Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
