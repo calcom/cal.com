@@ -82,8 +82,6 @@ import {
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
-console.log("Discord>>>>>>>>>>>>", Discord);
-
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
   ssr: false,
