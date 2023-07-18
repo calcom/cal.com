@@ -38,8 +38,12 @@ export const formatTime = (
  * 
  */
 export const isSupportedTimeZone = (timeZone: string) => {
-  const validTimezones = Intl.supportedValuesOf("timeZone");
-  return validTimezones.includes(timeZone);
+  try {
+    dayjs().tz(timeZone);
+    return true;
+  } catch (error) {
+    return false;
+  }
 };
 
 
