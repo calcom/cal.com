@@ -1795,5 +1795,9 @@
   "verify_email_organization": "Bestätigen Sie Ihre E-Mail, um eine Organisation zu erstellen",
   "code_provided_invalid": "Der eingegebene Code ist ungültig, versuchen Sie es erneut",
   "email_already_used": "Die E-Mail-Adresse wird bereits verwendet",
+  "organization_admin_invited_heading": "Sie wurden eingeladen, ein Mitglied von {{orgName}} zu werden",
+  "organization_admin_invited_body": "Schließen Sie sich Ihrem Team bei {{orgName}} an und konzentrieren Sie sich auf Ihre Meetings, nicht auf das Planen von Meetings!",
+  "team_names_empty": "Teamnamen dürfen nicht leer sein",
+  "team_names_repeated": "Teamnamen dürfen nicht wiederholt vorkommen",
   "insights_all_org_filter": "Alle Apps"
 }
