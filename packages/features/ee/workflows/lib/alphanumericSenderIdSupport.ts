@@ -86,4 +86,7 @@ const noAlphanumericSenderIdSupport = [
   "+260",
   "+61",
   "+971",
+  "+420",
+  "+381",
+  "+65",
 ];
