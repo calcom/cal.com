@@ -1818,5 +1818,6 @@
   "404_the_org": "Die Organisation",
   "404_the_team": "Das Team",
   "404_claim_entity_org": "Beanspruchen Sie Ihre Subdomain für Ihre Organisation",
-  "insights_all_org_filter": "Alle Apps"
+  "insights_all_org_filter": "Alle Apps",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
