@@ -192,10 +192,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
+        const emailLocale = locale || "en";
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",
           variables,
-          locale || "",
+          emailLocale,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).text;
@@ -203,7 +204,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         emailContent.emailBody = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || "",
+          emailLocale,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).html;
@@ -212,7 +213,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
-            locale || "",
+            emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
           ).text.length === 0;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {

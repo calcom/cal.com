@@ -5,6 +5,7 @@ import {
   isNextDayInTimezone,
   isPreviousDayInTimezone,
   sortByTimezone,
+  isSupportedTimeZone,
 } from "@calcom/lib/date-fns";
 
 import { Globe } from "../icon";
@@ -34,8 +35,12 @@ const MeetingTimeInTimezones = ({
   endTime,
 }: MeetingTimeInTimezonesProps) => {
   if (!userTimezone || !attendees.length) return null;
-
-  const attendeeTimezones = attendees.map((attendee) => attendee.timeZone);
+  
+  // If attendeeTimezone is unsupported, we fallback to host timezone. Unsupported Attendee timezone can be used due to bad API booking request in the past | backward-compatibility
+  
+  const attendeeTimezones = attendees.map((attendee) => {
+    return isSupportedTimeZone(attendee.timeZone) ? attendee.timeZone : userTimezone;
+  });
   const uniqueTimezones = [userTimezone, ...attendeeTimezones].filter(
     (value, index, self) => self.indexOf(value) === index
   );

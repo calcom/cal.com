@@ -117,7 +117,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || "",
+          locale || "en",
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
         );
         message = customMessage.text;
