@@ -1787,5 +1787,13 @@
   "admin_username": "Benutzername des Administrators",
   "organization_name": "Name der Organisation",
   "organization_url": "URL der Organisation",
+  "set_a_password": "Legen Sie ein Passwort fest",
+  "organization_logo": "Logo der Organisation",
+  "organization_about_description": "Ein paar Sätze zu Ihrer Organisation. Dies wird auf der öffentlichen Profilseite Ihrer Organisation erscheinen.",
+  "verify_your_email": "Bestätigen Sie Ihre E-Mail",
+  "enter_digit_code": "Geben Sie den 6-stelligen Code ein, den wir an {{email}} gesendet haben",
+  "verify_email_organization": "Bestätigen Sie Ihre E-Mail, um eine Organisation zu erstellen",
+  "code_provided_invalid": "Der eingegebene Code ist ungültig, versuchen Sie es erneut",
+  "email_already_used": "Die E-Mail-Adresse wird bereits verwendet",
   "insights_all_org_filter": "Alle Apps"
 }
