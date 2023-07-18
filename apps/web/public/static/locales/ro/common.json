@@ -1932,5 +1932,7 @@
   "copy_link_org": "Copiați linkul către organizație",
   "404_the_org": "Organizația",
   "404_the_team": "Echipa",
+  "404_claim_entity_org": "Revendicați subdomeniul pentru organizația dvs.",
+  "404_claim_entity_team": "Revendicați această echipă și începeți să gestionați programele în mod colectiv",
   "insights_all_org_filter": "Toate aplicațiile"
 }
