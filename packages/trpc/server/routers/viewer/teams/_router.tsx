@@ -22,6 +22,7 @@ import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 type TeamsRouterHandlerCache = {
   get?: typeof import("./get.handler").getHandler;
   list?: typeof import("./list.handler").listHandler;
+  listOwnedTeams?: typeof import("./listOwnedTeams.handler").listOwnedTeamsHandler;
   create?: typeof import("./create.handler").createHandler;
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
@@ -76,6 +77,23 @@ export const viewerTeamsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.list({
+      ctx,
+    });
+  }),
+  // Returns Teams I am a owner/admin of
+  listOwnedTeams: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listOwnedTeams) {
+      UNSTABLE_HANDLER_CACHE.listOwnedTeams = await import("./listOwnedTeams.handler").then(
+        (mod) => mod.listOwnedTeamsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listOwnedTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listOwnedTeams({
       ctx,
     });
   }),

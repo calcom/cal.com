@@ -80,6 +80,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
+import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -162,6 +163,7 @@ function useRedirectToOnboardingIfNeeded() {
 }
 
 const Layout = (props: LayoutProps) => {
+  const router = useRouter();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
@@ -201,6 +203,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
         <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
+          <NProgressNextRouter router={router} />
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />

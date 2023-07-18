@@ -17,6 +17,7 @@
   "verify_email_banner_body": "Vérifiez votre adresse e-mail pour garantir la meilleure délivrabilité des e-mails et des calendriers",
   "verify_email_email_header": "Vérifiez votre adresse e-mail",
   "verify_email_email_button": "Vérifier l'adresse e-mail",
+  "copy_somewhere_safe": "Sauvegardez cette clé API dans un endroit sûr. Vous ne pourrez plus la revoir.",
   "verify_email_email_body": "Veuillez vérifier votre adresse e-mail en cliquant sur le bouton ci-dessous.",
   "verify_email_email_link_text": "Si vous n'aimez pas cliquer sur les boutons, voici le lien :",
   "email_sent": "E-mail envoyé avec succès",
@@ -1939,5 +1940,11 @@
   "insights_user_filter": "Utilisateur : {{userName}}",
   "insights_subtitle": "Visualisez les statistiques de réservation à travers vos événements",
   "custom_plan": "Plan personnalisé",
+  "org_team_names_example": "p. ex. Équipe marketing",
+  "org_team_names_example_1": "p. ex. Équipe marketing",
+  "org_team_names_example_2": "p. ex. Équipe de vente",
+  "org_team_names_example_3": "p. ex. Équipe de design",
+  "org_team_names_example_4": "p. ex. Équipe d'ingénierie",
+  "org_team_names_example_5": "p. ex. Équipe d'analyse de données",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

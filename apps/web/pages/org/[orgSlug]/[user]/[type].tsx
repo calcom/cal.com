@@ -60,3 +60,4 @@ export default function Page(props: Props) {
 }
 
 Page.PageWrapper = PageWrapper;
+Page.isBookingPage = true;
