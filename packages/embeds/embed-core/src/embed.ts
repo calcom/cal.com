@@ -116,7 +116,7 @@ function validate(data: Record<string, unknown>, schema: ValidationSchema) {
   }
 }
 
-function getColorScheme(el: HTMLElement) {
+function getColorScheme(el: Element) {
   const pageColorScheme = getComputedStyle(el).colorScheme;
   if (pageColorScheme === "dark" || pageColorScheme === "light") {
     return pageColorScheme;
@@ -126,7 +126,7 @@ function getColorScheme(el: HTMLElement) {
 
 function withColorScheme(
   queryObject: PrefillAndIframeAttrsConfig & { guest?: string | string[] },
-  containerEl: HTMLElement
+  containerEl: Element
 ) {
   // If color-scheme not explicitly configured, keep it same as the webpage that has the iframe
   // This is done to avoid having an opaque background of iframe that arises when they aren't same. We really need to have a transparent background to make embed part of the page
@@ -394,7 +394,7 @@ export class Cal {
 
 class CalApi {
   cal: Cal;
-
+  static initializedNamespaces = [] as string[];
   constructor(cal: Cal) {
     this.cal = cal;
   }
@@ -403,6 +403,8 @@ class CalApi {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
+
+    CalApi.initializedNamespaces.push(this.cal.namespace);
 
     const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
 
@@ -451,8 +453,8 @@ class CalApi {
         ? elementOrSelector
         : document.querySelector(elementOrSelector);
 
-    if (!containerEl || !(containerEl instanceof HTMLElement)) {
-      throw new Error("Element not found or it is not an HTMLElement");
+    if (!containerEl) {
+      throw new Error("Element not found");
     }
 
     config.embedType = "inline";
@@ -685,7 +687,9 @@ export interface CalWindow extends Window {
   Cal: GlobalCal;
 }
 
-globalCal.instance = new Cal("", globalCal.q);
+const DEFAULT_NAMESPACE = "";
+
+globalCal.instance = new Cal(DEFAULT_NAMESPACE, globalCal.q);
 for (const [ns, api] of Object.entries(globalCal.ns)) {
   api.instance = new Cal(ns, api.q);
 }
@@ -754,14 +758,28 @@ document.addEventListener("click", (e) => {
 let currentColorScheme: string | null = null;
 
 (function watchAndActOnColorSchemeChange() {
+  // TODO: Maybe find a better way to identify change in color-scheme, a mutation observer seems overkill for this. Settle with setInterval for now.
   setInterval(() => {
     const colorScheme = getColorScheme(document.body);
     if (colorScheme && colorScheme !== currentColorScheme) {
       currentColorScheme = colorScheme;
-      // TODO: We need to have a registry of all embed namespaces registered on the page so that all of them can be updated.
-      window.Cal("ui", {
-        colorScheme: colorScheme,
+      // Go through all the embeds on the same page and update all of them with this info
+      CalApi.initializedNamespaces.forEach((ns) => {
+        const api = getEmbedApiFn(ns);
+        api("ui", {
+          colorScheme: colorScheme,
+        });
       });
     }
   }, 50);
 })();
+
+function getEmbedApiFn(ns: string) {
+  let api;
+  if (ns === DEFAULT_NAMESPACE) {
+    api = globalCal;
+  } else {
+    api = globalCal.ns[ns];
+  }
+  return api;
+}

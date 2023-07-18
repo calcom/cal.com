@@ -23,6 +23,11 @@ document.addEventListener("click", (e) => {
 
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const colorScheme = searchParams.get("color-scheme");
+
+if (colorScheme) {
+  document.documentElement.style.colorScheme = colorScheme;
+}
 const themeInParam = searchParams.get("theme");
 const validThemes = ["light", "dark", "auto"] as const;
 const theme = validThemes.includes((themeInParam as (typeof validThemes)[number]) || "")
