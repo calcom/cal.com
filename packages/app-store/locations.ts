@@ -42,7 +42,10 @@ export type DefaultEventLocationType = {
     }
 );
 
-type EventLocationTypeFromApp = Ensure<EventLocationTypeFromAppMeta, "defaultValueVariable" | "variable">;
+export type EventLocationTypeFromApp = Ensure<
+  EventLocationTypeFromAppMeta,
+  "defaultValueVariable" | "variable"
+>;
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
