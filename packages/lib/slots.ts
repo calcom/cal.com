@@ -161,6 +161,7 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
@@ -178,7 +179,7 @@ function buildSlotsWithDateRanges({
     }
 
     slotStartTime =
-      slotStartTime.utc().minute() % interval !== 0
+      slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
 

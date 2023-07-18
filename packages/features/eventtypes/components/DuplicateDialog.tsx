@@ -143,7 +143,7 @@ const DuplicateDialog = () => {
                 required
                 min="1"
                 placeholder="15"
-                label={t("length")}
+                label={t("duration")}
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />
