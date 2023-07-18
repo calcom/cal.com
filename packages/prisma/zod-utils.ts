@@ -16,6 +16,7 @@ import type {
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -202,7 +203,7 @@ export const bookingCreateBodySchema = z.object({
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
-  timeZone: z.string(),
+  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
