@@ -459,6 +459,10 @@ class CalApi {
 
     config.embedType = "inline";
 
+    // Note that by the time, the server responds with html having appropriate color-scheme, there might be a flash of non-transparent(white/black) background(for a few 100 milliseconds)
+    // There is no quick way know to fix it.
+    // An approach might be to add a temporary neutral iframe(with no src) whose html can be directly modified synchronously and let the iframe with calLink src respond,
+    // once the iframe responds, we can replace the neutral iframe with the calLink iframe
     const iframe = this.cal.createIframe({
       calLink,
       queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
