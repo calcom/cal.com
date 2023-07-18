@@ -1938,5 +1938,6 @@
   "insights_team_filter": "Echipă: {{teamName}}",
   "insights_user_filter": "Utilizator: {{userName}}",
   "insights_subtitle": "Vizualizați perspective cu privire la rezervări pentru toate evenimentele dvs.",
-  "custom_plan": "Plan personalizat"
+  "custom_plan": "Plan personalizat",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
