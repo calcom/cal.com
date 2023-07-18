@@ -615,6 +615,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           title={t(`delete${"_managed"}_event_type`)}
           confirmBtnText={t(`Save Changes`)}
           loadingText={t(`Save Changes`)}
+          onCancel={(e) => {
+            setShouldWarnUnsaved(false);
+            e.preventDefault();
+            router.push(newRoute);
+          }}
           onConfirm={async (e) => {
             setShouldWarnUnsaved(false);
             e.preventDefault();
