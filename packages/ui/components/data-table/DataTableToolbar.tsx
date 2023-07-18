@@ -61,7 +61,6 @@ export function DataTableToolbar<TData>({
           if (foundColumn?.getCanFilter()) {
             return (
               <DataTableFilter
-                table={table}
                 column={foundColumn}
                 title={item.title}
                 options={item.options}
