@@ -1,4 +1,5 @@
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -33,7 +34,15 @@ type TeamQuery = Prisma.TeamGetPayload<{
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
-  const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
+  const {
+    variant,
+    exclude,
+    onlyInstalled,
+    includeTeamInstalledApps,
+    extendsFeature,
+    teamId,
+    sortByMostPopular,
+  } = input;
   let { credentials } = user;
   let userTeams: TeamQuery[] = [];
 
@@ -165,6 +174,17 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         ...app,
         isInstalled: !!app.userCredentialIds?.length || !!app.teams?.length || app.isGlobal,
       }));
+  }
+
+  if (sortByMostPopular) {
+    const installCountPerApp = await getInstallCountPerApp();
+
+    // sort the apps array by the most popular apps
+    apps.sort((a, b) => {
+      const aCount = installCountPerApp[a.slug] || 0;
+      const bCount = installCountPerApp[b.slug] || 0;
+      return bCount - aCount;
+    });
   }
 
   return {

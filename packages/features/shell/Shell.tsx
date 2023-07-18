@@ -49,7 +49,6 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
-  SkeletonAvatar,
   Tooltip,
   showToast,
   useCalcomTheme,
@@ -81,6 +80,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
+import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -163,6 +163,7 @@ function useRedirectToOnboardingIfNeeded() {
 }
 
 const Layout = (props: LayoutProps) => {
+  const router = useRouter();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
@@ -202,6 +203,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
         <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
+          <NProgressNextRouter router={router} />
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
@@ -850,12 +852,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <span className="hidden md:inline lg:hidden">
                   <UserDropdown small />
                 </span>
-              </div>
-            )}
-            {!isLocaleReady && (
-              <div className="flex w-full gap-1">
-                <SkeletonAvatar className="min-w-5 min-h-5 mt-0 h-5 w-5" />
-                <SkeletonText className="h-[20px] w-full" />
               </div>
             )}
             <div className="flex space-x-0.5 rtl:space-x-reverse">
