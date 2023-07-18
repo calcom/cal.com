@@ -21,9 +21,10 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
   };
   const eventLocationType = getEventLocationType(locations[0].type);
   const icon = (locations.length > 1 || !eventLocationType?.iconUrl) ? MapPin : eventLocationType.iconUrl;
+  const isDark = !eventLocationType?.iconUrl?.startsWith("/app-store") ? true : false;
 
   return (
-    <EventMetaBlock icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
+    <EventMetaBlock icon={icon} isDark={isDark}>
       {locations.length === 1 && (
         <Tooltip content={getLocationToDisplay(locations[0])}>
           <div className="" key={locations[0].type}>
@@ -44,13 +45,13 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
                     <li key={`${location.type}-${index}`} className="mt-1">
                       <div className="flex flex-row items-center">
                         <img
-                            src={getEventLocationType(location.type)?.iconUrl}
-                            className={classNames(
-                              "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
+                          src={getEventLocationType(location.type)?.iconUrl}
+                          className={classNames(
+                            "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
                               !getEventLocationType(location.type)?.iconUrl?.startsWith("/app-store") ? "dark:invert-[.65]" : ""
-                            )}
-                            alt={`${getEventLocationType(location.type)?.label} icon`}
-                          />
+                          )}
+                          alt={`${getEventLocationType(location.type)?.label} icon`}
+                        />
                         <span>{getLocationToDisplay(location)}</span>
                       </div>
                     </li>
