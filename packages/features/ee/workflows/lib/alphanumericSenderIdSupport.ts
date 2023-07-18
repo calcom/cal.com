@@ -79,7 +79,6 @@ const noAlphanumericSenderIdSupport = [
   "+216",
   "+90",
   "+256",
-  "+971",
   "+598",
   "+58",
   "+84",
