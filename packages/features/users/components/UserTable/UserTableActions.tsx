@@ -2,7 +2,6 @@ import { ExternalLink, MoreHorizontal, Edit2, UserX, Lock } from "lucide-react";
 import type { Action } from "users/components/UserTable/UserListTable";
 
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   ButtonGroup,
@@ -23,9 +22,11 @@ export function TableActions({
   user,
   permissionsForUser,
   dispatch,
+  domain,
 }: {
   user: User;
   dispatch: React.Dispatch<Action>;
+  domain: string;
   permissionsForUser: {
     canEdit: boolean;
     canRemove: boolean;
@@ -35,13 +36,15 @@ export function TableActions({
   const { t } = useLocale();
   const orgBranding = useOrgBrandingValues();
 
+  const usersProfileUrl = domain + "/" + user.username;
+
   return (
     <>
       <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
         <Tooltip content={t("view_public_page")}>
           <Button
             target="_blank"
-            href={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}`}
+            href={usersProfileUrl}
             color="secondary"
             className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"

@@ -9,6 +9,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 
+import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
@@ -94,6 +95,7 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
 
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -107,6 +109,7 @@ export function UserListTable() {
     );
 
   const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -143,7 +146,7 @@ export function UserListTable() {
           const { username, email } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={`/${username}/avatar.png`} />
+              <Avatar size="sm" alt={username || email} imageSrc={domain + "/" + username + "/avatar.png"} />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
@@ -215,13 +218,20 @@ export function UserListTable() {
             canLeave: user.accepted && isSelf,
           };
 
-          return <TableActions user={user} permissionsForUser={permissionsForUser} dispatch={dispatch} />;
+          return (
+            <TableActions
+              user={user}
+              permissionsForUser={permissionsForUser}
+              dispatch={dispatch}
+              domain={domain}
+            />
+          );
         },
       },
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
