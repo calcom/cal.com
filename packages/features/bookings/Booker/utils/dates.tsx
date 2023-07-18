@@ -1,5 +1,4 @@
-import dayjs from "@calcom/dayjs";
-import type { TimeFormat } from "@calcom/lib/timeFormat";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 
 interface EventFromToTime {
   date: string;
@@ -16,12 +15,23 @@ export const formatEventFromToTime = ({
   timeZone,
   language,
 }: EventFromToTime) => {
-  const start = dayjs(date).tz(timeZone);
-  const end = duration ? start.add(duration, "minute") : null;
-  const formattedDate = `${start.format("dddd")}, ${start
-    .toDate()
-    .toLocaleDateString(language, { dateStyle: "long" })}`;
-  const formattedTime = `${start.format(timeFormat)} ${end ? `– ${end.format(timeFormat)}` : ``}`;
+  const startDate = new Date(date);
+  const endDate = duration
+    ? new Date(new Date(date).setMinutes(startDate.getMinutes() + duration))
+    : startDate;
+
+  const formattedDate = new Intl.DateTimeFormat(language, {
+    timeZone,
+    dateStyle: "full",
+  }).formatRange(startDate, endDate);
+
+  const formattedTime = new Intl.DateTimeFormat(language, {
+    timeZone,
+    timeStyle: "short",
+    hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
+  })
+    .formatRange(startDate, endDate)
+    .toLowerCase();
 
   return { date: formattedDate, time: formattedTime };
 };

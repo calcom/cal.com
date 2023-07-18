@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -42,6 +43,7 @@ type AllAppsPropsType = {
   apps: (App & { credentials?: Credential[] })[];
   searchText?: string;
   categories: string[];
+  userAdminTeams?: UserAdminTeams;
 };
 
 interface CategoryTabProps {
@@ -130,7 +132,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
   );
 }
 
-export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
+export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
   const router = useRouter();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -172,7 +174,13 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
           {filteredApps.map((app) => (
-            <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />
+            <AppCard
+              key={app.name}
+              app={app}
+              searchText={searchText}
+              credentials={app.credentials}
+              userAdminTeams={userAdminTeams}
+            />
           ))}{" "}
         </div>
       ) : (

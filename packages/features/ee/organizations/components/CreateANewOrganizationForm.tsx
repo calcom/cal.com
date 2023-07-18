@@ -135,13 +135,12 @@ export const VerifyCodeDialog = ({
   );
 };
 
-export const CreateANewOrganizationForm = () => {
+export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
-  const { slug } = router.query;
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -178,6 +177,11 @@ export const CreateANewOrganizationForm = () => {
         });
       } else if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
+        newOrganizationFormMethods.setError("slug", {
+          type: "custom",
+          message: t("problem_registering_domain"),
+        });
       } else {
         setServerErrorMessage(err.message);
       }

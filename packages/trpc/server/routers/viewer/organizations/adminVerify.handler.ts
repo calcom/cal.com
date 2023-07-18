@@ -57,5 +57,69 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
   });
 
-  return { ok: true, message: "Verified Organization" };
+  const foundUsersWithMatchingEmailDomain = await prisma.user.findMany({
+    where: {
+      email: {
+        endsWith: acceptedEmailDomain,
+      },
+      teams: {
+        some: {
+          teamId: input.orgId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  const userIds = foundUsersWithMatchingEmailDomain.map((user) => user.id);
+  const userEmails = foundUsersWithMatchingEmailDomain.map((user) => user.email);
+
+  await prisma.$transaction([
+    prisma.membership.updateMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        OR: [
+          {
+            team: {
+              parentId: input.orgId,
+            },
+          },
+          {
+            teamId: input.orgId,
+          },
+        ],
+      },
+      data: {
+        accepted: true,
+      },
+    }),
+    prisma.user.updateMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      data: {
+        organizationId: input.orgId,
+      },
+    }),
+    prisma.verificationToken.deleteMany({
+      where: {
+        identifier: {
+          in: userEmails,
+        },
+        teamId: input.orgId,
+      },
+    }),
+  ]);
+
+  return {
+    ok: true,
+    message: `Verified Organization - Auto accepted all members ending in ${acceptedEmailDomain}`,
+  };
 };

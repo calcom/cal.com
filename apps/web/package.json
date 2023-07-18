@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.0.14",
+  "version": "3.1.2",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -47,7 +47,7 @@
     "@next/bundle-analyzer": "^13.1.6",
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-collapsible": "^1.0.0",
-    "@radix-ui/react-dialog": "^1.0.0",
+    "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
     "@radix-ui/react-id": "^1.0.0",
     "@radix-ui/react-popover": "^1.0.2",
@@ -58,6 +58,7 @@
     "@radix-ui/react-tooltip": "^1.0.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
+    "@tanem/react-nprogress": "^5.0.44",
     "@tanstack/react-query": "^4.3.9",
     "@tremor/react": "^2.0.0",
     "@types/turndown": "^5.0.1",
@@ -89,7 +90,7 @@
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
     "next": "^13.4.6",
-    "next-auth": "^4.20.1",
+    "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
     "next-i18next": "^13.2.2",

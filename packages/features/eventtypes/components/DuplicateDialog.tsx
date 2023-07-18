@@ -141,9 +141,9 @@ const DuplicateDialog = () => {
               <TextField
                 type="number"
                 required
-                min="10"
+                min="1"
                 placeholder="15"
-                label={t("length")}
+                label={t("duration")}
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />

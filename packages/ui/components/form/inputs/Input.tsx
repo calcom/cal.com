@@ -12,7 +12,7 @@ import { Eye, EyeOff, X, Search } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { isFullWidth = true, ...props },
@@ -140,7 +140,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
-            isStandaloneField={false}
             className={classNames(
               className,
               "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed",
