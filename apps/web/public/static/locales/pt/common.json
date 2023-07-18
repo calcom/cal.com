@@ -1926,12 +1926,18 @@
   "org_admins_can_create_new_teams": "Apenas o administrador da sua organização pode criar equipas",
   "google_new_spam_policy": "A nova política de SPAM do Google pode impedir que receba notificações de e-mail e de agenda sobre esta reserva.",
   "resolve": "Resolver",
+  "no_organization_slug": "Ocorreu um erro ao criar equipas para esta organização. Falta o slug do URL.",
+  "org_name": "Nome da organização",
   "org_url": "URL da Organização",
   "copy_link_org": "Copie o link para organização",
   "404_the_org": "A organização",
   "404_the_team": "O time",
+  "404_claim_entity_org": "Reivindicar o seu subdomínio para a sua organização",
   "404_claim_entity_team": "Reivindicar esta equipa e começar a gerir os horários em grupo",
   "insights_all_org_filter": "Todos as aplicações",
   "insights_team_filter": "Time: {{teamName}}",
-  "insights_user_filter": "Usuário {{userName}}"
+  "insights_user_filter": "Usuário {{userName}}",
+  "insights_subtitle": "Veja as informações de reservas sobre os seus eventos",
+  "custom_plan": "Plano Personalizado",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione as suas novas strings acima aqui ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
