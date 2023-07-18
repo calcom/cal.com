@@ -1912,5 +1912,9 @@
   "duplicated_slugs_warning": "Următoarele echipe nu au putut fi create din cauza unor sluguri duplicat: {{slugs}}",
   "team_names_empty": "Numele de echipă nu pot fi necompletate",
   "team_names_repeated": "Numele de echipă nu pot fi repetate",
+  "user_belongs_organization": "Utilizatorul aparține unei organizații",
+  "org_no_teams_yet": "Această organizație nu are încă echipe",
+  "org_no_teams_yet_description": "Dacă sunteți un administrator, creați echipe pentru a fi afișate aici.",
+  "set_up": "Configurare",
   "insights_all_org_filter": "Toate aplicațiile"
 }
