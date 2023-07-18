@@ -2,6 +2,7 @@ import { ExternalLink, MoreHorizontal, Edit2, UserX, Lock } from "lucide-react";
 import type { Action } from "users/components/UserTable/UserListTable";
 
 import { classNames } from "@calcom/lib";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   ButtonGroup,
@@ -15,6 +16,7 @@ import {
   DropdownMenuSeparator,
 } from "@calcom/ui";
 
+import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
 import type { User } from "./UserListTable";
 
 export function TableActions({
@@ -31,6 +33,7 @@ export function TableActions({
   };
 }) {
   const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
 
   return (
     <>
@@ -38,7 +41,7 @@ export function TableActions({
         <Tooltip content={t("view_public_page")}>
           <Button
             target="_blank"
-            href={"/" + user.username}
+            href={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}`}
             color="secondary"
             className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"

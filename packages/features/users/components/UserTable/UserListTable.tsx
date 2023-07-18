@@ -2,11 +2,12 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, StopCircle, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
+import { DeleteMemberModal } from "users/components/UserTable/DeleteMemberModal";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, ConfirmationDialogContent, DataTable, Dialog, showToast } from "@calcom/ui";
+import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
@@ -93,7 +94,6 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
-  const utils = trpc.useContext();
 
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -246,18 +246,6 @@ export function UserListTable() {
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
-    async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      await utils.viewer.eventTypes.invalidate();
-      await utils.viewer.organizations.listMembers.invalidate();
-      showToast(t("success"), "success");
-    },
-    async onError(err) {
-      showToast(err.message, "error");
-    },
-  });
-
   return (
     <>
       <DataTable
@@ -317,34 +305,7 @@ export function UserListTable() {
         ]}
       />
 
-      {state.deleteMember.showModal && state.deleteMember.user && (
-        <Dialog
-          open={state.deleteMember.showModal}
-          onOpenChange={(open) =>
-            !open &&
-            dispatch({
-              type: "CLOSE_MODAL",
-            })
-          }>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("remove_member")}
-            confirmBtnText={t("confirm_remove_member")}
-            onConfirm={() => {
-              // Shouldnt ever happen just for type safety
-              if (!session?.user.organizationId || !state?.deleteMember?.user?.id) return;
-
-              removeMemberMutation.mutate({
-                teamId: session?.user.organizationId,
-                memberId: state?.deleteMember?.user.id,
-                isOrg: true,
-              });
-            }}>
-            {t("remove_member_confirmation_message")}
-          </ConfirmationDialogContent>
-        </Dialog>
-      )}
-
+      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
