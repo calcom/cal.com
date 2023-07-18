@@ -1937,5 +1937,6 @@
   "insights_all_org_filter": "Toate aplicațiile",
   "insights_team_filter": "Echipă: {{teamName}}",
   "insights_user_filter": "Utilizator: {{userName}}",
-  "insights_subtitle": "Vizualizați perspective cu privire la rezervări pentru toate evenimentele dvs."
+  "insights_subtitle": "Vizualizați perspective cu privire la rezervări pentru toate evenimentele dvs.",
+  "custom_plan": "Plan personalizat"
 }
