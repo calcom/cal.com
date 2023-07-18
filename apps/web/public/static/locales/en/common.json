@@ -1942,5 +1942,12 @@
   "insights_user_filter": "User: {{userName}}",
   "insights_subtitle": "View booking insights across your events",
   "custom_plan": "Custom Plan",
+  "org_team_names_example": "e.g. Marketing Team",
+  "org_team_names_example_1": "e.g. Marketing Team",
+  "org_team_names_example_2": "e.g. Sales Team",
+  "org_team_names_example_3": "e.g. Design Team",
+  "org_team_names_example_4": "e.g. Engineering Team",
+  "org_team_names_example_5": "e.g. Data Analytics Team",
+  "org_max_team_warnings": "You will be able to add more teams later on.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
