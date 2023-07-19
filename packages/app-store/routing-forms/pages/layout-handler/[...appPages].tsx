@@ -1,8 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
 import React from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
+import { useParamsWithFallback } from "routing-forms/lib/useParamsWithFallback";
 
 import type { AppPrisma, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
 
@@ -23,9 +23,9 @@ const getComponent = (route: string | NextRouter): Component => {
 };
 
 export default function LayoutHandler(props: { [key: string]: unknown }) {
+  const params = useParamsWithFallback();
   const methods = useForm();
-  const router = useRouter();
-  const pageKey = router?.query?.pages?.[0] || "forms";
+  const pageKey = params?.pages?.[0] || "forms";
   const PageComponent = getComponent(pageKey).default;
   return (
     <FormProvider {...methods}>
