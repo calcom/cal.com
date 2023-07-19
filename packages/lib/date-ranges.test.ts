@@ -112,6 +112,35 @@ describe("buildDateRanges", () => {
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
     });
   });
+  it("should return correct date ranges if date override would already already be the next day in utc timezone", () => {
+    const items = [
+      {
+        date: new Date(Date.UTC(2023, 5, 13)),
+        startTime: new Date(Date.UTC(0, 0, 0, 22, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 0)),
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)),
+        endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)),
+      },
+    ];
+    const timeZone = "America/New_York";
+
+    const dateFrom = dayjs("2023-06-13T00:00:00Z");
+    const dateTo = dayjs("2023-06-15T00:00:00Z");
+
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+
+    expect(results[0]).toEqual({
+      start: dayjs("2023-06-14T02:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T03:00:00Z").tz(timeZone),
+    });
+    expect(results[1]).toEqual({
+      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("subtract", () => {

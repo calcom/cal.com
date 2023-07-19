@@ -244,6 +244,8 @@
   "all": "All",
   "yours": "Your account",
   "available_apps": "Available Apps",
+  "available_apps_lower_case": "Available apps",
+  "available_apps_desc": "You have no apps installed. View popular apps below and explore more in our <1>App Store</1>",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",
   "finish": "Finish",
   "organization_general_description": "Manage settings for your team language and timezone",
