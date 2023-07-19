@@ -191,8 +191,8 @@ export default function MyApp() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal 
-    calLink="${calLink}" 
+  return <Cal
+    calLink="${calLink}"
     style={{width:"${width}",height:"${height}",overflow:"scroll"}}
     ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
         IS_SELF_HOSTED
@@ -243,11 +243,11 @@ export default function App() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <button 
+  return <button
     data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
     ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
-    })}'`}  
+    })}'`}
     >Click me</button>;
 };`;
     },
@@ -292,10 +292,10 @@ ${uiInstructionCode}`;
     }) => {
       return code`
 // Important: Please add following attributes to the element you want to open Cal on click
-// \`data-cal-link="${calLink}"\` 
+// \`data-cal-link="${calLink}"\`
 // \`data-cal-config='${JSON.stringify({
         layout: previewState.layout,
-      })}'\` 
+      })}'\`
 
 ${uiInstructionCode}`;
     },
@@ -1182,7 +1182,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </div>
         </div>
         <div className="flex w-2/3 flex-col p-8">
-          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkProps={{ shallow: true }} />
+          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkShallow />
           {tabs.map((tab) => {
             return (
               <div
