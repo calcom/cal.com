@@ -1,8 +1,6 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
-import stripe from "@calcom/features/ee/payments/server/stripe";
-
 import { test } from "./lib/fixtures";
 import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
@@ -105,27 +103,7 @@ test.describe("Stripe integration", () => {
     await user.setupEventWithPrice(eventType);
     await user.bookAndPaidEvent(eventType);
 
-    await page.waitForURL("/booking/*");
-
-    const url = page.url().split("?")[1];
-
-    const urlSearchParams = new URLSearchParams(url);
-
-    const id = urlSearchParams.get("payment_intent");
-
-    expect(id).toBeDefined();
-
-    const payload = JSON.stringify({ type: "payment_intent.succeeded", data: { object: { id } } }, null, 2);
-
-    const signature = stripe.webhooks.generateTestHeaderString({
-      payload,
-      secret: process.env.STRIPE_WEBHOOK_SECRET as string,
-    });
-
-    await page.request.post("/api/integrations/stripepayment/webhook", {
-      data: payload,
-      headers: { "stripe-signature": signature },
-    });
+    await user.confirmPendingPayment();
 
     await page.click('[data-testid="cancel"]');
     await page.click('[data-testid="confirm_cancel"]');

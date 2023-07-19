@@ -4,6 +4,7 @@ import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -293,6 +294,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       });
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
+    confirmPendingPayment: async () => confirmPendingPayment(store.page),
   };
 };
 
@@ -333,6 +335,30 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
         : undefined,
   };
 };
+
+async function confirmPendingPayment(page: Page) {
+  await page.waitForURL("/booking/*");
+
+  const url = page.url();
+
+  const params = new URLSearchParams(url.split("?")[1]);
+
+  const id = params.get("payment_intent");
+
+  if (!id) throw new Error(`Payment intent not found in url ${url}`);
+
+  const payload = JSON.stringify({ type: "payment_intent.succeeded", data: { object: { id } } }, null, 2);
+
+  const signature = stripe.webhooks.generateTestHeaderString({
+    payload,
+    secret: process.env.STRIPE_WEBHOOK_SECRET as string,
+  });
+
+  await page.request.post("/api/integrations/stripepayment/webhook", {
+    data: payload,
+    headers: { "stripe-signature": signature },
+  });
+}
 
 // login using a replay of an E2E routine.
 export async function login(
