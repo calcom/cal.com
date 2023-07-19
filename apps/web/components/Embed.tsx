@@ -10,15 +10,20 @@ import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimeSlots } from "@calcom/features/bookings/Booker/components/AvailableTimeSlots";
-import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
+import { AvailableTimes } from "@calcom/features/bookings";
 import { useInitializeBookerStore, useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { CAL_URL } from "@calcom/lib/constants";
 import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -770,7 +775,7 @@ const ChooseEmbedTypesDialogContent = () => {
 };
 
 const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string }) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
 
@@ -783,7 +788,73 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
     layout: BookerLayouts.MONTH_VIEW,
   });
 
-  const [selectedDate] = useBookerStore((state) => [state.selectedDate], shallow);
+  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
+    shallow
+  );
+  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot] = useBookerStore(
+    (state) => [
+      state.setSelectedDate,
+      state.setMonth,
+      state.setSelectedDatesAndTimes,
+      state.setSelectedTimeslot,
+    ],
+    shallow
+  );
+  const event = useEvent();
+  const schedule = useScheduleForEvent();
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+
+  const onTimeSelect = (time: string) => {
+    if (selectedDatesAndTimes && selectedDatesAndTimes[eventType.slug]) {
+      const selectedDatesAndTimesForEvent = selectedDatesAndTimes[eventType.slug];
+      const selectedSlots = selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
+      if (selectedSlots?.includes(time)) {
+        // Checks whether a user has removed all their timeSlots and thus removes it from the selectedDatesAndTimesForEvent state
+        if (selectedSlots?.length > 1) {
+          const updatedDatesAndTimes = {
+            ...selectedDatesAndTimes,
+            [eventType.slug]: {
+              ...selectedDatesAndTimesForEvent,
+              [selectedDate as string]: selectedSlots?.filter((slot: string) => slot !== time),
+            },
+          };
+
+          setSelectedDatesAndTimes(updatedDatesAndTimes);
+        } else {
+          const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
+          delete updatedDatesAndTimesForEvent[selectedDate as string];
+          setSelectedTimeslot(null);
+          setSelectedDatesAndTimes({
+            ...selectedDatesAndTimes,
+            [eventType.slug]: updatedDatesAndTimesForEvent,
+          });
+        }
+        return;
+      }
+
+      const updatedDatesAndTimes = {
+        ...selectedDatesAndTimes,
+        [eventType.slug]: {
+          ...selectedDatesAndTimesForEvent,
+          [selectedDate as string]: [...selectedSlots, time],
+        },
+      };
+
+      setSelectedDatesAndTimes(updatedDatesAndTimes);
+    } else if (!selectedDatesAndTimes) {
+      setSelectedDatesAndTimes({ [eventType.slug]: { [selectedDate as string]: [time] } });
+    } else {
+      setSelectedDatesAndTimes({
+        ...selectedDatesAndTimes,
+        [eventType.slug]: { [selectedDate as string]: [time] },
+      });
+    }
+
+    setSelectedTimeslot(time);
+  };
+
+  const slots = useSlotsForDate(selectedDate, schedule?.data?.slots);
 
   return (
     <div className="flex flex-col">
@@ -791,7 +862,22 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
-            <DatePicker eventSlug={eventType?.slug} />
+            <DatePicker
+              isLoading={schedule.isLoading}
+              onChange={(date: Dayjs) => {
+                setSelectedDate(date.format("YYYY-MM-DD"));
+              }}
+              onMonthChange={(date: Dayjs) => {
+                setMonth(date.format("YYYY-MM"));
+                setSelectedDate(date.format("YYYY-MM-DD"));
+              }}
+              includedDates={nonEmptyScheduleDays}
+              locale={i18n.language}
+              browsingDate={month ? dayjs(month) : undefined}
+              selected={dayjs(selectedDate)}
+              weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+              eventSlug={eventType?.slug}
+            />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -807,7 +893,24 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
                   {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
                 </>
               </div>
-              {selectTime && selectedDate ? <AvailableTimeSlots eventSlug={eventType?.slug} /> : null}
+              {selectTime && selectedDate ? (
+                <div className="flex h-full w-full flex-row gap-4">
+                  <AvailableTimes
+                    className="w-full"
+                    date={dayjs(selectedDate)}
+                    selectedSlots={
+                      eventType.slug &&
+                      selectedDatesAndTimes &&
+                      selectedDatesAndTimes[eventType.slug] &&
+                      selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                        ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                        : undefined
+                    }
+                    onTimeSelect={onTimeSelect}
+                    slots={slots}
+                  />
+                </div>
+              ) : null}
             </CollapsibleContent>
           </Collapsible>
         </div>

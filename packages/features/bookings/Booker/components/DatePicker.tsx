@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-export const DatePicker = ({ eventSlug }: { eventSlug?: string }) => {
+export const DatePicker = () => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth] = useBookerStore(
@@ -36,7 +36,6 @@ export const DatePicker = ({ eventSlug }: { eventSlug?: string }) => {
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
-      eventSlug={eventSlug}
     />
   );
 };

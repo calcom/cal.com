@@ -1,5 +1,4 @@
 import { useMemo, useRef, useEffect } from "react";
-import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
@@ -12,8 +11,7 @@ import { useEvent, useScheduleForEvent } from "../utils/event";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  seatsPerTimeslot?: number | null;
-  eventSlug?: string;
+  seatsPerTimeSlot?: number | null;
 };
 
 /**
@@ -23,32 +21,13 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({
-  extraDays,
-  limitHeight,
-  seatsPerTimeslot,
-  eventSlug,
-}: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const event = useEvent();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [
-    selectedDate,
-    selectedDatesAndTimes,
-    setSelectedDatesAndTimes,
-    setSelectedTimeslot,
-    setSeatedEventData,
-  ] = useBookerStore(
-    (state) => [
-      state.selectedDate,
-      state.selectedDatesAndTimes,
-      state.setSelectedDatesAndTimes,
-      state.setSelectedTimeslot,
-      state.setSeatedEventData,
-    ],
-    shallow
-  );
-
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const onTimeSelect = (
     time: string,
@@ -56,51 +35,6 @@ export const AvailableTimeSlots = ({
     seatsPerTimeSlot?: number | null,
     bookingUid?: string
   ) => {
-    // Used for selecting multiple time slots and assigning the selected values to a date
-    if (eventSlug) {
-      if (selectedDatesAndTimes && selectedDatesAndTimes[eventSlug]) {
-        const selectedDatesAndTimesForEvent = selectedDatesAndTimes[eventSlug];
-        const selectedSlots = selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
-        if (selectedSlots?.includes(time)) {
-          // Checks whether a user has removed all their timeSlots and thus removes it from the selectedDatesAndTimesForEvent state
-          if (selectedSlots?.length > 1) {
-            const updatedDatesAndTimes = {
-              ...selectedDatesAndTimes,
-              [eventSlug]: {
-                ...selectedDatesAndTimesForEvent,
-                [selectedDate as string]: selectedSlots?.filter((slot: string) => slot !== time),
-              },
-            };
-
-            setSelectedDatesAndTimes(updatedDatesAndTimes);
-          } else {
-            const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
-            delete updatedDatesAndTimesForEvent[selectedDate as string];
-            setSelectedTimeslot(null);
-            setSelectedDatesAndTimes({ ...selectedDatesAndTimes, [eventSlug]: updatedDatesAndTimesForEvent });
-          }
-          return;
-        }
-
-        const updatedDatesAndTimes = {
-          ...selectedDatesAndTimes,
-          [eventSlug]: {
-            ...selectedDatesAndTimesForEvent,
-            [selectedDate as string]: [...selectedSlots, time],
-          },
-        };
-
-        setSelectedDatesAndTimes(updatedDatesAndTimes);
-      } else if (!selectedDatesAndTimes) {
-        setSelectedDatesAndTimes({ [eventSlug]: { [selectedDate as string]: [time] } });
-      } else {
-        setSelectedDatesAndTimes({
-          ...selectedDatesAndTimes,
-          [eventSlug]: { [selectedDate as string]: [time] },
-        });
-      }
-    }
-
     setSelectedTimeslot(time);
 
     if (seatsPerTimeSlot) {
@@ -166,16 +100,8 @@ export const AvailableTimeSlots = ({
               key={slots.date}
               date={dayjs(slots.date)}
               slots={slots.slots}
-              seatsPerTimeSlot={seatsPerTimeslot}
-              selectedSlots={
-                eventSlug &&
-                selectedDatesAndTimes &&
-                selectedDatesAndTimes[eventSlug] &&
-                selectedDatesAndTimes[eventSlug][selectedDate as string]
-                  ? selectedDatesAndTimes[eventSlug][selectedDate as string]
-                  : undefined
-              }
               onTimeSelect={onTimeSelect}
+              seatsPerTimeSlot={seatsPerTimeSlot}
               showTimeFormatToggle={!isMultipleDates}
             />
           ))}
