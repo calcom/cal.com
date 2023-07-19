@@ -1917,6 +1917,11 @@
   "org_no_teams_yet_description": "Se sei un amministratore, assicurati di creare dei team da mostrare qui.",
   "set_up": "Imposta",
   "set_up_your_profile": "Imposta il tuo profilo",
+  "set_up_your_profile_description": "Fai sapere agli utenti la tua posizione all'interno di {{orgName}} quando interagiscono con il tuo link pubblico.",
+  "my_profile": "Il mio profilo",
+  "my_settings": "Le mie impostazioni",
+  "crm": "CRM",
+  "messaging": "Messaggistica",
   "sender_id_info": "Nome o numero mostrato come mittente di un SMS (alcuni paesi non consentono ID alfanumerici dei mittenti)",
   "insights_all_org_filter": "Tutte le app",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi qui le tue nuove stringhe al di sopra di questa riga ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ↑"
