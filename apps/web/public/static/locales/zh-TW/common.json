@@ -1936,5 +1936,8 @@
   "404_claim_entity_team": "認領此團隊並開始共同管理行程表",
   "insights_all_org_filter": "所有應用程式",
   "insights_team_filter": "團隊：{{teamName}}",
-  "insights_user_filter": "使用者：{{userName}}"
+  "insights_user_filter": "使用者：{{userName}}",
+  "insights_subtitle": "查看所有活動的預約洞見",
+  "custom_plan": "自訂方案",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在上方新增您的新字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
