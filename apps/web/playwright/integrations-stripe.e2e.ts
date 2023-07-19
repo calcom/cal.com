@@ -93,6 +93,22 @@ test.describe("Stripe integration", () => {
     await user.makePaymentUsingStripe();
   });
 
+  test("Paid booking should be able to be cancelled", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+
+    await page.click('[data-testid="cancel"]');
+    await page.click('[data-testid="confirm_cancel"]');
+
+    await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
+  });
+
   test("Cancelled paid booking should be refunded", async ({ page, users, request }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
@@ -108,10 +124,10 @@ test.describe("Stripe integration", () => {
     await page.click('[data-testid="cancel"]');
     await page.click('[data-testid="confirm_cancel"]');
 
+    await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
     await expect(page.getByText("This booking payment has been refunded")).toBeVisible();
   });
 
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
-  todo("Paid booking should be able to be cancelled");
 });
