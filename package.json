@@ -92,7 +92,6 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
-    "@types/jest": "^29.5.2",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
