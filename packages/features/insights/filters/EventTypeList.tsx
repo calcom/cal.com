@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import { FilterCheckboxFieldsContainer } from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
@@ -14,7 +16,7 @@ const mapEventTypeToOption = (eventType: EventType): Option => ({
   label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
 });
 
-export const EventTypeList = () => {
+export const EventTypeList = memo(() => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedTeamId, selectedEventTypeId, selectedUserId, isAll } = filter;
@@ -72,4 +74,6 @@ export const EventTypeList = () => {
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
-};
+});
+
+EventTypeList.displayName = "EventTypeList";
