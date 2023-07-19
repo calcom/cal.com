@@ -128,6 +128,22 @@ test.describe("Stripe integration", () => {
     await expect(page.getByText("This booking payment has been refunded")).toBeVisible();
   });
 
-  todo("Payment should confirm pending payment booking");
+  test("Payment should confirm pending payment booking", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+
+    await user.confirmPendingPayment();
+
+    await page.goto("/bookings/upcoming");
+
+    await expect(page.getByText("Your booking has been confirmed")).toBeVisible();
+  });
+
   todo("Payment should trigger a BOOKING_PAID webhook");
 });
