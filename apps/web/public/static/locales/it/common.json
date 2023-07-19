@@ -1910,6 +1910,13 @@
   "organization_admin_invited_heading": "Hai ricevuto un invito a unirti a {{orgName}}",
   "organization_admin_invited_body": "Unisciti al tuo team su {{orgName}} per concentrarti sulle riunioni, non sulla loro pianificazione!",
   "duplicated_slugs_warning": "Non è stato possibile creare i seguenti team a causa di slug duplicati: {{slugs}}",
+  "team_names_empty": "I nomi di team non possono essere vuoti",
+  "team_names_repeated": "I nomi di team non possono essere ripetuti",
+  "user_belongs_organization": "L'utente appartiene a un'organizzazione",
+  "org_no_teams_yet": "Questa organizzazione non ha ancora nessun team",
+  "org_no_teams_yet_description": "Se sei un amministratore, assicurati di creare dei team da mostrare qui.",
+  "set_up": "Imposta",
+  "set_up_your_profile": "Imposta il tuo profilo",
   "sender_id_info": "Nome o numero mostrato come mittente di un SMS (alcuni paesi non consentono ID alfanumerici dei mittenti)",
   "insights_all_org_filter": "Tutte le app",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi qui le tue nuove stringhe al di sopra di questa riga ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ↑"
