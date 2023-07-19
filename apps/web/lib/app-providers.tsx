@@ -5,8 +5,8 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
-import { useRouter } from "next/navigation";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -42,8 +42,8 @@ export type AppProps = Omit<
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
-    isBookingPage?: boolean | ((arg: { router: AppRouterInstance }) => boolean);
-    getLayout?: (page: React.ReactElement, router: AppRouterInstance) => ReactNode;
+    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
+    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -55,7 +55,7 @@ type AppPropsWithChildren = AppProps & {
   children: ReactNode;
 };
 
-const getEmbedNamespace = (query: ReturnType<typeof useRouter>["query"]) => {
+const getEmbedNamespace = (query: { [k: string]: string }) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
   return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
@@ -161,11 +161,11 @@ function getThemeProviderProps({
   props: Omit<CalcomThemeProps, "children">;
   isEmbedMode: boolean;
   embedNamespace: string | null;
-  router: AppRouterInstance;
+  router: NextRouter;
 }) {
   const isBookingPage = (() => {
     if (typeof props.isBookingPage === "function") {
-      return props.isBookingPage({ router: router });
+      return props.isBookingPage({ router });
     }
     return props.isBookingPage;
   })();
