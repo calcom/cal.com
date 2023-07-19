@@ -80,7 +80,6 @@ import {
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -120,8 +119,8 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
     }
 
     if (!loading && !session) {
-      router.replace(`/auth/login?${urlSearchParams.toString()}`);
       const urlSearchParams = new URLSearchParams();
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
       urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -158,7 +157,6 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
 
   return (
     <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-      <NProgressNextRouter router={router} />
       <TeamsUpgradeBanner />
       <OrgUpgradeBanner />
       <ImpersonatingBanner />

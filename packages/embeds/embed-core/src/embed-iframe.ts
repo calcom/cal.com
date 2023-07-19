@@ -1,7 +1,6 @@
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -181,16 +180,19 @@ function isValidNamespace(ns: string | null | undefined) {
 }
 
 export const useEmbedTheme = () => {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const url = useRef(`${pathname}?${searchParams}`);
   const [theme, setTheme] = useState(
     embedStore.theme || (searchParams?.get("theme") as typeof embedStore.theme)
   );
   useEffect(() => {
-    router.events.on("routeChangeComplete", () => {
+    const newUrl = `${pathname}?${searchParams}`;
+    if (url.current !== newUrl) {
+      url.current = newUrl;
       sdkActionManager?.fire("__routeChanged", {});
-    });
-  }, [router.events]);
+    }
+  }, [pathname, searchParams]);
   embedStore.setTheme = setTheme;
   return theme;
 };
