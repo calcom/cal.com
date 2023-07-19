@@ -20,11 +20,11 @@ function assertTwilio(twilio: TwilioClient.Twilio | undefined): asserts twilio i
 }
 
 function getDefaultSender(whatsapp = false) {
-  let defaultSender = process.env.TWILIO_PHONE_NUMBER
+  let defaultSender = process.env.TWILIO_PHONE_NUMBER;
   if (whatsapp) {
-    defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`
+    defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`;
   }
-  return defaultSender 
+  return defaultSender;
 }
 
 function getSMSNumber(phone: string, whatsapp = false) {
@@ -43,7 +43,13 @@ export const sendSMS = async (phoneNumber: string, body: string, sender: string,
   return response;
 };
 
-export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date, sender: string, whatsapp = false) => {
+export const scheduleSMS = async (
+  phoneNumber: string,
+  body: string,
+  scheduledDate: Date,
+  sender: string,
+  whatsapp = false
+) => {
   assertTwilio(twilio);
   const response = await twilio.messages.create({
     body: body,
