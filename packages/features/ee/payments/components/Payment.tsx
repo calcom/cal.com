@@ -11,7 +11,7 @@ import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Checkbox } from "@calcom/ui";
+import { Button, CheckboxField } from "@calcom/ui";
 
 import type { EventType } from ".prisma/client";
 
@@ -101,7 +101,7 @@ const PaymentForm = (props: Props) => {
       </div>
       {paymentOption === "HOLD" && (
         <div className="bg-info mb-5 mt-2 rounded-md p-3">
-          <Checkbox
+          <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
               formatParams: { amount: { currency: props.payment.currency } },

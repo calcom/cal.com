@@ -244,6 +244,8 @@
   "all": "Tous",
   "yours": "Votre compte",
   "available_apps": "Applications disponibles",
+  "available_apps_lower_case": "Applications disponibles",
+  "available_apps_desc": "Aucune application installée. Consultez les applications populaires ci-dessous et découvrez-en plus dans notre <1>App Store</1>.",
   "check_email_reset_password": "Vérifiez vos e-mails. Nous vous avons envoyé un lien pour réinitialiser votre mot de passe.",
   "finish": "Terminer",
   "organization_general_description": "Gérez les paramètres de langue et de fuseau horaire de votre équipe.",

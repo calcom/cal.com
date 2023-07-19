@@ -4,7 +4,7 @@ import { FilterCheckboxFieldsContainer } from "@calcom/features/filters/componen
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Checkbox } from "@calcom/ui";
+import { AnimatedPopover, CheckboxField } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -49,7 +49,7 @@ export const EventTypeList = memo(() => {
       <FilterCheckboxFieldsContainer>
         {filterOptions?.map((eventType) => (
           <div key={eventType.value} className="item-center hover:bg-muted flex cursor-pointer px-4 py-2">
-            <Checkbox
+            <CheckboxField
               checked={eventTypeValue?.value === eventType.value}
               onChange={(e) => {
                 if (e.target.checked) {
