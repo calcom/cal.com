@@ -141,7 +141,8 @@ test.describe("Stripe integration", () => {
       await expect(page.getByText("Uncofirmed")).toBeHidden();
       await expect(page.getByText("Pending payment")).toBeHidden();
     });
-  });
 
-  todo("Payment should trigger a BOOKING_PAID webhook");
+    todo("Payment should trigger a BOOKING_PAID webhook");
+    todo("Paid and confirmed booking should be able to be rescheduled");
+  });
 });
