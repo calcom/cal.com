@@ -12,10 +12,13 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
   const { data: session } = useSession();
   const utils = trpc.useContext();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
-    async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      await utils.viewer.eventTypes.invalidate();
-      await utils.viewer.organizations.listMembers.invalidate();
+    onSuccess() {
+      // We don't need to wait for invalidate to finish
+      Promise.all([
+        utils.viewer.teams.get.invalidate(),
+        utils.viewer.eventTypes.invalidate(),
+        utils.viewer.organizations.listMembers.invalidate(),
+      ]);
       showToast(t("success"), "success");
     },
     async onError(err) {
