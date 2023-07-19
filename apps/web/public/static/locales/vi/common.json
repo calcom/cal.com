@@ -311,6 +311,7 @@
   "bookerlayout_user_settings_description": "Bạn có thể chọn nhiều dạng và người đặt lịch hẹn có thể chuyển đổi qua lại các giao diện. Dạng này có thể được thay thế tuỳ theo loại sự kiện.",
   "bookerlayout_month_view": "Tháng",
   "bookerlayout_week_view": "Hằng tuần",
+  "bookerlayout_column_view": "Cột",
   "unexpected_error_try_again": "Đã xảy ra lỗi không mong muốn. Hãy thử lại.",
   "sunday_time_error": "Thời gian không hợp lệ vào Chủ Nhật",
   "monday_time_error": "Thời gian không hợp lệ vào Thứ Hai",
