@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -29,6 +30,7 @@ export type BookingInfo = {
     name: string;
     email: string;
     timeZone: string;
+    timeFormat?: TimeFormat;
     username?: string;
   };
   eventType: {
@@ -115,11 +117,20 @@ export const scheduleSMSReminder = async (
       cancelLink: `/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };
-    const customMessage = customTemplate(message, variables, locale);
+    const customMessage = customTemplate(message, variables, locale, evt.organizer.timeFormat);
     message = customMessage.text;
   } else if (template === WorkflowTemplates.REMINDER) {
     message =
-      smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      smsReminderTemplate(
+        false,
+        action,
+        evt.organizer.timeFormat,
+        evt.startTime,
+        evt.title,
+        timeZone,
+        attendeeName,
+        name
+      ) || message;
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails

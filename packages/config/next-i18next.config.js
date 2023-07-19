@@ -20,7 +20,7 @@ const config = {
       "ja",
       "pl",
       "ar",
-      "iw",
+      "he",
       "zh-CN",
       "zh-TW",
       "cs",
