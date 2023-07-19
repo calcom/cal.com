@@ -21,6 +21,8 @@ import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
+export const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
+
 // Let's not import 118kb just to get an enum
 export enum Frequency {
   YEARLY = 0,
@@ -117,11 +119,10 @@ export const bookingResponses = z
     email: z.string(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
     name: z.union([
-      z.string().refine((value: string) => value.trim().length > 0),
+      nonEmptyString(),
       z.object({
-        firstName: z.string().refine((value: string) => value.trim().length > 0),
-        lastName: z
-          .string()
+        firstName: nonEmptyString(),
+        lastName: nonEmptyString()
           .refine((value: string) => value.trim().length > 0)
           .optional(),
       }),
