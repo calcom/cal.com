@@ -15,6 +15,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -280,6 +281,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
+                    timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
               startTime: booking.startTime.toISOString(),
@@ -503,6 +505,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   name: booking.user.name || "",
                   email: booking.user.email,
                   timeZone: booking.user.timeZone,
+                  timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                 }
               : { name: "", email: "", timeZone: "", language: { locale: "" } },
             startTime: booking.startTime.toISOString(),
@@ -649,6 +652,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
+                    timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                     language: { locale: booking.user.locale || defaultLocale },
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
