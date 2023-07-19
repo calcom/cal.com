@@ -17,7 +17,6 @@ export type ChildrenEventType = {
     email: string;
     name: string;
     username: string;
-    accepted: boolean;
     membership: MembershipRole;
     eventTypeSlugs: string[];
   };
