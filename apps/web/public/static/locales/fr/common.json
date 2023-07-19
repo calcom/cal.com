@@ -407,6 +407,7 @@
   "booking_requested": "Réservation demandée",
   "meeting_ended": "Rendez-vous terminé",
   "form_submitted": "Formulaire envoyé",
+  "booking_paid": "Réservation payée",
   "event_triggers": "Déclencheurs d'événement",
   "subscriber_url": "Lien de l'abonné",
   "create_new_webhook": "Créez un nouveau webhook",
@@ -1939,6 +1940,7 @@
   "insights_team_filter": "Équipe : {{teamName}}",
   "insights_user_filter": "Utilisateur : {{userName}}",
   "insights_subtitle": "Visualisez les statistiques de réservation à travers vos événements",
+  "location_options": "{{locationCount}} options de lieu",
   "custom_plan": "Plan personnalisé",
   "org_team_names_example": "p. ex. Équipe marketing",
   "org_team_names_example_1": "p. ex. Équipe marketing",
@@ -1946,5 +1948,6 @@
   "org_team_names_example_3": "p. ex. Équipe de design",
   "org_team_names_example_4": "p. ex. Équipe d'ingénierie",
   "org_team_names_example_5": "p. ex. Équipe d'analyse de données",
+  "org_max_team_warnings": "Vous pourrez ajouter plus d'équipes plus tard.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
