@@ -211,7 +211,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
     });
 
     await doOnFreshPreview(page, context, async (page) => {
-      const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage(page);
+      const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
       const userFieldLocator = allFieldsLocator.nth(5);
 
       await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
