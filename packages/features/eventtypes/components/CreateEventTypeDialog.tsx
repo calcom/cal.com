@@ -234,7 +234,7 @@ export default function CreateEventTypeDialog({
                     required
                     min="10"
                     placeholder="15"
-                    label={t("length")}
+                    label={t("duration")}
                     className="pr-4"
                     {...register("length", { valueAsNumber: true })}
                     addOnSuffix={t("minutes")}

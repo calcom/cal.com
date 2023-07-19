@@ -6,6 +6,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -191,26 +192,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
+        const emailLocale = locale || "en";
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",
           variables,
-          locale || "",
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).text;
         emailContent.emailSubject = emailSubject;
         emailContent.emailBody = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || "",
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).html;
 
         emailBodyEmpty =
-          customTemplate(reminder.workflowStep.reminderBody || "", variables, locale || "").text.length === 0;
+          customTemplate(
+            reminder.workflowStep.reminderBody || "",
+            variables,
+            emailLocale,
+            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
+          ).text.length === 0;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
         emailContent = emailReminderTemplate(
           false,
           reminder.workflowStep.action,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking.startTime.toISOString() || "",
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",

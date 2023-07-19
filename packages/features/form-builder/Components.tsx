@@ -305,12 +305,12 @@ export const Components: Record<BookingFieldType, Component> = {
               {options.length > 1 ? (
                 options.map((option, i) => {
                   return (
-                    <label key={i} className="block">
+                    <label key={i} className="mb-1 flex items-center">
                       <input
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:border-brand-default focus:ring-brand-default border-emphasis h-4 w-4 cursor-pointer text-[--cal-brand] focus:ring-2 ltr:mr-2 rtl:ml-2"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
