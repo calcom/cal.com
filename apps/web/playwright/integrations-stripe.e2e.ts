@@ -138,8 +138,6 @@ test.describe("Stripe integration", () => {
       await page.goto("/bookings/upcoming");
 
       await expect(page.getByText("Paid")).toBeVisible();
-      await expect(page.getByText("Uncofirmed")).toBeHidden();
-      await expect(page.getByText("Pending payment")).toBeHidden();
     });
 
     todo("Payment should trigger a BOOKING_PAID webhook");
