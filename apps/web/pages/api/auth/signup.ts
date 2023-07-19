@@ -12,7 +12,9 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const signupSchema = z.object({
-  username: z.string(),
+  username: z.string().refine((value) => !value.includes("+"), {
+    message: "String should not contain a plus symbol (+).",
+  }),
   email: z.string().email(),
   password: z.string().min(7),
   language: z.string().optional(),

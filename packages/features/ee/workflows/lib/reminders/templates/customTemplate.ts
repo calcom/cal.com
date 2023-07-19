@@ -2,6 +2,7 @@ import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
 export type VariablesType = {
@@ -24,6 +25,7 @@ const customTemplate = (
   text: string,
   variables: VariablesType,
   locale: string,
+  timeFormat?: TimeFormat,
   isBrandingDisabled?: boolean
 ) => {
   const translatedDate = new Intl.DateTimeFormat(locale, {
@@ -42,6 +44,8 @@ const customTemplate = (
   const cancelLink = variables.cancelLink ? `${WEBAPP_URL}${variables.cancelLink}` : "";
   const rescheduleLink = variables.rescheduleLink ? `${WEBAPP_URL}${variables.rescheduleLink}` : "";
 
+  const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
+
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
     .replaceAll("{ORGANIZER}", variables.organizerName || "")
@@ -49,9 +53,9 @@ const customTemplate = (
     .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", translatedDate)
-    .replaceAll("{EVENT_TIME}", variables.eventDate?.format("H:mmA") || "")
-    .replaceAll("{START_TIME}", variables.eventDate?.format("H:mmA") || "")
-    .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format("H:mmA") || "")
+    .replaceAll("{EVENT_TIME}", variables.eventDate?.format(currentTimeFormat) || "")
+    .replaceAll("{START_TIME}", variables.eventDate?.format(currentTimeFormat) || "")
+    .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format(currentTimeFormat) || "")
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
