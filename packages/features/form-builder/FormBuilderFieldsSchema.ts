@@ -71,9 +71,7 @@ const fieldSchema = z.object({
 
   required: z.boolean().default(false).optional(),
   hidden: z.boolean().optional(),
-  editable: EditableSchema
-    .default("user")
-    .optional(),
+  editable: EditableSchema.default("user").optional(),
   sources: z
     .array(
       z.object({

@@ -7,7 +7,8 @@
   "exports": {
     ".": "./index.tsx",
     "./components/toast": "./components/toast/index.tsx",
-    "./components/icon": "./components/icon/index.ts"
+    "./components/icon": "./components/icon/index.ts",
+    "./components/icon/Discord": "./components/icon/Discord.tsx"
   },
   "types": "./index.tsx",
   "license": "MIT",
