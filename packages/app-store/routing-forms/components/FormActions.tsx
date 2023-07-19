@@ -1,10 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -26,11 +23,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
+  SettingsToggle,
   showToast,
   Switch,
   TextAreaField,
   TextField,
-  SettingsToggle,
 } from "@calcom/ui";
 import { MoreHorizontal } from "@calcom/ui/components/icon";
 
@@ -46,20 +43,19 @@ const newFormModalQuerySchema = z.object({
   target: z.string().optional(),
 });
 
-const openModal = (router: AppRouterInstance, option: z.infer<typeof newFormModalQuerySchema>) => {
-  const query = {
-    ...router.query,
-    dialog: "new-form",
-    ...option,
+export const useOpenModal = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const openModal = (option: z.infer<typeof newFormModalQuerySchema>) => {
+    const newQuery = new URLSearchParams(searchParams);
+    newQuery.set("dialog", "new-form");
+    Object.keys(option).forEach((key) => {
+      newQuery.set(key, option[key as keyof typeof option] || "");
+    });
+    router.push(`${pathname}?${newQuery.toString()}`);
   };
-  router.push(
-    {
-      pathname: router.pathname,
-      query,
-    },
-    undefined,
-    { shallow: true }
-  );
+  return openModal;
 };
 
 function NewFormDialog({ appUrl }: { appUrl: string }) {
@@ -85,8 +81,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     description: string;
     shouldConnect: boolean;
   }>();
-
-  const { action, target } = searchParams as z.infer<typeof newFormModalQuerySchema>;
+  const searchParamsObj = Object.fromEntries(searchParams.entries());
+  const { action, target } = searchParamsObj as z.infer<typeof newFormModalQuerySchema>;
 
   const formToDuplicate = action === "duplicate" ? target : null;
   const teamId = action === "new" ? Number(target) : null;
@@ -416,7 +412,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   });
 
   const { t } = useLocale();
-  const router = useRouter();
+  const openModal = useOpenModal();
   const actionData: Record<
     FormActionType,
     ButtonProps & {
@@ -434,7 +430,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       },
     },
     duplicate: {
-      onClick: () => openModal(router, { action: "duplicate", target: routingForm?.id }),
+      onClick: () => openModal({ action: "duplicate", target: routingForm?.id }),
     },
     embed: {
       as: EmbedButton,
@@ -453,7 +449,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: _delete.isLoading,
     },
     create: {
-      onClick: () => createAction({ router, teamId: null }),
+      onClick: () => openModal({ action: "new", target: "" }),
     },
     copyRedirectUrl: {
       onClick: () => {
@@ -526,7 +522,3 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     </DropdownMenuItem>
   );
 });
-
-export const createAction = ({ router, teamId }: { router: AppRouterInstance; teamId: number | null }) => {
-  openModal(router, { action: "new", target: teamId ? String(teamId) : "" });
-};
