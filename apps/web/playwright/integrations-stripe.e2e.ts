@@ -41,7 +41,7 @@ test.describe("Stripe integration", () => {
 
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType);
-    await user.bookAndPaidEvent(eventType);
+    await user.bookAndPayEvent(eventType);
     // success
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
@@ -78,7 +78,7 @@ test.describe("Stripe integration", () => {
 
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType);
-    await user.bookAndPaidEvent(eventType);
+    await user.bookAndPayEvent(eventType);
 
     // Rescheduling the event
     await Promise.all([page.waitForURL("/booking/*"), page.click('[data-testid="reschedule-link"]')]);
@@ -101,7 +101,7 @@ test.describe("Stripe integration", () => {
 
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType);
-    await user.bookAndPaidEvent(eventType);
+    await user.bookAndPayEvent(eventType);
 
     await page.click('[data-testid="cancel"]');
     await page.click('[data-testid="confirm_cancel"]');
@@ -117,7 +117,7 @@ test.describe("Stripe integration", () => {
 
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType);
-    await user.bookAndPaidEvent(eventType);
+    await user.bookAndPayEvent(eventType);
 
     await user.confirmPendingPayment();
 
@@ -136,7 +136,7 @@ test.describe("Stripe integration", () => {
 
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType);
-    await user.bookAndPaidEvent(eventType);
+    await user.bookAndPayEvent(eventType);
 
     await user.confirmPendingPayment();
 

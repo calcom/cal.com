@@ -283,8 +283,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
       setupEventWithPrice(eventType, store.page),
-    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
-      bookAndPaidEvent(user, eventType, store.page),
+    bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+      bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -413,7 +413,7 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
   await page.getByTestId("update-eventtype").click();
 }
 
-export async function bookAndPaidEvent(
+export async function bookAndPayEvent(
   user: Pick<Prisma.User, "username">,
   eventType: Pick<Prisma.EventType, "slug">,
   page: Page
