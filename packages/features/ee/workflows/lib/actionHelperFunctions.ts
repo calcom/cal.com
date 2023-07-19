@@ -1,4 +1,7 @@
-import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import type { WorkflowTriggerEvents } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 
 import {
   whatsappEventCancelledTemplate,
@@ -61,8 +64,9 @@ export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof
 
 export function getWhatsappTemplateForAction(
   action: WorkflowActions,
-  template: WorkflowTemplates
+  template: WorkflowTemplates,
+  timeFormat: TimeFormat
 ): string | null {
   const templateFunction = getWhatsappTemplateFunction(template);
-  return templateFunction(true, action);
+  return templateFunction(true, action, timeFormat);
 }

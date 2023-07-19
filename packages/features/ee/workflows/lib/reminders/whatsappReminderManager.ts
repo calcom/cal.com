@@ -6,7 +6,8 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import * as twilio from "./smsProviders/twilioProvider";
-import { BookingInfo, deleteScheduledSMSReminder, timeUnitLowerCase } from "./smsReminderManager";
+import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import { deleteScheduledSMSReminder } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -68,14 +69,23 @@ export const scheduleWhatsappReminder = async (
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message =
-        whatsappReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) ||
-        message;
+        whatsappReminderTemplate(
+          false,
+          action,
+          evt.organizer.timeFormat,
+          evt.startTime,
+          evt.title,
+          timeZone,
+          attendeeName,
+          name
+        ) || message;
       break;
     case WorkflowTemplates.CANCELLED:
       message =
         whatsappEventCancelledTemplate(
           false,
           action,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -88,6 +98,7 @@ export const scheduleWhatsappReminder = async (
         whatsappEventRescheduledTemplate(
           false,
           action,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -100,6 +111,7 @@ export const scheduleWhatsappReminder = async (
         whatsappEventCompletedTemplate(
           false,
           action,
+          evt.organizer.timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -109,8 +121,16 @@ export const scheduleWhatsappReminder = async (
       break;
     default:
       message =
-        whatsappReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) ||
-        message;
+        whatsappReminderTemplate(
+          false,
+          action,
+          evt.organizer.timeFormat,
+          evt.startTime,
+          evt.title,
+          timeZone,
+          attendeeName,
+          name
+        ) || message;
   }
 
   // Allows debugging generated whatsapp content without waiting for twilio to send whatsapp messages
