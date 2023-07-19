@@ -39,8 +39,14 @@ import {
 } from "@calcom/ui";
 import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
+import {
+  isAttendeeAction,
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+  getWhatsappTemplateForAction,
+} from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
-import { isAttendeeAction, isSMSAction, isSMSOrWhatsappAction, isWhatsappAction, getWhatsappTemplateForAction } from "../lib/actionHelperFunctions";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -71,14 +77,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [verificationCode, setVerificationCode] = useState("");
 
-  const action = step?.action
-  const requirePhoneNumber = WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
+  const action = step?.action;
+  const requirePhoneNumber =
+    WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
   const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
-  const senderNeeded = step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
+  const senderNeeded =
+    step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
   const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
 
@@ -110,20 +118,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
       const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
       if (isSMSAction(action)) {
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsReminderTemplate(
-          true,
-          action
-        ));
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsReminderTemplate(true, action));
       } else if (isWhatsappAction(action)) {
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, whatsappReminderTemplate(
-          true,
-          action
-        ))
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, whatsappReminderTemplate(true, action));
       } else {
-        const reminderBodyTemplate = emailReminderTemplate(
-          true,
-          action
-        ).emailBody;
+        const reminderBodyTemplate = emailReminderTemplate(true, action).emailBody;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
       }
     }
@@ -135,8 +134,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
     }
   } else if (step && isWhatsappAction(step.action)) {
-    const templateBody = getWhatsappTemplateForAction(step.action, step.template)
-    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody)
+    const templateBody = getWhatsappTemplateForAction(step.action, step.template);
+    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody);
   }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
@@ -151,7 +150,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
-  const getNumberVerificationStatus = () => !!step && !!verifiedNumbers.find((number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
+  const getNumberVerificationStatus = () =>
+    !!step &&
+    !!verifiedNumbers.find(
+      (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+    );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
 
@@ -236,17 +239,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="w-full border rounded-md min-w-80 bg-default border-subtle p-7">
+          <div className="min-w-80 bg-default border-subtle w-full rounded-md border p-7">
             <div className="flex">
               <div className="bg-subtle text-default mt-[3px] flex h-5 w-5 items-center justify-center rounded-full p-1 text-xs font-medium ltr:mr-5 rtl:ml-5">
                 1
               </div>
               <div>
-                <div className="text-base font-bold text-emphasis">{t("trigger")}</div>
-                <div className="text-sm text-default">{t("when_something_happens")}</div>
+                <div className="text-emphasis text-base font-bold">{t("trigger")}</div>
+                <div className="text-default text-sm">{t("when_something_happens")}</div>
               </div>
             </div>
-            <div className="border-t border-subtle my-7" />
+            <div className="border-subtle my-7 border-t" />
             <Label>{t("when")}</Label>
             <Controller
               name="trigger"
@@ -291,7 +294,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} disabled={props.readOnly} />
                 {!props.readOnly && (
-                  <div className="flex mt-1 text-gray-500">
+                  <div className="mt-1 flex text-gray-500">
                     <Info className="mr-1 mt-0.5 h-4 w-4" />
                     <p className="text-sm">{t("testing_workflow_info_message")}</p>
                   </div>
@@ -318,18 +321,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
     const canRequirePhoneNumber = (workflowStep: string) => {
       return (
-        WorkflowActions.SMS_ATTENDEE === workflowStep ||
-        WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
-      )
-    }
+        WorkflowActions.SMS_ATTENDEE === workflowStep || WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+      );
+    };
 
     return (
       <>
-        <div className="flex justify-center my-3">
+        <div className="my-3 flex justify-center">
           <ArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
         </div>
         <div className="flex justify-center">
-          <div className="flex w-full border rounded-md min-w-80 bg-default border-subtle p-7">
+          <div className="min-w-80 bg-default border-subtle flex w-full rounded-md border p-7">
             <div className="w-full">
               <div className="flex">
                 <div className="w-full">
@@ -338,8 +340,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {step.stepNumber + 1}
                     </div>
                     <div>
-                      <div className="text-base font-bold text-emphasis">{t("action")}</div>
-                      <div className="text-sm text-default">{t("action_is_performed")}</div>
+                      <div className="text-emphasis text-base font-bold">{t("action")}</div>
+                      <div className="text-default text-sm">{t("action_is_performed")}</div>
                     </div>
                   </div>
                 </div>
@@ -379,7 +381,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
               </div>
-              <div className="border-t border-subtle my-7" />
+              <div className="border-subtle my-7 border-t" />
               <div>
                 <Label>{t("do_this")}</Label>
                 <Controller
@@ -395,16 +397,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                            const setNumberRequiredConfigs = (phoneNumberIsNeeded: boolean, senderNeeded = true) => {
+                            const setNumberRequiredConfigs = (
+                              phoneNumberIsNeeded: boolean,
+                              senderNeeded = true
+                            ) => {
                               setIsSenderIsNeeded(senderNeeded);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(phoneNumberIsNeeded);
                               setNumberVerified(getNumberVerificationStatus());
-                            }
+                            };
 
                             if (isSMSAction(val.value)) {
-
-                              setNumberRequiredConfigs(val.value === WorkflowActions.SMS_NUMBER)
+                              setNumberRequiredConfigs(val.value === WorkflowActions.SMS_NUMBER);
                               // email action changes to sms action
                               if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
@@ -501,7 +505,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isPhoneNumberNeeded && (
-                <div className="p-4 pt-0 mt-2 rounded-md bg-muted">
+                <div className="bg-muted mt-2 rounded-md p-4 pt-0">
                   <Label className="pt-4">{t("custom_phone_number")}</Label>
                   <div className="block sm:flex">
                     <Controller
@@ -553,7 +557,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   ) : (
                     !props.readOnly && (
                       <>
-                        <div className="flex mt-3">
+                        <div className="mt-3 flex">
                           <TextField
                             className="rounded-r-none border-r-transparent"
                             placeholder="Verification code"
@@ -589,43 +593,45 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </div>
               )}
-              {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (<div className="p-4 pt-0 mt-2 rounded-md bg-muted">
-                {isSenderIsNeeded ? (
-                  <>
-                    <div className="pt-4">
-                      <div className="flex">
-                        <Label>{t("sender_id")}</Label>
-                        <Tooltip content={t("sender_id_info")}>
-                          <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
-                        </Tooltip>
+              {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+                  {isSenderIsNeeded ? (
+                    <>
+                      <div className="pt-4">
+                        <div className="flex">
+                          <Label>{t("sender_id")}</Label>
+                          <Tooltip content={t("sender_id_info")}>
+                            <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                          </Tooltip>
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder={SENDER_ID}
+                          disabled={props.readOnly}
+                          maxLength={11}
+                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                        />
                       </div>
-                      <Input
-                        type="text"
-                        placeholder={SENDER_ID}
-                        disabled={props.readOnly}
-                        maxLength={11}
-                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                      />
-                    </div>
-                    {form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                      )}
-                  </>
-                ) : (
-                  <>
-                    <div className="pt-4">
-                      <Label>{t("sender_name")}</Label>
-                      <Input
-                        type="text"
-                        disabled={props.readOnly}
-                        placeholder={SENDER_NAME}
-                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>)}
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                        )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="pt-4">
+                        <Label>{t("sender_name")}</Label>
+                        <Input
+                          type="text"
+                          disabled={props.readOnly}
+                          placeholder={SENDER_NAME}
+                          {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                 <div className="mt-2">
                   <Controller
@@ -647,7 +653,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               {isEmailAddressNeeded && (
-                <div className="p-4 mt-5 rounded-md bg-muted">
+                <div className="bg-muted mt-5 rounded-md p-4">
                   <EmailField
                     required
                     disabled={props.readOnly}
@@ -669,20 +675,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isDisabled={props.readOnly}
                         onChange={(val) => {
                           if (val) {
-                            const action = form.getValues(`steps.${step.stepNumber - 1}.action`)
+                            const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
                             if (val.value === WorkflowTemplates.REMINDER) {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  whatsappReminderTemplate(
-                                    true,
-                                    action
-                                  )
+                                  whatsappReminderTemplate(true, action)
                                 );
                               } else if (isSMSAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  smsReminderTemplate(true,action)
+                                  smsReminderTemplate(true, action)
                                 );
                               } else {
                                 form.setValue(
@@ -696,13 +699,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               }
                             } else {
                               if (isWhatsappAction(action)) {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, getWhatsappTemplateForAction(action, val.value))
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  getWhatsappTemplateForAction(action, val.value)
+                                );
                               } else {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
                               }
                             }
-                            field.onChange(val.value)
+                            field.onChange(val.value);
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
                           }
@@ -715,7 +721,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
               </div>
-              <div className="pt-2 mt-2 rounded-md bg-muted md:p-6 md:pt-4">
+              <div className="bg-muted mt-2 rounded-md pt-2 md:p-6 md:pt-4">
                 {isEmailSubjectNeeded && (
                   <div className="mb-6">
                     <div className="flex items-center">
@@ -755,7 +761,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 step.action !== WorkflowActions.SMS_NUMBER ? (
                   <>
                     <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="flex-none mb-0 ">
+                      <Label className="mb-0 flex-none ">
                         {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                       </Label>
                     </div>
@@ -795,7 +801,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         reminderBodyFormRef?.(e);
                         refReminderBody.current = e;
                       }}
-                      className="h-24 my-0"
+                      className="my-0 h-24"
                       disabled={props.readOnly}
                       required
                       {...restReminderBodyForm}
@@ -811,7 +817,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {!props.readOnly && (
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="flex mt-2 text-sm text-default">
+                      <div className="text-default mt-2 flex text-sm">
                         <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                       </div>
@@ -923,23 +929,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent type="creation" className="sm:max-w-[610px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
-              <div className="mb-6 rounded-md bg-muted-3 sm:p-4">
-                <p className="font-medium test-sm">{t("format")}</p>
-                <ul className="mt-2 ml-5 list-disc text-emphasis">
+              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
+                <p className="test-sm font-medium">{t("format")}</p>
+                <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
                   <li>{t("ignore_special_characters_booking_questions")}</li>
                 </ul>
                 <div className="mt-4">
-                  <p className="w-full font-medium test-sm">{t("example_1")}</p>
-                  <div className="grid grid-cols-12 mt-2">
-                    <div className="col-span-5 test-sm text-default ltr:mr-2 rtl:ml-2">
+                  <p className="test-sm w-full font-medium">{t("example_1")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
                       {t("booking_question_identifier")}
                     </div>
-                    <div className="col-span-7 test-sm text-emphasis">{t("company_size")}</div>
-                    <div className="w-full col-span-5 test-sm text-default">{t("variable")}</div>
+                    <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
+                    <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
 
-                    <div className="col-span-7 break-words test-sm text-emphasis">
+                    <div className="test-sm text-emphasis col-span-7 break-words">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -950,14 +956,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="w-full font-medium test-sm">{t("example_2")}</p>
-                  <div className="grid grid-cols-12 mt-2">
-                    <div className="col-span-5 test-sm text-default ltr:mr-2 rtl:ml-2">
+                  <p className="test-sm w-full font-medium">{t("example_2")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
                       {t("booking_question_identifier")}
                     </div>
-                    <div className="col-span-7 test-sm text-emphasis">{t("what_help_needed")}</div>
-                    <div className="col-span-5 test-sm text-default">{t("variable")}</div>
-                    <div className="col-span-7 break-words test-sm text-emphasis">
+                    <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
+                    <div className="test-sm text-default col-span-5">{t("variable")}</div>
+                    <div className="test-sm text-emphasis col-span-7 break-words">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")

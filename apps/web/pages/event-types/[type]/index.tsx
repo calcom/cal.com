@@ -134,12 +134,12 @@ export type FormValues = {
   bookerLayouts: BookerLayoutSettings;
 };
 
-interface DiffResult {
+interface DiffObject {
   [key: string]: any;
 }
 
-function getObjectDifference(obj1: FormValues, obj2: FormValues): DiffResult {
-  const diff: DiffResult = {};
+function getObjectDifference(obj1: DiffObject, obj2: DiffObject): DiffObject {
+  const diff: DiffObject = {};
 
   for (const key in obj1) {
     if (obj1?.hasOwnProperty(key)) {
