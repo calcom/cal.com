@@ -155,6 +155,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     });
 
     for (const booking of bookingsForReminders) {
+      const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,
         attendees: booking.attendees.map((attendee) => {
@@ -162,7 +163,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             name: attendee.name,
             email: attendee.email,
             timeZone: attendee.timeZone,
-            language: { locale: attendee.locale || "" },
+            language: { locale: attendee.locale || defaultLocale },
           };
         }),
         organizer: booking.user
@@ -170,13 +171,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               name: booking.user.name || "",
               email: booking.user.email,
               timeZone: booking.user.timeZone,
-              language: { locale: booking.user.locale || "" },
+              language: { locale: booking.user.locale || defaultLocale },
             }
           : { name: "", email: "", timeZone: "", language: { locale: "" } },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         title: booking.title,
-        language: { locale: booking?.user?.locale || "" },
+        language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
           slug: booking.eventType?.slug,
         },
