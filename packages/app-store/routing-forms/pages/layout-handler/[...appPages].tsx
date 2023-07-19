@@ -2,8 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import type { NextRouter } from "next/router";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useParamsWithFallback } from "routing-forms/lib/useParamsWithFallback";
 
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppPrisma, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
