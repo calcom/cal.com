@@ -24,6 +24,10 @@ export const getIs24hClockFromLocalStorage = () => {
   return is24hFromLocalstorage === "true";
 };
 
+export const getTimeFormatStringFromUserTimeFormat = (timeFormat: number | null | undefined) => {
+  return timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR;
+};
+
 /**
  * Retrieves the browsers time format preference, checking local storage first
  * for a user set preference. If no preference is found, it will use the browser
