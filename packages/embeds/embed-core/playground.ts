@@ -6,8 +6,28 @@ const callback = function (e) {
   console.log("Event: ", e.type, detail);
 };
 
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+  if ("href" in target && typeof target.href === "string") {
+    const toUrl = new URL(target.href);
+    const pageUrl = new URL(document.URL);
+    for (const [name, value] of pageUrl.searchParams.entries()) {
+      if (toUrl.searchParams.get(name) === null) {
+        toUrl.searchParams.append(decodeURIComponent(name), value);
+      }
+    }
+    location.href = `?${toUrl.searchParams.toString()}#${toUrl.hash}`;
+    e.preventDefault();
+  }
+});
+
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const colorScheme = searchParams.get("color-scheme");
+
+if (colorScheme) {
+  document.documentElement.style.colorScheme = colorScheme;
+}
 const themeInParam = searchParams.get("theme");
 const validThemes = ["light", "dark", "auto"] as const;
 const theme = validThemes.includes((themeInParam as (typeof validThemes)[number]) || "")
