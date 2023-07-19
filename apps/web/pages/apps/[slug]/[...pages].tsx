@@ -1,5 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
@@ -56,10 +57,18 @@ function getRoute(appName: string, pages: string[]) {
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
 
+/**
+ * This hook is a workaround until pages are migrated to app directory.
+ */
+function useParamsWithFallback() {
+  const router = useRouter();
+  const params = useParams();
+  return params || router.query;
+}
+
 const AppPage: AppPageType["default"] = function AppPage(props) {
-  const searchParams = useSearchParams();
   const appName = props.appName;
-  const pages = searchParams?.get("pages") as string[];
+  const pages = (useParamsWithFallback().pages || []) as string[];
   const route = getRoute(appName, pages);
 
   const componentProps = {

@@ -15,6 +15,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
@@ -100,11 +101,12 @@ type CalcomThemeProps = PropsWithChildren<
 >;
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const router = useRouter();
+  const routerQuery = useRouterQuery();
 
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
-  const embedNamespace = getEmbedNamespace(router.query);
+  const embedNamespace = getEmbedNamespace(routerQuery);
   const isEmbedMode = typeof embedNamespace === "string";
 
   return (
