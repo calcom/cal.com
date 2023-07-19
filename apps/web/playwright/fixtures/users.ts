@@ -354,10 +354,12 @@ async function confirmPendingPayment(page: Page) {
     secret: process.env.STRIPE_WEBHOOK_SECRET as string,
   });
 
-  await page.request.post("/api/integrations/stripepayment/webhook", {
+  const response = await page.request.post("/api/integrations/stripepayment/webhook", {
     data: payload,
     headers: { "stripe-signature": signature },
   });
+
+  if (response.status() !== 200) throw new Error(`Failed to confirm payment. Response: ${response.text()}`);
 }
 
 // login using a replay of an E2E routine.
