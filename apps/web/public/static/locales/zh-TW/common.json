@@ -1900,5 +1900,17 @@
   "set_a_password": "設定密碼",
   "set_a_password_description": "這麼做會使用貴組織電子郵件和此密碼建立新的使用者帳戶。",
   "organization_logo": "組織標誌",
+  "organization_about_description": "請提供關於組織的簡介，這會顯示在組織的公開簡介網頁上。",
+  "ill_do_this_later": "之後再說",
+  "verify_your_email": "驗證電子郵件",
+  "enter_digit_code": "輸入我們傳送至 {{email}} 的 6 位數驗證碼",
+  "verify_email_organization": "驗證您的電子郵件，以建立組織",
+  "code_provided_invalid": "提供的驗證碼無效，再試一次",
+  "email_already_used": "電子郵件已有人使用",
+  "organization_admin_invited_heading": "您已獲邀加入 {{orgName}}",
+  "organization_admin_invited_body": "加入您在 {{orgName}} 的團隊，開始專注於會議本身，不必費心於會議的前置作業！",
+  "duplicated_slugs_warning": "由於重複的 slugs，下列團隊無法建立：{{slugs}}",
+  "team_names_empty": "團隊名稱不得留空",
+  "team_names_repeated": "團隊名稱不得重複",
   "insights_all_org_filter": "所有應用程式"
 }
