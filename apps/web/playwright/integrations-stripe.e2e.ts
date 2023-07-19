@@ -114,15 +114,13 @@ test.describe("Stripe integration", () => {
       await expect(page.getByText('Paid', { exact: true })).toBeVisible();
 
       await waitFor(() => {
-        expect(webhookReceiver.requestList.length).toBeGreaterThan(0);
+        const events: string[] = webhookReceiver.requestList.map(event => {
+          const body: any = event.body;
+          return body.triggerEvent;
+        });
+        // TODO: Change me when BOOKING_PAID is working
+        expect(events).toContain("BOOKING_CREATED");
       });
-
-      const events: string[] = webhookReceiver.requestList.map(event => {
-        const body: any = event.body;
-        return body.triggerEvent;
-      });
-      // TODO: change to BOOKING_PAID when it is getting working
-      expect(events).toContain("BOOKING_CREATED")
 
       webhookReceiver.close();
 
