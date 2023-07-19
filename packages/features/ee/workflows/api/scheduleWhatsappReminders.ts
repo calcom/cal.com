@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
@@ -81,6 +82,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const message = templateFunction(
         false,
         reminder.workflowStep.action,
+        getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
         reminder.booking?.startTime.toISOString() || "",
         reminder.booking?.eventType?.title || "",
         timeZone || "",
