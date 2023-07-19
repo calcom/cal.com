@@ -1889,7 +1889,11 @@
   "organization_name": "Nome dell'organizzazione",
   "organization_url": "URL dell'organizzazione",
   "organization_verify_header": "Verifica l'e-mail della tua organizzazione",
+  "organization_verify_email_body": "Usa il codice sottostante per verificare il tuo indirizzo e-mail e continuare a impostare l'organizzazione.",
   "additional_url_parameters": "Parametri URL aggiuntivi",
+  "about_your_organization": "Informazioni sulla tua organizzazione",
+  "about_your_organization_description": "Le organizzazioni sono ambienti condivisi dove è possibile creare più team con membri, tipi di eventi, applicazioni, flussi di lavoro condivisi e tanto altro.",
+  "create_your_teams": "Crea i tuoi team",
   "sender_id_info": "Nome o numero mostrato come mittente di un SMS (alcuni paesi non consentono ID alfanumerici dei mittenti)",
   "insights_all_org_filter": "Tutte le app",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi qui le tue nuove stringhe al di sopra di questa riga ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ↑"
