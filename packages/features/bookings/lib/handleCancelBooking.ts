@@ -1,4 +1,4 @@
-import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
@@ -22,8 +22,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -44,6 +45,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           credentials: true, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
+          timeFormat: true,
           name: true,
           destinationCalendar: true,
         },
@@ -126,9 +128,25 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  // If it's just an attendee of a booking then just remove them from that booking
-  const result = await handleSeatedEventCancellation(req);
-  if (result) return { success: true };
+  // get webhooks
+  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+
+  const subscriberOptions = {
+    userId: bookingToDelete.userId,
+    eventTypeId: bookingToDelete.eventTypeId as number,
+    triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
+  };
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: bookingToDelete?.eventType?.title || null,
+    eventDescription: bookingToDelete?.eventType?.description || null,
+    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
+    price: bookingToDelete?.eventType?.price || null,
+    currency: bookingToDelete?.eventType?.currency || null,
+    length: bookingToDelete?.eventType?.length || null,
+  };
+
+  const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
@@ -138,6 +156,7 @@ async function handler(req: CustomRequest) {
       name: true,
       email: true,
       timeZone: true,
+      timeFormat: true,
       locale: true,
     },
   });
@@ -191,6 +210,7 @@ async function handler(req: CustomRequest) {
       email: organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -206,6 +226,12 @@ async function handler(req: CustomRequest) {
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
   };
+
+  const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  const result = await handleSeatedEventCancellation(req, dataForWebhooks);
+  if (result) return { success: true };
 
   // If it's just an attendee of a booking then just remove them from that booking
   if (seatReferenceUid && bookingToDelete.attendees.length > 1) {
@@ -308,26 +334,6 @@ async function handler(req: CustomRequest) {
     return { message: "No longer attending event" };
   }
 
-  // Hook up the webhook logic here
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
-  // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberOptions = {
-    userId: bookingToDelete.userId,
-    eventTypeId: bookingToDelete.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId: bookingToDelete.eventType?.teamId,
-  };
-
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: bookingToDelete?.eventType?.title || null,
-    eventDescription: bookingToDelete?.eventType?.description || null,
-    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
-    price: bookingToDelete?.eventType?.price || null,
-    currency: bookingToDelete?.eventType?.currency || null,
-    length: bookingToDelete?.eventType?.length || null,
-  };
-
-  const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
@@ -538,6 +544,7 @@ async function handler(req: CustomRequest) {
         email: bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
         language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
       },
       attendees: attendeesList,
@@ -677,12 +684,31 @@ async function handler(req: CustomRequest) {
   return { message: "Booking successfully cancelled." };
 }
 
-async function handleSeatedEventCancellation(req: CustomRequest) {
+async function handleSeatedEventCancellation(
+  req: CustomRequest,
+  dataForWebhooks: {
+    webhooks: {
+      id: string;
+      subscriberUrl: string;
+      payloadTemplate: string | null;
+      appId: string | null;
+      secret: string | null;
+    }[];
+    evt: CalendarEvent;
+    eventTypeInfo: EventTypeInfo;
+  }
+) {
   const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
+  const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!seatReferenceUid) return;
-  if (!req.bookingToDelete?.attendees.length || req.bookingToDelete.attendees.length < 2) return;
+  const bookingToDelete = req.bookingToDelete;
+  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
-  const seatReference = req.bookingToDelete.seatsReferences.find(
+  if (!bookingToDelete.userId) {
+    throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  const seatReference = bookingToDelete.seatsReferences.find(
     (reference) => reference.referenceUid === seatReferenceUid
   );
 
@@ -701,6 +727,36 @@ async function handleSeatedEventCancellation(req: CustomRequest) {
     }),
   ]);
   req.statusCode = 200;
+
+  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+
+  evt.attendees = attendee
+    ? [
+        {
+          ...attendee,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
+        },
+      ]
+    : [];
+
+  const promises = webhooks.map((webhook) =>
+    sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
+      ...evt,
+      ...eventTypeInfo,
+      status: "CANCELLED",
+      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    }).catch((e) => {
+      console.error(
+        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}`,
+        e
+      );
+    })
+  );
+  await Promise.all(promises);
+
   return { success: true };
 }
 
