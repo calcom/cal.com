@@ -1,5 +1,5 @@
 import type { Payment } from "@prisma/client";
-import { useElements, useStripe, PaymentElement, Elements } from "@stripe/react-stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type stripejs from "@stripe/stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
-import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Checkbox } from "@calcom/ui";
@@ -40,6 +40,7 @@ const PaymentForm = (props: Props) => {
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
+  const bookingSuccessRedirect = useBookingSuccessRedirect();
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
@@ -86,7 +87,6 @@ const PaymentForm = (props: Props) => {
       }
 
       return bookingSuccessRedirect({
-        router,
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
         bookingUid: props.bookingUid,
