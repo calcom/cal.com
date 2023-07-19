@@ -414,9 +414,9 @@ function FieldEditDialog({
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
-        <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
-          <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
-          <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
+        <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
+          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               id="test-field-type"
@@ -505,15 +505,15 @@ function FieldEditDialog({
 
               return <VariantFields variantsConfig={variantsConfig} fieldForm={fieldForm} />;
             })()}
+          </div>
 
-            <DialogFooter>
-              <DialogClose color="secondary">{t("cancel")}</DialogClose>
-              <Button data-testid="field-add-save" type="submit">
-                {isFieldEditMode ? t("save") : t("add")}
-              </Button>
-            </DialogFooter>
-          </Form>
-        </div>
+          <DialogFooter className="relative rounded px-8" showDivider>
+            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <Button data-testid="field-add-save" type="submit">
+              {isFieldEditMode ? t("save") : t("add")}
+            </Button>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );
