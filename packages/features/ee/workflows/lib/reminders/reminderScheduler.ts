@@ -1,6 +1,7 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 
+import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -9,8 +10,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
-
-import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
@@ -113,7 +112,8 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
               hideBranding
             );
           } else if (isWhatsappAction(step.action)) {
-            const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+            const sendTo =
+              step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
             await scheduleWhatsappReminder(
               evt,
               sendTo,
@@ -208,7 +208,8 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
               hideBranding
             );
           } else if (isWhatsappAction(step.action)) {
-            const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+            const sendTo =
+              step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
             await scheduleWhatsappReminder(
               evt,
               sendTo,

@@ -93,7 +93,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsPhoneNumberNeeded(true);
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
-        form.resetField("senderId", { defaultValue: SENDER_ID })
+        form.resetField("senderId", { defaultValue: SENDER_ID });
       } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
         setIsSenderIdNeeded(false);
@@ -102,7 +102,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
-        form.resetField("senderId", { defaultValue: SENDER_ID })
+        form.resetField("senderId", { defaultValue: SENDER_ID });
       } else if (newValue.value === WorkflowActions.WHATSAPP_NUMBER) {
         setIsSenderIdNeeded(false);
         setIsPhoneNumberNeeded(true);
@@ -123,17 +123,16 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   const canRequirePhoneNumber = (workflowStep: string) => {
     return (
-      WorkflowActions.SMS_ATTENDEE === workflowStep ||
-      WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
-    )
-  }
+      WorkflowActions.SMS_ATTENDEE === workflowStep || WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+    );
+  };
 
   const showSender = (action: string) => {
-    return !isSenderIdNeeded && !(
-      WorkflowActions.WHATSAPP_NUMBER === action ||
-      WorkflowActions.WHATSAPP_ATTENDEE === action
-    )
-  }
+    return (
+      !isSenderIdNeeded &&
+      !(WorkflowActions.WHATSAPP_NUMBER === action || WorkflowActions.WHATSAPP_ATTENDEE === action)
+    );
+  };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -186,7 +185,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             {isPhoneNumberNeeded && (
               <div className="mt-5 space-y-1">
                 <Label htmlFor="sendTo">{t("phone_number")}</Label>
-                <div className="mt-1 mb-5">
+                <div className="mb-5 mt-1">
                   <Controller
                     control={form.control}
                     name="sendTo"
@@ -228,7 +227,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 )}
               </>
             )}
-              {showSender(form.getValues('action')) && (
+            {showSender(form.getValues("action")) && (
               <div className="mt-5">
                 <Label>{t("sender_name")}</Label>
                 <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />

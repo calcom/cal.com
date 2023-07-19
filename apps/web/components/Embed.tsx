@@ -212,8 +212,8 @@ export default function MyApp() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal 
-    calLink="${calLink}" 
+  return <Cal
+    calLink="${calLink}"
     style={{width:"${width}",height:"${height}",overflow:"scroll"}}
     ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
         IS_SELF_HOSTED
@@ -264,11 +264,11 @@ export default function App() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <button 
+  return <button
     data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
     ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
-    })}'`}  
+    })}'`}
     >Click me</button>;
 };`;
     },
@@ -313,10 +313,10 @@ ${uiInstructionCode}`;
     }) => {
       return code`
 // Important: Please add following attributes to the element you want to open Cal on click
-// \`data-cal-link="${calLink}"\` 
+// \`data-cal-link="${calLink}"\`
 // \`data-cal-config='${JSON.stringify({
         layout: previewState.layout,
-      })}'\` 
+      })}'\`
 
 ${uiInstructionCode}`;
     },
@@ -1625,9 +1625,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <HorizontalTabs
             data-testid="embed-tabs"
             tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
-            linkProps={{ shallow: true }}
+            linkShallow 
           />
-
           {tabs.map((tab) => {
             if (embedType !== "email") {
               return (

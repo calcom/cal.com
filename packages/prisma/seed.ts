@@ -21,6 +21,7 @@ async function createUserAndEventType(opts: {
     completedOnboarding?: boolean;
     timeZone?: string;
     role?: UserPermissionRole;
+    theme?: "dark" | "light";
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -218,6 +219,7 @@ async function main() {
       name: "Pro Example",
       password: "pro",
       username: "pro",
+      theme: "light",
     },
     eventTypes: [
       {
