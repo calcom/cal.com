@@ -1,28 +1,33 @@
 import { WorkflowActions } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 
 export const whatsappEventCancelledTemplate = (
   isEditingMode: boolean,
   action?: WorkflowActions,
+  timeFormat?: TimeFormat,
   startTime?: string,
   eventName?: string,
   timeZone?: string,
   attendee?: string,
   name?: string
 ) => {
+  const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
+  const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
+
   let eventDate;
   if (isEditingMode) {
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    startTime = "{START_TIME_h:mmA}";
+    startTime = `{START_TIME_${currentTimeFormat}}`;
 
-    eventDate = "{EVENT_DATE_YYYY MMM D}";
+    eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
     attendee = action === WorkflowActions.WHATSAPP_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.WHATSAPP_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
-    startTime = dayjs(startTime).tz(timeZone).format("h:mmA");
+    startTime = dayjs(startTime).tz(timeZone).format(currentTimeFormat);
   }
 
   const templateOne = `Hi${
