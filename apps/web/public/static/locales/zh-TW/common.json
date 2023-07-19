@@ -1896,5 +1896,8 @@
   "create_your_teams": "建立您的團隊",
   "create_your_teams_description": "將您的團隊成員新增到您的組織，開始一起排程",
   "invite_organization_admins": "邀請組織管理員",
+  "invite_organization_admins_description": "這些管理員將可存取組織中的所有團隊。您可稍後再新增團隊管理員和成員。",
+  "set_a_password": "設定密碼",
+  "set_a_password_description": "這麼做會使用貴組織電子郵件和此密碼建立新的使用者帳戶。",
   "insights_all_org_filter": "所有應用程式"
 }
