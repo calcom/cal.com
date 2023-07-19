@@ -128,7 +128,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
-    updateQueryParam("layout", layout)
+    updateQueryParam("layout", layout);
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
