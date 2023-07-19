@@ -13,7 +13,7 @@ import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
-  Checkbox as CheckboxField,
+  CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,

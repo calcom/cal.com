@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef } from "react";
+import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -801,15 +801,18 @@ const getOrganizationUrl = (slug: string) =>
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
   const orgBranding = useOrgBrandingValues();
-  const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+
+  const publicPageUrl = useMemo(() => {
+    if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
+    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    return publicPageUrl;
+  }, [orgBranding?.slug, user?.organizationId, user?.username]);
+
   const bottomNavItems: NavigationItemType[] = [
     {
       name: "view_public_page",
-      href: !!user?.organizationId
-        ? publicPageUrl
-        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      href: publicPageUrl,
       icon: ExternalLink,
       target: "__blank",
     },
@@ -818,9 +821,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       href: "",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        navigator.clipboard.writeText(
-          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
-        );
+        navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
       icon: Copy,
@@ -898,6 +899,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
+                id={item.name}
                 href={item.href || undefined}
                 aria-label={t(item.name)}
                 target={item.target}
@@ -908,11 +910,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
                 )}
-                aria-current={
-                  defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                    ? "page"
-                    : undefined
-                }
                 onClick={item.onClick}>
                 {!!Icon && (
                   <Icon
@@ -921,11 +918,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                       "me-3 md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
-                    aria-current={
-                      defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                        ? "page"
-                        : undefined
-                    }
                   />
                 )}
                 {isLocaleReady ? (
