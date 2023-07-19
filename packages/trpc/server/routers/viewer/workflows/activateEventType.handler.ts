@@ -11,6 +11,7 @@ import {
   scheduleWhatsappReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
@@ -171,6 +172,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               name: booking.user.name || "",
               email: booking.user.email,
               timeZone: booking.user.timeZone,
+              timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
               language: { locale: booking.user.locale || defaultLocale },
             }
           : { name: "", email: "", timeZone: "", language: { locale: "" } },
