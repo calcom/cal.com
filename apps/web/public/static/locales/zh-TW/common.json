@@ -1924,5 +1924,17 @@
   "messaging": "傳訊",
   "sender_id_info": "顯示為簡訊傳送者的名稱或電話號碼 (部分國家/地區不允許英數字元的傳送者 ID)",
   "org_admins_can_create_new_teams": "只有組織管理員才能建立新團隊",
-  "insights_all_org_filter": "所有應用程式"
+  "google_new_spam_policy": "Google 新的垃圾郵件政策可能會使您收不到關於此預約的任何電子郵件和行事曆通知。",
+  "resolve": "解決",
+  "no_organization_slug": "為此組織建立團隊時發生錯誤。缺少網址 slug。",
+  "org_name": "組織名稱",
+  "org_url": "組織網址",
+  "copy_link_org": "複製組織連結",
+  "404_the_org": "組織",
+  "404_the_team": "團隊",
+  "404_claim_entity_org": "認領組織的子網域",
+  "404_claim_entity_team": "認領此團隊並開始共同管理行程表",
+  "insights_all_org_filter": "所有應用程式",
+  "insights_team_filter": "團隊：{{teamName}}",
+  "insights_user_filter": "使用者：{{userName}}"
 }
