@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef } from "react";
@@ -40,6 +41,7 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const session = useSession();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: { context: { skipBatch: true } },
   });
@@ -114,8 +116,12 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     });
 
     const defaultUserValues = {
-      email: rescheduleUid ? bookingData?.attendees[0].email : parsedQuery["email"] || "",
-      name: rescheduleUid ? bookingData?.attendees[0].name : parsedQuery["name"] || "",
+      email: rescheduleUid
+        ? bookingData?.attendees[0].email
+        : parsedQuery["email"] || session.data?.user?.email || "",
+      name: rescheduleUid
+        ? bookingData?.attendees[0].name
+        : parsedQuery["name"] || session.data?.user?.name || "",
     };
 
     if (!isRescheduling) {
