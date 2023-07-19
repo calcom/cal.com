@@ -55,6 +55,21 @@ export const EventMeta = () => {
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
+  if (!isLoading && !!event && event?.isDynamic) {
+    const numUsers = event.users.length;
+    let dynamicEventDescription = event.description;
+    if (numUsers > 1) {
+      if (numUsers == 1) {
+        dynamicEventDescription = event.users[0].name;
+      } else if (numUsers == 2) {
+        dynamicEventDescription = [event.users[0].name, event.users[1].name].join(", ");
+      } else {
+        dynamicEventDescription = [event.users[0].name, event.users[1].name].join(", ") + " & more";
+      }
+      event.description = dynamicEventDescription;
+    }
+  }
+
   return (
     <div className="relative z-10 p-6">
       {isLoading && (
