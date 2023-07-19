@@ -1769,6 +1769,7 @@ async function handler(
   }
   if (isTeamEventType) {
     evt.team = {
+      id: eventType.team.id,
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
     };

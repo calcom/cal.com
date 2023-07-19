@@ -1,5 +1,7 @@
+import type { WebhookTriggerEvents } from "@prisma/client";
 import { z } from "zod";
 
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
@@ -30,6 +32,7 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
+    meeting_join_hook: z.string().optional(),
   }),
 });
 
@@ -85,6 +88,16 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   });
 }
 
+type RoomProperties = {
+  enable_prejoin_ui: boolean;
+  enable_knocking: boolean;
+  enable_screenshare: boolean;
+  enable_chat: boolean;
+  exp: number;
+  enable_recording?: string;
+  meeting_join_hook?: string;
+};
+
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
@@ -92,6 +105,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     }
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
+    console.log("dailyEvent", dailyEvent, body);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     }).then(meetingTokenSchema.parse);
@@ -119,28 +133,36 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
+
+    const properties: RoomProperties = {
+      enable_prejoin_ui: true,
+      enable_knocking: true,
+      enable_screenshare: true,
+      enable_chat: true,
+      exp: exp,
+    };
+
     if (scalePlan === "true" && !!hasTeamPlan === true) {
-      return {
-        privacy: "public",
-        properties: {
-          enable_prejoin_ui: true,
-          enable_knocking: true,
-          enable_screenshare: true,
-          enable_chat: true,
-          exp: exp,
-          enable_recording: "cloud",
-        },
-      };
+      properties["enable_recording"] = "cloud";
     }
+
+    const eventTrigger: WebhookTriggerEvents = "PARTICIPANT_JOINED";
+
+    const subscriberOptions = {
+      userId: event.organizer.id,
+      eventTypeId: event.eventTypeId,
+      triggerEvent: eventTrigger,
+      teamId: event?.team?.id,
+    };
+    const webhooks = await getWebhooks(subscriberOptions);
+
+    if (webhooks) {
+      properties.meeting_join_hook = webhooks[0].subscriberUrl;
+    }
+
     return {
       privacy: "public",
-      properties: {
-        enable_prejoin_ui: true,
-        enable_knocking: true,
-        enable_screenshare: true,
-        enable_chat: true,
-        exp: exp,
-      },
+      properties,
     };
   };
 

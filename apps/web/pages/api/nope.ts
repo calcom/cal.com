@@ -5,5 +5,7 @@ type Response = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>): Promise<void> {
-  return res.status(400).json({ message: "Please don't" });
+  console.log("REQ_NOPE", req.body);
+  console.log("REQ_NOPE_2", req);
+  return res.status(200).json({ message: "Please don't" });
 }
