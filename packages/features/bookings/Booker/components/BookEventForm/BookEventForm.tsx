@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import type { TFunction } from "react-i18next";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -23,8 +23,11 @@ import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { trpc } from "@calcom/trpc";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -37,36 +40,19 @@ type BookEventFormProps = {
   onCancel?: () => void;
 };
 
-const getSuccessPath = ({
-  uid,
-  email,
-  slug,
-  formerTime,
-  isRecurring,
-}: {
-  uid: string;
-  email: string;
-  slug: string;
-  formerTime?: string;
-  isRecurring: boolean;
-}) => ({
-  pathname: `/booking/${uid}`,
-  query: {
-    [isRecurring ? "allRemainingBookings" : "isSuccessBookingPage"]: true,
-    email: email,
-    eventTypeSlug: slug,
-    formerTime: formerTime,
-  },
-});
-
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+    trpc: { context: { skipBatch: true } },
+  });
+  const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+    trpc: { context: { skipBatch: true } },
+  });
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
   const errorRef = useRef<HTMLDivElement>(null);
-
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const bookingData = useBookerStore((state) => state.bookingData);
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const duration = useBookerStore((state) => state.selectedDuration);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -74,9 +60,39 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const username = useBookerStore((state) => state.username);
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
-  const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
+  const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const isRescheduling = !!rescheduleUid && !!bookingData;
   const event = useEvent();
   const eventType = event.data;
+
+  const reserveSlot = () => {
+    if (eventType?.id && timeslot && (duration || eventType?.length)) {
+      reserveSlotMutation.mutate({
+        slotUtcStartDate: dayjs(timeslot).utc().format(),
+        eventTypeId: eventType?.id,
+        slotUtcEndDate: dayjs(timeslot)
+          .utc()
+          .add(duration || eventType?.length, "minutes")
+          .format(),
+      });
+    }
+  };
+
+  useEffect(() => {
+    reserveSlot();
+
+    const interval = setInterval(() => {
+      reserveSlot();
+    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+
+    return () => {
+      if (eventType) {
+        removeSelectedSlot.mutate();
+      }
+      clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventType?.id, timeslot]);
 
   const defaultValues = useMemo(() => {
     if (Object.keys(formValues).length) return formValues;
@@ -84,7 +100,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     if (!eventType?.bookingFields) {
       return {};
     }
-
     const querySchema = getBookingResponsesPartialSchema({
       eventType: {
         bookingFields: eventType.bookingFields,
@@ -100,8 +115,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     });
 
     const defaultUserValues = {
-      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : parsedQuery["email"] || "",
-      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : parsedQuery["name"] || "",
+      email: rescheduleUid ? bookingData?.attendees[0].email : parsedQuery["email"] || "",
+      name: rescheduleUid ? bookingData?.attendees[0].name : parsedQuery["name"] || "",
     };
 
     if (!isRescheduling) {
@@ -115,6 +130,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           [field.name]: parsedQuery[field.name] || undefined,
         };
       }, {});
+
       defaults.responses = {
         ...responses,
         name: defaultUserValues.name,
@@ -124,10 +140,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       return defaults;
     }
 
-    if (!rescheduleBooking || !rescheduleBooking.attendees.length) {
+    if ((!rescheduleUid && !bookingData) || !bookingData.attendees.length) {
       return {};
     }
-    const primaryAttendee = rescheduleBooking.attendees[0];
+    const primaryAttendee = bookingData.attendees[0];
     if (!primaryAttendee) {
       return {};
     }
@@ -139,7 +155,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     const responses = eventType.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
-        [field.name]: rescheduleBooking.responses[field.name],
+        [field.name]: bookingData.responses[field.name],
       };
     }, {});
     defaults.responses = {
@@ -148,7 +164,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       email: defaultUserValues.email,
     };
     return defaults;
-  }, [eventType?.bookingFields, formValues, isRescheduling, rescheduleBooking, rescheduleUid]);
+  }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
   const bookingFormSchema = z
     .object({
@@ -196,17 +212,21 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         return;
       }
 
-      return await router.push(
-        getSuccessPath({
-          uid,
-          email: bookingForm.getValues("responses.email"),
-          formerTime: rescheduleBooking?.startTime
-            ? dayjs(rescheduleBooking?.startTime).toISOString()
-            : undefined,
-          slug: `${eventSlug}`,
-          isRecurring: false,
-        })
-      );
+      const query = {
+        isSuccessBookingPage: true,
+        email: bookingForm.getValues("responses.email"),
+        eventTypeSlug: eventSlug,
+        seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
+        formerTime:
+          isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+      };
+
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: eventType?.successRedirectUrl || "",
+        query,
+        bookingUid: uid,
+      });
     },
     onError: () => {
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -222,14 +242,21 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         return;
       }
 
-      return await router.push(
-        getSuccessPath({
-          uid,
-          email: bookingForm.getValues("responses.email"),
-          slug: `${eventSlug}`,
-          isRecurring: true,
-        })
-      );
+      const query = {
+        isSuccessBookingPage: true,
+        allRemainingBookings: true,
+        email: bookingForm.getValues("responses.email"),
+        eventTypeSlug: eventSlug,
+        formerTime:
+          isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+      };
+
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: eventType?.successRedirectUrl || "",
+        query,
+        bookingUid: uid,
+      });
     },
   });
 
@@ -275,6 +302,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       timeZone: timezone,
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
+      bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
       username: username || "",
       metadata: Object.keys(router.query)
         .filter((key) => key.startsWith("metadata"))
@@ -327,7 +355,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
-              className="mt-2"
+              className="my-2"
               severity="info"
               title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
               message={getError(
@@ -341,7 +369,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel}>
+            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
               {t("back")}
             </Button>
           )}

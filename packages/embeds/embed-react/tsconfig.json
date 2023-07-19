@@ -13,7 +13,7 @@
       "@calcom/embed-snippet": ["../embed-snippet/src"]
     }
   },
-  "include": ["**/*.ts","**/*.tsx", "env.d.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "env.d.ts"],
   // Exclude "test" because that has `api.test.ts` which imports @calcom/embed-react which needs it to be built using this tsconfig.json first. Excluding it here prevents type-check from validating test folder
   "exclude": ["node_modules", "test"]
 }

@@ -14,11 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   const appType = "giphy_other";
+  const credentialOwner = req.query.teamId
+    ? { teamId: Number(req.query.teamId) }
+    : { userId: req.session.user.id };
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: appType,
-        userId: req.session.user.id,
+        ...credentialOwner,
       },
     });
     if (alreadyInstalled) {
@@ -28,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         type: appType,
         key: {},
-        userId: req.session.user.id,
+        ...credentialOwner,
         appId: "giphy",
       },
     });

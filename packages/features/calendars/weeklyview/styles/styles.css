@@ -3,6 +3,7 @@
   --hoursInDay: 24;
   --minuteInHour:60;
   --gridMobileSize: 100vw;
+  --calendar-offset-top: 28px;
 }
 
 .scheduler-grid-row-template{

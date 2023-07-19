@@ -29,7 +29,7 @@ export const getSmsReminderNumberField = () =>
   ({
     name: SMS_REMINDER_NUMBER_FIELD,
     type: "phone",
-    defaultLabel: "number_sms_notifications",
+    defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
   } as const);
@@ -130,7 +130,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
-      if (step.action === "SMS_ATTENDEE") {
+      if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
         smsNumberSources.push(
           getSmsReminderNumberSource({
@@ -237,7 +237,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "reschedule_reason",
+      defaultLabel: "reason_for_reschedule",
       type: "textarea",
       editable: "system-but-optional",
       name: "rescheduleReason",

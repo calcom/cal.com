@@ -7,6 +7,7 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -75,8 +76,7 @@ function getNavigation(props: {
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
-    props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -178,6 +178,7 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
       availability,
     });
+
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
@@ -185,7 +186,7 @@ function EventTypeSingleLayout({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
-            ? "Member's default schedule"
+            ? "members_default_schedule"
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
@@ -193,7 +194,7 @@ function EventTypeSingleLayout({
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+          : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -210,7 +211,7 @@ function EventTypeSingleLayout({
     }
     if (isManagedEventType || isChildrenManagedEventType) {
       // Removing apps and workflows for manageg event types by admins v1
-      navigation.splice(-2, 1);
+      navigation.splice(0, 1);
     } else {
       navigation.push({
         name: "webhooks",
@@ -220,11 +221,24 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
+  }, [
+    t,
+    eventType,
+    enabledAppsNumber,
+    installedAppsNumber,
+    enabledWorkflowsNumber,
+    availability,
+    isManagedEventType,
+    isChildrenManagedEventType,
+    team,
+    formMethods,
+  ]);
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const orgBranding = useOrgBrandingValues();
+  const isOrgEvent = orgBranding?.fullDomain;
+  const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
+    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
+  }/${eventType.slug}`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
   const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
@@ -236,7 +250,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata.managedEventConfig && (
+          {!eventType.metadata?.managedEventConfig && (
             <>
               <div
                 className={classNames(
@@ -358,7 +372,7 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -379,7 +393,7 @@ function EventTypeSingleLayout({
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
-            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
+            loading={isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
@@ -393,13 +407,13 @@ function EventTypeSingleLayout({
               className="primary-navigation"
               tabs={EventTypeTabs}
               sticky
-              linkProps={{ shallow: true }}
+              linkShallow
               itemClassname="items-start"
               iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} linkProps={{ shallow: true }} />
+            <HorizontalTabs tabs={EventTypeTabs} linkShallow />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div

@@ -26,13 +26,10 @@ import { defaultResponder } from "@calcom/lib/server";
  *             required:
  *               - eventTypeId
  *               - start
- *               - name
- *               - email
+ *               - responses
  *               - timeZone
  *               - language
  *               - metadata
- *               - customInputs
- *               - location
  *             properties:
  *               eventTypeId:
  *                 type: integer
@@ -45,29 +42,33 @@ import { defaultResponder } from "@calcom/lib/server";
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
- *               name:
- *                 type: string
- *                 description: 'Name of the Attendee'
- *               email:
- *                 type: string
- *                 format: email
- *                 description: 'Email ID of the Attendee'
+ *               responses:
+ *                 type: object
+ *                 required:
+ *                    - name
+ *                    - email
+ *                    - location
+ *                 properties:
+ *                    name:
+ *                      type: string
+ *                      description: 'Attendee full name'
+ *                    email:
+ *                      type: string
+ *                      format: email
+ *                      description: 'Attendee email address'
+ *                    location:
+ *                      type: string
+ *                      description: 'Meeting location'
+ *               metadata:
+ *                 type: object
+ *                 properties: {}
+ *                 description: 'Any metadata associated with the booking'
  *               timeZone:
  *                 type: string
  *                 description: 'TimeZone of the Attendee'
  *               language:
  *                 type: string
  *                 description: 'Language of the Attendee'
- *               metadata:
- *                 type: object
- *                 properties: {}
- *                 description: 'Any metadata associated with the booking'
- *               customInputs:
- *                 type: array
- *                 items: {}
- *               location:
- *                 type: string
- *                 description: 'Meeting location'
  *               title:
  *                 type: string
  *                 description: 'Booking event title'
@@ -96,13 +97,14 @@ import { defaultResponder } from "@calcom/lib/server";
  *                   "eventTypeId": 2323232,
  *                   "start": "2023-05-24T13:00:00.000Z",
  *                   "end": "2023-05-24T13:30:00.000Z",
- *                   "name": "Hello Hello",
- *                   "email": "hello@gmail.com",
+ *                   "responses":{
+ *                     "name": "Hello Hello",
+ *                     "email": "hello@gmail.com",
+ *                     "metadata": {},
+ *                     "location": "Calcom HQ",
+ *                   },
  *                   "timeZone": "Europe/London",
  *                   "language": "en",
- *                   "metadata": {},
- *                   "customInputs": [],
- *                   "location": "Calcom HQ",
  *                   "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
  *                   "description": null,
  *                   "status": "PENDING",
@@ -117,53 +119,50 @@ import { defaultResponder } from "@calcom/lib/server";
  *         content:
  *           application/json:
  *             examples:
- *               bookings:
+ *               booking created successfully example:
  *                 value:
  *                   {
- *                     "id": 11223344,
- *                     "uid": "5yUjmAYTDF6MXo98re8SkX",
- *                     "userId": 123,
- *                     "eventTypeId": 2323232,
- *                     "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
- *                     "description": null,
- *                     "customInputs": {},
- *                     "responses": null,
- *                     "startTime": "2023-05-24T13:00:00.000Z",
- *                     "endTime": "2023-05-24T13:30:00.000Z",
- *                     "location": "Calcom HQ",
- *                     "createdAt": "2023-04-19T10:17:58.580Z",
- *                     "updatedAt": null,
- *                     "status": "PENDING",
- *                     "paid": false,
- *                     "destinationCalendarId": 2180,
- *                     "cancellationReason": null,
- *                     "rejectionReason": null,
- *                     "dynamicEventSlugRef": null,
- *                     "dynamicGroupSlugRef": null,
- *                     "rescheduled": null,
- *                     "fromReschedule": null,
- *                     "recurringEventId": null,
- *                     "smsReminderNumber": null,
- *                     "scheduledJobs": [],
- *                     "metadata": {},
- *                     "isRecorded": false,
- *                     "user": {
- *                       "email": "test@cal.com",
- *                       "name": "Syed Ali Shahbaz",
- *                       "timeZone": "Asia/Calcutta"
- *                     },
- *                     "attendees": [
- *                       {
- *                         "id": 12345,
- *                         "email": "hello@gmail.com",
- *                         "name": "Hello Hello",
- *                         "timeZone": "Europe/London",
- *                         "locale": "en",
- *                         "bookingId": 11223344
+ *                     "booking": {
+ *                       "id": 91,
+ *                       "userId": 5,
+ *                       "description": "",
+ *                       "eventTypeId": 7,
+ *                       "uid": "bFJeNb2uX8ANpT3JL5EfXw",
+ *                       "title": "60min between Pro Example and John Doe",
+ *                       "startTime": "2023-05-25T09:30:00.000Z",
+ *                       "endTime": "2023-05-25T10:30:00.000Z",
+ *                       "attendees": [
+ *                         {
+ *                           "email": "john.doe@example.com",
+ *                           "name": "John Doe",
+ *                           "timeZone": "Asia/Kolkata",
+ *                           "locale": "en"
+ *                         }
+ *                       ],
+ *                       "user": {
+ *                         "email": "pro@example.com",
+ *                         "name": "Pro Example",
+ *                         "timeZone": "Asia/Kolkata",
+ *                         "locale": "en"
+ *                       },
+ *                       "payment": [
+ *                         {
+ *                           "id": 1,
+ *                           "success": true,
+ *                           "paymentOption": "ON_BOOKING"
+ *                         }
+ *                       ],
+ *                       "metadata": {},
+ *                       "status": "ACCEPTED",
+ *                       "responses": {
+ *                         "email": "john.doe@example.com",
+ *                         "name": "John Doe",
+ *                         "location": {
+ *                           "optionValue": "",
+ *                           "value": "inPerson"
+ *                         }
  *                       }
- *                     ],
- *                     "payment": [],
- *                     "references": []
+ *                     }
  *                   }
  *       400:
  *         description: |

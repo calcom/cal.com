@@ -21,6 +21,7 @@ async function createUserAndEventType(opts: {
     completedOnboarding?: boolean;
     timeZone?: string;
     role?: UserPermissionRole;
+    theme?: "dark" | "light";
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -50,7 +51,7 @@ async function createUserAndEventType(opts: {
   };
 
   const user = await prisma.user.upsert({
-    where: { email: opts.user.email },
+    where: { email_username: { email: opts.user.email, username: opts.user.username } },
     update: userData,
     create: userData,
   });
@@ -218,6 +219,7 @@ async function main() {
       name: "Pro Example",
       password: "pro",
       username: "pro",
+      theme: "light",
     },
     eventTypes: [
       {

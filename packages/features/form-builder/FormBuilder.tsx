@@ -123,8 +123,10 @@ export const FormBuilder = function FormBuilder({
             const fieldType = fieldTypesConfigMap[field.type];
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+            const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
-            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
+            const isUserField =
+              !isFieldEditableSystem && !isFieldEditableSystemButOptional && !isFieldEditableSystemButHidden;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -150,7 +152,7 @@ export const FormBuilder = function FormBuilder({
                     {index >= 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
                         <ArrowUp className="h-5 w-5" />
                       </button>
@@ -158,7 +160,7 @@ export const FormBuilder = function FormBuilder({
                     {index < fields.length - 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
                         <ArrowDown className="h-5 w-5" />
                       </button>
@@ -192,7 +194,7 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !disabled && (
+                    {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
                         disabled={isFieldEditableSystem}
@@ -341,7 +343,7 @@ function Options({
                 {value.length > 2 && !readOnly && (
                   <Button
                     type="button"
-                    className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
                     StartIcon={X}
@@ -412,7 +414,7 @@ function FieldEditDialog({
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
-        <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
+        <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
             <SelectField

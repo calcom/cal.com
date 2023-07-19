@@ -26,6 +26,10 @@ export async function ssrInit(context: GetServerSidePropsContext) {
 
   // always preload "viewer.public.i18n"
   await ssr.viewer.public.i18n.fetch();
+  // So feature flags are available on first render
+  await ssr.viewer.features.map.prefetch();
+  // Provides a better UX to the users who have already upgraded.
+  await ssr.viewer.teams.hasTeamPlan.prefetch();
 
   return ssr;
 }

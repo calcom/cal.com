@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { TimeRange } from "@calcom/types/schedule";
+import type { TimeRange } from "@calcom/types/schedule";
 
 // By default starts on Sunday (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)
 export function weekdayDates(weekStart = 0, startDate: Date, length = 6) {
@@ -34,7 +34,7 @@ export function gridCellToDateTime({
 
   // Add startHour since we use StartOfDay for day props. This could be improved by changing the getDaysBetweenDates function
   // To handle the startHour+endHour
-  const cellDateTime = dayjs(day).add(minutesIntoSelection, "minutes").add(startHour, "hours");
+  const cellDateTime = dayjs(day).startOf("day").add(minutesIntoSelection, "minutes").add(startHour, "hours");
   return cellDateTime;
 }
 
@@ -89,4 +89,18 @@ export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
     }
   }
   return mergedDateRanges;
+}
+
+export function calculateHourSizeInPx(
+  gridElementRef: HTMLOListElement | null,
+  startHour: number,
+  endHour: number
+) {
+  // Gap added at bottom to give calendar some breathing room.
+  // I guess we could come up with a better way to do this in the future.
+  const gapOnBottom = 50;
+  // In case the calendar has for example a header above it. We take a look at the
+  // distance the grid is rendered from the top, and subtract that from the height.
+  const offsetFromTop = gridElementRef?.getBoundingClientRect().top ?? 65;
+  return (window.innerHeight - offsetFromTop - gapOnBottom) / (endHour - startHour);
 }
