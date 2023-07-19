@@ -1938,6 +1938,6 @@
   "insights_team_filter": "Nhóm: {{teamName}}",
   "insights_user_filter": "Người dùng: {{userName}}",
   "insights_subtitle": "Xem số liệu của lịch hẹn ở mọi sự kiện của bạn",
-  "custom_plan": "Kế hoạch tuỳ chỉnh",
+  "custom_plan": "Gói Tuỳ chỉnh",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
