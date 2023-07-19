@@ -1912,5 +1912,17 @@
   "duplicated_slugs_warning": "由於重複的 slugs，下列團隊無法建立：{{slugs}}",
   "team_names_empty": "團隊名稱不得留空",
   "team_names_repeated": "團隊名稱不得重複",
+  "user_belongs_organization": "使用者屬於組織",
+  "org_no_teams_yet": "此組織尚未有團隊",
+  "org_no_teams_yet_description": "若您是管理員，請務必建立團隊，團隊才會顯示在這裡。",
+  "set_up": "設定",
+  "set_up_your_profile": "設定個人資料",
+  "set_up_your_profile_description": "向大家介紹您在 {{orgName}} 擔任的職務，以及他們何時可以使用您的公開連結。",
+  "my_profile": "我的個人資料",
+  "my_settings": "我的設定",
+  "crm": "CRM",
+  "messaging": "傳訊",
+  "sender_id_info": "顯示為簡訊傳送者的名稱或電話號碼 (部分國家/地區不允許英數字元的傳送者 ID)",
+  "org_admins_can_create_new_teams": "只有組織管理員才能建立新團隊",
   "insights_all_org_filter": "所有應用程式"
 }
