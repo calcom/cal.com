@@ -1,5 +1,4 @@
 import { ExternalLink, MoreHorizontal, Edit2, UserX, Lock } from "lucide-react";
-import type { Action } from "users/components/UserTable/UserListTable";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,6 +15,7 @@ import {
 } from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
+import type { Action } from "./UserListTable";
 import type { User } from "./UserListTable";
 
 export function TableActions({

@@ -8,6 +8,7 @@ export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export {
   Checkbox,
+  CheckboxField,
   EmailField,
   EmailInput,
   FieldsetLegend,

@@ -17,7 +17,7 @@ import {
   RadioField,
   EmailField,
   Tooltip,
-  Checkbox,
+  CheckboxField,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
@@ -370,7 +370,7 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">
-          <Checkbox
+          <CheckboxField
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
