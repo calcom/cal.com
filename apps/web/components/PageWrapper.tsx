@@ -13,7 +13,7 @@ import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
-import I18nLanguageHandler from "@components/I18nLanguageHandler";
+import useI18nLanguageHandler from "@components/I18nLanguageHandler";
 
 export interface CalPageWrapper {
   (props?: AppProps): JSX.Element;
@@ -29,6 +29,7 @@ const calFont = localFont({
 });
 
 function PageWrapper(props: AppProps) {
+  useI18nLanguageHandler();
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
 
@@ -72,7 +73,6 @@ function PageWrapper(props: AppProps) {
         }
         {...seoConfig.defaultNextSeo}
       />
-      <I18nLanguageHandler />
       <Script
         nonce={nonce}
         id="page-status"
