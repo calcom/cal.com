@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -245,6 +246,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const flags = await getFeatureFlagMap(prisma);
 
   const team = await getTeamWithMembers(undefined, slug);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
@@ -253,7 +255,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (
     (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization)
+    (!isValidOrgDomain && !!metadata?.isOrganization) ||
+    flags["organizations"] !== true
   ) {
     return { notFound: true } as const;
   }

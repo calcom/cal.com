@@ -2,6 +2,8 @@ const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.N
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
+export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
   VERCEL_URL ||
@@ -9,6 +11,11 @@ export const WEBAPP_URL =
   HEROKU_URL ||
   RENDER_URL ||
   "http://localhost:3000";
+
+// OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
+// So for development purpose, we would stick to localhost only
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localhost:3000";
+
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
@@ -39,7 +46,6 @@ export const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
 );
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const TRIAL_LIMIT_DAYS = 14;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;

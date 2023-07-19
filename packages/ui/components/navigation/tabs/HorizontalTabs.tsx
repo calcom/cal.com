@@ -3,11 +3,12 @@ import HorizontalTabItem from "./HorizontalTabItem";
 
 export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
-  linkProps?: HorizontalTabItemProps["linkProps"];
+  linkShallow?: boolean;
+  linkScroll?: boolean;
   actions?: JSX.Element;
 }
 
-const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabProps) {
+const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...props }: NavTabProps) {
   return (
     <div className="mb-4 h-9 max-w-[calc(100%+40px)] lg:mb-5">
       <nav
@@ -15,7 +16,13 @@ const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabP
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab, idx) => (
-          <HorizontalTabItem className="px-4 py-2.5" {...tab} key={idx} {...linkProps} />
+          <HorizontalTabItem
+            className="px-4 py-2.5"
+            {...tab}
+            key={idx}
+            linkShallow={linkShallow}
+            linkScroll={linkScroll}
+          />
         ))}
       </nav>
       {actions && actions}

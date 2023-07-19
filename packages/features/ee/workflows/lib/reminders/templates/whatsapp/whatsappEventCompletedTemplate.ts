@@ -1,5 +1,6 @@
-import dayjs from "@calcom/dayjs";
 import { WorkflowActions } from "@prisma/client";
+
+import dayjs from "@calcom/dayjs";
 
 export const whatsappEventCompletedTemplate = (
   isEditingMode: boolean,

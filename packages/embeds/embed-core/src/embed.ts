@@ -116,6 +116,31 @@ function validate(data: Record<string, unknown>, schema: ValidationSchema) {
   }
 }
 
+function getColorScheme(el: Element) {
+  const pageColorScheme = getComputedStyle(el).colorScheme;
+  if (pageColorScheme === "dark" || pageColorScheme === "light") {
+    return pageColorScheme;
+  }
+  return null;
+}
+
+function withColorScheme(
+  queryObject: PrefillAndIframeAttrsConfig & { guest?: string | string[] },
+  containerEl: Element
+) {
+  // If color-scheme not explicitly configured, keep it same as the webpage that has the iframe
+  // This is done to avoid having an opaque background of iframe that arises when they aren't same. We really need to have a transparent background to make embed part of the page
+  // https://fvsch.com/transparent-iframes#:~:text=the%20resolution%20was%3A-,If%20the%20color%20scheme%20of%20an%20iframe%20differs%20from%20embedding%20document%2C%20iframe%20gets%20an%20opaque%20canvas%20background%20appropriate%20to%20its%20color%20scheme.,-So%20the%20dark
+  if (!queryObject["ui.color-scheme"]) {
+    const colorScheme = getColorScheme(containerEl);
+    // Only handle two color-schemes for now. We don't want to have unintented affect by always explicitly adding color-scheme
+    if (colorScheme) {
+      queryObject["ui.color-scheme"] = colorScheme;
+    }
+  }
+  return queryObject;
+}
+
 type SingleInstructionMap = {
   // TODO: This makes api("on", {}) loose it's generic type. Find a way to fix it.
   // e.g. api("on", { action: "__dimensionChanged", callback: (e) => { /* `e.detail.data` has all possible values for all events/actions */} });
@@ -139,8 +164,8 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: It should have a dedicated prefill prop
   // prefill: {},
 
-  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  // ui: {layout; theme}
+  // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
+  "ui.color-scheme"?: string;
   layout?: `${BookerLayouts}`;
   theme?: EmbedThemeConfig;
 };
@@ -369,7 +394,7 @@ export class Cal {
 
 class CalApi {
   cal: Cal;
-
+  static initializedNamespaces = [] as string[];
   constructor(cal: Cal) {
     this.cal = cal;
   }
@@ -378,6 +403,8 @@ class CalApi {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
+
+    CalApi.initializedNamespaces.push(this.cal.namespace);
 
     const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
 
@@ -421,23 +448,35 @@ class CalApi {
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
       throw new Error("iframeAttrs should be an object");
     }
-    config.embedType = "inline";
-    const iframe = this.cal.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
-    iframe.style.height = "100%";
-    iframe.style.width = "100%";
-    const element =
+    const containerEl =
       elementOrSelector instanceof HTMLElement
         ? elementOrSelector
         : document.querySelector(elementOrSelector);
-    if (!element) {
+
+    if (!containerEl) {
       throw new Error("Element not found");
     }
-    element.classList.add("cal-inline-container");
+
+    config.embedType = "inline";
+
+    // Note that by the time, the server responds with html having appropriate color-scheme, there might be a flash of non-transparent(white/black) background(for a few 100 milliseconds)
+    // There is no quick way know to fix it.
+    // An approach might be to add a temporary neutral iframe(with no src) whose html can be directly modified synchronously and let the iframe with calLink src respond,
+    // once the iframe responds, we can replace the neutral iframe with the calLink iframe
+    const iframe = this.cal.createIframe({
+      calLink,
+      queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
+    });
+
+    iframe.style.height = "100%";
+    iframe.style.width = "100%";
+
+    containerEl.classList.add("cal-inline-container");
     const template = document.createElement("template");
     template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
     this.cal.inlineEl.appendChild(iframe);
-    element.appendChild(template.content);
+    containerEl.appendChild(template.content);
   }
 
   floatingButton({
@@ -523,8 +562,14 @@ class CalApi {
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
       throw new Error("iframeAttrs should be an object");
     }
+
     config.embedType = "modal";
-    const iframe = this.cal.createIframe({ calLink, calOrigin, queryObject: Cal.getQueryObject(config) });
+    const containerEl = document.body;
+    const iframe = this.cal.createIframe({
+      calLink,
+      queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
+    });
+
     iframe.style.borderRadius = "8px";
 
     iframe.style.height = "100%";
@@ -537,7 +582,7 @@ class CalApi {
     this.cal.actionManager.on("__closeIframe", () => {
       this.cal.modalBox.setAttribute("state", "closed");
     });
-    document.body.appendChild(template.content);
+    containerEl.appendChild(template.content);
   }
 
   on<T extends keyof EventDataMap>({
@@ -646,7 +691,9 @@ export interface CalWindow extends Window {
   Cal: GlobalCal;
 }
 
-globalCal.instance = new Cal("", globalCal.q);
+const DEFAULT_NAMESPACE = "";
+
+globalCal.instance = new Cal(DEFAULT_NAMESPACE, globalCal.q);
 for (const [ns, api] of Object.entries(globalCal.ns)) {
   api.instance = new Cal(ns, api.q);
 }
@@ -711,3 +758,32 @@ document.addEventListener("click", (e) => {
     calOrigin,
   });
 });
+
+let currentColorScheme: string | null = null;
+
+(function watchAndActOnColorSchemeChange() {
+  // TODO: Maybe find a better way to identify change in color-scheme, a mutation observer seems overkill for this. Settle with setInterval for now.
+  setInterval(() => {
+    const colorScheme = getColorScheme(document.body);
+    if (colorScheme && colorScheme !== currentColorScheme) {
+      currentColorScheme = colorScheme;
+      // Go through all the embeds on the same page and update all of them with this info
+      CalApi.initializedNamespaces.forEach((ns) => {
+        const api = getEmbedApiFn(ns);
+        api("ui", {
+          colorScheme: colorScheme,
+        });
+      });
+    }
+  }, 50);
+})();
+
+function getEmbedApiFn(ns: string) {
+  let api;
+  if (ns === DEFAULT_NAMESPACE) {
+    api = globalCal;
+  } else {
+    api = globalCal.ns[ns];
+  }
+  return api;
+}
