@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
+
 import { test } from "./lib/fixtures";
 import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
@@ -92,8 +94,46 @@ test.describe("Stripe integration", () => {
 
     await user.makePaymentUsingStripe();
   });
+
+  test("Cancelled paid booking should be refunded", async ({ page, users, request }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+
+    await page.waitForURL("/booking/*");
+
+    const url = page.url().split("?")[1];
+
+    const urlSearchParams = new URLSearchParams(url);
+
+    const id = urlSearchParams.get("payment_intent");
+
+    expect(id).toBeDefined();
+
+    const payload = JSON.stringify({ type: "payment_intent.succeeded", data: { object: { id } } }, null, 2);
+
+    const signature = stripe.webhooks.generateTestHeaderString({
+      payload,
+      secret: process.env.STRIPE_WEBHOOK_SECRET as string,
+    });
+
+    await page.request.post("/api/integrations/stripepayment/webhook", {
+      data: payload,
+      headers: { "stripe-signature": signature },
+    });
+
+    await page.click('[data-testid="cancel"]');
+    await page.click('[data-testid="confirm_cancel"]');
+
+    await expect(page.getByText("This booking payment has been refunded")).toBeVisible();
+  });
+
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
   todo("Paid booking should be able to be cancelled");
-  todo("Cancelled paid booking should be refunded");
 });
