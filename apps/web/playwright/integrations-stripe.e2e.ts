@@ -137,7 +137,7 @@ test.describe("Stripe integration", () => {
     test("Payment should confirm pending payment booking", async ({ page, users }) => {
       await page.goto("/bookings/upcoming");
 
-      await expect(page.getByText("Paid")).toBeVisible();
+      await expect(page.locator('[data-testid="paid_badge"]').first()).toBeVisible();
     });
 
     todo("Payment should trigger a BOOKING_PAID webhook");
