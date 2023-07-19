@@ -1879,5 +1879,18 @@
   "create_for": "建立",
   "setup_organization": "設定組織",
   "organization_banner_description": "建立環境，供您的團隊利用輪流制和全體預定功能建立共用的應用程式、工作流程和活動類型。",
+  "organization_banner_title": "管理有多個團隊的組織",
+  "set_up_your_organization": "設定您的組織",
+  "organizations_description": "團隊可在組織環境中建立共用的活動類型、應用程式、工作流程等。",
+  "must_enter_organization_name": "必須輸入組織名稱",
+  "must_enter_organization_admin_email": "必須輸入您的組織電子郵件地址",
+  "admin_email": "您的組織電子郵件地址",
+  "admin_username": "管理員使用者名稱",
+  "organization_name": "組織名稱",
+  "organization_url": "組織網址",
+  "organization_verify_header": "驗證您的組織電子郵件",
+  "organization_verify_email_body": "請使用以下驗證碼驗證您的電子郵件地址，以便繼續設定您的組織。",
+  "additional_url_parameters": "其他網址參數",
+  "about_your_organization": "關於您的組織",
   "insights_all_org_filter": "所有應用程式"
 }
