@@ -84,7 +84,7 @@
   "booking_submitted_subject": "Buchung eingereicht: {{title}} am {{date}}",
   "download_recording_subject": "Aufnahme herunterladen: {{title}} am {{date}}",
   "download_your_recording": "Ihre Aufnahme herunterladen",
-  "your_meeting_has_been_booked": "Dein Termin wurde gebucht",
+  "your_meeting_has_been_booked": "Ihr Termin wurde gebucht",
   "event_type_has_been_rescheduled_on_time_date": "Ihr {{title}} wurde auf den {{date}} verschoben.",
   "event_has_been_rescheduled": "Ihr Termin wurde verschoben.",
   "request_reschedule_subtitle": "{{organizer}} hat die Buchung storniert und Sie gebeten, eine andere Zeit auszuwählen.",
