@@ -1940,4 +1940,25 @@
   "insights_subtitle": "Veja insights de reserva em seus eventos",
   "custom_plan": "Plano personalizado",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+
+  ,"event_limit_booking_limit_options_per_day": "Por Dia"
+  ,"event_limit_booking_limit_options_per_week": "Por Semana"
+  ,"event_limit_booking_limit_options_per_month": "Por Mês"
+  ,"event_limit_booking_limit_options_per_year": "Por Ano"
+  ,"phone": "Telefone"
+  ,"label_15_min": "15 minutes"
+  ,"label_30_min": "30 minutes"
+  ,"label_60_min": "60 minutes"
+  ,"nameless_team": "Equipe Sem Nme"
+  ,"event_host": "Responsável"
+  ,"event_attendee": "Participante"
+  ,"nameless": "Sem Nome"
+  ,"default_meeting": "Agenda Pessoa"
+  ,"default_slug": "agenda-pessoal"
+  ,"phone_call": "Attendee Phone Number"
+  ,"your_number": "Your phone number"
+  ,"host_phone_number": "Your Phone Number"
+
+
+
 }
