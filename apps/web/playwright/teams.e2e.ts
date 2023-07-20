@@ -99,6 +99,7 @@ test.describe("Teams", () => {
     await page.goto(`/team/${team.slug}/team-event-30min`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // TODO: Assert whether the user received an email
   });
