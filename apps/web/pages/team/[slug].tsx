@@ -130,7 +130,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <div className="ms-3 inline-block truncate">
                   <span className="text-default text-sm font-bold">{ch.name}</span>
                   <span className="text-subtle block text-xs">
-                    {t("number_member", { count: ch.members.length })}
+                    {t("number_member", {
+                      count: ch.members.filter((mem) => mem.user.username !== null).length,
+                    })}
                   </span>
                 </div>
               </div>
@@ -138,11 +140,13 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 className="mr-6"
                 size="sm"
                 truncateAfter={4}
-                items={ch.members.map(({ user: member }) => ({
-                  alt: member.name || "",
-                  image: `/${member.username}/avatar.png`,
-                  title: member.name || "",
-                }))}
+                items={ch.members
+                  .filter((mem) => mem.user.username !== null)
+                  .map(({ user: member }) => ({
+                    alt: member.name || "",
+                    image: `/${member.username}/avatar.png`,
+                    title: member.name || "",
+                  }))}
               />
             </Link>
           </li>
