@@ -560,7 +560,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 console.error("Error while linking account of already existing user");
               }
             }
-            if (existingUser.twoFactorEnabled) {
+            if (existingUser.twoFactorEnabled && existingUser.identityProvider === IdentityProvider.CAL) {
               return loginWithTotp(existingUser);
             } else {
               return true;
@@ -600,7 +600,11 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (!hostedCal && existingUserWithEmail.emailVerified) {
+          if (
+            !hostedCal &&
+            existingUserWithEmail.emailVerified &&
+            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
+          ) {
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail);
             } else {
