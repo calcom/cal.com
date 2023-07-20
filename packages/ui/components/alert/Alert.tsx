@@ -23,6 +23,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
 
   return (
     <div
+      data-testid="alert"
       ref={ref}
       className={classNames(
         "rounded-md  p-3",
@@ -37,6 +38,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         {CustomIcon ? (
           <div className="flex-shrink-0">
             <CustomIcon
+              data-testid="custom-icon"
               aria-hidden="true"
               className={classNames(`h-5 w-5`, iconClassName, customIconColor ?? "text-default")}
             />
@@ -45,30 +47,35 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           <div className="flex-shrink-0">
             {severity === "error" && (
               <XCircle
+                data-testid="x-circle"
                 className={classNames("h-5 w-5 text-red-900 dark:text-red-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
               <AlertTriangle
+                data-testid="alert-triangle"
                 className={classNames("text-attention h-5 w-5 dark:text-orange-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "info" && (
               <Info
+                data-testid="info"
                 className={classNames("h-5 w-5 text-blue-900 dark:text-blue-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "neutral" && (
               <Info
+                data-testid="neutral"
                 className={classNames("text-default h-5 w-5 fill-transparent", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "success" && (
               <CheckCircle2
+                data-testid="check-circle-2"
                 className={classNames("fill-muted text-default h-5 w-5", iconClassName)}
                 aria-hidden="true"
               />
