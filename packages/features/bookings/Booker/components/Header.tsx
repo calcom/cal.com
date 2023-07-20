@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -146,5 +147,13 @@ const LayoutToggle = ({
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);
 
-  return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
+  const ToggleGroupLoader = (): JSX.Element => (
+    <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />
+  );
+
+  const ToggleGroupNoSSR = dynamic(() => Promise.resolve(ToggleGroupLoader), {
+    ssr: false,
+  });
+
+  return <ToggleGroupNoSSR />;
 };
