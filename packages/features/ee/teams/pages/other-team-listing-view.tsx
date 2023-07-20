@@ -2,18 +2,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-import { TeamsListing } from "../components";
+import { OtherTeamsListing } from "../components";
 
-const TeamListingView = () => {
+const OtherTeamListingView = () => {
   const { t } = useLocale();
   return (
     <>
       <Meta title={t("teams")} description={t("create_manage_teams_collaborative")} />
-      <TeamsListing />
+      <OtherTeamsListing />
     </>
   );
 };
 
-TeamListingView.getLayout = getLayout;
+OtherTeamListingView.getLayout = getLayout;
 
-export default TeamListingView;
+export default OtherTeamListingView;
