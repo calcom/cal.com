@@ -94,7 +94,19 @@ export default class EventManager {
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     // Fallback to cal video if no location is set
-    if (!evt.location) evt["location"] = "integrations:daily";
+    if (!evt.location) {
+      // See if cal video is enabled & has keys
+      const calVideo = await prisma.app.findFirst({
+        where: {
+          slug: "daily-video",
+        },
+        select: {
+          keys: true,
+          enabled: true,
+        },
+      });
+      if (calVideo?.enabled && calVideo?.keys?.length) evt["location"] = "integrations:daily";
+    }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
