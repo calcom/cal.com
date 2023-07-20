@@ -51,32 +51,39 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     memberUserIdParsed = safe.data.memberUserId;
   }
 
-  // TODO: Sync insight filters with URL parameters
-  const [selectedTimeView, setSelectedTimeView] =
-    useState<FilterContextType["filter"]["selectedTimeView"]>("week");
-  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(
-    userIdParsed || null
-  );
-  const [selectedMemberUserId, setSelectedMemberUserId] = useState<
-    FilterContextType["filter"]["selectedMemberUserId"]
-  >(memberUserIdParsed || null);
-  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(
-    teamIdParsed || null
-  );
-  const [selectedEventTypeId, setSelectedEventTypeId] = useState<
-    FilterContextType["filter"]["selectedEventTypeId"]
-  >(eventTypeIdParsed || null);
-  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(
-    filterParsed ? [filterParsed] : null
-  );
-  const [selectedTeamName, setSelectedTeamName] =
-    useState<FilterContextType["filter"]["selectedTeamName"]>(null);
-  const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
-    endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
-    "t",
-  ]);
+  const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
+    dateRange: [
+      startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
+      endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
+      "t",
+    ],
+    selectedTimeView: "week",
+    selectedUserId: userIdParsed || null,
+    selectedMemberUserId: memberUserIdParsed || null,
+    selectedTeamId: teamIdParsed || null,
+    selectedTeamName: null,
+    selectedEventTypeId: eventTypeIdParsed || null,
+    selectedFilter: filterParsed ? [filterParsed] : null,
+    isAll: false,
+    initialConfig: {
+      userId: null,
+      teamId: null,
+      isAll: false,
+    },
+  });
 
+  const {
+    dateRange,
+    selectedTimeView,
+    selectedMemberUserId,
+    selectedTeamId,
+    selectedUserId,
+    selectedEventTypeId,
+    selectedFilter,
+    selectedTeamName,
+    isAll,
+    initialConfig,
+  } = configFilters;
   return (
     <FilterProvider
       value={{
@@ -89,100 +96,67 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           selectedTeamName,
           selectedEventTypeId,
           selectedFilter,
+          isAll,
+          initialConfig,
         },
-        setSelectedFilter: (filter) => {
-          setSelectedFilter(filter);
-          const userId =
-            filter?.[0] === "user" ? selectedMemberUserId : selectedUserId ? selectedUserId : undefined;
-          const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
-          router.push({
-            query: {
-              ...router.query,
-              filter: filter?.[0],
-              userId,
-              eventTypeId,
-            },
+        setConfigFilters: (newConfigFilters) => {
+          setConfigFilters({
+            ...configFilters,
+            ...newConfigFilters,
           });
-        },
-        setDateRange: (dateRange) => {
-          setDateRange(dateRange);
+
+          const {
+            selectedMemberUserId,
+            selectedTeamId,
+            selectedUserId,
+            selectedEventTypeId,
+            selectedFilter,
+            isAll,
+            dateRange,
+          } = newConfigFilters;
+          const [startTime, endTime] = dateRange || [null, null];
+
+          const mergedQueryParams = {
+            ...(router.query || {}),
+            ...(selectedMemberUserId !== undefined && { memberUserId: selectedMemberUserId }),
+            ...(selectedTeamId !== undefined && { teamId: selectedTeamId }),
+            ...(selectedUserId !== undefined && { userId: selectedUserId }),
+            ...(selectedEventTypeId !== undefined && { eventTypeId: selectedEventTypeId }),
+            ...(selectedFilter !== undefined &&
+              selectedFilter &&
+              selectedFilter?.length > 0 && { filter: selectedFilter[0] }),
+            ...(isAll !== undefined && { isAll }),
+            ...(startTime !== undefined && startTime && { startTime: startTime.toISOString() }),
+            ...(endTime !== undefined && endTime && { endTime: endTime.toISOString() }),
+          };
+
           router.push({
-            query: {
-              ...router.query,
-              startTime: dateRange[0].toISOString(),
-              endTime: dateRange[1].toISOString(),
-            },
-          });
-        },
-        setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
-        setSelectedMemberUserId: (selectedMemberUserId) => {
-          setSelectedMemberUserId(selectedMemberUserId);
-          const { userId, eventTypeId, ...rest } = router.query;
-          router.push({
-            query: {
-              ...rest,
-              memberUserId: selectedMemberUserId,
-            },
-          });
-        },
-        setSelectedTeamId: (selectedTeamId) => {
-          setSelectedTeamId(selectedTeamId);
-          setSelectedUserId(null);
-          setSelectedMemberUserId(null);
-          setSelectedEventTypeId(null);
-          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
-          router.push({
-            query: {
-              ...rest,
-              teamId: selectedTeamId,
-            },
-          });
-        },
-        setSelectedUserId: (selectedUserId) => {
-          setSelectedUserId(selectedUserId);
-          setSelectedTeamId(null);
-          setSelectedTeamName(null);
-          setSelectedEventTypeId(null);
-          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
-          router.push({
-            query: {
-              ...rest,
-              userId: selectedUserId,
-            },
-          });
-        },
-        setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
-        setSelectedEventTypeId: (selectedEventTypeId) => {
-          setSelectedEventTypeId(selectedEventTypeId);
-          router.push({
-            query: {
-              ...router.query,
-              eventTypeId: selectedEventTypeId,
-            },
+            query: mergedQueryParams,
           });
         },
         clearFilters: () => {
-          setSelectedTeamName(null);
-          setSelectedEventTypeId(null);
-          setSelectedMemberUserId(null);
-          setSelectedFilter(null);
-          const { teamId, userId, ...rest } = router.query;
-          const query: { teamId?: number; userId?: number } = {};
-          const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
-          const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
+          const { initialConfig } = configFilters;
 
-          if ((teamId && !userId) || (userId && teamId)) {
-            query.teamId = parsedTeamId;
-            setSelectedTeamId(parsedTeamId);
-            setSelectedUserId(null);
-          } else if (userId && !teamId) {
-            query.userId = parsedUserId;
-            setSelectedUserId(parsedUserId);
-            setSelectedTeamId(null);
-          }
+          const teamId = initialConfig?.teamId ? initialConfig.teamId : undefined;
+          const userId = initialConfig?.userId ? initialConfig.userId : undefined;
+          setConfigFilters({
+            selectedEventTypeId: null,
+            selectedFilter: null,
+            selectedMemberUserId: null,
+            selectedTeamId: teamId,
+            selectedTeamName: null,
+            selectedTimeView: "week",
+            selectedUserId: userId,
+            isAll: !!initialConfig?.isAll,
+            dateRange: [dayjs().subtract(1, "month"), dayjs(), "t"],
+            initialConfig,
+          });
 
           router.push({
-            query,
+            query: {
+              ...(teamId && { teamId: teamId }),
+              ...(userId && { userId: userId }),
+            },
           });
         },
       }}>

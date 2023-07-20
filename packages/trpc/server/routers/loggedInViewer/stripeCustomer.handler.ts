@@ -30,12 +30,29 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
   }
 
   const metadata = userMetadata.parse(user.metadata);
-
-  if (!metadata?.stripeCustomerId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer id" });
+  let stripeCustomerId = metadata?.stripeCustomerId;
+  if (!stripeCustomerId) {
+    // Create stripe customer
+    const customer = await stripe.customers.create({
+      metadata: {
+        userId: userId.toString(),
+      },
+    });
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        metadata: {
+          ...metadata,
+          stripeCustomerId: customer.id,
+        },
+      },
+    });
+    stripeCustomerId = customer.id;
   }
+
   // Fetch stripe customer
-  const stripeCustomerId = metadata?.stripeCustomerId;
   const customer = await stripe.customers.retrieve(stripeCustomerId);
   if (customer.deleted) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer found" });

@@ -1,4 +1,6 @@
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useId } from "@radix-ui/react-id";
+import { Check } from "lucide-react";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
@@ -13,6 +15,24 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   className?: string;
   descriptionClassName?: string;
 };
+
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={classNames(
+      "border-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      className
+    )}
+    {...props}>
+    <CheckboxPrimitive.Indicator className={classNames("flex items-center justify-center text-current")}>
+      <Check className="h-4 w-4" />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+));
+Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
   ({ label, description, error, disabled, ...rest }, ref) => {
@@ -79,4 +99,4 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
 
 CheckboxField.displayName = "CheckboxField";
 
-export default CheckboxField;
+export { Checkbox, CheckboxField };

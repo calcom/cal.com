@@ -14,7 +14,8 @@ import { identityProviderNameMap } from "./identityProviderNameMap";
 export default function CalComAdapter(prismaClient: PrismaClient) {
   return {
     createUser: (data: Prisma.UserCreateInput) => prismaClient.user.create({ data }),
-    getUser: (id: User["id"]) => prismaClient.user.findUnique({ where: { id } }),
+    getUser: (id: string | number) =>
+      prismaClient.user.findUnique({ where: { id: typeof id === "string" ? parseInt(id) : id } }),
     getUserByEmail: (email: User["email"]) => prismaClient.user.findUnique({ where: { email } }),
     async getUserByAccount(provider_providerAccountId: {
       providerAccountId: Account["providerAccountId"];

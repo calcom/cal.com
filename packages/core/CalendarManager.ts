@@ -1,12 +1,10 @@
 import type { SelectedCalendar } from "@prisma/client";
 import { sortBy } from "lodash";
-import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
@@ -21,7 +19,6 @@ import type { EventResult } from "@calcom/types/EventManager";
 import getCalendarsEvents from "./getCalendarsEvents";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
-let coldStart = true;
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials)
@@ -180,35 +177,6 @@ export const getCachedResults = async (
 };
 
 /**
- * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
- * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
- * On development environment it takes a long time because Next must compiles the whole page.
- * @param username
- * @param month A string representing year and month using YYYY-MM format
- * @param organizationSlug A string with the organization slug
- */
-const getNextCache = async (
-  username: string,
-  month: string,
-  organizationSlug?: string | null
-): Promise<EventBusyDate[][]> => {
-  let localCache: EventBusyDate[][] = [];
-  const { NODE_ENV } = process.env;
-  const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
-  const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
-  const url = organizationSlug
-    ? `${baseUrl}/${username}/calendar-cache/${month}/${organizationSlug}.json?user=${username}&month=${month}&orgSlug=${organizationSlug}`
-    : `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
-  try {
-    localCache = await fetch(url)
-      .then((r) => r.json())
-      .then((json) => json?.pageProps?.results);
-  } catch (e) {
-    log.warn(url, e);
-  }
-  return localCache;
-};
-/**
  * Get months between given dates
  * @returns ["2023-04", "2024-05"]
  */
@@ -225,11 +193,6 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-const createCalendarCachePage = (username: string, month: string, organizationSlug?: string | null): void => {
-  // No need to wait for this, the purpose is to force re-validation every second as indicated
-  // in page getStaticProps.
-  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}/${organizationSlug}`).catch(console.log);
-};
 export const getBusyCalendarTimes = async (
   username: string,
   withCredentials: CredentialPayload[],
@@ -241,30 +204,14 @@ export const getBusyCalendarTimes = async (
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
   try {
-    if (coldStart) {
-      // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-      const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-      // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-      const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-      results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
-      console.log("Generating calendar cache in background");
-      // on cold start the calendar cache page generated in the background
-      Promise.all(months.map((month) => createCalendarCachePage(username, month, organizationSlug)));
-    } else {
-      if (months.length === 1) {
-        results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"), organizationSlug);
-      } else {
-        // if dateFrom and dateTo is from different months get cache by each month
-        const data: EventBusyDate[][][] = await Promise.all(
-          months.map((month) => getNextCache(username, month, organizationSlug))
-        );
-        results = data.flat(1);
-      }
-    }
+    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+    const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
   } catch (e) {
     logger.warn(e);
   }
-  coldStart = false;
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

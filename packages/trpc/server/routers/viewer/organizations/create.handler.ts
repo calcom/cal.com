@@ -4,7 +4,8 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -25,7 +26,7 @@ const vercelCreateDomain = async (domain: string) => {
   const response = await fetch(
     `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
-      body: `{\n  "name": "${domain}.${subdomainSuffix()}"\n}`,
+      body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
       headers: {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
         "Content-Type": "application/json",
@@ -47,7 +48,7 @@ const vercelCreateDomain = async (domain: string) => {
   return true;
 };
 
-export const createHandler = async ({ input }: CreateOptions) => {
+export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
   const userCollisions = await prisma.user.findUnique({
@@ -66,13 +67,19 @@ export const createHandler = async ({ input }: CreateOptions) => {
     },
   });
 
-  if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+  if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
+    throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
   const password = createHash("md5")
     .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
   const hashedPassword = await hashPassword(password);
+
+  const emailDomain = adminEmail.split("@")[1];
+
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
   if (check === false) {
     const createOwnerOrg = await prisma.user.create({
@@ -81,6 +88,21 @@ export const createHandler = async ({ input }: CreateOptions) => {
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
+        // Default schedule
+        schedules: {
+          create: {
+            name: t("default_schedule_name"),
+            availability: {
+              createMany: {
+                data: availability.map((schedule) => ({
+                  days: schedule.days,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime,
+                })),
+              },
+            },
+          },
+        },
         organization: {
           create: {
             name,
@@ -88,6 +110,8 @@ export const createHandler = async ({ input }: CreateOptions) => {
             metadata: {
               ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
+              isOrganizationVerified: false,
+              orgAutoAcceptEmail: emailDomain,
             },
           },
         },

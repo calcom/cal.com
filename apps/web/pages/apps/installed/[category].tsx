@@ -2,13 +2,24 @@ import { useRouter } from "next/router";
 import { useReducer } from "react";
 import z from "zod";
 
-import { InstalledAppVariants } from "@calcom/app-store/utils";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, AppSkeletonLoader as SkeletonLoader, ShellSubHeading } from "@calcom/ui";
-import { BarChart, Calendar, CreditCard, Grid, Plus, Share2, Video } from "@calcom/ui/components/icon";
+import type { LucideIcon } from "@calcom/ui/components/icon";
+import {
+  BarChart,
+  Calendar,
+  Contact,
+  CreditCard,
+  Grid,
+  Mail,
+  Plus,
+  Share2,
+  Video,
+} from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -18,8 +29,8 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
 interface IntegrationsContainerProps {
-  variant?: (typeof InstalledAppVariants)[number];
-  exclude?: (typeof InstalledAppVariants)[number][];
+  variant?: AppCategories;
+  exclude?: AppCategories[];
   handleDisconnect: (credentialId: number) => void;
 }
 
@@ -29,15 +40,25 @@ const IntegrationsContainer = ({
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
-  const emptyIcon = {
+  const query = trpc.viewer.integrations.useQuery({
+    variant,
+    exclude,
+    onlyInstalled: true,
+    includeTeamInstalledApps: true,
+  });
+
+  // TODO: Refactor and reuse getAppCategories?
+  const emptyIcon: Record<AppCategories, LucideIcon> = {
     calendar: Calendar,
     conferencing: Video,
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart,
+    web3: BarChart, // deprecated
     other: Grid,
+    video: Video, // deprecated
+    messaging: Mail,
+    crm: Contact,
   };
 
   return (
@@ -72,9 +93,7 @@ const IntegrationsContainer = ({
               className="mb-6"
               actions={
                 <Button
-                  href={
-                    variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
-                  }
+                  href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
                   StartIcon={Plus}>
                   {t("add")}
@@ -91,7 +110,7 @@ const IntegrationsContainer = ({
 };
 
 const querySchema = z.object({
-  category: z.enum(InstalledAppVariants),
+  category: z.nativeEnum(AppCategories),
 });
 
 type querySchemaType = z.infer<typeof querySchema>;
@@ -99,19 +118,18 @@ type querySchemaType = z.infer<typeof querySchema>;
 type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
+  teamId?: number;
 };
 
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
   const category = router.query.category as querySchemaType["category"];
-  const categoryList: querySchemaType["category"][] = [
-    "payment",
-    "conferencing",
-    "automation",
-    "analytics",
-    "web3",
-  ];
+
+  const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
+    // Exclude calendar and other from categoryList, we handle those slightly differently below
+    return !(category in { other: null, calendar: null });
+  });
 
   const [data, updateData] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
@@ -125,8 +143,8 @@ export default function InstalledApps() {
     updateData({ isOpen: false, credentialId: null });
   };
 
-  const handleDisconnect = (credentialId: number) => {
-    updateData({ isOpen: true, credentialId });
+  const handleDisconnect = (credentialId: number, teamId?: number) => {
+    updateData({ isOpen: true, credentialId, teamId });
   };
 
   return (
@@ -148,6 +166,7 @@ export default function InstalledApps() {
         handleModelClose={handleModelClose}
         isOpen={data.isOpen}
         credentialId={data.credentialId}
+        teamId={data.teamId}
       />
     </>
   );

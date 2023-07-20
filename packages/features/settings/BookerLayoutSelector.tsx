@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Label, Checkbox, Button } from "@calcom/ui";
+import { Label, CheckboxField, Button } from "@calcom/ui";
 
 type BookerLayoutSelectorProps = {
   title?: string;
@@ -51,7 +51,7 @@ export const BookerLayoutSelector = ({
 
   return (
     <>
-      <Label className="mb-0">{title ? title : t("bookerlayout_title")}</Label>
+      <Label className="mb-0">{title ? title : t("layout")}</Label>
       <p className="text-subtle max-w-full break-words py-1 text-sm">
         {description ? description : t("bookerlayout_description")}
       </p>
@@ -156,7 +156,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
                 src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
                 alt="Layout preview"
               />
-              <Checkbox
+              <CheckboxField
                 value={layout}
                 name={`bookerlayout_${layout}`}
                 description={t(`bookerlayout_${layout}`)}
