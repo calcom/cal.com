@@ -20,7 +20,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const { timezone, timeFormat } = useTimePreferences();
-  const [warning, Setwarning] = useState(false);
+  const [warning, setWarning] = useState(false);
   // Set initial value in booker store.
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
@@ -70,10 +70,10 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         onChange={(event) => {
           const pattern = /^(1[0-9]|20|[1-9])$/;
           if (!pattern.test(event?.target.value)) {
-            Setwarning(true);
+            setWarning(true);
             setRecurringEventCount(recurringEventCount);
           } else {
-            Setwarning(false);
+            setWarning(false);
             setRecurringEventCount(parseInt(event?.target.value));
             setOccurrenceCount(parseInt(event?.target.value));
           }
