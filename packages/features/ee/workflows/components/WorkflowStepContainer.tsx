@@ -17,7 +17,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
-  Checkbox,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -657,7 +657,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     name={`steps.${step.stepNumber - 1}.numberRequired`}
                     control={form.control}
                     render={() => (
-                      <Checkbox
+                      <CheckboxField
                         disabled={props.readOnly}
                         defaultChecked={
                           form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false

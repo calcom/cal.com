@@ -102,7 +102,7 @@ export default function MemberChangeRoleModal(props: {
                 {errorMessage}
               </p>
             )}
-            <DialogFooter showDivider className="mt-12 sm:flex sm:flex-row-reverse">
+            <DialogFooter className="mt-12 sm:flex sm:flex-row-reverse">
               <Button type="button" color="secondary" onClick={props.onExit}>
                 {t("cancel")}
               </Button>
