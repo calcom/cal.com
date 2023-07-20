@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
-import { Tooltip } from "@calcom/ui";
+import { Tooltip, Alert } from "@calcom/ui";
 import { Input } from "@calcom/ui";
 
 import { useTimePreferences } from "../../lib";
@@ -19,7 +19,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const { timezone, timeFormat } = useTimePreferences();
-
+  const [warning, Setwarning] = useState(false);
   // Set initial value in booker store.
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
@@ -63,14 +63,29 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
       <Input
         className="my-1 mr-3 inline-flex h-[26px] w-[46px] px-1 py-0"
         type="number"
+        min="1"
+        max="20"
         defaultValue={event.recurringEvent.count}
         onChange={(event) => {
-          setRecurringEventCount(parseInt(event?.target.value));
+          const pattern = /^(1[0-9]|20|[1-9])$/;
+          if (!pattern.test(event?.target.value)) {
+            Setwarning(true);
+            setRecurringEventCount(recurringEventCount);
+          } else {
+            Setwarning(false);
+            setRecurringEventCount(parseInt(event?.target.value));
+          }
         }}
       />
+
       {t("occurrence", {
         count: recurringEventCount || event.recurringEvent.count,
       })}
+      {warning && (
+        <div className="-ml-4 mr-4 mt-2 flex">
+          <Alert severity="warning" title={t("enter_number_between_range")} />
+        </div>
+      )}
     </>
   );
 };
