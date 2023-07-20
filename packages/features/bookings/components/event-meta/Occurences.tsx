@@ -68,6 +68,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         max="20"
         defaultValue={occurrenceCount}
         onChange={(event) => {
+          setOccurrenceCount(parseInt(event?.target.value));
           const pattern = /^(1[0-9]|20|[1-9])$/;
           if (!pattern.test(event?.target.value)) {
             setWarning(true);
@@ -75,7 +76,6 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
           } else {
             setWarning(false);
             setRecurringEventCount(parseInt(event?.target.value));
-            setOccurrenceCount(parseInt(event?.target.value));
           }
         }}
       />
