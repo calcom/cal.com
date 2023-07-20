@@ -22,6 +22,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
@@ -44,6 +45,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           credentials: true, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
+          timeFormat: true,
           name: true,
           destinationCalendar: true,
         },
@@ -154,6 +156,7 @@ async function handler(req: CustomRequest) {
       name: true,
       email: true,
       timeZone: true,
+      timeFormat: true,
       locale: true,
     },
   });
@@ -207,6 +210,7 @@ async function handler(req: CustomRequest) {
       email: organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -540,6 +544,7 @@ async function handler(req: CustomRequest) {
         email: bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
         language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
       },
       attendees: attendeesList,

@@ -1,9 +1,9 @@
 import type { WorkflowStep } from "@prisma/client";
 
+import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { classNames } from "@calcom/lib";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
-import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
