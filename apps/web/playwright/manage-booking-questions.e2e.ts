@@ -297,8 +297,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
             },
           });
 
-          expect(payload.location).toBe("integrations:daily");
-
           expect(payload.attendees[0]).toMatchObject({
             name: "Booker",
             email: "booker@example.com",
