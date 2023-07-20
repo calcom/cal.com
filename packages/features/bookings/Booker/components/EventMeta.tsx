@@ -57,8 +57,8 @@ export const EventMeta = () => {
 
   if (!isLoading && !!event && event?.isDynamic) {
     const numUsers = event.users.length;
+    let dynamicEventDescription = event.description;
     if (numUsers > 1) {
-      let dynamicEventDescription = event.description;
       if (numUsers == 1) {
         dynamicEventDescription = event.users[0].name;
       } else if (numUsers == 2) {
