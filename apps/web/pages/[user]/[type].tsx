@@ -40,6 +40,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, resc
   );
 }
 
+Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
