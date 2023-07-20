@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
@@ -12,6 +13,7 @@ import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
 
 export function TeamsListing() {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
   const router = useRouter();
@@ -79,7 +81,7 @@ export function TeamsListing() {
 
   useEffect(() => {
     if (!router) return;
-    if (router.query.token) inviteMemberByToken({ token: router.query.token as string });
+    if (searchParams?.get("token")) inviteMemberByToken({ token: searchParams.get("token") });
     else setInviteTokenChecked(true);
   }, [router, inviteMemberByToken, setInviteTokenChecked]);
 

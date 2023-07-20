@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -38,9 +38,9 @@ const VerticalTabItem = ({
   linkScroll,
   ...props
 }: VerticalTabItemProps) => {
+  const pathname = usePathname();
   const { t } = useLocale();
-  const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+  const isCurrent = pathname?.startsWith(href);
   return (
     <Fragment key={name}>
       {!props.hidden && (

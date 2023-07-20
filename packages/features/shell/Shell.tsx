@@ -1,9 +1,8 @@
 import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
@@ -486,11 +485,11 @@ export type NavigationItemType = {
   isCurrent?: ({
     item,
     isChild,
-    router,
+    pathname,
   }: {
     item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
-    router: AppRouterInstance;
+    pathname: string;
   }) => boolean;
 };
 
@@ -508,10 +507,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ router }) => {
-      const path = router.asPath.split("?")[0];
-      return path.startsWith("/bookings");
-    },
+    isCurrent: ({ pathname }) => pathname.startsWith("/bookings"),
   },
   {
     name: "availability",
@@ -529,8 +525,7 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Grid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
+    isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (
         (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
@@ -540,8 +535,7 @@ const navigation: NavigationItemType[] = [
       {
         name: "app_store",
         href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
+        isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
             (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
@@ -553,10 +547,8 @@ const navigation: NavigationItemType[] = [
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
-        },
+        isCurrent: ({ pathname: path }) =>
+          path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/"),
       },
     ],
   },
@@ -569,9 +561,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
-    },
+    isCurrent: ({ pathname }) => pathname.startsWith("/apps/routing-forms/"),
   },
   {
     name: "workflows",
@@ -632,8 +622,8 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
-  return isChild ? item.href === router.asPath : item.href ? router.asPath.startsWith(item.href) : false;
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+  return isChild ? item.href === pathname : item.href ? pathname.startsWith(item.href) : false;
 };
 
 const NavigationItem: React.FC<{
@@ -643,9 +633,9 @@ const NavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
+  const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -684,7 +674,7 @@ const NavigationItem: React.FC<{
         </Link>
       </Tooltip>
       {item.child &&
-        isCurrent({ router, isChild, item }) &&
+        isCurrent({ pathname, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -721,10 +711,10 @@ const MobileNavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const router = useRouter();
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
@@ -52,13 +53,12 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
-
-  const router = useRouter();
   const utils = trpc.useContext();
   const team = props.team;
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
 

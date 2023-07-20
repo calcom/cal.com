@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -60,10 +61,11 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const { data: team, isLoading } = trpc.viewer.organizations.listMembers.useQuery(undefined, {
     onError: () => {

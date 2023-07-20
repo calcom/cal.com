@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
+import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
@@ -17,15 +17,15 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import { EditableSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { EditableSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
-import { Edit, Copy } from "@calcom/ui/components/icon";
+import { Alert, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
+import { Copy, Edit } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 

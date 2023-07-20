@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,10 +27,10 @@ const HorizontalTabItem = function ({
   avatar,
   ...props
 }: HorizontalTabItemProps) {
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
-  const { asPath } = useRouter();
 
-  const isCurrent = asPath === href;
+  const isCurrent = pathname === href;
 
   return (
     <Link
