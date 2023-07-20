@@ -1,8 +1,10 @@
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
+import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -61,5 +63,43 @@ test.describe("Teams", () => {
       // FLAKY: If other tests are running async this may mean there are >0 teams, empty screen will not be shown.
       // await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
     });
+  });
+  test("Can create a booking", async ({ page, users }) => {
+    const user = await users.create({ username: "pro-user" }, { hasTeam: true });
+    const teamMate1 = await users.create();
+    const teamMate2 = await users.create();
+
+    // TODO: Create a fixture and follow DRY
+    const { team } = await prisma.membership.findFirstOrThrow({
+      where: { userId: user.id },
+      include: { team: true },
+    });
+
+    // Add teamMate1 to the team
+    await prisma.membership.create({
+      data: {
+        teamId: team.id,
+        userId: teamMate1.id,
+        role: MembershipRole.MEMBER,
+        accepted: true,
+      },
+    });
+
+    // Add teamMate2 to the team
+    await prisma.membership.create({
+      data: {
+        teamId: team.id,
+        userId: teamMate2.id,
+        role: MembershipRole.MEMBER,
+        accepted: true,
+      },
+    });
+    // No need to remove membership row manually as it will be deleted with the user, at the end of the test.
+
+    await page.goto(`/team/${team.slug}/team-event-30min`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+
+    // TODO: Assert whether the user received an email
   });
 });
