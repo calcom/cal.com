@@ -489,7 +489,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         }
 
         if (Object.keys(unsavedChanges).length > 0) {
-          console.log(unsavedChanges, formMethods.getValues(), defaultValues);
           setUnsavedDialogOpen(true);
           setNewRoute(url);
           router.events.emit("routeChangeError");
@@ -629,10 +628,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           <p className="mt-5">
             <Trans i18nKey="SaveChanges" components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
               <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
+                <li>Changes you made might not be saved.</li>
               </ul>
             </Trans>
           </p>
