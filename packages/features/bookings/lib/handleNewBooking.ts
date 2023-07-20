@@ -42,6 +42,7 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -598,6 +599,7 @@ function getBookingData({
       throw new Error("`responses` must not be nullish");
     }
     const responses = reqBody.responses;
+
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
         bookingFields: eventType.bookingFields,
@@ -721,6 +723,8 @@ async function handler(
     isNotAnApiCall,
     eventType,
   });
+
+  const fullName = getFullName(bookerName);
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -937,7 +941,7 @@ async function handler(
   const invitee = [
     {
       email: bookerEmail,
-      name: bookerName,
+      name: fullName,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -990,7 +994,7 @@ async function handler(
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: bookerName || "Nameless",
+    attendeeName: fullName || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
