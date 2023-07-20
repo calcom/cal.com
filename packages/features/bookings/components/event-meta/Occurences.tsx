@@ -11,6 +11,7 @@ import { useTimePreferences } from "../../lib";
 import type { PublicEvent } from "../../types";
 
 export const EventOccurences = ({ event }: { event: PublicEvent }) => {
+  const [occurrenceCount, setOccurrenceCount] = useState(event?.recurringEvent?.count);
   const { t, i18n } = useLocale();
   const [setRecurringEventCount, recurringEventCount] = useBookerStore((state) => [
     state.setRecurringEventCount,
@@ -65,7 +66,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         type="number"
         min="1"
         max="20"
-        defaultValue={event.recurringEvent.count}
+        defaultValue={occurrenceCount}
         onChange={(event) => {
           const pattern = /^(1[0-9]|20|[1-9])$/;
           if (!pattern.test(event?.target.value)) {
@@ -74,6 +75,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
           } else {
             Setwarning(false);
             setRecurringEventCount(parseInt(event?.target.value));
+            setOccurrenceCount(parseInt(event?.target.value));
           }
         }}
       />
