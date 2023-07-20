@@ -185,7 +185,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <DialogFooter>
+          <DialogFooter className="mt-8">
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
