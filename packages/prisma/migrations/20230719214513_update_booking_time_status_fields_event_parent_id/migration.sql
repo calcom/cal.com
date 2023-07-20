@@ -26,7 +26,7 @@ CREATE OR REPLACE VIEW public."BookingTimeStatus"
           WHEN "Booking"."endTime" > now() THEN 'uncompleted'::text
           ELSE NULL::text
       END AS "timeStatus",
-	  "et"."parentId" as "eventParentId",
+	  "et"."parentId" as "eventParentId"
    FROM "Booking"
     LEFT JOIN "EventType" et ON "Booking"."eventTypeId" = et.id
 	  LEFT JOIN "Membership" mb ON "mb"."userId" = "Booking"."userId";
