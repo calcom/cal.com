@@ -45,9 +45,7 @@ test.describe("2FA Tests", async () => {
       });
 
       await page.waitForSelector(`[data-testid=two-factor-switch]`);
-      await expect(page.locator(`[data-testid=two-factor-switch]`)).toBeTruthy();
-
-      // await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
+      await expect(page.locator(`[data-testid=two-factor-switch]`).isChecked()).toBeTruthy();
 
       return user;
     });
