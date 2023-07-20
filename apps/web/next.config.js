@@ -130,6 +130,7 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  reactStrictMode: false,
   i18n,
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
