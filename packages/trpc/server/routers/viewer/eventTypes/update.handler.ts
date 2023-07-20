@@ -67,6 +67,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         select: {
           name: true,
           id: true,
+          parentId: true,
         },
       },
     },
@@ -187,7 +188,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const teamMemberIds = memberships.map((membership) => membership.userId);
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId))) {
+    // we let this pass through on organization sub-teams
+    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
