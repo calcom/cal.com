@@ -1,24 +1,32 @@
+"use client";
+
 // This file has been sourced from: /Users/sean/Programming/cal.com/apps/web/pages/settings/organizations/[id]/about.tsx
 import { useRouter } from "next/router";
+
 import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout, Meta } from "@calcom/ui";
+
 import PageWrapper from "@components/PageWrapper";
+
 export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 const AboutOrganizationPage = () => {
-    const { t } = useLocale();
-    const router = useRouter();
-    if (!router.isReady)
-        return null;
-    return (<>
-      <Meta title={t("about_your_organization")} description={t("about_your_organization_description")}/>
+  const { t } = useLocale();
+  const router = useRouter();
+  if (!router.isReady) return null;
+  return (
+    <>
+      <Meta title={t("about_your_organization")} description={t("about_your_organization_description")} />
       <AboutOrganizationForm />
-    </>);
+    </>
+  );
 };
 const LayoutWrapper = (page: React.ReactElement) => {
-    return (<WizardLayout currentStep={3} maxSteps={5}>
+  return (
+    <WizardLayout currentStep={3} maxSteps={5}>
       {page}
-    </WizardLayout>);
+    </WizardLayout>
+  );
 };
 AboutOrganizationPage.getLayout = LayoutWrapper;
 AboutOrganizationPage.PageWrapper = PageWrapper;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/router";
 
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";

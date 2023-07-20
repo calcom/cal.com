@@ -1,3 +1,5 @@
+"use client";
+
 import NoSSR from "@calcom/core/components/NoSSR";
 import { Button, Meta } from "@calcom/ui";
 

@@ -1,16 +1,11 @@
-// This file has been sourced from: /Users/sean/Programming/cal.com/apps/web/pages/index.tsx
-import type { GetServerSidePropsContext } from "next";
+import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getServerSession } from "@lib/getServerSession";
 
-function RedirectPage() {
-  return;
-}
-export async function getServerSideProps({ req, res }: GetServerSidePropsContext) {
-  const session = await getServerSession({ req, res });
+export default async function RedirectPage() {
+  const session = await getServerSession();
   if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+    redirect("/auth/login");
   }
-  return { redirect: { permanent: false, destination: "/event-types" } };
+  redirect("/event-types");
 }
-export default RedirectPage;

@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { noop } from "lodash";
 import { useRouter } from "next/router";

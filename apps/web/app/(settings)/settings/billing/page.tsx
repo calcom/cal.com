@@ -1,15 +1,13 @@
-// This file has been sourced from: /Users/sean/Programming/cal.com/apps/web/pages/settings/billing/index.tsx
+"use client";
+
 import { useRouter } from "next/router";
 
 import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
 import { ExternalLink } from "@calcom/ui/components/icon";
-
-import PageWrapper from "@components/PageWrapper";
 
 interface CtaRowProps {
   title: string;
@@ -59,6 +57,6 @@ const BillingView = () => {
     </>
   );
 };
-BillingView.getLayout = getLayout;
-BillingView.PageWrapper = PageWrapper;
+// BillingView.getLayout = getLayout;
+// BillingView.PageWrapper = PageWrapper;
 export default BillingView;
