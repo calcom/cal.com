@@ -8,6 +8,7 @@ export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export {
   Checkbox,
+  CheckboxField,
   EmailField,
   EmailInput,
   FieldsetLegend,
@@ -135,3 +136,4 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
+export { DataTable } from "./components/data-table";

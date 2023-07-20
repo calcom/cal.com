@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -129,7 +130,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <div className="ms-3 inline-block truncate">
                   <span className="text-default text-sm font-bold">{ch.name}</span>
                   <span className="text-subtle block text-xs">
-                    {t("number_member", { count: ch.members.length })}
+                    {t("number_member", {
+                      count: ch.members.filter((mem) => mem.user.username !== null).length,
+                    })}
                   </span>
                 </div>
               </div>
@@ -137,11 +140,13 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 className="mr-6"
                 size="sm"
                 truncateAfter={4}
-                items={ch.members.map(({ user: member }) => ({
-                  alt: member.name || "",
-                  image: `/${member.username}/avatar.png`,
-                  title: member.name || "",
-                }))}
+                items={ch.members
+                  .filter((mem) => mem.user.username !== null)
+                  .map(({ user: member }) => ({
+                    alt: member.name || "",
+                    image: `/${member.username}/avatar.png`,
+                    title: member.name || "",
+                  }))}
               />
             </Link>
           </li>
@@ -245,6 +250,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const flags = await getFeatureFlagMap(prisma);
 
   const team = await getTeamWithMembers(undefined, slug);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
@@ -253,7 +259,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (
     (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization)
+    (!isValidOrgDomain && !!metadata?.isOrganization) ||
+    flags["organizations"] !== true
   ) {
     return { notFound: true } as const;
   }

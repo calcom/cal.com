@@ -1,5 +1,4 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
+import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -98,9 +97,7 @@ export const tips = [
 
 const reversedTips = tips.slice(0).reverse();
 
-export default function Tips() {
-  const [animationRef] = useAutoAnimate<HTMLDivElement>();
-
+function Tips() {
   const { t } = useLocale();
 
   const [list, setList] = useState<typeof tips>(() => {
@@ -175,3 +172,5 @@ export default function Tips() {
     </div>
   );
 }
+
+export default memo(Tips);

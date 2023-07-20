@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, Tooltip } from "@calcom/ui";
+import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 export interface IZapierSetupProps {
@@ -15,13 +15,20 @@ export interface IZapierSetupProps {
 const ZAPIER = "zapier";
 
 export default function ZapierSetup(props: IZapierSetupProps) {
-  const [newApiKey, setNewApiKey] = useState("");
+  const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useContext();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
-
-  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
+  const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const teams = teamsList.data?.map((team) => ({ id: team.id, name: team.name }));
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
+    onSuccess: () => {
+      utils.viewer.apiKeys.findKeyOfType.invalidate();
+    },
+  });
   const zapierCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
@@ -29,15 +36,28 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const showContent = integrations.data && integrations.isSuccess && credentialId;
   const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 
-  async function createApiKey() {
-    const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
+  async function createApiKey(teamId?: number) {
+    const event = { note: "Zapier", expiresAt: null, appId: ZAPIER, teamId };
     const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
+
     if (oldApiKey.data) {
-      deleteApiKey.mutate({
-        id: oldApiKey.data.id,
-      });
+      const oldKey = teamId
+        ? oldApiKey.data.find((key) => key.teamId === teamId)
+        : oldApiKey.data.find((key) => !key.teamId);
+
+      if (oldKey) {
+        deleteApiKey.mutate({
+          id: oldKey.id,
+        });
+      }
     }
-    setNewApiKey(apiKey);
+
+    return apiKey;
+  }
+
+  async function generateApiKey(teamId?: number) {
+    const apiKey = await createApiKey(teamId);
+    setNewApiKeys({ ...newApiKeys, [teamId || ""]: apiKey });
   }
 
   if (integrations.isLoading) {
@@ -54,36 +74,43 @@ export default function ZapierSetup(props: IZapierSetupProps) {
             </div>
             <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
               <div className="text-default">{t("setting_up_zapier")}</div>
-              {!newApiKey ? (
-                <>
-                  <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
-                  <Button color="primary" onClick={() => createApiKey()} className="mb-4 mt-4">
+
+              <>
+                <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
+                {!teams ? (
+                  <Button color="secondary" onClick={() => createApiKey()} className="mb-4 mt-2">
                     {t("generate_api_key")}
                   </Button>
-                </>
-              ) : (
-                <>
-                  <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
-                    <code className="bg-subtle h-full w-full whitespace-pre-wrap rounded-md py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
-                      {newApiKey}
-                    </code>
-                    <Tooltip side="top" content={t("copy_to_clipboard")}>
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(newApiKey);
-                          showToast(t("api_key_copied"), "success");
-                        }}
-                        type="button"
-                        className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-                        <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
-                        {t("copy")}
+                ) : (
+                  <>
+                    <div className="mt-8 text-sm font-semibold">Your event types:</div>
+                    {!newApiKeys[""] ? (
+                      <Button color="secondary" onClick={() => generateApiKey()} className="mb-4 mt-2">
+                        {t("generate_api_key")}
                       </Button>
-                    </Tooltip>
-                  </div>
-                  <div className="text-default mb-5 mt-2 text-sm font-semibold">{t("copy_safe_api_key")}</div>
-                </>
-              )}
+                    ) : (
+                      <CopyApiKey apiKey={newApiKeys[""]} />
+                    )}
+                    {teams.map((team) => {
+                      return (
+                        <div key={team.name}>
+                          <div className="mt-2 text-sm font-semibold">{team.name}:</div>
+                          {!newApiKeys[team.id] ? (
+                            <Button
+                              color="secondary"
+                              onClick={() => generateApiKey(team.id)}
+                              className="mb-4 mt-2">
+                              {t("generate_api_key")}
+                            </Button>
+                          ) : (
+                            <CopyApiKey apiKey={newApiKeys[team.id]} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
                 {isCalDev && (
@@ -122,3 +149,29 @@ export default function ZapierSetup(props: IZapierSetupProps) {
     </div>
   );
 }
+
+const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
+  const { t } = useLocale();
+  return (
+    <div>
+      <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
+        <code className="bg-subtle h-full w-full whitespace-pre-wrap rounded-md py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
+          {apiKey}
+        </code>
+        <Tooltip side="top" content={t("copy_to_clipboard")}>
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(apiKey);
+              showToast(t("api_key_copied"), "success");
+            }}
+            type="button"
+            className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
+            <Clipboard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            {t("copy")}
+          </Button>
+        </Tooltip>
+      </div>
+      <div className="text-subtle mb-5 mt-2 text-sm">{t("copy_somewhere_safe")}</div>
+    </div>
+  );
+};

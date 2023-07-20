@@ -279,7 +279,11 @@ export default function Availability() {
           </Dropdown>
 
           <div className="border-default border-l-2" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            form="availability-form"
+            loading={updateMutation.isLoading}>
             {t("save")}
           </Button>
         </div>

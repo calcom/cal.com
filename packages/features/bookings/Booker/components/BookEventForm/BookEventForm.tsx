@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef } from "react";
@@ -22,6 +23,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,6 +42,7 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const session = useSession();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: { context: { skipBatch: true } },
   });
@@ -114,8 +117,12 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     });
 
     const defaultUserValues = {
-      email: rescheduleUid ? bookingData?.attendees[0].email : parsedQuery["email"] || "",
-      name: rescheduleUid ? bookingData?.attendees[0].name : parsedQuery["name"] || "",
+      email: rescheduleUid
+        ? bookingData?.attendees[0].email
+        : parsedQuery["email"] || session.data?.user?.email || "",
+      name: rescheduleUid
+        ? bookingData?.attendees[0].name
+        : parsedQuery["name"] || session.data?.user?.name || "",
     };
 
     if (!isRescheduling) {
@@ -193,12 +200,13 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
+      const fullName = getFullName(bookingForm.getValues("responses.name"));
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid,
             date: timeslot,
-            name: bookingForm.getValues("responses.name"),
+            name: fullName,
             email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
