@@ -57,7 +57,10 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .email(`${t("enter_valid_email")}`),
-      password: z.string().min(1, `${t("error_required_field")}`),
+      password: z
+        .string()
+        .min(1, `${t("error_required_field")}`)
+        .or(z.literal("")),
     })
     // Passthrough other fields like totpCode
     .passthrough();
