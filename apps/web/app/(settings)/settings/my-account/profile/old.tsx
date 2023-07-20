@@ -9,7 +9,6 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,7 +42,6 @@ import {
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
-import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -382,6 +380,4 @@ const ProfileForm = ({
     </Form>
   );
 };
-ProfileView.getLayout = getLayout;
-ProfileView.PageWrapper = PageWrapper;
 export default ProfileView;
