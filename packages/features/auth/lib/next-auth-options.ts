@@ -115,7 +115,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      if (user.password || !credentials.totpCode) {
+      if (user.password && !credentials.totpCode) {
         if (!user.password) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
