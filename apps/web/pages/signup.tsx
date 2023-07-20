@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -23,13 +24,18 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-type FormValues = {
-  username: string;
-  email: string;
-  password: string;
-  apiError: string;
-  token?: string;
-};
+const signupSchema = z.object({
+  username: z.string().refine((value) => !value.includes("+"), {
+    message: "String should not contain a plus symbol (+).",
+  }),
+  email: z.string().email(),
+  password: z.string().min(7),
+  language: z.string().optional(),
+  token: z.string().optional(),
+  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+});
+
+type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -39,6 +45,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const flags = useFlagMap();
   const telemetry = useTelemetry();
   const methods = useForm<FormValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
