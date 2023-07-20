@@ -49,7 +49,7 @@ export function DateValues({ days, containerNavRef }: Props) {
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
-                    isToday && "bg-inverted text-inverted rounded-full"
+                    isToday && "bg-brand-default text-brand rounded-full"
                   )}>
                   {day.format("DD")}
                 </span>

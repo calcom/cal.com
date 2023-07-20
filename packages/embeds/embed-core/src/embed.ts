@@ -242,6 +242,9 @@ export class Cal {
     };
   }
 
+  /**
+   * Iframe is added invisible and shown only after color-scheme is set by the embedded calLink to avoid flash of non-transparent(white/black) background
+   */
   createIframe({
     calLink,
     queryObject = {},
@@ -280,9 +283,14 @@ export class Cal {
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
     urlInstance.searchParams.set("embed", this.namespace);
+
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
     }
+
+    // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
+    iframe.style.visibility = "hidden";
+
     if (config.uiDebug) {
       iframe.style.border = "1px solid green";
     }
@@ -359,6 +367,13 @@ export class Cal {
 
     this.actionManager.on("__iframeReady", () => {
       this.iframeReady = true;
+      if (this.iframe) {
+        // It's a bit late to make the iframe visible here. We just needed to wait for the HTML tag of the embedded calLink to be rendered(which then informs the browser of the color-scheme)
+        // Right now it would wait for embed-iframe.js bundle to be loaded as well. We can speed that up by inlining the JS that informs about color-scheme being set in the HTML.
+        // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
+        // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
+        this.iframe.style.visibility = "visible";
+      }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
         this.doInIframe(doInIframeArg);
@@ -459,10 +474,6 @@ class CalApi {
 
     config.embedType = "inline";
 
-    // Note that by the time, the server responds with html having appropriate color-scheme, there might be a flash of non-transparent(white/black) background(for a few 100 milliseconds)
-    // There is no quick way know to fix it.
-    // An approach might be to add a temporary neutral iframe(with no src) whose html can be directly modified synchronously and let the iframe with calLink src respond,
-    // once the iframe responds, we can replace the neutral iframe with the calLink iframe
     const iframe = this.cal.createIframe({
       calLink,
       queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
