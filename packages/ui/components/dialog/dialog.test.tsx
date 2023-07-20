@@ -129,9 +129,8 @@ describe("Tests for Dialog component", () => {
   });
 
   test("Should show divider with showDivider", async () => {
-    render(<DialogComponent showDivider open />);
-    const divider = screen.getByTestId("divider");
+    render(<DialogComponent open showDivider />);
 
-    expect(divider.classList.toString()).toContain("-mb-4");
+    expect(screen.getByTestId("divider")).toBeInTheDocument();
   });
 });

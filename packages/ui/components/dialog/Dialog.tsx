@@ -151,10 +151,12 @@ export function DialogFooter(props: {
     <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
         // TODO: the -mx-8 is causing overflow in the dialog buttons
-        <hr className={classNames("border-subtle -mx-8", props.customDividerClassNames)} />
+        <hr
+          data-testid="divider"
+          className={classNames("border-subtle -mx-8", props.customDividerClassNames)}
+        />
       )}
       <div
-        data-testid="divider"
         className={classNames(
           "flex justify-end space-x-2 pb-4 pt-4 rtl:space-x-reverse",
           !props.showDivider && "pb-8"
