@@ -40,7 +40,6 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
     allowDynamicBooking: true,
     destinationCalendar: true,
     locale: true,
-    avatar: true,
     hideBranding: true,
     theme: true,
     brandColor: true,
