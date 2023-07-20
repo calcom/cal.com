@@ -42,7 +42,7 @@ const VerticalTabItem = ({
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const isCurrent = pathname.startsWith(href);
+  const isCurrent = pathname?.startsWith(href);
   return (
     <Fragment key={name}>
       {!props.hidden && (
@@ -73,9 +73,10 @@ const VerticalTabItem = ({
             )}
             <div className="h-fit">
               <span className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
+                {/* <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
                   {t(name)}
-                </Skeleton>
+                </Skeleton> */}
+                <p className="max-w-36 min-h-4 mt-px truncate">{t(name)}</p>
                 {props.isExternalLink ? <ExternalLink /> : null}
               </span>
               {info && (

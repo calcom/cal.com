@@ -29,7 +29,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   // }, [setSideContainerOpen, sideContainerOpen]);
 
   return (
-    <div className="desktop-transparent bg-subtle flex min-h-screen flex-col antialiased">
+    <div className="desktop-transparent bg-subtle flex min-h-screen flex-col font-sans antialiased">
       <div className="flex min-h-screen flex-col">
         <div className="flex flex-1" data-testid="dashboard-shell">
           <SettingsSidebarContainer

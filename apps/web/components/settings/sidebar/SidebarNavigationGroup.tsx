@@ -182,7 +182,7 @@ export function SidebarNavigationGroup({
               {!tab.icon && tab?.avatar && (
                 <img className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3" src={tab?.avatar} alt="User Avatar" />
               )}
-              <p className="truncate text-sm font-medium leading-5">{tab.name}</p>
+              <p className="ms-3 truncate text-sm font-medium leading-5">{tab.name}</p>
               {/* <Skeleton
               
                 title={tab.name}
