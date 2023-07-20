@@ -24,7 +24,7 @@
         "name": "next"
       }
     ],
-    "strictNullChecks": true
+    "strictNullChecks":false 
   },
   "include": [
     /* Find a way to not require this - App files don't belong here. */

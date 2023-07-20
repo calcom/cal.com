@@ -1,7 +1,6 @@
 "use client";
 
 // This file has been sourced from: /Users/sean/Programming/cal.com/apps/web/pages/settings/security/impersonation.tsx
-import type { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -10,8 +9,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
   const { t } = useLocale();
@@ -89,14 +86,5 @@ const ProfileImpersonationView = () => {
 };
 ProfileImpersonationView.getLayout = getLayout;
 ProfileImpersonationView.PageWrapper = PageWrapper;
-// TODO reimplement getServerSideProps with custom logic
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-  await ssr.viewer.me.prefetch();
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
+
 export default ProfileImpersonationView;

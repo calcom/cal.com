@@ -7,5 +7,5 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
     console.error(error);
   }, [error]);
 
-  return null;
+  return <h1>{error}</h1>;
 }
