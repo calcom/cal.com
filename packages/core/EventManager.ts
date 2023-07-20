@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
@@ -105,7 +106,10 @@ export default class EventManager {
           enabled: true,
         },
       });
-      if (calVideo?.enabled && calVideo?.keys?.length) evt["location"] = "integrations:daily";
+
+      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+
+      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
