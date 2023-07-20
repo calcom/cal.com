@@ -54,12 +54,14 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   customInputs,
   metadata,
   workflows,
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
   workflows: Prisma.EventTypeGetPayload<{
@@ -84,6 +86,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
+    disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
     workflows,
@@ -93,12 +96,14 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   additionalNotesRequired,
   customInputs,
   workflows,
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
   workflows: Prisma.EventTypeGetPayload<{
@@ -117,6 +122,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   }>["workflows"];
 }) => {
   // If bookingFields is set already, the migration is done.
+  const hideBookingTitle = disableBookingTitle ?? true;
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
     [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
@@ -206,6 +212,22 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
+    {
+      defaultLabel: "what_is_this_meeting_about",
+      type: "text",
+      name: "title",
+      editable: "system-but-optional",
+      required: true,
+      hidden: hideBookingTitle,
+      defaultPlaceholder: "",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
     {
       defaultLabel: "additional_notes",
       type: "textarea",

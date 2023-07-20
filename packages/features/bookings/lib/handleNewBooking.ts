@@ -992,11 +992,12 @@ async function handler(
 
   const responses = "responses" in reqBody ? reqBody.responses : null;
 
+  const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
     attendeeName: fullName || "Nameless",
     eventType: eventType.title,
-    eventName: eventType.eventName,
+    eventName: evtName,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,

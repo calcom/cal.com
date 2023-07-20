@@ -102,6 +102,7 @@ const commons = {
     customInputs: [],
     // Default value of disableGuests from DB.
     disableGuests: false,
+    disableBookingTitle: false,
     metadata: {},
     workflows: [],
   }),

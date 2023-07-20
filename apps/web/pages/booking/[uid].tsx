@@ -165,10 +165,13 @@ export default function Success(props: SuccessProps) {
     );
   }
 
+  const evtName = !eventType.isDynamic
+    ? (props.dynamicEventName as string) || props.eventType.eventName
+    : bookingInfo.responses?.title;
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
-    eventName: (props.dynamicEventName as string) || props.eventType.eventName,
+    eventName: evtName,
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
