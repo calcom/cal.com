@@ -29,7 +29,7 @@ const AddConferencingButton = () => {
 
   return (
     <>
-      <Button color="secondary" StartIcon={Plus} href="/apps/categories/video">
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
         {t("add_conferencing_app")}
       </Button>
     </>
@@ -79,6 +79,7 @@ const ConferencingLayout = () => {
             <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />
           }
           success={({ data }) => {
+            console.log(data);
             if (!data.items.length) {
               return (
                 <EmptyScreen
