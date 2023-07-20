@@ -149,7 +149,7 @@ const DuplicateDialog = () => {
               />
             </div>
           </div>
-          <DialogFooter showDivider className="mt-10 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-10 flex-row-reverse gap-x-2">
             <DialogClose />
             <Button type="submit" loading={duplicateMutation.isLoading}>
               {t("continue")}

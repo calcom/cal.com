@@ -1,5 +1,5 @@
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -71,86 +71,91 @@ const format = (date: Date, hour12: boolean) =>
     hourCycle: hour12 ? "h12" : "h24",
   }).format(new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss")));
 
-const EventTypeScheduleDetails = ({
-  isManagedEventType,
-  selectedScheduleValue,
-}: {
-  isManagedEventType: boolean;
-  selectedScheduleValue: AvailabilityOption | undefined;
-}) => {
-  const { data: loggedInUser } = useMeQuery();
-  const timeFormat = loggedInUser?.timeFormat;
-  const { t, i18n } = useLocale();
-  const { watch } = useFormContext<FormValues>();
+const EventTypeScheduleDetails = memo(
+  ({
+    isManagedEventType,
+    selectedScheduleValue,
+  }: {
+    isManagedEventType: boolean;
+    selectedScheduleValue: AvailabilityOption | undefined;
+  }) => {
+    const { data: loggedInUser } = useMeQuery();
+    const timeFormat = loggedInUser?.timeFormat;
+    const { t, i18n } = useLocale();
+    const { watch } = useFormContext<FormValues>();
 
-  const scheduleId = watch("schedule");
-  const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
-    {
-      scheduleId: scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
-      isManagedEventType,
-    },
-    { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
-  );
+    const scheduleId = watch("schedule");
+    const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
+      {
+        scheduleId:
+          scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
+        isManagedEventType,
+      },
+      { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
+    );
 
-  const filterDays = (dayNum: number) =>
-    schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+    const filterDays = (dayNum: number) =>
+      schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
-  return (
-    <div className="border-default space-y-4 rounded border px-6 pb-4">
-      <ol className="table border-collapse text-sm">
-        {weekdayNames(i18n.language, 1, "long").map((day, index) => {
-          const isAvailable = !!filterDays(index).length;
-          return (
-            <li key={day} className="my-6 flex border-transparent last:mb-2">
-              <span
-                className={classNames(
-                  "w-20 font-medium sm:w-32 ",
-                  !isAvailable ? "text-subtle line-through" : "text-default"
-                )}>
-                {day}
-              </span>
-              {isLoading ? (
-                <SkeletonText className="block h-5 w-60" />
-              ) : isAvailable ? (
-                <div className="space-y-3 text-right">
-                  {filterDays(index).map((dayRange, i) => (
-                    <div key={i} className="text-default flex items-center leading-4">
-                      <span className="w-16 sm:w-28 sm:text-left">
-                        {format(dayRange.startTime, timeFormat === 12)}
-                      </span>
-                      <span className="ms-4">-</span>
-                      <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-      <hr className="border-subtle" />
-      <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
-        <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-          <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
-          {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
-        </span>
-        {!!schedule?.id && !schedule.isManaged && (
-          <Button
-            href={`/availability/${schedule.id}`}
-            disabled={isLoading}
-            color="minimal"
-            EndIcon={ExternalLink}
-            target="_blank"
-            rel="noopener noreferrer">
-            {t("edit_availability")}
-          </Button>
-        )}
+    return (
+      <div className="border-default space-y-4 rounded border px-6 pb-4">
+        <ol className="table border-collapse text-sm">
+          {weekdayNames(i18n.language, 1, "long").map((day, index) => {
+            const isAvailable = !!filterDays(index).length;
+            return (
+              <li key={day} className="my-6 flex border-transparent last:mb-2">
+                <span
+                  className={classNames(
+                    "w-20 font-medium sm:w-32 ",
+                    !isAvailable ? "text-subtle line-through" : "text-default"
+                  )}>
+                  {day}
+                </span>
+                {isLoading ? (
+                  <SkeletonText className="block h-5 w-60" />
+                ) : isAvailable ? (
+                  <div className="space-y-3 text-right">
+                    {filterDays(index).map((dayRange, i) => (
+                      <div key={i} className="text-default flex items-center leading-4">
+                        <span className="w-16 sm:w-28 sm:text-left">
+                          {format(dayRange.startTime, timeFormat === 12)}
+                        </span>
+                        <span className="ms-4">-</span>
+                        <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <hr className="border-subtle" />
+        <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
+          <span className="text-default flex items-center justify-center text-sm sm:justify-start">
+            <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+            {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
+          </span>
+          {!!schedule?.id && !schedule.isManaged && (
+            <Button
+              href={`/availability/${schedule.id}`}
+              disabled={isLoading}
+              color="minimal"
+              EndIcon={ExternalLink}
+              target="_blank"
+              rel="noopener noreferrer">
+              {t("edit_availability")}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
