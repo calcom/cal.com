@@ -52,6 +52,7 @@ type InputFieldProps = {
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
+  showAsteriskIndicator?: boolean;
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
@@ -106,6 +107,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelSrOnly,
     containerClassName,
     readOnly,
+    showAsteriskIndicator,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -123,6 +125,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
+          {showAsteriskIndicator && !readOnly && passThrough.required ? (
+            <span className="text-default ml-1 font-medium">*</span>
+          ) : null}
           {LockedIcon}
         </Skeleton>
       )}
