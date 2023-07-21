@@ -223,8 +223,11 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                   defaultValue={value}
                   onChange={(e) => {
                     const domain = extractDomainFromEmail(e?.target.value);
-                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value);
-                    newOrganizationFormMethods.setValue("adminUsername", e?.target.value.split("@")[0]);
+                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value.trim());
+                    newOrganizationFormMethods.setValue(
+                      "adminUsername",
+                      e?.target.value.split("@")[0].trim()
+                    );
                     if (newOrganizationFormMethods.getValues("slug") === "") {
                       newOrganizationFormMethods.setValue("slug", domain);
                     }
@@ -256,7 +259,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                   label={t("organization_name")}
                   defaultValue={value}
                   onChange={(e) => {
-                    newOrganizationFormMethods.setValue("name", e?.target.value);
+                    newOrganizationFormMethods.setValue("name", e?.target.value.trim());
                     if (newOrganizationFormMethods.formState.touchedFields["slug"] === undefined) {
                       newOrganizationFormMethods.setValue("slug", slugify(e?.target.value));
                     }
