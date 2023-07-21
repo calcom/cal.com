@@ -216,7 +216,7 @@ test.describe("pro user", () => {
 
 test.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
-    const prefill = await users.create();
+    const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
     await page.goto("/pro/30min");
 
