@@ -43,7 +43,6 @@ const user: User & { credentials: Credential[] } = {
   locale: "en",
   email: "john.doe@example.com",
   name: "John doe",
-  avatar: "",
   destinationCalendar: null,
   hideBranding: true,
   brandColor: "#797979",

@@ -52,9 +52,11 @@ export function processDateOverride({ item, timeZone }: { item: DateOverride; ti
   const startTime = dayjs(item.startTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
   const endTime = dayjs(item.endTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
 
+  const diffDays = startTime.startOf("day").diff(dayjs.utc(item.startTime).startOf("day"), "day");
+
   return {
-    start: date.hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
-    end: date.hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
+    start: date.add(diffDays, "day").hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
+    end: date.add(diffDays, "day").hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
   };
 }
 
@@ -105,7 +107,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs.utc(currentValue.start).format("YYYY-MM-DD");
+      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
 
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"

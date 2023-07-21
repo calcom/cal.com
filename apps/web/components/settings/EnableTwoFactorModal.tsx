@@ -185,7 +185,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <DialogFooter className="mt-8 sm:flex sm:flex-row-reverse" showDivider>
+          <DialogFooter className="mt-8" showDivider>
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
