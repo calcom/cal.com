@@ -39,6 +39,7 @@ env:
 
 jobs:
   create_env_file:
+    name: Set Environment Variables
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
