@@ -611,7 +611,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           variety="danger"
           cancelBtnText="Discard Changes"
           // confirmBtnText="Keep Editing"
-          title={t(`delete${"_managed"}_event_type`)}
+          title={t("delete_managed_event_type")}
           confirmBtnText={t(`Save Changes`)}
           loadingText={t(`Save Changes`)}
           onCancel={(e) => {
