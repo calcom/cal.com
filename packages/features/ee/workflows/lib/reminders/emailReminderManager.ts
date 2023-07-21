@@ -3,7 +3,6 @@ import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -62,7 +61,7 @@ export const scheduleEmailReminder = async (
     return;
   }
 
-  const sandboxMode = IS_PRODUCTION ? false : true;
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let name = "";
   let attendeeName = "";

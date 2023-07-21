@@ -5,7 +5,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -33,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const sandboxMode = IS_PRODUCTION ? false : true;
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   //delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete = await prisma.workflowReminder.findMany({
