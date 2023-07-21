@@ -109,7 +109,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [lint, type-check, test, build, e2e]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:

@@ -133,7 +133,14 @@ export const insightsRouter = router({
       let teamConditional: Prisma.TeamWhereInput = {};
 
       if (eventTypeId) {
-        whereConditional["eventTypeId"] = eventTypeId;
+        whereConditional["OR"] = [
+          {
+            eventTypeId,
+          },
+          {
+            eventParentId: eventTypeId,
+          },
+        ];
       }
       if (memberUserId) {
         whereConditional["userId"] = memberUserId;
@@ -226,6 +233,7 @@ export const insightsRouter = router({
       const startTimeEndTimeDiff = dayjs(endDate).diff(dayjs(startDate), "day");
 
       const baseBookingIds = baseBookings.map((b) => b.id);
+      const totalCompleted = await EventsInsights.getTotalCompletedEvents(baseBookingIds);
 
       const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseBookingIds);
 
@@ -257,7 +265,7 @@ export const insightsRouter = router({
           deltaPrevious: EventsInsights.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
         },
         completed: {
-          count: baseBookings.length - totalCancelled - totalRescheduled,
+          count: totalCompleted,
           deltaPrevious: EventsInsights.getPercentage(
             baseBookings.length - totalCancelled - totalRescheduled,
             lastPeriodBaseBookings.length - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
@@ -284,6 +292,7 @@ export const insightsRouter = router({
       ) {
         return emptyResponseEventsByStatus;
       }
+
       return result;
     }),
   eventsTimeline: userBelongsToTeamProcedure
@@ -410,7 +419,14 @@ export const insightsRouter = router({
 
       if (eventTypeId && !!whereConditional) {
         whereConditional = {
-          eventTypeId: eventTypeId,
+          OR: [
+            {
+              eventTypeId,
+            },
+            {
+              eventParentId: eventTypeId,
+            },
+          ],
         };
       }
 
@@ -864,7 +880,14 @@ export const insightsRouter = router({
       };
 
       if (eventTypeId) {
-        bookingWhere.eventTypeId = eventTypeId;
+        bookingWhere["OR"] = [
+          {
+            eventTypeId,
+          },
+          {
+            eventParentId: eventTypeId,
+          },
+        ];
       }
 
       if (isAll && user.isOwnerAdminOfParentTeam && user.organizationId) {

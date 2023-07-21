@@ -86,6 +86,17 @@ class EventsInsights {
     return baseBookings;
   };
 
+  static getTotalCompletedEvents = async (bookingIds: number[]) => {
+    return await prisma.bookingTimeStatus.count({
+      where: {
+        id: {
+          in: bookingIds,
+        },
+        timeStatus: "completed",
+      },
+    });
+  };
+
   static getTotalRescheduledEvents = async (bookingIds: number[]) => {
     return await prisma.bookingTimeStatus.count({
       where: {
