@@ -8,10 +8,11 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -162,6 +163,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       name: user.name || "Unnamed",
       username: user.username || undefined,
       timeZone: user.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -277,8 +279,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           }
 
           // Posible to refactor TODO:
-          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
-          if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+          const paymentApp = (await appStore[
+            paymentAppCredential?.app?.dirName as keyof typeof appStore
+          ]()) as PaymentApp;
+          if (!paymentApp?.lib?.PaymentService) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
           }

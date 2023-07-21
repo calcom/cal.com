@@ -4,8 +4,12 @@ const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
-const { pages } = require("./pages");
-const { getSubdomainRegExp } = require("./getSubdomainRegExp");
+const {
+  orgHostPath,
+  orgUserRoutePath,
+  orgUserTypeRoutePath,
+  orgUserTypeEmbedRoutePath,
+} = require("./pagesAndRewritePaths");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -81,52 +85,44 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
-
-// .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
-// It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
-// It would also not match /free/30min/embed because we are ensuring just two slashes
-// ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
-// [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
-// book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
-
-// Important Note: When modifying these RegExps update apps/web/test/lib/next-config.test.ts as well
-const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
-const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
-const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
-const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
-const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
-// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
-const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
-
 const matcherConfigRootPath = {
   has: [
     {
       type: "host",
-      value: orgHostRegExp,
+      value: orgHostPath,
     },
   ],
   source: "/",
 };
 
-const matcherConfigOrgMemberPath = {
+const matcherConfigUserRoute = {
   has: [
     {
       type: "host",
-      value: orgHostRegExp,
+      value: orgHostPath,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+  source: orgUserRoutePath,
 };
 
-const matcherConfigUserPath = {
+const matcherConfigUserTypeRoute = {
   has: [
     {
       type: "host",
-      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+      value: orgHostPath,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+  source: orgUserTypeRoutePath,
+};
+
+const matcherConfigUserTypeEmbedRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeEmbedRoutePath,
 };
 
 /** @type {import("next").NextConfig} */
@@ -220,6 +216,7 @@ const nextConfig = {
   },
   async rewrites() {
     const beforeFiles = [
+      // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(process.env.ORGANIZATIONS_ENABLED
         ? [
             {
@@ -227,12 +224,16 @@ const nextConfig = {
               destination: "/team/:orgSlug",
             },
             {
-              ...matcherConfigOrgMemberPath,
+              ...matcherConfigUserRoute,
               destination: "/org/:orgSlug/:user",
             },
             {
-              ...matcherConfigUserPath,
-              destination: "/:user/:path*",
+              ...matcherConfigUserTypeRoute,
+              destination: "/org/:orgSlug/:user/:type",
+            },
+            {
+              ...matcherConfigUserTypeEmbedRoute,
+              destination: "/org/:orgSlug/:user/:type/embed",
             },
           ]
         : []),
@@ -244,114 +245,47 @@ const nextConfig = {
         destination: "/team/:slug",
       },
       {
-        source: "/:user/avatar.png",
-        destination: "/api/user/avatar?username=:user",
-      },
-      {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
-      {
-        source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
-      },
-      {
-        source: "/success/:path*",
-        has: [
-          {
-            type: "query",
-            key: "uid",
-            value: "(?<uid>.*)",
-          },
-        ],
-        destination: "/booking/:uid/:path*",
-      },
-      {
-        source: "/cancel/:path*",
-        destination: "/booking/:path*",
-      },
-      // Keep cookie based booker enabled just in case we disable new-booker globally
+
+      // When updating this also update pagesAndRewritePaths.js
       ...[
         {
-          source: userTypeRouteRegExp,
-          destination: "/new-booker/:user/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
         },
         {
-          source: teamTypeRouteRegExp,
-          destination: "/new-booker/team/:slug/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
+          source: "/forms/:formQuery*",
+          destination: "/apps/routing-forms/routing-link/:formQuery*",
         },
         {
-          source: privateLinkRouteRegExp,
-          destination: "/new-booker/d/:link/:slug",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
+          source: "/router",
+          destination: "/apps/routing-forms/router",
+        },
+        {
+          source: "/success/:path*",
+          has: [
+            {
+              type: "query",
+              key: "uid",
+              value: "(?<uid>.*)",
+            },
+          ],
+          destination: "/booking/:uid/:path*",
+        },
+        {
+          source: "/cancel/:path*",
+          destination: "/booking/:path*",
         },
       ],
-      // Keep cookie based booker enabled to test new-booker embed in production
-      ...[
-        {
-          source: embedUserTypeRouteRegExp,
-          destination: "/new-booker/:user/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: embedTeamTypeRouteRegExp,
-          destination: "/new-booker/team/:slug/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-      ],
+
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-
-      /**
-       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
-       */
     ];
 
-    // Enable New Booker for all Embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
-      console.log("Enabling New Booker for Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: embedUserTypeRouteRegExp,
-            destination: "/new-booker/:user/:type/embed",
-          },
-          {
-            source: embedTeamTypeRouteRegExp,
-            destination: "/new-booker/team/:slug/:type/embed",
-          },
-        ]
-      );
-    }
-
-    // Enable New Booker for All but embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
-      console.log("Enabling New Booker for Non-Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: userTypeRouteRegExp,
-            destination: "/new-booker/:user/:type",
-          },
-          {
-            source: teamTypeRouteRegExp,
-            destination: "/new-booker/team/:slug/:type",
-          },
-          {
-            source: privateLinkRouteRegExp,
-            destination: "/new-booker/d/:link/:slug",
-          },
-        ]
-      );
-    }
     return {
       beforeFiles,
       afterFiles,
@@ -401,7 +335,7 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigOrgMemberPath,
+          ...matcherConfigUserRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
@@ -410,11 +344,20 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigUserPath,
+          ...matcherConfigUserTypeRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
-              value: "/:user/:path",
+              value: "/org/:orgSlug/:user/:type",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeEmbedRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type/embed",
             },
           ],
         },
@@ -503,6 +446,27 @@ const nextConfig = {
         destination: "/apps/installed/conferencing",
         permanent: true,
       },
+      // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
+      ...(process.env.NODE_ENV === "development" &&
+      // Safer to enable the redirect only when the user is opting to test out organizations
+      process.env.ORGANIZATIONS_ENABLED &&
+      // Prevent infinite redirect by checking that we aren't already on localhost
+      process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
+        ? [
+            {
+              has: [
+                {
+                  type: "header",
+                  key: "host",
+                  value: "localhost:3000",
+                },
+              ],
+              source: "/api/integrations/:args*",
+              destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
+              permanent: false,
+            },
+          ]
+        : []),
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {

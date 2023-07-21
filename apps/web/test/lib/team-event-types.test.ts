@@ -33,6 +33,7 @@ it("can find lucky user with maximize availability", async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.user.findMany.mockResolvedValue(users);
+  prismaMock.booking.findMany.mockResolvedValue([]);
 
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {

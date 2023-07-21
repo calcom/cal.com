@@ -7,6 +7,7 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -210,7 +211,7 @@ function EventTypeSingleLayout({
     }
     if (isManagedEventType || isChildrenManagedEventType) {
       // Removing apps and workflows for manageg event types by admins v1
-      navigation.splice(-2, 1);
+      navigation.splice(0, 1);
     } else {
       navigation.push({
         name: "webhooks",
@@ -233,9 +234,11 @@ function EventTypeSingleLayout({
     formMethods,
   ]);
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const orgBranding = useOrgBrandingValues();
+  const isOrgEvent = orgBranding?.fullDomain;
+  const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
+    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
+  }/${eventType.slug}`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
   const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
@@ -404,13 +407,13 @@ function EventTypeSingleLayout({
               className="primary-navigation"
               tabs={EventTypeTabs}
               sticky
-              linkProps={{ shallow: true }}
+              linkShallow
               itemClassname="items-start"
               iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} linkProps={{ shallow: true }} />
+            <HorizontalTabs tabs={EventTypeTabs} linkShallow />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
