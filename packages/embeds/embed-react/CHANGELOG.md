@@ -1,5 +1,11 @@
 # @calcom/embed-react
 
+## 1.3.0
+
+### Minor Changes
+
+- Fix module import of the embed-react package
+
 ## 1.2.2
 
 ### Patch Changes
