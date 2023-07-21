@@ -1,9 +1,7 @@
 import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import type { FC, MouseEventHandler } from "react";
 import { Fragment } from "react";
 
