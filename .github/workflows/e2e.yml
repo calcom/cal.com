@@ -32,8 +32,8 @@ jobs:
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
-          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
           GOOGLE_LOGIN_ENABLED: ${{ vars.CI_GOOGLE_LOGIN_ENABLED }}
           NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
