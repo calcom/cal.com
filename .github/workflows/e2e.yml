@@ -2,12 +2,7 @@ name: E2E test
 on:
   workflow_call:
 jobs:
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
   e2e:
-    needs: env
     timeout-minutes: 20
     name: E2E tests (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-4vcpu-ubuntu-2204

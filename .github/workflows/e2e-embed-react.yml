@@ -3,12 +3,7 @@ on:
   workflow_call:
 
 jobs:
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
   e2e-embed:
-    needs: env
     timeout-minutes: 20
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:

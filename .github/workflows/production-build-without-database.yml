@@ -4,13 +4,8 @@ on:
   workflow_call:
 
 jobs:
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
   build:
     name: Build
-    needs: env
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
