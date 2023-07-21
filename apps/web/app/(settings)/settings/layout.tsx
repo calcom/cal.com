@@ -1,10 +1,11 @@
 import { getCurrentOrg, getTeams, getUserForTabs } from "app/(settings)/settings/fetchers";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { SettingsSidebarContainer } from "@components/settings/sidebar/SettingsSidebarContainer";
 
 // Importing here - would go top level layout but we are only using settings layout for now.
 import "../../../styles/globals.css";
+import { SettingsHeader } from "./SettingsHeader";
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const [currentOrg, teams, user] = await Promise.all([getCurrentOrg(), getTeams(), getUserForTabs()]);
@@ -37,7 +38,12 @@ export default async function SettingsLayout({ children }: { children: React.Rea
             teams={teams}
             identityProvider={user.identityProvider}
           />
-          <div className="flex w-0 flex-1 flex-col">{children}</div>
+          <div className="flex flex-1 [&>*]:flex-1">
+            <div className="mx-auto max-w-full justify-center md:max-w-3xl">
+              <SettingsHeader />
+              <Suspense fallback={<h1>Loading</h1>}>{children}</Suspense>
+            </div>
+          </div>
         </div>
       </div>
     </div>
