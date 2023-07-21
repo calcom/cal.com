@@ -222,7 +222,7 @@ test.describe("prefill", () => {
 
     await test.step("from session", async () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
-      await expect(page.locator('[name="name"]')).toHaveValue(prefill.name);
+      await expect(page.locator('[name="name"]')).toHaveValue(prefill.name || "");
       await expect(page.locator('[name="email"]')).toHaveValue(prefill.email);
     });
 
