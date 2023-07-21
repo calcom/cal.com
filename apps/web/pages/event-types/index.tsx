@@ -66,7 +66,6 @@ import {
   User as UserIcon,
 } from "@calcom/ui/components/icon";
 
-import { withQuery } from "@lib/QueryCell";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -103,11 +102,11 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-
+  const orgBranding = useOrgBrandingValues();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -404,7 +403,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           items={type.users.map(
                             (organizer: { name: string | null; username: string | null }) => ({
                               alt: organizer.name || "",
-                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                organizer.username
+                              }/avatar.png`,
                               title: organizer.name || "",
                             })
                           )}
@@ -419,7 +420,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
-                              image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
                             }))}
                         />
@@ -714,7 +715,10 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
+          undefined
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -830,13 +834,76 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
+const Main = () => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const router = useRouter();
+  const filters = getTeamsFiltersFromQuery(router.query);
+
+  const orgBranding = useOrgBrandingValues();
+
+  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
+  const res = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters });
+
+  if (res.status === "loading") {
+    return <SkeletonLoader />;
+  }
+
+  if (res.status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={res.error.message} />;
+  }
+
+  const data = res.data;
+  const isFilteredByOnlyOneItem =
+    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data.eventTypeGroups.length === 1;
+  return (
+    <>
+      {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+        <>
+          {isMobile ? (
+            <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+          ) : (
+            data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
+              <div className="flex flex-col" key={group.profile.slug}>
+                <EventTypeListHeading
+                  profile={group.profile}
+                  membershipCount={group.metadata.membershipCount}
+                  teamId={group.teamId}
+                  orgSlug={orgBranding?.slug}
+                />
+
+                <EventTypeList
+                  types={group.eventTypes}
+                  group={group}
+                  groupIndex={index}
+                  readOnly={group.metadata.readOnly}
+                />
+              </div>
+            ))
+          )}
+        </>
+      ) : (
+        data.eventTypeGroups.length === 1 && (
+          <EventTypeList
+            types={data.eventTypeGroups[0].eventTypes}
+            group={data.eventTypeGroups[0]}
+            groupIndex={0}
+            readOnly={data.eventTypeGroups[0].metadata.readOnly}
+          />
+        )
+      )}
+      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+      <EmbedDialog />
+      {router.query.dialog === "duplicate" && <DuplicateDialog />}
+    </>
+  );
+};
+
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
   const { open } = useIntercom();
   const { query } = router;
   const { data: user } = useMeQuery();
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBrandingValues();
 
@@ -855,10 +922,6 @@ const EventTypesPage = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const filters = getTeamsFiltersFromQuery(router.query);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, filters && { filters });
 
   return (
     <div>
@@ -874,58 +937,7 @@ const EventTypesPage = () => {
         afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
         beforeCTAactions={<Actions />}
         CTA={<CTA />}>
-        <WithQuery
-          customLoader={<SkeletonLoader />}
-          success={({ data }) => {
-            const isFilteredByOnlyOneItem =
-              (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
-              data.eventTypeGroups.length === 1;
-
-            return (
-              <>
-                {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
-                  <>
-                    {isMobile ? (
-                      <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
-                    ) : (
-                      data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-                        <div className="flex flex-col" key={group.profile.slug}>
-                          <EventTypeListHeading
-                            profile={group.profile}
-                            membershipCount={group.metadata.membershipCount}
-                            teamId={group.teamId}
-                            orgSlug={orgBranding?.slug}
-                          />
-
-                          <EventTypeList
-                            types={group.eventTypes}
-                            group={group}
-                            groupIndex={index}
-                            readOnly={group.metadata.readOnly}
-                          />
-                        </div>
-                      ))
-                    )}
-                  </>
-                ) : (
-                  data.eventTypeGroups.length === 1 && (
-                    <EventTypeList
-                      types={data.eventTypeGroups[0].eventTypes}
-                      group={data.eventTypeGroups[0]}
-                      groupIndex={0}
-                      readOnly={data.eventTypeGroups[0].metadata.readOnly}
-                    />
-                  )
-                )}
-
-                {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
-
-                <EmbedDialog />
-                {router.query.dialog === "duplicate" && <DuplicateDialog />}
-              </>
-            );
-          }}
-        />
+        <Main />
       </Shell>
     </div>
   );

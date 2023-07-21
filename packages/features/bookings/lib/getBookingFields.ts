@@ -1,14 +1,20 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
-import { z } from "zod";
+import type { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
-  BookingFieldType,
+  BookingFieldTypeEnum,
   customInputSchema,
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
+
+type Fields = z.infer<typeof eventTypeBookingFields>;
+
+if (typeof window !== "undefined") {
+  console.warn("This file should not be imported on the client side");
+}
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
@@ -23,7 +29,7 @@ export const getSmsReminderNumberField = () =>
   ({
     name: SMS_REMINDER_NUMBER_FIELD,
     type: "phone",
-    defaultLabel: "number_sms_notifications",
+    defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
   } as const);
@@ -41,18 +47,6 @@ export const getSmsReminderNumberSource = ({
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
-
-type Fields = z.infer<typeof eventTypeBookingFields>;
-
-export const SystemField = z.enum([
-  "name",
-  "email",
-  "location",
-  "notes",
-  "guests",
-  "rescheduleReason",
-  "smsReminderNumber",
-]);
 
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields
@@ -125,18 +119,18 @@ export const ensureBookingInputsHaveSystemFields = ({
   // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
-    [EventTypeCustomInputType.TEXT]: BookingFieldType.text,
-    [EventTypeCustomInputType.TEXTLONG]: BookingFieldType.textarea,
-    [EventTypeCustomInputType.NUMBER]: BookingFieldType.number,
-    [EventTypeCustomInputType.BOOL]: BookingFieldType.boolean,
-    [EventTypeCustomInputType.RADIO]: BookingFieldType.radio,
-    [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
+    [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
+    [EventTypeCustomInputType.TEXTLONG]: BookingFieldTypeEnum.textarea,
+    [EventTypeCustomInputType.NUMBER]: BookingFieldTypeEnum.number,
+    [EventTypeCustomInputType.BOOL]: BookingFieldTypeEnum.boolean,
+    [EventTypeCustomInputType.RADIO]: BookingFieldTypeEnum.radio,
+    [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
-      if (step.action === "SMS_ATTENDEE") {
+      if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
         smsNumberSources.push(
           getSmsReminderNumberSource({
@@ -151,10 +145,12 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
-      defaultLabel: "your_name",
       type: "name",
+      // This is the `name` of the main field
       name: "name",
       editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "your_name",
       required: true,
       sources: [
         {
@@ -332,7 +328,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-
   bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);

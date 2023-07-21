@@ -43,13 +43,13 @@ const user: User & { credentials: Credential[] } = {
   locale: "en",
   email: "john.doe@example.com",
   name: "John doe",
-  avatar: "",
   destinationCalendar: null,
   hideBranding: true,
   brandColor: "#797979",
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -90,6 +90,7 @@ const commons = {
   durationLimits: null,
   hidden: false,
   userId: 0,
+  parentId: null,
   owner: null,
   workflows: [],
   users: [user],

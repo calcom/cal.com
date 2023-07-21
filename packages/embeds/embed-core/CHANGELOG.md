@@ -1,5 +1,23 @@
 # @calcom/embed-core
 
+## 1.3.2
+
+### Patch Changes
+
+- Improve UI instruction layout typings
+
+## 1.3.1
+
+### Patch Changes
+
+- layout type fix as zod-utils can't be used in npm package
+
+## 1.3.0
+
+### Minor Changes
+
+- Supports new booker layout
+
 ## 1.2.1
 
 ### Patch Changes

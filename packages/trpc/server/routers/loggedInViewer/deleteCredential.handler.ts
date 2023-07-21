@@ -72,7 +72,10 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   for (const eventType of eventTypes) {
     if (eventType.locations) {
       // If it's a video, replace the location with Cal video
-      if (credential.app?.categories.includes(AppCategories.video)) {
+      if (
+        credential.app?.categories.includes(AppCategories.video) ||
+        credential.app?.categories.includes(AppCategories.conferencing)
+      ) {
         // Find the user's event types
 
         // Look for integration name from app slug
