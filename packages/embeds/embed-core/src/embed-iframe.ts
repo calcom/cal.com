@@ -2,13 +2,13 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
-import type { BookerStore } from "@calcom/features/bookings/Booker/store";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 type Theme = "dark" | "light";
+
+export type BookerLayouts = "month_view" | "week_view" | "column_view";
+
 export type EmbedThemeConfig = Theme | "auto";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
@@ -45,7 +45,6 @@ const embedStore = {
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
-  layout: BookerLayouts,
 };
 
 declare global {
@@ -54,7 +53,6 @@ declare global {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
-      setLayout?: BookerStore["setLayout"];
     };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
