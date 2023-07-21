@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button, Checkbox } from "@calcom/ui";
+import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button, CheckboxField } from "@calcom/ui";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
@@ -47,7 +47,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (
               <div className="flex items-center space-x-2 rounded-md px-3 pb-2.5 pt-1">
-                <Checkbox
+                <CheckboxField
                   description={t("select_all")}
                   descriptionAsLabel
                   onChange={(e) => {
@@ -59,7 +59,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
             )}
             {data.eventTypes.map((eventType) => (
               <div key={eventType.id} className="bg-muted flex items-center space-x-2 rounded-md px-3 py-2.5">
-                <Checkbox
+                <CheckboxField
                   description={eventType.title}
                   descriptionAsLabel
                   checked={eventTypesSelected.includes(eventType.id)}

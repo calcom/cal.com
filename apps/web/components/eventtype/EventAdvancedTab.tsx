@@ -24,7 +24,16 @@ import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
+import {
+  Alert,
+  Button,
+  CheckboxField,
+  Label,
+  SettingsToggle,
+  showToast,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 import { Copy, Edit } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -342,7 +351,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       }}
                     />
                     <div className="mt-2">
-                      <Checkbox
+                      <CheckboxField
                         description={t("show_attendees")}
                         disabled={seatsLocked.disabled}
                         onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}

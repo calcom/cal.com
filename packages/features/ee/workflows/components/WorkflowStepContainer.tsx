@@ -17,7 +17,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
-  Checkbox,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -274,6 +274,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <Select
                     isSearchable={false}
                     className="text-sm"
+                    id="trigger-select"
                     isDisabled={props.readOnly}
                     onChange={(val) => {
                       if (val) {
@@ -657,7 +658,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     name={`steps.${step.stepNumber - 1}.numberRequired`}
                     control={form.control}
                     render={() => (
-                      <Checkbox
+                      <CheckboxField
                         disabled={props.readOnly}
                         defaultChecked={
                           form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
@@ -945,8 +946,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </ConfirmationDialogContent>
         </Dialog> */}
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
-          <DialogContent type="creation" className="sm:max-w-[610px]">
-            <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
+          <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
+            <div>
               <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
@@ -994,7 +995,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               </div>
             </div>
-            <DialogFooter showDivider className="flex flex-row-reverse">
+            <DialogFooter showDivider>
               <DialogClose color="primary" />
             </DialogFooter>
           </DialogContent>

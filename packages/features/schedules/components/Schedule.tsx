@@ -28,7 +28,7 @@ import {
   Select,
   SkeletonText,
   Switch,
-  Checkbox,
+  CheckboxField,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
@@ -447,7 +447,7 @@ const CopyTimes = ({
           <li key="select all">
             <label className="text-default flex w-full items-center justify-between">
               <span className="px-1">{t("select_all")}</span>
-              <Checkbox
+              <CheckboxField
                 description=""
                 value={t("select_all")}
                 checked={selected.length === 7}
@@ -472,7 +472,7 @@ const CopyTimes = ({
               <li key={weekday}>
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
-                  <Checkbox
+                  <CheckboxField
                     description=""
                     value={weekdayIndex}
                     checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
