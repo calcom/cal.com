@@ -147,7 +147,11 @@ const useTabs = () => {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
-    } else if (tab.href === "/settings/security" && user?.identityProvider === IdentityProvider.GOOGLE) {
+    } else if (
+      tab.href === "/settings/security" &&
+      user?.identityProvider === IdentityProvider.GOOGLE &&
+      !user?.twoFactorEnabled
+    ) {
       tab.children = tab?.children?.filter(
         (childTab) => childTab.href !== "/settings/security/two-factor-auth"
       );
