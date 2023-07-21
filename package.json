@@ -82,6 +82,7 @@
     "c8": "^7.13.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
+    "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
     "jsdom": "^22.0.0",
     "lint-staged": "^12.5.0",
