@@ -143,6 +143,7 @@ export function DialogFooter(props: {
   return (
     <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
+        // TODO: the -mx-8 is causing overflow in the dialog buttons
         <hr className={classNames("border-subtle -mx-8", props.customDividerClassNames)} />
       )}
       <div

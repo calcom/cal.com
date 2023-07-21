@@ -82,10 +82,13 @@
     </style>
   </head>
   <body>
+    <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
     <span style="display: block"
       ><a href="?only=prerender-test">Go to Pre-render test page only</a><small></small
     ></span>
+    <button onclick="document.documentElement.style.colorScheme='dark'">Toggle Dark Scheme</button>
+    <button onclick="document.documentElement.style.colorScheme='light'">Toggle Light Scheme</button>
     <div>
       <script>
         if (only === "all" || only === "prerender-test") {
