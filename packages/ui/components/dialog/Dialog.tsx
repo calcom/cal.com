@@ -93,7 +93,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex flex-col">{children}</div>
+              <div data-testid="dialog-creation" className="flex flex-col">
+                {children}
+              </div>
             </div>
           )}
           {type === "confirmation" && (
@@ -105,7 +107,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               )}
               <div className="w-full">
                 <DialogHeader title={title} subtitle={props.description} />
-                <div className="flex  space-y-6">{children}</div>
+                <div data-testid="dialog-confirmation" className="flex  space-y-6">
+                  {children}
+                </div>
               </div>
             </div>
           )}
@@ -126,7 +130,10 @@ export function DialogHeader(props: DialogHeaderProps) {
 
   return (
     <div className="mb-4">
-      <h3 className="leading-20 text-semibold font-cal text-emphasis pb-1 text-xl" id="modal-title">
+      <h3
+        data-testid="dialog-title"
+        className="leading-20 text-semibold font-cal text-emphasis pb-1 text-xl"
+        id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-subtle text-sm">{props.subtitle}</div>}
@@ -144,7 +151,10 @@ export function DialogFooter(props: {
     <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
         // TODO: the -mx-8 is causing overflow in the dialog buttons
-        <hr className={classNames("border-subtle -mx-8", props.customDividerClassNames)} />
+        <hr
+          data-testid="divider"
+          className={classNames("border-subtle -mx-8", props.customDividerClassNames)}
+        />
       )}
       <div
         className={classNames(
