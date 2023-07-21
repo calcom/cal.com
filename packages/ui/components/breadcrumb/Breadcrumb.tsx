@@ -53,7 +53,7 @@ export const BreadcrumbContainer = () => {
   >();
 
   useEffect(() => {
-    const rawPath = pathname?.split("?")[0]; // this will ignore any query params for now?
+    const rawPath = pathname; // Pathname doesn't include search params anymore
 
     let pathArray = rawPath.split("/");
     pathArray.shift();
