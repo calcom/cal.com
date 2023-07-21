@@ -314,6 +314,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     id: user.id,
     name: user.name,
     username: user.username,
+    email: user.email,
+    name: user.name,
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
@@ -367,7 +369,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
-    name: opts?.name,
+    name: opts?.name || "Default Name",
     email: `${uname}@example.com`,
     password: hashPassword(uname),
     emailVerified: new Date(),
