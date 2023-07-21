@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth, testName } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -65,10 +65,14 @@ test.describe("Teams", () => {
     });
   });
   test("Can create a booking for Collective EventType", async ({ page, users }) => {
-    const owner = await users.create({ username: "pro-user" }, { hasTeam: true });
-    const teamMate1 = await users.create({ username: "teammate-1" });
-    const teamMate2 = await users.create({ username: "teammate-2" });
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMate1Obj = { username: "teammate-1", name: "teammate-1" };
+    const teamMate2Obj = { username: "teammate-2", name: "teammate-2" };
 
+    const owner = await users.create(ownerObj, { hasTeam: true });
+    const teamMate1 = await users.create(teamMate1Obj);
+    const teamMate2 = await users.create(teamMate2Obj);
+    teamMate1.username, teamMate2.username;
     // TODO: Create a fixture and follow DRY
     const { team } = await prisma.membership.findFirstOrThrow({
       where: { userId: owner.id },
@@ -100,7 +104,15 @@ test.describe("Teams", () => {
       where: { userId: owner.id, teamId: team.id },
       select: { id: true },
     });
-    // Assign teammates to the eventtype
+
+    // Assign owner and teammates to the eventtype host list
+    await prisma.host.create({
+      data: {
+        userId: owner.id,
+        eventTypeId,
+        isFixed: true,
+      },
+    });
     await prisma.host.create({
       data: {
         userId: teamMate1.id,
@@ -120,7 +132,18 @@ test.describe("Teams", () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
+    // The first user added to the host list will be the host name
+    await expect(page.locator(`[data-testid="host-name-${ownerObj.name}"]`)).toHaveText(ownerObj.name);
+
+    // The remaining hosts will be shown as the attendees
+    await expect(page.locator(`[data-testid="attendee-name-${teamMate1Obj.name}"]`)).toHaveText(
+      teamMate1Obj.name
+    );
+    await expect(page.locator(`[data-testid="attendee-name-${teamMate2Obj.name}"]`)).toHaveText(
+      teamMate2Obj.name
+    );
     // TODO: Assert whether the user received an email
   });
 });
