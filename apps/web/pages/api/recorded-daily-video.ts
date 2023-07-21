@@ -6,6 +6,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -92,6 +93,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         eventType: {
           select: {
             teamId: true,
+            parentId: true,
           },
         },
         user: {
@@ -168,13 +170,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       uid: booking.uid,
     };
 
+    const teamId = await getTeamId({
+      eventType: {
+        team: { id: booking?.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+
     await triggerWebhook({
       evt,
       downloadLink,
       booking: {
         userId: booking?.user?.id,
         eventTypeId: booking.eventTypeId,
-        teamId: booking.eventType?.teamId,
+        teamId,
       },
     });
 

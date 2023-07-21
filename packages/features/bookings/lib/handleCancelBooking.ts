@@ -10,6 +10,7 @@ import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -91,6 +92,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               },
             },
           },
+          parentId: true,
         },
       },
       uid: true,
@@ -131,11 +133,18 @@ async function handler(req: CustomRequest) {
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
+  const teamId = await getTeamId({
+    eventType: {
+      team: { id: bookingToDelete.eventType?.teamId ?? null },
+      parentId: bookingToDelete?.eventType?.parentId ?? null,
+    },
+  });
+
   const subscriberOptions = {
     userId: bookingToDelete.userId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId: bookingToDelete.eventType?.teamId,
+    teamId,
   };
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,

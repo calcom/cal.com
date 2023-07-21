@@ -4,6 +4,7 @@ import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -31,6 +32,7 @@ export async function handleConfirmation(args: {
       requiresConfirmation: boolean;
       title: string;
       teamId?: number | null;
+      parentId?: number | null;
     } | null;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -236,11 +238,18 @@ export async function handleConfirmation(args: {
   }
 
   try {
+    const teamId = await getTeamId({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+
     const subscribersBookingCreated = await getWebhooks({
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId: booking.eventType?.teamId,
+      teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
       userId: booking.userId,

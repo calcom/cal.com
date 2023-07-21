@@ -651,13 +651,17 @@ function getCustomInputsResponses(
   return customInputsResponses;
 }
 
-async function getTeamId({ eventType }: { eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> }) {
+export async function getTeamId({
+  eventType,
+}: {
+  eventType: { team: { id: number | null } | null; parentId: number | null } | null;
+}) {
   if (eventType?.team?.id) {
     return eventType.team.id;
   }
 
   // If it's a managed event we need to find the teamId for it from the parent
-  if (eventType.parentId) {
+  if (eventType?.parentId) {
     const managedEvent = await prisma.eventType.findFirst({
       where: {
         id: eventType.parentId,
