@@ -3,7 +3,12 @@ on:
   workflow_call:
 
 jobs:
+  env:
+    name: Create env file
+    uses: ./.github/workflows/env-create-file.yml
+    secrets: inherit
   e2e-embed:
+    needs: env
     timeout-minutes: 20
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
@@ -21,7 +26,6 @@ jobs:
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
-      - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
