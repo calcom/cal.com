@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -69,14 +69,8 @@ test.describe("Workflow tests", () => {
     // test all other triggers
   });
 
-  /*
-    test.describe("Team Workflows", () => {
-      test("Admin can create and update team workflow", async ({ page, users }) => {
-
-      });
-      test("Members can not create and update team workflows", async ({ page, users }) => {
-
-      });
-    });
-  */
+  test.describe("Team Workflows", () => {
+    todo("Admin can create and update team workflow");
+    todo("Members can not create and update team workflows");
+  });
 });
