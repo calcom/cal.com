@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useState, useLayoutEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -16,23 +16,24 @@ import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
+  Editor,
   Form,
   ImageUploader,
   Label,
   LinkIconButton,
   Meta,
   showToast,
+  SkeletonContainer,
+  SkeletonText,
   TextField,
-  Editor,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, LogOut, Trash2 } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import { extractDomainFromWebsiteUrl } from "../../organizations/lib/utils";
@@ -52,6 +53,8 @@ const teamProfileFormSchema = z.object({
 });
 
 const ProfileView = () => {
+  const params = useParamsWithFallback();
+  const teamId = Number(params.id);
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -77,9 +80,9 @@ const ProfileView = () => {
   });
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId },
     {
-      enabled: !!router.query.id,
+      enabled: !!teamId,
       onError: () => {
         router.push("/settings");
       },
