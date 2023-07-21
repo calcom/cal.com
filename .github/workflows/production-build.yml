@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     name: Build
-    needs: env
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     services:
