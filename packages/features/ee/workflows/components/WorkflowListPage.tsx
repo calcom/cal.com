@@ -65,7 +65,7 @@ export default function WorkflowListPage({ workflows }: Props) {
     <>
       {workflows && workflows.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <ul className="divide-subtle divide-y">
+          <ul className="divide-subtle divide-y" data-testid="workflow-list">
             {workflows.map((workflow) => (
               <li key={workflow.id}>
                 <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">

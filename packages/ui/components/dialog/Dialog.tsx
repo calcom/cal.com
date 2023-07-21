@@ -77,14 +77,14 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "fadeIn bg-default fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
+            "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"
-              ? "p-8 sm:max-w-[90rem]"
+              ? "px-8 pt-8 sm:max-w-[90rem]"
               : props.size == "lg"
-              ? "p-8 sm:max-w-[70rem]"
+              ? "px-8 pt-8 sm:max-w-[70rem]"
               : props.size == "md"
-              ? "p-8 sm:max-w-[48rem]"
-              : "p-8 sm:max-w-[35rem]",
+              ? "px-8 pt-8 sm:max-w-[48rem]"
+              : "px-8 pt-8 sm:max-w-[35rem]",
             "max-h-[95vh]",
             enableOverflow ? "overflow-auto" : "overflow-visible",
             `${props.className || ""}`
@@ -141,14 +141,15 @@ export function DialogFooter(props: {
   customDividerClassNames?: string;
 }) {
   return (
-    <div className={classNames("bg-default", props.className)}>
+    <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
-        <hr className={classNames("border-subtle absolute right-0 w-full", props.customDividerClassNames)} />
+        // TODO: the -mx-8 is causing overflow in the dialog buttons
+        <hr className={classNames("border-subtle -mx-8", props.customDividerClassNames)} />
       )}
       <div
         className={classNames(
-          "flex justify-end space-x-2 pt-4 rtl:space-x-reverse",
-          props.showDivider && "-mb-4"
+          "flex justify-end space-x-2 pb-4 pt-4 rtl:space-x-reverse",
+          !props.showDivider && "pb-8"
         )}>
         {props.children}
       </div>

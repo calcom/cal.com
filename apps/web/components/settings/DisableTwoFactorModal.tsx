@@ -12,7 +12,7 @@ import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 interface DisableTwoFactorAuthModalProps {
   open: boolean;
   onOpenChange: () => void;
-
+  disablePassword?: boolean;
   /** Called when the user closes the modal without disabling two-factor auth */
   onCancel: () => void;
   /** Called when the user disables two-factor auth */
@@ -27,6 +27,7 @@ interface DisableTwoFactorValues {
 const DisableTwoFactorAuthModal = ({
   onDisable,
   onCancel,
+  disablePassword,
   open,
   onOpenChange,
 }: DisableTwoFactorAuthModalProps) => {
@@ -75,19 +76,21 @@ const DisableTwoFactorAuthModal = ({
       <DialogContent title={t("disable_2fa")} description={t("disable_2fa_recommendation")} type="creation">
         <Form form={form} handleSubmit={handleDisable}>
           <div className="mb-8">
-            <PasswordField
-              labelProps={{
-                className: "block text-sm font-medium text-default",
-              }}
-              {...form.register("password")}
-              className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
-            />
+            {!disablePassword && (
+              <PasswordField
+                labelProps={{
+                  className: "block text-sm font-medium text-default",
+                }}
+                {...form.register("password")}
+                className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
+              />
+            )}
             <TwoFactor center={false} />
 
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
 
-          <DialogFooter showDivider className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogFooter showDivider className="relative mt-5">
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
