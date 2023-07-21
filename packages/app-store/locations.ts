@@ -42,7 +42,10 @@ export type DefaultEventLocationType = {
     }
 );
 
-type EventLocationTypeFromApp = Ensure<EventLocationTypeFromAppMeta, "defaultValueVariable" | "variable">;
+export type EventLocationTypeFromApp = Ensure<
+  EventLocationTypeFromAppMeta,
+  "defaultValueVariable" | "variable"
+>;
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
@@ -165,6 +168,7 @@ export type LocationObject = {
   type: string;
   address?: string;
   displayLocationPublicly?: boolean;
+  credentialId?: number;
 } & Partial<
   Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
 >;

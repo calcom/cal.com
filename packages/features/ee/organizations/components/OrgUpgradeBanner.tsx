@@ -8,7 +8,7 @@ export function OrgUpgradeBanner() {
   const { t } = useLocale();
   const router = useRouter();
   const { data } = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
-  const publishTeamMutation = trpc.viewer.organizations.publish.useMutation({
+  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -29,7 +29,7 @@ export function OrgUpgradeBanner() {
         <button
           className="border-b border-b-black"
           onClick={() => {
-            publishTeamMutation.mutate();
+            publishOrgMutation.mutate();
           }}>
           {t("upgrade_banner_action")}
         </button>

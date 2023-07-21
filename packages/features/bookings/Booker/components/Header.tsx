@@ -21,12 +21,18 @@ export function Header({
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
 }) {
+  const { t } = useLocale();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const today = dayjs();
+  const selectedDateMin3DaysDifference = useMemo(() => {
+    const diff = today.diff(selectedDate, "days");
+    return diff > 3 || diff < -3;
+  }, [today, selectedDate]);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -36,7 +42,7 @@ export function Header({
     [setLayout, layout]
   );
 
-  if (isMobile || isEmbed || !enabledLayouts) return null;
+  if (isMobile || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -73,6 +79,14 @@ export function Header({
             aria-label="Next Day"
             onClick={() => addToSelectedDate(extraDays + 1)}
           />
+          {selectedDateMin3DaysDifference && (
+            <Button
+              className="capitalize"
+              color="secondary"
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              {t("today")}
+            </Button>
+          )}
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
@@ -104,7 +118,14 @@ const LayoutToggle = ({
   layout: string;
   enabledLayouts?: BookerLayouts[];
 }) => {
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+
   const { t } = useLocale();
+  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
+  // There is a Embed API to control the layout toggle from outside of the iframe.
+  if (isEmbed) {
+    return null;
+  }
   const layoutOptions = useMemo(() => {
     return [
       {

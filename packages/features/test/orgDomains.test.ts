@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { orgDomainConfig, getOrgDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, getOrgSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import * as constants from "@calcom/lib/constants";
 
 function setupEnvs({ WEBAPP_URL = "https://app.cal.com" } = {}) {
@@ -30,27 +30,35 @@ describe("Org Domains Utils", () => {
         isValidOrgDomain: false,
       });
     });
+
+    it("should return a non valid org domain for localhost", () => {
+      setupEnvs();
+      expect(orgDomainConfig("localhost:3000")).toEqual({
+        currentOrgDomain: null,
+        isValidOrgDomain: false,
+      });
+    });
   });
 
-  describe("getOrgDomain", () => {
+  describe("getOrgSlug", () => {
     it("should handle a prod web app url with a prod subdomain hostname", () => {
       setupEnvs();
-      expect(getOrgDomain("acme.cal.com")).toEqual("acme");
+      expect(getOrgSlug("acme.cal.com")).toEqual("acme");
     });
 
     it("should handle a prod web app url with a staging subdomain hostname", () => {
       setupEnvs();
-      expect(getOrgDomain("acme.cal.dev")).toEqual(null);
+      expect(getOrgSlug("acme.cal.dev")).toEqual(null);
     });
 
     it("should handle a local web app with port url with a local subdomain hostname", () => {
       setupEnvs({ WEBAPP_URL: "http://app.cal.local:3000" });
-      expect(getOrgDomain("acme.cal.local:3000")).toEqual("acme");
+      expect(getOrgSlug("acme.cal.local:3000")).toEqual("acme");
     });
 
     it("should handle a local web app with port url with a non-local subdomain hostname", () => {
       setupEnvs({ WEBAPP_URL: "http://app.cal.local:3000" });
-      expect(getOrgDomain("acme.cal.com:3000")).toEqual(null);
+      expect(getOrgSlug("acme.cal.com:3000")).toEqual(null);
     });
   });
 });

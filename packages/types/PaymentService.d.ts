@@ -2,6 +2,12 @@ import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+export interface PaymentApp {
+  lib?: {
+    PaymentService: IAbstractPaymentService;
+  };
+}
+
 export interface IAbstractPaymentService {
   /* This method is for creating charges at the time of booking */
   create(

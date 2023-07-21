@@ -229,6 +229,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
                 id: _user.id,
               },
             },
+            schedulingType: "COLLECTIVE",
             title: "Team Event - 30min",
             slug: "team-event-30min",
             length: 30,
@@ -284,6 +285,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       setupEventWithPrice(eventType, store.page),
     bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
       bookAndPaidEvent(user, eventType, store.page),
+    makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
@@ -398,7 +400,12 @@ export async function bookAndPaidEvent(
 
   await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
-  const stripeFrame = page.frameLocator("iframe").first();
+  await makePaymentUsingStripe(page);
+}
+
+export async function makePaymentUsingStripe(page: Page) {
+  const stripeElement = await page.locator(".StripeElement").first();
+  const stripeFrame = stripeElement.frameLocator("iframe").first();
   await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
   const now = new Date();
   await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);

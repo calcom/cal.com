@@ -5,7 +5,17 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import {
+  Button,
+  Form,
+  Label,
+  Select,
+  Switch,
+  TextArea,
+  TextField,
+  ToggleGroup,
+  DialogFooter,
+} from "@calcom/ui";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
@@ -35,6 +45,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_REJECTED, label: "booking_rejected" },
     { value: WebhookTriggerEvents.BOOKING_REQUESTED, label: "booking_requested" },
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
+    { value: WebhookTriggerEvents.BOOKING_PAID, label: "booking_paid" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
   ],
@@ -258,7 +269,7 @@ const WebhookForm = (props: {
           <WebhookTestDisclosure />
         </div>
 
-        <div className="mt-12 flex place-content-end space-x-4">
+        <DialogFooter showDivider>
           <Button
             type="button"
             color="minimal"
@@ -269,7 +280,7 @@ const WebhookForm = (props: {
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
             {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>
-        </div>
+        </DialogFooter>
       </Form>
     </>
   );

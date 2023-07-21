@@ -126,6 +126,8 @@ model Credential {
   key                  Json
   user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               Int?
+  team                 Team?                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId               Int?
   app                  App?                  @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
   appId                String?
@@ -252,6 +254,7 @@ model Team {
   appIconLogo         String?
   bio                 String?
   hideBranding        Boolean                 @default(false)
+  isPrivate           Boolean                 @default(false)
   hideBookATeamMember Boolean                 @default(false)
   members             Membership[]
   eventTypes          EventType[]
@@ -267,12 +270,14 @@ model Team {
   parent              Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children            Team[]                  @relation("organization")
   orgUsers            User[]                  @relation("scope")
-  inviteToken         VerificationToken?
+  inviteTokens        VerificationToken[]
   webhooks            Webhook[]
   timeFormat          Int?
   timeZone            String                  @default("Europe/London")
   weekStart           String                  @default("Sunday")
   routingForms        App_RoutingForms_Form[]
+  apiKeys             ApiKey[]
+  credentials         Credential[]
 
   @@unique([slug, parentId])
 }
@@ -306,7 +311,7 @@ model VerificationToken {
   expiresInDays Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  teamId        Int?     @unique
+  teamId        Int?
   team          Team?    @relation(fields: [teamId], references: [id])
 
   @@unique([identifier, token])
@@ -560,12 +565,14 @@ model Impersonations {
 model ApiKey {
   id         String    @id @unique @default(cuid())
   userId     Int
+  teamId     Int?
   note       String?
   createdAt  DateTime  @default(now())
   expiresAt  DateTime?
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team       Team?     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId      String?
 
@@ -619,6 +626,7 @@ enum AppCategories {
   web3 // deprecated, we should no longer have any web3 apps
   automation
   analytics
+  // Wherever video is in use, conferencing should also be used for legacy apps can have it.
   conferencing
   crm
 }
@@ -705,6 +713,8 @@ enum WorkflowActions {
   SMS_ATTENDEE
   SMS_NUMBER
   EMAIL_ADDRESS
+  WHATSAPP_ATTENDEE
+  WHATSAPP_NUMBER
 }
 
 model WorkflowStep {
@@ -789,11 +799,15 @@ model WorkflowReminder {
 enum WorkflowTemplates {
   REMINDER
   CUSTOM
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
 }
 
 enum WorkflowMethods {
   EMAIL
   SMS
+  WHATSAPP
 }
 
 model BookingSeat {
@@ -863,20 +877,21 @@ model SelectedSlots {
 }
 
 view BookingTimeStatus {
-  id          Int            @unique
-  uid         String?
-  eventTypeId Int?
-  title       String?
-  description String?
-  startTime   DateTime?
-  endTime     DateTime?
-  createdAt   DateTime?
-  location    String?
-  paid        Boolean?
-  status      BookingStatus?
-  rescheduled Boolean?
-  userId      Int?
-  teamId      Int?
-  eventLength Int?
-  timeStatus  String?
+  id            Int            @unique
+  uid           String?
+  eventTypeId   Int?
+  title         String?
+  description   String?
+  startTime     DateTime?
+  endTime       DateTime?
+  createdAt     DateTime?
+  location      String?
+  paid          Boolean?
+  status        BookingStatus?
+  rescheduled   Boolean?
+  userId        Int?
+  teamId        Int?
+  eventLength   Int?
+  timeStatus    String?
+  eventParentId Int?
 }

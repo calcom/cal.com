@@ -26,12 +26,12 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { id, externalId, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
@@ -72,7 +72,10 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   for (const eventType of eventTypes) {
     if (eventType.locations) {
       // If it's a video, replace the location with Cal video
-      if (credential.app?.categories.includes(AppCategories.video)) {
+      if (
+        credential.app?.categories.includes(AppCategories.video) ||
+        credential.app?.categories.includes(AppCategories.conferencing)
+      ) {
         // Find the user's event types
 
         // Look for integration name from app slug

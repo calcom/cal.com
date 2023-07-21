@@ -7,6 +7,7 @@ import { Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -144,7 +145,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               />
             )}
           </div>
-          <DialogFooter showDivider className="mt-12 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-12">
             <DialogClose />
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
               {t("continue")}
@@ -195,7 +196,6 @@ function Dialogs({
   deleteDialogFormId: string | null;
 }) {
   const utils = trpc.useContext();
-  const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
@@ -402,8 +402,10 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
-  const formLink = `${CAL_URL}/${embedLink}`;
-  let redirectUrl = `${CAL_URL}/router?form=${routingForm?.id}`;
+  const orgBranding = useOrgBrandingValues();
+
+  const formLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? CAL_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
     redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
