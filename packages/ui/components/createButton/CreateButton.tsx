@@ -86,6 +86,7 @@ export function CreateButton(props: CreateBtnProps) {
               ? createFunction(options[0].teamId || undefined)
               : null
           }
+          data-testid="create-button"
           StartIcon={Plus}
           loading={isLoading}
           variant={disableMobileButton ? "button" : "fab"}
@@ -98,6 +99,7 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon={Plus}
+              data-testid="create-button-dropdown"
               loading={isLoading}
               {...restProps}>
               {buttonText ? buttonText : t("new")}
