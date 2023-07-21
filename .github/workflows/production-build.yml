@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     name: Build
-    uses: ./.github/workflows/env-create-file.yml@main
+    uses: ./.github/workflows/env-create-file.yml
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     services:
