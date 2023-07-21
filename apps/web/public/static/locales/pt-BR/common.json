@@ -1939,7 +1939,7 @@
   "insights_user_filter": "Usuário: {{userName}}",
   "insights_subtitle": "Veja insights de reserva em seus eventos",
   "custom_plan": "Plano personalizado",
-  
+
   "event_limit_booking_limit_options_per_day": "Por Dia",
   "event_limit_booking_limit_options_per_week": "Por Semana",
   "event_limit_booking_limit_options_per_month": "Por Mês",
@@ -1957,7 +1957,7 @@
   "phone_call": "Attendee Phone Number",
   "your_number": "Your phone number",
   "host_phone_number": "Your Phone Number",
-  
+
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 
 
