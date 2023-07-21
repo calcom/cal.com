@@ -61,6 +61,8 @@ export const scheduleEmailReminder = async (
     return;
   }
 
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
+
   let name = "";
   let attendeeName = "";
   let timeZone = "";
@@ -153,6 +155,11 @@ export const scheduleEmailReminder = async (
             html: emailContent.emailBody,
             batchId: batchIdResponse[1].batch_id,
             replyTo: evt.organizer.email,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
           });
         }
       } else {
@@ -166,6 +173,11 @@ export const scheduleEmailReminder = async (
           html: emailContent.emailBody,
           batchId: batchIdResponse[1].batch_id,
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
       }
     } catch (error) {
@@ -194,6 +206,11 @@ export const scheduleEmailReminder = async (
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
 
         await prisma.workflowReminder.create({
