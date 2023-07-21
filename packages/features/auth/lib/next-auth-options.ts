@@ -64,7 +64,6 @@ const providers: Provider[] = [
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
     },
     async authorize(credentials) {
-      debugger;
       if (!credentials) {
         console.error(`For some reason credentials are missing`);
         throw new Error(ErrorCode.InternalServerError);
@@ -468,7 +467,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       return calendsoSession;
     },
     async signIn(params) {
-      debugger;
       const { user, account, profile } = params;
 
       if (account?.provider === "email") {
