@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
@@ -26,7 +27,8 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId, teamId } = input;
+  const { user } = ctx;
+  const { id, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
@@ -43,6 +45,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           dirName: true,
         },
       },
+      id: true,
+      type: true,
+      userId: true,
+      teamId: true,
+      invalid: true,
     },
   });
 
@@ -116,6 +123,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           id: eventType.destinationCalendar?.id,
         },
       });
+
       if (destinationCalendar) {
         await prisma.destinationCalendar.delete({
           where: {
@@ -295,22 +303,22 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   }
 
   // If it's a calendar remove it from the SelectedCalendars
-  if (credential.app?.categories.includes(AppCategories.calendar) && externalId) {
-    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
-      where: {
-        externalId,
-      },
-    });
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    const calendar = await getCalendar(credential);
 
-    if (existingSelectedCalendar) {
-      await prisma.selectedCalendar.delete({
-        where: {
-          userId_integration_externalId: {
-            userId: existingSelectedCalendar.userId,
-            externalId: existingSelectedCalendar.externalId,
-            integration: existingSelectedCalendar.integration,
+    const calendars = await calendar?.listCalendars();
+
+    if (calendars && calendars.length > 0) {
+      calendars.map(async (cal) => {
+        await prisma.selectedCalendar.delete({
+          where: {
+            userId_integration_externalId: {
+              userId: user.id,
+              externalId: cal.externalId,
+              integration: cal.integration as string,
+            },
           },
-        },
+        });
       });
     }
   }
