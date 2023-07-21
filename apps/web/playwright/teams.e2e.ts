@@ -64,14 +64,14 @@ test.describe("Teams", () => {
       // await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
     });
   });
-  test("Can create a booking", async ({ page, users }) => {
-    const user = await users.create({ username: "pro-user" }, { hasTeam: true });
-    const teamMate1 = await users.create();
-    const teamMate2 = await users.create();
+  test("Can create a booking for Collective EventType", async ({ page, users }) => {
+    const owner = await users.create({ username: "pro-user" }, { hasTeam: true });
+    const teamMate1 = await users.create({ username: "teammate-1" });
+    const teamMate2 = await users.create({ username: "teammate-2" });
 
     // TODO: Create a fixture and follow DRY
     const { team } = await prisma.membership.findFirstOrThrow({
-      where: { userId: user.id },
+      where: { userId: owner.id },
       include: { team: true },
     });
 
@@ -95,6 +95,26 @@ test.describe("Teams", () => {
       },
     });
     // No need to remove membership row manually as it will be deleted with the user, at the end of the test.
+
+    const { id: eventTypeId } = await prisma.eventType.findFirstOrThrow({
+      where: { userId: owner.id, teamId: team.id },
+      select: { id: true },
+    });
+    // Assign teammates to the eventtype
+    await prisma.host.create({
+      data: {
+        userId: teamMate1.id,
+        eventTypeId,
+        isFixed: true,
+      },
+    });
+    await prisma.host.create({
+      data: {
+        userId: teamMate2.id,
+        eventTypeId,
+        isFixed: true,
+      },
+    });
 
     await page.goto(`/team/${team.slug}/team-event-30min`);
     await selectFirstAvailableTimeSlotNextMonth(page);
