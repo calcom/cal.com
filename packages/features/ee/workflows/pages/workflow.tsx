@@ -262,7 +262,9 @@ function WorkflowPage() {
         CTA={
           !readOnly && (
             <div>
-              <Button type="submit">{t("save")}</Button>
+              <Button data-testid="save-workflow" type="submit">
+                {t("save")}
+              </Button>
             </div>
           )
         }
