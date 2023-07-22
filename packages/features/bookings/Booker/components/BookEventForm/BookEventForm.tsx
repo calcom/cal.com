@@ -277,7 +277,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     // It shouldn't be possible that email and name arent there in responses,
     // but since in theory (looking at the types) it is possible, we still handle that case.
     const email = responses && "email" in responses ? responses.email : "";
-    const name = responses && "name" in responses ? responses.name : "";
+    // responses.name will be string in this case
+    const name = responses && "name" in responses ? responses.name as string : "";
     const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
       onSuccess() {
         showToast(t("email_sent"), "success")
