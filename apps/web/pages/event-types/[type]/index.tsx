@@ -205,6 +205,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        const message = t("unexpected_error_try_again");
+        showToast(message, "error");
+        return;
+      }
+
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
