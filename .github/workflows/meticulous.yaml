@@ -53,9 +53,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile 
 
-      - name: Build project
-        run: |
-          yarn build
 
       - name: Serve project
         # Notes:
@@ -65,7 +62,7 @@ jobs:
         #    - see https://stackoverflow.com/a/20778887 for more details)
         # 2. The sleep is often required to ensure your app is readily being served by the time the Meticulous tests start
         run: |
-          yarn serve &
+          yarn dev &
           sleep 5
 
       - name: Run Meticulous tests
