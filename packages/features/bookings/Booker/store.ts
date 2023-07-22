@@ -81,7 +81,7 @@ export type BookerStore = {
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
   /**
-   * Number of input occurences count.
+   * Input occurrence count.
    */
   occurenceCount: number | null;
   setOccurenceCount(count: number | null): void;
