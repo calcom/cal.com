@@ -11,7 +11,7 @@ import { useTimePreferences } from "../../lib";
 import type { PublicEvent } from "../../types";
 
 export const EventOccurences = ({ event }: { event: PublicEvent }) => {
-  const [occurrenceCount, setOccurrenceCount] = useState(event?.recurringEvent?.count);
+  const maxOccurences = event.recurringEvent?.count;
   const { t, i18n } = useLocale();
   const [setRecurringEventCount, recurringEventCount] = useBookerStore((state) => [
     state.setRecurringEventCount,
@@ -24,9 +24,8 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
   // Set initial value in booker store.
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
-    setRecurringEventCount(event.recurringEvent.count);
-  }, [setRecurringEventCount, event.recurringEvent]);
-
+    setRecurringEventCount(recurringEventCount || event.recurringEvent.count);
+  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount]);
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
@@ -65,14 +64,14 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         className="my-1 mr-3 inline-flex h-[26px] w-[46px] px-1 py-0"
         type="number"
         min="1"
-        max="20"
-        defaultValue={occurrenceCount}
+        max={maxOccurences}
+        defaultValue={recurringEventCount || event.recurringEvent.count}
         onChange={(event) => {
-          setOccurrenceCount(parseInt(event?.target.value));
-          const pattern = /^(1[0-9]|20|[1-9])$/;
-          if (!pattern.test(event?.target.value)) {
+          const pattern = /^(?=.*[0-9])\S+$/;
+          const inputValue = parseInt(event.target.value);
+          if (!pattern.test(event.target.value) || inputValue < 1 || inputValue > maxOccurences) {
             setWarning(true);
-            setRecurringEventCount(recurringEventCount);
+            setRecurringEventCount(maxOccurences);
           } else {
             setWarning(false);
             setRecurringEventCount(parseInt(event?.target.value));
@@ -85,7 +84,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
       })}
       {warning && (
         <div className="-ml-4 mr-4 mt-2 flex">
-          <Alert severity="warning" title={t("enter_number_between_range")} />
+          <Alert severity="warning" title={t("enter_number_between_range", { maxOccurences })} />
         </div>
       )}
     </>
