@@ -145,7 +145,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               />
             )}
           </div>
-          <DialogFooter showDivider className="mt-12 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-12">
             <DialogClose />
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
               {t("continue")}
