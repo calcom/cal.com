@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { Button, Form, Label, Meta, Select, SettingsToggle, TimezoneSelect } from "@calcom/ui";
+import { Button, Form, Label, Select, SettingsToggle, TimezoneSelect } from "@calcom/ui";
 
 import { saveGeneralPage } from "../_actions";
 import type { getGeneralData } from "../_fetchers";
@@ -74,7 +74,6 @@ export function GeneralForm({ user }: { user: Awaited<ReturnType<typeof getGener
 
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
-      <Meta title={t("general")} description={t("general_description")} />
       <Controller
         name="locale"
         render={({ field: { value, onChange } }) => (
