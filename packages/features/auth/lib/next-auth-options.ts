@@ -353,7 +353,9 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
-          ...(session || {}),
+          name: session?.name ?? token.name,
+          username: session?.username ?? token.username,
+          email: session?.email ?? token.email,
         };
       }
       const autoMergeIdentities = async () => {
