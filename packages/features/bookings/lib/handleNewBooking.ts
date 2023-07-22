@@ -385,6 +385,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
     bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
+    isDynamic: false,
   };
 };
 
