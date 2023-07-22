@@ -954,6 +954,7 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
 }) => {
+  const { t } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
 
   return (
@@ -990,7 +991,7 @@ const EmailEmbedPreview = ({
               lineHeight: "17px",
               color: "#333333",
             }}>
-            Duration: <b style={{ color: "black" }}>{eventType.length} mins</b>
+            {t("duration")}: <b style={{ color: "black" }}>{eventType.length} mins</b>
           </div>
           <div>
             <b style={{ color: "black" }}>
@@ -1002,7 +1003,7 @@ const EmailEmbedPreview = ({
                   lineHeight: "17px",
                   color: "#333333",
                 }}>
-                Time zone: <b style={{ color: "black" }}>{timezone}</b>
+                {t("timezone")}: <b style={{ color: "black" }}>{timezone}</b>
               </span>
             </b>
           </div>
@@ -1117,9 +1118,9 @@ const EmailEmbedPreview = ({
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
-                    color: "blue",
+                    color: "black",
                   }}>
-                  See all available times
+                  {t("see_all_available_times")}
                 </a>
               </div>
             </>
@@ -1131,7 +1132,7 @@ const EmailEmbedPreview = ({
               marginTop: "8px",
               paddingTop: "8px",
             }}>
-            <span>powered by</span>{" "}
+            <span>{t("powered_by")}</span>{" "}
             <b style={{ color: "black" }}>
               <span> Cal.com</span>
             </b>
@@ -1158,8 +1159,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
-  const [month, selectedDatesAndTimes, setSelectedDatesAndTimes] = useBookerStore(
-    (state) => [state.month, state.selectedDatesAndTimes, state.setSelectedDatesAndTimes],
+  const [month, selectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
   const eventId = getQueryParam("eventId");
