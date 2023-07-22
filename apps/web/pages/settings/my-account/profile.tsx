@@ -115,7 +115,9 @@ const ProfileView = () => {
 
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
-      if (tempFormValues) mutation.mutate(tempFormValues);
+      if (tempFormValues) {
+        mutation.mutate(tempFormValues);
+      }
       setConfirmPasswordOpen(false);
     },
     onError() {
