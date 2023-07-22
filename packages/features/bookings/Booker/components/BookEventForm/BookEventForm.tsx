@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,13 +29,14 @@ import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
+import { Form, Button, Alert, EmptyScreen, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
+import { EmailVerificationModal } from "@calcom/features/bookings/Booker/components/BookEventForm/EmailVerificationModal";
 
 type BookEventFormProps = {
   onCancel?: () => void;
@@ -63,6 +64,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const isRescheduling = !!rescheduleUid && !!bookingData;
   const event = useEvent();
   const eventType = event.data;
@@ -269,6 +271,36 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     },
   });
 
+  const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false)
+    const responses = bookingForm.getValues().responses;
+
+    // It shouldn't be possible that email and name arent there in responses,
+    // but since in theory (looking at the types) it is possible, we still handle that case.
+    const email = responses && "email" in responses ? responses.email : "";
+    const name = responses && "name" in responses ? responses.name : "";
+    const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+      onSuccess() {
+        showToast(t("email_sent"), "success")
+      },
+      onError() {
+        showToast(t("email_not_sent"), "error")
+      }
+    })
+
+    const verifyEmail = () => {
+      bookingForm.clearErrors();
+
+      // It shouldn't be possible that this method is fired without having event data,
+      // but since in theory (looking at the types) it is possible, we still handle that case.
+      if (!event?.data) {
+        bookingForm.setError("globalError", { message: t("error_booking_event") });
+        return;
+      }
+
+      sendEmailVerificationByCodeMutation.mutate({email, username: name})
+      setEmailVerificationModalVisible(true)
+    }
+
   if (event.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (event.isLoading || !event.data) return <FormSkeleton />;
   if (!timeslot)
@@ -338,6 +370,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
+  const renderConfirmNotVerifyEmailButtonCond = !eventType?.requiresBookerEmailVerification || (email && verifiedEmail && verifiedEmail === email)
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -350,7 +384,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           setFormValues(values);
         }}
         form={bookingForm}
-        handleSubmit={bookEvent}
+        handleSubmit={renderConfirmNotVerifyEmailButtonCond ? bookEvent : verifyEmail}
         noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
@@ -387,10 +421,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
             color="primary"
             loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
             data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid ? t("reschedule") : t("confirm")}
+            {rescheduleUid ? t("reschedule") : renderConfirmNotVerifyEmailButtonCond ? t("confirm") : "Verify Email" }
           </Button>
         </div>
       </Form>
+      <EmailVerificationModal visible={isEmailVerificationModalVisible} onCancel={() => setEmailVerificationModalVisible(false)} email={email} />
     </div>
   );
 };

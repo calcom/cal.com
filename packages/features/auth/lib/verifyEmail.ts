@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-import { sendEmailVerificationLink } from "@calcom/emails/email-manager";
+import { sendEmailVerificationCode, sendEmailVerificationLink } from "@calcom/emails/email-manager";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -46,6 +46,40 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
   await sendEmailVerificationLink({
     language: translation,
     verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`,
+    user: {
+      email,
+      name: username,
+    },
+  });
+
+  return { ok: true, skipped: false };
+};
+
+export const sendEmailVerificationByCode = async ({ email, language, username }: VerifyEmailType) => {
+  const token = randomBytes(3).toString("hex");
+  const translation = await getTranslation(language ?? "en", "common");
+  const flags = await getFeatureFlagMap(prisma);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: email,
+  });
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email,
+      token,
+      expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+    },
+  });
+
+  const params = new URLSearchParams({
+    token,
+  });
+
+  await sendEmailVerificationCode({
+    language: translation,
+    verificationEmailCode: token,
     user: {
       email,
       name: username,
