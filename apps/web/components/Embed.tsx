@@ -957,8 +957,8 @@ const EmailEmbedPreview = ({
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
 
   return (
-    <div className="flex h-full items-center justify-center border last:font-medium">
-      <div className="m-5 max-h-full border bg-white p-4">
+    <div className="flex h-full items-center justify-center border p-5 last:font-medium">
+      <div className="border bg-white p-4">
         <div
           style={{
             paddingBottom: "3px",
@@ -966,7 +966,7 @@ const EmailEmbedPreview = ({
             color: "black",
             lineHeight: "1.4",
             minWidth: "30vw",
-            maxHeight: "60vh",
+            maxHeight: "50vh",
             overflowY: "auto",
             backgroundColor: "white",
           }}
@@ -1009,104 +1009,107 @@ const EmailEmbedPreview = ({
           <b style={{ color: "black" }}>
             <>
               {selectedDateAndTime &&
-                Object.keys(selectedDateAndTime).map((key) => {
-                  const date = new Date(key);
-                  return (
-                    <table
-                      key={key}
-                      style={{
-                        marginTop: "16px",
-                        textAlign: "left",
-                        borderCollapse: "collapse",
-                        borderSpacing: "0px",
-                      }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ textAlign: "left", marginTop: "16px" }}>
-                            <span
-                              style={{
-                                fontSize: "14px",
-                                lineHeight: "16px",
-                                paddingBottom: "8px",
-                                color: "rgb(26, 26, 26)",
-                                fontWeight: "bold",
-                              }}>
-                              {date.toLocaleDateString("en-US", {
-                                weekday: "long",
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                              &nbsp;
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
-                              <tbody>
-                                <tr style={{ height: "25px" }}>
-                                  {selectedDateAndTime[key]?.length > 0 &&
-                                    selectedDateAndTime[key].map((time) => {
-                                      const bookingURL = `${CAL_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
-                                      return (
-                                        <td
-                                          key={time}
-                                          style={{
-                                            padding: "0px",
-                                            width: "64px",
-                                            display: "inline-block",
-                                            marginRight: "4px",
-                                            height: "22px",
-                                            float: "left",
-                                            border: "1px solid blue",
-                                            borderRadius: "3px",
-                                          }}>
-                                          <table style={{ height: "21px" }}>
-                                            <tbody>
-                                              <tr style={{ height: "21px" }}>
-                                                <td style={{ width: "7px" }} />
-                                                <td
-                                                  style={{
-                                                    width: "50px",
-                                                    textAlign: "center",
-                                                    marginRight: "1px",
-                                                  }}>
-                                                  <a
-                                                    href={bookingURL}
-                                                    className="spot"
+                Object.keys(selectedDateAndTime)
+                  .sort()
+                  .map((key) => {
+                    const date = new Date(key);
+                    return (
+                      <table
+                        key={key}
+                        style={{
+                          marginTop: "16px",
+                          textAlign: "left",
+                          borderCollapse: "collapse",
+                          borderSpacing: "0px",
+                        }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ textAlign: "left", marginTop: "16px" }}>
+                              <span
+                                style={{
+                                  fontSize: "14px",
+                                  lineHeight: "16px",
+                                  paddingBottom: "8px",
+                                  color: "rgb(26, 26, 26)",
+                                  fontWeight: "bold",
+                                }}>
+                                {date.toLocaleDateString("en-US", {
+                                  weekday: "long",
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                                &nbsp;
+                              </span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                                <tbody>
+                                  <tr style={{ height: "25px" }}>
+                                    {selectedDateAndTime[key]?.length > 0 &&
+                                      selectedDateAndTime[key].map((time) => {
+                                        const bookingURL = `${CAL_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                        return (
+                                          <td
+                                            key={time}
+                                            style={{
+                                              padding: "0px",
+                                              width: "64px",
+                                              display: "inline-block",
+                                              marginRight: "4px",
+                                              marginBottom: "4px",
+                                              height: "24px",
+                                              border: "1px solid #111827",
+                                              borderRadius: "3px",
+                                            }}>
+                                            <table style={{ height: "21px" }}>
+                                              <tbody>
+                                                <tr style={{ height: "21px" }}>
+                                                  <td style={{ width: "7px" }} />
+                                                  <td
                                                     style={{
-                                                      fontFamily: '"Proxima Nova", sans-serif',
-                                                      textDecoration: "none",
+                                                      width: "50px",
                                                       textAlign: "center",
-                                                      color: "blue",
-                                                      fontSize: "12px",
-                                                      lineHeight: "16px",
+                                                      marginRight: "1px",
                                                     }}>
-                                                    <b
+                                                    <a
+                                                      href={bookingURL}
+                                                      className="spot"
                                                       style={{
-                                                        fontWeight: "normal",
+                                                        fontFamily: '"Proxima Nova", sans-serif',
                                                         textDecoration: "none",
+                                                        textAlign: "center",
+                                                        color: "#111827",
+                                                        fontSize: "12px",
+                                                        lineHeight: "16px",
                                                       }}>
-                                                      {dayjs.utc(time).tz(timezone).format(timeFormat)}&nbsp;
-                                                    </b>
-                                                  </a>
-                                                </td>
-                                              </tr>
-                                            </tbody>
-                                          </table>
-                                        </td>
-                                      );
-                                    })}
-                                </tr>
-                              </tbody>
-                            </table>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  );
-                })}
+                                                      <b
+                                                        style={{
+                                                          fontWeight: "normal",
+                                                          textDecoration: "none",
+                                                        }}>
+                                                        {dayjs.utc(time).tz(timezone).format(timeFormat)}
+                                                        &nbsp;
+                                                      </b>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </td>
+                                        );
+                                      })}
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    );
+                  })}
               <div style={{ marginTop: "13px" }}>
                 <a
                   className="more"
@@ -1625,7 +1628,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <HorizontalTabs
             data-testid="embed-tabs"
             tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
-            linkShallow 
+            linkShallow
           />
           {tabs.map((tab) => {
             if (embedType !== "email") {
