@@ -51,7 +51,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn install --frozen-lockfile --non-interactive
+          yarn install --frozen-lockfile 
 
       - name: Build project
         run: |
