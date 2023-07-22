@@ -11,7 +11,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
-  Checkbox,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -239,7 +239,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   name="numberRequired"
                   control={form.control}
                   render={() => (
-                    <Checkbox
+                    <CheckboxField
                       defaultChecked={form.getValues("numberRequired") || false}
                       description={t("make_phone_number_required")}
                       onChange={(e) => form.setValue("numberRequired", e.target.checked)}
