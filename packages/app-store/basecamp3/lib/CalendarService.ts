@@ -1,5 +1,3 @@
-import { appKeysSchema } from "basecamp3/zod";
-
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -61,7 +59,6 @@ export default class BasecampCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "basecamp3";
-    appKeysSchema;
     getAppKeysFromSlug("basecamp3").then(({ user_agent }: any) => {
       this.userAgent = user_agent as string;
     });
