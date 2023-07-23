@@ -13,7 +13,7 @@ import {
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import defaultEvents, { getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
+import defaultEvents, { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -21,7 +21,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
+import { Avatar, HeadSeo } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -40,47 +40,6 @@ export function UserPage(props: UserPageProps) {
   const router = useRouter();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
-
-  const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
-    <div className="space-y-6" data-testid="event-types">
-      <div className="overflow-hidden rounded-sm border ">
-        <div className="text-muted p-8 text-center">
-          <h2 className="font-cal text-default  mb-2 text-3xl">{" " + t("unavailable")}</h2>
-          <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <ul>
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className=" border-subtle bg-default dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
-          <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-          <Link
-            href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
-            className="flex justify-between px-6 py-4"
-            data-testid="event-type-link">
-            <div className="flex-shrink">
-              <p className=" text-emphasis text-sm font-semibold">{type.title}</p>
-              <EventTypeDescription className="text-sm" eventType={type} />
-            </div>
-            <div className="mt-1 self-center">
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                items={props.users.map((user) => ({
-                  alt: user.name || "",
-                  image: user.avatar,
-                }))}
-              />
-            </div>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
 
   const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
@@ -274,10 +233,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (isDynamicGroup) {
     return {
-      props: null,
       redirect: {
+        permanent: false,
         destination: `/${usernameList.join("+")}/${defaultEvents[0].slug}`,
       },
+    } as {
+      redirect: {
+        permanent: false;
+        destination: string;
+      };
     };
   }
 
