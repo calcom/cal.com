@@ -13,12 +13,7 @@ import {
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import defaultEvents, {
-  getDynamicEventDescription,
-  getGroupName,
-  getUsernameList,
-  getUsernameSlugLink,
-} from "@calcom/lib/defaultEvents";
+import defaultEvents, { getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -38,16 +33,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 export function UserPage(props: UserPageProps) {
-  const {
-    users,
-    profile,
-    eventTypes,
-    isDynamicGroup,
-    dynamicNames,
-    dynamicUsernames,
-    isSingleUser,
-    markdownStrippedBio,
-  } = props;
+  const { users, profile, eventTypes, isSingleUser, markdownStrippedBio } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
@@ -117,14 +103,12 @@ export function UserPage(props: UserPageProps) {
   return (
     <>
       <HeadSeo
-        title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
+        title={nameOrUsername}
+        description={markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : markdownStrippedBio,
+          title: markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
-          users: isDynamicGroup
-            ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
-            : [{ username: `${user.username}`, name: `${user.name}` }],
+          users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
       />
 
@@ -165,8 +149,6 @@ export function UserPage(props: UserPageProps) {
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>
-            ) : isDynamicGroup ? ( //When we deal with dynamic group (users > 1)
-              groupEventTypes
             ) : (
               eventTypes.map((type) => (
                 <div
@@ -288,6 +270,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const isDynamicGroup = usersWithoutAvatar.length > 1;
+
+  if (isDynamicGroup) {
+    return {
+      props: null,
+      redirect: {
+        destination: `/${usernameList.join("+")}/${defaultEvents[0].slug}`,
+      },
+    };
+  }
+
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
     avatar: `/${user.username}/avatar.png`,
@@ -300,45 +293,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true;
     };
   }
-  const isDynamicGroup = users.length > 1;
 
-  if (isDynamicGroup) {
-    // sort and be in the same order as usernameList so first user is the first user in the list
-    users.sort((a, b) => {
-      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-  }
-
-  const dynamicNames = isDynamicGroup
-    ? users.map((user) => {
-        return user.name || "";
-      })
-    : [];
   const [user] = users; //to be used when dealing with single user, not dynamic group
 
-  const profile = isDynamicGroup
-    ? {
-        name: getGroupName(dynamicNames),
-        image: null,
-        theme: null,
-        weekStart: "Sunday",
-        brandColor: "",
-        darkBrandColor: "",
-        allowDynamicBooking: !users.some((user) => {
-          return !user.allowDynamicBooking;
-        }),
-      }
-    : {
-        name: user.name || user.username,
-        image: user.avatar,
-        theme: user.theme,
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-      };
+  const profile = {
+    name: user.name || user.username,
+    image: user.avatar,
+    theme: user.theme,
+    brandColor: user.brandColor,
+    darkBrandColor: user.darkBrandColor,
+  };
 
-  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
+  const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
@@ -352,11 +318,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }));
 
   const isSingleUser = users.length === 1;
-  const dynamicUsernames = isDynamicGroup
-    ? users.map((user) => {
-        return user.username || "";
-      })
-    : [];
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
@@ -368,20 +329,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       safeBio,
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
-      themeBasis: isDynamicGroup ? null : user.username,
+      themeBasis: user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      eventTypes: isDynamicGroup
-        ? defaultEvents.map((event) => {
-            event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
-            return event;
-          })
-        : eventTypes,
+      eventTypes,
       trpcState: ssr.dehydrate(),
-      isDynamicGroup,
-      dynamicNames,
-      dynamicUsernames,
       isSingleUser,
       markdownStrippedBio,
     },
