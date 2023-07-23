@@ -10,7 +10,7 @@ function renderEmail<K extends keyof typeof templates>(
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    ReactDOMServer.renderToStaticMarkup(Component(props))
+    ReactDOMServer.renderToString(Component(props))
       // Remove `<RawHtml />` injected scripts
       .replace(/<script><\/script>/g, "")
       .replace(
