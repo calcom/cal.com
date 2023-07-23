@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 import { APP_STORE_PATH, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
@@ -69,8 +70,8 @@ export const BaseAppFork = {
   }) {
     const appDirPath = getAppDirPath(slug, isTemplate);
     if (!editMode) {
-      await execSync(`mkdir -p ${appDirPath}`);
-      await execSync(`cp -r ${TEMPLATES_PATH}/${template}/* ${appDirPath}`);
+      await execSync(os.platform().includes("win") ? `mkdir ${appDirPath}` : `mkdir -p ${appDirPath}`);
+      await execSync(os.platform().includes("win") ? `xcopy "${TEMPLATES_PATH}\\${template}\\*" "${appDirPath}" /e /i` : `cp -r ${TEMPLATES_PATH}/${template}/* ${appDirPath}`);
     } else {
       if (!oldSlug) {
         throw new Error("oldSlug is required when editMode is true");
@@ -79,7 +80,7 @@ export const BaseAppFork = {
         // We need to rename only if they are different
         const oldAppDirPath = getAppDirPath(oldSlug, isTemplate);
 
-        await execSync(`mv ${oldAppDirPath} ${appDirPath}`);
+        await execSync(os.platform().includes("win") ? `move ${oldAppDirPath} ${appDirPath}` : `mv ${oldAppDirPath} ${appDirPath}`);
       }
     }
     updatePackageJson({ slug, appDirPath, appDescription: description });
@@ -126,7 +127,7 @@ export const BaseAppFork = {
 
   delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {
     const appDirPath = getAppDirPath(slug, isTemplate);
-    await execSync(`rm -rf ${appDirPath}`);
+    await execSync(os.platform().includes("win") ? `rd /s /q ${appDirPath}` : `rm -rf ${appDirPath}`);
   },
 };
 
