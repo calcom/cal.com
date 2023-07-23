@@ -1,3 +1,5 @@
+import { appKeysSchema } from "basecamp3/zod";
+
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -9,7 +11,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { userAgent } from "./constants";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { refreshAccessToken as getNewTokens } from "./helpers";
 
 function hasFileExtension(url: string): boolean {
@@ -49,6 +51,7 @@ export default class BasecampCalendarService implements Calendar {
   private credentials: Record<string, string> = {};
   private auth: Promise<{ configureToken: () => Promise<void> }>;
   private headers: Record<string, string> = {};
+  private userAgent = "";
   protected integrationName = "";
   private accessToken = "";
   private scheduleId = 0;
@@ -58,6 +61,10 @@ export default class BasecampCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "basecamp3";
+    appKeysSchema;
+    getAppKeysFromSlug("basecamp3").then(({ user_agent }: any) => {
+      this.userAgent = user_agent as string;
+    });
     this.auth = this.basecampAuth(credential).then((c) => c);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -126,7 +133,7 @@ export default class BasecampCalendarService implements Calendar {
         {
           method: "POST",
           headers: {
-            "User-Agent": userAgent,
+            "User-Agent": this.userAgent,
             Authorization: `Bearer ${this.accessToken}`,
             "Content-Type": "application/json",
           },
@@ -169,7 +176,7 @@ export default class BasecampCalendarService implements Calendar {
         {
           method: "PUT",
           headers: {
-            "User-Agent": userAgent,
+            "User-Agent": this.userAgent,
             Authorization: `Bearer ${this.accessToken}`,
             "Content-Type": "application/json",
           },
@@ -207,7 +214,7 @@ export default class BasecampCalendarService implements Calendar {
         {
           method: "PUT",
           headers: {
-            "User-Agent": userAgent,
+            "User-Agent": this.userAgent,
             Authorization: `Bearer ${this.accessToken}`,
             "Content-Type": "application/json",
           },

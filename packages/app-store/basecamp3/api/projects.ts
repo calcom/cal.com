@@ -3,11 +3,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { BasecampToken } from "../lib/CalendarService";
-import { userAgent } from "../lib/constants";
 import { refreshAccessToken } from "../lib/helpers";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { user_agent } = await getAppKeysFromSlug("basecamp3");
+
   const credential = await prisma.credential.findFirst({
     where: {
       userId: req.session?.user?.id,
@@ -20,16 +22,18 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (credentialKey.expires_at < Date.now()) {
     credentialKey = (await refreshAccessToken(credential)) as BasecampToken;
   }
+
   const url = `${credentialKey.account.href}/projects.json`;
 
   const resp = await fetch(url, {
-    headers: { "User-Agent": userAgent, Authorization: `Bearer ${credentialKey.access_token}` },
+    headers: { "User-Agent": user_agent as string, Authorization: `Bearer ${credentialKey.access_token}` },
   });
   const data = await resp.json();
   return res.json({ data, currentProject: credentialKey.projectId });
 }
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { user_agent } = await getAppKeysFromSlug("basecamp3");
   const { projectId } = req.query;
   const credential = await prisma.credential.findFirst({
     where: {
@@ -51,7 +55,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     `https://3.basecampapi.com/${basecampUserId}/projects/${projectId}.json`,
     {
       headers: {
-        "User-Agent": userAgent,
+        "User-Agent": user_agent as string,
         Authorization: `Bearer ${credentialKey.access_token}`,
       },
     }

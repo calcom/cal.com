@@ -3,11 +3,10 @@ import { prisma } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { BasecampToken } from "./CalendarService";
-import { userAgent } from "./constants";
 import { getBasecampKeys } from "./getBasecampKeys";
 
 export const refreshAccessToken = async (credential: CredentialPayload) => {
-  const { client_id: clientId, client_secret: clientSecret } = await getBasecampKeys();
+  const { client_id: clientId, client_secret: clientSecret, user_agent: userAgent } = await getBasecampKeys();
   const credentialKey = credential.key as BasecampToken;
   const tokenInfo = await fetch(
     `https://launchpad.37signals.com/authorization/token?type=refresh&refresh_token=${credentialKey.refresh_token}&client_id=${clientId}&redirect_uri=${WEBAPP_URL}&client_secret=${clientSecret}`,

@@ -7,4 +7,8 @@ export const getBasecampKeys = async () => {
   return appKeysSchema.parse(appKeys);
 };
 
-const appKeysSchema = z.object({ client_id: z.string().min(1), client_secret: z.string().min(1) });
+const appKeysSchema = z.object({
+  client_id: z.string().min(1),
+  client_secret: z.string().min(1),
+  user_agent: z.string().min(1),
+});

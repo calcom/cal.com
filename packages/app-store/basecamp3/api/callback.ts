@@ -6,11 +6,10 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
-import { userAgent } from "../lib/constants";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-  const { client_id, client_secret } = await getAppKeysFromSlug("basecamp3");
+  const { client_id, client_secret, user_agent } = await getAppKeysFromSlug("basecamp3");
 
   const redirectUri = WEBAPP_URL + "/api/integrations/basecamp3/callback";
   // gets access token
@@ -43,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // get user details such as projects and account info
   const userAuthResponse = await fetch("https://launchpad.37signals.com/authorization.json", {
     headers: {
-      "User-Agent": userAgent,
+      "User-Agent": user_agent as string,
       Authorization: `Bearer ${tokenResponseBody.access_token}`,
     },
   });
