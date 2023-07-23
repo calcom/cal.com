@@ -470,7 +470,7 @@ following
 4. Select Basecamp 4 as the product to integrate with.
 5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
 6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
-7. Go to the path `packages/app-store/basecamp3/lib/constants.ts` and edit the userAgent variable to `{your_domain} {support_email}` (VERY IMPORTANT).
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
 
 
 ### Obtaining HubSpot Client ID and Secret
