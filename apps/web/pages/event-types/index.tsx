@@ -741,7 +741,7 @@ const EventTypeListHeading = ({
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
             {orgBranding
-              ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}${profile.slug}`
+              ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/${profile.slug}`
               : `${CAL_URL?.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
