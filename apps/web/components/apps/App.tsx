@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
@@ -8,8 +9,10 @@ import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIn
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
@@ -206,15 +209,13 @@ const Component = ({
                   };
                 }
                 return (
-                  <Button
-                    data-testid="install-app-button"
+                  <InstallAppButtonChild
+                    appCategories={categories}
+                    userAdminTeams={appDbQuery.data?.userAdminTeams}
+                    addAppMutationInput={{ type, variant, slug }}
+                    credentials={appDbQuery.data?.credentials}
                     {...props}
-                    // @TODO: Overriding color and size prevent us from
-                    // having to duplicate InstallAppButton for now.
-                    color="primary"
-                    size="base">
-                    {t("install_app")}
-                  </Button>
+                  />
                 );
               }}
             />
@@ -385,3 +386,106 @@ export default function App(props: {
     </Shell>
   );
 }
+
+const InstallAppButtonChild = ({
+  userAdminTeams,
+  addAppMutationInput,
+  appCategories,
+  multiInstall,
+  credentials,
+  ...props
+}: {
+  userAdminTeams?: UserAdminTeams;
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  appCategories: string[];
+  multiInstall?: boolean;
+  credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+} & ButtonProps) => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+    return (
+      <Button
+        data-testid="install-app-button"
+        {...props}
+        // @TODO: Overriding color and size prevent us from
+        // having to duplicate InstallAppButton for now.
+        color="primary"
+        size="base">
+        {multiInstall ? t("install_another") : t("install_app")}
+      </Button>
+    );
+  }
+
+  return (
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button
+          data-testid="install-app-button"
+          {...props}
+          // @TODO: Overriding color and size prevent us from
+          // having to duplicate InstallAppButton for now.
+          color="primary"
+          size="base">
+          {multiInstall ? t("install_another") : t("install_app")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuContent
+          onInteractOutside={(event) => {
+            if (mutation.isLoading) event.preventDefault();
+          }}>
+          {mutation.isLoading && (
+            <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <Spinner />
+            </div>
+          )}
+          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
+          {userAdminTeams.map((team) => {
+            const isInstalled =
+              credentials &&
+              credentials.some((credential) =>
+                credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+              );
+
+            return (
+              <DropdownItem
+                type="button"
+                data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
+                key={team.id}
+                disabled={isInstalled}
+                StartIcon={(props) => (
+                  <Avatar
+                    alt={team.logo || ""}
+                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    size="sm"
+                    {...props}
+                  />
+                )}
+                onClick={() => {
+                  mutation.mutate(
+                    team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                  );
+                }}>
+                <p>
+                  {team.name} {isInstalled && `(${t("installed")})`}
+                </p>
+              </DropdownItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+};
