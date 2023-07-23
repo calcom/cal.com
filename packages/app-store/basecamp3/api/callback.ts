@@ -12,9 +12,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { client_id, client_secret, user_agent } = await getAppKeysFromSlug("basecamp3");
 
   const redirectUri = WEBAPP_URL + "/api/integrations/basecamp3/callback";
+
+  const params = new URLSearchParams({
+    type: "web_server",
+    client_id,
+    client_secret,
+    redirect_uri: redirectUri,
+    code,
+  });
   // gets access token
   const accessTokenResponse = await fetch(
-    `https://launchpad.37signals.com/authorization/token?type=web_server&client_id=${client_id}&redirect_uri=${redirectUri}&client_secret=${client_secret}&code=${code}`,
+    `https://launchpad.37signals.com/authorization/token?${params.toString()}`,
     {
       method: "POST",
     }
