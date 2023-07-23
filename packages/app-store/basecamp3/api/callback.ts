@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const params = new URLSearchParams({
     type: "web_server",
-    client_id,
-    client_secret,
+    client_id: client_id as string,
+    client_secret: client_secret as string,
     redirect_uri: redirectUri,
-    code,
+    code: code as string,
   });
   // gets access token
   const accessTokenResponse = await fetch(
