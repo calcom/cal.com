@@ -373,7 +373,7 @@ export class Cal {
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
 
-        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element of the shadowRoot has visiblity:visible set. Just reset the visibility to default
+        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visiblity:hidden set. Just reset the visibility to default
         this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
