@@ -1,4 +1,4 @@
-export { Checkbox, MultiSelectCheckbox } from "./checkbox";
+export { Checkbox, MultiSelectCheckbox, CheckboxField } from "./checkbox";
 export type { Option } from "./checkbox";
 export { HintsOrErrors } from "./inputs/HintOrErrors";
 export {
@@ -16,6 +16,7 @@ export {
   TextField,
   InputFieldWithSelect,
   NumberInput,
+  FilterSearchField,
 } from "./inputs/Input";
 export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";

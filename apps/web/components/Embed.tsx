@@ -17,6 +17,7 @@ import {
   Button,
   Dialog,
   DialogClose,
+  DialogFooter,
   DialogContent,
   HorizontalTabs,
   Label,
@@ -190,8 +191,8 @@ export default function MyApp() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal 
-    calLink="${calLink}" 
+  return <Cal
+    calLink="${calLink}"
     style={{width:"${width}",height:"${height}",overflow:"scroll"}}
     ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
         IS_SELF_HOSTED
@@ -242,11 +243,11 @@ export default function App() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <button 
+  return <button
     data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
     ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
-    })}'`}  
+    })}'`}
     >Click me</button>;
 };`;
     },
@@ -291,10 +292,10 @@ ${uiInstructionCode}`;
     }) => {
       return code`
 // Important: Please add following attributes to the element you want to open Cal on click
-// \`data-cal-link="${calLink}"\` 
+// \`data-cal-link="${calLink}"\`
 // \`data-cal-config='${JSON.stringify({
         layout: previewState.layout,
-      })}'\` 
+      })}'\`
 
 ${uiInstructionCode}`;
     },
@@ -1181,7 +1182,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </div>
         </div>
         <div className="flex w-2/3 flex-col p-8">
-          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkProps={{ shallow: true }} />
+          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkShallow />
           {tabs.map((tab) => {
             return (
               <div
@@ -1206,8 +1207,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
-                <div className="mt-8 flex flex-row-reverse gap-x-2">
+                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <DialogFooter
+                  className="mt-10 flex flex-row-reverse gap-x-2"
+                  showDivider
+                  customDividerClassNames="w-2/3">
+                  <DialogClose />
                   {tab.type === "code" ? (
                     <Button
                       type="submit"
@@ -1222,8 +1227,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {t("copy_code")}
                     </Button>
                   ) : null}
-                  <DialogClose />
-                </div>
+                </DialogFooter>
               </div>
             );
           })}

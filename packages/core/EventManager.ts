@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
@@ -94,7 +95,22 @@ export default class EventManager {
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     // Fallback to cal video if no location is set
-    if (!evt.location) evt["location"] = "integrations:daily";
+    if (!evt.location) {
+      // See if cal video is enabled & has keys
+      const calVideo = await prisma.app.findFirst({
+        where: {
+          slug: "daily-video",
+        },
+        select: {
+          keys: true,
+          enabled: true,
+        },
+      });
+
+      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+
+      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+    }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
@@ -130,13 +146,14 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
+    // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
       let createdEventObj: createdEventSchema | null = null;
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
-
-      if (isCalendarResult(result)) {
+      const isCalendarType = isCalendarResult(result);
+      if (isCalendarType) {
         evt.iCalUID = result.iCalUID || undefined;
       }
 
@@ -146,8 +163,8 @@ export default class EventManager {
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: evt.destinationCalendar?.credentialId,
+        externalCalendarId: isCalendarType ? evt.destinationCalendar?.externalId : undefined,
+        credentialId: isCalendarType ? evt.destinationCalendar?.credentialId : result.credentialId,
       };
     });
 
@@ -186,7 +203,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: evt.destinationCalendar?.credentialId,
+        credentialId: result.credentialId ?? evt.destinationCalendar?.credentialId,
       };
     });
 
@@ -404,7 +421,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent) {
+  private async createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
@@ -504,6 +521,7 @@ export default class EventManager {
                   success: false,
                   uid: "",
                   originalEvent: event,
+                  credentialId: cred.id,
                 };
               }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
@@ -526,6 +544,7 @@ export default class EventManager {
           success: false,
           uid: "",
           originalEvent: event,
+          credentialId: 0,
         },
       ]);
     }
@@ -538,7 +557,7 @@ export default class EventManager {
    * @param booking
    * @private
    */
-  private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
+  private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {

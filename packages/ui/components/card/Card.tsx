@@ -115,6 +115,7 @@ export interface BaseCardProps extends CVACardType {
   };
   mediaLink?: string;
   thumbnailUrl?: string;
+  structure?: string;
 }
 
 export function Card({
@@ -138,6 +139,7 @@ export function Card({
         cvaCardTypeByVariant({ variant, structure: "card" }),
         "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
       )}
+      data-testid="card-container"
       {...containerProps}>
       <div>
         {icon && icon}

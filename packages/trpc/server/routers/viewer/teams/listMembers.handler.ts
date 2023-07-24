@@ -37,16 +37,20 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
               username: true,
             },
           },
+          accepted: true,
         },
       },
     },
   });
 
-  type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
+  type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"] & { accepted: boolean }>;
   // flatten users to be unique by id
   const users = teams
     .flatMap((t) => t.members)
-    .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
+    .reduce(
+      (acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: { ...m.user, accepted: m.accepted } }),
+      {} as UserMap
+    );
 
   return Object.values(users);
 };

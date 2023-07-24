@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 env:
+  ENV_FILE_NAME: gh.env-${{ github.sha }}
   INPUT_ENV_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
   INPUT_ENV_NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
   INPUT_ENV_NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
@@ -44,10 +45,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ozaytsev86/create-env-file@v1
+
         with:
-          file-name: ${{ github.workspace }}/gh.env
+          file-name: ${{ github.workspace }}/${{ env.ENV_FILE_NAME }}
       - uses: buildjet/cache@v3
         id: env-cache
         with:
-          path: gh.env
-          key: env-cache-${{ hashFiles('gh.env') }}
+          path: ${{ env.ENV_FILE_NAME }}
+          key: env-cache-${{ hashFiles(env.ENV_FILE_NAME) }}
