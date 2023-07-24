@@ -5,14 +5,13 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SENDER_ID } from "@calcom/lib/constants";
-import { SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
-  Checkbox,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -94,6 +93,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsPhoneNumberNeeded(true);
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID });
       } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
         setIsSenderIdNeeded(false);
@@ -102,6 +102,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID });
+      } else if (newValue.value === WorkflowActions.WHATSAPP_NUMBER) {
+        setIsSenderIdNeeded(false);
+        setIsPhoneNumberNeeded(true);
+        setIsEmailAddressNeeded(false);
       } else {
         setIsSenderIdNeeded(false);
         setIsEmailAddressNeeded(false);
@@ -115,6 +120,19 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   };
 
   if (!actionOptions) return null;
+
+  const canRequirePhoneNumber = (workflowStep: string) => {
+    return (
+      WorkflowActions.SMS_ATTENDEE === workflowStep || WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+    );
+  };
+
+  const showSender = (action: string) => {
+    return (
+      !isSenderIdNeeded &&
+      !(WorkflowActions.WHATSAPP_NUMBER === action || WorkflowActions.WHATSAPP_ATTENDEE === action)
+    );
+  };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -193,7 +211,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 <EmailField required label={t("email_address")} {...form.register("sendTo")} />
               </div>
             )}
-            {isSenderIdNeeded ? (
+            {isSenderIdNeeded && (
               <>
                 <div className="mt-5">
                   <div className="flex">
@@ -208,19 +226,20 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
                 )}
               </>
-            ) : (
+            )}
+            {showSender(form.getValues("action")) && (
               <div className="mt-5">
                 <Label>{t("sender_name")}</Label>
                 <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
               </div>
             )}
-            {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+            {canRequirePhoneNumber(form.getValues("action")) && (
               <div className="mt-5">
                 <Controller
                   name="numberRequired"
                   control={form.control}
                   render={() => (
-                    <Checkbox
+                    <CheckboxField
                       defaultChecked={form.getValues("numberRequired") || false}
                       description={t("make_phone_number_required")}
                       onChange={(e) => form.setValue("numberRequired", e.target.checked)}

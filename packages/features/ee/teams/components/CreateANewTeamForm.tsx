@@ -4,7 +4,6 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -13,6 +12,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField, Alert, Label } from "@calcom/ui";
 import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
+import { useOrgBranding } from "../../organizations/context/provider";
 import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
@@ -26,7 +26,7 @@ export const CreateANewTeamForm = () => {
   const telemetry = useTelemetry();
   const parsedQuery = querySchema.safeParse(router.query);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   const returnToParam =
     (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/settings/teams") ||

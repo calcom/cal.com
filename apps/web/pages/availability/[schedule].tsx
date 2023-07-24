@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -53,9 +53,10 @@ type AvailabilityFormValues = {
 };
 
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -70,15 +71,15 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           remove={remove}
-          update={update}
+          replace={replace}
           items={fields}
           workingHours={workingHours}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
@@ -278,7 +279,11 @@ export default function Availability() {
           </Dropdown>
 
           <div className="border-default border-l-2" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            form="availability-form"
+            loading={updateMutation.isLoading}>
             {t("save")}
           </Button>
         </div>

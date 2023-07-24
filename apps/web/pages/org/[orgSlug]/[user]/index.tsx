@@ -6,7 +6,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import type { UserPageProps } from "../../../[user]";
 import UserPage, { getServerSideProps as GSSUserPage } from "../../../[user]";
-import type { TeamPageProps } from "../../../team/[slug]";
+import type { PageProps as TeamPageProps } from "../../../team/[slug]";
 import TeamPage, { getServerSideProps as GSSTeamPage } from "../../../team/[slug]";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -33,8 +33,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 type Props = UserPageProps | TeamPageProps;
 
 export default function Page(props: Props) {
-  if ((props as TeamPageProps)?.team) return TeamPage(props as TeamPageProps);
-  return UserPage(props as UserPageProps);
+  if ((props as TeamPageProps)?.team) return <TeamPage {...(props as TeamPageProps)} />;
+  return <UserPage {...(props as UserPageProps)} />;
 }
 
+Page.isBookingPage = true;
 Page.PageWrapper = PageWrapper;

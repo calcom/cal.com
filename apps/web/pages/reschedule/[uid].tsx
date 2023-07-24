@@ -12,14 +12,11 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { uid: bookingId } = z
+  const { uid: bookingId, seatReferenceUid } = z
     .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
     .parse(context.query);
-  let seatReferenceUid;
+
   const uid = await maybeGetBookingUidFromSeat(prisma, bookingId);
-  if (uid) {
-    seatReferenceUid = bookingId;
-  }
   const booking = await prisma.booking.findUnique({
     where: {
       uid,
@@ -39,6 +36,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               slug: true,
             },
           },
+          seatsPerTimeSlot: true,
         },
       },
       dynamicEventSlugRef: true,
@@ -74,15 +72,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "/" +
     eventType?.slug;
   const destinationUrl = new URLSearchParams();
-  if (seatReferenceUid) {
-    destinationUrl.set("rescheduleUid", seatReferenceUid);
-  } else {
-    destinationUrl.set("rescheduleUid", bookingId);
-  }
+
+  destinationUrl.set("rescheduleUid", seatReferenceUid || bookingId);
 
   return {
     redirect: {
-      destination: `/${eventPage}?${destinationUrl.toString()}`,
+      destination: `/${eventPage}?${destinationUrl.toString()}${
+        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+      }`,
       permanent: false,
     },
   };

@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -49,6 +49,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       avatar: true,
       name: true,
       webhooks: true,
+      organizationId: true,
       teams: {
         where: {
           accepted: true,
@@ -81,8 +82,9 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   const userWebhooks = user.webhooks;
   let webhookGroups: WebhookGroup[] = [];
+  const bookerUrl = await getBookerUrl(user);
 
-  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
+  const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({
     teamId: null,
     profile: {
@@ -119,7 +121,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
               ? `/team`
               : "" + membership.team.slug
             : null,
-          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+          image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
         },
         metadata: {
           readOnly:
@@ -142,7 +144,6 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       teamId: group.teamId,
       ...group.profile,
       ...group.metadata,
-      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

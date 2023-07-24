@@ -34,7 +34,7 @@ const guardAgainstTooManyPasswordResets = async (email: string) => {
   }
 };
 
-const passwordResetRequest = async (email: string, language: string) => {
+const passwordResetRequest = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -43,16 +43,17 @@ const passwordResetRequest = async (email: string, language: string) => {
       name: true,
       identityProvider: true,
       email: true,
+      locale: true,
     },
   });
   if (!user) {
     // fail. Cannot send password request for an email that doesn't belong to a user.
     return;
   }
+  const t = await getTranslation(maybeUser.locale ?? "en", "common");
   await guardAgainstTooManyPasswordResets(email);
   const resetLink = await createPasswordReset(email);
   // send email in user language
-  const t = await getTranslation(language, "common");
   await sendPasswordResetEmail({
     language: t,
     user,

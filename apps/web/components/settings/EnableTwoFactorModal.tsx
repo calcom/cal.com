@@ -1,8 +1,9 @@
 import type { BaseSyntheticEvent } from "react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter, Form, TextField } from "@calcom/ui";
 
@@ -129,6 +130,17 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
     }
   }
 
+  const handleEnableRef = useCallbackRef(handleEnable);
+
+  const totpCode = form.watch("totpCode");
+
+  // auto submit 2FA if all inputs have a value
+  useEffect(() => {
+    if (totpCode?.trim().length === 6) {
+      form.handleSubmit(handleEnableRef.current)();
+    }
+  }, [form, handleEnableRef, totpCode]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={t("enable_2fa")} description={setupDescriptions[step]} type="creation">
@@ -173,7 +185,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <DialogFooter className="mt-8 sm:flex sm:flex-row-reverse" showDivider>
+          <DialogFooter className="mt-8" showDivider>
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
