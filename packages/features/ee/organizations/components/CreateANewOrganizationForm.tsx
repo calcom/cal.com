@@ -183,7 +183,8 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
           message: t("problem_registering_domain"),
         });
       } else {
-        setServerErrorMessage(err.message);
+        console.error(err.message);
+        setServerErrorMessage(t("something_went_wrong"));
       }
     },
   });
@@ -216,6 +217,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
             render={({ field: { value } }) => (
               <div className="flex">
                 <TextField
+                  type="email"
                   containerClassName="w-full"
                   placeholder="john@acme.com"
                   name="adminEmail"
@@ -282,6 +284,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
               <TextField
                 className="mt-2"
                 name="slug"
+                required
                 label={t("organization_url")}
                 placeholder="acme"
                 addOnSuffix={`.${subdomainSuffix()}`}
