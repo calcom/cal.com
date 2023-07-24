@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { customInputSchema, EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
@@ -39,6 +40,7 @@ export const EventTypeUpdateInput = _EventTypeModel
   .partial()
   .extend({
     metadata: EventTypeMetaDataSchema.optional(),
+    bookingFields: eventTypeBookingFields.optional(),
   })
   .merge(
     _EventTypeModel

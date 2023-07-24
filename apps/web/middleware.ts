@@ -78,7 +78,7 @@ const middleware: NextMiddleware = async (req) => {
 
 export const config = {
   matcher: [
-    "/:path*",
+    "/((?!_next|.*avatar.png$|favicon.ico$).*)",
     "/api/collect-events/:path*",
     "/api/auth/:path*",
     "/apps/routing_forms/:path*",

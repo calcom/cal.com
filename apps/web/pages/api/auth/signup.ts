@@ -198,13 +198,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: foundToken.id,
       },
     });
+  } else {
+    await sendEmailVerification({
+      email: userEmail,
+      username,
+      language,
+    });
   }
-
-  await sendEmailVerification({
-    email: userEmail,
-    username,
-    language,
-  });
 
   res.status(201).json({ message: "Created user" });
 }

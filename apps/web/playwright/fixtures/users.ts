@@ -229,6 +229,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
                 id: _user.id,
               },
             },
+            schedulingType: "COLLECTIVE",
             title: "Team Event - 30min",
             slug: "team-event-30min",
             length: 30,

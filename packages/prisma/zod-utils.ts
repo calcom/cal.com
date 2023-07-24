@@ -15,10 +15,13 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+
+export const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -106,15 +109,24 @@ export const EventTypeMetaDataSchema = z
   .nullable();
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
 export const bookingResponses = z
   .object({
     email: z.string(),
-    name: z.string().refine((value: string) => value.trim().length > 0),
+    //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
+    name: z.union([
+      nonEmptyString(),
+      z.object({
+        firstName: nonEmptyString(),
+        lastName: nonEmptyString()
+          .refine((value: string) => value.trim().length > 0)
+          .optional(),
+      }),
+    ]),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z
