@@ -243,7 +243,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     onSuccess: async (responseData) => {
       const booking = responseData[0] || {};
 
-      if (!uid) {
+      if (!booking.uid) {
         console.error("No uid returned from createRecurringBookingMutation");
         return;
       }

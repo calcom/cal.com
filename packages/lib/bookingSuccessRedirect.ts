@@ -29,13 +29,19 @@ export const bookingSuccessRedirect = async ({
 }: {
   successRedirectUrl: EventType["successRedirectUrl"];
   booking: SuccessRedirectBookingType;
-  query: Record<string, string | null | undefined | boolean>;
+  query: Record<string, string | null | undefined | boolean> & {
+    // These params are part of the documented API and must be passed to the custom redirect URL
+    email: string;
+    // TODO: Change formerTime to ISO date string format and then document it.
+    // Also it might be best to send a new formTimeIso param instead of changing the existing one.
+    // formerTime: string;
+  };
   router: NextRouter;
 }) => {
   if (successRedirectUrl) {
     const url = new URL(successRedirectUrl);
     const extraParams = getBookingRedirectExtraParams(booking);
-    const queryWithExtraParams = { ...query, ...extraParams };
+    const queryWithExtraParams = { booker_email: query.email, ...extraParams };
     Object.entries(queryWithExtraParams).forEach(([key, value]) => {
       if (value === null || value === undefined) {
         return;
