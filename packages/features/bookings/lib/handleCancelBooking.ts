@@ -757,6 +757,32 @@ async function handleSeatedEventCancellation(
   );
   await Promise.all(promises);
 
+  const workflowReminderForAttendee = bookingToDelete?.workflowReminders.find(
+    (reminder) => reminder.seatReferenceId === seatReferenceUid
+  );
+
+  if (workflowReminderForAttendee) {
+    if (workflowReminderForAttendee.method === WorkflowMethods.EMAIL) {
+      deleteScheduledEmailReminder(
+        workflowReminderForAttendee.id,
+        workflowReminderForAttendee.referenceId,
+        seatReferenceUid
+      );
+    } else if (workflowReminderForAttendee.method === WorkflowMethods.SMS) {
+      deleteScheduledSMSReminder(
+        workflowReminderForAttendee.id,
+        workflowReminderForAttendee.referenceId,
+        seatReferenceUid
+      );
+    } else if (workflowReminderForAttendee.method === WorkflowMethods.WHATSAPP) {
+      deleteScheduledWhatsappReminder(
+        workflowReminderForAttendee.id,
+        workflowReminderForAttendee.referenceId,
+        seatReferenceUid
+      );
+    }
+  }
+
   return { success: true };
 }
 

@@ -40,7 +40,8 @@ export const scheduleEmailReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates,
   sender: string,
-  hideBranding?: boolean
+  hideBranding?: boolean,
+  seatReferenceUid?: string
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -221,6 +222,7 @@ export const scheduleEmailReminder = async (
             scheduledDate: scheduledDate.toDate(),
             scheduled: true,
             referenceId: batchIdResponse[1].batch_id,
+            seatReferenceId: seatReferenceUid,
           },
         });
       } catch (error) {
@@ -235,18 +237,36 @@ export const scheduleEmailReminder = async (
           method: WorkflowMethods.EMAIL,
           scheduledDate: scheduledDate.toDate(),
           scheduled: false,
+          seatReferenceId: seatReferenceUid,
         },
       });
     }
   }
 };
 
-export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
+export const deleteScheduledEmailReminder = async (
+  reminderId: number,
+  referenceId: string | null,
+  seatReferenceUid?: string
+) => {
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({
         where: {
           id: reminderId,
+        },
+      });
+
+      return;
+    }
+
+    if (seatReferenceUid) {
+      await prisma.workflowReminder.updateMany({
+        where: {
+          seatReferenceId: seatReferenceUid,
+        },
+        data: {
+          cancelled: true,
         },
       });
 

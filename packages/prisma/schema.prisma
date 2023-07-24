@@ -791,6 +791,7 @@ model WorkflowReminder {
   workflowStepId Int?
   workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
+  seatReferenceId String?
 
   @@index([bookingUid])
   @@index([workflowStepId])
