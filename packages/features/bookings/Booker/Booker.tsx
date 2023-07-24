@@ -158,6 +158,11 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
+  if (bookerState === "loading") {
+    return null;
+  }
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -209,7 +214,7 @@ const BookerComponent = ({
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className=" mt-auto px-5 py-3">
+                    <div className="mt-auto px-5 py-3 ">
                       <DatePicker />
                     </div>
                   )}

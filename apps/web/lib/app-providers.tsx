@@ -1,5 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { SessionProvider } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -9,7 +10,6 @@ import type { ParsedUrlQuery } from "querystring";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
@@ -220,9 +220,26 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
 }
 
+function useOrgBrandingValues() {
+  const session = useSession();
+
+  const res = trpc.viewer.organizations.getBrand.useQuery(undefined, {
+    // Only fetch if we have a session to avoid flooding logs with errors
+    enabled: session.status === "authenticated",
+  });
+
+  if (res.status === "loading") {
+    return undefined;
+  }
+
+  if (res.status === "error") return null;
+
+  return res.data;
+}
+
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {
   const orgBrand = useOrgBrandingValues();
-  return <OrgBrandingProvider value={orgBrand}>{children}</OrgBrandingProvider>;
+  return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
