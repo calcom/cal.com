@@ -86,7 +86,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           isCalcomMember: true,
         };
         /**
-         * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+         * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
          * This only changes if the user is a CAL user and has not completed onboarding and has no password
          */
         if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {

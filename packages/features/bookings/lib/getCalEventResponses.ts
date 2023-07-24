@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { SystemField } from "@calcom/features/bookings/lib/getBookingFields";
+import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -43,6 +43,7 @@ export const getCalEventResponses = ({
     parsedBookingFields.forEach((field) => {
       const label = field.label || field.defaultLabel;
       if (!label) {
+        //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
         throw new Error('Missing label for booking field "' + field.name + '"');
       }
 

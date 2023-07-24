@@ -1,8 +1,8 @@
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { MapPin } from "@calcom/ui/components/icon";
-import { classNames } from "@calcom/lib";
 
 import type { PublicEvent } from "../../types";
 import { EventMetaBlock } from "./Details";
@@ -20,7 +20,7 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
     return translatedLocation;
   };
   const eventLocationType = getEventLocationType(locations[0].type);
-  const icon = (locations.length > 1 || !eventLocationType?.iconUrl) ? MapPin : eventLocationType.iconUrl;
+  const icon = locations.length > 1 || !eventLocationType?.iconUrl ? MapPin : eventLocationType.iconUrl;
 
   return (
     <EventMetaBlock icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
@@ -44,13 +44,15 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
                     <li key={`${location.type}-${index}`} className="mt-1">
                       <div className="flex flex-row items-center">
                         <img
-                            src={getEventLocationType(location.type)?.iconUrl}
-                            className={classNames(
-                              "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
-                              !getEventLocationType(location.type)?.iconUrl?.startsWith("/app-store") ? "dark:invert-[.65]" : ""
-                            )}
-                            alt={`${getEventLocationType(location.type)?.label} icon`}
-                          />
+                          src={getEventLocationType(location.type)?.iconUrl}
+                          className={classNames(
+                            "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
+                            !getEventLocationType(location.type)?.iconUrl?.startsWith("/app-store")
+                              ? "dark:invert-[.65]"
+                              : ""
+                          )}
+                          alt={`${getEventLocationType(location.type)?.label} icon`}
+                        />
                         <span>{getLocationToDisplay(location)}</span>
                       </div>
                     </li>
