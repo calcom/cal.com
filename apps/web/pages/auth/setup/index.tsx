@@ -5,6 +5,7 @@ import { useState } from "react";
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -95,7 +96,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
   steps.push({
     title: t("enable_apps"),
-    description: t("enable_apps_description"),
+    description: t("enable_apps_description", { appName: APP_NAME }),
     contentClassname: "!pb-0 mb-[-1px]",
     content: (setIsLoading) => {
       const currentStep = isFreeLicense ? 3 : 4;

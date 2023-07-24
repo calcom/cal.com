@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
+import { validateLayout } from "./utils/layout";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 /**
@@ -15,13 +17,24 @@ type StoreInitializeType = {
   username: string;
   eventSlug: string;
   // Month can be undefined if it's not passed in as a prop.
-  month?: string;
   eventId: number | undefined;
-  rescheduleUid: string | null;
-  rescheduleBooking: GetBookingType | null | undefined;
+  layout: BookerLayout;
+  month?: string;
+  bookingUid?: string | null;
+  isTeamEvent?: boolean;
+  bookingData?: GetBookingType | null | undefined;
+  rescheduleUid?: string | null;
+  seatReferenceUid?: string;
+  org?: string | null;
 };
 
-type BookerStore = {
+type SeatedEventData = {
+  seatsPerTimeSlot?: number | null;
+  attendees?: number;
+  bookingUid?: string;
+};
+
+export type BookerStore = {
   /**
    * Event details. These are stored in store for easier
    * access in child components.
@@ -69,12 +82,13 @@ type BookerStore = {
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
   /**
-   * If booking is being rescheduled, both the ID as well as
-   * the current booking details are passed in. The `rescheduleBooking`
+   * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
+   * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
-  rescheduleBooking: GetBookingType | null;
+  bookingUid: string | null;
+  bookingData: GetBookingType | null;
   /**
    * Method called by booker component to set initial data.
    */
@@ -86,12 +100,15 @@ type BookerStore = {
    */
   formValues: Record<string, any>;
   setFormValues: (values: Record<string, any>) => void;
-};
-
-const validLayouts: BookerLayout[] = ["large_calendar", "large_timeslots", "small_calendar"];
-
-const checkLayout = (layout: BookerLayout) => {
-  return validLayouts.find((validLayout) => validLayout === layout);
+  /**
+   * Force event being a team event, so we only query for team events instead
+   * of also include 'user' events and return the first event that matches with
+   * both the slug and the event slug.
+   */
+  isTeamEvent: boolean;
+  org?: string | null;
+  seatedEventData: SeatedEventData;
+  setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
 
 /**
@@ -104,19 +121,28 @@ const checkLayout = (layout: BookerLayout) => {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: checkLayout(getQueryParam("layout") as BookerLayout) || "small_calendar",
+  layout: BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
-    if (["large_calendar", "large_timeslots"].includes(layout) && !get().selectedDate) {
+    if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
+    updateQueryParam("layout", layout);
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
+    const currentSelection = dayjs(get().selectedDate);
+    const newSelection = dayjs(selectedDate);
     set({ selectedDate });
     updateQueryParam("date", selectedDate ?? "");
+
+    // Setting month make sure small calendar in fullscreen layouts also updates.
+    if (newSelection.month() !== currentSelection.month()) {
+      set({ month: newSelection.format("YYYY-MM") });
+      updateQueryParam("month", newSelection.format("YYYY-MM"));
+    }
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
@@ -140,37 +166,64 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
+  isTeamEvent: false,
+  seatedEventData: {
+    seatsPerTimeSlot: undefined,
+    attendees: undefined,
+    bookingUid: undefined,
+  },
+  setSeatedEventData: (seatedEventData: SeatedEventData) => {
+    set({ seatedEventData });
+    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+  },
   initialize: ({
     username,
     eventSlug,
     month,
     eventId,
     rescheduleUid = null,
-    rescheduleBooking = null,
+    bookingUid = null,
+    bookingData = null,
+    layout,
+    isTeamEvent,
+    org,
   }: StoreInitializeType) => {
+    const selectedDateInStore = get().selectedDate;
+
     if (
       get().username === username &&
       get().eventSlug === eventSlug &&
       get().month === month &&
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
-      get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
+      get().bookingUid === bookingUid &&
+      get().bookingData?.responses.email === bookingData?.responses.email &&
+      get().layout === layout
     )
       return;
     set({
       username,
       eventSlug,
       eventId,
+      org,
       rescheduleUid,
-      rescheduleBooking,
+      bookingUid,
+      bookingData,
+      layout: layout || BookerLayouts.MONTH_VIEW,
+      isTeamEvent: isTeamEvent || false,
+      // Preselect today's date in week / column view, since they use this to show the week title.
+      selectedDate:
+        selectedDateInStore ||
+        (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
     });
+
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
     // force clear this.
-    if (rescheduleBooking) set({ selectedTimeslot: null });
+    if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
-    removeQueryParam("layout");
+    //removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {
@@ -179,8 +232,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-  rescheduleBooking: null,
   rescheduleUid: null,
+  bookingData: null,
+  bookingUid: null,
   selectedTimeslot: getQueryParam("slot") || null,
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
@@ -198,10 +252,34 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
-  rescheduleBooking = null,
+  bookingData = null,
+  layout,
+  isTeamEvent,
+  org,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
-    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking]);
+    initializeStore({
+      username,
+      eventSlug,
+      month,
+      eventId,
+      rescheduleUid,
+      bookingData,
+      layout,
+      isTeamEvent,
+      org,
+    });
+  }, [
+    initializeStore,
+    org,
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid,
+    bookingData,
+    layout,
+    isTeamEvent,
+  ]);
 };

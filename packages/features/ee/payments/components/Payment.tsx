@@ -11,7 +11,7 @@ import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store
 import { bookingSuccessRedirect, getBookingRedirectExtraParams } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Checkbox } from "@calcom/ui";
+import { Button, CheckboxField } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -115,8 +115,8 @@ const PaymentForm = (props: Props) => {
         <PaymentElement onChange={() => setState({ status: "idle" })} />
       </div>
       {paymentOption === "HOLD" && (
-        <div className="bg-info mt-2 mb-5 rounded-md p-3">
-          <Checkbox
+        <div className="bg-info mb-5 mt-2 rounded-md p-3">
+          <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
               formatParams: { amount: { currency: props.payment.currency } },
@@ -130,7 +130,8 @@ const PaymentForm = (props: Props) => {
         <Button
           color="minimal"
           disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
-          id="cancel">
+          id="cancel"
+          onClick={() => router.back()}>
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button

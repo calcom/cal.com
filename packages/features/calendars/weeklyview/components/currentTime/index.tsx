@@ -1,43 +1,54 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useCalendarStore } from "../../state/store";
 
-type Props = {
-  containerNavRef: React.RefObject<HTMLDivElement>;
-  containerRef: React.RefObject<HTMLDivElement>;
-  containerOffsetRef: React.RefObject<HTMLDivElement>;
-};
-
-export function CurrentTime({ containerOffsetRef }: Props) {
-  const [currentTimePos, setCurrentTimePos] = useState<number>(0);
+export function CurrentTime() {
+  const currentTimeRef = useRef<HTMLDivElement>(null);
+  const [scrolledIntoView, setScrolledIntoView] = useState(false);
+  const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
   const { startHour, endHour } = useCalendarStore((state) => ({
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
   }));
+  const { timeFormat } = useTimePreferences();
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
+    const currentHour = new Date().getHours();
     let currentMinute = new Date().getHours() * 60;
     currentMinute = currentMinute + new Date().getMinutes();
 
-    if (containerOffsetRef.current) {
-      const totalHours = endHour - startHour;
-      const currentTimePos = currentMinute;
-      setCurrentTimePos(currentTimePos);
+    if (currentHour > endHour || currentHour < startHour) {
+      setCurrentTimePos(null);
     }
+
+    const minutesFromStart = currentMinute - startHour * 60;
+    setCurrentTimePos(minutesFromStart);
+
+    if (!currentTimeRef.current || scrolledIntoView) return;
+    // Within a small timeout so element has time to render.
+    setTimeout(() => {
+      currentTimeRef?.current?.scrollIntoView({ block: "center" });
+      setScrolledIntoView(true);
+    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startHour, endHour]);
+  }, [startHour, endHour, scrolledIntoView]);
 
   return (
     <div
-      className="absolute z-40 ml-3 flex h-1 items-center justify-center border-gray-800"
+      ref={currentTimeRef}
+      className="absolute top-0 z-40 flex h-px items-center justify-center text-xs"
       aria-hidden="true"
-      style={{ top: `calc(${currentTimePos}*var(--one-minute-height))`, zIndex: 100 }}>
-      {dayjs().format("HH:mm")}
-      <div className="ml-1 h-3 w-1 bg-gray-800" />
-      <div className="h-1 w-full bg-gray-800" />
+      style={{
+        top: `calc(${currentTimePos}*var(--one-minute-height) + var(--calendar-offset-top))`,
+        zIndex: 70,
+      }}>
+      <div className="w-14 pr-2 text-right">{dayjs().format(timeFormat)}</div>
+      <div className="bg-inverted h-3 w-px" />
+      <div className="bg-inverted h-px w-screen" />
     </div>
   );
 }

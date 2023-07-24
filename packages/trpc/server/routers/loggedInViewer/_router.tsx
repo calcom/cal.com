@@ -2,14 +2,15 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
-import { ZAppsInputSchema } from "./apps.schema";
 import { ZAwayInputSchema } from "./away.schema";
+import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
+import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
@@ -17,6 +18,7 @@ import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaul
 
 type AppsRouterHandlerCache = {
   me?: typeof import("./me.handler").meHandler;
+  shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
   avatar?: typeof import("./avatar.handler").avatarHandler;
   deleteMe?: typeof import("./deleteMe.handler").deleteMeHandler;
   deleteMeWithoutPassword?: typeof import("./deleteMeWithoutPassword.handler").deleteMeWithoutPasswordHandler;
@@ -25,7 +27,6 @@ type AppsRouterHandlerCache = {
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   appById?: typeof import("./appById.handler").appByIdHandler;
-  apps?: typeof import("./apps.handler").appsHandler;
   appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
@@ -38,6 +39,7 @@ type AppsRouterHandlerCache = {
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
+  teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -110,7 +112,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.away({ ctx, input });
   }),
 
-  connectedCalendars: authedProcedure.query(async ({ ctx }) => {
+  connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
       UNSTABLE_HANDLER_CACHE.connectedCalendars = (
         await import("./connectedCalendars.handler")
@@ -122,7 +124,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.connectedCalendars({ ctx });
+    return UNSTABLE_HANDLER_CACHE.connectedCalendars({ ctx, input });
   }),
 
   setDestinationCalendar: authedProcedure
@@ -166,19 +168,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
-  }),
-
-  apps: authedProcedure.input(ZAppsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      UNSTABLE_HANDLER_CACHE.apps = (await import("./apps.handler")).appsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.apps({ ctx, input });
   }),
 
   appCredentialsByType: authedProcedure
@@ -257,7 +246,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.submitFeedback({ ctx, input });
   }),
 
-  locationOptions: authedProcedure.query(async ({ ctx }) => {
+  locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
       UNSTABLE_HANDLER_CACHE.locationOptions = (
         await import("./locationOptions.handler")
@@ -269,7 +258,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx });
+    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
   }),
 
   deleteCredential: authedProcedure.input(ZDeleteCredentialInputSchema).mutation(async ({ ctx, input }) => {
@@ -367,4 +356,32 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
     }),
+  shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
+      UNSTABLE_HANDLER_CACHE.shouldVerifyEmail = (
+        await import("./shouldVerifyEmail.handler")
+      ).shouldVerifyEmailHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.shouldVerifyEmail({ ctx });
+  }),
+  teamsAndUserProfilesQuery: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery) {
+      UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery = (
+        await import("./teamsAndUserProfilesQuery.handler")
+      ).teamsAndUserProfilesQuery;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery({ ctx });
+  }),
 });

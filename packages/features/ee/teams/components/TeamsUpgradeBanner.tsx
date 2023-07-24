@@ -31,7 +31,7 @@ export function TeamsUpgradeBanner() {
           onClick={() => {
             publishTeamMutation.mutate({ teamId: membership.team.id });
           }}>
-          {t("team_upgrade_banner_action")}
+          {t("upgrade_banner_action")}
         </button>
       }
     />

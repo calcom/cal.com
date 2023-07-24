@@ -15,9 +15,13 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
+import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+
+export const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -29,6 +33,39 @@ export enum Frequency {
   MINUTELY = 5,
   SECONDLY = 6,
 }
+
+export enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
+
+export const bookerLayoutOptions = [
+  BookerLayouts.MONTH_VIEW,
+  BookerLayouts.WEEK_VIEW,
+  BookerLayouts.COLUMN_VIEW,
+];
+
+const layoutOptions = z.union([
+  z.literal(bookerLayoutOptions[0]),
+  z.literal(bookerLayoutOptions[1]),
+  z.literal(bookerLayoutOptions[2]),
+]);
+
+export const bookerLayouts = z
+  .object({
+    enabledLayouts: z.array(layoutOptions),
+    defaultLayout: layoutOptions,
+  })
+  .nullable();
+
+export const defaultBookerLayoutSettings = {
+  defaultLayout: BookerLayouts.MONTH_VIEW,
+  // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
+  enabledLayouts: bookerLayoutOptions,
+};
+
+export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
@@ -67,19 +104,29 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+    bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
 export const bookingResponses = z
   .object({
     email: z.string(),
-    name: z.string(),
+    //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
+    name: z.union([
+      nonEmptyString(),
+      z.object({
+        firstName: nonEmptyString(),
+        lastName: nonEmptyString()
+          .refine((value: string) => value.trim().length > 0)
+          .optional(),
+      }),
+    ]),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z
@@ -102,6 +149,7 @@ export const eventTypeLocations = z.array(
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
+    credentialId: z.number().optional(),
   })
 );
 
@@ -161,20 +209,19 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  end: z.string(),
+  end: z.string().optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
-  timeZone: z.string(),
+  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
-  ethSignature: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -269,6 +316,7 @@ export const userMetadata = z
         appLink: z.string().optional(),
       })
       .optional(),
+    defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -278,6 +326,9 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    isOrganization: z.boolean().nullable(),
+    isOrganizationVerified: z.boolean().nullable(),
+    orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
   .nullable();
@@ -537,4 +588,12 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
+};
+
+// The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
+// version that will include updates in the above PR.
+export const emailSchemaRefinement = (value: string) => {
+  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
+  return emailRegex.test(value);
 };

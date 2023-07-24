@@ -27,7 +27,7 @@ const StepDone = (props: {
           <Check className="text-inverted dark:bg-default dark:text-default inline-block h-10 w-10" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
+          <h2 className="mb-1 mt-6 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
         </div>
       </div>
     </form>

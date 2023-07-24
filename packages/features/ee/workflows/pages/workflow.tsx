@@ -19,10 +19,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
+import useMeQuery from "@lib/hooks/useMeQuery";
+
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -92,6 +94,9 @@ function WorkflowPage() {
 
   const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
   const utils = trpc.useContext();
+
+  const userQuery = useMeQuery();
+  const user = userQuery.data;
 
   const {
     data: workflow,
@@ -202,7 +207,7 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
+          const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
@@ -221,7 +226,7 @@ function WorkflowPage() {
 
           //check if phone number is verified
           if (
-            step.action === WorkflowActions.SMS_NUMBER &&
+            (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
             !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
           ) {
             isVerified = false;
@@ -257,7 +262,9 @@ function WorkflowPage() {
         CTA={
           !readOnly && (
             <div>
-              <Button type="submit">{t("save")}</Button>
+              <Button data-testid="save-workflow" type="submit">
+                {t("save")}
+              </Button>
             </div>
           )
         }
@@ -270,12 +277,12 @@ function WorkflowPage() {
                 {workflow && workflow.name ? workflow.name : "untitled"}
               </div>
               {workflow && workflow.team && (
-                <Badge className="mt-1 ml-4" variant="gray">
-                  {workflow.team.slug}
+                <Badge className="ml-4 mt-1" variant="gray">
+                  {workflow.team.name}
                 </Badge>
               )}
               {readOnly && (
-                <Badge className="mt-1 ml-4" variant="gray">
+                <Badge className="ml-4 mt-1" variant="gray">
                   {t("readonly")}
                 </Badge>
               )}
@@ -285,11 +292,12 @@ function WorkflowPage() {
         <LicenseRequired>
           {!isError ? (
             <>
-              {isAllDataLoaded ? (
+              {isAllDataLoaded && user ? (
                 <>
                   <WorkflowDetailsPage
                     form={form}
                     workflowId={+workflowId}
+                    user={user}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
                     teamId={workflow ? workflow.teamId || undefined : undefined}

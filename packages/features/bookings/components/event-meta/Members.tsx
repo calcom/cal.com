@@ -35,7 +35,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
 
   const avatars: Avatar[] = shownUsers.map((user) => ({
     title: `${user.name}`,
-    image: "image" in user ? `${user.image}` : `${CAL_URL}/${user.username}/avatar.png`,
+    image: "image" in user ? `${user.image}` : `/${user.username}/avatar.png`,
     alt: user.name || undefined,
     href: user.username ? `${CAL_URL}/${user.username}` : undefined,
   }));

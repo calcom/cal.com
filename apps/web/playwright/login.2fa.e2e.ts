@@ -36,7 +36,6 @@ test.describe("2FA Tests", async () => {
        */
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: "123456", noRetry: true });
-      await page.press('input[name="2fa6"]', "Enter");
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
       await fillOtp({
@@ -44,9 +43,9 @@ test.describe("2FA Tests", async () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         secret: secret!,
       });
-      await page.press('input[name="2fa6"]', "Enter");
 
-      await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
+      await page.waitForSelector(`[data-testid=two-factor-switch]`);
+      await expect(page.locator(`[data-testid=two-factor-switch]`).isChecked()).toBeTruthy();
 
       return user;
     });
@@ -102,7 +101,7 @@ test.describe("2FA Tests", async () => {
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: secret! });
-      await page.click('[data-testid="enable-2fa"]');
+
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
 
       return user;

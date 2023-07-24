@@ -5,14 +5,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import {
   Button,
+  ConfirmationDialogContent,
   Dialog,
-  DialogContent,
   DialogTrigger,
   showToast,
-  DialogFooter,
-  DialogClose,
 } from "@calcom/ui";
-import { Trash, AlertCircle } from "@calcom/ui/components/icon";
+import { Trash } from "@calcom/ui/components/icon";
 
 export default function DisconnectIntegration({
   credentialId,
@@ -62,18 +60,15 @@ export default function DisconnectIntegration({
             {label && label}
           </Button>
         </DialogTrigger>
-        <DialogContent
+        <ConfirmationDialogContent
+          variety="danger"
           title={t("remove_app")}
-          description={t("are_you_sure_you_want_to_remove_this_app")}
-          type="confirmation"
-          Icon={AlertCircle}>
-          <DialogFooter>
-            <DialogClose onClick={() => setModalOpen(false)} />
-            <DialogClose color="primary" onClick={() => mutation.mutate({ id: credentialId })}>
-              {t("yes_remove_app")}
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
+          confirmBtnText={t("yes_remove_app")}
+          onConfirm={() => {
+            mutation.mutate({ id: credentialId });
+          }}>
+          <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
+        </ConfirmationDialogContent>
       </Dialog>
     </>
   );

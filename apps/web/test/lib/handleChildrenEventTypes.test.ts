@@ -316,15 +316,13 @@ describe("handleChildrenEventTypes", () => {
   describe("Workflows", () => {
     it("Links workflows to new and existing assigned members", async () => {
       const {
-        schedulingType,
-        id,
-        teamId,
-        locations,
-        timeZone,
-        parentId,
-        userId,
-        scheduleId,
-        offsetStart,
+        schedulingType: _schedulingType,
+        id: _id,
+        teamId: _teamId,
+        locations: _locations,
+        timeZone: _timeZone,
+        parentId: _parentId,
+        userId: _userId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },

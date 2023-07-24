@@ -33,7 +33,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *                type: integer
  *              example: [2, 3, 4]
  *       - in: query
- *         name: attendeeEmails
+ *         name: attendeeEmail
  *         required: false
  *         schema:
  *           oneOf:
