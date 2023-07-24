@@ -1625,7 +1625,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flex h-[90vh] w-2/3 flex-col overflow-y-auto p-8">
+        <div className="flex w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs
             data-testid="embed-tabs"
             tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
@@ -1700,10 +1700,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     }
                   />
                 </div>
-                <DialogFooter
-                  className="mt-10 flex flex-row-reverse gap-x-2"
-                  showDivider
-                  customDividerClassNames="w-2/3">
+                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                   <DialogClose />
                   <Button
                     onClick={() => {
