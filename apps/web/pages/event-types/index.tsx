@@ -513,7 +513,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     type="button"
                                     StartIcon={Code}
                                     className="w-full rounded-none"
-                                    embedUrl={encodeURIComponent(embedLink)}>
+                                    embedUrl={encodeURIComponent(embedLink)}
+                                    eventId={type.id}>
                                     {t("embed")}
                                   </EmbedButton>
                                 </DropdownMenuItem>
