@@ -754,7 +754,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {embeds(t).map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted w-full rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
