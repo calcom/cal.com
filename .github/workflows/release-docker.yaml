@@ -31,12 +31,12 @@ jobs:
           script: |
             try {
               const response = await github.rest.actions.createWorkflowDispatch({
-                owner: 'cal.com',
+                owner: context.repo.owner,
                 repo: 'docker',
                 workflow_id: 'create-release.yaml',
                 ref: 'main',
                 inputs: {
-                  "RELEASE_TAG": ${{ inputs.RELEASE_TAG }}
+                  "RELEASE_TAG": '${{ inputs.RELEASE_TAG }}'
                 },
               });
 
