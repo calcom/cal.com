@@ -7,7 +7,7 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -234,7 +234,7 @@ function EventTypeSingleLayout({
     formMethods,
   ]);
 
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const isOrgEvent = orgBranding?.fullDomain;
   const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
     team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
@@ -318,6 +318,7 @@ function EventTypeSingleLayout({
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
+                  eventId={eventType.id}
                 />
               </>
             )}
