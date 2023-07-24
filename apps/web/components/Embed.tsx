@@ -46,7 +46,7 @@ import {
 } from "@calcom/ui";
 import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
 
-type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 type EmbedFramework = "react" | "HTML";
 
@@ -78,7 +78,7 @@ type PreviewState = {
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;
 };
-const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
+const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl", "eventId"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -808,6 +808,9 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
+    if (!eventType) {
+      return null;
+    }
     if (selectedDatesAndTimes && selectedDatesAndTimes[eventType.slug]) {
       const selectedDatesAndTimesForEvent = selectedDatesAndTimes[eventType.slug];
       const selectedSlots = selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
@@ -962,7 +965,9 @@ const EmailEmbedPreview = ({
 }) => {
   const { t } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
-
+  if (!eventType) {
+    return null;
+  }
   return (
     <div className="flex h-full items-center justify-center border p-5 last:font-medium">
       <div className="border bg-white p-4">
