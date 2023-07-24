@@ -78,9 +78,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: searchParams?.get("callbackUrl")
-            ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
-            : `${WEBAPP_URL}/${verifyOrGettingStarted}`,
+          callbackUrl: `${
+            searchParams?.get("callbackUrl")
+              ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
+              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
+          }?from=signup`,
         });
       })
       .catch((err) => {
