@@ -795,6 +795,7 @@ model WorkflowReminder {
 
   @@index([bookingUid])
   @@index([workflowStepId])
+  @@index([seatReferenceId])
 }
 
 enum WorkflowTemplates {
