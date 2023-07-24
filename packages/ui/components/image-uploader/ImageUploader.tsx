@@ -5,7 +5,7 @@ import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../..";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
 import { showToast } from "../toast";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
@@ -210,12 +210,12 @@ export default function ImageUploader({
             </label>
           </div>
         </div>
-        <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
+        <DialogFooter>
           <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
