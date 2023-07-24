@@ -201,6 +201,7 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(event),
     users,
     orgDomain: org,
+    isDynamic: false,
   };
 };
 
