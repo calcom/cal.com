@@ -480,7 +480,9 @@ export const Components: Record<FieldType, Component> = {
             placeholder=""
             checked={value}
             disabled={readOnly}
-            description={label ?? ""}
+            description=""
+            // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
+            descriptionAsSafeHtml={label ?? ""}
           />
         </div>
       );

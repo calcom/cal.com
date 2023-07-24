@@ -14,6 +14,10 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   error?: boolean;
   className?: string;
   descriptionClassName?: string;
+  /**
+   * Accepts this special property instead of allowing description itself to be accidentally used in dangerous way.
+   */
+  descriptionAsSafeHtml?: string;
 };
 
 const Checkbox = React.forwardRef<
@@ -35,7 +39,7 @@ const Checkbox = React.forwardRef<
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, error, disabled, ...rest }, ref) => {
+  ({ label, description, error, disabled, descriptionAsSafeHtml, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
     const id = useId();
     return (
@@ -86,7 +90,16 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                {descriptionAsSafeHtml ? (
+                  <span
+                    className={classNames("text-sm", rest.descriptionClassName)}
+                    dangerouslySetInnerHTML={{
+                      __html: descriptionAsSafeHtml,
+                    }}
+                  />
+                ) : (
+                  <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                )}
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}
