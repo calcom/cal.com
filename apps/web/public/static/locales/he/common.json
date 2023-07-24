@@ -14,6 +14,7 @@
   "verify_email_subject": "{{appName}}: אמת את החשבון",
   "check_your_email": "בדוק את הדוא״ל שלך",
   "verify_email_page_body": "שלחנו מייל ל- {{email}}. חשוב שתאמת את כתובת הדוא״ל שלך כדי להבטיח את תעבורת הדוא״ל והיומן מ- {{appName}}.",
+  "verify_email_banner_body": "יש לאמת את כתובת הדוא״ל כדי להבטיח תעבורת דוא\"ל ולוחות שנה מיטבית",
   "verify_email_email_header": "אמת את חשבון הדוא״ל שלך",
   "verify_email_email_button": "אמת דוא״ל",
   "verify_email_email_body": "אנא אמת את חשבון הדוא״ל שלך על ידי לחיצה על הכפתור מטה.",

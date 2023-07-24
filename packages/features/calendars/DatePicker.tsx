@@ -1,6 +1,9 @@
+import { shallow } from "zustand/shallow";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,6 +35,8 @@ export type DatePickerProps = {
   className?: string;
   /** Shows a small loading spinner next to the month name */
   isLoading?: boolean;
+  /** used to query the multiple selected dates */
+  eventSlug?: string;
 };
 
 export const Day = ({
@@ -100,6 +105,7 @@ const Days = ({
   selected,
   month,
   nextMonthButton,
+  eventSlug,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -138,6 +144,28 @@ const Days = ({
     days.push(date);
   }
 
+  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
+
+  const isActive = (day: dayjs.Dayjs) => {
+    if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
+      return true;
+    }
+
+    // for multiple dates select
+    if (
+      eventSlug &&
+      selectedDatesAndTimes &&
+      selectedDatesAndTimes[eventSlug as string] &&
+      Object.keys(selectedDatesAndTimes[eventSlug as string]).length > 0
+    ) {
+      return Object.keys(selectedDatesAndTimes[eventSlug as string]).some((date) => {
+        return yyyymmdd(dayjs(date)) === yyyymmdd(day);
+      });
+    }
+
+    return false;
+  };
+
   return (
     <>
       {days.map((day, idx) => (
@@ -161,7 +189,7 @@ const Days = ({
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
               }
-              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+              active={isActive(day)}
             />
           )}
         </div>
