@@ -50,7 +50,7 @@ const passwordResetRequest = async (email: string) => {
     // fail. Cannot send password request for an email that doesn't belong to a user.
     return;
   }
-  const t = await getTranslation(maybeUser.locale ?? "en", "common");
+  const t = await getTranslation(user.locale ?? "en", "common");
   await guardAgainstTooManyPasswordResets(email);
   const resetLink = await createPasswordReset(email);
   // send email in user language
@@ -59,7 +59,10 @@ const passwordResetRequest = async (email: string) => {
     user,
     resetLink,
   });
-  return resetLink;
+  return {
+    resetLink,
+    language: t,
+  };
 };
 
 export { passwordResetRequest };

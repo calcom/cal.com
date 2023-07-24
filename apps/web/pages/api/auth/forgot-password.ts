@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler, getTranslation } from "@calcom/lib/server";
 
 function delay(cb: () => unknown, delay: number) {
   return new Promise((resolve) => {
@@ -13,7 +13,7 @@ function delay(cb: () => unknown, delay: number) {
   });
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse)
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const email = z
     .string()
     .email()
@@ -40,7 +40,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   try {
-    const resetLink = await passwordResetRequest(email.data);
+    const { resetLink, language } = await passwordResetRequest(email.data);
+    const t = await getTranslation(language, "common");
     // By adding a random delay any attacker is unable to bruteforce existing email addresses.
     const delayInMs = Math.floor(Math.random() * 2000) + 1000;
     return await delay(() => {
