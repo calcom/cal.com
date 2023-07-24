@@ -26,6 +26,7 @@ import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { TimezoneSelect } from "@calcom/ui";
 import {
@@ -45,6 +46,7 @@ import {
 } from "@calcom/ui";
 import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
 
+type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 type EmbedFramework = "react" | "HTML";
 
@@ -774,7 +776,7 @@ const ChooseEmbedTypesDialogContent = () => {
   );
 };
 
-const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string }) => {
+const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: string }) => {
   const { t, i18n } = useLocale();
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
@@ -855,6 +857,10 @@ const EmailEmbed = ({ eventType, username }: { eventType?: any; username: string
   };
 
   const slots = useSlotsForDate(selectedDate, schedule?.data?.slots);
+
+  if (!eventType) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col">
@@ -947,7 +953,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
 }: {
-  eventType: any;
+  eventType: EventType;
   timezone?: string;
   emailContentRef: RefObject<HTMLDivElement>;
   username?: string;
@@ -1331,7 +1337,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent ref={dialogContentRef} className="rounded-lg p-0.5 sm:max-w-[80rem]" type="creation">
+    <DialogContent
+      enableOverflow
+      ref={dialogContentRef}
+      className="rounded-lg p-0.5 sm:max-w-[80rem]"
+      type="creation">
       <div className="flex">
         <div className="bg-muted flex h-[90vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
@@ -1659,10 +1669,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     )}
                   </div>
                   <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
-                  <DialogFooter
-                    className="mt-10 flex flex-row-reverse gap-x-2"
-                    showDivider
-                    customDividerClassNames="w-2/3">
+                  <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                     <DialogClose />
                     {tab.type === "code" ? (
                       <Button
