@@ -139,6 +139,8 @@ export interface App {
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */
   dependencies?: string[];
+  /** Enables video apps to be used for team events */
+  concurrentMeetings?: boolean;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
