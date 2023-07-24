@@ -378,7 +378,9 @@ export class Cal {
         // Right now it would wait for embed-iframe.js bundle to be loaded as well. We can speed that up by inlining the JS that informs about color-scheme being set in the HTML.
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
-        this.iframe.style.visibility = "visible";
+
+        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visiblity:hidden set. Just reset the visibility to default
+        this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
