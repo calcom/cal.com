@@ -160,6 +160,7 @@ const _sendPayload = async (
       "Content-Type": contentType,
       "X-Cal-Signature-256": secretSignature,
     },
+    redirect: "manual",
     body,
   });
 
@@ -168,7 +169,11 @@ const _sendPayload = async (
   return {
     ok: response.ok,
     status: response.status,
-    message: text,
+    ...(text
+      ? {
+          message: text,
+        }
+      : {}),
   };
 };
 
