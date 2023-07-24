@@ -1,5 +1,5 @@
-import dayjs from "@calcom/dayjs";
-import { prisma } from "@calcom/prisma";
+import { createHash } from "crypto";
+import { totp } from "otplib";
 
 import { TRPCError } from "@trpc/server";
 
@@ -10,28 +10,18 @@ type VerifyTokenOptions = {
 };
 
 export const verifyTokenHandler = async ({ input }: VerifyTokenOptions) => {
-    const { token, identifier } = input
-    const foundToken = await prisma.verificationToken.findFirst({
-        where: {
-            token,
-            identifier
-        },
-    });
+  const { email, code } = input;
 
-    if (!foundToken) {
-        throw new TRPCError({code: "NOT_FOUND"})
-    }
+  if (!email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
-    if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-        throw new TRPCError({code: "UNAUTHORIZED"})
-    }
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
 
-    // Delete token from DB after it has been used
-    await prisma.verificationToken.delete({
-        where: {
-            id: foundToken?.id,
-        },
-    });
+  totp.options = { step: 900 };
+  const isValidToken = totp.check(code, secret);
 
-  return {ok: true};
+  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+
+  return isValidToken;
 };

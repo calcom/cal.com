@@ -2,6 +2,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
+import { useEffect } from "react";
 import useDigitInput from "react-digit-input";
 import { Controller, useForm } from "react-hook-form";
 
@@ -39,11 +40,13 @@ export const VerifyCodeDialog = ({
   setIsOpenDialog,
   email,
   onSuccess,
+  isUserSessionRequiredToVerify = true,
 }: {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   email: string;
   onSuccess: (isVerified: boolean) => void;
+  isUserSessionRequiredToVerify?: boolean;
 }) => {
   const { t } = useLocale();
   // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
@@ -58,7 +61,21 @@ export const VerifyCodeDialog = ({
     onChange,
   });
 
-  const verifyCodeMutation = trpc.viewer.organizations.verifyCode.useMutation({
+  // NOTE: If user session is required, then user verifyCodeMutationUserSessionRequired, otherwise user verifyTokenMutationUserSessionNotRequired
+
+  const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
+    onSuccess: (data) => {
+      setIsLoading(false);
+      onSuccess(data);
+    },
+    onError: (err) => {
+      setIsLoading(false);
+      if (err.message === "invalid_code") {
+        setError(t("code_provided_invalid"));
+      }
+    },
+  });
+  const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyToken.useMutation({
     onSuccess: (data) => {
       setIsLoading(false);
       onSuccess(data);
@@ -72,6 +89,8 @@ export const VerifyCodeDialog = ({
   });
 
   const digitClassName = "h-12 w-12 !text-xl text-center";
+
+  useEffect(() => onChange(""), [isOpenDialog]);
 
   return (
     <Dialog
@@ -119,10 +138,15 @@ export const VerifyCodeDialog = ({
                     setError("The code is a required field");
                   } else {
                     setIsLoading(true);
-                    verifyCodeMutation.mutate({
-                      code: value,
-                      email,
-                    });
+                    isUserSessionRequiredToVerify
+                      ? verifyCodeMutationUserSessionRequired.mutate({
+                          code: value,
+                          email,
+                        })
+                      : verifyCodeMutationUserSessionNotRequired.mutate({
+                          code: value,
+                          email,
+                        });
                   }
                 }}>
                 {t("verify")}

@@ -1,4 +1,5 @@
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
+import { totp } from "otplib";
 
 import { sendEmailVerificationCode, sendEmailVerificationLink } from "@calcom/emails/email-manager";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -56,30 +57,17 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
 };
 
 export const sendEmailVerificationByCode = async ({ email, language, username }: VerifyEmailType) => {
-  const token = randomBytes(3).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: email,
-  });
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
-    },
-  });
-
-  const params = new URLSearchParams({
-    token,
-  });
+  totp.options = { step: 900 };
+  const code = totp.generate(secret);
 
   await sendEmailVerificationCode({
     language: translation,
-    verificationEmailCode: token,
+    verificationEmailCode: code,
     user: {
       email,
       name: username,
