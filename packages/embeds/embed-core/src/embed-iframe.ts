@@ -2,13 +2,13 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
-import type { BookerStore } from "@calcom/features/bookings/Booker/store";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 type Theme = "dark" | "light";
+
+export type BookerLayouts = "month_view" | "week_view" | "column_view";
+
 export type EmbedThemeConfig = Theme | "auto";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
@@ -18,6 +18,7 @@ export type UiConfig = {
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
   layout?: BookerLayouts;
+  colorScheme?: string | null;
 };
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -44,7 +45,6 @@ const embedStore = {
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
-  layout: BookerLayouts,
 };
 
 declare global {
@@ -53,7 +53,6 @@ declare global {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
-      setLayout?: BookerStore["setLayout"];
     };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
@@ -336,6 +335,10 @@ const methods = {
       window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
     }
 
+    if (uiConfig.colorScheme) {
+      actOnColorScheme(uiConfig.colorScheme);
+    }
+
     if (embedStore.setUiConfig) {
       runAllUiSetters(uiConfig);
     }
@@ -461,9 +464,11 @@ if (isBrowser) {
 
   embedStore.uiConfig = {
     // TODO: Add theme as well here
-    // theme:
+    colorScheme: url.searchParams.get("ui.color-scheme"),
     layout: url.searchParams.get("layout") as BookerLayouts,
   };
+
+  actOnColorScheme(embedStore.uiConfig.colorScheme);
 
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
@@ -522,4 +527,11 @@ function runAllUiSetters(uiConfig: UiConfig) {
   // Update EmbedStore so that when a new react component mounts, useEmbedUiConfig can get the persisted value from embedStore.uiConfig
   embedStore.uiConfig = uiConfig;
   embedStore.setUiConfig.forEach((setUiConfig) => setUiConfig(uiConfig));
+}
+
+function actOnColorScheme(colorScheme: string | null | undefined) {
+  if (!colorScheme) {
+    return;
+  }
+  document.documentElement.style.colorScheme = colorScheme;
 }

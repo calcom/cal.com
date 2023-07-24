@@ -414,6 +414,7 @@ test.describe("FORM_SUBMITTED", async () => {
     // eslint-disable-next-line playwright/no-conditional-in-test
 
     await page.click('[data-testid="install-app-button"]');
+    await page.click('[data-testid="install-app-button-personal"]');
 
     await page.waitForLoadState("networkidle");
     await page.goto(`/settings/developer/webhooks/new`);

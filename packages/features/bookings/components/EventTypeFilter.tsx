@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover } from "@calcom/ui";
-import { Checkbox } from "@calcom/ui";
+import { CheckboxField } from "@calcom/ui";
 
 import { groupBy } from "../groupBy";
 import { useFilterQuery } from "../lib/useFilterQuery";
@@ -73,7 +73,7 @@ export const EventTypeFilter = () => {
               </div>
               {groupedEventTypes[teamName].map((eventType) => (
                 <div key={eventType.id} className="flex items-center px-4 py-1.5">
-                  <Checkbox
+                  <CheckboxField
                     checked={query.eventTypeIds?.includes(eventType.id)}
                     onChange={(e) => {
                       if (e.target.checked) {

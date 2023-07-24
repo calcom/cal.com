@@ -147,7 +147,11 @@ const useTabs = () => {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
-    } else if (tab.href === "/settings/security" && user?.identityProvider === IdentityProvider.GOOGLE) {
+    } else if (
+      tab.href === "/settings/security" &&
+      user?.identityProvider === IdentityProvider.GOOGLE &&
+      !user?.twoFactorEnabled
+    ) {
       tab.children = tab?.children?.filter(
         (childTab) => childTab.href !== "/settings/security/two-factor-auth"
       );
@@ -284,6 +288,9 @@ const SettingsSidebarContainer = ({
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
+                    if (!teamMenuState[index]) {
+                      return null;
+                    }
                     if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
                         <Collapsible
@@ -484,7 +491,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
+        <div className="mx-auto max-w-full justify-center md:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>

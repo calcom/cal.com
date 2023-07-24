@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
@@ -247,19 +247,39 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
+  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
 
   function testRouting() {
     const action = processRoute({ form, response });
     setDecidedAction(action);
   }
 
-  const hookForm = useForm({
-    defaultValues: form,
-  });
+  const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
-    hookForm.reset(form);
-  }, [form, hookForm]);
+    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
+    // and then it is considered the source of truth.
+
+    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
+
+    // 1 - When we change the edited form.
+
+    // 2 - When the form is saved elsewhere (such as in another browser tab)
+
+    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
+    // because each time a tab changes, a new component is created and another useEffect is executed.
+    // An update from the form always occurs after the first useEffect execution.
+    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
+      hookForm.reset(form);
+    }
+
+    if (skipFirstUpdate) {
+      setSkipFirstUpdate(false);
+    } else {
+      hookForm.reset(form);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {

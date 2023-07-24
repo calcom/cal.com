@@ -100,7 +100,7 @@ const providers: Provider[] = [
 
       // Don't leak information about it being username or password that is invalid
       if (!user) {
-        throw new Error(ErrorCode.IncorrectUsernamePassword);
+        throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
       await checkRateLimitAndThrowError({
@@ -112,16 +112,16 @@ const providers: Provider[] = [
       }
 
       if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.IncorrectUsernamePassword);
+        throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      if (user.password || !credentials.totpCode) {
+      if (user.password && !credentials.totpCode) {
         if (!user.password) {
-          throw new Error(ErrorCode.IncorrectUsernamePassword);
+          throw new Error(ErrorCode.IncorrectEmailPassword);
         }
         const isCorrectPassword = await verifyPassword(credentials.password, user.password);
         if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectUsernamePassword);
+          throw new Error(ErrorCode.IncorrectEmailPassword);
         }
       }
 
@@ -349,7 +349,7 @@ export const AUTH_OPTIONS: AuthOptions = {
   },
   providers,
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -560,7 +560,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 console.error("Error while linking account of already existing user");
               }
             }
-            if (existingUser.twoFactorEnabled) {
+            if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
               return loginWithTotp(existingUser);
             } else {
               return true;
@@ -600,7 +600,11 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (!hostedCal && existingUserWithEmail.emailVerified) {
+          if (
+            !hostedCal &&
+            existingUserWithEmail.emailVerified &&
+            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
+          ) {
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail);
             } else {
@@ -616,10 +620,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           ) {
             await prisma.user.update({
               where: {
-                email_username: {
-                  email: existingUserWithEmail.email,
-                  username: existingUserWithEmail.username!,
-                },
+                email: existingUserWithEmail.email,
               },
               data: {
                 // update the email to the IdP email

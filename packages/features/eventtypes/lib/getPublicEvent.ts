@@ -6,7 +6,6 @@ import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
@@ -82,10 +81,15 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
+  org: string | null,
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
-
+  const orgQuery = org
+    ? {
+        slug: org ?? null,
+      }
+    : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -93,6 +97,7 @@ export const getPublicEvent = async (
         username: {
           in: usernameList,
         },
+        organization: orgQuery,
       },
       select: {
         username: true,
@@ -137,7 +142,7 @@ export const getPublicEvent = async (
         username: users[0].username,
         name: users[0].name,
         weekStart: users[0].weekStart,
-        image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
+        image: `/${users[0].username}/avatar.png`,
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
@@ -152,12 +157,14 @@ export const getPublicEvent = async (
     ? {
         team: {
           slug: username,
+          parent: orgQuery,
         },
       }
     : {
         users: {
           some: {
             username,
+            organization: orgQuery,
           },
         },
         team: null,
@@ -193,6 +200,7 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
     users,
+    orgDomain: org,
   };
 };
 
@@ -231,7 +239,7 @@ function getProfileFromEvent(event: Event) {
     username,
     name: profile.name,
     weekStart,
-    image: team ? undefined : `${WEBAPP_URL}${basePath}/avatar.png`,
+    image: team ? undefined : `${basePath}/avatar.png`,
     logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,

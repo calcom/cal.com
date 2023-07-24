@@ -61,6 +61,8 @@ export const scheduleEmailReminder = async (
     return;
   }
 
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
+
   let name = "";
   let attendeeName = "";
   let timeZone = "";
@@ -104,13 +106,20 @@ export const scheduleEmailReminder = async (
         ? evt.attendees[0].language?.locale
         : evt.organizer.language.locale;
 
-    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale);
+    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
     emailContent.emailSubject = emailSubjectTemplate.text;
-    emailContent.emailBody = customTemplate(emailBody, variables, locale, hideBranding).html;
+    emailContent.emailBody = customTemplate(
+      emailBody,
+      variables,
+      locale,
+      evt.organizer.timeFormat,
+      hideBranding
+    ).html;
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
       action,
+      evt.organizer.timeFormat,
       startTime,
       endTime,
       evt.title,
@@ -146,6 +155,11 @@ export const scheduleEmailReminder = async (
             html: emailContent.emailBody,
             batchId: batchIdResponse[1].batch_id,
             replyTo: evt.organizer.email,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
           });
         }
       } else {
@@ -159,6 +173,11 @@ export const scheduleEmailReminder = async (
           html: emailContent.emailBody,
           batchId: batchIdResponse[1].batch_id,
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
       }
     } catch (error) {
@@ -187,6 +206,11 @@ export const scheduleEmailReminder = async (
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
 
         await prisma.workflowReminder.create({
