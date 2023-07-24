@@ -1181,7 +1181,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           </div>
         </div>
-        <div className="flex w-2/3 flex-col p-8">
+        <div className="flex w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkShallow />
           {tabs.map((tab) => {
             return (
@@ -1208,10 +1208,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   )}
                 </div>
                 <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
-                <DialogFooter
-                  className="mt-10 flex flex-row-reverse gap-x-2"
-                  showDivider
-                  customDividerClassNames="w-2/3">
+                <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                   <DialogClose />
                   {tab.type === "code" ? (
                     <Button

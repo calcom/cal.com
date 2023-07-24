@@ -274,6 +274,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <Select
                     isSearchable={false}
                     className="text-sm"
+                    id="trigger-select"
                     isDisabled={props.readOnly}
                     onChange={(val) => {
                       if (val) {
