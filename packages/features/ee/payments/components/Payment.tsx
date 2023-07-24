@@ -64,9 +64,10 @@ const PaymentForm = (props: Props) => {
     setState({ status: "processing" });
 
     let payload;
-    const params: { [k: string]: any } = {
+    const params = {
       uid: props.booking.uid,
-      email: router.query.email,
+      email: router.query.email as string,
+      location: null as string | null,
     };
 
     const return_url = getReturnUrl(props);
