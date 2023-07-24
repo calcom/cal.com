@@ -6,6 +6,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
   Label,
   Badge,
@@ -26,6 +27,7 @@ import {
 import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
 
@@ -530,7 +532,18 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const variantsConfig = field.variantsConfig;
   const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
   if (!fieldTypeConfigVariants || !variantsConfig) {
-    return <span>{field.label || t(field.defaultLabel || "")}</span>;
+    if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+      return (
+        <span
+          dangerouslySetInnerHTML={{
+            // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
+            __html: markdownToSafeHTML(field.label || "") || t(field.defaultLabel || ""),
+          }}
+        />
+      );
+    } else {
+      return <span>{field.label || t(field.defaultLabel || "")}</span>;
+    }
   }
   const variant = field.variant || defaultVariant;
   if (!variant) {
