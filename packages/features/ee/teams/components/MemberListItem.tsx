@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -30,6 +29,7 @@ import {
 } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
+import { useOrgBranding } from "../../organizations/context/provider";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -54,7 +54,7 @@ const checkIsOrg = (team: Props["team"]) => {
 
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
