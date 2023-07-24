@@ -172,7 +172,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     return defaults;
   }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
-  const disableBookingTitle = event.data?.isDynamic ? false : true;
+  const disableBookingTitle = !!event.data?.isDynamic;
   const bookingFormSchema = z
     .object({
       responses: event?.data
