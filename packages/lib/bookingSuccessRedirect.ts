@@ -1,11 +1,14 @@
 import type { NextRouter } from "next/router";
 
-import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import type { BookingResponse } from "@calcom/web/lib/types/booking";
 
 import type { EventType } from ".prisma/client";
 
-type SuccessRedirectBookingType = BookingResponse | PaymentPageProps["booking"];
+// Let's be very clear what all query params we are supposed to pass
+type SuccessRedirectBookingType = Pick<
+  BookingResponse,
+  "title" | "description" | "startTime" | "endTime" | "location"
+>;
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   type BookingResponseKey = keyof SuccessRedirectBookingType;
   const redirectQueryParamKeys: BookingResponseKey[] = [
