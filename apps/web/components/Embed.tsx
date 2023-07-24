@@ -14,7 +14,7 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
-import { useInitializeBookerStore, useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
@@ -22,14 +22,12 @@ import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { CAL_URL } from "@calcom/lib/constants";
-import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { TimezoneSelect } from "@calcom/ui";
 import {
   Button,
   ColorPicker,
@@ -44,8 +42,9 @@ import {
   Switch,
   TextArea,
   TextField,
+  TimezoneSelect,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowLeft, ArrowUp, Code, Sun, Trello } from "@calcom/ui/components/icon";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
