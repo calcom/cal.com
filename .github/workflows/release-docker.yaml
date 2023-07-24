@@ -7,8 +7,8 @@ on: # yamllint disable-line rule:truthy
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
-      tags:
-        description: 'v{Major}.{Minor}.{Patch}'  
+      RELEASE_TAG:
+        description: 'v{Major}.{Minor}.{Patch}'
 
 jobs:
   release:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      
+
       - name: "Determine tag"
         run: "echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
 
@@ -36,7 +36,7 @@ jobs:
                 workflow_id: 'create-release.yaml',
                 ref: 'main',
                 inputs: {
-                  "RELEASE_TAG": process.env.RELEASE_TAG
+                  "RELEASE_TAG": ${{ inputs.RELEASE_TAG }}
                 },
               });
 
