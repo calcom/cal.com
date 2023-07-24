@@ -31,7 +31,7 @@ jobs:
           script: |
             try {
               const response = await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
+                owner: 'cal.com',
                 repo: 'docker',
                 workflow_id: 'create-release.yaml',
                 ref: 'main',
