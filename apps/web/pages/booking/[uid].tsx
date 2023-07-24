@@ -445,7 +445,10 @@ export default function Success(props: SuccessProps) {
                                 </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                              <p className="text-default">{bookingInfo.user.email}</p>
+                              <p className="text-default">
+                                {EventTypeMetaDataSchema.parse(bookingInfo.eventType?.metadata)
+                                  ?.organizerEmail || bookingInfo.user?.email}
+                              </p>
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
@@ -1043,6 +1046,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           eventName: true,
           slug: true,
           timeZone: true,
+          metadata: true,
         },
       },
       seatsReferences: {

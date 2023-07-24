@@ -28,6 +28,7 @@ import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
@@ -49,6 +50,9 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
+  const { data: connectedCalendars, isLoading: connectedCalendarLoading } =
+    trpc.viewer.connectedCalendars.useQuery();
+  const updateEventTypeMutation = trpc.viewer.eventTypes.update.useMutation();
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
@@ -66,6 +70,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!bookingData;
   const event = useEvent();
   const eventType = event.data;
+  const defaultEmail = connectedCalendars?.destinationCalendar?.primaryEmail;
 
   const reserveSlot = () => {
     if (eventType?.id && timeslot && (duration || eventType?.length)) {
@@ -321,6 +326,26 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         ),
     };
 
+    const eventMeta = EventTypeMetaDataSchema.parse(eventType?.metadata);
+
+    if (!defaultEmail) {
+      delete eventMeta?.organizerEmail;
+      delete eventMeta?.isDefaultEmail;
+
+      updateEventTypeMutation.mutate({
+        metadata: { ...eventMeta },
+        id: event?.data.id,
+      });
+    }
+
+    // if email in use is default email and not same with current default email, update organizerEmail
+    if (eventMeta?.isDefaultEmail && eventMeta?.organizerEmail !== defaultEmail) {
+      updateEventTypeMutation.mutate({
+        metadata: { ...eventMeta, organizerEmail: defaultEmail },
+        id: event?.data.id,
+      });
+    }
+
     if (event.data?.recurringEvent?.freq && recurringEventCount) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
@@ -382,7 +407,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           <Button
             type="submit"
             color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+            loading={
+              createBookingMutation.isLoading ||
+              createRecurringBookingMutation.isLoading ||
+              connectedCalendarLoading
+            }
             data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
             {rescheduleUid ? t("reschedule") : t("confirm")}
           </Button>
