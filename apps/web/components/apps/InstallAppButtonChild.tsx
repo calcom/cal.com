@@ -27,11 +27,7 @@ export const InstallAppButtonChild = ({
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
-  addAppMutationInput: {
-    type: App["type"];
-    variant: string;
-    slug: string;
-  };
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
@@ -48,7 +44,10 @@ export const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+  if (
+    !userAdminTeams?.length ||
+    appCategories.some((category) => ["calendar", "conferencing"].includes(category))
+  ) {
     return (
       <Button
         data-testid="install-app-button"
