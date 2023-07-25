@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -10,6 +10,7 @@ import EventTypeDescription from "@calcom/features/eventtypes/components/EventTy
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -32,8 +33,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
-  const searchParams = useSearchParams();
-  const queryParamsToForward = Object.fromEntries(searchParams.entries());
+  const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -65,6 +65,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       </div>
     );
   }
+
+  // slug is a route parameter, we don't want to forward it to the next route
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
