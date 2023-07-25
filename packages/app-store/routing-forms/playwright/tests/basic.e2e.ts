@@ -236,10 +236,7 @@ test.describe("Routing Forms", () => {
       await user.apiLogin();
 
       await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
-      // Can't keep waiting forever. So, added a timeout of 5000ms
-      await page.waitForResponse((response) => response.url().includes("appRoutingForms/report"), {
-        timeout: 5000,
-      });
+
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
       // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
