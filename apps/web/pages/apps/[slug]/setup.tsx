@@ -1,7 +1,6 @@
 import type { GetStaticPaths, InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
