@@ -1878,6 +1878,8 @@
   "install_app_on": "התקנת האפליקציה ב-",
   "create_for": "צור/צרי עבור",
   "setup_organization": "הגדרת ארגון",
+  "organization_banner_description": "צור/י סביבות שבהן הצוותים שלך יכולים ליצור אפליקציות, תהליכי עבודה וסוגי אירועים משותפים, עם תכונות כמו סבב וקביעת מועדים שיתופית.",
+  "organization_banner_title": "ניהול ארגונים עם צוותים מרובים",
   "set_up_your_organization": "הגדרת הארגון",
   "organization_name": "שם הארגון",
   "organization_url": "כתובת ה-URL של הארגון",
