@@ -1,5 +1,4 @@
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,6 +16,14 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Form,
   Label,
   showToast,
@@ -25,17 +32,9 @@ import {
   Switch,
   TimezoneSelect,
   Tooltip,
-  Dialog,
-  DialogTrigger,
-  DropdownMenuSeparator,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownItem,
-  DropdownMenuTrigger,
-  ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
+import { Info, MoreHorizontal, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
@@ -48,9 +47,7 @@ const querySchema = z.object({
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
-  dateOverrides: {
-    ranges: TimeRange[];
-  }[];
+  dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   isDefault: boolean;
 };
