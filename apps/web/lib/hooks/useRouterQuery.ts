@@ -13,7 +13,5 @@ export default function useRouterQuery<T extends string>(name: T) {
 
   return { [name]: searchParams.get(name), setQuery } as {
     [K in T]: string | undefined;
-  } & {
-    setQuery: typeof setQuery;
-  };
+  } & { setQuery: typeof setQuery };
 }
