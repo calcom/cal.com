@@ -1,10 +1,11 @@
-name: E2E Embed tests and booking flow(for non-embed as well)
+name: E2E Embed Core tests and booking flow(for non-embed as well)
 on:
   workflow_call:
 
 jobs:
   e2e-embed:
     timeout-minutes: 20
+    name: E2E Embed Core (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
@@ -14,6 +15,11 @@ jobs:
           POSTGRES_DB: calendso
         ports:
           - 5432:5432
+    strategy:
+      fail-fast: false
+      matrix:
+        ## There aren't many tests for embed-core. So, just start with 2 shards. Increase if needed.
+        shard: [1, 2]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,12 +31,12 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn test-e2e:embed
+        run: yarn e2e:embed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
-          path: test-results
+          name: embed-core-results-${{ matrix.shard }}_${{ strategy.job-total }}
+          path: embed-core-results

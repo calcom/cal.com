@@ -2,24 +2,24 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { classNames } from "@calcom/lib";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden, org }: PageProps) {
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+export default function Type({ slug, user, booking, away, isEmbed, isBrandingHidden, org }: PageProps) {
   return (
-    <main className={classNames("flex h-full items-center justify-center", !isEmbed && "min-h-[100dvh]")}>
+    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
         username={user}
         eventSlug={slug}

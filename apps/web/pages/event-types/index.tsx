@@ -16,6 +16,7 @@ import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -710,7 +711,7 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
-
+  const bookerUrl = useBookerUrl();
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
@@ -741,9 +742,7 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {orgBranding
-              ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}${profile.slug}`
-              : `${CAL_URL?.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
