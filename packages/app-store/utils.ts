@@ -121,6 +121,7 @@ function getApps(userCredentials: CredentialData[]) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
+        teamId: 0,
         appId: appMeta.slug,
         invalid: false,
       });
