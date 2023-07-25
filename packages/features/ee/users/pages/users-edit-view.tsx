@@ -49,11 +49,7 @@ const UsersEditView = ({ userId }: { userId: number }) => {
           onSubmit={(values) => {
             const parser = getParserWithGeneric(userBodySchema);
             const parsedValues = parser(values);
-            const data: Partial<
-              typeof parsedValues & {
-                userId: number;
-              }
-            > = {
+            const data: Partial<typeof parsedValues & { userId: number }> = {
               ...parsedValues,
               userId: user.id,
             };
