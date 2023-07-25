@@ -158,16 +158,9 @@ export default function Verify() {
                 e.preventDefault();
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
-                router.push(
-                  pathname,
-                  {
-                    query: {
-                      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
-                      t: Date.now(),
-                    },
-                  },
-                  { shallow: true }
-                );
+                const _searchParams = new URLSearchParams(searchParams);
+                _searchParams.set("t", `${Date.now()}`);
+                router.replace(`${pathname}?${_searchParams.toString()}`);
                 return await sendVerificationLogin(customer.email, customer.username);
               }}>
               {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Send another mail"}
