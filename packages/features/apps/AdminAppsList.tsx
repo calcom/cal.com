@@ -27,8 +27,8 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
   Switch,
+  TextField,
 } from "@calcom/ui";
 import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
@@ -267,7 +267,7 @@ interface EditModalState extends Pick<App, "keys"> {
 const AdminAppsListContainer = () => {
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { category } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const category = searchParams.get("category") || AppCategories.calendar;
 
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
