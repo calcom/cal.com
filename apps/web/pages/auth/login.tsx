@@ -4,8 +4,7 @@ import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -68,9 +67,7 @@ export default function Login({
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const errorMessages: {
-    [key: string]: string;
-  } = {
+  const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
@@ -81,8 +78,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl =
-    typeof searchParams?.get("callbackUrl") === "string" ? searchParams?.get("callbackUrl") : "";
+  let callbackUrl = searchParams.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
