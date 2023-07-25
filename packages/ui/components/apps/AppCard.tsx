@@ -119,6 +119,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       {...props}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
+                      concurrentMeetings={app.concurrentMeetings}
                     />
                   );
                 }}
@@ -144,6 +145,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       credentials={credentials}
+                      concurrentMeetings={app.concurrentMeetings}
                       {...props}
                     />
                   );
@@ -176,12 +178,14 @@ const InstallAppButtonChild = ({
   addAppMutationInput,
   appCategories,
   credentials,
+  concurrentMeetings,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   credentials?: Credential[];
+  concurrentMeetings?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
