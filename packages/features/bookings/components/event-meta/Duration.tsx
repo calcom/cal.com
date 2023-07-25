@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -11,7 +10,6 @@ import type { PublicEvent } from "../../types";
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
-  const router = useRouter();
   const [selectedDuration, setSelectedDuration] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
@@ -49,13 +47,6 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
             key={event.slug}
             onClick={() => {
               setSelectedDuration(event.length);
-              router.push({
-                query: {
-                  ...router.query,
-                  type: event.slug,
-                  duration: event.length,
-                },
-              });
             }}>
             {event.title}
           </Badge>
