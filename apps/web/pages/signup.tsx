@@ -80,7 +80,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           ...data,
           callbackUrl: `${
             searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
               : `${WEBAPP_URL}/${verifyOrGettingStarted}`
           }?from=signup`,
         });
@@ -161,7 +161,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       onClick={() =>
                         signIn("Cal.com", {
                           callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
+                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
