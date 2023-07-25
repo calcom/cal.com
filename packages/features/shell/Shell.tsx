@@ -119,8 +119,8 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
 
     if (!loading && !session) {
       const urlSearchParams = new URLSearchParams();
-      router.replace(`/auth/login?${urlSearchParams.toString()}`);
       urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
