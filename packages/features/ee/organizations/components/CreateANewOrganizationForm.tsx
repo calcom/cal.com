@@ -135,13 +135,12 @@ export const VerifyCodeDialog = ({
   );
 };
 
-export const CreateANewOrganizationForm = () => {
+export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
-  const { slug } = router.query;
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -224,8 +223,11 @@ export const CreateANewOrganizationForm = () => {
                   defaultValue={value}
                   onChange={(e) => {
                     const domain = extractDomainFromEmail(e?.target.value);
-                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value);
-                    newOrganizationFormMethods.setValue("adminUsername", e?.target.value.split("@")[0]);
+                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value.trim());
+                    newOrganizationFormMethods.setValue(
+                      "adminUsername",
+                      e?.target.value.split("@")[0].trim()
+                    );
                     if (newOrganizationFormMethods.getValues("slug") === "") {
                       newOrganizationFormMethods.setValue("slug", domain);
                     }
@@ -257,7 +259,7 @@ export const CreateANewOrganizationForm = () => {
                   label={t("organization_name")}
                   defaultValue={value}
                   onChange={(e) => {
-                    newOrganizationFormMethods.setValue("name", e?.target.value);
+                    newOrganizationFormMethods.setValue("name", e?.target.value.trim());
                     if (newOrganizationFormMethods.formState.touchedFields["slug"] === undefined) {
                       newOrganizationFormMethods.setValue("slug", slugify(e?.target.value));
                     }

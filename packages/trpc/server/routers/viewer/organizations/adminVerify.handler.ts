@@ -75,7 +75,6 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   });
 
   const userIds = foundUsersWithMatchingEmailDomain.map((user) => user.id);
-  const userEmails = foundUsersWithMatchingEmailDomain.map((user) => user.email);
 
   await prisma.$transaction([
     prisma.membership.updateMany({
@@ -106,14 +105,6 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       },
       data: {
         organizationId: input.orgId,
-      },
-    }),
-    prisma.verificationToken.deleteMany({
-      where: {
-        identifier: {
-          in: userEmails,
-        },
-        teamId: input.orgId,
       },
     }),
   ]);
