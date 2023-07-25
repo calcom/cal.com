@@ -56,6 +56,7 @@ const Component = ({
   descriptionItems,
   isTemplate,
   dependencies,
+  concurrentMeetings,
 }: Parameters<typeof App>[0]) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -186,7 +187,7 @@ const Component = ({
                       };
                     }
                     return (
-                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
+                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall concurrentMeetings {...props} />
                     );
                   }}
                 />
@@ -217,7 +218,7 @@ const Component = ({
                   };
                 }
                 return (
-                  <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} credentials={appDbQuery.data?.credentials} {...props} />
+                  <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} credentials={appDbQuery.data?.credentials} concurrentMeetings {...props} />
                 );
               }}
             />
@@ -370,6 +371,7 @@ export default function App(props: {
   isTemplate?: boolean;
   disableInstall?: boolean;
   dependencies?: string[];
+  concurrentMeetings?: boolean;
 }) {
   return (
     <Shell smallHeading isPublic hideHeadingOnMobile heading={<ShellHeading />} backPath="/apps" withoutSeo>
@@ -395,6 +397,7 @@ const InstallAppButtonChild = ({
   appCategories,
   multiInstall,
   credentials,
+  concurrentMeetings,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -402,6 +405,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+  concurrentMeetings?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -416,7 +420,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar" || category === "conferencing")) {
+  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar" || category === "conferencing" && !concurrentMeetings)) {
     return <Button
       data-testid="install-app-button"
       {...props}
