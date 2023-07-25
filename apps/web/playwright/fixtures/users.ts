@@ -42,7 +42,7 @@ const createTeamAndAddUser = async (
 ) => {
   const team = await prisma.team.create({
     data: {
-      name: "",
+      name: `user-id-${user.id}'s Team`,
       slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
     },
   });
