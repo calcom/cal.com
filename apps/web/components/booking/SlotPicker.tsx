@@ -106,8 +106,6 @@ export const SlotPicker = ({
   }
 
   useEffect(() => {
-    if (!true) return;
-
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
       setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
@@ -124,7 +122,7 @@ export const SlotPicker = ({
         setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
-  }, [true, month, date, duration, timeZone]);
+  }, [month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
   const { slots: monthSlots, isLoading } = useSlots({
