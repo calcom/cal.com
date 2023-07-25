@@ -74,6 +74,7 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
 
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
@@ -166,6 +167,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
+      shallow
       title={type.title}>
       <div>
         <span
@@ -770,14 +772,12 @@ const CreateFirstEventTypeView = () => {
   );
 };
 
-const CTA = () => {
+const CTA = ({ data }: { data: GetByViewerResponse }) => {
   const { t } = useLocale();
 
-  const query = trpc.viewer.eventTypes.getByViewer.useQuery();
+  if (!data) return null;
 
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
+  const profileOptions = data.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -835,25 +835,30 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
-const Main = () => {
+const Main = ({
+  status,
+  error,
+  data,
+  filters,
+}: {
+  status: string;
+  data: GetByViewerResponse;
+  error: any;
+  filters: ReturnType<typeof getTeamsFiltersFromQuery>;
+}) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const router = useRouter();
-  const filters = getTeamsFiltersFromQuery(router.query);
 
   const orgBranding = useOrgBranding();
 
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  const res = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters });
-
-  if (res.status === "loading") {
+  if (!data || status === "loading") {
     return <SkeletonLoader />;
   }
 
-  if (res.status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={res.error.message} />;
+  if (status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={error.message} />;
   }
 
-  const data = res.data;
   const isFilteredByOnlyOneItem =
     (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data.eventTypeGroups.length === 1;
   return (
@@ -907,6 +912,12 @@ const EventTypesPage = () => {
   const { data: user } = useMeQuery();
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
+  const filters = getTeamsFiltersFromQuery(router.query);
+
+  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
+  const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
+    refetchOnWindowFocus: false,
+  });
 
   function closeBanner() {
     setShowProfileBanner(false);
@@ -937,8 +948,8 @@ const EventTypesPage = () => {
         subtitle={t("event_types_page_subtitle")}
         afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
         beforeCTAactions={<Actions />}
-        CTA={<CTA />}>
-        <Main />
+        CTA={<CTA data={data} />}>
+        <Main data={data} status={status} error={error} filters={filters} />
       </Shell>
     </div>
   );
