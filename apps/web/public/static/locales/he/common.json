@@ -338,6 +338,7 @@
   "cancelling_all_recurring": "כל אלה הם יתר המופעים של האירוע החוזר.",
   "error_with_status_code_occured": "אירעה שגיאה עם קוד הסטטוס {{status}}.",
   "error_event_type_url_duplicate": "כבר קיים סוג אירוע עם כתובת ה-URL הזו.",
+  "error_event_type_unauthorized_create": "אין לך אפשרות ליצור את האירוע הזה",
   "booking_already_accepted_rejected": "ההזמנה הזו כבר אושרה או נדחתה",
   "go_back_home": "חזרה אל מסך הבית",
   "or_go_back_home": "או חזור אל מסך הבית",
