@@ -17,6 +17,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@47ng/cloak@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@47ng/cloak@npm:1.1.0"
+  dependencies:
+    "@47ng/codec": ^1.0.1
+    "@stablelib/base64": ^1.0.1
+    "@stablelib/hex": ^1.0.1
+    "@stablelib/utf8": ^1.0.1
+    chalk: ^4.1.2
+    commander: ^8.3.0
+    dotenv: ^10.0.0
+    s-ago: ^2.2.0
+  bin:
+    cloak: dist/cli.js
+  checksum: 7d72c66ff7837368e9ca8f5ba402d72041427eb47c53c340b4640e3352f2956d8673a4a8e97591fb2b9dfe27f3d2765bcd925617273ef2488df2565c77c78299
+  languageName: node
+  linkType: hard
+
+"@47ng/codec@npm:^1.0.1":
+  version: 1.1.0
+  resolution: "@47ng/codec@npm:1.1.0"
+  dependencies:
+    "@stablelib/base64": ^1.0.1
+    "@stablelib/hex": ^1.0.1
+  checksum: 4f780c4413fe78bbedbaff4135340c0e5f5a30df88f5cffbec51349eb0a1c909728e6c2bbda52506ff8c12653bf39b78c67b78bbe9501b0b9741da0cdaeec6ff
+  languageName: node
+  linkType: hard
+
 "@achrinza/event-pubsub@npm:5.0.8":
   version: 5.0.8
   resolution: "@achrinza/event-pubsub@npm:5.0.8"
@@ -3864,6 +3892,43 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/console@workspace:apps/console":
+  version: 0.0.0-use.local
+  resolution: "@calcom/console@workspace:apps/console"
+  dependencies:
+    "@calcom/dayjs": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+    "@calcom/tsconfig": "*"
+    "@calcom/ui": "*"
+    "@headlessui/react": ^1.5.0
+    "@heroicons/react": ^1.0.6
+    "@prisma/client": ^4.16.0
+    "@tailwindcss/forms": ^0.5.2
+    "@types/node": 16.9.1
+    "@types/react": 18.0.26
+    autoprefixer: ^10.4.12
+    chart.js: ^3.7.1
+    client-only: ^0.0.1
+    eslint: ^8.34.0
+    next: ^13.4.6
+    next-auth: ^4.22.1
+    next-i18next: ^13.2.2
+    postcss: ^8.4.18
+    prisma: ^4.16.0
+    prisma-field-encryption: ^1.4.0
+    react: ^18.2.0
+    react-chartjs-2: ^4.0.1
+    react-dom: ^18.2.0
+    react-hook-form: ^7.43.3
+    react-live-chat-loader: ^2.8.1
+    swr: ^1.2.2
+    tailwindcss: ^3.3.1
+    typescript: ^4.9.4
+    zod: ^3.20.2
+  languageName: unknown
+  linkType: soft
+
 "@calcom/core@*, @calcom/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@calcom/core@workspace:packages/core"
@@ -4835,6 +4900,7 @@ __metadata:
     globby: ^13.1.3
     gray-matter: ^4.0.3
     gsap: ^3.11.0
+    i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
     lucide-react: ^0.171.0
@@ -7658,6 +7724,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:5.0.0":
+  version: 5.0.0
+  resolution: "@prisma/debug@npm:5.0.0"
+  dependencies:
+    "@types/debug": 4.1.8
+    debug: 4.3.4
+    strip-ansi: 6.0.1
+  checksum: 17d720717fab190a94762b90f93cfde799f419bfd2fee05c145566d6fa31d59d86dede80417234094afc5fff6d684ce350c17d40c302b26610ee60fe56c704e9
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c":
   version: 4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c
   resolution: "@prisma/engines-version@npm:4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c"
@@ -7681,6 +7758,18 @@ __metadata:
     chalk: 4.1.2
     cross-spawn: 7.0.3
   checksum: 0b0724bd03d40b691a85e002d8ed91216df9e6883d1fe5e69368ad135b59cff5ae49d65860db727fca6acf984c3efe382bca26c4127e0328b2e72748dbf59369
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@prisma/generator-helper@npm:5.0.0"
+  dependencies:
+    "@prisma/debug": 5.0.0
+    "@types/cross-spawn": 6.0.2
+    cross-spawn: 7.0.3
+    kleur: 4.1.5
+  checksum: 3506c9f23d2a7afcf4b99ad264f15efc7873f5e2ff9a7246a770c9ea7e7df627226a2e736890556c495cae3b0d1feaa3fd087417974500feaea14fb6da9dd0b0
   languageName: node
   linkType: hard
 
@@ -9560,10 +9649,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stablelib/base64@npm:^1.0.0":
+"@stablelib/base64@npm:^1.0.0, @stablelib/base64@npm:^1.0.1":
   version: 1.0.1
   resolution: "@stablelib/base64@npm:1.0.1"
   checksum: 3ef4466d1d6889ac3fc67407bc21aa079953981c322eeca3b29f426d05506c63011faab1bfc042d7406e0677a94de6c9d2db2ce079afdd1eccae90031bfb5859
+  languageName: node
+  linkType: hard
+
+"@stablelib/hex@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@stablelib/hex@npm:1.0.1"
+  checksum: 557f1c5d6b42963deee7627d4be1ae3542607851c5561e9419c42682d09562ebd3a06e2d92e088c52213a71ed121ec38221abfc5acd9e65707a77ecee3c96915
+  languageName: node
+  linkType: hard
+
+"@stablelib/utf8@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@stablelib/utf8@npm:1.0.1"
+  checksum: 098d9446f38a641a8ee265a7fc3467fefd561fc46ca65e1216c1df7a9b4d004e616347ce79f4b83d62e944f0f91d6be4af029ad0b027a20c3271951921ebfac5
   languageName: node
   linkType: hard
 
@@ -11799,7 +11902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/debug@npm:^4.0.0":
+"@types/debug@npm:4.1.8, @types/debug@npm:^4.0.0":
   version: 4.1.8
   resolution: "@types/debug@npm:4.1.8"
   dependencies:
@@ -15870,6 +15973,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:^3.7.1":
+  version: 3.9.1
+  resolution: "chart.js@npm:3.9.1"
+  checksum: 9ab0c0ac01215af0b3f020f2e313030fd6e347b48ed17d5484ee9c4e8ead45e78ae71bea16c397621c386b409ce0b14bf17f9f6c2492cd15b56c0f433efdfff6
+  languageName: node
+  linkType: hard
+
 "check-error@npm:^1.0.2":
   version: 1.0.2
   resolution: "check-error@npm:1.0.2"
@@ -18144,6 +18254,13 @@ __metadata:
   version: 8.0.3
   resolution: "dotenv-expand@npm:8.0.3"
   checksum: 128ce90ac825b543de3ece0154a51b056ab0dc36bb26d97a68cd0b8707327ecd3c182fb6ac63b26a0fcdfa85064419906a1065cb634f1f9dc08ad311375f1fc0
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "dotenv@npm:10.0.0"
+  checksum: f412c5fe8c24fbe313d302d2500e247ba8a1946492db405a4de4d30dd0eb186a88a43f13c958c5a7de303938949c4231c56994f97d05c4bc1f22478d631b4005
   languageName: node
   linkType: hard
 
@@ -22403,6 +22520,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"immer@npm:^10.0.2":
+  version: 10.0.2
+  resolution: "immer@npm:10.0.2"
+  checksum: 525a3b14210d02ae420c3b9f6ca14f7e9bcf625611d1356e773e7739f14c7c8de50dac442e6c7de3a6e24a782f7b792b6b8666bc0b3f00269d21a95f8f68ca84
+  languageName: node
+  linkType: hard
+
 "immutable@npm:^3.8.2, immutable@npm:^3.x.x":
   version: 3.8.2
   resolution: "immutable@npm:3.8.2"
@@ -24302,17 +24426,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kleur@npm:4.1.5, kleur@npm:^4.0.3, kleur@npm:^4.1.5":
+  version: 4.1.5
+  resolution: "kleur@npm:4.1.5"
+  checksum: 1dc476e32741acf0b1b5b0627ffd0d722e342c1b0da14de3e8ae97821327ca08f9fb944542fb3c126d90ac5f27f9d804edbe7c585bf7d12ef495d115e0f22c12
+  languageName: node
+  linkType: hard
+
 "kleur@npm:^3.0.3":
   version: 3.0.3
   resolution: "kleur@npm:3.0.3"
   checksum: df82cd1e172f957bae9c536286265a5cdbd5eeca487cb0a3b2a7b41ef959fc61f8e7c0e9aeea9c114ccf2c166b6a8dd45a46fd619c1c569d210ecd2765ad5169
-  languageName: node
-  linkType: hard
-
-"kleur@npm:^4.0.3, kleur@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "kleur@npm:4.1.5"
-  checksum: 1dc476e32741acf0b1b5b0627ffd0d722e342c1b0da14de3e8ae97821327ca08f9fb944542fb3c126d90ac5f27f9d804edbe7c585bf7d12ef495d115e0f22c12
   languageName: node
   linkType: hard
 
@@ -27408,6 +27532,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-path@npm:^0.11.8":
+  version: 0.11.8
+  resolution: "object-path@npm:0.11.8"
+  checksum: 684ccf0fb6b82f067dc81e2763481606692b8485bec03eb2a64e086a44dbea122b2b9ef44423a08e09041348fe4b4b67bd59985598f1652f67df95f0618f5968
+  languageName: node
+  linkType: hard
+
 "object-visit@npm:^1.0.0":
   version: 1.0.1
   resolution: "object-visit@npm:1.0.1"
@@ -29222,6 +29353,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prisma-field-encryption@npm:^1.4.0":
+  version: 1.5.0
+  resolution: "prisma-field-encryption@npm:1.5.0"
+  dependencies:
+    "@47ng/cloak": ^1.1.0
+    "@prisma/generator-helper": ^5.0.0
+    debug: ^4.3.4
+    immer: ^10.0.2
+    object-path: ^0.11.8
+    zod: ^3.21.4
+  peerDependencies:
+    "@prisma/client": ">= 4.7"
+  bin:
+    prisma-field-encryption: dist/generator/main.js
+  checksum: 530bd970c5015c8c587bdca24136262d746093dd3d0793c892f4a1c377633182ae95e0ef5659465f914e4cc9bd7b24bf45551aa9c624a05942570f5b650fc065
+  languageName: node
+  linkType: hard
+
 "prisma@npm:^4.16.0":
   version: 4.16.0
   resolution: "prisma@npm:4.16.0"
@@ -29792,6 +29941,16 @@ __metadata:
     react: ^16.3.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.3.0 || ^17.0.0 || ^18.0.0
   checksum: 368084515bdbc59dddf1a0e367c6bb49e9b9efdc1d01343afeeb412feb52d89b88ac6b09378433cdb3716557ff2cf56751f11183ecd99a5df2a5c48b1691e33d
+  languageName: node
+  linkType: hard
+
+"react-chartjs-2@npm:^4.0.1":
+  version: 4.3.1
+  resolution: "react-chartjs-2@npm:4.3.1"
+  peerDependencies:
+    chart.js: ^3.5.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 574d12cc43b9b4a0f1e04cc692982e16ef7083c03da2a8a9fc2180fe9bcadc793008f81d8f4eec5465925eff84c95d7c523cb74376858b363ae75a83bb3c2a5d
   languageName: node
   linkType: hard
 
@@ -31655,6 +31814,13 @@ __metadata:
   dependencies:
     tslib: ^2.1.0
   checksum: e034f60805210cce756dd2f49664a8108780b117cf5d0e2281506e9e6387f7b4f1532d974a8c8b09314fa7a16dd2f6cff3462072a5789672b5dcb45c4173f3c6
+  languageName: node
+  linkType: hard
+
+"s-ago@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "s-ago@npm:2.2.0"
+  checksum: f665fef44d9d88322ce5a798ca3c49b40f96231ddc7bd46dc23c883e98215675aa422985760d45d3779faa3c0bc94edb2a50630bf15f54c239d11963e53d998c
   languageName: node
   linkType: hard
 
@@ -33644,6 +33810,15 @@ __metadata:
     tar: ^4.0.2
     xhr-request: ^1.0.1
   checksum: 1de56e0cb02c1c80e041efb2bd2cc7250c5451c3016967266c16d5c1e8c74fe5c3aae45dc46065b1f4d77667a8453b967961ec58b3975469522f566aa840a914
+  languageName: node
+  linkType: hard
+
+"swr@npm:^1.2.2":
+  version: 1.3.0
+  resolution: "swr@npm:1.3.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0
+  checksum: e7a184f0d560e9c8be85c023cc8e65e56a88a6ed46f9394b301b07f838edca23d2e303685319a4fcd620b81d447a7bcb489c7fa0a752c259f91764903c690cdb
   languageName: node
   linkType: hard
 
@@ -37552,7 +37727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.21.4":
+"zod@npm:3.21.4, zod@npm:^3.21.4":
   version: 3.21.4
   resolution: "zod@npm:3.21.4"
   checksum: f185ba87342ff16f7a06686767c2b2a7af41110c7edf7c1974095d8db7a73792696bcb4a00853de0d2edeb34a5b2ea6a55871bc864227dace682a0a28de33e1f
