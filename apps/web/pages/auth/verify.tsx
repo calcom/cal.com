@@ -1,16 +1,14 @@
 import { signIn } from "next-auth/react";
 import Head from "next/head";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
-import { Check, MailOpen, AlertTriangle } from "@calcom/ui/components/icon";
+import { AlertTriangle, Check, MailOpen } from "@calcom/ui/components/icon";
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
@@ -59,9 +57,8 @@ export default function Verify() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const { t, sessionId, stripeCustomerId } = querySchema.parse(
-    ...Object.fromEntries(searchParams ?? new URLSearchParams())
-  );
+  const routerQuery = useRouterQuery();
+  const { t, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
   const [secondsLeft, setSecondsLeft] = useState(30);
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
     stripeCustomerId,
@@ -94,7 +91,7 @@ export default function Verify() {
     }
   }, [secondsLeft]);
 
-  if (!true || !data) {
+  if (!data) {
     // Loading state
     return <Loader />;
   }
