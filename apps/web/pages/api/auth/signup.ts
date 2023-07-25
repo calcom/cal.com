@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -42,16 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
     return;
-  }
-
-  if (IS_CALCOM) {
-    const checkUsername = await checkPremiumUsername(username);
-    if (checkUsername.premium) {
-      res.status(422).json({
-        message: "Sign up from https://cal.com/signup to claim your premium username",
-      });
-      return;
-    }
   }
 
   // There is an existingUser if the username matches
@@ -116,22 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await prisma.user.upsert({
-    where: { email: userEmail },
-    update: {
-      username,
-      password: hashedPassword,
-      emailVerified: new Date(Date.now()),
-      identityProvider: IdentityProvider.CAL,
-    },
-    create: {
-      username,
-      email: userEmail,
-      password: hashedPassword,
-      identityProvider: IdentityProvider.CAL,
-    },
-  });
-
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
       where: {
@@ -140,6 +114,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (team) {
+      const user = await prisma.user.upsert({
+        where: { email: userEmail },
+        update: {
+          username,
+          password: hashedPassword,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+        },
+        create: {
+          username,
+          email: userEmail,
+          password: hashedPassword,
+          identityProvider: IdentityProvider.CAL,
+        },
+      });
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
       if (teamMetadata?.isOrganization) {
         await prisma.user.update({
@@ -211,6 +200,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } else {
+    if (IS_CALCOM) {
+      const checkUsername = await checkPremiumUsername(username);
+      if (checkUsername.premium) {
+        res.status(422).json({
+          message: "Sign up from https://cal.com/signup to claim your premium username",
+        });
+        return;
+      }
+    }
+    await prisma.user.upsert({
+      where: { email: userEmail },
+      update: {
+        username,
+        password: hashedPassword,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+      },
+      create: {
+        username,
+        email: userEmail,
+        password: hashedPassword,
+        identityProvider: IdentityProvider.CAL,
+      },
+    });
     await sendEmailVerification({
       email: userEmail,
       username,
