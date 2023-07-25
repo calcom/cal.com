@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import { useParams } from "next/navigation";
 import { Fragment } from "react";
 import { z } from "zod";
 
@@ -9,6 +8,7 @@ import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
@@ -29,9 +29,7 @@ type RecurringInfo = {
   recurringEventId: string | null;
   count: number;
   firstDate: Date | null;
-  bookings: {
-    [key: string]: Date[];
-  };
+  bookings: { [key: string]: Date[] };
 };
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
@@ -49,9 +47,9 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
-  const searchParams = useParams();
+  const params = useParamsWithFallback();
   const { data: filterQuery } = useFilterQuery();
-  const { status } = searchParams ? querySchema.parse(searchParams) : { status: "upcoming" };
+  const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
