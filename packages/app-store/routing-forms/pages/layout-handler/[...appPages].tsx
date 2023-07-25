@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import type { NextRouter } from "next/router";
+import type { AppProps as NextAppProps } from "next/app";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -15,7 +15,7 @@ type Component = {
   default: React.ComponentType & Pick<AppProps["Component"], "getLayout">;
   getServerSideProps?: (context: GetServerSidePropsContext, ...rest: GetServerSidePropsRestArgs) => void;
 };
-const getComponent = (route: string | NextRouter): Component => {
+const getComponent = (route: string | NextAppProps["router"]): Component => {
   const defaultRoute = "forms";
   const routeKey =
     typeof route === "string" ? route || defaultRoute : route?.query?.pages?.[0] || defaultRoute;
@@ -34,7 +34,7 @@ export default function LayoutHandler(props: { [key: string]: unknown }) {
   );
 }
 
-LayoutHandler.getLayout = (page: React.ReactElement, router: NextRouter) => {
+LayoutHandler.getLayout = (page: React.ReactElement, router: NextAppProps["router"]) => {
   const component = getComponent(router).default;
   if (component && "getLayout" in component) {
     return component.getLayout?.(page, router);

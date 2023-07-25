@@ -4,8 +4,9 @@ import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Form, ImageUploader, Alert, Label, TextAreaField } from "@calcom/ui";
+import { Alert, Avatar, Button, Form, ImageUploader, Label, TextAreaField } from "@calcom/ui";
 import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
@@ -15,7 +16,8 @@ const querySchema = z.object({
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { id: orgId } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const routerQuery = useRouterQuery();
+  const { id: orgId } = querySchema.parse(routerQuery);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [image, setImage] = useState("");
 
