@@ -209,10 +209,8 @@ function EventTypeSingleLayout({
         }`,
       });
     }
-    if (isManagedEventType || isChildrenManagedEventType) {
-      // Removing apps and workflows for manageg event types by admins v1
-      navigation.splice(0, 1);
-    } else {
+    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
+    if (showWebhooks) {
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,

@@ -142,10 +142,7 @@ export const UserForm = ({
             <Label className="text-default font-medium" htmlFor="role">
               {t("role")}
             </Label>
-            <Select<{
-              label: string;
-              value: string;
-            }>
+            <Select<{ label: string; value: string }>
               value={value}
               options={userRoleOptions}
               onChange={onChange}
@@ -161,10 +158,7 @@ export const UserForm = ({
             <Label className="text-default font-medium" htmlFor="identityProvider">
               {t("identity_provider")}
             </Label>
-            <Select<{
-              label: string;
-              value: string;
-            }>
+            <Select<{ label: string; value: string }>
               value={value}
               options={identityProviderOptions}
               onChange={onChange}
@@ -183,10 +177,7 @@ export const UserForm = ({
             <Label className="text-default">
               <>{t("language")}</>
             </Label>
-            <Select<{
-              label: string;
-              value: string;
-            }>
+            <Select<{ label: string; value: string }>
               className="capitalize"
               options={localeOptions}
               value={value}

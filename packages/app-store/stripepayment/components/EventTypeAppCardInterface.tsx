@@ -11,10 +11,7 @@ import { Alert, Select, TextField } from "@calcom/ui";
 import { paymentOptions } from "../lib/constants";
 import type { appDataSchema } from "../zod";
 
-type Option = {
-  value: string;
-  label: string;
-};
+type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();

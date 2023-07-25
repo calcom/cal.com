@@ -33,9 +33,7 @@ function gotoUrl(url: string, newTab?: boolean) {
 }
 
 export function GoogleWorkspaceInviteButton(
-  props: PropsWithChildren<{
-    onSuccess: (data: string[]) => void;
-  }>
+  props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const featureFlags = useFlagMap();
   const utils = trpc.useContext();

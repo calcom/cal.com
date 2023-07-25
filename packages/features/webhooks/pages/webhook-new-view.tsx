@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,18 +18,16 @@ const NewWebhookView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const teamId = searchParams?.get("teamId") ? +searchParams?.get("teamId") : undefined;
+  const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
 
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: searchParams !== null,
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: searchParams !== null,
   });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
