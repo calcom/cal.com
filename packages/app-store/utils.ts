@@ -33,7 +33,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, appId: true, invalid: true },
+  select: { id: true, type: true, key: true, userId: true, teamId: true, appId: true, invalid: true },
 });
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
