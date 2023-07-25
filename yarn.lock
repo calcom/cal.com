@@ -7725,14 +7725,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/debug@npm:4.15.0":
-  version: 4.15.0
-  resolution: "@prisma/debug@npm:4.15.0"
+"@prisma/debug@npm:5.0.0":
+  version: 5.0.0
+  resolution: "@prisma/debug@npm:5.0.0"
   dependencies:
     "@types/debug": 4.1.8
     debug: 4.3.4
     strip-ansi: 6.0.1
-  checksum: d911fbe540e2f6ecb3912fb871bedef63a6ded94e5f012b5afb580baf44c44dfddff095b22dbf9482bc62411217588892d723a42f0e8c497c20b9354e45ec081
+  checksum: 17d720717fab190a94762b90f93cfde799f419bfd2fee05c145566d6fa31d59d86dede80417234094afc5fff6d684ce350c17d40c302b26610ee60fe56c704e9
   languageName: node
   linkType: hard
 
@@ -7750,18 +7750,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/generator-helper@npm:^4.0.0":
-  version: 4.15.0
-  resolution: "@prisma/generator-helper@npm:4.15.0"
-  dependencies:
-    "@prisma/debug": 4.15.0
-    "@types/cross-spawn": 6.0.2
-    cross-spawn: 7.0.3
-    kleur: 4.1.5
-  checksum: a8692468b05a34b397bf7acc6fa71047ef7faaaa2208a14daac05efb80692a8592ec48c748bbe44e656095dc4fdaf2c77cd3b5bab2e29bce856ff6b0dac275ea
-  languageName: node
-  linkType: hard
-
 "@prisma/generator-helper@npm:^4.13.0":
   version: 4.13.0
   resolution: "@prisma/generator-helper@npm:4.13.0"
@@ -7771,6 +7759,18 @@ __metadata:
     chalk: 4.1.2
     cross-spawn: 7.0.3
   checksum: 0b0724bd03d40b691a85e002d8ed91216df9e6883d1fe5e69368ad135b59cff5ae49d65860db727fca6acf984c3efe382bca26c4127e0328b2e72748dbf59369
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@prisma/generator-helper@npm:5.0.0"
+  dependencies:
+    "@prisma/debug": 5.0.0
+    "@types/cross-spawn": 6.0.2
+    cross-spawn: 7.0.3
+    kleur: 4.1.5
+  checksum: 3506c9f23d2a7afcf4b99ad264f15efc7873f5e2ff9a7246a770c9ea7e7df627226a2e736890556c495cae3b0d1feaa3fd087417974500feaea14fb6da9dd0b0
   languageName: node
   linkType: hard
 
@@ -15639,6 +15639,7 @@ __metadata:
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0
+    i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
@@ -22520,10 +22521,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:^9.0.15":
-  version: 9.0.21
-  resolution: "immer@npm:9.0.21"
-  checksum: 70e3c274165995352f6936695f0ef4723c52c92c92dd0e9afdfe008175af39fa28e76aafb3a2ca9d57d1fb8f796efc4dd1e1cc36f18d33fa5b74f3dfb0375432
+"immer@npm:^10.0.2":
+  version: 10.0.2
+  resolution: "immer@npm:10.0.2"
+  checksum: 525a3b14210d02ae420c3b9f6ca14f7e9bcf625611d1356e773e7739f14c7c8de50dac442e6c7de3a6e24a782f7b792b6b8666bc0b3f00269d21a95f8f68ca84
   languageName: node
   linkType: hard
 
@@ -29354,20 +29355,20 @@ __metadata:
   linkType: hard
 
 "prisma-field-encryption@npm:^1.4.0":
-  version: 1.4.1
-  resolution: "prisma-field-encryption@npm:1.4.1"
+  version: 1.5.0
+  resolution: "prisma-field-encryption@npm:1.5.0"
   dependencies:
     "@47ng/cloak": ^1.1.0
-    "@prisma/generator-helper": ^4.0.0
+    "@prisma/generator-helper": ^5.0.0
     debug: ^4.3.4
-    immer: ^9.0.15
+    immer: ^10.0.2
     object-path: ^0.11.8
-    zod: ^3.17.3
+    zod: ^3.21.4
   peerDependencies:
-    "@prisma/client": ^3.8.0 || ^4
+    "@prisma/client": ">= 4.7"
   bin:
     prisma-field-encryption: dist/generator/main.js
-  checksum: cf059abc1c39ae9252494aaf6ce2bfa0f415583b8cd11b9d84eeadfbb504e00f61570b0e3158ba4b7d52daf91353ffe92766a717c03b9965c421cc08ed49c303
+  checksum: 530bd970c5015c8c587bdca24136262d746093dd3d0793c892f4a1c377633182ae95e0ef5659465f914e4cc9bd7b24bf45551aa9c624a05942570f5b650fc065
   languageName: node
   linkType: hard
 
@@ -37736,7 +37737,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.21.4, zod@npm:^3.17.3":
+"zod@npm:3.21.4, zod@npm:^3.21.4":
   version: 3.21.4
   resolution: "zod@npm:3.21.4"
   checksum: f185ba87342ff16f7a06686767c2b2a7af41110c7edf7c1974095d8db7a73792696bcb4a00853de0d2edeb34a5b2ea6a55871bc864227dace682a0a28de33e1f
