@@ -25,6 +25,7 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   rescheduleUid?: string | null;
   seatReferenceUid?: string;
+  org?: string | null;
 };
 
 type SeatedEventData = {
@@ -64,6 +65,11 @@ export type BookerStore = {
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
   addToSelectedDate: (days: number) => void;
+  /**
+   * Multiple Selected Dates and Times
+   */
+  selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } } | null;
+  setSelectedDatesAndTimes: (selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } }) => void;
   /**
    * Selected event duration in minutes.
    */
@@ -105,6 +111,7 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
+  org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
@@ -119,13 +126,14 @@ export type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: validateLayout(getQueryParam("layout") as BookerLayouts) || BookerLayouts.MONTH_VIEW,
+  layout: BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
+    updateQueryParam("layout", layout);
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
@@ -140,6 +148,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       set({ month: newSelection.format("YYYY-MM") });
       updateQueryParam("month", newSelection.format("YYYY-MM"));
     }
+  },
+  selectedDatesAndTimes: null,
+  setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
+    set({ selectedDatesAndTimes });
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
@@ -183,6 +195,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     bookingData = null,
     layout,
     isTeamEvent,
+    org,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -201,6 +214,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       username,
       eventSlug,
       eventId,
+      org,
       rescheduleUid,
       bookingUid,
       bookingData,
@@ -218,7 +232,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
-    removeQueryParam("layout");
+    //removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {
@@ -250,6 +264,7 @@ export const useInitializeBookerStore = ({
   bookingData = null,
   layout,
   isTeamEvent,
+  org,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -262,6 +277,18 @@ export const useInitializeBookerStore = ({
       bookingData,
       layout,
       isTeamEvent,
+      org,
     });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, bookingData, layout, isTeamEvent]);
+  }, [
+    initializeStore,
+    org,
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid,
+    bookingData,
+    layout,
+    isTeamEvent,
+  ]);
 };

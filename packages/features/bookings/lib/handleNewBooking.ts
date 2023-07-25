@@ -42,7 +42,7 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
-
+import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -57,10 +57,11 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import { TimeFormat } from "@calcom/lib/timeFormat";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
@@ -598,6 +599,7 @@ function getBookingData({
       throw new Error("`responses` must not be nullish");
     }
     const responses = reqBody.responses;
+
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
         bookingFields: eventType.bookingFields,
@@ -721,6 +723,8 @@ async function handler(
     isNotAnApiCall,
     eventType,
   });
+
+  const fullName = getFullName(bookerName);
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -937,7 +941,7 @@ async function handler(
   const invitee = [
     {
       email: bookerEmail,
-      name: bookerName,
+      name: fullName,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -990,9 +994,11 @@ async function handler(
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: bookerName || "Nameless",
+    attendeeName: fullName || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
+    // we send on behalf of team if >1 round robin attendee | collective
+    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
@@ -1012,6 +1018,7 @@ async function handler(
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
   let evt: CalendarEvent = {
+    bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -1026,7 +1033,7 @@ async function handler(
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
-      timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
     responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
     userFieldsResponses: calEventUserFieldsResponses,
@@ -1134,6 +1141,40 @@ async function handler(
     return deletedReferences;
   };
 
+  // data needed for triggering webhooks
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: requiresConfirmation || null,
+    price: paymentAppData.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+
+  const teamId = await getTeamId({ eventType });
+
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+    teamId,
+  };
+
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
+
+  subscriberOptions.triggerEvent = eventTrigger;
+
+  const subscriberOptionsMeetingEnded = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    teamId,
+  };
+
+  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -1166,6 +1207,9 @@ async function handler(
         startTime: true,
         user: true,
         status: true,
+        smsReminderNumber: true,
+        endTime: true,
+        scheduledJobs: true,
       },
     });
 
@@ -1700,6 +1744,25 @@ async function handler(
       log.error("Error while scheduling workflow reminders", error);
     }
 
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId: booking?.id,
+      rescheduleUid,
+      rescheduleStartTime: originalRescheduledBooking?.startTime
+        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+        : undefined,
+      rescheduleEndTime: originalRescheduledBooking?.endTime
+        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+        : undefined,
+      metadata: { ...metadata, ...reqBody.metadata },
+      eventTypeId,
+      status: "ACCEPTED",
+      smsReminderNumber: booking?.smsReminderNumber || undefined,
+    };
+
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
     return resultBooking;
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2230,14 +2293,6 @@ async function handler(
       }
     : undefined;
 
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: eventType.title,
-    eventDescription: eventType.description,
-    requiresConfirmation: requiresConfirmation || null,
-    price: paymentAppData.price,
-    currency: eventType.currency,
-    length: eventType.length,
-  };
   const webhookData = {
     ...evt,
     ...eventTypeInfo,
@@ -2254,30 +2309,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
-
-  const teamId = await getTeamId({ eventType });
-
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUser.id,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId,
-  };
-
   if (isConfirmedByDefault) {
-    const eventTrigger: WebhookTriggerEvents = rescheduleUid
-      ? WebhookTriggerEvents.BOOKING_RESCHEDULED
-      : WebhookTriggerEvents.BOOKING_CREATED;
-
-    subscriberOptions.triggerEvent = eventTrigger;
-
-    const subscriberOptionsMeetingEnded = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId,
-    };
-
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 

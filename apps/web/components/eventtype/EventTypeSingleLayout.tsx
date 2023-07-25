@@ -7,7 +7,7 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -234,7 +234,7 @@ function EventTypeSingleLayout({
     formMethods,
   ]);
 
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const isOrgEvent = orgBranding?.fullDomain;
   const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
     team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
@@ -318,6 +318,7 @@ function EventTypeSingleLayout({
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
+                  eventId={eventType.id}
                 />
               </>
             )}
@@ -407,13 +408,13 @@ function EventTypeSingleLayout({
               className="primary-navigation"
               tabs={EventTypeTabs}
               sticky
-              linkProps={{ shallow: true }}
+              linkShallow
               itemClassname="items-start"
               iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} linkProps={{ shallow: true }} />
+            <HorizontalTabs tabs={EventTypeTabs} linkShallow />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div

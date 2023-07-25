@@ -138,12 +138,6 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   // expect(await page.screenshot()).toMatchSnapshot("success-page.png");
 
-  //NOTE: frame.click('body') won't work here. Because the way it works, it clicks on the center of the body tag which is an element inside the popup view and that won't close the popup
-  await frame.evaluate(() => {
-    // Closes popup - if it is a popup. If not a popup, it will just do nothing
-    document.body.click();
-  });
-
   return booking;
 }
 

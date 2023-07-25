@@ -37,5 +37,5 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}/`;
+  return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}`;
 }

@@ -5,6 +5,8 @@ import type { GetBookingType } from "../lib/get-booking";
 export interface BookerProps {
   eventSlug: string;
   username: string;
+  // Make it optional later, once we figure out where we can possibly need to set org
+  org: string | null;
 
   /**
    * If month is NOT set as a prop on the component, we expect a query parameter
