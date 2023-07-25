@@ -329,6 +329,8 @@ ${uiInstructionCode}`;
   },
 };
 
+type EmbedCommonProps = { embedType: EmbedType; calLink: string; previewState: PreviewState };
+
 const getEmbedTypeSpecificString = ({
   embedFramework,
   embedType,
@@ -336,10 +338,7 @@ const getEmbedTypeSpecificString = ({
   previewState,
 }: {
   embedFramework: EmbedFramework;
-  embedType: EmbedType;
-  calLink: string;
-  previewState: PreviewState;
-}) => {
+} & EmbedCommonProps) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
@@ -614,85 +613,74 @@ const tabs = [
     href: "embedTabName=embed-code",
     icon: Code,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      {
-        embedType: EmbedType;
-        calLink: string;
-        previewState: PreviewState;
-      }
-    >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
-      const { t } = useLocale();
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
-        return null;
-      }
-      return (
-        <>
-          <div>
-            <small className="text-subtle flex py-4">
-              {t("place_where_cal_widget_appear", { appName: APP_NAME })}
-            </small>
-          </div>
-          <TextArea
-            data-testid="embed-code"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-code"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
-            style={{ resize: "none", overflow: "auto" }}
-            readOnly
-            value={
-              `<!-- Cal ${embedType} embed code begins -->\n` +
-              (embedType === "inline"
-                ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
-                    previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline"></div>\n`
-                : "") +
-              `<script type="text/javascript">
+    Component: forwardRef<HTMLTextAreaElement | HTMLIFrameElement | null, EmbedCommonProps>(
+      function EmbedHtml({ embedType, calLink, previewState }, ref) {
+        const { t } = useLocale();
+        if (ref instanceof Function || !ref) {
+          return null;
+        }
+        if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+          return null;
+        }
+        return (
+          <>
+            <div>
+              <small className="text-subtle flex py-4">
+                {t("place_where_cal_widget_appear", { appName: APP_NAME })}
+              </small>
+            </div>
+            <TextArea
+              data-testid="embed-code"
+              ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+              name="embed-code"
+              className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+              style={{ resize: "none", overflow: "auto" }}
+              readOnly
+              value={
+                `<!-- Cal ${embedType} embed code begins -->\n` +
+                (embedType === "inline"
+                  ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
+                      previewState.inline.height
+                    )};overflow:scroll" id="my-cal-inline"></div>\n`
+                  : "") +
+                `<script type="text/javascript">
 ${getEmbedSnippetString()}
 ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
 </script>
 <!-- Cal ${embedType} embed code ends -->`
-            }
-          />
-          <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
-        </>
-      );
-    }),
+              }
+            />
+            <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
+          </>
+        );
+      }
+    ),
   },
   {
     name: "React",
     href: "embedTabName=embed-react",
     icon: Code,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      {
-        embedType: EmbedType;
-        calLink: string;
-        previewState: PreviewState;
-      }
-    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
-      const { t } = useLocale();
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
-        return null;
-      }
-      return (
-        <>
-          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
-          <TextArea
-            data-testid="embed-react"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-react"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
-            readOnly
-            style={{ resize: "none", overflow: "auto" }}
-            value={`/* First make sure that you have installed the package */
+    Component: forwardRef<HTMLTextAreaElement | HTMLIFrameElement | null, EmbedCommonProps>(
+      function EmbedReact({ embedType, calLink, previewState }, ref) {
+        const { t } = useLocale();
+        if (ref instanceof Function || !ref) {
+          return null;
+        }
+        if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+          return null;
+        }
+        return (
+          <>
+            <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
+            <TextArea
+              data-testid="embed-react"
+              ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+              name="embed-react"
+              className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+              readOnly
+              style={{ resize: "none", overflow: "auto" }}
+              value={`/* First make sure that you have installed the package */
 
 /* If you are using yarn */
 // yarn add @calcom/embed-react
@@ -701,24 +689,21 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 // npm install @calcom/embed-react
 ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
 `}
-          />
-        </>
-      );
-    }),
+            />
+          </>
+        );
+      }
+    ),
   },
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
     icon: Trello,
     type: "iframe",
-    Component: forwardRef<
-      HTMLIFrameElement | HTMLTextAreaElement | null,
-      {
-        calLink: string;
-        embedType: EmbedType;
-        previewState: PreviewState;
-      }
-    >(function Preview({ calLink, embedType }, ref) {
+    Component: forwardRef<HTMLIFrameElement | HTMLTextAreaElement | null, EmbedCommonProps>(function Preview(
+      { calLink, embedType },
+      ref
+    ) {
       if (ref instanceof Function || !ref) {
         return null;
       }
