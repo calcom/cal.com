@@ -1,5 +1,5 @@
 import getApps from "@calcom/app-store/utils";
-import type { CredentialData } from "@calcom/app-store/utils";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
 /**
@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
  * @param filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
-const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials?: boolean) => {
+const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) => {
   const filterOnIds = {
     credentials: {
       some: {
