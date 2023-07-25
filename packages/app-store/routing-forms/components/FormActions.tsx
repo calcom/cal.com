@@ -9,6 +9,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import {
@@ -59,7 +60,7 @@ export const useOpenModal = () => {
 };
 
 function NewFormDialog({ appUrl }: { appUrl: string }) {
-  const searchParams = useSearchParams();
+  const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -81,8 +82,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     description: string;
     shouldConnect: boolean;
   }>();
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
-  const { action, target } = searchParamsObj as z.infer<typeof newFormModalQuerySchema>;
+
+  const { action, target } = routerQuery as z.infer<typeof newFormModalQuerySchema>;
 
   const formToDuplicate = action === "duplicate" ? target : null;
   const teamId = action === "new" ? Number(target) : null;
