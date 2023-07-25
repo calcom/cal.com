@@ -193,12 +193,8 @@ const SettingsSidebarContainer = ({
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const tabsWithPermissions = useTabs();
-  const [teamMenuState, setTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [teamMenuState, setTeamMenuState] =
+    useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const session = useSession();
@@ -447,9 +443,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export default function SettingsLayout({
   children,
   ...rest
-}: {
-  children: React.ReactNode;
-} & ComponentProps<typeof Shell>) {
+}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
