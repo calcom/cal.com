@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useSession } from "next-auth/react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -48,6 +48,7 @@ const obtainNewUsernameChangeCondition = ({
 const PremiumTextfield = (props: ICustomUsernameProps) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLocale();
   const { data: session, update } = useSession();
   const {
@@ -224,7 +225,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              searchParams?.delete("paymentStatus");
+              const _searchParams = new URLSearchParams(searchParams);
+              _searchParams.delete("paymentStatus");
+              if (searchParams.toString() !== _searchParams.toString()) {
+                router.replace(`${pathname}?${_searchParams.toString()}`);
+              }
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
