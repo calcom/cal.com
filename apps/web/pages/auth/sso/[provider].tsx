@@ -33,7 +33,7 @@ export default function Provider(props: SSOProviderPageProps) {
 
   useEffect(() => {
     if (props.provider === "saml") {
-      const email = typeof searchParams?.get("email") === "string" ? searchParams?.get("email") : null;
+      const email = searchParams?.get("email");
 
       if (!email) {
         router.push("/auth/error?error=" + "Email not provided");
