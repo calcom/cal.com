@@ -7,7 +7,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
-type TeamType = NonNullable<TeamWithMembers>;
+type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number] & {
   safeBio: string | null;
