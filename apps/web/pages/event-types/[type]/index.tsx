@@ -102,6 +102,7 @@ export type FormValues = {
     phone?: string;
     hostDefault?: string;
     credentialId?: number;
+    teamName?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;

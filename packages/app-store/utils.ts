@@ -6,6 +6,7 @@ import type { TFunction } from "next-i18next";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { defaultLocations } from "@calcom/app-store/locations";
+import type getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { App, AppMeta } from "@calcom/types/App";
 
@@ -38,12 +39,28 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
+export type CredentialDataWithTeamName = CredentialData & {
+  team?: {
+    name: string;
+  } | null;
+};
+
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
-export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+export function getLocationGroupedOptions(
+  integrations: Awaited<ReturnType<typeof getEnabledApps>>,
+  t: TFunction
+) {
   const apps: Record<
     string,
-    { label: string; value: string; disabled?: boolean; icon?: string; slug?: string }[]
+    {
+      label: string;
+      value: string;
+      disabled?: boolean;
+      icon?: string;
+      slug?: string;
+      credential?: CredentialDataWithTeamName;
+    }[]
   > = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
@@ -56,11 +73,17 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
             )
           : app.category;
       if (!category) category = AppCategories.conferencing;
-      const option = { ...app.locationOption, icon: app.logo, slug: app.slug };
-      if (apps[category]) {
-        apps[category] = [...apps[category], option];
-      } else {
-        apps[category] = [option];
+
+      for (const credential of app.credentials) {
+        const label = `${app.locationOption.label} ${
+          credential.team?.name ? `(${credential.team.name})` : ""
+        }`;
+        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug, credential };
+        if (apps[category]) {
+          apps[category] = [...apps[category], option];
+        } else {
+          apps[category] = [option];
+        }
       }
     }
   });
@@ -108,7 +131,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(userCredentials: CredentialData[]) {
+function getApps(userCredentials: CredentialDataWithTeamName[]) {
   const apps = ALL_APPS.map((appMeta) => {
     const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
     let locationOption: LocationOption | null = null;
@@ -121,7 +144,7 @@ function getApps(userCredentials: CredentialData[]) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
-        teamId: 0,
+        teamId: null,
         appId: appMeta.slug,
         invalid: false,
       });
