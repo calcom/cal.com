@@ -173,7 +173,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setMonth: (month: string | null) => {
     set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
-    get().setSelectedDate(null);
   },
   isTeamEvent: false,
   seatedEventData: {

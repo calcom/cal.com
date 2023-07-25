@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -136,7 +137,21 @@ const Days = ({
 
   const includedDates = currentDate.isSame(browsingDate, "month")
     ? availableDates(props.includedDates)
-    : props.includedDates;
+    : props?.includedDates
+    ? props.includedDates
+    : [];
+
+  useEffect(() => {
+    if (selected && selected.date()) {
+      if (selected.format("YYYY-MM") === browsingDate.format("YYYY-MM")) return;
+      includedDates.some((date) => {
+        if (!excludedDates.includes(date)) {
+          props.onChange(dayjs(date));
+          return true;
+        }
+      });
+    }
+  });
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
