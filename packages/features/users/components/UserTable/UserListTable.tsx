@@ -12,6 +12,7 @@ import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
+import { EditUserSheet } from "./EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
@@ -42,11 +43,17 @@ export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
+  editSheet: Payload;
 };
 
 export type Action =
   | {
-      type: "SET_CHANGE_MEMBER_ROLE_ID" | "SET_DELETE_ID" | "SET_IMPERSONATE_ID" | "INVITE_MEMBER";
+      type:
+        | "SET_CHANGE_MEMBER_ROLE_ID"
+        | "SET_DELETE_ID"
+        | "SET_IMPERSONATE_ID"
+        | "INVITE_MEMBER"
+        | "EDIT_USER_SHEET";
       payload: Payload;
     }
   | {
@@ -66,6 +73,9 @@ const initialState: State = {
   inviteMember: {
     showModal: false,
   },
+  editSheet: {
+    showModal: false,
+  },
 };
 
 function reducer(state: State, action: Action): State {
@@ -78,6 +88,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, impersonateMember: action.payload };
     case "INVITE_MEMBER":
       return { ...state, inviteMember: action.payload };
+    case "EDIT_USER_SHEET":
+      return { ...state, editSheet: action.payload };
     case "CLOSE_MODAL":
       return {
         ...state,
@@ -85,6 +97,7 @@ function reducer(state: State, action: Action): State {
         deleteMember: { showModal: false },
         impersonateMember: { showModal: false },
         inviteMember: { showModal: false },
+        editSheet: { showModal: false },
       };
     default:
       return state;
@@ -326,6 +339,7 @@ export function UserListTable() {
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
     </>
   );
 }
