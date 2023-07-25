@@ -4,6 +4,8 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsernameInOrg } from "@calcom/lib/validateUsernameInOrg";
@@ -40,6 +42,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
     return;
+  }
+
+  if (IS_CALCOM) {
+    const checkUsername = await checkPremiumUsername(username);
+    if (checkUsername.premium) {
+      res.status(422).json({
+        message: "Sign up from https://cal.com/signup to claim your premium username",
+      });
+      return;
+    }
   }
 
   // There is an existingUser if the username matches
