@@ -10,7 +10,7 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType, MembershipRole, AppCategories } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -228,6 +228,9 @@ export default async function getEventTypeById({
       userId,
       app: {
         enabled: true,
+        categories: {
+          hasSome: [AppCategories.conferencing, AppCategories.video],
+        },
       },
     },
     select: {
@@ -235,6 +238,7 @@ export default async function getEventTypeById({
       type: true,
       key: true,
       userId: true,
+      teamId: true,
       appId: true,
       invalid: true,
     },
@@ -325,7 +329,7 @@ export default async function getEventTypeById({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = await getEnabledApps(credentials);
+  const integrations = await getEnabledApps(credentials, true);
   const locationOptions = getLocationGroupedOptions(integrations, t);
   if (eventType.schedulingType === SchedulingType.MANAGED) {
     locationOptions.splice(0, 0, {
