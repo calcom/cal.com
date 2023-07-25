@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -20,6 +19,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
@@ -27,7 +27,7 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { Verified, ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight, Verified } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -38,7 +38,6 @@ import { ssrInit } from "@server/lib/ssr";
 
 export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 export function UserPage(props: UserPageProps) {
-  const searchParams = useSearchParams();
   const {
     users,
     profile,
@@ -100,9 +99,12 @@ export function UserPage(props: UserPageProps) {
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const query = { ...Object.fromEntries(searchParams ?? new URLSearchParams()) };
-  delete query.user; // So it doesn't display in the Link (and make tests fail)
-  delete query.orgSlug;
+  const {
+    // So it doesn't display in the Link (and make tests fail)
+    user: _user,
+    orgSlug: _orgSlug,
+    ...query
+  } = useRouterQuery();
   const nameOrUsername = user.name || user.username || "";
 
   /*
