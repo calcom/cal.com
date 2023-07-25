@@ -78,6 +78,7 @@ test.describe("Popup Tests", () => {
     const booking = await getBooking(bookingId);
 
     expect(booking.attendees.length).toBe(1);
+
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
@@ -164,8 +165,12 @@ test.describe("Popup Tests", () => {
         await expect(html).toHaveAttribute("class", "light");
         const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page);
         const booking = await getBooking(bookingId);
-
         expect(booking.attendees.length).toBe(3);
+        await test.step("Close the modal", async () => {
+          await page.locator("cal-modal-box .close").click();
+          await expect(page.locator("cal-modal-box")).toBeHidden();
+          await expect(page.locator("cal-modal-box iframe")).toBeHidden();
+        });
       });
 
       test("should open embed iframe according to system theme when configured with 'auto' theme using Embed API", async ({
