@@ -42,37 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // There is an existingUser if the username matches
-  // OR if the email matches AND either the email is verified
-  // or both username and password are set
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { username },
-        {
-          AND: [
-            { email: userEmail },
-            {
-              OR: [
-                { emailVerified: { not: null } },
-                {
-                  AND: [{ password: { not: null } }, { username: { not: null } }],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    const message: string =
-      existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
-
-    return res.status(409).json({ message });
-  }
-
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
     foundToken = await prisma.verificationToken.findFirst({
@@ -99,6 +68,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!isValidUsername) {
         return res.status(409).json({ message: "Username already taken" });
       }
+    }
+  } else {
+    // There is an existingUser if the username matches
+    // OR if the email matches AND either the email is verified
+    // or both username and password are set
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username },
+          {
+            AND: [
+              { email: userEmail },
+              {
+                OR: [
+                  { emailVerified: { not: null } },
+                  {
+                    AND: [{ password: { not: null } }, { username: { not: null } }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    if (existingUser) {
+      const message: string =
+        existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
+
+      return res.status(409).json({ message });
     }
   }
 
