@@ -240,11 +240,6 @@ export default async function getEventTypeById({
       teamId: true,
       appId: true,
       invalid: true,
-      team: {
-        select: {
-          name: true,
-        },
-      },
     },
   });
 
