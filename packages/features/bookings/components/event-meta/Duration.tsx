@@ -2,7 +2,6 @@ import { useEffect } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
-import defaultEvents from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
 
@@ -27,30 +26,18 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
     return <>{t("multiple_duration_mins", { count: event.length })}</>;
 
+  const durations = event?.metadata?.multipleDuration || [15, 30, 60];
+
   return (
     <div className="flex flex-wrap gap-2">
-      {event.metadata?.multipleDuration &&
-        event.metadata.multipleDuration.map((duration) => (
-          <Badge
-            variant="gray"
-            className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
-            size="md"
-            key={duration}
-            onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
-        ))}
-      {isDynamicEvent &&
-        defaultEvents.map((event) => (
-          <Badge
-            variant="gray"
-            className={classNames(selectedDuration === event.length && "bg-brand-default text-brand")}
-            size="md"
-            key={event.slug}
-            onClick={() => {
-              setSelectedDuration(event.length);
-            }}>
-            {event.title}
-          </Badge>
-        ))}
+      {durations.map((duration) => (
+        <Badge
+          variant="gray"
+          className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
+          size="md"
+          key={duration}
+          onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
+      ))}
     </div>
   );
 };

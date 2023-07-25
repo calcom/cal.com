@@ -13,7 +13,7 @@ import {
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import defaultEvents, { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -230,12 +230,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const isDynamicGroup = usersWithoutAvatar.length > 1;
-
   if (isDynamicGroup) {
     return {
       redirect: {
         permanent: false,
-        destination: `/${usernameList.join("+")}/${defaultEvents[0].slug}`,
+        destination: `/${usernameList.join("+")}/dynamic`,
       },
     } as {
       redirect: {
