@@ -155,10 +155,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   );
 }
 
-const dropdownCtx = createContext<{
-  dropdown: boolean;
-}>({ dropdown: false });
-
+const dropdownCtx = createContext<{ dropdown: boolean }>({ dropdown: false });
 export const FormActionsDropdown = ({
   children,
   disabled,
@@ -415,10 +412,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const openModal = useOpenModal();
   const actionData: Record<
     FormActionType,
-    ButtonProps & {
-      as?: React.ElementType;
-      render?: FormActionProps<unknown>["render"];
-    }
+    ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
   > = {
     preview: {
       href: formLink,
@@ -488,10 +482,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const actionProps = {
     ...action,
     ...(additionalProps as ButtonProps),
-  } as ButtonProps & {
-    render?: FormActionProps<unknown>["render"];
-  };
-
+  } as ButtonProps & { render?: FormActionProps<unknown>["render"] };
   if (actionProps.render) {
     return actionProps.render({
       routingForm,
