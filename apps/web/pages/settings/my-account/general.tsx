@@ -145,10 +145,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             <Label className="text-emphasis">
               <>{t("language")}</>
             </Label>
-            <Select<{
-              label: string;
-              value: string;
-            }>
+            <Select<{ label: string; value: string }>
               className="capitalize"
               options={localeOptions}
               value={value}
