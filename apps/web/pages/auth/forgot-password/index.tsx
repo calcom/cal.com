@@ -17,17 +17,13 @@ import AuthContainer from "@components/ui/AuthContainer";
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{
-    message: string;
-  } | null>(null);
+  const [error, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const router = useRouter();
 
   const handleChange = (e: SyntheticEvent) => {
-    const target = e.target as typeof e.target & {
-      value: string;
-    };
+    const target = e.target as typeof e.target & { value: string };
     setEmail(target.value);
   };
 
