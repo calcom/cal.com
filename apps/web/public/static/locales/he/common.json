@@ -1904,6 +1904,7 @@
   "ill_do_this_later": "אעשה זאת מאוחר יותר",
   "verify_your_email": "אימות כתובת הדוא״ל",
   "enter_digit_code": "הזן/י את הקוד בן 6 הספרות ששלחנו לכתובת {{email}}",
+  "verify_email_organization": "אמת/י את כתובת הדוא\"ל שלך כדי ליצור ארגון",
   "code_provided_invalid": "הקוד לא תקין, נסה/י שוב",
   "email_already_used": "כתובת הדוא\"ל הזו כבר בשימוש",
   "organization_admin_invited_heading": "הוזמנת להצטרף אל {{orgName}}",
@@ -1925,6 +1926,7 @@
   "org_admins_can_create_new_teams": "רק מנהל/ת המערכת בארגון יכול/ה ליצור צוותים חדשים",
   "google_new_spam_policy": "מדיניות הספאם החדשה של Google עלולה לגרום לך שלא תקבל/י עדכונים בדוא\"ל ובלוח השנה לגבי הפגישה הזו.",
   "resolve": "פתרון",
+  "no_organization_slug": "היתה שגיאה במהלך ניסיון ליצור צוותים עבור הארגון הזה. חסר רכיב slug של URL.",
   "org_name": "שם הארגון",
   "org_url": "כתובת ה-URL של הארגון",
   "copy_link_org": "העתקת הקישור לארגון",
@@ -1935,6 +1937,7 @@
   "insights_all_org_filter": "כל האפליקציות",
   "insights_team_filter": "צוות: {{teamName}}",
   "insights_user_filter": "משתמש: {{userName}}",
+  "insights_subtitle": "הצגת תובנות הזמנה מתוך האירועים שלך",
   "custom_plan": "חבילה בהתאמה אישית",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
