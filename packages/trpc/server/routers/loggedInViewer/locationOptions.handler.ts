@@ -15,9 +15,38 @@ type LocationOptionsOptions = {
 };
 
 export const locationOptionsHandler = async ({ ctx, input }: LocationOptionsOptions) => {
+  const { teamId } = input;
+
+  let idToSearchObject = {};
+
+  if (teamId) {
+    // See if the team event belongs to an org
+    const org = await prisma.team.findFirst({
+      where: {
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+      },
+    });
+
+    if (org) {
+      idToSearchObject = {
+        teamId: {
+          in: [teamId, org.id],
+        },
+      };
+    } else {
+      idToSearchObject = { teamId };
+    }
+  } else {
+    idToSearchObject = { userId: ctx.user.id };
+  }
+
   const credentials = await prisma.credential.findMany({
     where: {
-      userId: ctx.user.id,
+      ...idToSearchObject,
       app: {
         categories: {
           hasSome: [AppCategories.conferencing, AppCategories.video],
@@ -32,6 +61,11 @@ export const locationOptionsHandler = async ({ ctx, input }: LocationOptionsOpti
       teamId: true,
       appId: true,
       invalid: true,
+      team: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -39,7 +73,7 @@ export const locationOptionsHandler = async ({ ctx, input }: LocationOptionsOpti
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
-  const locationOptions = getLocationGroupedOptions(integrations, t);
+  const locationOptions = getLocationGroupedOptions(integrations, t, true);
   // If it is a team event then move the "use host location" option to top
   if (input.teamId) {
     const conferencingIndex = locationOptions.findIndex((option) => option.label === "Conferencing");
