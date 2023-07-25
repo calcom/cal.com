@@ -38,7 +38,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
   const enabledOnTeams = !app.categories.some(
-    (category) => category === "calendar" || (category === "conferencing" && !app.concurrentMeetings)
+    (category) => category === "calendar" || category === "conferencing"
   );
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length === appAdded : appAdded > 0;
@@ -200,9 +200,7 @@ const InstallAppButtonChild = ({
 
   if (
     !userAdminTeams?.length ||
-    appCategories.some(
-      (category) => category === "calendar" || (category === "conferencing" && !concurrentMeetings)
-    )
+    appCategories.some((category) => category === "calendar" || category === "conferencing")
   ) {
     return (
       <Button
