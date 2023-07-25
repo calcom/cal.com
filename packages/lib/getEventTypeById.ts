@@ -6,7 +6,6 @@ import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-stor
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -241,6 +240,11 @@ export default async function getEventTypeById({
       teamId: true,
       appId: true,
       invalid: true,
+      team: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -329,8 +333,10 @@ export default async function getEventTypeById({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = await getEnabledApps(credentials, true);
-  const locationOptions = getLocationGroupedOptions(integrations, t);
+  const locationOptions = await getLocationGroupedOptions(
+    eventType.teamId ? { teamId: eventType.teamId } : { userId: currentUser.id },
+    t
+  );
   if (eventType.schedulingType === SchedulingType.MANAGED) {
     locationOptions.splice(0, 0, {
       label: t("default"),
