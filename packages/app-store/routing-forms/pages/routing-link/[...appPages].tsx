@@ -55,10 +55,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{
-    action: Route["action"];
-    response: Response;
-  }>();
+  const decidedActionWithFormResponseRef = useRef<{ action: Route["action"]; response: Response }>();
   const router = useRouter();
 
   const onSubmit = (response: Response) => {
