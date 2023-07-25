@@ -1,6 +1,7 @@
 import Head from "next/head";
 import z from "zod";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
@@ -47,11 +48,21 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const form = await prisma.app_RoutingForms_Form.findUnique({
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+
+  const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+      user: {
+        organization: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
     },
   });
+
   if (!form) {
     return {
       notFound: true,
