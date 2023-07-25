@@ -45,12 +45,7 @@ export const BreadcrumbItem = ({ children, href, listProps }: BreadcrumbItemProp
 
 export const BreadcrumbContainer = () => {
   const pathname = usePathname();
-  const [, setBreadcrumbs] = useState<
-    {
-      href: string;
-      label: string;
-    }[]
-  >();
+  const [, setBreadcrumbs] = useState<{ href: string; label: string }[]>();
 
   useEffect(() => {
     const rawPath = pathname; // Pathname doesn't include search params anymore
