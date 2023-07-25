@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -227,8 +226,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                         href={{
                           pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
                           query: {
-                            members: "1",
                             ...queryParamsToForward,
+                            members: "1",
                           },
                         }}
                         shallow={true}>

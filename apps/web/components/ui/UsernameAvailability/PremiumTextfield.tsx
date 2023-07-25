@@ -224,7 +224,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              delete searchParams?.get("paymentStatus");
+              searchParams?.delete("paymentStatus");
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
