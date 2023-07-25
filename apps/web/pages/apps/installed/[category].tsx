@@ -120,12 +120,9 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const [locationType, setLocationType] = useState<
-    | (EventLocationType & {
-        slug: string;
-      })
-    | undefined
-  >(undefined);
+  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
+    undefined
+  );
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
