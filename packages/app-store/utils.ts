@@ -6,7 +6,8 @@ import type { TFunction } from "next-i18next";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { defaultLocations } from "@calcom/app-store/locations";
-import type getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { App, AppMeta } from "@calcom/types/App";
 
@@ -47,8 +48,8 @@ export type CredentialDataWithTeamName = CredentialData & {
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
-export function getLocationGroupedOptions(
-  integrations: Awaited<ReturnType<typeof getEnabledApps>>,
+export async function getLocationGroupedOptions(
+  idToSearchOn: { userId: number } | { teamId: number },
   t: TFunction
 ) {
   const apps: Record<
@@ -62,6 +63,62 @@ export function getLocationGroupedOptions(
       credential?: CredentialDataWithTeamName;
     }[]
   > = {};
+
+  let idToSearchObject = {};
+
+  if (idToSearchOn.teamId) {
+    const teamId = idToSearchOn.teamId;
+    // See if the team event belongs to an org
+    const org = await prisma.team.findFirst({
+      where: {
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+      },
+    });
+
+    if (org) {
+      idToSearchObject = {
+        teamId: {
+          in: [teamId, org.id],
+        },
+      };
+    } else {
+      idToSearchObject = { teamId };
+    }
+  } else {
+    idToSearchObject = { userId: idToSearchOn.userId };
+  }
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      ...idToSearchObject,
+      app: {
+        categories: {
+          hasSome: [AppCategories.conferencing, AppCategories.video],
+        },
+      },
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      teamId: true,
+      appId: true,
+      invalid: true,
+      team: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const integrations = await getEnabledApps(credentials, true);
+
   integrations.forEach((app) => {
     if (app.locationOption) {
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
