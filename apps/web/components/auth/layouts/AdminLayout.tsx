@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect } from "react";
 
@@ -11,11 +10,8 @@ import { ErrorBoundary } from "@calcom/ui";
 
 export default function AdminLayout({
   children,
-
   ...rest
-}: {
-  children: React.ReactNode;
-} & ComponentProps<typeof Shell>) {
+}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const session = useSession();
   const router = useRouter();

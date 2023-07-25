@@ -2,7 +2,7 @@ import type { Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type stripejs from "@stripe/stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
@@ -35,6 +35,7 @@ type States =
 const PaymentForm = (props: Props) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
@@ -49,13 +50,13 @@ const PaymentForm = (props: Props) => {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements || !router.isReady) return;
+    if (!stripe || !elements) return;
     setState({ status: "processing" });
 
     let payload;
     const params: { [k: string]: any } = {
       uid: props.bookingUid,
-      email: router.query.email,
+      email: searchParams.get("email"),
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({

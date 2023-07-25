@@ -1,8 +1,9 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import z from "zod";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
@@ -17,25 +18,23 @@ const EditWebhook = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
+  const routerQuery = useRouterQuery();
 
   function Component({ webhookId }: { webhookId: string }) {
     const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
       { variant: "other", onlyInstalled: true },
       {
         suspense: true,
-        enabled: router.isReady,
       }
     );
     const { data: webhook } = trpc.viewer.webhook.get.useQuery(
       { webhookId },
       {
         suspense: true,
-        enabled: router.isReady,
       }
     );
     const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
       suspense: true,
-      enabled: router.isReady,
     });
     const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
       async onSuccess() {
@@ -97,16 +96,12 @@ const EditWebhook = () => {
     );
   }
 
-  if (!router.isReady) return null;
-
-  const parsed = querySchema.safeParse(router.query);
+  const parsed = querySchema.safeParse(routerQuery);
 
   if (!parsed.success) {
     throw new Error("Invalid query");
   }
 
-  // tRPC useQuery needs webhookId to be available and it becomes available only after router.isReady is true
-  // It causes this requirement of a new component.
   // I think we should do SSR for this page
   return <Component webhookId={parsed.data.id} />;
 };
