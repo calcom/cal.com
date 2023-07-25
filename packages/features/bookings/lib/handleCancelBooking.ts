@@ -10,7 +10,6 @@ import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -19,6 +18,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
@@ -133,7 +133,7 @@ async function handler(req: CustomRequest) {
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
-  const teamId = await getTeamId({
+  const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: bookingToDelete.eventType?.teamId ?? null },
       parentId: bookingToDelete?.eventType?.parentId ?? null,

@@ -52,6 +52,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -651,30 +652,6 @@ function getCustomInputsResponses(
   return customInputsResponses;
 }
 
-export async function getTeamId({
-  eventType,
-}: {
-  eventType: { team: { id: number | null } | null; parentId: number | null } | null;
-}) {
-  if (eventType?.team?.id) {
-    return eventType.team.id;
-  }
-
-  // If it's a managed event we need to find the teamId for it from the parent
-  if (eventType?.parentId) {
-    const managedEvent = await prisma.eventType.findFirst({
-      where: {
-        id: eventType.parentId,
-      },
-      select: {
-        teamId: true,
-      },
-    });
-
-    return managedEvent?.teamId;
-  }
-}
-
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
@@ -1155,7 +1132,7 @@ async function handler(
     length: eventType.length,
   };
 
-  const teamId = await getTeamId({ eventType });
+  const teamId = await getTeamIdFromEventType({ eventType });
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUser.id,

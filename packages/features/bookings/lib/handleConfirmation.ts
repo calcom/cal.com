@@ -4,11 +4,11 @@ import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
-import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -238,7 +238,7 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const teamId = await getTeamId({
+    const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
         parentId: booking?.eventType?.parentId ?? null,

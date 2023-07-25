@@ -4,10 +4,10 @@ import appStore from "@calcom/app-store";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -313,7 +313,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     await sendDeclinedEmails(evt);
 
-    const teamId = await getTeamId({
+    const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
         parentId: booking?.eventType?.parentId ?? null,

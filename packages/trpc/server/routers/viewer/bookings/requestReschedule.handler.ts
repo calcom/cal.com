@@ -12,10 +12,10 @@ import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/s
 import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -240,7 +240,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     // Send webhook
     const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
-    const teamId = await getTeamId({
+    const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: bookingToReschedule.eventType?.teamId ?? null },
         parentId: bookingToReschedule?.eventType?.parentId ?? null,
