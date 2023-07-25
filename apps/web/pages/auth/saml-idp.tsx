@@ -9,10 +9,6 @@ export default function Page() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!true) {
-      return;
-    }
-
     const code = searchParams?.get("code");
 
     signIn("saml-idp", {
