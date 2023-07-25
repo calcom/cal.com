@@ -19,10 +19,17 @@ export default function getLocationsOptionsForSelect(
       }
       const type = eventLocation.type;
 
+      // to prevent escaping of "http" when the link is displayed in the booking page
+      const shouldLinkDisplayedPublicly = type === "link" && locationString !== "link_meeting";
+
       return {
-        label: t(locationString),
+        label: shouldLinkDisplayedPublicly ? locationString : t(locationString),
         value: type,
-        inputPlaceholder: t(eventLocation?.attendeeInputPlaceholder || ""),
+        inputPlaceholder: t(eventLocation?.attendeeInputPlaceholder || "", {
+          interpolation: {
+            escapeValue: false,
+          },
+        }),
       };
     })
     .filter(notEmpty);
