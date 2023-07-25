@@ -72,7 +72,7 @@ test.describe("Teams", () => {
     const owner = await users.create(ownerObj, { hasTeam: true });
     const teamMate1 = await users.create(teamMate1Obj);
     const teamMate2 = await users.create(teamMate2Obj);
-    teamMate1.username, teamMate2.username;
+
     // TODO: Create a fixture and follow DRY
     const { team } = await prisma.membership.findFirstOrThrow({
       where: { userId: owner.id },
