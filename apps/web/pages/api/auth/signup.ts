@@ -113,6 +113,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (team) {
+      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
+      if (
+        IS_CALCOM &&
+        (!teamMetadata?.isOrganization || (!!team.parentId && !teamMetadata?.isOrganization))
+      ) {
+        const checkUsername = await checkPremiumUsername(username);
+        if (checkUsername.premium) {
+          // This signup page is ONLY meant for team invites and local setup. Not for every day users.
+          // In singup redesign/refactor coming up @sean will tackle this to make them the same API/page instead of two.
+          return res.status(422).json({
+            message: "Sign up from https://cal.com/signup to claim your premium username",
+          });
+        }
+      }
+
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -128,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           identityProvider: IdentityProvider.CAL,
         },
       });
-      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
       if (teamMetadata?.isOrganization) {
         await prisma.user.update({
           where: {
