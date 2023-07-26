@@ -11,10 +11,9 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const teamsUserHasAdminAccessFor = await getUserAdminTeams({ userId});
-  const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.find((team) => {
-    team.id === teamId;
-  });
+  const teamsUserHasAdminAccessFor = await getUserAdminTeams({ userId });
+  const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((team) => team.id === teamId);
+
   if (!hasAdminAccessToTeam) {
     throw new HttpError({ statusCode: 401, message: "You must be an admin of the team to do this" });
   }
