@@ -167,7 +167,6 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
-      shallow
       title={type.title}>
       <div>
         <span
