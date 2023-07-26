@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -108,8 +108,9 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
-  const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const bookingLink = !!props.member.username && `${urlWithoutProtocol}/${props.member.username}`;
+  const bookerUrl = useBookerUrl();
+  const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
+  const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
 
   return (
     <li className="divide-subtle divide-y px-5">
@@ -118,7 +119,7 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <Avatar
               size="sm"
-              imageSrc={(orgBranding?.fullDomain ?? WEBAPP_URL) + "/" + props.member.username + "/avatar.png"}
+              imageSrc={bookerUrl + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
               className="h-10 w-10 rounded-full"
             />
@@ -139,7 +140,7 @@ export default function MemberListItem(props: Props) {
                     <span className="text-default mx-2 block">•</span>
                     <a
                       target="_blank"
-                      href={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${props.member.username}`}
+                      href={`${bookerUrl}/${props.member.username}`}
                       className="text-default block text-sm">
                       {bookingLink}
                     </a>
@@ -170,7 +171,7 @@ export default function MemberListItem(props: Props) {
               <Tooltip content={t("view_public_page")}>
                 <Button
                   target="_blank"
-                  href={"/" + props.member.username}
+                  href={`${bookerUrl}/${props.member.username}`}
                   color="secondary"
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"

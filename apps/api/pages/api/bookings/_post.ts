@@ -57,7 +57,14 @@ import { defaultResponder } from "@calcom/lib/server";
  *                      format: email
  *                      description: 'Attendee email address'
  *                    location:
- *                      type: string
+ *                      type: object
+ *                      properties:
+ *                        optionValue:
+ *                          type: string
+ *                          description: 'Option value for the location'
+ *                        value:
+ *                          type: string
+ *                          description: 'The meeting URL, Phone number or Address'
  *                      description: 'Meeting location'
  *               metadata:
  *                 type: object
