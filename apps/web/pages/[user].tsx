@@ -319,7 +319,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         bio: user.bio,
         away: user.away,
         verified: user.verified,
-        avatar: user.avatar,
       })),
       eventTypes,
       safeBio,
