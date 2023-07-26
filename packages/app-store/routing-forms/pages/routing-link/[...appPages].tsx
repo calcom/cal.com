@@ -1,6 +1,5 @@
 import Head from "next/head";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -303,7 +302,7 @@ const usePrefilledResponse = (form: Props["form"]) => {
   // Prefill the form from query params
   form.fields?.forEach((field) => {
     prefillResponse[field.id] = {
-      value: searchParams?.get(getFieldIdentifier(field)) || "",
+      value: searchParams?.getAll(getFieldIdentifier(field)) || "",
       label: field.label,
     };
   });
