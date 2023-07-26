@@ -115,10 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-      if (
-        IS_CALCOM &&
-        (!teamMetadata?.isOrganization || (!!team.parentId && !teamMetadata?.isOrganization))
-      ) {
+      if (IS_CALCOM && (!teamMetadata?.isOrganization || !!team.parentId)) {
         const checkUsername = await checkPremiumUsername(username);
         if (checkUsername.premium) {
           // This signup page is ONLY meant for team invites and local setup. Not for every day users.
