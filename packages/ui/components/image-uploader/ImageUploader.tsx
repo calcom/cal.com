@@ -173,14 +173,7 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="mb-4 sm:flex sm:items-start">
-          <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-emphasis text-lg leading-6" id="modal-title">
-              {t("upload_target", { target })}
-            </h3>
-          </div>
-        </div>
+      <DialogContent title={t("upload_target", { target })}>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
@@ -210,7 +203,7 @@ export default function ImageUploader({
             </label>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="relative">
           <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
