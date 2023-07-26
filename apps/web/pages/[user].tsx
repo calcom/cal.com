@@ -1,6 +1,6 @@
 import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
-import type { GetServerSideProps, GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
@@ -223,9 +223,7 @@ export type UserPageProps = {
   >)[];
 } & EmbedProps;
 
-export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
-  context: GetServerSidePropsContext
-) => {
+export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
