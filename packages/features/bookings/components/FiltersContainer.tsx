@@ -2,7 +2,7 @@ import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   TeamsFilter,
   FilterCheckboxFieldsContainer,
@@ -29,7 +29,7 @@ import { EventTypeFilter } from "./EventTypeFilter";
 
 const PeopleFilter = () => {
   const { t } = useLocale();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const [searchText, setSearchText] = useState("");

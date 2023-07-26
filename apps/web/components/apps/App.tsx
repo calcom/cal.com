@@ -416,7 +416,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+  if (!userAdminTeams?.length || appCategories.some((category) => ["calendar", "conferencing"].includes(category))) {
     return <Button
       data-testid="install-app-button"
       {...props}

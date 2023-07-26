@@ -7,7 +7,7 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -16,6 +16,7 @@ import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -102,7 +103,7 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
@@ -200,7 +201,7 @@ const MemoizedItem = memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -513,7 +514,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     type="button"
                                     StartIcon={Code}
                                     className="w-full rounded-none"
-                                    embedUrl={encodeURIComponent(embedLink)}>
+                                    embedUrl={encodeURIComponent(embedLink)}
+                                    eventId={type.id}>
                                     {t("embed")}
                                   </EmbedButton>
                                 </DropdownMenuItem>
@@ -699,7 +701,7 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -709,7 +711,7 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
-
+  const bookerUrl = useBookerUrl();
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
@@ -740,9 +742,7 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {orgBranding
-              ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}${profile.slug}`
-              : `${CAL_URL?.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
@@ -808,7 +808,7 @@ const Actions = () => {
 
 const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   return (
     <Alert
@@ -839,7 +839,7 @@ const Main = () => {
   const router = useRouter();
   const filters = getTeamsFiltersFromQuery(router.query);
 
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const res = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters });
@@ -905,7 +905,7 @@ const EventTypesPage = () => {
   const { query } = router;
   const { data: user } = useMeQuery();
   const [showProfileBanner, setShowProfileBanner] = useState(false);
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   function closeBanner() {
     setShowProfileBanner(false);

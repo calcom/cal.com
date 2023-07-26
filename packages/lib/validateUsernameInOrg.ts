@@ -21,6 +21,17 @@ export const validateUsernameInOrg = async (usernameSlug: string, teamId: number
       },
     });
 
+    const usersFound = await prisma.user.findMany({
+      where: {
+        organizationId: teamId,
+      },
+      select: {
+        username: true,
+      },
+    });
+
+    takenSlugs = usersFound.map((user) => user.username);
+
     // If only one team is found and it has a parent, then it's an child team
     // and we can use the parent id to find all the teams that belong to this org
     if (teamsFound && teamsFound.length === 1 && teamsFound[0].parentId) {
@@ -34,9 +45,9 @@ export const validateUsernameInOrg = async (usernameSlug: string, teamId: number
           slug: true,
         },
       });
-      takenSlugs = childTeams.map((team) => team.slug);
+      takenSlugs = takenSlugs.concat(childTeams.map((team) => team.slug));
     } else {
-      takenSlugs = teamsFound.map((team) => team.slug);
+      takenSlugs = takenSlugs.concat(teamsFound.map((team) => team.slug));
     }
 
     return !takenSlugs.includes(slugify(usernameSlug));
