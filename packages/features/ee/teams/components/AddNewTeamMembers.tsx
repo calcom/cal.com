@@ -35,7 +35,7 @@ type FormValues = {
 const AddNewTeamMembers = () => {
   const searchParams = useSearchParams();
   const session = useSession();
-  const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : -1;
+  const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
     { teamId },
     { enabled: session.status === "authenticated" }
