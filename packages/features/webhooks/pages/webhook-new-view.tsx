@@ -24,10 +24,12 @@ const NewWebhookView = () => {
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
+      enabled: session.status === "authenticated",
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
+    enabled: session.status === "authenticated",
   });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({

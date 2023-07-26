@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -10,7 +9,6 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -35,10 +33,13 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = () => {
-  const params = useParamsWithFallback();
+  const searchParams = useSearchParams();
   const session = useSession();
-  const { id: teamId } = params ? querySchema.parse(params) : { id: -1 };
-  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : -1;
+  const teamQuery = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    { enabled: session.status === "authenticated" }
+  );
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
@@ -61,7 +62,7 @@ export const AddNewTeamMembersForm = ({
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 

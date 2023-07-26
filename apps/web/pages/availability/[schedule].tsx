@@ -1,7 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -9,7 +8,6 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -39,10 +37,6 @@ import { Info, MoreHorizontal, Plus, Trash } from "@calcom/ui/components/icon";
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
-
-const querySchema = z.object({
-  schedule: z.coerce.number().positive().optional(),
-});
 
 type AvailabilityFormValues = {
   name: string;
@@ -98,10 +92,7 @@ export default function Availability() {
   const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-  const {
-    data: { schedule: scheduleId },
-  } = useTypedQuery(querySchema);
-
+  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

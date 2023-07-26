@@ -507,7 +507,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname.startsWith("/bookings"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
   },
   {
     name: "availability",
@@ -527,7 +527,7 @@ const navigation: NavigationItemType[] = [
     icon: Grid,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
+      return path?.startsWith(item.href) || path?.startsWith("/v2" + item.href);
     },
     child: [
       {
@@ -536,7 +536,8 @@ const navigation: NavigationItemType[] = [
         isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("/installed")
+            (path?.startsWith(item.href) || path?.startsWith("/v2" + item.href)) &&
+            !path.includes("/installed")
           );
         },
       },
@@ -544,7 +545,7 @@ const navigation: NavigationItemType[] = [
         name: "installed_apps",
         href: "/apps/installed/calendar",
         isCurrent: ({ pathname: path }) =>
-          path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/"),
+          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
       },
     ],
   },
@@ -557,7 +558,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ pathname }) => pathname.startsWith("/routing-forms/"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing-forms/"),
   },
   {
     name: "workflows",
@@ -611,7 +612,7 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
-  return isChild ? item.href === pathname : item.href ? pathname.startsWith(item.href) : false;
+  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) : false;
 };
 
 const NavigationItem: React.FC<{
