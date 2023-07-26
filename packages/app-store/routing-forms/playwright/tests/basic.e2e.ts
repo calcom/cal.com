@@ -220,7 +220,7 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.apiLogin();
 
-      await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
+      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
 
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
