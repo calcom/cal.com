@@ -278,10 +278,6 @@ const nextConfig = {
           source: "/cancel/:path*",
           destination: "/booking/:path*",
         },
-        {
-          source: "/routing-forms/:slug*",
-          destination: "/apps/routing-forms/:slug*",
-        },
       ],
 
       /* TODO: have these files being served from another deployment or CDN {
