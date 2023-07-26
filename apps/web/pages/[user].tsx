@@ -13,12 +13,7 @@ import {
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import defaultEvents, {
-  getDynamicEventDescription,
-  getGroupName,
-  getUsernameList,
-  getUsernameSlugLink,
-} from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -26,7 +21,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
+import { Avatar, HeadSeo } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -38,63 +33,13 @@ import { ssrInit } from "@server/lib/ssr";
 
 export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 export function UserPage(props: UserPageProps) {
-  const {
-    users,
-    profile,
-    eventTypes,
-    isDynamicGroup,
-    dynamicNames,
-    dynamicUsernames,
-    isSingleUser,
-    markdownStrippedBio,
-  } = props;
+  const { users, profile, eventTypes, isSingleUser, markdownStrippedBio } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
-
-  const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
-    <div className="space-y-6" data-testid="event-types">
-      <div className="overflow-hidden rounded-sm border ">
-        <div className="text-muted p-8 text-center">
-          <h2 className="font-cal text-default  mb-2 text-3xl">{" " + t("unavailable")}</h2>
-          <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <ul>
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className=" border-subtle bg-default dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
-          <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-          <Link
-            href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
-            className="flex justify-between px-6 py-4"
-            data-testid="event-type-link">
-            <div className="flex-shrink">
-              <p className=" text-emphasis text-sm font-semibold">{type.title}</p>
-              <EventTypeDescription className="text-sm" eventType={type} />
-            </div>
-            <div className="mt-1 self-center">
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                items={props.users.map((user) => ({
-                  alt: user.name || "",
-                  image: user.avatar,
-                }))}
-              />
-            </div>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
 
   const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
@@ -117,14 +62,12 @@ export function UserPage(props: UserPageProps) {
   return (
     <>
       <HeadSeo
-        title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
+        title={nameOrUsername}
+        description={markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : markdownStrippedBio,
+          title: markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
-          users: isDynamicGroup
-            ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
-            : [{ username: `${user.username}`, name: `${user.name}` }],
+          users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
       />
 
@@ -165,8 +108,6 @@ export function UserPage(props: UserPageProps) {
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>
-            ) : isDynamicGroup ? ( //When we deal with dynamic group (users > 1)
-              groupEventTypes
             ) : (
               eventTypes.map((type) => (
                 <div
@@ -288,6 +229,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  if (isDynamicGroup) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/${usernameList.join("+")}/dynamic`,
+      },
+    } as {
+      redirect: {
+        permanent: false;
+        destination: string;
+      };
+    };
+  }
+
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
     avatar: `/${user.username}/avatar.png`,
@@ -300,45 +256,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true;
     };
   }
-  const isDynamicGroup = users.length > 1;
 
-  if (isDynamicGroup) {
-    // sort and be in the same order as usernameList so first user is the first user in the list
-    users.sort((a, b) => {
-      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-  }
-
-  const dynamicNames = isDynamicGroup
-    ? users.map((user) => {
-        return user.name || "";
-      })
-    : [];
   const [user] = users; //to be used when dealing with single user, not dynamic group
 
-  const profile = isDynamicGroup
-    ? {
-        name: getGroupName(dynamicNames),
-        image: null,
-        theme: null,
-        weekStart: "Sunday",
-        brandColor: "",
-        darkBrandColor: "",
-        allowDynamicBooking: !users.some((user) => {
-          return !user.allowDynamicBooking;
-        }),
-      }
-    : {
-        name: user.name || user.username,
-        image: user.avatar,
-        theme: user.theme,
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-      };
+  const profile = {
+    name: user.name || user.username,
+    image: user.avatar,
+    theme: user.theme,
+    brandColor: user.brandColor,
+    darkBrandColor: user.darkBrandColor,
+  };
 
-  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
+  const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
@@ -352,11 +281,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }));
 
   const isSingleUser = users.length === 1;
-  const dynamicUsernames = isDynamicGroup
-    ? users.map((user) => {
-        return user.username || "";
-      })
-    : [];
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
@@ -368,20 +292,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       safeBio,
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
-      themeBasis: isDynamicGroup ? null : user.username,
+      themeBasis: user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      eventTypes: isDynamicGroup
-        ? defaultEvents.map((event) => {
-            event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
-            return event;
-          })
-        : eventTypes,
+      eventTypes,
       trpcState: ssr.dehydrate(),
-      isDynamicGroup,
-      dynamicNames,
-      dynamicUsernames,
       isSingleUser,
       markdownStrippedBio,
     },

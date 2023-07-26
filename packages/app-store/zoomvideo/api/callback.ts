@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  createOAuthAppCredential({ appId: "zoom", type: "zoom_video" }, responseBody, req);
+  await createOAuthAppCredential({ appId: "zoom", type: "zoom_video" }, responseBody, req);
 
   res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "zoom" }));
 }
