@@ -124,10 +124,10 @@ export async function getUserAvailability(
     orgSlug?: string;
   },
   initialData?: {
-    rescheduleUid: string | null;
     user?: User;
     eventType?: EventType;
     currentSeats?: CurrentSeats;
+    rescheduleUid?: string | null;
   }
 ) {
   const {

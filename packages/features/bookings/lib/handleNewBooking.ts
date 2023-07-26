@@ -399,7 +399,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; rescheduleUid: string | null },
+  input: { dateFrom: string; dateTo: string; timeZone: string; rescheduleUid?: string | null },
   recurringDatesInfo?: {
     allRecurringDates: string[] | undefined;
     currentRecurringIndex: number | undefined;

@@ -12,7 +12,7 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeSlot?: number | null;
-  rescheduleUid: string | null;
+  rescheduleUid?: string | null;
 };
 
 /**

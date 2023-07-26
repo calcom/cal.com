@@ -10,7 +10,7 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
-  rescheduleUid: string | null;
+  rescheduleUid?: string | null;
 };
 
 export const useSchedule = ({

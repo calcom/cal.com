@@ -39,7 +39,7 @@ export const useEvent = () => {
 export const useScheduleForEvent = ({
   prefetchNextMonth,
   rescheduleUid,
-}: { prefetchNextMonth?: boolean; rescheduleUid: string | null } = {}) => {
+}: { prefetchNextMonth?: boolean; rescheduleUid?: string | null } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
   const [username, eventSlug, month, duration] = useBookerStore(

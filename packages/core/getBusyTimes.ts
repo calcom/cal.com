@@ -22,7 +22,7 @@ export async function getBusyTimes(params: {
   endTime: string;
   selectedCalendars: SelectedCalendar[];
   seatedEvent?: boolean;
-  rescheduleUid: string | null;
+  rescheduleUid?: string | null;
 }) {
   const {
     credentials,
@@ -143,9 +143,9 @@ export async function getBusyTimes(params: {
         // doing this allows using the map later to remove the ranges from calendar busy times.
         delete bookingSeatCountMap[bookedAt];
       }
-      if (rest.uid === rescheduleUid) {
-        return aggregate;
-      }
+      // if (rest.uid === rescheduleUid) {
+      //   return aggregate;
+      // }
       aggregate.push({
         start: dayjs(startTime)
           .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
