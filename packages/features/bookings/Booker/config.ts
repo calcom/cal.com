@@ -57,7 +57,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
           "timeslots"
         `,
       gridTemplateColumns: "100%",
-      gridTemplateRows: "auto auto auto auto",
+      gridTemplateRows: "minmax(min-content,max-content) 1fr",
     },
   },
   month_view: {

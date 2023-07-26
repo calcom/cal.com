@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import type { ComponentProps } from "react";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -23,7 +22,8 @@ export type VerticalTabItemProps = {
   disableChevron?: boolean;
   href: string;
   isExternalLink?: boolean;
-  linkProps?: Omit<ComponentProps<typeof Link>, "href">;
+  linkShallow?: boolean;
+  linkScroll?: boolean;
   avatar?: string;
   iconClassName?: string;
 };
@@ -34,7 +34,8 @@ const VerticalTabItem = ({
   info,
   isChild,
   disableChevron,
-  linkProps,
+  linkShallow,
+  linkScroll,
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
@@ -47,7 +48,8 @@ const VerticalTabItem = ({
           <Link
             key={name}
             href={href}
-            {...linkProps}
+            shallow={linkShallow}
+            scroll={linkScroll}
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",

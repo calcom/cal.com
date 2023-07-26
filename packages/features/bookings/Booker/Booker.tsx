@@ -25,6 +25,7 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
+import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -88,7 +89,8 @@ const BookerComponent = ({
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const totalWeekDays = 7;
   const addonDays =
-    nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays : 0;
+    nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays : 
+    nonEmptyScheduleDays.length === extraDays ? totalWeekDays : 0;
     
   //Taking one more avaliable slot(extraDays + 1) to claculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
@@ -135,6 +137,21 @@ const BookerComponent = ({
     }
   }, [isMobile, setLayout, layout, defaultLayout]);
 
+  //setting layout from query param
+  useEffect(() => {
+    const layout = getQueryParam("layout") as BookerLayouts;
+    if (
+      !isMobile &&
+      !isEmbed &&
+      validateLayout(layout) &&
+      bookerLayouts?.enabledLayouts?.length &&
+      layout !== _layout
+    ) {
+      const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
+      validLayout && setLayout(validLayout);
+    }
+  }, [bookerLayouts, validateLayout, setLayout, _layout]);
+
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -169,6 +186,11 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
+  if (bookerState === "loading") {
+    return null;
+  }
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -189,9 +211,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
-            // We don't want any margins for Embed. Any margin needed should be added by Embed user.
-            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-0"
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
             <BookerSection
@@ -221,7 +241,7 @@ const BookerComponent = ({
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className=" mt-auto px-5 py-3">
+                    <div className="mt-auto px-5 py-3 ">
                       <DatePicker />
                     </div>
                   )}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef } from "react";
+import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -13,7 +13,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -73,13 +72,15 @@ import {
   ChevronDown,
   Copy,
   Settings,
-  Slack,
   Users,
   Zap,
   User as UserIcon,
 } from "@calcom/ui/components/icon";
+import { Discord } from "@calcom/ui/components/icon/Discord";
 
+import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
+import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -135,6 +136,41 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
+function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
+  const router = useRouter();
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { offsetHeight } = entries[0].target as HTMLElement;
+      setBannersHeight(offsetHeight);
+    });
+
+    const currentBannerRef = bannerRef.current;
+
+    if (currentBannerRef) {
+      resizeObserver.observe(currentBannerRef);
+    }
+
+    return () => {
+      if (currentBannerRef) {
+        resizeObserver.unobserve(currentBannerRef);
+      }
+    };
+  }, [bannerRef]);
+
+  return (
+    <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
+      <NProgressNextRouter router={router} />
+      <TeamsUpgradeBanner />
+      <OrgUpgradeBanner />
+      <ImpersonatingBanner />
+      <AdminPasswordBanner />
+      <VerifyEmailBanner />
+    </div>
+  );
+}
+
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
@@ -162,28 +198,8 @@ function useRedirectToOnboardingIfNeeded() {
 }
 
 const Layout = (props: LayoutProps) => {
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
-
-  useIsomorphicLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const { offsetHeight } = entries[0].target as HTMLElement;
-      setBannersHeight(offsetHeight);
-    });
-
-    const currentBannerRef = bannerRef.current;
-
-    if (currentBannerRef) {
-      resizeObserver.observe(currentBannerRef);
-    }
-
-    return () => {
-      if (currentBannerRef) {
-        resizeObserver.unobserve(currentBannerRef);
-      }
-    };
-  }, [bannerRef]);
+  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   return (
     <>
@@ -200,13 +216,7 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-          <TeamsUpgradeBanner />
-          <OrgUpgradeBanner />
-          <ImpersonatingBanner />
-          <AdminPasswordBanner />
-          <VerifyEmailBanner />
-        </div>
+        <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
@@ -424,7 +434,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
+                    StartIcon={(props) => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
@@ -529,9 +539,7 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
-      );
+      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
     },
     child: [
       {
@@ -541,9 +549,7 @@ const navigation: NavigationItemType[] = [
           const path = router.asPath.split("?")[0];
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing-forms/") &&
-            !path.includes("/installed")
+            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("/installed")
           );
         },
       },
@@ -564,10 +570,10 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
+    href: "/routing-forms/forms",
     icon: FileText,
     isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
+      return router.asPath.startsWith("/routing-forms/");
     },
   },
   {
@@ -616,17 +622,9 @@ const Navigation = () => {
 };
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
-  const { status } = useSession();
-  const { data: routingForms } = trpc.viewer.appById.useQuery(
-    { appId: "routing-forms" },
-    {
-      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-      trpc: {},
-    }
-  );
   const flags = useFlagMap();
   if (isKeyInObject(item.name, flags)) return flags[item.name];
-  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
+  return true;
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
@@ -791,15 +789,19 @@ const getOrganizationUrl = (slug: string) =>
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
-  const orgBranding = useOrgBrandingValues();
-  const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+  const orgBranding = useOrgBranding();
+  const isOrgBrandingDataFetched = orgBranding !== undefined;
+
+  const publicPageUrl = useMemo(() => {
+    if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
+    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    return publicPageUrl;
+  }, [orgBranding?.slug, user?.organizationId, user?.username]);
+
   const bottomNavItems: NavigationItemType[] = [
     {
       name: "view_public_page",
-      href: !!user?.organizationId
-        ? publicPageUrl
-        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      href: publicPageUrl,
       icon: ExternalLink,
       target: "__blank",
     },
@@ -808,9 +810,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       href: "",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        navigator.clipboard.writeText(
-          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
-        );
+        navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
       icon: Copy,
@@ -828,7 +828,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
+            {!isOrgBrandingDataFetched ? null : orgBranding ? (
               <Link href="/event-types" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
@@ -888,6 +888,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
+                id={item.name}
                 href={item.href || undefined}
                 aria-label={t(item.name)}
                 target={item.target}
@@ -898,11 +899,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
                 )}
-                aria-current={
-                  defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                    ? "page"
-                    : undefined
-                }
                 onClick={item.onClick}>
                 {!!Icon && (
                   <Icon
@@ -911,11 +907,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                       "me-3 md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
-                    aria-current={
-                      defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                        ? "page"
-                        : undefined
-                    }
                   />
                 )}
                 {isLocaleReady ? (

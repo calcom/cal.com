@@ -42,6 +42,7 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -51,6 +52,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -60,7 +62,7 @@ import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import { TimeFormat } from "@calcom/lib/timeFormat";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
@@ -598,6 +600,7 @@ function getBookingData({
       throw new Error("`responses` must not be nullish");
     }
     const responses = reqBody.responses;
+
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
         bookingFields: eventType.bookingFields,
@@ -647,26 +650,6 @@ function getCustomInputsResponses(
   }
 
   return customInputsResponses;
-}
-
-async function getTeamId({ eventType }: { eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> }) {
-  if (eventType?.team?.id) {
-    return eventType.team.id;
-  }
-
-  // If it's a managed event we need to find the teamId for it from the parent
-  if (eventType.parentId) {
-    const managedEvent = await prisma.eventType.findFirst({
-      where: {
-        id: eventType.parentId,
-      },
-      select: {
-        teamId: true,
-      },
-    });
-
-    return managedEvent?.teamId;
-  }
 }
 
 async function handler(
@@ -721,6 +704,8 @@ async function handler(
     isNotAnApiCall,
     eventType,
   });
+
+  const fullName = getFullName(bookerName);
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -937,7 +922,7 @@ async function handler(
   const invitee = [
     {
       email: bookerEmail,
-      name: bookerName,
+      name: fullName,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -990,9 +975,11 @@ async function handler(
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: bookerName || "Nameless",
+    attendeeName: fullName || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
+    // we send on behalf of team if >1 round robin attendee | collective
+    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
@@ -1027,7 +1014,7 @@ async function handler(
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
-      timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
     responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
     userFieldsResponses: calEventUserFieldsResponses,
@@ -1145,7 +1132,7 @@ async function handler(
     length: eventType.length,
   };
 
-  const teamId = await getTeamId({ eventType });
+  const teamId = await getTeamIdFromEventType({ eventType });
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUser.id,

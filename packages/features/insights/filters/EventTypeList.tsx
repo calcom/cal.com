@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 import { FilterCheckboxFieldsContainer } from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Checkbox } from "@calcom/ui";
+import { AnimatedPopover, CheckboxField } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -14,7 +16,7 @@ const mapEventTypeToOption = (eventType: EventType): Option => ({
   label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
 });
 
-export const EventTypeList = () => {
+export const EventTypeList = memo(() => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedTeamId, selectedEventTypeId, selectedUserId, isAll } = filter;
@@ -47,7 +49,7 @@ export const EventTypeList = () => {
       <FilterCheckboxFieldsContainer>
         {filterOptions?.map((eventType) => (
           <div key={eventType.value} className="item-center hover:bg-muted flex cursor-pointer px-4 py-2">
-            <Checkbox
+            <CheckboxField
               checked={eventTypeValue?.value === eventType.value}
               onChange={(e) => {
                 if (e.target.checked) {
@@ -72,4 +74,6 @@ export const EventTypeList = () => {
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
-};
+});
+
+EventTypeList.displayName = "EventTypeList";
