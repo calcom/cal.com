@@ -8,6 +8,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -31,6 +32,7 @@ export async function handleConfirmation(args: {
       requiresConfirmation: boolean;
       title: string;
       teamId?: number | null;
+      parentId?: number | null;
     } | null;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -236,11 +238,18 @@ export async function handleConfirmation(args: {
   }
 
   try {
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+
     const subscribersBookingCreated = await getWebhooks({
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId: booking.eventType?.teamId,
+      teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
       userId: booking.userId,
