@@ -42,6 +42,7 @@ const getEventType = async (id: number) => {
       bookingLimits: true,
       durationLimits: true,
       timeZone: true,
+      length: true,
       metadata: true,
       schedule: {
         select: {
@@ -374,7 +375,7 @@ const getBusyTimesFromDurationLimits = async (
 
     // loop through all dates and check if we have reached the limit
     for (const date of dates) {
-      let total = duration ?? 0;
+      let total = (duration || eventType?.length) ?? 0;
       const startDate = date.startOf(filter);
       const endDate = date.endOf(filter);
 
