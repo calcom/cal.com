@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth, testName } from "./lib/testUtils";
+import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth, testName, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -146,4 +146,78 @@ test.describe("Teams", () => {
     );
     // TODO: Assert whether the user received an email
   });
+  test("Can create a booking for Round Robin EventType", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { username: "teammate-1", name: "teammate-1" },
+      { username: "teammate-2", name: "teammate-2" },
+    ];
+    // TODO: Create a fixture and follow DRY
+    const teamMates = [];
+    const owner = await users.create(ownerObj, { hasTeam: true });
+
+    for await (const teamMateObj of teamMatesObj) {
+      const teamMate = await users.create(teamMateObj);
+      teamMates.push(teamMate);
+    }
+    expect(teamMatesObj.length).toBe(teamMates.length);
+
+    const { team } = await prisma.membership.findFirstOrThrow({
+      where: { userId: owner.id },
+      include: { team: true },
+    });
+
+    // Add teammates to the Team with membership role Member
+    for await (const teamMate of teamMates) {
+      await prisma.membership.create({
+        data: {
+          teamId: team.id,
+          userId: teamMate.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
+    } // No need to remove membership row manually as it will be deleted with the user, at the end of the test.
+
+    const { id: eventTypeId, title: eventName } = await prisma.eventType.findFirstOrThrow({
+      where: { userId: owner.id, teamId: team.id },
+      // include: { id: true: true },
+    });
+
+    // Assign teammates to the eventtype host list
+    for await (const teamMate of teamMates) {
+      await prisma.host.create({
+        data: {
+          userId: teamMate.id,
+          eventTypeId,
+          isFixed: false,
+        },
+      });
+    }
+
+    await page.goto(`/team/${team.slug}/team-event-30min`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // The person who booked the meeting should be in the attendee list
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+
+    // The title of the booking
+    const BookingTitle = `${eventName} between ${team.name} and ${testName}`;
+    await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+
+    // TODO: Assert one of the teammates to be the host
+    // TODO: Assert whether the user received an email
+
+    // Owner of the Team will see all team bookings
+    owner.apiLogin();
+    page.goto("/bookings/upcoming");
+    await page.waitForSelector('[data-testid="bookings"]');
+    await expect(page.getByText(BookingTitle)).toBeVisible();
+
+    // TODO: Assert whether the user received an email
+  });
+  todo("Reschedule a Collective EventType booking");
+  todo("Reschedule a Round Robin EventType booking");
 });
