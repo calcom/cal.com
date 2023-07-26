@@ -166,8 +166,9 @@ export async function getUserAvailability(
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
-    startTime: dateFrom.toISOString(),
-    endTime: dateTo.toISOString(),
+    // needed to correctly apply limits (weeks can be part of two months)
+    startTime: dateFrom.startOf("week").toISOString(),
+    endTime: dateTo.endOf("week").toISOString(),
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
