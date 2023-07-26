@@ -99,7 +99,7 @@ export const tips = [
     title: "Cal.com v3.0",
     description: "Discover the Power of Cal.com 3.0 - Your Ultimate Content Planning Solution!",
     href:"https://cal.com/blog/v-3-0"
-  }
+  },
 ];
 
 const reversedTips = tips.slice(0).reverse();
