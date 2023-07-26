@@ -1,9 +1,7 @@
-import type { TFunction } from "next-i18next";
-
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
+import type { EmailVerifyCode } from "../../templates/attendee-verify-email";
 import { BaseEmailHtml } from "../components";
-import { EmailVerifyCode } from "../../templates/attendee-verify-email";
 
 export const VerifyEmailByCode = (
   props: EmailVerifyCode & Partial<React.ComponentProps<typeof BaseEmailHtml>>

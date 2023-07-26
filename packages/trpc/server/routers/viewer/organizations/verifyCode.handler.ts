@@ -2,11 +2,11 @@ import { createHash } from "crypto";
 import { totp } from "otplib";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
-import type { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
 type VerifyCodeOptions = {
   ctx: {
@@ -22,6 +22,10 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
   if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
   if (!IS_PRODUCTION) return true;
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: email,
+  });
 
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)

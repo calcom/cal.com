@@ -1,15 +1,15 @@
 import { createHash } from "crypto";
 import { totp } from "otplib";
 
+import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+
 import { TRPCError } from "@trpc/server";
 
-import type { TVerifyTokenSchema } from "./verifyToken.schema";
-
 type VerifyTokenOptions = {
-  input: TVerifyTokenSchema;
+  input: ZVerifyCodeInputSchema;
 };
 
-export const verifyTokenHandler = async ({ input }: VerifyTokenOptions) => {
+export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOptions) => {
   const { email, code } = input;
 
   if (!email || !code) throw new TRPCError({ code: "BAD_REQUEST" });

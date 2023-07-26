@@ -108,6 +108,7 @@ export {
   DialogHeader,
   DialogTrigger,
   ConfirmationDialogContent,
+  VerifyCodeDialog,
 } from "./components/dialog";
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
 export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file

@@ -182,7 +182,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   eventId: null,
   verifiedEmail: null,
   setVerifiedEmail: (email: string | null) => {
-    set({verifiedEmail: email})
+    set({ verifiedEmail: email });
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
@@ -296,7 +296,7 @@ export const useInitializeBookerStore = ({
       layout,
       isTeamEvent,
       org,
-      verifiedEmail
+      verifiedEmail,
     });
   }, [
     initializeStore,
@@ -309,6 +309,6 @@ export const useInitializeBookerStore = ({
     bookingData,
     layout,
     isTeamEvent,
-    verifiedEmail
+    verifiedEmail,
   ]);
 };

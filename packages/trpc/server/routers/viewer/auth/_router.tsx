@@ -1,15 +1,16 @@
+import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
-import { ZVerifyTokenSchema } from "./verifyToken.schema";
 
 type AuthRouterHandlerCache = {
   changePassword?: typeof import("./changePassword.handler").changePasswordHandler;
   verifyPassword?: typeof import("./verifyPassword.handler").verifyPasswordHandler;
-  verifyToken?: typeof import("./verifyToken.handler").verifyTokenHandler;
+  verifyCodeUnAuthenticated?: typeof import("./verifyCodeUnAuthenticated.handler").verifyCodeUnAuthenticatedHandler;
   resendVerifyEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
   sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
 };
@@ -53,19 +54,19 @@ export const authRouter = router({
     });
   }),
 
-  verifyToken: publicProcedure.input(ZVerifyTokenSchema).mutation(async ({ input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.verifyToken) {
-      UNSTABLE_HANDLER_CACHE.verifyToken = await import("./verifyToken.handler").then(
-        (mod) => mod.verifyTokenHandler
-      );
+  verifyCodeUnAuthenticated: publicProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
+      UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated = await import(
+        "./verifyCodeUnAuthenticated.handler"
+      ).then((mod) => mod.verifyCodeUnAuthenticatedHandler);
     }
 
     // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.verifyToken) {
+    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.verifyToken({
+    return UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated({
       input,
     });
   }),

@@ -23,14 +23,13 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { VerifyCodeDialog } from "@calcom/features/ee/organizations/components/CreateANewOrganizationForm";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Alert, EmptyScreen, showToast } from "@calcom/ui";
+import { Form, Button, Alert, EmptyScreen, showToast, VerifyCodeDialog } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
