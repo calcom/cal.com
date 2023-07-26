@@ -210,7 +210,7 @@ export default function ImageUploader({
             </label>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="relative">
           <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
