@@ -295,7 +295,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     const name = bookingForm.getValues("responses.name");
 
-    sendEmailVerificationByCodeMutation.mutate({ email, username: name });
+    sendEmailVerificationByCodeMutation.mutate({
+      email,
+      username: typeof name === "string" ? name : name.firstName,
+    });
     setEmailVerificationModalVisible(true);
   };
 
