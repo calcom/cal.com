@@ -23,7 +23,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // get requested user from database and ensure they are in the same organization
-  const [requestedUser, membership] = await prisma.$transaction([
+  const [requestedUser, membership, teams] = await prisma.$transaction([
     prisma.user.findFirst({
       where: { id: input.userId, organizationId: currentUser.organizationId },
       select: {
@@ -52,6 +52,23 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
         role: true,
       },
     }),
+    prisma.membership.findMany({
+      where: {
+        userId: input.userId,
+        team: {
+          parentId: currentUser.organizationId,
+        },
+      },
+      select: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        accepted: true,
+      },
+    }),
   ]);
 
   if (!requestedUser || !membership)
@@ -59,6 +76,10 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   const foundUser = {
     ...requestedUser,
+    teams: teams.map((team) => ({
+      ...team.team,
+      accepted: team.accepted,
+    })),
     role: membership.role,
   };
 
