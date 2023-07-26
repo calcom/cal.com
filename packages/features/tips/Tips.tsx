@@ -93,6 +93,13 @@ export const tips = [
     description: "Get a better understanding of your business",
     href: "https://go.cal.com/insights",
   },
+  {
+    id: 12
+    thumbnailUrl: "https://cal.com/_next/image?url=https%3A%2F%2Fwww.datocms-assets.com%2F77432%2F1686841105-header1-1.png&w=1080&q=75",
+    title: "Cal.com v3.0",
+    description: "Discover the Power of Cal.com 3.0 - Your Ultimate Content Planning Solution!",
+    href:"https://cal.com/blog/v-3-0"
+  }
 ];
 
 const reversedTips = tips.slice(0).reverse();
