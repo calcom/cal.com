@@ -1182,6 +1182,7 @@
   "event_time_variable": "Event Zeit",
   "timezone_variable": "Zeitzone",
   "location_variable": "Ort",
+  "additional_notes_variable": "Zusätzliche Notizen",
   "organizer_name_variable": "Organisator Name",
   "app_upgrade_description": "Um diese Funktion nutzen zu können, müssen Sie ein Upgrade auf einen Pro-Account durchführen.",
   "invalid_number": "Ungültige Telefonnummer",

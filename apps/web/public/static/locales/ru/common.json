@@ -1178,6 +1178,7 @@
   "event_time_variable": "Время события",
   "timezone_variable": "Часовой пояс",
   "location_variable": "Местоположение",
+  "additional_notes_variable": "Дополнительная информация",
   "organizer_name_variable": "Имя организатора",
   "app_upgrade_description": "Чтобы использовать эту функцию, необходимо перейти на аккаунт Pro.",
   "invalid_number": "Неверный номер телефона",

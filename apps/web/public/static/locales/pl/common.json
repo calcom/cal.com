@@ -1178,6 +1178,7 @@
   "event_time_variable": "Godzina wydarzenia",
   "timezone_variable": "Strefa Czasowa",
   "location_variable": "Lokalizacja",
+  "additional_notes_variable": "Dodatkowe uwagi",
   "organizer_name_variable": "Nazwa organizatora",
   "app_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro.",
   "invalid_number": "Nieprawidłowy numer telefonu",
