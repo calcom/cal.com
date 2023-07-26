@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
 
-  createOAuthAppCredential({ appId: "hubspot", type: "hubspot_other_calendar" }, hubspotToken as any, req);
+  await createOAuthAppCredential({ appId: "hubspot", type: "hubspot_other_calendar" }, hubspotToken as any, req);
 
   const state = decodeOAuthState(req);
   res.redirect(
