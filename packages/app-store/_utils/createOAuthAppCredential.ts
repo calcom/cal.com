@@ -1,10 +1,10 @@
-import { throwIfNotHaveAdminAccessToTeam } from "_utils/throwIfNotHaveAdminAccessToTeam";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "./decodeOAuthState";
+import { throwIfNotHaveAdminAccessToTeam } from "./throwIfNotHaveAdminAccessToTeam";
 
 /**
  * This function is used to create app credentials for either a user or a team
