@@ -244,29 +244,12 @@ export const scheduleEmailReminder = async (
   }
 };
 
-export const deleteScheduledEmailReminder = async (
-  reminderId: number,
-  referenceId: string | null,
-  seatReferenceUid?: string
-) => {
+export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({
         where: {
           id: reminderId,
-        },
-      });
-
-      return;
-    }
-
-    if (seatReferenceUid) {
-      await prisma.workflowReminder.updateMany({
-        where: {
-          seatReferenceId: seatReferenceUid,
-        },
-        data: {
-          cancelled: true,
         },
       });
 

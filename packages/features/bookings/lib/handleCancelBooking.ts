@@ -757,30 +757,20 @@ async function handleSeatedEventCancellation(
   );
   await Promise.all(promises);
 
-  const workflowReminderForAttendee = bookingToDelete?.workflowReminders.find(
+  const workflowRemindersForAttendee = bookingToDelete?.workflowReminders.filter(
     (reminder) => reminder.seatReferenceId === seatReferenceUid
   );
 
-  if (workflowReminderForAttendee) {
-    if (workflowReminderForAttendee.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(
-        workflowReminderForAttendee.id,
-        workflowReminderForAttendee.referenceId,
-        seatReferenceUid
-      );
-    } else if (workflowReminderForAttendee.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(
-        workflowReminderForAttendee.id,
-        workflowReminderForAttendee.referenceId,
-        seatReferenceUid
-      );
-    } else if (workflowReminderForAttendee.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(
-        workflowReminderForAttendee.id,
-        workflowReminderForAttendee.referenceId,
-        seatReferenceUid
-      );
-    }
+  if (workflowRemindersForAttendee && workflowRemindersForAttendee.length !== 0) {
+    workflowRemindersForAttendee.forEach((reminder) => {
+      if (reminder.method === WorkflowMethods.EMAIL) {
+        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.SMS) {
+        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+      }
+    });
   }
 
   return { success: true };
