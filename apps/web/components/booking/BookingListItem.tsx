@@ -283,6 +283,7 @@ function BookingListItem(booking: BookingItemProps) {
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
+        teamId={booking.eventType?.team?.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
