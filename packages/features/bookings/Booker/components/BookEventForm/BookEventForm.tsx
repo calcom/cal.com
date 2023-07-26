@@ -272,13 +272,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   });
 
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
-  const responses = bookingForm.getValues().responses;
+  const email = bookingForm.watch("responses.email");
 
-  // It shouldn't be possible that email and name arent there in responses,
-  // but since in theory (looking at the types) it is possible, we still handle that case.
-  const email = responses && "email" in responses ? responses.email : "";
-  // responses.name will be string in this case
-  const name = responses && "name" in responses ? (responses.name as string) : "";
   const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
     onSuccess() {
       showToast(t("email_sent"), "success");
@@ -297,6 +292,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       bookingForm.setError("globalError", { message: t("error_booking_event") });
       return;
     }
+
+    const name = bookingForm.getValues("responses.name");
 
     sendEmailVerificationByCodeMutation.mutate({ email, username: name });
     setEmailVerificationModalVisible(true);
@@ -427,7 +424,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
               ? t("reschedule")
               : renderConfirmNotVerifyEmailButtonCond
               ? t("confirm")
-              : "Verify Email"}
+              : t("verify_email_email_button")}
           </Button>
         </div>
       </Form>
