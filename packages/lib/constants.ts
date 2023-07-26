@@ -34,10 +34,12 @@ export const IS_CALCOM =
   WEBAPP_URL &&
   (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.qa") ||
   new URL(WEBAPP_URL).hostname.endsWith(".cal-staging.com") ||
   process.env.NODE_ENV !== "production"
     ? `https://console.cal.dev`

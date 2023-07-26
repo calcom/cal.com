@@ -5,7 +5,7 @@ import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { IS_CALCOM, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -82,6 +82,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
   if (check === false) {
+    if (IS_CALCOM) await vercelCreateDomain(slug);
+
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: adminUsername,
@@ -117,8 +119,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         },
       },
     });
-
-    if (IS_PRODUCTION) await vercelCreateDomain(slug);
 
     await prisma.membership.create({
       data: {
