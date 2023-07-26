@@ -1178,6 +1178,7 @@
   "event_time_variable": "Etkinlik saati",
   "timezone_variable": "Saat dilimi",
   "location_variable": "Konum",
+  "additional_notes_variable": "Ek notlar",
   "organizer_name_variable": "Düzenleyenin adı",
   "app_upgrade_description": "Bu özelliği kullanmak için Pro hesabına geçmeniz gerekiyor.",
   "invalid_number": "Geçersiz telefon numarası",

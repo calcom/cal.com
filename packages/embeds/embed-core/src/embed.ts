@@ -1,10 +1,14 @@
 /// <reference types="../env" />
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type { InterfaceWithParent, interfaceWithParent, UiConfig, EmbedThemeConfig } from "./embed-iframe";
+import type {
+  InterfaceWithParent,
+  interfaceWithParent,
+  UiConfig,
+  EmbedThemeConfig,
+  BookerLayouts,
+} from "./embed-iframe";
 import css from "./embed.css";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -164,9 +168,11 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: It should have a dedicated prefill prop
   // prefill: {},
 
+  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
+  // ui: {layout; theme}
+  layout?: BookerLayouts;
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
-  layout?: `${BookerLayouts}`;
   theme?: EmbedThemeConfig;
 };
 
@@ -372,7 +378,9 @@ export class Cal {
         // Right now it would wait for embed-iframe.js bundle to be loaded as well. We can speed that up by inlining the JS that informs about color-scheme being set in the HTML.
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
-        this.iframe.style.visibility = "visible";
+
+        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visiblity:hidden set. Just reset the visibility to default
+        this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {

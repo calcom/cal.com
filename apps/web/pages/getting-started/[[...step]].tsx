@@ -42,6 +42,7 @@ const stepTransform = (step: (typeof steps)[number]) => {
 
 const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
+  from: z.string().optional(),
 });
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
@@ -52,6 +53,7 @@ const OnboardingPage = () => {
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
+  const from = result.success ? result.data.from : "";
 
   const headers = [
     {
@@ -141,7 +143,9 @@ const OnboardingPage = () => {
             </div>
             <StepCard>
               <Suspense fallback={<Loader />}>
-                {currentStep === "user-settings" && <UserSettings nextStep={() => goToIndex(1)} />}
+                {currentStep === "user-settings" && (
+                  <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
+                )}
                 {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
                 {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}

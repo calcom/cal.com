@@ -1178,6 +1178,7 @@
   "event_time_variable": "イベントの時間",
   "timezone_variable": "タイムゾーン",
   "location_variable": "場所",
+  "additional_notes_variable": "備考",
   "organizer_name_variable": "主催者名",
   "app_upgrade_description": "この機能を利用するには、Pro アカウントへのアップグレードが必要です。",
   "invalid_number": "電話番号が無効です",

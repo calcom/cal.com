@@ -18,7 +18,7 @@ export const preprocessNameFieldDataWithVariant = (
 
 export const getFullName = (name: string | { firstName: string; lastName?: string }) => {
   if (!name) {
-    return name;
+    return "";
   }
   let nameString = "";
   if (typeof name === "string") {

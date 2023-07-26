@@ -70,16 +70,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     const clonedCalEvent = cloneDeep(this.calEvent);
-
-    const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.email === member.email);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
       icalEvent: {

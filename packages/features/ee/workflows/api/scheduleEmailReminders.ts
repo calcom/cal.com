@@ -32,6 +32,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
+
   //delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete = await prisma.workflowReminder.findMany({
     where: {
@@ -251,6 +253,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
             replyTo: reminder.booking.user?.email || senderEmail,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
           });
         }
 

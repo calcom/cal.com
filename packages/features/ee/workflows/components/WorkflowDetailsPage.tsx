@@ -118,6 +118,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
+              data-testid="workflow-name"
               disabled={props.readOnly}
               label={`${t("workflow_name")}:`}
               type="text"

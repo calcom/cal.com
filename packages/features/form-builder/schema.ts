@@ -35,6 +35,8 @@ const baseFieldSchema = z.object({
   type: fieldTypeEnum,
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),
+  labelAsSafeHtml: z.string().optional(),
+
   /**
    * It is the default label that will be used when a new field is created.
    * Note: It belongs in FieldsTypeConfig, so that changing defaultLabel in code can work for existing fields as well(for fields that are using the default label).
