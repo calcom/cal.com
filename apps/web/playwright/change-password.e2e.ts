@@ -23,7 +23,7 @@ test.describe("Change Password Test", () => {
 
     await page.locator("text=Update").click();
 
-    const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+    const toast = await page.waitForSelector('[data-testid="toast-success"]');
 
     expect(toast).toBeTruthy();
   });
