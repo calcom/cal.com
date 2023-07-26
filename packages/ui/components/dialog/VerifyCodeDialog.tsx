@@ -111,7 +111,7 @@ export const VerifyCodeDialog = ({
             <DialogFooter>
               <DialogClose />
               <Button
-                isLoading={isLoading}
+                loading={isLoading}
                 disabled={isLoading}
                 onClick={() => {
                   setError("");
