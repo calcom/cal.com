@@ -1,4 +1,3 @@
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -68,7 +67,6 @@ const GeneralQueryView = () => {
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
-  const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
 
