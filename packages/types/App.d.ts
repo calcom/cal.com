@@ -116,7 +116,7 @@ export interface App {
    * */
   isGlobal?: boolean;
   /**
-   * For apps that are accessible on an alternate UR(which is simpler and shorter), this can be set.
+   * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
    * e.g. Routing Forms App is available as /routing-forms in addition to regular /app/routing-forms.
    */
   simplePath?: string;
