@@ -296,9 +296,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const newSearchParams = new URLSearchParams(searchParams);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
-      if (value !== undefined && value !== null) newSearchParams.set(key, value.toString());
+      if (value) newSearchParams.set(key, value.toString());
+      if (value === null) newSearchParams.delete(key);
     }
-    setParamsIfDefined("dialog", "duplicate");
     setParamsIfDefined("dialog", "duplicate");
     setParamsIfDefined("title", eventType.title);
     setParamsIfDefined("description", eventType.description);
