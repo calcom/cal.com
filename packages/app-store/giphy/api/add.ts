@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
@@ -13,10 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
+
+  const userId = req.session.user.id;
   const appType = "giphy_other";
-  const credentialOwner = req.query.teamId
-    ? { teamId: Number(req.query.teamId) }
-    : { userId: req.session.user.id };
+  const teamId = Number(req.query.teamId);
+  const credentialOwner = req.query.teamId ? { teamId } : { userId: req.session.user.id };
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId });
+
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
