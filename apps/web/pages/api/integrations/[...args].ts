@@ -39,7 +39,7 @@ const defaultIntegrationAddHandler = async ({
     }
   }
 
-  throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId: user.id });
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId: user.id });
 
   await createCredential({ user: user, appType, slug, teamId });
 };
@@ -76,7 +76,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(200);
   } catch (error) {
     console.error(error);
-
     if (error instanceof HttpError) {
       return res.status(error.statusCode).json({ message: error.message });
     }

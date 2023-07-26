@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamId = Number(req.query.teamId);
   const credentialOwner = req.query.teamId ? { teamId } : { userId: req.session.user.id };
 
-  throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId });
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId });
 
   try {
     const alreadyInstalled = await prisma.credential.findFirst({

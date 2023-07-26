@@ -11,7 +11,7 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const teamsUserHasAdminAccessFor = await getUserAdminTeams({ userId, includeCredentials: true });
+  const teamsUserHasAdminAccessFor = await getUserAdminTeams({ userId});
   const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.find((team) => {
     team.id === teamId;
   });
