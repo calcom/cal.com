@@ -124,6 +124,7 @@ export async function getUserAvailability(
     orgSlug?: string;
   },
   initialData?: {
+    rescheduleUid: string | null;
     user?: User;
     eventType?: EventType;
     currentSeats?: CurrentSeats;
@@ -175,6 +176,7 @@ export async function getUserAvailability(
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
     seatedEvent: !!eventType?.seatsPerTimeSlot,
+    rescheduleUid: initialData?.rescheduleUid || null,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({

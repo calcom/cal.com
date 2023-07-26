@@ -273,6 +273,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                rescheduleUid={rescheduleUid}
               />
             </BookerSection>
           </AnimatePresence>

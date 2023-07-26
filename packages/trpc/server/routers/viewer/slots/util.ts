@@ -256,7 +256,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 

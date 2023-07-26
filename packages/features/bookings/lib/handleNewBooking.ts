@@ -399,7 +399,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string },
+  input: { dateFrom: string; dateTo: string; timeZone: string; rescheduleUid: string | null },
   recurringDatesInfo?: {
     allRecurringDates: string[] | undefined;
     currentRecurringIndex: number | undefined;
@@ -414,7 +414,7 @@ async function ensureAvailableUsers(
         eventTypeId: eventType.id,
         ...input,
       },
-      { user, eventType }
+      { user, eventType, rescheduleUid: input.rescheduleUid }
     );
 
     if (!dateRanges.length) {
@@ -867,6 +867,7 @@ async function handler(
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
         timeZone: reqBody.timeZone,
+        rescheduleUid: reqBody.rescheduleUid,
       },
       {
         allRecurringDates,

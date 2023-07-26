@@ -22,6 +22,7 @@ export async function getBusyTimes(params: {
   endTime: string;
   selectedCalendars: SelectedCalendar[];
   seatedEvent?: boolean;
+  rescheduleUid: string | null;
 }) {
   const {
     credentials,
@@ -35,6 +36,7 @@ export async function getBusyTimes(params: {
     afterEventBuffer,
     selectedCalendars,
     seatedEvent,
+    rescheduleUid,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -98,6 +100,7 @@ export async function getBusyTimes(params: {
     },
     select: {
       id: true,
+      uid: true,
       startTime: true,
       endTime: true,
       title: true,
@@ -139,6 +142,9 @@ export async function getBusyTimes(params: {
         // if it does get blocked at this point; we remove the bookingSeatCountMap entry
         // doing this allows using the map later to remove the ranges from calendar busy times.
         delete bookingSeatCountMap[bookedAt];
+      }
+      if (rest.uid === rescheduleUid) {
+        return aggregate;
       }
       aggregate.push({
         start: dayjs(startTime)
@@ -182,6 +188,15 @@ export async function getBusyTimes(params: {
         end: dayjs(end),
       };
     });
+
+    if (rescheduleUid) {
+      const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
+      // calendar busy time from original rescheduled booking should not be blocked
+      openSeatsDateRanges.push({
+        start: dayjs(originalRescheduleBooking?.startTime),
+        end: dayjs(originalRescheduleBooking?.endTime),
+      });
+    }
 
     const result = subtract(
       calendarBusyTimes.map((value) => ({

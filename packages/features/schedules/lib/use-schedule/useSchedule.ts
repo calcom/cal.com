@@ -10,6 +10,7 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
+  rescheduleUid: string | null;
 };
 
 export const useSchedule = ({
@@ -20,6 +21,7 @@ export const useSchedule = ({
   eventId,
   prefetchNextMonth,
   duration,
+  rescheduleUid,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(1, "month");
@@ -38,6 +40,7 @@ export const useSchedule = ({
       timeZone: timezone!,
       eventTypeId: eventId!,
       duration: duration ? `${duration}` : undefined,
+      rescheduleUid,
     },
     {
       refetchOnWindowFocus: false,
