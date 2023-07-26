@@ -2,8 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsernameInOrg } from "@calcom/lib/validateUsernameInOrg";
@@ -23,7 +25,7 @@ const signupSchema = z.object({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
-    return;
+    return res.status(405).end();
   }
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
@@ -103,22 +105,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await prisma.user.upsert({
-    where: { email: userEmail },
-    update: {
-      username,
-      password: hashedPassword,
-      emailVerified: new Date(Date.now()),
-      identityProvider: IdentityProvider.CAL,
-    },
-    create: {
-      username,
-      email: userEmail,
-      password: hashedPassword,
-      identityProvider: IdentityProvider.CAL,
-    },
-  });
-
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
       where: {
@@ -128,6 +114,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
+      if (IS_CALCOM && (!teamMetadata?.isOrganization || !!team.parentId)) {
+        const checkUsername = await checkPremiumUsername(username);
+        if (checkUsername.premium) {
+          // This signup page is ONLY meant for team invites and local setup. Not for every day users.
+          // In singup redesign/refactor coming up @sean will tackle this to make them the same API/page instead of two.
+          return res.status(422).json({
+            message: "Sign up from https://cal.com/signup to claim your premium username",
+          });
+        }
+      }
+
+      const user = await prisma.user.upsert({
+        where: { email: userEmail },
+        update: {
+          username,
+          password: hashedPassword,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+        },
+        create: {
+          username,
+          email: userEmail,
+          password: hashedPassword,
+          identityProvider: IdentityProvider.CAL,
+        },
+      });
+
       if (teamMetadata?.isOrganization) {
         await prisma.user.update({
           where: {
@@ -198,6 +212,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } else {
+    if (IS_CALCOM) {
+      const checkUsername = await checkPremiumUsername(username);
+      if (checkUsername.premium) {
+        res.status(422).json({
+          message: "Sign up from https://cal.com/signup to claim your premium username",
+        });
+        return;
+      }
+    }
+    await prisma.user.upsert({
+      where: { email: userEmail },
+      update: {
+        username,
+        password: hashedPassword,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+      },
+      create: {
+        username,
+        email: userEmail,
+        password: hashedPassword,
+        identityProvider: IdentityProvider.CAL,
+      },
+    });
     await sendEmailVerification({
       email: userEmail,
       username,
