@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
+import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
@@ -29,7 +30,7 @@ import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Alert, EmptyScreen, showToast, VerifyCodeDialog } from "@calcom/ui";
+import { Form, Button, Alert, EmptyScreen, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";

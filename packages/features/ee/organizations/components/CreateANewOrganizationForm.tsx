@@ -3,12 +3,13 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, TextField, Alert, VerifyCodeDialog } from "@calcom/ui";
+import { Button, Form, TextField, Alert } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 function extractDomainFromEmail(email: string) {

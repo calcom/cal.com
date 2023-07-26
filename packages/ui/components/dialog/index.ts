@@ -2,4 +2,3 @@ export { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 export { ConfirmationDialogContent } from "./ConfirmationDialogContent";
 export type { ConfirmationDialogContentProps } from "./ConfirmationDialogContent";
 export type { DialogProps } from "./Dialog";
-export { VerifyCodeDialog } from "./VerifyCodeDialog";
