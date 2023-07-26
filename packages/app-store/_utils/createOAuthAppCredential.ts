@@ -1,5 +1,7 @@
+import { throwIfNotHaveAdminAccessToTeam } from "_utils/throwIfNotHaveAdminAccessToTeam";
 import type { NextApiRequest } from "next";
 
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "./decodeOAuthState";
@@ -19,8 +21,12 @@ const createOAuthAppCredential = async (
   req: NextApiRequest
 ) => {
   const userId = req.session?.user.id;
+  if (!userId) {
+    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+  }
   // For OAuth flows, see if a teamId was passed through the state
   const state = decodeOAuthState(req);
+
   if (state?.teamId) {
     // Check that the user belongs to the team
     const team = await prisma.team.findFirst({
@@ -49,6 +55,8 @@ const createOAuthAppCredential = async (
 
     return;
   }
+
+  throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
   await prisma.credential.create({
     data: {
