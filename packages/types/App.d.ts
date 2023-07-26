@@ -115,6 +115,11 @@ export interface App {
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
+  /**
+   * For apps that are accessible on an alternate UR(which is simpler and shorter), this can be set.
+   * e.g. Routing Forms App is available as /routing-forms in addition to regular /app/routing-forms.
+   */
+  simplePath?: string;
   /** A contact email, mainly to ask for support */
   email: string;
   /** Needed API Keys (usually for global apps) */
@@ -126,8 +131,6 @@ export interface App {
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
   licenseRequired?: boolean;
-  isSystemApp: boolean;
-  requiresCredentials: boolean;
   teamsPlanRequired?: {
     upgradeUrl: string;
   };
