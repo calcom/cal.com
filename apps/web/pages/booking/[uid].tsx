@@ -23,9 +23,9 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import {
-  SystemField,
   getBookingFieldsWithSystemFields,
   SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
@@ -49,8 +49,9 @@ import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme, Alert } from "@calcom/ui";
 import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
+import { AlertCircle } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -127,6 +128,10 @@ export default function Success(props: SuccessProps) {
       ? props?.bookingInfo?.attendees?.[0]?.name
       : "Nameless";
 
+  const attendees = props?.bookingInfo?.attendees;
+
+  const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -180,7 +185,7 @@ export default function Success(props: SuccessProps) {
   // - It's a paid event and payment is pending.
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
-
+  const isLoggedIn = session?.user;
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
@@ -273,7 +278,7 @@ export default function Success(props: SuccessProps) {
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
-  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
+  useTheme(isSuccessBookingPage ? props.profile.theme : "system");
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
@@ -305,7 +310,7 @@ export default function Success(props: SuccessProps) {
           status={status}
         />
       )}
-      {userIsOwner && !isEmbed && (
+      {isLoggedIn && !isEmbed && (
         <div className="-mb-4 ml-4 mt-2">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
@@ -435,7 +440,9 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>
-                                <span className="mr-2">{bookingInfo.user.name}</span>
+                                <span data-testid={`host-name-${bookingInfo.user.name}`} className="mr-2">
+                                  {bookingInfo.user.name}
+                                </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
                               <p className="text-default">{bookingInfo.user.email}</p>
@@ -705,6 +712,26 @@ export default function Success(props: SuccessProps) {
                   </>
                 )}
               </div>
+              {isGmail && (
+                <Alert
+                  className="main -mb-20 mt-4 inline-block text-left sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  severity="warning"
+                  message={
+                    <div>
+                      <p className="font-semibold">{t("google_new_spam_policy")}</p>
+                      <span className="underline">
+                        <a
+                          target="_blank"
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          {t("resolve")}
+                        </a>
+                      </span>
+                    </div>
+                  }
+                  CustomIcon={AlertCircle}
+                  customIconColor="text-attention dark:text-orange-200"
+                />
+              )}
             </div>
           </div>
         </div>

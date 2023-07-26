@@ -22,7 +22,8 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const defaultOptions: CookieOption["options"] = {
     domain: isENVDev
       ? process.env.ORGANIZATIONS_ENABLED
-        ? ".cal.local"
+        ? //FIXME: This is causing login to not work if someone uses anything other .cal.local for testing
+          ".cal.local"
         : undefined
       : NEXTAUTH_COOKIE_DOMAIN,
     // To enable cookies on widgets,

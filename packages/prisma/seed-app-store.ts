@@ -4,10 +4,11 @@
  */
 import type { Prisma } from "@prisma/client";
 import dotEnv from "dotenv";
-import fs from "fs";
-import path from "path";
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 
 import prisma from ".";
+import { AppCategories } from "./enums";
 
 dotEnv.config({ path: "../../.env.appStore" });
 
@@ -235,7 +236,7 @@ export default async function main() {
       client_secret,
       redirect_uris,
     });
-    await createApp("google-meet", "googlevideo", ["video"], "google_video", {
+    await createApp("google-meet", "googlevideo", ["conferencing"], "google_video", {
       client_id,
       client_secret,
       redirect_uris,
@@ -248,7 +249,7 @@ export default async function main() {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
     });
-    await createApp("msteams", "office365video", ["video"], "office365_video", {
+    await createApp("msteams", "office365video", ["conferencing"], "office365_video", {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
     });
@@ -266,45 +267,45 @@ export default async function main() {
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
-    await createApp("daily-video", "dailyvideo", ["video"], "daily_video", {
+    await createApp("daily-video", "dailyvideo", ["conferencing"], "daily_video", {
       api_key: process.env.DAILY_API_KEY,
       scale_plan: process.env.DAILY_SCALE_PLAN,
     });
   }
   if (process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET) {
-    await createApp("tandem", "tandemvideo", ["video"], "tandem_video", {
+    await createApp("tandem", "tandemvideo", ["conferencing"], "tandem_video", {
       client_id: process.env.TANDEM_CLIENT_ID as string,
       client_secret: process.env.TANDEM_CLIENT_SECRET as string,
       base_url: (process.env.TANDEM_BASE_URL as string) || "https://tandem.chat",
     });
   }
   if (process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET) {
-    await createApp("zoom", "zoomvideo", ["video"], "zoom_video", {
+    await createApp("zoom", "zoomvideo", ["conferencing"], "zoom_video", {
       client_id: process.env.ZOOM_CLIENT_ID,
       client_secret: process.env.ZOOM_CLIENT_SECRET,
     });
   }
-  await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
+  await createApp("jitsi", "jitsivideo", ["conferencing"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
-    await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
+    await createApp("hubspot", "hubspot", ["crm"], "hubspot_other_calendar", {
       client_id: process.env.HUBSPOT_CLIENT_ID,
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
   if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
-    await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
+    await createApp("salesforce", "salesforce", ["crm"], "salesforce_other_calendar", {
       consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
       consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
     });
   }
   if (process.env.ZOHOCRM_CLIENT_ID && process.env.ZOHOCRM_CLIENT_SECRET) {
-    await createApp("zohocrm", "zohocrm", ["other"], "zohocrm_other_calendar", {
+    await createApp("zohocrm", "zohocrm", ["crm"], "zohocrm_other_calendar", {
       client_id: process.env.ZOHOCRM_CLIENT_ID,
       client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
     });
   }
-  await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
+  await createApp("wipe-my-cal", "wipemycalother", ["automation"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
       api_key: process.env.GIPHY_API_KEY,
@@ -312,7 +313,7 @@ export default async function main() {
   }
 
   if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
-    await createApp("vital-automation", "vital", ["other"], "vital_other", {
+    await createApp("vital-automation", "vital", ["automation"], "vital_other", {
       mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
       region: process.env.VITAL_REGION || "us",
       api_key: process.env.VITAL_API_KEY,
@@ -326,8 +327,7 @@ export default async function main() {
     });
   }
 
-  // Web3 apps
-  await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
+  await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
 
   // Payment apps
   if (
@@ -348,21 +348,22 @@ export default async function main() {
     });
   }
 
-  const generatedApps = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
-  );
-  for (let i = 0; i < generatedApps.length; i++) {
-    const generatedApp = generatedApps[i];
-    if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
+  for (const [, app] of Object.entries(appStoreMetadata)) {
+    if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
     }
+
+    const validatedCategories = app.categories.filter(
+      (category): category is AppCategories => category in AppCategories
+    );
+
     await createApp(
-      generatedApp.slug,
-      generatedApp.dirName,
-      generatedApp.categories,
-      generatedApp.type,
+      app.slug,
+      app.dirName ?? app.slug,
+      validatedCategories,
+      app.type,
       undefined,
-      generatedApp.isTemplate
+      app.isTemplate
     );
   }
 

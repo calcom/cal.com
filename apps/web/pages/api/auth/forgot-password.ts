@@ -5,15 +5,12 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
-import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import rateLimiter from "@calcom/lib/rateLimit";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const t = await getTranslation(req.body.language ?? "en", "common");
-
   const email = z
     .string()
     .email()
@@ -34,14 +31,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // 10 requests per minute
 
-  const limiter = await rateLimiter();
-  const limit = await limiter({
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
     identifier: ip,
   });
-
-  if (!limit.success) {
-    throw new Error(ErrorCode.RateLimitExceeded);
-  }
 
   try {
     const maybeUser = await prisma.user.findUnique({
@@ -52,6 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         name: true,
         identityProvider: true,
         email: true,
+        locale: true,
       },
     });
 
@@ -61,6 +55,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         .status(200)
         .json({ message: "If this email exists in our system, you should receive a Reset email." });
     }
+
+    const t = await getTranslation(maybeUser.locale ?? "en", "common");
 
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({
       where: {
@@ -93,17 +89,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       resetLink,
     });
 
-    /** So we can test the password reset flow on CI */
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      return res.status(201).json({
-        message: "If this email exists in our system, you should receive a Reset email.",
-        resetLink,
-      });
-    } else {
-      return res
-        .status(201)
-        .json({ message: "If this email exists in our system, you should receive a Reset email." });
-    }
+    return res
+      .status(201)
+      .json({ message: "If this email exists in our system, you should receive a Reset email." });
   } catch (reason) {
     // console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });

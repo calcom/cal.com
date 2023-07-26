@@ -135,7 +135,7 @@ export const VerifyCodeDialog = ({
   );
 };
 
-export const CreateANewOrganizationForm = () => {
+export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
@@ -147,7 +147,11 @@ export const CreateANewOrganizationForm = () => {
     slug: string;
     adminEmail: string;
     adminUsername: string;
-  }>();
+  }>({
+    defaultValues: {
+      slug: `${slug ?? ""}`,
+    },
+  });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
@@ -172,7 +176,12 @@ export const CreateANewOrganizationForm = () => {
           message: t("email_already_used"),
         });
       } else if (err.message === "organization_url_taken") {
-        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("organization_url_taken") });
+        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
+        newOrganizationFormMethods.setError("slug", {
+          type: "custom",
+          message: t("problem_registering_domain"),
+        });
       } else {
         setServerErrorMessage(err.message);
       }
@@ -214,9 +223,14 @@ export const CreateANewOrganizationForm = () => {
                   defaultValue={value}
                   onChange={(e) => {
                     const domain = extractDomainFromEmail(e?.target.value);
-                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value);
-                    newOrganizationFormMethods.setValue("adminUsername", e?.target.value.split("@")[0]);
-                    newOrganizationFormMethods.setValue("slug", domain);
+                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value.trim());
+                    newOrganizationFormMethods.setValue(
+                      "adminUsername",
+                      e?.target.value.split("@")[0].trim()
+                    );
+                    if (newOrganizationFormMethods.getValues("slug") === "") {
+                      newOrganizationFormMethods.setValue("slug", domain);
+                    }
                     newOrganizationFormMethods.setValue(
                       "name",
                       domain.charAt(0).toUpperCase() + domain.slice(1)
@@ -245,7 +259,7 @@ export const CreateANewOrganizationForm = () => {
                   label={t("organization_name")}
                   defaultValue={value}
                   onChange={(e) => {
-                    newOrganizationFormMethods.setValue("name", e?.target.value);
+                    newOrganizationFormMethods.setValue("name", e?.target.value.trim());
                     if (newOrganizationFormMethods.formState.touchedFields["slug"] === undefined) {
                       newOrganizationFormMethods.setValue("slug", slugify(e?.target.value));
                     }

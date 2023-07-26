@@ -109,14 +109,14 @@ export default async function getEventTypeById({
           teamId: true,
         },
       },
+      teamId: true,
       team: {
         select: {
           id: true,
+          name: true,
           slug: true,
+          parentId: true,
           members: {
-            where: {
-              accepted: true,
-            },
             select: {
               role: true,
               user: {
@@ -353,7 +353,11 @@ export default async function getEventTypeById({
           ...member.user,
           avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
         };
-        return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
+        return {
+          ...user,
+          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+          membership: member.role,
+        };
       })
     : [];
 

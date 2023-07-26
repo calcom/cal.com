@@ -119,6 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
+      { name: "organizations", href: "/settings/admin/organizations" },
     ],
   },
 ];
@@ -146,7 +147,11 @@ const useTabs = () => {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
-    } else if (tab.href === "/settings/security" && user?.identityProvider === IdentityProvider.GOOGLE) {
+    } else if (
+      tab.href === "/settings/security" &&
+      user?.identityProvider === IdentityProvider.GOOGLE &&
+      !user?.twoFactorEnabled
+    ) {
       tab.children = tab?.children?.filter(
         (childTab) => childTab.href !== "/settings/security/two-factor-auth"
       );
@@ -193,6 +198,7 @@ const SettingsSidebarContainer = ({
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -254,7 +260,9 @@ const SettingsSidebarContainer = ({
                     isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
+                    className={`my-0.5 me-5 h-7 ${
+                      tab.children && index === tab.children?.length - 1 && "!mb-3"
+                    }`}
                     disableChevron
                   />
                 ))}
@@ -280,6 +288,9 @@ const SettingsSidebarContainer = ({
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
+                    if (!teamMenuState[index]) {
+                      return null;
+                    }
                     if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
                         <Collapsible
@@ -385,14 +396,15 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  iconClassName="me-3"
-                  disableChevron
-                />
+                {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                  <VerticalTabItem
+                    name={t("add_a_team")}
+                    href={`${WEBAPP_URL}/settings/teams/new`}
+                    textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                    icon={Plus}
+                    disableChevron
+                  />
+                )}
               </div>
             </React.Fragment>
           );
@@ -479,7 +491,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
+        <div className="mx-auto max-w-full justify-center md:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>
@@ -509,12 +521,12 @@ function ShellHeader() {
               {t(meta.title)}
             </h1>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
+            <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
             <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
           )}
         </div>
         <div className="ms-auto flex-shrink-0">{meta.CTA}</div>

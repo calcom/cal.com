@@ -1,7 +1,10 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
+import { ZGetMembersInput } from "./getMembers.schema";
+import { ZListMembersSchema } from "./listMembers.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
@@ -15,8 +18,11 @@ type OrganizationsRouterHandlerCache = {
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
+  adminGetUnverified?: typeof import("./adminGetUnverified.handler").adminGetUnverifiedHandler;
+  adminVerify?: typeof import("./adminVerify.handler").adminVerifyHandler;
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   getBrand?: typeof import("./getBrand.handler").getBrandHandler;
+  getMembers?: typeof import("./getMembers.handler").getMembersHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -141,7 +147,55 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  listMembers: authedProcedure.query(async ({ ctx }) => {
+  getMembers: authedProcedure.input(ZGetMembersInput).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
+      UNSTABLE_HANDLER_CACHE.getMembers = await import("./getMembers.handler").then(
+        (mod) => mod.getMembersHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getMembers({
+      ctx,
+      input,
+    });
+  }),
+  adminGetUnverified: authedAdminProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.adminGetUnverified) {
+      UNSTABLE_HANDLER_CACHE.adminGetUnverified = await import("./adminGetUnverified.handler").then(
+        (mod) => mod.adminGetUnverifiedHandler
+      );
+    }
+    if (!UNSTABLE_HANDLER_CACHE.adminGetUnverified) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.adminGetUnverified({
+      ctx,
+    });
+  }),
+  adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.adminVerify) {
+      UNSTABLE_HANDLER_CACHE.adminVerify = await import("./adminVerify.handler").then(
+        (mod) => mod.adminVerifyHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.adminVerify) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.adminVerify({
+      ctx,
+      input,
+    });
+  }),
+  listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listMembers) {
       UNSTABLE_HANDLER_CACHE.listMembers = await import("./listMembers.handler").then(
         (mod) => mod.listMembersHandler
@@ -155,6 +209,7 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.listMembers({
       ctx,
+      input,
     });
   }),
   getBrand: authedProcedure.query(async ({ ctx }) => {
