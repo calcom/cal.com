@@ -1,8 +1,11 @@
 import type { LocationObject } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { locationKeyToString } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
 import notEmpty from "@calcom/lib/notEmpty";
+
+import type I18nKeys from "../../../../apps/web/public/static/locales/en/common.json";
 
 export default function getLocationsOptionsForSelect(
   locations: LocationObject[],
@@ -20,7 +23,9 @@ export default function getLocationsOptionsForSelect(
       const type = eventLocation.type;
 
       // to prevent escaping of "http" when the link is displayed in the booking page
-      const shouldLinkDisplayedPublicly = type === "link" && locationString !== "link_meeting";
+      const i18nKey: keyof typeof I18nKeys = "link_meeting";
+      const shouldLinkDisplayedPublicly =
+        type === DefaultEventLocationTypeEnum.Link && locationString !== i18nKey;
 
       return {
         label: shouldLinkDisplayedPublicly ? locationString : t(locationString),
