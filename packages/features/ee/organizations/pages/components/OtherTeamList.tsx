@@ -5,10 +5,10 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
-import TeamListItem from "./TeamListItem";
+import OtherTeamListItem from "./OtherTeamListItem";
 
 interface Props {
-  teams: RouterOutputs["viewer"]["teams"]["list"];
+  teams: RouterOutputs["viewer"]["organizations"]["listOtherTeams"];
   pending?: boolean;
 }
 
@@ -44,7 +44,7 @@ export default function OtherTeamList(props: Props) {
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
       {props.teams.map((team) => (
-        <TeamListItem
+        <OtherTeamListItem
           key={team?.id as number}
           team={team}
           onActionSelect={(action: string) => selectAction(action, team?.id as number)}

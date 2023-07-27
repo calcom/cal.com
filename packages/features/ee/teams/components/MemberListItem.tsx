@@ -97,11 +97,11 @@ export default function MemberListItem(props: Props) {
     });
 
   const editMode =
-    (props.team.membership.role === MembershipRole.OWNER &&
+    (props.team.membership?.role === MembershipRole.OWNER &&
       (props.member.role !== MembershipRole.OWNER ||
         ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
-    (props.team.membership.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
+    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
   const impersonationMode =
     editMode &&
     !props.member.disableImpersonation &&
@@ -150,7 +150,7 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
         </div>
-        {props.team.membership.accepted && (
+        {props.team.membership?.accepted && (
           <div className="flex items-center justify-center">
             <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
               {/* TODO: bring availability back. right now its ugly and broken

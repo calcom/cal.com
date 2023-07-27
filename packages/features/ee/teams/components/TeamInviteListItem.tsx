@@ -58,24 +58,7 @@ export default function TeamInviteListItem(props: Props) {
   const isInvitee = !props.team.accepted;
 
   if (!team) return <></>;
-
-  const teamInfo = (
-    <div className="flex">
-      <Avatar
-        size="mdLg"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
-        className=""
-      />
-      <div className="ms-3 inline-block">
-        <span className="text-emphasis text-sm font-semibold">{team.name}</span>
-        <span className="text-default block text-sm leading-5">
-          {t("invited_by_team", { teamName: team.name, role: t(team.role.toLocaleLowerCase()) })}
-        </span>
-      </div>
-    </div>
-  );
-
+  console.log("team invite list", team);
   return (
     <li className="bg-subtle border-emphasis divide-subtle divide-y rounded-md border px-5 py-4">
       <div
@@ -83,7 +66,7 @@ export default function TeamInviteListItem(props: Props) {
           "flex items-center  justify-between",
           !isInvitee && "group hover:bg-neutral-50"
         )}>
-        {teamInfo}
+        <TeamInfo team={team} />
         <div>
           <>
             <div className="hidden sm:flex">
@@ -129,3 +112,25 @@ export default function TeamInviteListItem(props: Props) {
     </li>
   );
 }
+
+const TeamInfo = (team: { logo?: string; name?: string; role?: string }) => {
+  const { t } = useLocale();
+  return (
+    <div className="flex">
+      <Avatar
+        size="mdLg"
+        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
+        alt="Team Logo"
+        className=""
+      />
+      <div className="ms-3 inline-block">
+        <span className="text-emphasis text-sm font-semibold">{team.name}</span>
+        {team.role && (
+          <span className="text-default block text-sm leading-5">
+            {t("invited_by_team", { teamName: team.name, role: t(team.role?.toLocaleLowerCase()) })}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};

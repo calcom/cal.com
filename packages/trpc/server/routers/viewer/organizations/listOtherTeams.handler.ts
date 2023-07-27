@@ -12,9 +12,17 @@ type ListOptions = {
 
 export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
   if (ctx.user?.organization?.id) {
-    const membershipsWithoutParent = await prisma.membership.findMany({
+    const isOrgAdmin = !!(await isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)); // Org id exists here as we're inside a conditional TS complaining for some reason
+    if (!isOrgAdmin) {
+      return [];
+    }
+
+    // Only fetch memberships that I'm not part of but are part of my organization
+    const membershipsInOrgIamNotPartOf = await prisma.membership.findMany({
       where: {
-        userId: ctx.user.id,
+        userId: {
+          not: ctx.user.id,
+        },
         team: {
           parent: {
             is: {
@@ -24,24 +32,16 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
         },
       },
       include: {
-        team: {
-          include: {
-            inviteTokens: true,
-          },
-        },
+        team: true,
       },
       orderBy: { role: "desc" },
     });
 
-    const isOrgAdmin = !!(await isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)); // Org id exists here as we're inside a conditional TS complaining for some reason
-
-    return membershipsWithoutParent.map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
+    return membershipsInOrgIamNotPartOf.map(({ team, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
       isOrgAdmin,
-      ..._team,
-      /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      ...team,
     }));
   }
 
@@ -50,11 +50,7 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
       userId: ctx.user.id,
     },
     include: {
-      team: {
-        include: {
-          inviteTokens: true,
-        },
-      },
+      team: true,
     },
     orderBy: { role: "desc" },
   });
@@ -64,11 +60,9 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
       const metadata = teamMetadataSchema.parse(mmship.team.metadata);
       return !metadata?.isOrganization;
     })
-    .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
+    .map(({ team, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
-      ..._team,
-      /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      ...team,
     }));
 };

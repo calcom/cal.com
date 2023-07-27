@@ -110,7 +110,7 @@ const tabs: VerticalTabItemProps[] = [
   },
   {
     name: "other_teams",
-    href: "/settings/teams/other",
+    href: "/settings/organizations/teams/other",
     icon: Users,
     children: [],
   },
@@ -202,10 +202,17 @@ const SettingsSidebarContainer = ({
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-
+  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
+    {
+      teamId: number | undefined;
+      teamMenuOpen: boolean;
+    }[]
+  >();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+  // console.log({ otherTeams });
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
@@ -221,6 +228,23 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [router.query.id, teams]);
+
+  // Same as above but for otherTeams
+  useEffect(() => {
+    if (otherTeams) {
+      const otherTeamStates = otherTeams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: String(team.id) === router.query.id,
+      }));
+      setOtherTeamMenuState(otherTeamStates);
+      setTimeout(() => {
+        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
+        )[1];
+        tabMembers?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [router.query.id, otherTeams]);
 
   return (
     <nav
@@ -304,6 +328,7 @@ const SettingsSidebarContainer = ({
                         if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                           return (
                             <Collapsible
+                              className="cursor-pointer"
                               key={team.id}
                               open={teamMenuState[index].teamMenuOpen}
                               onOpenChange={() =>
@@ -436,6 +461,118 @@ const SettingsSidebarContainer = ({
                         </Skeleton>
                       </div>
                     </Link>
+                    {otherTeams &&
+                      otherTeamMenuState &&
+                      otherTeams.map((otherTeam, index: number) => {
+                        if (!otherTeamMenuState[index]) {
+                          return null;
+                        }
+                        if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
+                          return (
+                            <Collapsible
+                              className="cursor-pointer"
+                              key={otherTeam.id}
+                              open={otherTeamMenuState[index].teamMenuOpen}
+                              onOpenChange={() =>
+                                setOtherTeamMenuState([
+                                  ...otherTeamMenuState,
+                                  (otherTeamMenuState[index] = {
+                                    ...otherTeamMenuState[index],
+                                    teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                  }),
+                                ])
+                              }>
+                              <CollapsibleTrigger asChild>
+                                <div
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                                  onClick={() =>
+                                    setOtherTeamMenuState([
+                                      ...otherTeamMenuState,
+                                      (otherTeamMenuState[index] = {
+                                        ...otherTeamMenuState[index],
+                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                      }),
+                                    ])
+                                  }>
+                                  <div className="me-3">
+                                    {otherTeamMenuState[index].teamMenuOpen ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </div>
+                                  <img
+                                    src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                    alt={otherTeam.name || "Team logo"}
+                                  />
+                                  <p className="w-1/2 truncate">{otherTeam.name}</p>
+                                  {!otherTeam.accepted && (
+                                    <Badge className="ms-3" variant="orange">
+                                      Inv.
+                                    </Badge>
+                                  )}
+                                </div>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="space-y-0.5">
+                                {otherTeam.accepted && (
+                                  <VerticalTabItem
+                                    name={t("profile")}
+                                    href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                                    disableChevron
+                                  />
+                                )}
+                                <VerticalTabItem
+                                  name={t("members")}
+                                  href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                {(otherTeam.role === MembershipRole.OWNER ||
+                                  otherTeam.role === MembershipRole.ADMIN ||
+                                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                  // @ts-ignore this exists wtf?
+                                  (otherTeam.isOrgAdmin && otherTeam.isOrgAdmin)) && (
+                                  <>
+                                    {/* TODO */}
+                                    {/* <VerticalTabItem
+                              name={t("general")}
+                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              textClassNames="px-3 text-emphasis font-medium text-sm"
+                              disableChevron
+                            /> */}
+                                    <VerticalTabItem
+                                      name={t("appearance")}
+                                      href={`/settings/organizations/teams/other/${otherTeam.id}/appearance`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    />
+                                    {/* Hide if there is a parent ID */}
+                                    {!otherTeam.parentId ? (
+                                      <>
+                                        <VerticalTabItem
+                                          name={t("billing")}
+                                          href={`/settings/organizations/teams/other/${otherTeam.id}/billing`}
+                                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                                          disableChevron
+                                        />
+                                        {HOSTED_CAL_FEATURES && (
+                                          <VerticalTabItem
+                                            name={t("saml_config")}
+                                            href={`/settings/organizations/teams/other/${otherTeam.id}/sso`}
+                                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                                            disableChevron
+                                          />
+                                        )}
+                                      </>
+                                    ) : null}
+                                  </>
+                                )}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                      })}
                   </div>
                 </React.Fragment>
               )}
