@@ -1,6 +1,6 @@
 import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
-import type { GetServerSideProps } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
@@ -33,9 +33,8 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
-export function UserPage(props: UserPageProps) {
-  const { users, profile, eventTypes, isSingleUser, markdownStrippedBio } = props;
+export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { users, profile, eventTypes, markdownStrippedBio } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
@@ -63,7 +62,7 @@ export function UserPage(props: UserPageProps) {
   return (
     <>
       <HeadSeo
-        title={nameOrUsername}
+        title={profile.name}
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
@@ -288,7 +287,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const [user] = users; //to be used when dealing with single user, not dynamic group
 
   const profile = {
-    name: user.name || user.username,
+    name: user.name || user.username || "",
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
@@ -308,8 +307,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
 
-  const isSingleUser = users.length === 1;
-
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
@@ -328,12 +325,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      user: {
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
-      eventTypes,
       trpcState: ssr.dehydrate(),
-      isSingleUser,
       markdownStrippedBio,
     },
   };
