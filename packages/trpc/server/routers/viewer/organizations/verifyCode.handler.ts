@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { totp } from "otplib";
 
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -19,6 +20,8 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
   const { user } = ctx;
 
   if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
+
+  if (!IS_PRODUCTION) return true;
 
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)

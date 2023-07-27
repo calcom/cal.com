@@ -14,17 +14,23 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
     state.setSelectedDuration,
   ]);
 
+  const isDynamicEvent = "isDynamic" in event && event.isDynamic;
+
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
     // Only store event duration in url if event has multiple durations.
-    if (!selectedDuration && event.metadata?.multipleDuration) setSelectedDuration(event.length);
-  }, [selectedDuration, setSelectedDuration, event.length, event.metadata?.multipleDuration]);
+    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
+      setSelectedDuration(event.length);
+  }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
-  if (!event?.metadata?.multipleDuration) return <>{t("multiple_duration_mins", { count: event.length })}</>;
+  if (!event?.metadata?.multipleDuration && !isDynamicEvent)
+    return <>{t("multiple_duration_mins", { count: event.length })}</>;
+
+  const durations = event?.metadata?.multipleDuration || [15, 30, 60];
 
   return (
     <div className="flex flex-wrap gap-2">
-      {event.metadata.multipleDuration.map((duration) => (
+      {durations.map((duration) => (
         <Badge
           variant="gray"
           className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}

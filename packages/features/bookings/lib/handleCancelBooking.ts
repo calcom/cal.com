@@ -18,6 +18,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
@@ -91,6 +92,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               },
             },
           },
+          parentId: true,
         },
       },
       uid: true,
@@ -131,11 +133,18 @@ async function handler(req: CustomRequest) {
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: bookingToDelete.eventType?.teamId ?? null },
+      parentId: bookingToDelete?.eventType?.parentId ?? null,
+    },
+  });
+
   const subscriberOptions = {
     userId: bookingToDelete.userId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId: bookingToDelete.eventType?.teamId,
+    teamId,
   };
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,
