@@ -26,7 +26,7 @@ export default function Type({
   away,
   isBrandingHidden,
   rescheduleUid,
-  org,
+  entity,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -35,7 +35,7 @@ export default function Type({
         eventSlug={slug}
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
-        org={org}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -43,7 +43,7 @@ export default function Type({
         bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
-        org={org}
+        entity={entity}
       />
     </main>
   );
@@ -106,7 +106,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      org,
+      entity: eventData.entity,
       booking,
       user: usernames.join("+"),
       slug,
@@ -131,11 +131,22 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
+      organization:
+        isValidOrgDomain && currentOrgDomain
+          ? {
+              OR: [
+                {
+                  slug: currentOrgDomain,
+                },
+                {
+                  metadata: {
+                    path: ["requestedSlug"],
+                    equals: currentOrgDomain,
+                  },
+                },
+              ],
+            }
+          : null,
     },
     select: {
       away: true,
@@ -158,7 +169,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
+  // as well as to check if the event exist, so we can show a 404 otherwise.
   const eventData = await ssr.viewer.public.event.fetch({
     username,
     eventSlug: slug,
@@ -177,7 +188,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       away: user?.away,
       user: username,
       slug,
-      org,
+      entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
       themeBasis: username,

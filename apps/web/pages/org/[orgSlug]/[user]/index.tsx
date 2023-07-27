@@ -17,7 +17,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         not: null,
       },
       parent: {
-        slug: ctx.query.orgSlug as string,
+        OR: [
+          { slug: ctx.query.orgSlug as string },
+          {
+            metadata: {
+              path: ["requestedSlug"],
+              equals: ctx.query.orgSlug,
+            },
+          },
+        ],
       },
     },
     select: {

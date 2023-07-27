@@ -24,7 +24,7 @@ import prisma from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, HeadSeo } from "@calcom/ui";
+import { Avatar, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -34,7 +34,7 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { users, profile, eventTypes, markdownStrippedBio } = props;
+  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
@@ -58,6 +58,15 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]); */
+
+  if (entity?.isUnpublished) {
+    return (
+      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+        <UnpublishedEntity {...entity} />
+      </div>
+    );
+  }
+
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
@@ -206,6 +215,11 @@ export type UserPageProps = {
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
+  entity: {
+    isUnpublished?: boolean;
+    orgSlug?: string | null;
+    name?: string | null;
+  };
   eventTypes: ({
     descriptionAsSafeHTML: string;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
@@ -234,11 +248,20 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       username: {
         in: usernameList,
       },
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
+      organization:
+        isValidOrgDomain && currentOrgDomain
+          ? {
+              OR: [
+                { slug: currentOrgDomain },
+                {
+                  metadata: {
+                    path: ["requestedSlug"],
+                    equals: currentOrgDomain,
+                  },
+                },
+              ],
+            }
+          : null,
     },
     select: {
       id: true,
@@ -249,6 +272,12 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       brandColor: true,
       darkBrandColor: true,
       organizationId: true,
+      organization: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
       theme: true,
       away: true,
       verified: true,
@@ -310,6 +339,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
+  const unPublishedOrgUser = usersWithoutAvatar.find((us) => us.organization?.slug === null);
 
   return {
     props: {
@@ -320,6 +350,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         away: user.away,
         verified: user.verified,
       })),
+      entity: {
+        isUnpublished: unPublishedOrgUser !== undefined,
+        orgSlug: currentOrgDomain,
+        name: unPublishedOrgUser?.organization?.name ?? null,
+      },
       eventTypes,
       safeBio,
       profile,

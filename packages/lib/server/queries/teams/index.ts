@@ -8,7 +8,12 @@ import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
-export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
+export async function getTeamWithMembers(
+  id?: number,
+  slug?: string,
+  userId?: number,
+  orgSlug?: string | null
+) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -92,6 +97,13 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   const where: Prisma.TeamFindFirstArgs["where"] = {};
 
   if (userId) where.members = { some: { userId } };
+  if (orgSlug) {
+    where.parent = {
+      OR: [{ slug: orgSlug }, { metadata: { path: ["requestedSlug"], equals: orgSlug } }],
+    };
+  } else {
+    where.parentId = null;
+  }
   if (id) where.id = id;
   if (slug) where.slug = slug;
 

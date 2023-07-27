@@ -17,7 +17,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
+import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -49,16 +49,12 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   }, [telemetry, router.asPath]);
 
   if (isUnpublished) {
+    const slug = team.slug || metadata?.requestedSlug;
     return (
-      <div className="m-8 flex items-center justify-center">
-        <EmptyScreen
-          avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
-          headline={t("team_is_unpublished", {
-            team: teamName,
-          })}
-          description={t("team_is_unpublished_description", {
-            entity: metadata?.isOrganization ? t("organization").toLowerCase() : t("team").toLowerCase(),
-          })}
+      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+        <UnpublishedEntity
+          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
+          name={teamName}
         />
       </div>
     );
@@ -249,10 +245,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
   const flags = await getFeatureFlagMap(prisma);
-
-  const team = await getTeamWithMembers(undefined, slug);
+  const team = await getTeamWithMembers(undefined, slug, undefined, currentOrgDomain);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   // Taking care of sub-teams and orgs
@@ -265,13 +260,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { notFound: true } as const;
   }
 
-  if (!team) {
+  if (!team || !team.parent?.slug) {
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
-        metadata: {
-          path: ["requestedSlug"],
-          equals: slug,
-        },
+        ...(team?.parent
+          ? { id: team.parent.id }
+          : {
+              metadata: {
+                path: ["requestedSlug"],
+                equals: slug,
+              },
+            }),
       },
     });
 
@@ -307,7 +306,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      team: { ...serializableTeam, safeBio, members },
+      team: { ...serializableTeam, safeBio, members, metadata },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,

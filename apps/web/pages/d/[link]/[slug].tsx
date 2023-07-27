@@ -132,7 +132,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      org,
+      org: eventData.org,
       booking,
       away: user?.away,
       user: username,

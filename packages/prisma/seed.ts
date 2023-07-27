@@ -24,7 +24,7 @@ async function createUserAndEventType(opts: {
     theme?: "dark" | "light";
   };
   eventTypes: Array<
-    Prisma.EventTypeCreateInput & {
+    Prisma.EventTypeUncheckedCreateInput & {
       _bookings?: Prisma.BookingCreateInput[];
     }
   >;
@@ -279,19 +279,19 @@ async function main() {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
-        locations: [{ type: zoomMeta.appData?.location.type }],
+        locations: [{ type: zoomMeta.appData?.location?.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
-        locations: [{ type: dailyMeta.appData?.location.type }],
+        locations: [{ type: dailyMeta.appData?.location?.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
-        locations: [{ type: googleMeetMeta.appData?.location.type }],
+        locations: [{ type: googleMeetMeta.appData?.location?.type }],
       },
       {
         title: "Yoga class",
@@ -606,6 +606,59 @@ async function main() {
       },
     ]
   );
+
+  // Org Owner
+  const orgUserOwner = await createUserAndEventType({
+    user: {
+      email: "john@acme.com",
+      password: "john",
+      username: "john",
+      name: "John Acme Org Owner",
+    },
+    eventTypes: [{ slug: "30min", length: 30, title: "30min" }],
+  });
+
+  // Org Owner
+  const orgUserMember = await createUserAndEventType({
+    user: {
+      email: "alex@acme.com",
+      password: "alex",
+      username: "alex",
+      name: "Alex Acme Org Member",
+    },
+    eventTypes: [],
+  });
+
+  // Seed org
+  await prisma.team.create({
+    data: {
+      name: "Acme",
+      orgUsers: {
+        connect: [{ id: orgUserOwner.id }, { id: orgUserMember.id }],
+      },
+      children: {
+        create: [
+          {
+            name: "Marketing",
+            slug: "marketing",
+            members: { create: [{ userId: orgUserMember.id, role: "MEMBER", accepted: true }] },
+            eventTypes: {
+              create: [{ title: "15min", slug: "15min", length: 15 }],
+            },
+          },
+        ],
+      },
+      members: {
+        createMany: {
+          data: [
+            { userId: orgUserOwner.id, role: "OWNER", accepted: true },
+            { userId: orgUserMember.id, role: "MEMBER", accepted: true },
+          ],
+        },
+      },
+      metadata: { requestedSlug: "acme", isOrganization: true },
+    },
+  });
 }
 
 main()
