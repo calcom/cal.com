@@ -129,7 +129,6 @@ test.describe("Teams", () => {
 
     // TODO: Assert one of the teamates from the list to be the host
     // TODO: Assert whether the user received an email
-    // TODO: Assert whether the user received an email
   });
   todo("Reschedule a Collective EventType booking");
   todo("Reschedule a Round Robin EventType booking");
