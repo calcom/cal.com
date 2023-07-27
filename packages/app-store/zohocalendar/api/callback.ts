@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
-import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -13,13 +12,9 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
+import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const log = logger.getChildLogger({ prefix: [`[[zohocalendar/api/callback]`] });
-
-const zohoKeysSchema = z.object({
-  client_id: z.string(),
-  client_secret: z.string(),
-});
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
