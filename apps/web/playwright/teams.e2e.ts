@@ -1,8 +1,17 @@
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
+import {
+  bookTimeSlot,
+  selectFirstAvailableTimeSlotNextMonth,
+  teamEventSlug,
+  teamEventTitle,
+  testName,
+  todo,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -62,4 +71,65 @@ test.describe("Teams", () => {
       // await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
     });
   });
+  test("Can create a booking for Collective EventType", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { username: "teammate-1", name: "teammate-1" },
+      { username: "teammate-2", name: "teammate-2" },
+      { username: "teammate-3", name: "teammate-3" },
+      { username: "teammate-4", name: "teammate-4" },
+    ];
+
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+    const { team } = await owner.getTeam();
+
+    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+
+    for (const teammate of teamMatesObj) {
+      await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
+    }
+
+    // TODO: Assert whether the user received an email
+  });
+  test("Can create a booking for Round Robin EventType", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { username: "teammate-1", name: "teammate-1" },
+      { username: "teammate-2", name: "teammate-2" },
+      { username: "teammate-3", name: "teammate-3" },
+      { username: "teammate-4", name: "teammate-4" },
+    ];
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.ROUND_ROBIN,
+    });
+
+    const { team } = await owner.getTeam();
+
+    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // The person who booked the meeting should be in the attendee list
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+
+    // The title of the booking
+    const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
+    await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+
+    // TODO: Assert one of the teamates from the list to be the host
+    // TODO: Assert whether the user received an email
+  });
+  todo("Reschedule a Collective EventType booking");
+  todo("Reschedule a Round Robin EventType booking");
 });
