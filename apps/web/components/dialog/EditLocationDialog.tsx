@@ -242,7 +242,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
               <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-                {t("edit_location")}
+                {t("edit_location_dialog_title")}
               </h3>
               {!booking && (
                 <p className="text-default text-sm">
@@ -311,6 +311,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     teamName: values.teamName,
                   };
                 }
+
+                console.log("🚀 ~ file: EditLocationDialog.tsx:310 ~ handleSubmit={ ~ details:", details);
 
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);

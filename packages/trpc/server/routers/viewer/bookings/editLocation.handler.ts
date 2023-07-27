@@ -21,7 +21,7 @@ type EditLocationOptions = {
 };
 
 export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
-  const { bookingId, newLocation: location } = input;
+  const { bookingId, newLocation: location, details } = input;
   const { booking } = ctx;
 
   try {
@@ -36,6 +36,16 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         locale: true,
       },
     });
+
+    let conferenceCredential: CredentialPayload | undefined;
+
+    if (details.credentialId) {
+      conferenceCredential = await prisma.credential.findFirst({
+        where: {
+          id: details.credentialId,
+        },
+      });
+    }
 
     const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
@@ -69,12 +79,16 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       uid: booking.uid,
       recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
       location,
+      conferenceCredentialId: details.credentialId,
       destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
-    const eventManager = new EventManager(ctx.user);
+    const eventManager = new EventManager({
+      ...ctx.user,
+      credentials: [...ctx.user.credentials, ...[conferenceCredential ? conferenceCredential : []]],
+    });
 
     const updatedResult = await eventManager.updateLocation(evt, booking);
     const results = updatedResult.results;
@@ -109,8 +123,8 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         console.log("Error sending LocationChangeEmails");
       }
     }
-  } catch {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+  } catch (error) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
   }
   return { message: "Location updated" };
 };
