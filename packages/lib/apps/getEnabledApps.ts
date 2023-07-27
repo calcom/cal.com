@@ -2,6 +2,8 @@ import getApps from "@calcom/app-store/utils";
 import type { CredentialData } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
+import type { Prisma } from ".prisma/client";
+
 /**
  *
  * @param credentials - Can be user or team credentials
@@ -12,10 +14,11 @@ const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials
   const filterOnIds = {
     credentials: {
       some: {
-        OR: [],
+        OR: [] as Prisma.CredentialWhereInput[],
       },
     },
-  };
+  } satisfies Prisma.AppWhereInput;
+
   if (filterOnCredentials) {
     const userIds: number[] = [],
       teamIds: number[] = [];
@@ -24,11 +27,7 @@ const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials
       if (credential.userId) userIds.push(credential.userId);
       if (credential.teamId) teamIds.push(credential.teamId);
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     if (userIds.length) filterOnIds.credentials.some.OR.push({ userId: { in: userIds } });
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     if (teamIds.length) filterOnIds.credentials.some.OR.push({ teamId: { in: teamIds } });
   }
 
