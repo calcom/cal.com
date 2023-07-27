@@ -30,7 +30,9 @@ export default class ZohoCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "zoho_calendar";
     this.auth = this.zohoAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getChildLogger({
+      prefix: [`[[lib] ${this.integrationName}`],
+    });
   }
 
   private zohoAuth = (credential: CredentialPayload) => {
@@ -88,12 +90,12 @@ export default class ZohoCalendarService implements Calendar {
 
     return fetch(`https://calendar.zoho.com/api/v1${endpoint}`, {
       method: "GET",
+      ...init,
       headers: {
         Authorization: "Bearer " + credentials.access_token,
         "Content-Type": "application/json",
         ...init?.headers,
       },
-      ...init,
     });
   };
 
@@ -120,7 +122,9 @@ export default class ZohoCalendarService implements Calendar {
     }
 
     try {
-      const query = stringify({ eventdata: JSON.stringify(this.translateEvent(event)) });
+      const query = stringify({
+        eventdata: JSON.stringify(this.translateEvent(event)),
+      });
 
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
         method: "POST",
@@ -136,7 +140,7 @@ export default class ZohoCalendarService implements Calendar {
       return {
         ...eventRespData.events[0],
         uid: eventRespData.events[0].uid as string,
-        id: eventRespData.events[0].id as string,
+        id: eventRespData.events[0].uid as string,
         type: "zoho_calendar",
         password: "",
         url: "",
@@ -163,9 +167,18 @@ export default class ZohoCalendarService implements Calendar {
       throw new Error("no calendar id provided in updateEvent");
     }
     try {
-      const query = stringify({ eventdata: JSON.stringify(this.translateEvent(event)) });
+      // needed to fetch etag
+      let existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      let existingEventData = await this.handleData(existingEventResponse, this.log);
 
-      const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${eventId}?${query}`, {
+      const query = stringify({
+        eventdata: JSON.stringify({
+          ...this.translateEvent(event),
+          etag: existingEventData.events[0].etag,
+        }),
+      });
+
+      const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
         method: "PUT",
       });
       eventRespData = await this.handleData(eventResponse, this.log);
@@ -178,7 +191,7 @@ export default class ZohoCalendarService implements Calendar {
       return {
         ...eventRespData.events[0],
         uid: eventRespData.events[0].uid as string,
-        id: eventRespData.events[0].id as string,
+        id: eventRespData.events[0].uid as string,
         type: "zoho_calendar",
         password: "",
         url: "",
@@ -203,8 +216,15 @@ export default class ZohoCalendarService implements Calendar {
       throw new Error("no calendar id provided in deleteEvent");
     }
     try {
+      // needed to fetch etag
+      let existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      let existingEventData = await this.handleData(existingEventResponse, this.log);
+      
       const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
         method: "DELETE",
+        headers: {
+          etag: existingEventData.events[0].etag,
+        },
       });
       await this.handleData(response, this.log);
     } catch (error) {
