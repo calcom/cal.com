@@ -71,6 +71,8 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         hasTeam?: true;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
+        teamEventTitle?: string;
+        teamEventSlug?: string;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -233,14 +235,14 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
               },
             },
             schedulingType: scenario.schedulingType ?? SchedulingType.COLLECTIVE,
-            title: teamEventTitle,
-            slug: teamEventSlug,
+            title: scenario.teamEventTitle ?? teamEventTitle,
+            slug: scenario.teamEventSlug ?? teamEventSlug,
             length: 30,
           },
         });
         if (scenario.teammates) {
           // Create Teammate users
-          for await (const teammateObj of scenario.teammates) {
+          for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
             });

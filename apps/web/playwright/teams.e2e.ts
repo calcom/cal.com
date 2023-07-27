@@ -93,7 +93,7 @@ test.describe("Teams", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
-    for await (const teammate of teamMatesObj) {
+    for (const teammate of teamMatesObj) {
       await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
     }
 
