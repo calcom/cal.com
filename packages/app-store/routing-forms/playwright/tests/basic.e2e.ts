@@ -17,7 +17,7 @@ test.describe("Routing Forms", () => {
 
       const formId = await addForm(page);
 
-      await page.click('[href="/apps/routing-forms/forms"]');
+      await page.click('[href*="/forms"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
@@ -54,7 +54,7 @@ test.describe("Routing Forms", () => {
 
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
-      await page.click('[href*="/apps/routing-forms/route-builder/"]');
+      await page.click('[href*="/route-builder/"]');
       await selectNewRoute(page);
 
       await page.click('[data-testid="add-rule"]');
@@ -86,7 +86,7 @@ test.describe("Routing Forms", () => {
         });
 
         // Add F1 as Router to F2
-        await page.goto(`/apps/routing-forms/route-builder/${form2Id}`);
+        await page.goto(`/routing-forms/route-builder/${form2Id}`);
         await selectNewRoute(page, {
           // It should be F1. TODO: Verify that it's F1
           routeSelectNumber: 2,
@@ -94,7 +94,7 @@ test.describe("Routing Forms", () => {
         await saveCurrentForm(page);
 
         // Expect F1 fields to be available in F2
-        await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        await page.goto(`/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -108,7 +108,7 @@ test.describe("Routing Forms", () => {
           },
         });
 
-        await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        await page.goto(`/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
         expect(await page.locator('[data-testid="field"]').count()).toBe(3);
@@ -119,7 +119,7 @@ test.describe("Routing Forms", () => {
 
     test("should be able to submit a prefilled form with all types of fields", async ({ page }) => {
       const formId = await addForm(page);
-      await page.click('[href*="/apps/routing-forms/route-builder/"]');
+      await page.click('[href*="/route-builder/"]');
       await selectNewRoute(page);
       await selectOption({
         selector: {
@@ -183,11 +183,7 @@ test.describe("Routing Forms", () => {
         }
       );
       await user.apiLogin();
-      // Install app
-      await page.goto(`/apps/routing-forms`);
-      await page.click('[data-testid="install-app-button"]');
-      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
-      await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
+      await page.goto(`/routing-forms/forms`);
     });
 
     test.afterEach(async ({ users }) => {
@@ -203,28 +199,17 @@ test.describe("Routing Forms", () => {
       // This also delete forms on cascade
       await users.deleteAll();
     });
-    const createUserAndLoginAndInstallApp = async function ({
-      users,
-      page,
-    }: {
-      users: Fixtures["users"];
-      page: Page;
-    }) {
+    const createUserAndLogin = async function ({ users, page }: { users: Fixtures["users"]; page: Page }) {
       const user = await users.create(
         { username: "routing-forms" },
         { seedRoutingForms: true, hasTeam: true }
       );
       await user.apiLogin();
-      // Install app
-      await page.goto(`/apps/routing-forms`);
-      await page.click('[data-testid="install-app-button"]');
-      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
-      await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
       return user;
     };
 
     test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
-      const user = await createUserAndLoginAndInstallApp({ users, page });
+      const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       test.setTimeout(120000);
       // Fill form when you are logged out
@@ -235,7 +220,7 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.apiLogin();
 
-      await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
+      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
 
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
@@ -305,7 +290,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("Router URL should work", async ({ page, users }) => {
-      const user = await createUserAndLoginAndInstallApp({ users, page });
+      const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
 
       // Router should be publicly accessible
@@ -328,7 +313,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("Routing Link should validate fields", async ({ page, users }) => {
-      const user = await createUserAndLoginAndInstallApp({ users, page });
+      const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
       page.click('button[type="submit"]');
@@ -340,7 +325,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("Test preview should return correct route", async ({ page, users }) => {
-      const user = await createUserAndLoginAndInstallApp({ users, page });
+      const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
@@ -423,7 +408,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
 }
 
 export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
-  await page.goto("/apps/routing-forms/forms");
+  await page.goto("/routing-forms/forms");
   await page.click('[data-testid="new-routing-form"]');
   // Choose to create the Form for the user(which is the first option) and not the team
   await page.click('[data-testid="option-0"]');

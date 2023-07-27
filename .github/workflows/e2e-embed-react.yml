@@ -41,4 +41,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: embed-react-results-${{ matrix.shard }}_${{ strategy.job-total }}
-          path: embed-react-results
+          path: test-results
