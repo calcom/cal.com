@@ -8,7 +8,7 @@ import type { AnyRouter } from "@trpc/server";
 /**
  * Creates an API handler executed by Next.js.
  */
-export function createNextApiHandler(router: AnyRouter, isPublic = false) {
+export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
   return trpcNext.createNextApiHandler({
     router,
     /**
@@ -64,10 +64,13 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false) {
           // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
           "slots.getSchedule": `no-cache`, // FIXME
           cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
+          "features.map": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`, // "map" - Feature Flag Map
         } as const;
 
-        const matchedPath = paths.find((v) => v in cacheRules) as keyof typeof cacheRules;
-        if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[matchedPath];
+        const prependNamespace = (key: string) =>
+          (namespace ? `${namespace}.${key}` : key) as keyof typeof cacheRules;
+        const matchedPath = paths.find((v) => prependNamespace(v) in cacheRules);
+        if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[prependNamespace(matchedPath)];
       }
 
       return defaultHeaders;
