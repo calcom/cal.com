@@ -1,0 +1,68 @@
+import { z } from "zod";
+
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import prisma from "@calcom/prisma";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../trpc";
+
+export const ZGetOtherTeamInputSchema = z.object({
+  teamId: z.number(),
+});
+
+export type TGetOtherTeamInputSchema = z.infer<typeof ZGetOtherTeamInputSchema>;
+
+type GetOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TGetOtherTeamInputSchema;
+};
+
+// interface GetOtherTeamResponse {
+//   id: number;
+//   name: string;
+//   slug: string | null;
+//   logo: string | null;
+//   bio: string | null;
+//   safeBio: string | null;
+//   metadata: Prisma.JsonValue;
+//   parent: {
+//     id: number;
+//     slug: string | null;
+//   } | null;
+// }
+
+export const getOtherTeamHandler = async ({ input }: GetOptions) => {
+  // No need to validate if user is admin of org as we already do that on authedOrgAdminProcedure
+  const team = await prisma.team.findFirst({
+    where: {
+      id: input.teamId,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      bio: true,
+      metadata: true,
+      isPrivate: true,
+      parent: {
+        select: {
+          id: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+  }
+
+  return {
+    ...team,
+    safeBio: markdownToSafeHTML(team.bio),
+  };
+};
