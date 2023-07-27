@@ -71,19 +71,17 @@ const routingForms = {
   handle: (url: URL) => {
     // Next.config.js Redirects don't handle Client Side navigations and we need that.
     // So, we add the rewrite here instead.
-    if (url.pathname.startsWith("/routing-forms/")) {
-      url.pathname = url.pathname.replace(/^\/routing-forms\//, "/apps/routing-forms/");
+    if (url.pathname.startsWith("/routing-forms")) {
+      url.pathname = url.pathname.replace(/^\/routing-forms($|\/)/, "/apps/routing-forms/");
       return NextResponse.rewrite(url);
     }
 
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms\//, "/apps/routing-forms/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
       return NextResponse.rewrite(url);
     }
   },
-  // Matcher paths that are required by the handle function to work
-  paths: ["/apps/routing_forms/:path*", "/routing-forms/:path*"],
 };
 
 export const config = {
@@ -96,7 +94,12 @@ export const config = {
     "/:path*/embed",
     "/api/trpc/:path*",
     "/auth/login",
-    ...routingForms.paths,
+
+    /**
+     * Paths required by routingForms.handle
+     */
+    "/apps/routing_forms/:path*",
+    "/routing-forms/:path*",
   ],
 };
 
