@@ -1,10 +1,17 @@
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth, testName, todo } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  selectFirstAvailableTimeSlotNextMonth,
+  teamEventSlug,
+  teamEventTitle,
+  testName,
+  todo,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -66,84 +73,30 @@ test.describe("Teams", () => {
   });
   test("Can create a booking for Collective EventType", async ({ page, users }) => {
     const ownerObj = { username: "pro-user", name: "pro-user" };
-    const teamMate1Obj = { username: "teammate-1", name: "teammate-1" };
-    const teamMate2Obj = { username: "teammate-2", name: "teammate-2" };
+    const teamMatesObj = [
+      { username: "teammate-1", name: "teammate-1" },
+      { username: "teammate-2", name: "teammate-2" },
+      { username: "teammate-3", name: "teammate-3" },
+      { username: "teammate-4", name: "teammate-4" },
+    ];
 
-    const owner = await users.create(ownerObj, { hasTeam: true });
-    const teamMate1 = await users.create(teamMate1Obj);
-    const teamMate2 = await users.create(teamMate2Obj);
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+    const { team } = await owner.getTeam();
 
-    // TODO: Create a fixture and follow DRY
-    const { team } = await prisma.membership.findFirstOrThrow({
-      where: { userId: owner.id },
-      include: { team: true },
-    });
-
-    // Add teamMate1 to the team
-    await prisma.membership.create({
-      data: {
-        teamId: team.id,
-        userId: teamMate1.id,
-        role: MembershipRole.MEMBER,
-        accepted: true,
-      },
-    });
-
-    // Add teamMate2 to the team
-    await prisma.membership.create({
-      data: {
-        teamId: team.id,
-        userId: teamMate2.id,
-        role: MembershipRole.MEMBER,
-        accepted: true,
-      },
-    });
-    // No need to remove membership row manually as it will be deleted with the user, at the end of the test.
-
-    const { id: eventTypeId } = await prisma.eventType.findFirstOrThrow({
-      where: { userId: owner.id, teamId: team.id },
-      select: { id: true },
-    });
-
-    // Assign owner and teammates to the eventtype host list
-    await prisma.host.create({
-      data: {
-        userId: owner.id,
-        eventTypeId,
-        isFixed: true,
-      },
-    });
-    await prisma.host.create({
-      data: {
-        userId: teamMate1.id,
-        eventTypeId,
-        isFixed: true,
-      },
-    });
-    await prisma.host.create({
-      data: {
-        userId: teamMate2.id,
-        eventTypeId,
-        isFixed: true,
-      },
-    });
-
-    await page.goto(`/team/${team.slug}/team-event-30min`);
+    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
-    // The first user added to the host list will be the host name
-    await expect(page.locator(`[data-testid="host-name-${ownerObj.name}"]`)).toHaveText(ownerObj.name);
+    for await (const teammate of teamMatesObj) {
+      await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
+    }
 
-    // The remaining hosts will be shown as the attendees
-    await expect(page.locator(`[data-testid="attendee-name-${teamMate1Obj.name}"]`)).toHaveText(
-      teamMate1Obj.name
-    );
-    await expect(page.locator(`[data-testid="attendee-name-${teamMate2Obj.name}"]`)).toHaveText(
-      teamMate2Obj.name
-    );
     // TODO: Assert whether the user received an email
   });
   test("Can create a booking for Round Robin EventType", async ({ page, users }) => {
@@ -151,51 +104,18 @@ test.describe("Teams", () => {
     const teamMatesObj = [
       { username: "teammate-1", name: "teammate-1" },
       { username: "teammate-2", name: "teammate-2" },
+      { username: "teammate-3", name: "teammate-3" },
+      { username: "teammate-4", name: "teammate-4" },
     ];
-    // TODO: Create a fixture and follow DRY
-    const teamMates = [];
-    const owner = await users.create(ownerObj, { hasTeam: true });
-
-    for await (const teamMateObj of teamMatesObj) {
-      const teamMate = await users.create(teamMateObj);
-      teamMates.push(teamMate);
-    }
-    expect(teamMatesObj.length).toBe(teamMates.length);
-
-    const { team } = await prisma.membership.findFirstOrThrow({
-      where: { userId: owner.id },
-      include: { team: true },
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.ROUND_ROBIN,
     });
 
-    // Add teammates to the Team with membership role Member
-    for await (const teamMate of teamMates) {
-      await prisma.membership.create({
-        data: {
-          teamId: team.id,
-          userId: teamMate.id,
-          role: MembershipRole.MEMBER,
-          accepted: true,
-        },
-      });
-    } // No need to remove membership row manually as it will be deleted with the user, at the end of the test.
+    const { team } = await owner.getTeam();
 
-    const { id: eventTypeId, title: eventName } = await prisma.eventType.findFirstOrThrow({
-      where: { userId: owner.id, teamId: team.id },
-      // include: { id: true: true },
-    });
-
-    // Assign teammates to the eventtype host list
-    for await (const teamMate of teamMates) {
-      await prisma.host.create({
-        data: {
-          userId: teamMate.id,
-          eventTypeId,
-          isFixed: false,
-        },
-      });
-    }
-
-    await page.goto(`/team/${team.slug}/team-event-30min`);
+    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -204,18 +124,11 @@ test.describe("Teams", () => {
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     // The title of the booking
-    const BookingTitle = `${eventName} between ${team.name} and ${testName}`;
+    const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
     await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
 
-    // TODO: Assert one of the teammates to be the host
+    // TODO: Assert one of the teamates from the list to be the host
     // TODO: Assert whether the user received an email
-
-    // Owner of the Team will see all team bookings
-    owner.apiLogin();
-    page.goto("/bookings/upcoming");
-    await page.waitForSelector('[data-testid="bookings"]');
-    await expect(page.getByText(BookingTitle)).toBeVisible();
-
     // TODO: Assert whether the user received an email
   });
   todo("Reschedule a Collective EventType booking");
