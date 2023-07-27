@@ -39,4 +39,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: embed-core-results-${{ matrix.shard }}_${{ strategy.job-total }}
-          path: embed-core-results
+          path: test-results
