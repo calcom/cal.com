@@ -172,11 +172,14 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     return defaults;
   }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
+  const disableBookingTitle = !!event.data?.isDynamic;
   const bookingFormSchema = z
     .object({
       responses: event?.data
         ? getBookingResponsesSchema({
-            eventType: { bookingFields: getBookingFieldsWithSystemFields(event.data) },
+            eventType: {
+              bookingFields: getBookingFieldsWithSystemFields({ ...event.data, disableBookingTitle }),
+            },
             view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
