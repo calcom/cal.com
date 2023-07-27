@@ -6,8 +6,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { validateLayout } from "./utils/layout";
-import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+import { updateQueryParam, getQueryParam } from "./utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing
@@ -86,6 +85,11 @@ export type BookerStore = {
    */
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
+  /**
+   * Input occurrence count.
+   */
+  occurenceCount: number | null;
+  setOccurenceCount(count: number | null): void;
   /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
@@ -241,6 +245,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
+  occurenceCount: null,
+  setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
   rescheduleUid: null,
   bookingData: null,
   bookingUid: null,
