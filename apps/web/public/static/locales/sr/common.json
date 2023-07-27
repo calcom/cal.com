@@ -1179,6 +1179,7 @@
   "event_time_variable": "Vreme događaja",
   "timezone_variable": "Vremenska zona",
   "location_variable": "Lokacija",
+  "additional_notes_variable": "Dodatne beleške",
   "organizer_name_variable": "Ime organizatora",
   "app_upgrade_description": "Da biste koristili ovu funkciju, morate izvršiti nadogradnju na Pro nalog.",
   "invalid_number": "Neispravan broj telefona",
