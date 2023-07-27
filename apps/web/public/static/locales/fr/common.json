@@ -1948,7 +1948,11 @@
   "insights_subtitle": "Visualisez les statistiques de réservation à travers vos événements",
   "location_options": "{{locationCount}} options de lieu",
   "custom_plan": "Plan personnalisé",
-  "email_embed": "E-mail intégré",
+  "email_embed": "Intégration aux e-mails",
+  "add_times_to_your_email": "Ajoute des créneaux spécifiques à vos e-mails.",
+  "select_time": "Sélectionner un créneau",
+  "select_date": "Sélectionner une date",
+  "see_all_available_times": "Voir tous les créneaux disponibles",
   "org_team_names_example": "p. ex. Équipe marketing",
   "org_team_names_example_1": "p. ex. Équipe marketing",
   "org_team_names_example_2": "p. ex. Équipe de vente",
@@ -1956,5 +1960,6 @@
   "org_team_names_example_4": "p. ex. Équipe d'ingénierie",
   "org_team_names_example_5": "p. ex. Équipe d'analyse de données",
   "org_max_team_warnings": "Vous pourrez ajouter plus d'équipes plus tard.",
+  "what_is_this_meeting_about": "En quoi consiste ce rendez-vous ?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
