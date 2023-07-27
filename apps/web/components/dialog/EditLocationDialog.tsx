@@ -312,8 +312,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   };
                 }
 
-                console.log("🚀 ~ file: EditLocationDialog.tsx:310 ~ handleSubmit={ ~ details:", details);
-
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
