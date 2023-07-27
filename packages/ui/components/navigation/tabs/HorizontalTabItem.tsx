@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,9 +28,10 @@ const HorizontalTabItem = function ({
   ...props
 }: HorizontalTabItemProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t, isLocaleReady } = useLocale();
 
-  const isCurrent = pathname === href;
+  const isCurrent = `${pathname}?${searchParams.toString()}` === href;
 
   return (
     <Link
