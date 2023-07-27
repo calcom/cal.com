@@ -31,21 +31,6 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
 
-  if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
-    const callbackUrl = url.searchParams.get("callbackUrl");
-    const { isBot } = userAgent(req);
-
-    if (
-      isBot ||
-      (callbackUrl && ![CONSOLE_URL, WEBAPP_URL, WEBSITE_URL].some((u) => callbackUrl.startsWith(u))) ||
-      isIpInBanlist(req)
-    ) {
-      // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
-      req.nextUrl.pathname = "/api/nope";
-      return NextResponse.redirect(req.nextUrl);
-    }
-  }
-
   const res = routingForms.handle(url);
   if (res) {
     return res;
@@ -88,13 +73,9 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
-    "/((?!_next|.*avatar.png$|favicon.ico$).*)",
-    "/api/collect-events/:path*",
-    "/api/auth/:path*",
     "/:path*/embed",
     "/api/trpc/:path*",
     "/auth/login",
-
     /**
      * Paths required by routingForms.handle
      */
