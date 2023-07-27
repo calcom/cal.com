@@ -783,7 +783,6 @@
   "event_type_updated_successfully_description": "Your event type has been updated successfully.",
   "hide_event_type": "Hide event type",
   "edit_location": "Edit location",
-  "edit_location_dialog_title": "Edit Location",
   "into_the_future": "into the future",
   "when_booked_with_less_than_notice": "When booked with less than <time></time> notice",
   "within_date_range": "Within a date range",
