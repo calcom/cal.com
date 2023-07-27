@@ -510,6 +510,7 @@
   "your_name": "Your name",
   "your_full_name": "Your full name",
   "no_name":"No name",
+  "enter_number_between_range": "Please enter a number between 1 and {{maxOccurences}}",
   "email_address": "Email address",
   "enter_valid_email": "Please enter a valid email",
   "location": "Location",
