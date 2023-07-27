@@ -1173,6 +1173,7 @@
   "event_time_variable": "وقت الحدث",
   "timezone_variable": "المنطقة الزمنية",
   "location_variable": "الموقع",
+  "additional_notes_variable": "ملاحظات إضافية",
   "organizer_name_variable": "اسم المنظم",
   "app_upgrade_description": "لاستخدام هذه الميزة، تحتاج إلى الترقية إلى حساب Pro.",
   "invalid_number": "رقم الهاتف غير صالح",

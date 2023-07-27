@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -37,6 +38,9 @@ const defaultIntegrationAddHandler = async ({
       throw new Error("App is already installed");
     }
   }
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId: user.id });
+
   await createCredential({ user: user, appType, slug, teamId });
 };
 
@@ -72,7 +76,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(200);
   } catch (error) {
     console.error(error);
-
     if (error instanceof HttpError) {
       return res.status(error.statusCode).json({ message: error.message });
     }

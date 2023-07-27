@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -246,11 +247,20 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+
   const isEmbed = params.appPages[1] === "embed";
 
-  const form = await prisma.app_RoutingForms_Form.findUnique({
+  const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+      user: {
+        organization: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
     },
     include: {
       user: {
