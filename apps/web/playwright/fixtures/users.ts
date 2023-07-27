@@ -6,9 +6,10 @@ import { hashSync as hash } from "bcryptjs";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { selectFirstAvailableTimeSlotNextMonth } from "../lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
@@ -68,6 +69,8 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
+        teammates?: CustomUserOpts[];
+        schedulingType?: SchedulingType;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -212,7 +215,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       });
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
-        await prisma.eventType.create({
+        const teamEvent = await prisma.eventType.create({
           data: {
             team: {
               connect: {
@@ -229,12 +232,48 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
                 id: _user.id,
               },
             },
-            schedulingType: "COLLECTIVE",
-            title: "Team Event - 30min",
-            slug: "team-event-30min",
+            schedulingType: scenario.schedulingType ?? SchedulingType.COLLECTIVE,
+            title: teamEventTitle,
+            slug: teamEventSlug,
             length: 30,
           },
         });
+        if (scenario.teammates) {
+          // Create Teammate users
+          for await (const teammateObj of scenario.teammates) {
+            const teamUser = await prisma.user.create({
+              data: createUser(workerInfo, teammateObj),
+            });
+
+            // Add teammates to the team
+            await prisma.membership.create({
+              data: {
+                teamId: team.id,
+                userId: teamUser.id,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+            });
+
+            // Add teammate to the host list of team event
+            await prisma.host.create({
+              data: {
+                userId: teamUser.id,
+                eventTypeId: teamEvent.id,
+                isFixed: scenario.schedulingType === SchedulingType.COLLECTIVE ? true : false,
+              },
+            });
+
+            const teammateFixture = createUserFixture(
+              await prisma.user.findUniqueOrThrow({
+                where: { id: teamUser.id },
+                include: userIncludes,
+              }),
+              store.page
+            );
+            store.users.push(teammateFixture);
+          }
+        }
       }
       const userFixture = createUserFixture(user, store.page);
       store.users.push(userFixture);
@@ -271,6 +310,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     }))!;
   return {
     id: user.id,
+    name: user.name,
     username: user.username,
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
@@ -279,6 +319,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
       await page.goto("/auth/logout");
+    },
+    getTeam: async () => {
+      return prisma.membership.findFirstOrThrow({
+        where: { userId: user.id },
+        include: { team: true },
+      });
     },
     getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
