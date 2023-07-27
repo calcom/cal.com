@@ -1947,6 +1947,17 @@
   "insights_user_filter": "Benutzer: {{userName}}",
   "insights_subtitle": "Sehen Sie sich Buchungs-Insights über Ihre Termine an",
   "custom_plan": "Benutzerdefinierter Plan",
+  "email_embed": "E-Mail Einbettung",
+  "add_times_to_your_email": "Zeiten zur E-Mail hinzufügen",
+  "select_time": "Zeit auswählen",
+  "select_date": "Datum auswählen",
+  "see_all_available_times": "Alle verfügbaren Zeiten ansehen",
+  "org_team_names_example": "z.B. Marketing-Team",
+  "org_team_names_example_1": "z.B. Marketing-Team",
+  "org_team_names_example_2": "z.B. Vertriebsteam",
+  "org_team_names_example_3": "z. B. Design-Team",
+  "org_team_names_example_4": "z.B. Engineering-Team",
   "org_max_team_warnings": "Weitere Teams können Sie zu einem späteren Zeitpunkt hinzufügen.",
+  "what_is_this_meeting_about": "Worum geht es in diesem Termin?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
