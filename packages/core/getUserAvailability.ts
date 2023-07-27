@@ -177,6 +177,7 @@ export async function getUserAvailability(
     selectedCalendars: user.selectedCalendars,
     seatedEvent: !!eventType?.seatsPerTimeSlot,
     rescheduleUid: initialData?.rescheduleUid || null,
+    duration,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({

@@ -93,6 +93,7 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
+type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -399,22 +400,35 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; rescheduleUid?: string | null },
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   recurringDatesInfo?: {
     allRecurringDates: string[] | undefined;
     currentRecurringIndex: number | undefined;
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+
+  const orginalBookingDuration = input.originalRescheduledBooking
+    ? dayjs(input.originalRescheduledBooking.endTime).diff(
+        dayjs(input.originalRescheduledBooking.startTime),
+        "minutes"
+      )
+    : undefined;
+
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
+        duration: orginalBookingDuration,
         ...input,
       },
-      { user, eventType, rescheduleUid: input.rescheduleUid }
+      {
+        user,
+        eventType,
+        rescheduleUid: input.originalRescheduledBooking ? input.originalRescheduledBooking.uid : null,
+      }
     );
 
     if (!dateRanges.length) {
@@ -851,6 +865,34 @@ async function handler(
     }
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
+
+  let originalRescheduledBooking: BookingType = null;
+
+  if (rescheduleUid) {
+    // rescheduleUid can be bookingUid and bookingSeatUid
+    bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: rescheduleUid,
+      },
+      include: {
+        booking: true,
+        attendee: true,
+      },
+    });
+    if (bookingSeat) {
+      rescheduleUid = bookingSeat.booking.uid;
+    }
+    originalRescheduledBooking = await getOriginalRescheduledBooking(
+      rescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+    if (!originalRescheduledBooking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+    }
+  }
+
   if (!eventType.seatsPerTimeSlot) {
     const availableUsers = await ensureAvailableUsers(
       {
@@ -867,7 +909,7 @@ async function handler(
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
         timeZone: reqBody.timeZone,
-        rescheduleUid: reqBody.rescheduleUid,
+        originalRescheduledBooking,
       },
       {
         allRecurringDates,
@@ -1030,34 +1072,6 @@ async function handler(
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
-
-  let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-  let originalRescheduledBooking: BookingType = null;
-
-  if (rescheduleUid) {
-    // rescheduleUid can be bookingUid and bookingSeatUid
-    bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: rescheduleUid,
-      },
-      include: {
-        booking: true,
-        attendee: true,
-      },
-    });
-    if (bookingSeat) {
-      rescheduleUid = bookingSeat.booking.uid;
-    }
-    originalRescheduledBooking = await getOriginalRescheduledBooking(
-      rescheduleUid,
-      !!eventType.seatsPerTimeSlot
-    );
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
-    }
-  }
 
   /* Used for seats bookings to update evt object with video data */
   const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {

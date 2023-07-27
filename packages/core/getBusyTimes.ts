@@ -23,6 +23,7 @@ export async function getBusyTimes(params: {
   selectedCalendars: SelectedCalendar[];
   seatedEvent?: boolean;
   rescheduleUid?: string | null;
+  duration?: number | null;
 }) {
   const {
     credentials,
@@ -37,6 +38,7 @@ export async function getBusyTimes(params: {
     selectedCalendars,
     seatedEvent,
     rescheduleUid,
+    duration,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -71,9 +73,14 @@ export async function getBusyTimes(params: {
    */
   performance.mark("prismaBookingGetStart");
 
+  const startTimeDate =
+    rescheduleUid && duration ? dayjs(startTime).subtract(duration, "minute").toDate() : new Date(startTime);
+  const endTimeDate =
+    rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
+
   const sharedQuery = {
-    startTime: { gte: new Date(startTime) },
-    endTime: { lte: new Date(endTime) },
+    startTime: { gte: startTimeDate },
+    endTime: { lte: endTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
@@ -192,10 +199,12 @@ export async function getBusyTimes(params: {
     if (rescheduleUid) {
       const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
       // calendar busy time from original rescheduled booking should not be blocked
-      openSeatsDateRanges.push({
-        start: dayjs(originalRescheduleBooking?.startTime),
-        end: dayjs(originalRescheduleBooking?.endTime),
-      });
+      if (originalRescheduleBooking) {
+        openSeatsDateRanges.push({
+          start: dayjs(originalRescheduleBooking.startTime),
+          end: dayjs(originalRescheduleBooking.endTime),
+        });
+      }
     }
 
     const result = subtract(
