@@ -97,7 +97,7 @@ test.describe("Event Types tests", () => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
       await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
       expect(toast).toBeTruthy();
     });
 

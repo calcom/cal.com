@@ -158,6 +158,11 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
+  if (bookerState === "loading") {
+    return null;
+  }
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -178,9 +183,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
-            // We don't want any margins for Embed. Any margin needed should be added by Embed user.
-            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-0"
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
             <BookerSection
@@ -209,7 +212,7 @@ const BookerComponent = ({
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className=" mt-auto px-5 py-3">
+                    <div className="mt-auto px-5 py-3 ">
                       <DatePicker />
                     </div>
                   )}

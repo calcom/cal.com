@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data["default_currency"] = account.default_currency;
   }
 
-  createOAuthAppCredential(
+  await createOAuthAppCredential(
     { appId: "stripe", type: "stripe_payment" },
     data as unknown as Prisma.InputJsonObject,
     req
