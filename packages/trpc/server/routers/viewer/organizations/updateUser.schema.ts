@@ -5,7 +5,7 @@ export const ZUpdateUserInputSchema = z.object({
   bio: z.string().optional(),
   name: z.string().optional(),
   email: z.string().optional(),
-  role: z.enum(["ADMIN", "USER"]),
+  role: z.enum(["ADMIN", "MEMBER"]),
   timeZone: z.string(),
 });
 

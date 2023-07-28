@@ -21,6 +21,7 @@ import {
   TextAreaField,
   TimezoneSelect,
   Label,
+  showToast,
 } from "@calcom/ui";
 
 import type { State, Action } from "../UserListTable";
@@ -32,23 +33,13 @@ const editSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   bio: z.string(),
-  role: z.enum(["ADMIN", "USER"]),
+  role: z.enum(["ADMIN", "MEMBER"]),
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
-
-// function EditInfo<T extends boolean, J extends object>({
-//   form,
-//   formAccessorKey,
-//   label,
-//   defaultValue,
-//   hasOptions,
-//   type,
-//   options,
-// }: EditInfoType<T, J>) {}
 
 function EditForm({
   selectedUser,
@@ -68,6 +59,15 @@ function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
+    },
+  });
+
+  const mutation = trpc.viewer.organizations.updateUser.useMutation({
+    onSuccess: () => {
+      showToast(t("profile_updated_successfully"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     },
   });
 
@@ -102,7 +102,7 @@ function EditForm({
             value={form.watch("role")}
             options={[
               {
-                value: "USER",
+                value: "MEMBER",
                 label: t("member"),
               },
               {

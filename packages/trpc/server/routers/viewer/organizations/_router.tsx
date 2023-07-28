@@ -245,7 +245,7 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  updateUsers: authedProcedure.input(ZUpdateUserInputSchema).mutation(async ({ ctx, input }) => {
+  updateUser: authedProcedure.input(ZUpdateUserInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.updateUser) {
       UNSTABLE_HANDLER_CACHE.updateUser = await import("./updateUser.handler").then(
         (mod) => mod.updateUserHandler

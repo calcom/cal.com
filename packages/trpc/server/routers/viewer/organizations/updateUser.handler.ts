@@ -34,18 +34,30 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
   // Update user
-  await prisma.user.update({
-    where: {
-      id: input.userId,
-    },
-    data: {
-      bio: input.bio,
-      email: input.email,
-      name: input.name,
-      role: input.role,
-      timeZone: input.timeZone,
-    },
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: {
+        id: input.userId,
+      },
+      data: {
+        bio: input.bio,
+        email: input.email,
+        name: input.name,
+        timeZone: input.timeZone,
+      },
+    }),
+    prisma.membership.update({
+      where: {
+        userId_teamId: {
+          userId: input.userId,
+          teamId: organizationId,
+        },
+      },
+      data: {
+        role: input.role,
+      },
+    }),
+  ]);
 
   // TODO: audit log this
 
