@@ -539,7 +539,7 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
+      return path.startsWith(item.href) && !path.includes("routing-forms/");
     },
     child: [
       {
@@ -549,7 +549,7 @@ const navigation: NavigationItemType[] = [
           const path = router.asPath.split("?")[0];
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("/installed")
+            path.startsWith(item.href) && !path.includes("routing-forms/") && !path.includes("/installed")
           );
         },
       },
@@ -570,10 +570,10 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/routing-forms/forms",
+    href: "/apps/routing-forms/forms",
     icon: FileText,
     isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/routing-forms/");
+      return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
   {
