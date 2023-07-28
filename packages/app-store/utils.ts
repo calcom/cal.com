@@ -1,14 +1,9 @@
 import { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { defaultLocations } from "@calcom/app-store/locations";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { prisma } from "@calcom/prisma";
-import { AppCategories } from "@calcom/prisma/enums";
 import type { App, AppMeta } from "@calcom/types/App";
 
 export * from "./_utils/getEventTypeAppData";
@@ -47,142 +42,6 @@ export type CredentialDataWithTeamName = CredentialData & {
 };
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
-
-export async function getLocationGroupedOptions(
-  idToSearchOn: { userId: number } | { teamId: number },
-  t: TFunction
-) {
-  const apps: Record<
-    string,
-    {
-      label: string;
-      value: string;
-      disabled?: boolean;
-      icon?: string;
-      slug?: string;
-      credential?: CredentialDataWithTeamName;
-    }[]
-  > = {};
-
-  let idToSearchObject = {};
-
-  if (idToSearchOn.teamId) {
-    const teamId = idToSearchOn.teamId;
-    // See if the team event belongs to an org
-    const org = await prisma.team.findFirst({
-      where: {
-        children: {
-          some: {
-            id: teamId,
-          },
-        },
-      },
-    });
-
-    if (org) {
-      idToSearchObject = {
-        teamId: {
-          in: [teamId, org.id],
-        },
-      };
-    } else {
-      idToSearchObject = { teamId };
-    }
-  } else {
-    idToSearchObject = { userId: idToSearchOn.userId };
-  }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      ...idToSearchObject,
-      app: {
-        categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video],
-        },
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      teamId: true,
-      appId: true,
-      invalid: true,
-      team: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
-
-  const integrations = await getEnabledApps(credentials, true);
-
-  integrations.forEach((app) => {
-    if (app.locationOption) {
-      // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
-      let category =
-        app.categories.length >= 2
-          ? app.categories.find(
-              (category) =>
-                !([AppCategories.video, AppCategories.conferencing] as string[]).includes(category)
-            )
-          : app.category;
-      if (!category) category = AppCategories.conferencing;
-
-      for (const credential of app.credentials) {
-        const label = `${app.locationOption.label} ${
-          credential.team?.name ? `(${credential.team.name})` : ""
-        }`;
-        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug, credential };
-        if (apps[category]) {
-          apps[category] = [...apps[category], option];
-        } else {
-          apps[category] = [option];
-        }
-      }
-    }
-  });
-
-  defaultLocations.forEach((l) => {
-    const category = l.category;
-    if (apps[category]) {
-      apps[category] = [
-        ...apps[category],
-        {
-          label: l.label,
-          value: l.type,
-          icon: l.iconUrl,
-        },
-      ];
-    } else {
-      apps[category] = [
-        {
-          label: l.label,
-          value: l.type,
-          icon: l.iconUrl,
-        },
-      ];
-    }
-  });
-  const locations = [];
-
-  // Translating labels and pushing into array
-  for (const category in apps) {
-    const tmp = {
-      label: t(category),
-      options: apps[category].map((l) => ({
-        ...l,
-        label: t(l.label),
-      })),
-    };
-
-    locations.push(tmp);
-  }
-
-  return locations;
-}
 
 /**
  * This should get all available apps to the user based on his saved

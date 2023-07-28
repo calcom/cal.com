@@ -1,8 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
@@ -327,6 +328,7 @@ export default async function getEventTypeById({
   );
 
   const currentUser = eventType.users.find((u) => u.id === userId);
+
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const locationOptions = await getLocationGroupedOptions(
     eventType.teamId ? { teamId: eventType.teamId } : { userId: currentUser.id },
