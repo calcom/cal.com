@@ -64,6 +64,7 @@ export const viewerTeamsRouter = router({
       input,
     });
   }),
+
   // Returns teams I a member of
   list: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
@@ -79,7 +80,6 @@ export const viewerTeamsRouter = router({
       ctx,
     });
   }),
-
   // Returns Teams I am a owner/admin of
   listOwnedTeams: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.listOwnedTeams) {
