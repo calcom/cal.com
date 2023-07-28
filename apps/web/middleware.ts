@@ -1,21 +1,13 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
-import { NextResponse, userAgent } from "next/server";
+import { NextResponse } from "next/server";
 
-import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
-  if (isIpInBanlist(req) && url.pathname !== "/api/nope") {
-    // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
-    req.nextUrl.pathname = "/api/nope";
-    return NextResponse.redirect(req.nextUrl);
-  }
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -39,25 +31,9 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
 
-  if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
-    const callbackUrl = url.searchParams.get("callbackUrl");
-    const { isBot } = userAgent(req);
-
-    if (
-      isBot ||
-      (callbackUrl && ![CONSOLE_URL, WEBAPP_URL, WEBSITE_URL].some((u) => callbackUrl.startsWith(u))) ||
-      isIpInBanlist(req)
-    ) {
-      // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
-      req.nextUrl.pathname = "/api/nope";
-      return NextResponse.redirect(req.nextUrl);
-    }
-  }
-
-  // Don't 404 old routing_forms links
-  if (url.pathname.startsWith("/apps/routing_forms")) {
-    url.pathname = url.pathname.replace("/apps/routing_forms", "/apps/routing-forms");
-    return NextResponse.rewrite(url);
+  const res = routingForms.handle(url);
+  if (res) {
+    return res;
   }
 
   if (url.pathname.startsWith("/api/trpc/")) {
@@ -76,15 +52,35 @@ const middleware: NextMiddleware = async (req) => {
   });
 };
 
+const routingForms = {
+  handle: (url: URL) => {
+    // Next.config.js Redirects don't handle Client Side navigations and we need that.
+    // So, we add the rewrite here instead.
+    if (url.pathname.startsWith("/routing-forms")) {
+      url.pathname = url.pathname.replace(/^\/routing-forms($|\/)/, "/apps/routing-forms/");
+      return NextResponse.rewrite(url);
+    }
+
+    // Don't 404 old routing_forms links
+    if (url.pathname.startsWith("/apps/routing_forms")) {
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
+      return NextResponse.rewrite(url);
+    }
+  },
+};
+
 export const config = {
+  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
+  // https://github.com/vercel/next.js/discussions/42458
   matcher: [
-    "/((?!_next|.*avatar.png$|favicon.ico$).*)",
-    "/api/collect-events/:path*",
-    "/api/auth/:path*",
-    "/apps/routing_forms/:path*",
     "/:path*/embed",
     "/api/trpc/:path*",
     "/auth/login",
+    /**
+     * Paths required by routingForms.handle
+     */
+    "/apps/routing_forms/:path*",
+    "/routing-forms/:path*",
   ],
 };
 

@@ -15,7 +15,7 @@ test.describe("Change Theme Test", () => {
     //Click the update button
     await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
-    const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+    const toast = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast).toBeTruthy();
     //Go to the profile page and check if the theme is dark
     await page.goto(`/${pro.username}`);
@@ -35,7 +35,7 @@ test.describe("Change Theme Test", () => {
     //Click the update theme button
     await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
-    const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+    const toast = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast).toBeTruthy();
     //Go to the profile page and check if the theme is light
     await page.goto(`/${pro.username}`);

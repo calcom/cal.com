@@ -228,6 +228,7 @@ const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
+          className="w-56"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>
@@ -261,7 +262,7 @@ const InstallAppButtonChild = ({
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                   );
                 }}>
-                <p>
+                <p className="text-left">
                   {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
                 </p>
               </DropdownItem>
