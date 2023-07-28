@@ -7,13 +7,8 @@ on:
       - main
 
 jobs:
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
   build:
     name: Production build
-    needs: env
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
