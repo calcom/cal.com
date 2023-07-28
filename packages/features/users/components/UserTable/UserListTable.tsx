@@ -12,7 +12,7 @@ import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
-import { EditUserSheet } from "./EditUserSheet";
+import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
