@@ -193,7 +193,7 @@ export async function getUserAvailability(
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   // PER_YEAR has been taken care individually inside getBusyTimesFromBookingLimits and getBusyTimesFromDurationLimits
-  const intervalLimitKeys: (keyof IntervalLimit)[] = ["PER_MONTH", "PER_WEEK"];
+  const intervalLimitKeys: (keyof IntervalLimit)[] = ["PER_MONTH", "PER_WEEK", "PER_DAY"];
   let startDate: Dayjs = dateFrom;
   let endDate: Dayjs = dateTo;
 
@@ -201,7 +201,7 @@ export async function getUserAvailability(
   if (eventTypeId && (bookingLimits || durationLimits)) {
     for (const key of intervalLimitKeys) {
       if ((bookingLimits && key in bookingLimits) || (durationLimits && key in durationLimits)) {
-        const filter = key.split("_")[1].toLowerCase() as "week" | "month";
+        const filter = key.split("_")[1].toLowerCase() as "week" | "month" | "day";
         startDate = dayjs.min(startDate, startDate.startOf(filter));
         endDate = dayjs.max(endDate, endDate.endOf(filter));
       }
