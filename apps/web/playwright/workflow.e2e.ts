@@ -9,9 +9,13 @@ import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
+const IS_SENDGRID_ENABLED = !!process.env.SENDGRID_API_KEY;
+
 test.describe("Workflow tests", () => {
   test.describe("User Workflows", () => {
     test("Create default reminder workflow & trigger when event type is booked", async ({ page, users }) => {
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(!IS_SENDGRID_ENABLED, "It should only run if Sendgrid is enabled");
       const user = await users.create();
       const [eventType] = user.eventTypes;
       await user.login();

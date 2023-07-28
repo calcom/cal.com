@@ -1,9 +1,14 @@
 import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import {
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 
 import * as twilio from "./smsProviders/twilioProvider";
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";

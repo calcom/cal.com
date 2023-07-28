@@ -6,8 +6,12 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -24,6 +28,18 @@ if (process.env.SENDGRID_API_KEY) {
 
   sgMail.setApiKey(sendgridAPIKey);
   client.setApiKey(sendgridAPIKey);
+}
+
+async function getBatchId() {
+  if (!process.env.SENDGRID_API_KEY) {
+    console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
+    return "DUMMY_BATCH_ID";
+  }
+  const batchIdResponse = await client.request({
+    url: "/v3/mail/batch",
+    method: "POST",
+  });
+  return batchIdResponse[1].batch_id as string;
 }
 
 export const scheduleEmailReminder = async (
@@ -132,10 +148,30 @@ export const scheduleEmailReminder = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
 
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
+  const batchId = await getBatchId();
+
+  function sendEmail(data: Partial<MailData>) {
+    if (!process.env.SENDGRID_API_KEY) {
+      console.info("No sendgrid API key provided, skipping email");
+      return Promise.resolve();
+    }
+    return sgMail.send({
+      to: data.to,
+      from: {
+        email: senderEmail,
+        name: sender,
+      },
+      subject: emailContent.emailSubject,
+      html: emailContent.emailBody,
+      batchId,
+      replyTo: evt.organizer.email,
+      mailSettings: {
+        sandboxMode: {
+          enable: sandboxMode,
+        },
+      },
+    });
+  }
 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -143,43 +179,11 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
   ) {
     try {
-      if (Array.isArray(sendTo)) {
-        for (const email of sendTo) {
-          await sgMail.send({
-            to: email,
-            from: {
-              email: senderEmail,
-              name: sender,
-            },
-            subject: emailContent.emailSubject,
-            html: emailContent.emailBody,
-            batchId: batchIdResponse[1].batch_id,
-            replyTo: evt.organizer.email,
-            mailSettings: {
-              sandboxMode: {
-                enable: sandboxMode,
-              },
-            },
-          });
-        }
-      } else {
-        await sgMail.send({
-          to: sendTo,
-          from: {
-            email: senderEmail,
-            name: sender,
-          },
-          subject: emailContent.emailSubject,
-          html: emailContent.emailBody,
-          batchId: batchIdResponse[1].batch_id,
-          replyTo: evt.organizer.email,
-          mailSettings: {
-            sandboxMode: {
-              enable: sandboxMode,
-            },
-          },
-        });
-      }
+      if (!sendTo) throw new Error("No email addresses provided");
+      const addressees = Array.isArray(sendTo) ? sendTo : [sendTo];
+      const promises = addressees.map((email) => sendEmail({ to: email }));
+      // TODO: Maybe don't await for this?
+      await Promise.all(promises);
     } catch (error) {
       console.log("Error sending Email");
     }
@@ -195,24 +199,11 @@ export const scheduleEmailReminder = async (
       !scheduledDate.isAfter(currentDate.add(72, "hour"))
     ) {
       try {
-        await sgMail.send({
+        // If sendEmail failed then workflowReminer will not be created, failing E2E tests
+        await sendEmail({
           to: sendTo,
-          from: {
-            email: senderEmail,
-            name: sender,
-          },
-          subject: emailContent.emailSubject,
-          html: emailContent.emailBody,
-          batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
-          replyTo: evt.organizer.email,
-          mailSettings: {
-            sandboxMode: {
-              enable: sandboxMode,
-            },
-          },
         });
-
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
@@ -220,7 +211,7 @@ export const scheduleEmailReminder = async (
             method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
             scheduled: true,
-            referenceId: batchIdResponse[1].batch_id,
+            referenceId: batchId,
           },
         });
       } catch (error) {

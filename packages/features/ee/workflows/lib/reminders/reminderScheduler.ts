@@ -1,10 +1,13 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 
-import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isWhatsappAction,
+  shouldScheduleEmailReminder,
+  shouldScheduleSMSReminder,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -42,95 +45,88 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
   } = args;
-  if (workflows.length > 0 && !requiresConfirmation) {
-    for (const workflowReference of workflows) {
-      if (workflowReference.workflow.steps.length === 0) continue;
+  if (workflows.length === 0 || requiresConfirmation) return;
+  for (const workflowReference of workflows) {
+    if (workflowReference.workflow.steps.length === 0) continue;
 
-      const workflow = workflowReference.workflow;
-      if (
-        workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
-        (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-          !isRescheduleEvent &&
-          isFirstRecurringEvent) ||
-        (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent) ||
-        workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
-      ) {
-        for (const step of workflow.steps) {
-          if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
-            const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
-            await scheduleSMSReminder(
-              evt,
-              sendTo,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              step.sender || SENDER_ID,
-              workflow.userId,
-              workflow.teamId,
-              step.numberVerificationPending
-            );
-          } else if (
-            step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
-          ) {
-            let sendTo: string[] = [];
+    const workflow = workflowReference.workflow;
+    if (
+      workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+      (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT && !isRescheduleEvent && isFirstRecurringEvent) ||
+      (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent) ||
+      workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
+    ) {
+      for (const step of workflow.steps) {
+        if (shouldScheduleSMSReminder(step.action)) {
+          const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
+          await scheduleSMSReminder(
+            evt,
+            sendTo,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            step.sender || SENDER_ID,
+            workflow.userId,
+            workflow.teamId,
+            step.numberVerificationPending
+          );
+        } else if (shouldScheduleEmailReminder(step.action)) {
+          let sendTo: string[] = [];
 
-            switch (step.action) {
-              case WorkflowActions.EMAIL_HOST:
-                sendTo = [evt.organizer?.email || ""];
-                break;
-              case WorkflowActions.EMAIL_ATTENDEE:
-                const attendees = !!emailAttendeeSendToOverride
-                  ? [emailAttendeeSendToOverride]
-                  : evt.attendees?.map((attendee) => attendee.email);
+          switch (step.action) {
+            case WorkflowActions.EMAIL_HOST:
+              sendTo = [evt.organizer?.email || ""];
+              break;
+            case WorkflowActions.EMAIL_ATTENDEE:
+              const attendees = !!emailAttendeeSendToOverride
+                ? [emailAttendeeSendToOverride]
+                : evt.attendees?.map((attendee) => attendee.email);
 
-                sendTo = attendees;
+              sendTo = attendees;
 
-                break;
-            }
-
-            await scheduleEmailReminder(
-              evt,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              sendTo,
-              step.emailSubject || "",
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              step.sender || SENDER_NAME,
-              hideBranding
-            );
-          } else if (isWhatsappAction(step.action)) {
-            const sendTo =
-              step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
-            await scheduleWhatsappReminder(
-              evt,
-              sendTo,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              workflow.userId,
-              workflow.teamId,
-              step.numberVerificationPending
-            );
+              break;
           }
+
+          await scheduleEmailReminder(
+            evt,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            sendTo,
+            step.emailSubject || "",
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            step.sender || SENDER_NAME,
+            hideBranding
+          );
+        } else if (isWhatsappAction(step.action)) {
+          const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+          await scheduleWhatsappReminder(
+            evt,
+            sendTo,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            workflow.userId,
+            workflow.teamId,
+            step.numberVerificationPending
+          );
         }
       }
     }
@@ -150,83 +146,80 @@ export interface SendCancelledRemindersArgs {
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   const { workflows, smsReminderNumber, evt, hideBranding } = args;
+  if (workflows.length === 0) return;
+  for (const workflowRef of workflows) {
+    const { workflow } = workflowRef;
 
-  if (workflows.length > 0) {
-    for (const workflowRef of workflows) {
-      const { workflow } = workflowRef;
+    if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
+      for (const step of workflow.steps) {
+        if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+          const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
+          await scheduleSMSReminder(
+            evt,
+            sendTo,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            step.sender || SENDER_ID,
+            workflow.userId,
+            workflow.teamId,
+            step.numberVerificationPending
+          );
+        } else if (
+          step.action === WorkflowActions.EMAIL_ATTENDEE ||
+          step.action === WorkflowActions.EMAIL_HOST
+        ) {
+          let sendTo: MailData["to"] = "";
 
-      if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
-        for (const step of workflow.steps) {
-          if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
-            const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
-            await scheduleSMSReminder(
-              evt,
-              sendTo,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              step.sender || SENDER_ID,
-              workflow.userId,
-              workflow.teamId,
-              step.numberVerificationPending
-            );
-          } else if (
-            step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
-          ) {
-            let sendTo: MailData["to"] = "";
-
-            switch (step.action) {
-              case WorkflowActions.EMAIL_HOST:
-                sendTo = evt.organizer.email;
-                break;
-              case WorkflowActions.EMAIL_ATTENDEE:
-                sendTo = evt.attendees.map((a) => a.email);
-                break;
-            }
-
-            await scheduleEmailReminder(
-              evt,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              sendTo,
-              step.emailSubject || "",
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              step.sender || SENDER_NAME,
-              hideBranding
-            );
-          } else if (isWhatsappAction(step.action)) {
-            const sendTo =
-              step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
-            await scheduleWhatsappReminder(
-              evt,
-              sendTo,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              step.reminderBody || "",
-              step.id,
-              step.template,
-              workflow.userId,
-              workflow.teamId,
-              step.numberVerificationPending
-            );
+          switch (step.action) {
+            case WorkflowActions.EMAIL_HOST:
+              sendTo = evt.organizer.email;
+              break;
+            case WorkflowActions.EMAIL_ATTENDEE:
+              sendTo = evt.attendees.map((a) => a.email);
+              break;
           }
+
+          await scheduleEmailReminder(
+            evt,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            sendTo,
+            step.emailSubject || "",
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            step.sender || SENDER_NAME,
+            hideBranding
+          );
+        } else if (isWhatsappAction(step.action)) {
+          const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+          await scheduleWhatsappReminder(
+            evt,
+            sendTo,
+            workflow.trigger,
+            step.action,
+            {
+              time: workflow.time,
+              timeUnit: workflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            workflow.userId,
+            workflow.teamId,
+            step.numberVerificationPending
+          );
         }
       }
     }
