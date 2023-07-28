@@ -53,7 +53,7 @@ export function OtherTeamsListing() {
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
 
-      {teams.length === 0 ? (
+      {teams.length > 0 ? (
         <OtherTeamList teams={teams} />
       ) : (
         <EmptyScreen
