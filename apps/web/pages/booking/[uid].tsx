@@ -446,7 +446,7 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>
-                                <span data-testid={`host-name-${bookingInfo.user.name}`} className="mr-2">
+                                <span data-testid="booking-host-name" className="mr-2">
                                   {bookingInfo.user.name}
                                 </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
