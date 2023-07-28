@@ -20,20 +20,6 @@ type GetOptions = {
   input: TGetOtherTeamInputSchema;
 };
 
-// interface GetOtherTeamResponse {
-//   id: number;
-//   name: string;
-//   slug: string | null;
-//   logo: string | null;
-//   bio: string | null;
-//   safeBio: string | null;
-//   metadata: Prisma.JsonValue;
-//   parent: {
-//     id: number;
-//     slug: string | null;
-//   } | null;
-// }
-
 export const getOtherTeamHandler = async ({ input }: GetOptions) => {
   // No need to validate if user is admin of org as we already do that on authedOrgAdminProcedure
   const team = await prisma.team.findFirst({
