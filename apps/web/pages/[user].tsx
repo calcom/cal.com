@@ -1,8 +1,10 @@
+import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
+import type { z } from "zod";
 
 import {
   sdkActionManager,
@@ -19,23 +21,22 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
+import type { EventType, User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, HeadSeo } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
-export function UserPage(props: UserPageProps) {
-  const { users, profile, eventTypes, isSingleUser, markdownStrippedBio } = props;
+export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { users, profile, eventTypes, markdownStrippedBio } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
-  useTheme(user.theme);
+  useTheme(profile.theme);
   const { t } = useLocale();
   const router = useRouter();
 
@@ -48,7 +49,6 @@ export function UserPage(props: UserPageProps) {
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   delete query.orgSlug;
-  const nameOrUsername = user.name || user.username || "";
 
   /*
    const telemetry = useTelemetry();
@@ -62,7 +62,7 @@ export function UserPage(props: UserPageProps) {
   return (
     <>
       <HeadSeo
-        title={nameOrUsername}
+        title={profile.name}
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
@@ -78,25 +78,23 @@ export function UserPage(props: UserPageProps) {
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          {isSingleUser && ( // When we deal with a single user, not dynamic group
-            <div className="mb-8 text-center">
-              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
-              <h1 className="font-cal text-emphasis mb-1 text-3xl">
-                {nameOrUsername}
-                {user.verified && (
-                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
-                )}
-              </h1>
-              {!isBioEmpty && (
-                <>
-                  <div
-                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
-                  />
-                </>
+          <div className="mb-8 text-center">
+            <Avatar imageSrc={profile.image} size="xl" alt={profile.name} />
+            <h1 className="font-cal text-emphasis mb-1 text-3xl">
+              {profile.name}
+              {user.verified && (
+                <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
               )}
-            </div>
-          )}
+            </h1>
+            {!isBioEmpty && (
+              <>
+                <div
+                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                />
+              </>
+            )}
+          </div>
 
           <div
             className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
@@ -141,7 +139,7 @@ export function UserPage(props: UserPageProps) {
             )}
           </div>
 
-          {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
+          {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
         </main>
         <Toaster position="bottom-right" />
       </div>
@@ -195,9 +193,38 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   }));
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export type UserPageProps = {
+  trpcState: DehydratedState;
+  profile: {
+    name: string;
+    image: string;
+    theme: string | null;
+    brandColor: string;
+    darkBrandColor: string;
+  };
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  themeBasis: string | null;
+  markdownStrippedBio: string;
+  safeBio: string;
+  eventTypes: ({
+    descriptionAsSafeHTML: string;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  } & Pick<
+    EventType,
+    | "id"
+    | "title"
+    | "slug"
+    | "length"
+    | "hidden"
+    | "requiresConfirmation"
+    | "price"
+    | "currency"
+    | "recurringEvent"
+  >)[];
+} & EmbedProps;
+
+export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
-  const crypto = await import("crypto");
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const usernameList = getUsernameList(context.query.user as string);
@@ -260,7 +287,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [user] = users; //to be used when dealing with single user, not dynamic group
 
   const profile = {
-    name: user.name || user.username,
+    name: user.name || user.username || "",
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
@@ -280,25 +307,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
 
-  const isSingleUser = users.length === 1;
-
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
 
   return {
     props: {
-      users,
+      users: users.map((user) => ({
+        name: user.name,
+        username: user.username,
+        bio: user.bio,
+        away: user.away,
+        verified: user.verified,
+      })),
+      eventTypes,
       safeBio,
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      user: {
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
-      eventTypes,
       trpcState: ssr.dehydrate(),
-      isSingleUser,
       markdownStrippedBio,
     },
   };
