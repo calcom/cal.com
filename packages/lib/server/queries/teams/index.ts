@@ -9,12 +9,13 @@ import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
-export async function getTeamWithMembers(
-  id?: number,
-  slug?: string,
-  userId?: number,
-  orgSlug?: string | null
-) {
+export async function getTeamWithMembers(args: {
+  id?: number;
+  slug?: string;
+  userId?: number;
+  orgSlug?: string | null;
+}) {
+  const { id, slug, userId, orgSlug } = args;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,

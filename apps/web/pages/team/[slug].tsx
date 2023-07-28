@@ -250,7 +250,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.query.orgSlug
   );
   const flags = await getFeatureFlagMap(prisma);
-  const team = await getTeamWithMembers(undefined, slug, undefined, currentOrgDomain);
+  const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   // Taking care of sub-teams and orgs
   if (
