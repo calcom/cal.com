@@ -109,12 +109,6 @@ const tabs: VerticalTabItemProps[] = [
     children: [],
   },
   {
-    name: "other_teams",
-    href: "/settings/organizations/teams/other",
-    icon: Users,
-    children: [],
-  },
-  {
     name: "admin",
     href: "/settings/admin",
     icon: Lock,
@@ -212,7 +206,7 @@ const SettingsSidebarContainer = ({
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
-  // console.log({ otherTeams });
+
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
@@ -238,6 +232,7 @@ const SettingsSidebarContainer = ({
       }));
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
+        // @TODO: test if this works for 2 dataset testids
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
@@ -245,6 +240,17 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [router.query.id, otherTeams]);
+
+  if (currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role)) {
+    const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
+
+    tabsWithPermissions.splice(teamsIndex + 1, 0, {
+      name: "other_teams",
+      href: "/settings/organizations/teams/other",
+      icon: Users,
+      children: [],
+    });
+  }
 
   return (
     <nav
@@ -529,46 +535,16 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-                                {(otherTeam.role === MembershipRole.OWNER ||
-                                  otherTeam.role === MembershipRole.ADMIN ||
-                                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                  // @ts-ignore this exists wtf?
-                                  (otherTeam.isOrgAdmin && otherTeam.isOrgAdmin)) && (
-                                  <>
-                                    {/* TODO */}
-                                    {/* <VerticalTabItem
-                              name={t("general")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              disableChevron
-                            /> */}
-                                    <VerticalTabItem
+
+                                <>
+                                  {/* TODO: enable appearance edit */}
+                                  {/* <VerticalTabItem
                                       name={t("appearance")}
                                       href={`/settings/organizations/teams/other/${otherTeam.id}/appearance`}
                                       textClassNames="px-3 text-emphasis font-medium text-sm"
                                       disableChevron
-                                    />
-                                    {/* Hide if there is a parent ID */}
-                                    {!otherTeam.parentId ? (
-                                      <>
-                                        <VerticalTabItem
-                                          name={t("billing")}
-                                          href={`/settings/organizations/teams/other/${otherTeam.id}/billing`}
-                                          textClassNames="px-3 text-emphasis font-medium text-sm"
-                                          disableChevron
-                                        />
-                                        {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/organizations/teams/other/${otherTeam.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
-                                        )}
-                                      </>
-                                    ) : null}
-                                  </>
-                                )}
+                                    /> */}
+                                </>
                               </CollapsibleContent>
                             </Collapsible>
                           );
