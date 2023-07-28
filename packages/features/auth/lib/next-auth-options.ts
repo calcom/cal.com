@@ -350,6 +350,14 @@ export const AUTH_OPTIONS: AuthOptions = {
   providers,
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
+      if (trigger === "update") {
+        return {
+          ...token,
+          name: session?.name ?? token.name,
+          username: session?.username ?? token.username,
+          email: session?.email ?? token.email,
+        };
+      }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
