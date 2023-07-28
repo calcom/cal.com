@@ -93,7 +93,7 @@ function EditForm({
         <TextField label={t("name")} {...form.register("name")} />
         <TextField label={t("email")} {...form.register("email")} />
 
-        <TextAreaField label={t("bio")} {...form.register("bio")} />
+        <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-52" />
         <div>
           <Label>{t("role")}</Label>
           <ToggleGroup
@@ -128,7 +128,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
   const { t } = useLocale();
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
-  const [editMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
+  const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isLoading } = trpc.viewer.organizations.getUser.useQuery({
     userId: selectedUser?.id,
   });
@@ -143,16 +143,18 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
     <Sheet
       open={true}
       onOpenChange={() => {
+        setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
       <SheetContent position="right" size="default">
-        {!isLoading ? (
+        {!isLoading && loadedUser ? (
           <div className="flex h-full flex-col">
             {!editMode ? (
               <div className="flex-grow">
                 <div className="mt-4 flex items-center gap-2">
                   <Avatar
-                    size="lg"
+                    asChild
+                    className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
                     imageSrc={avatarURL}
                     gravatarFallbackMd5="fallback"
@@ -189,6 +191,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                   />
                   <DisplayInfo
                     label={t("teams")}
+                    displayCount={teamNames?.length ?? 0}
                     value={
                       teamNames && teamNames?.length === 0 ? ["user_isnt_in_any_team"] : teamNames ?? "" // TS wtf
                     }
