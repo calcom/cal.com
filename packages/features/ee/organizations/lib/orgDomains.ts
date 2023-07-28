@@ -31,13 +31,12 @@ export function orgDomainConfig(hostname: string, fallback?: string | string[]) 
       currentOrgDomain,
       isValidOrgDomain,
     };
-  } else {
-    const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
-    return {
-      currentOrgDomain: fallbackOrgDomain,
-      isValidOrgDomain: fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain),
-    };
   }
+  const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
+  return {
+    currentOrgDomain: fallbackOrgDomain,
+    isValidOrgDomain: fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain),
+  };
 }
 
 export function subdomainSuffix() {
@@ -47,4 +46,18 @@ export function subdomainSuffix() {
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
   return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}`;
+}
+
+export function getSlugOrRequestedSlug(slug: string) {
+  return {
+    OR: [
+      { slug },
+      {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    ],
+  };
 }

@@ -6,6 +6,7 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
@@ -137,22 +138,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization:
-        isValidOrgDomain && currentOrgDomain
-          ? {
-              OR: [
-                {
-                  slug: currentOrgDomain,
-                },
-                {
-                  metadata: {
-                    path: ["requestedSlug"],
-                    equals: currentOrgDomain,
-                  },
-                },
-              ],
-            }
-          : null,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       away: true,

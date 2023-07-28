@@ -5,6 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -109,11 +110,7 @@ export const getPublicEvent = async (
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
-  const orgQuery = org
-    ? {
-        OR: [{ slug: org }, { metadata: { path: ["requestedSlug"], equals: org } }],
-      }
-    : null;
+  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -193,15 +190,7 @@ export const getPublicEvent = async (
   const usersOrTeamQuery = isTeamEvent
     ? {
         team: {
-          OR: [
-            { slug: username },
-            {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: username,
-              },
-            },
-          ],
+          ...getSlugOrRequestedSlug(username),
           parent: orgQuery,
         },
       }

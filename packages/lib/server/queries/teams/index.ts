@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -98,9 +99,7 @@ export async function getTeamWithMembers(
 
   if (userId) where.members = { some: { userId } };
   if (orgSlug) {
-    where.parent = {
-      OR: [{ slug: orgSlug }, { metadata: { path: ["requestedSlug"], equals: orgSlug } }],
-    };
+    where.parent = getSlugOrRequestedSlug(orgSlug);
   } else {
     where.parentId = null;
   }

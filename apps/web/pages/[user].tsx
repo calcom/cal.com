@@ -12,6 +12,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
@@ -250,20 +251,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       username: {
         in: usernameList,
       },
-      organization:
-        isValidOrgDomain && currentOrgDomain
-          ? {
-              OR: [
-                { slug: currentOrgDomain },
-                {
-                  metadata: {
-                    path: ["requestedSlug"],
-                    equals: currentOrgDomain,
-                  },
-                },
-              ],
-            }
-          : null,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
