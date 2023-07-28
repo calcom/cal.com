@@ -347,6 +347,19 @@ export async function createAndAutoJoinIfInOrg({
     };
   }
 
+  const orgMembership = await prisma.membership.findFirst({
+    where: {
+      userId: invitee.id,
+      teamId: team.parentId,
+    },
+  });
+
+  if (!orgMembership?.accepted) {
+    return {
+      autoJoined: false,
+    };
+  }
+
   // If the user is invited to a child team, they are automatically accepted into the parent org
   await prisma.membership.create({
     data: {

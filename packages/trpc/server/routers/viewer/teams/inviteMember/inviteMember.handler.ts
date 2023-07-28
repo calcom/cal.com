@@ -70,13 +70,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     } else {
       throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
 
-      if (
-        await createAndAutoJoinIfInOrg({
-          invitee,
-          role: input.role,
-          team,
-        })
-      ) {
+      const shouldAutoJoinOrgTeam = await createAndAutoJoinIfInOrg({
+        invitee,
+        role: input.role,
+        team,
+      });
+      if (shouldAutoJoinOrgTeam.autoJoined) {
         // Continue here because if this is true we dont need to send an email to the user
         // we also dont need to update stripe as thats handled on an ORG level and not a team level.
         continue;
