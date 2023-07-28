@@ -261,7 +261,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { notFound: true } as const;
   }
 
-  if (!team || !team.parent?.slug) {
+  if (!team || (team.parent && !team.parent.slug)) {
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
         ...(team?.parent
