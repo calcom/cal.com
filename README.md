@@ -545,6 +545,4 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
 
-<a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
-
 Cal.com is an [open startup](https://cal.com/open) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.
