@@ -325,3 +325,39 @@ export function getIsOrgVerified(
     isInOrgScope: false,
   } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
 }
+
+export async function createAndAutoJoinIfInOrg({
+  team,
+  role,
+  invitee,
+}: {
+  team: TeamWithParent;
+  invitee: User;
+  role: MembershipRole;
+}) {
+  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
+    return {
+      autoJoined: false,
+    };
+  }
+
+  if (!team.parentId) {
+    return {
+      autoJoined: false,
+    };
+  }
+
+  // If the user is invited to a child team, they are automatically accepted into the parent org
+  await prisma.membership.create({
+    data: {
+      userId: invitee.id,
+      teamId: team.id,
+      accepted: true,
+      role: role,
+    },
+  });
+
+  return {
+    autoJoined: true,
+  };
+}
