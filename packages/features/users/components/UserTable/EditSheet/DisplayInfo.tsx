@@ -1,7 +1,8 @@
 import { classNames } from "@calcom/lib";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import type { BadgeProps } from "@calcom/ui";
-import { Badge, Button } from "@calcom/ui";
-import { Copy } from "@calcom/ui/components/icon";
+import { Badge, Button, Label } from "@calcom/ui";
+import { ClipboardCheck, Clipboard } from "@calcom/ui/components/icon";
 
 type DisplayInfoType<T extends boolean> = {
   label: string;
@@ -20,12 +21,13 @@ export function DisplayInfo<T extends boolean>({
   displayCopy,
   badgeColor,
 }: DisplayInfoType<T>) {
+  const { copyToClipboard, isCopied } = useCopy();
   const values = (isArray ? value : [value]) as string[];
 
   return (
     <div className="flex flex-col space-y-0.5">
-      <p className="text-subtle text-xs font-semibold uppercase leading-none">{label}</p>
-      <div className={classNames(asBadge ? "flex mt-0.5 space-x-2" : "flex flex-col")}>
+      <Label className="text-subtle text-xs font-semibold uppercase leading-none">{label}</Label>
+      <div className={classNames(asBadge ? "mt-0.5 flex space-x-2" : "flex flex-col")}>
         <>
           {values.map((v) => {
             const content = (
@@ -35,7 +37,15 @@ export function DisplayInfo<T extends boolean>({
                   asBadge ? "text-xs" : "text-sm"
                 )}>
                 {v}
-                {displayCopy && <Button size="sm" variant="icon" color="minimal" StartIcon={Copy} />}
+                {displayCopy && (
+                  <Button
+                    size="sm"
+                    variant="icon"
+                    onClick={() => copyToClipboard(v)}
+                    color="minimal"
+                    StartIcon={isCopied ? ClipboardCheck : Clipboard}
+                  />
+                )}
               </span>
             );
 
