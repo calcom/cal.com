@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -75,11 +75,12 @@ const OtherTeamProfileView = () => {
   const form = useForm({
     resolver: zodResolver(teamProfileFormSchema),
   });
-
+  const searchParams = useSearchParams();
+  const teamId = Number(searchParams.get("id"));
   const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId: teamId },
     {
-      enabled: !!router.query.id,
+      enabled: !!teamId,
       onError: () => {
         router.push("/settings");
       },

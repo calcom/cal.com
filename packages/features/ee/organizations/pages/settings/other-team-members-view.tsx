@@ -1,5 +1,5 @@
 // import { debounce } from "lodash";
-import { useRouter } from "next/router";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
@@ -49,8 +49,8 @@ function MembersList(props: MembersListProps) {
 const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-
-  const teamId = Number(router.query.id);
+  const searchParams = useSearchParams();
+  const teamId = Number(searchParams.get("id"));
 
   const utils = trpc.useContext();
   const [offset, setOffset] = useState<number>(1);
