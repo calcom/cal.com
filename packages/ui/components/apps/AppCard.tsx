@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
@@ -38,9 +39,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
 
-  const enabledOnTeams = !app.categories.some(
-    (category) => category === "calendar" || (category === "conferencing" && !app.concurrentMeetings)
-  );
+  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
@@ -203,12 +202,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (
-    !userAdminTeams?.length ||
-    appCategories.some(
-      (category) => category === "calendar" || (category === "conferencing" && !concurrentMeetings)
-    )
-  ) {
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return (
       <Button
         color="secondary"

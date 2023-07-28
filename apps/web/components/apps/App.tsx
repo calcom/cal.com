@@ -30,6 +30,7 @@ import {
 } from "@calcom/ui";
 import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 
 
 /* These app slugs all require Google Cal to be installed */
@@ -187,7 +188,7 @@ const Component = ({
                       };
                     }
                     return (
-                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall concurrentMeetings {...props} />
+                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall concurrentMeetings={concurrentMeetings} {...props} />
                     );
                   }}
                 />
@@ -420,7 +421,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar" || category === "conferencing" && !concurrentMeetings)) {
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return <Button
       data-testid="install-app-button"
       {...props}

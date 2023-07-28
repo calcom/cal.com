@@ -123,4 +123,19 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
+/**
+ *
+ * @param appCategories - from app metadata
+ * @param concurrentMeetings - from app metadata
+ * @returns - true if app supports team install
+ */
+export function doesAppSupportTeamInstall(
+  appCategories: string[],
+  concurrentMeetings: boolean | undefined = undefined
+) {
+  return !appCategories.some(
+    (category) => category === "calendar" || (category === "conferencing" && !concurrentMeetings)
+  );
+}
+
 export default getApps;
