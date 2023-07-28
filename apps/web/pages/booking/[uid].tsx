@@ -404,7 +404,9 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                      {eventName}
+                    </div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -439,7 +441,7 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>
-                                <span data-testid={`host-name-${bookingInfo.user.name}`} className="mr-2">
+                                <span data-testid="booking-host-name" className="mr-2">
                                   {bookingInfo.user.name}
                                 </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
