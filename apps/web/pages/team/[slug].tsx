@@ -245,14 +245,15 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.query.orgSlug
+  );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers(undefined, slug, undefined, currentOrgDomain);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-
   // Taking care of sub-teams and orgs
   if (
-    (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
     (!isValidOrgDomain && team?.parent) ||
     (!isValidOrgDomain && !!metadata?.isOrganization) ||
     flags["organizations"] !== true

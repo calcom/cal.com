@@ -14,7 +14,6 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
   return (
     <div className="m-8 flex items-center justify-center">
       <EmptyScreen
-        data-testid="unpublished-screen"
         avatar={<Avatar alt={slug ?? ""} imageSrc={`${CAL_URL}/team/${slug}/avatar.png`} size="lg" />}
         headline={t("team_is_unpublished", {
           team: props.name,

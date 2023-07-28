@@ -607,56 +607,78 @@ async function main() {
     ]
   );
 
-  // Org Owner
-  const orgUserOwner = await createUserAndEventType({
-    user: {
+  await prisma.team.create({
+    data: {
+      name: "Foobar Team",
+      metadata: {
+        requestedSlug: "foobar", // Unpublished
+      },
+      eventTypes: {
+        create: [
+          {
+            title: "Collective Foobar Team Event",
+            slug: "collective",
+            length: 15,
+            schedulingType: "COLLECTIVE",
+          },
+        ],
+      },
+    },
+  });
+
+  const orgUserOwner = await prisma.user.create({
+    data: {
       email: "john@acme.com",
       password: "john",
       username: "john",
       name: "John Acme Org Owner",
     },
-    eventTypes: [{ slug: "30min", length: 30, title: "30min" }],
   });
 
-  // Org Owner
-  const orgUserMember = await createUserAndEventType({
-    user: {
-      email: "alex@acme.com",
-      password: "alex",
-      username: "alex",
-      name: "Alex Acme Org Member",
+  await prisma.eventType.create({
+    data: {
+      slug: "30min",
+      length: 30,
+      title: "30min",
+      users: { connect: { id: orgUserOwner.id } },
+      userId: orgUserOwner.id,
     },
-    eventTypes: [],
   });
 
-  // Seed org
+  const marketingSubteam = await prisma.team.create({
+    data: {
+      name: "Marketing",
+      slug: "marketing",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Marketing Team Event",
+              slug: "collective",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+          ],
+        },
+      },
+    },
+  });
+
   await prisma.team.create({
     data: {
       name: "Acme",
       orgUsers: {
-        connect: [{ id: orgUserOwner.id }, { id: orgUserMember.id }],
+        connect: [{ id: orgUserOwner.id }],
       },
       children: {
-        create: [
-          {
-            name: "Marketing",
-            slug: "marketing",
-            members: { create: [{ userId: orgUserMember.id, role: "MEMBER", accepted: true }] },
-            eventTypes: {
-              create: [{ title: "15min", slug: "15min", length: 15 }],
-            },
-          },
-        ],
+        connect: [{ id: marketingSubteam.id }],
       },
       members: {
         createMany: {
-          data: [
-            { userId: orgUserOwner.id, role: "OWNER", accepted: true },
-            { userId: orgUserMember.id, role: "MEMBER", accepted: true },
-          ],
+          data: [{ userId: orgUserOwner.id, role: "OWNER", accepted: true }],
         },
       },
-      metadata: { requestedSlug: "acme", isOrganization: true },
+      metadata: { requestedSlug: "acme", isOrganization: true }, // Unpublished
     },
   });
 }

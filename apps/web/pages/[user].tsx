@@ -239,8 +239,10 @@ export type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
-
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.query.orgSlug
+  );
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({

@@ -23,12 +23,21 @@ export function getOrgSlug(hostname: string) {
   return null;
 }
 
-export function orgDomainConfig(hostname: string) {
+export function orgDomainConfig(hostname: string, fallback?: string | string[]) {
   const currentOrgDomain = getOrgSlug(hostname);
-  return {
-    currentOrgDomain,
-    isValidOrgDomain: currentOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(currentOrgDomain),
-  };
+  const isValidOrgDomain = currentOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(currentOrgDomain);
+  if (isValidOrgDomain || !fallback) {
+    return {
+      currentOrgDomain,
+      isValidOrgDomain,
+    };
+  } else {
+    const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
+    return {
+      currentOrgDomain: fallbackOrgDomain,
+      isValidOrgDomain: fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain),
+    };
+  }
 }
 
 export function subdomainSuffix() {

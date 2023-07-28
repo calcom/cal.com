@@ -57,7 +57,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.query.orgSlug
+  );
 
   const team = await prisma.team.findFirst({
     where: {
