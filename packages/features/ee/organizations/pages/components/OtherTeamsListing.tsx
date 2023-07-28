@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
-import SkeletonLoaderTeamList from "@calcom/ee/teams/components/SkeletonLoaderTeamList";
+import SkeletonLoaderTeamList from "@calcom/ee/teams/components/SkeletonloaderTeamList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, EmptyScreen, showToast } from "@calcom/ui";
