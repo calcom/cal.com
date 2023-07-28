@@ -117,7 +117,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       ...routerQuery,
       // `guest` because we need to support legacy URL with `guest` query param support
       // `guests` because the `name` of the corresponding bookingField is `guests`
-      guests: searchParams?.get("guests") || searchParams?.get("guest"),
+      guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),
     });
 
     const defaultUserValues = {
