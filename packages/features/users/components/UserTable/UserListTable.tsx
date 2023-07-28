@@ -9,7 +9,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
 
-import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
+import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
@@ -97,7 +97,7 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(

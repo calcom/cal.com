@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -19,14 +21,14 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const { cursor, limit } = input;
 
-  const getTotalMembers = await prisma?.membership.count({
+  const getTotalMembers = await prisma.membership.count({
     where: {
       teamId: organizationId,
     },
   });
 
   // I couldnt get this query to work direct on membership table
-  const teamMembers = await prisma?.membership.findMany({
+  const teamMembers = await prisma.membership.findMany({
     where: {
       teamId: organizationId,
     },

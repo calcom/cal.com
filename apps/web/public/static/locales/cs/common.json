@@ -1178,6 +1178,7 @@
   "event_time_variable": "Čas události",
   "timezone_variable": "Časová zóna",
   "location_variable": "Místo",
+  "additional_notes_variable": "Doplňující poznámky",
   "organizer_name_variable": "Jméno organizátora",
   "app_upgrade_description": "Pokud chcete použít tuto funkci, musíte provést aktualizaci na účet Pro.",
   "invalid_number": "Neplatné telefonní číslo",

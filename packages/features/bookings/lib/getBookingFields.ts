@@ -1,6 +1,8 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import type { z } from "zod";
 
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
@@ -54,12 +56,14 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   customInputs,
   metadata,
   workflows,
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
   workflows: Prisma.EventTypeGetPayload<{
@@ -84,6 +88,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
+    disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
     workflows,
@@ -93,12 +98,14 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   additionalNotesRequired,
   customInputs,
   workflows,
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
   workflows: Prisma.EventTypeGetPayload<{
@@ -117,6 +124,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   }>["workflows"];
 }) => {
   // If bookingFields is set already, the migration is done.
+  const hideBookingTitle = disableBookingTitle ?? true;
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
     [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
@@ -206,6 +214,22 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
+    {
+      defaultLabel: "what_is_this_meeting_about",
+      type: "text",
+      name: "title",
+      editable: "system-but-optional",
+      required: true,
+      hidden: hideBookingTitle,
+      defaultPlaceholder: "",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
     {
       defaultLabel: "additional_notes",
       type: "textarea",
@@ -328,7 +352,16 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-  bookingFields = bookingFields.concat(missingSystemAfterFields);
+
+  bookingFields = bookingFields.concat(missingSystemAfterFields).map((f) => {
+    return {
+      ...f,
+      // TODO: This has to be a FormBuilder feature and not be specific to bookingFields. Either use zod transform in FormBuilder to add labelAsSafeHtml automatically or add a getter for fields that would do this.
+      ...(fieldsThatSupportLabelAsSafeHtml.includes(f.type)
+        ? { labelAsSafeHtml: markdownToSafeHTML(f.label || null) || "" }
+        : null),
+    };
+  });
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

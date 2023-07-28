@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -78,13 +79,16 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const { data: session, update } = useSession();
+
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: (values) => {
       showToast(t("settings_updated_successfully"), "success");
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
+      update(values);
       setTempFormValues(null);
     },
     onError: () => {
@@ -115,7 +119,9 @@ const ProfileView = () => {
 
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
-      if (tempFormValues) mutation.mutate(tempFormValues);
+      if (tempFormValues) {
+        mutation.mutate(tempFormValues);
+      }
       setConfirmPasswordOpen(false);
     },
     onError() {
