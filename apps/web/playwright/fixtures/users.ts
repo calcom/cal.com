@@ -6,8 +6,7 @@ import { hashSync as hash } from "bcryptjs";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { TimeZoneEnum } from "./types";
@@ -367,7 +366,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
-    name: opts?.name || uname,
+    name: opts?.name,
     email: `${uname}@example.com`,
     password: hashPassword(uname),
     emailVerified: new Date(),
