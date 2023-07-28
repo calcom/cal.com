@@ -15,7 +15,7 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const { data } = useEvent();
   const parsedSelectedTimeslot = dayjs(selectedTimeslot);
-  const { timeFormat } = useTimePreferences();
+  const { timeFormat ,timezone} = useTimePreferences();
 
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
@@ -27,7 +27,7 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
         <div className="my-4 flex space-x-2 rounded-md leading-none">
           <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
             <span>
-              {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.format(timeFormat)}
+              {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.tz(timezone).format(timeFormat)}
             </span>
           </Badge>
           {(selectedDuration || data?.length) && (

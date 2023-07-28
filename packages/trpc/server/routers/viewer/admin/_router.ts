@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZListMembersSchema } from "./listPaginated.schema";
@@ -45,6 +47,16 @@ export const adminRouter = router({
       return UNSTABLE_HANDLER_CACHE.sendPasswordReset({
         ctx,
         input,
+      });
+    }),
+  toggleFeatureFlag: authedAdminProcedure
+    .input(z.object({ slug: z.string(), enabled: z.boolean() }))
+    .mutation(({ ctx, input }) => {
+      const { prisma, user } = ctx;
+      const { slug, enabled } = input;
+      return prisma.feature.update({
+        where: { slug },
+        data: { enabled, updatedBy: user.id },
       });
     }),
 });

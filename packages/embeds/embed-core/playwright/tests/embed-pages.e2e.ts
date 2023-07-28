@@ -6,17 +6,20 @@ test.describe("Embed Pages", () => {
   test("Event Type Page: should not have margin top on embed page", async ({ page }) => {
     await page.goto("http://localhost:3000/free/30min/embed");
     // Checks the margin from top by checking the distance between the div inside main from the viewport
-    const marginFromTop = await page.evaluate(() => {
-      const mainElement = document.querySelector("main");
-      const divElement = mainElement?.querySelector("div");
+    const marginFromTop = await page.evaluate(async () => {
+      return await new Promise((resolve) => {
+        (function tryGettingBoundingRect() {
+          const mainElement = document.querySelector(".main");
 
-      if (mainElement && divElement) {
-        // This returns the distance of the div element from the viewport
-        const divRect = divElement.getBoundingClientRect();
-        return divRect.top;
-      }
-
-      return null;
+          if (mainElement) {
+            // This returns the distance of the div element from the viewport
+            const mainElBoundingRect = mainElement.getBoundingClientRect();
+            resolve(mainElBoundingRect.top);
+          } else {
+            setTimeout(tryGettingBoundingRect, 500);
+          }
+        })();
+      });
     });
 
     expect(marginFromTop).toBe(0);
