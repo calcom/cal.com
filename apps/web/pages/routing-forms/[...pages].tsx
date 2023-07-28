@@ -18,7 +18,7 @@ export const getServerSideProps = (context: GetServerSidePropsContext) => {
 
   return {
     redirect: {
-      destination: `/apps/routing-forms/${pages.join("/")}`,
+      destination: `/apps/routing-forms/${pages.length ? pages.join("/") : ""}`,
       permanent: false,
     },
   };
