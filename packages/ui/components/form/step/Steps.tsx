@@ -27,9 +27,14 @@ const Steps = (props: ISteps) => {
                 "bg-inverted h-1 w-full rounded-[1px]",
                 index < currentStep - 1 ? "cursor-pointer" : ""
               )}
+              data-testid={`step-indicator-${index}`}
             />
           ) : (
-            <div key={`step-${index}`} className="bg-emphasis h-1 w-full rounded-[1px] opacity-25" />
+            <div
+              key={`step-${index}`}
+              className="bg-emphasis h-1 w-full rounded-[1px] opacity-25"
+              data-testid={`step-indicator-${index}`}
+            />
           );
         })}
       </div>
