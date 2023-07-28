@@ -65,7 +65,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
         : [
             // If NO date is selected yet, we show by default the upcomming `nextDays` days.
             date,
-            ...Array.from({ length: extraDays }).map((_, index) =>
+            ...Array.from({ length: extraDays - 1 }).map((_, index) =>
               dayjs(date)
                 .add(index + 1, "day")
                 .format("YYYY-MM-DD")
@@ -92,7 +92,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
       )}>
       {schedule.isLoading
         ? // Shows exact amount of days as skeleton.
-          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          Array.from({ length: extraDays ?? 0 }).map((_, i) => <AvailableTimesSkeleton key={i} />)
         : slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimes

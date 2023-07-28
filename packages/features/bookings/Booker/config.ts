@@ -224,7 +224,7 @@ export const extraDaysConfig = {
     tablet: 4,
   },
   [BookerLayouts.COLUMN_VIEW]: {
-    desktop: 4,
-    tablet: 2,
+    desktop: 5,
+    tablet: 3,
   },
 };
