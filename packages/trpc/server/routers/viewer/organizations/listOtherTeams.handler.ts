@@ -33,8 +33,6 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
     orderBy: { role: "desc" },
     distinct: ["teamId"],
   });
-  console.log(ctx.user.id);
-  console.log({ teamsInOrgIamNotPartOf });
 
   return teamsInOrgIamNotPartOf.map(({ team, ...membership }) => ({
     role: membership.role,
