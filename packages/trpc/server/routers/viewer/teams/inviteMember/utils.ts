@@ -360,7 +360,8 @@ export async function createAndAutoJoinIfInOrg({
     };
   }
 
-  // If the user is invited to a child team, they are automatically accepted into the parent org
+  // Since we early return if the user is not a member of the org. Or the team they are being invited to is an org (not having a parentID)
+  // We create the membership in the child team
   await prisma.membership.create({
     data: {
       userId: invitee.id,
