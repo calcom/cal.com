@@ -329,6 +329,13 @@ export default async function getEventTypeById({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
 
+  if (!currentUser && !eventType.teamId) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Could not find user or team",
+    });
+  }
+
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const locationOptions = await getLocationGroupedOptions(
     eventType.teamId ? { teamId: eventType.teamId } : { userId: currentUser.id },
