@@ -1963,6 +1963,8 @@
   "org_team_names_example_5": "e.g. Data Analytics Team",
   "org_max_team_warnings": "You will be able to add more teams later on.",
   "org_admin_other_teams": "Other teams",
-  "org_admin_other_teams_description": "Here you can see teams inside your organization but that you're not part of. You can add yourself to them if needed.",
+  "org_admin_other_teams_description": "Here you can see teams inside your organization but that you are not part of. You can add yourself to them if needed.",
+  "no_other_teams_found": "No other teams found",
+  "no_other_teams_found_description": "There are no other teams in this organization.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

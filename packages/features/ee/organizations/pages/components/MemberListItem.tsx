@@ -1,5 +1,6 @@
 import classNames from "classnames";
 
+import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -46,8 +47,8 @@ export default function MemberListItem(props: Props) {
               <div className="mb-1 flex">
                 <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
-                {/* {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />} */}
-                {/* {props.member.role && <TeamRole role={props.member.role} />} */}
+                {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+                {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
                 <span className=" block text-sm" data-testid="member-email" data-email={user.email}>

@@ -67,18 +67,10 @@ export default function OtherTeamListItem(props: Props) {
     },
   });
 
-  function acceptOrLeave(accept: boolean) {
-    acceptOrLeaveMutation.mutate({
-      teamId: team?.id as number,
-      accept,
-    });
-  }
-
   const orgBranding = useOrgBranding();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
@@ -206,16 +198,15 @@ export default function OtherTeamListItem(props: Props) {
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>
-                  {isAdmin && (
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        href={"/settings/teams/other/" + team.id + "/profile"}
-                        StartIcon={Edit2}>
-                        {t("edit_team") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      href={"/settings/teams/other/" + team.id + "/profile"}
+                      StartIcon={Edit2}>
+                      {t("edit_team") as string}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+
                   {!team.slug && <TeamPublishButton teamId={team.id} />}
                   {team.slug && (
                     <DropdownMenuItem>
@@ -232,18 +223,18 @@ export default function OtherTeamListItem(props: Props) {
                       </DropdownItem>
                     </DropdownMenuItem>
                   )}
-                  {isAdmin && (
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() => {
-                          setOpenMemberInvitationModal(true);
-                        }}
-                        StartIcon={Send}>
-                        {t("invite_team_member") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
+
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => {
+                        setOpenMemberInvitationModal(true);
+                      }}
+                      StartIcon={Send}>
+                      {t("invite_team_member") as string}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
                   {isOwner && (
                     <DropdownMenuItem>

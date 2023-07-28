@@ -459,11 +459,11 @@ const SettingsSidebarContainer = ({
                           <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                         )}
                         <Skeleton
-                          title={tab.name}
+                          title={t("org_admin_other_teams")}
                           as="p"
                           className="truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(tab.name)}
+                          {t("org_admin_other_teams")}
                         </Skeleton>
                       </div>
                     </Link>
