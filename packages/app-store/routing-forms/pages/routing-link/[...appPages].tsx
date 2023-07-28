@@ -296,16 +296,15 @@ export const getServerSideProps = async function getServerSideProps(
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useSearchParams();
-
   const prefillResponse: Response = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
-    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field));
+    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
     // We only want to keep arrays if the field is a multi-select
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
     prefillResponse[field.id] = {
-      value,
+      value: value || "",
       label: field.label,
     };
   });
