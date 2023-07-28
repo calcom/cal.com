@@ -25,8 +25,11 @@ export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
   const whereConditional: Prisma.MembershipWhereInput = {
     teamId: input.teamId,
   };
+  const { limit = 20 } = input;
+  let { offset = 0 } = input;
 
   if (input.query) {
+    offset = 0;
     whereConditional.user = {
       OR: [
         {
@@ -68,9 +71,10 @@ export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
         },
       },
     },
+    distinct: ["userId"],
     orderBy: { role: "desc" },
-    take: input.limit || 10,
-    skip: input.offset || 0,
+    take: limit,
+    skip: offset,
   });
 
   return members;
