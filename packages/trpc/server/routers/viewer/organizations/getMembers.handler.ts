@@ -1,26 +1,17 @@
-import { z } from "zod";
-
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import type { TGetMembersInputSchema } from "./getMembers.schema";
 
-const ZGetMembersFromOtherTeamInput = z.object({
-  teamId: z.number(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-});
-
-type TGetOtherTeamMembersInputSchema = z.infer<typeof ZGetMembersFromOtherTeamInput>;
-
-type GetMembersFromOtherTeam = {
+type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetOtherTeamMembersInputSchema;
+  input: TGetMembersInputSchema;
 };
 
-export const getMembersHandler = async ({ input, ctx }: GetMembersFromOtherTeam) => {
-  const { teamId, limit, offset } = input;
+export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
+  const { teamIdToExclude, accepted, distinctUser } = input;
 
   if (!ctx.user.organizationId) return [];
 
@@ -31,8 +22,10 @@ export const getMembersHandler = async ({ input, ctx }: GetMembersFromOtherTeam)
     select: {
       members: {
         where: {
-          teamId,
-          accepted: true,
+          teamId: {
+            not: teamIdToExclude,
+          },
+          accepted,
         },
         select: {
           accepted: true,
@@ -51,7 +44,9 @@ export const getMembersHandler = async ({ input, ctx }: GetMembersFromOtherTeam)
             },
           },
         },
-        distinct: ["userId"],
+        ...(distinctUser && {
+          distinct: ["userId"],
+        }),
       },
     },
   });
