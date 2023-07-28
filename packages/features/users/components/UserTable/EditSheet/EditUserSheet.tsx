@@ -32,7 +32,7 @@ const editSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   bio: z.string(),
-  role: z.enum(["ADMIN", "MEMBER"]),
+  role: z.enum(["ADMIN", "USER"]),
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
@@ -102,7 +102,7 @@ function EditForm({
             value={form.watch("role")}
             options={[
               {
-                value: "MEMBER",
+                value: "USER",
                 label: t("member"),
               },
               {
