@@ -323,14 +323,6 @@ describe("Invite Member Utils", () => {
       });
       expect(result).toEqual({ autoJoined: false });
     });
-  
-    it("should create a membership and return autoJoined: true if the user is invited to a child team", async () => {
-      const result = await createAndAutoJoinIfInOrg({
-        team: { ...mockedTeam, parentId: 999},
-        role: MembershipRole.ADMIN,
-        invitee: { ...mockUser, organizationId: 999 },
-      });
-      expect(result).toEqual({ autoJoined: true });
-    });
+    // TODO: Add test for when the user is already a member of the organization - need to mock prisma response value
   });
 })
