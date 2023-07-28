@@ -312,7 +312,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
-    name: opts?.name,
+    name: opts?.name || uname,
     email: `${uname}@example.com`,
     password: hashPassword(uname),
     emailVerified: new Date(),
