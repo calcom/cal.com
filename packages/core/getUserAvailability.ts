@@ -16,7 +16,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
-import { getBusyTimes } from "./getBusyTimes";
+import { getBusyTimes, getEventBookingsForPeriod } from "./getBusyTimes";
 
 const availabilitySchema = z
   .object({
@@ -187,27 +187,67 @@ export async function getUserAvailability(
     source: query.withSource ? a.source : undefined,
   }));
 
-  const bookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-${eventType?.id}`));
+  let bookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-${eventType?.id}`));
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
+  // PER_YEAR has been taken care individually inside getBusyTimesFromBookingLimits and getBusyTimesFromDurationLimits
+  const intervalLimitKeys: (keyof IntervalLimit)[] = ["PER_MONTH", "PER_WEEK"];
+  let startDate: Dayjs = dateFrom;
+  let endDate: Dayjs = dateTo;
+
+  // should only get these details if limits are in place and we ahve eventTypeId
+  if (eventTypeId && (bookingLimits || durationLimits)) {
+    for (const key of intervalLimitKeys) {
+      if ((bookingLimits && key in bookingLimits) || (durationLimits && key in durationLimits)) {
+        const filter = key.split("_")[1].toLowerCase() as "week" | "month";
+        startDate = dayjs.min(startDate, startDate.startOf(filter));
+        endDate = dayjs.max(endDate, endDate.endOf(filter));
+      }
+    }
+
+    const currentEventBookingsBeforeDateFromPromise = getEventBookingsForPeriod({
+      startTime: startDate.toISOString(),
+      endTime: dateFrom.toISOString(),
+      eventTypeId: eventType?.id as number,
+      userId: user.id,
+      seatedEvent: !!eventType?.seatsPerTimeSlot,
+    });
+
+    const currentEventBookingsAfterDateToPromise = getEventBookingsForPeriod({
+      startTime: dateTo.toISOString(),
+      endTime: endDate.toISOString(),
+      eventTypeId: eventType?.id as number,
+      userId: user.id,
+      seatedEvent: !!eventType?.seatsPerTimeSlot,
+    });
+
+    const [currentEventBookingsBeforeDateFrom, currentEventBookingsAfterDateTo] = await Promise.all([
+      currentEventBookingsBeforeDateFromPromise,
+      currentEventBookingsAfterDateToPromise,
+    ]);
+
+    bookings = bookings.concat(currentEventBookingsBeforeDateFrom).concat(currentEventBookingsAfterDateTo);
+  }
+
   if (bookingLimits) {
     const bookingBusyTimes = await getBusyTimesFromBookingLimits(
       bookings,
       bookingLimits,
-      dateFrom,
-      dateTo,
+      startDate,
+      endDate,
       eventType
     );
     bufferedBusyTimes = bufferedBusyTimes.concat(bookingBusyTimes);
   }
 
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
   if (durationLimits) {
     const durationBusyTimes = await getBusyTimesFromDurationLimits(
       bookings,
       durationLimits,
-      dateFrom,
-      dateTo,
+      startDate,
+      endDate,
       duration,
       eventType
     );
@@ -304,7 +344,7 @@ const getBusyTimesFromBookingLimits = async (
         key: "PER_YEAR",
         returnBusyTimes: true,
       });
-      if (!yearlyBusyTime) break;
+      if (!yearlyBusyTime) continue;
       busyTimes.push({
         start: yearlyBusyTime.start.toISOString(),
         end: yearlyBusyTime.end.toISOString(),
