@@ -31,15 +31,14 @@ export function orgDomainConfig(hostname: string, fallback?: string | string[]) 
       currentOrgDomain: isValidOrgDomain ? currentOrgDomain : undefined,
       isValidOrgDomain,
     };
-  } else {
-    const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
-    const isValidFallbackDomain =
-      fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain);
-    return {
-      currentOrgDomain: isValidFallbackDomain ? fallbackOrgDomain : undefined,
-      isValidOrgDomain: isValidFallbackDomain,
-    };
   }
+  const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
+  const isValidFallbackDomain =
+    fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain);
+  return {
+    currentOrgDomain: isValidFallbackDomain ? fallbackOrgDomain : undefined,
+    isValidOrgDomain: isValidFallbackDomain,
+  };
 }
 
 export function subdomainSuffix() {
