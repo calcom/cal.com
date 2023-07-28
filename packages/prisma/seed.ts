@@ -177,7 +177,7 @@ async function generateFakeUsers({
   extraFields,
 }: {
   count: number;
-  extraFields?: Record<string, unknown>;
+    extraFields?: Pick<SeedUser, "timeZone" | "role">;
 }) {
   const fakeFullNames = faker.helpers.multiple(faker.person.firstName, { count });
   return await Promise.all(
