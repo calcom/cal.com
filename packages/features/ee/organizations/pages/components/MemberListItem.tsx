@@ -27,7 +27,7 @@ export default function MemberListItem(props: Props) {
   const { user } = member;
   const bookerUrl = useBookerUrl();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = !!user.username && `${bookerUrlWithoutProtocol}/${user.username}`;
+  const bookingLink = user.username && `${bookerUrlWithoutProtocol}/${user.username}`;
   const name = user.name || user.username || user.email;
 
   return (
@@ -53,7 +53,7 @@ export default function MemberListItem(props: Props) {
                 <span className=" block text-sm" data-testid="member-email" data-email={user.email}>
                   {user.email}
                 </span>
-                {bookingLink && (
+                {user.username != null && (
                   <>
                     <span className="text-default mx-2 block">•</span>
                     <a
@@ -68,41 +68,43 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
         </div>
+        {member.accepted && user.username && (
+          <div className="flex items-center justify-center">
+            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+              <Tooltip content={t("view_public_page")}>
+                <Button
+                  target="_blank"
+                  href={`${bookerUrl}/${user.username}`}
+                  color="secondary"
+                  className={classNames("rounded-r-md")}
+                  variant="icon"
+                  StartIcon={ExternalLink}
+                  disabled={!member.accepted}
+                />
+              </Tooltip>
+            </ButtonGroup>
 
-        <div className="flex items-center justify-center">
-          <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
-            <Tooltip content={t("view_public_page")}>
-              <Button
-                target="_blank"
-                href={`${bookerUrl}/${user.username}`}
-                color="secondary"
-                className={classNames("rounded-r-md")}
-                variant="icon"
-                StartIcon={ExternalLink}
-                disabled={!member.accepted}
-              />
-            </Tooltip>
-          </ButtonGroup>
-          <div className="flex md:hidden">
-            <Dropdown>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem className="outline-none">
-                  <DropdownItem
-                    disabled={!member.accepted}
-                    href={!member.accepted ? undefined : "/" + user.username}
-                    target="_blank"
-                    type="button"
-                    StartIcon={ExternalLink}>
-                    {t("view_public_page")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </Dropdown>
+            <div className="flex md:hidden">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem className="outline-none">
+                    <DropdownItem
+                      disabled={!member.accepted}
+                      href={"/" + user.username}
+                      target="_blank"
+                      type="button"
+                      StartIcon={ExternalLink}>
+                      {t("view_public_page")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </li>
   );
