@@ -17,7 +17,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       parentId: {
         not: null,
       },
-      parent: getSlugOrRequestedSlug(ctx.query.orgUser as string),
+      parent: getSlugOrRequestedSlug(ctx.query.orgSlug as string),
     },
     select: {
       id: true,
