@@ -28,7 +28,7 @@ export function orgDomainConfig(hostname: string, fallback?: string | string[]) 
   const isValidOrgDomain = currentOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(currentOrgDomain);
   if (isValidOrgDomain || !fallback) {
     return {
-      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : undefined,
+      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
       isValidOrgDomain,
     };
   }
@@ -36,7 +36,7 @@ export function orgDomainConfig(hostname: string, fallback?: string | string[]) 
   const isValidFallbackDomain =
     fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain);
   return {
-    currentOrgDomain: isValidFallbackDomain ? fallbackOrgDomain : undefined,
+    currentOrgDomain: isValidFallbackDomain ? fallbackOrgDomain : null,
     isValidOrgDomain: isValidFallbackDomain,
   };
 }
