@@ -7,6 +7,8 @@ import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,7 +37,6 @@ import {
 import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-import { extractDomainFromWebsiteUrl } from "../../organizations/lib/utils";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -57,6 +58,7 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBranding();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -220,8 +222,8 @@ const ProfileView = () => {
                       label={t("team_url")}
                       value={value}
                       addOnLeading={
-                        team.parent
-                          ? `${team.parent.slug}.${extractDomainFromWebsiteUrl}/`
+                        team.parent && orgBranding
+                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false })
                           : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {

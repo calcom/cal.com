@@ -37,9 +37,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-  const appInstalled = userAdminTeams?.length
-    ? userAdminTeams.length && appAdded >= userAdminTeams.length
-    : appAdded > 0;
+  const enabledOnTeams = !app.categories.some(
+    (category) => category === "calendar" || category === "conferencing"
+  );
+
+  const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length === appAdded : appAdded > 0;
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
@@ -198,7 +200,7 @@ const InstallAppButtonChild = ({
 
   if (
     !userAdminTeams?.length ||
-    appCategories.some((category) => category === "calendar" || category === "video")
+    appCategories.some((category) => category === "calendar" || category === "conferencing")
   ) {
     return (
       <Button
@@ -226,6 +228,7 @@ const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
+          className="w-56"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>
@@ -259,7 +262,7 @@ const InstallAppButtonChild = ({
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                   );
                 }}>
-                <p>
+                <p className="text-left">
                   {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
                 </p>
               </DropdownItem>

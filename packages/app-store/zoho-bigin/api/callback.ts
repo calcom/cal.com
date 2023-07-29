@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
   tokenInfo.data.accountServer = accountsServer;
 
-  createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
+  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
 
   const state = decodeOAuthState(req);
   res.redirect(

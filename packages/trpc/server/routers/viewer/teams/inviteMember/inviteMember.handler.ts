@@ -21,6 +21,7 @@ import {
   createProvisionalMembership,
   getIsOrgVerified,
   sendVerificationEmail,
+  createAndAutoJoinIfInOrg,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -69,6 +70,17 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     } else {
       throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
 
+      const shouldAutoJoinOrgTeam = await createAndAutoJoinIfInOrg({
+        invitee,
+        role: input.role,
+        team,
+      });
+      if (shouldAutoJoinOrgTeam.autoJoined) {
+        // Continue here because if this is true we dont need to send an email to the user
+        // we also dont need to update stripe as thats handled on an ORG level and not a team level.
+        continue;
+      }
+
       // create provisional membership
       await createProvisionalMembership({
         input,
@@ -86,7 +98,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           isCalcomMember: true,
         };
         /**
-         * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+         * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
          * This only changes if the user is a CAL user and has not completed onboarding and has no password
          */
         if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {

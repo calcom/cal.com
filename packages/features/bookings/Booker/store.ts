@@ -6,8 +6,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { validateLayout } from "./utils/layout";
-import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+import { updateQueryParam, getQueryParam } from "./utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing
@@ -66,6 +65,11 @@ export type BookerStore = {
   setSelectedDate: (date: string | null) => void;
   addToSelectedDate: (days: number) => void;
   /**
+   * Multiple Selected Dates and Times
+   */
+  selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } } | null;
+  setSelectedDatesAndTimes: (selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } }) => void;
+  /**
    * Selected event duration in minutes.
    */
   selectedDuration: number | null;
@@ -81,6 +85,11 @@ export type BookerStore = {
    */
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
+  /**
+   * Input occurrence count.
+   */
+  occurenceCount: number | null;
+  setOccurenceCount(count: number | null): void;
   /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
@@ -121,13 +130,14 @@ export type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: validateLayout(getQueryParam("layout") as BookerLayouts) || BookerLayouts.MONTH_VIEW,
+  layout: BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
+    updateQueryParam("layout", layout);
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
@@ -142,6 +152,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       set({ month: newSelection.format("YYYY-MM") });
       updateQueryParam("month", newSelection.format("YYYY-MM"));
     }
+  },
+  selectedDatesAndTimes: null,
+  setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
+    set({ selectedDatesAndTimes });
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
@@ -222,7 +236,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
-    removeQueryParam("layout");
+    //removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {
@@ -231,6 +245,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
+  occurenceCount: null,
+  setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
   rescheduleUid: null,
   bookingData: null,
   bookingUid: null,

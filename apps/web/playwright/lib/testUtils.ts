@@ -18,6 +18,9 @@ type RequestHandler = (opts: RequestHandlerOptions) => void;
 export const testEmail = "test@example.com";
 export const testName = "Test Testson";
 
+export const teamEventTitle = "Team Event - 30min";
+export const teamEventSlug = "team-event-30min";
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {

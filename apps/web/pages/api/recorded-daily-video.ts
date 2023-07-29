@@ -9,6 +9,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -92,6 +93,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         eventType: {
           select: {
             teamId: true,
+            parentId: true,
           },
         },
         user: {
@@ -168,13 +170,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       uid: booking.uid,
     };
 
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking?.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+
     await triggerWebhook({
       evt,
       downloadLink,
       booking: {
         userId: booking?.user?.id,
         eventTypeId: booking.eventTypeId,
-        teamId: booking.eventType?.teamId,
+        teamId,
       },
     });
 

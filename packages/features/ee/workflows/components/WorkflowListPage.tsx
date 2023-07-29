@@ -22,7 +22,7 @@ import {
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
-import { useOrgBrandingValues } from "../../organizations/hooks";
+import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -58,14 +58,14 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
 
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   return (
     <>
       {workflows && workflows.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <ul className="divide-subtle divide-y">
+          <ul className="divide-subtle divide-y" data-testid="workflow-list">
             {workflows.map((workflow) => (
               <li key={workflow.id}>
                 <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
