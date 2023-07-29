@@ -328,6 +328,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: { team: true },
       });
     },
+    getFirstTeamEvent: async (teamId: number) => {
+      return prisma.eventType.findFirstOrThrow({
+        where: {
+          teamId,
+        },
+      });
+    },
     getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
       setupEventWithPrice(eventType, store.page),
