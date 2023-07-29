@@ -6,7 +6,7 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { TextField, showToast } from "@calcom/ui";
+import { TextField, PasswordField, showToast } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
@@ -106,12 +106,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         }
       }}
       switchChecked={enabled}>
-      <TextField
+      <PasswordField
         name="AWS Access Key ID"
         value={awsAccessKeyId}
         onChange={(e) => setAppData("awsAccessKeyId", e.target.value)}
       />
-      <TextField
+      <PasswordField
         name="AWS Secret Access ID"
         value={awsSecretAccessId}
         onChange={(e) => setAppData("awsSecretAccessId", e.target.value)}
