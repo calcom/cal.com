@@ -652,11 +652,8 @@ async function handleSeatedEventCancellation(
 
   if (attendee) {
     /* If there are references then we should update them as well */
-    const lastAttendee =
-      bookingToDelete.attendees.filter((bookingAttendee) => attendee.email !== bookingAttendee.email)
-        .length === 0;
 
-    const integrationsToDelete = [];
+    const integrationsToUpdate = [];
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId) {
@@ -667,39 +664,25 @@ async function handleSeatedEventCancellation(
         });
 
         if (credential) {
-          if (lastAttendee) {
-            if (reference.type.includes("_video")) {
-              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
-            }
-            if (reference.type.includes("_calendar")) {
-              const calendar = await getCalendar(credential);
-              if (calendar) {
-                integrationsToDelete.push(
-                  calendar?.deleteEvent(reference.uid, evt, reference.externalCalendarId)
-                );
-              }
-            }
-          } else {
-            const updatedEvt = {
-              ...evt,
-              attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
-            };
-            if (reference.type.includes("_video")) {
-              integrationsToDelete.push(
-                updateMeeting(
-                  { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
-                  updatedEvt,
-                  reference
-                )
+          const updatedEvt = {
+            ...evt,
+            attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+          };
+          if (reference.type.includes("_video")) {
+            integrationsToUpdate.push(
+              updateMeeting(
+                { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
+                updatedEvt,
+                reference
+              )
+            );
+          }
+          if (reference.type.includes("_calendar")) {
+            const calendar = await getCalendar(credential);
+            if (calendar) {
+              integrationsToUpdate.push(
+                calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
               );
-            }
-            if (reference.type.includes("_calendar")) {
-              const calendar = await getCalendar(credential);
-              if (calendar) {
-                integrationsToDelete.push(
-                  calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
-                );
-              }
             }
           }
         }
@@ -707,21 +690,10 @@ async function handleSeatedEventCancellation(
     }
 
     try {
-      await Promise.all(integrationsToDelete).then(async () => {
-        if (lastAttendee) {
-          await prisma.booking.update({
-            where: {
-              id: bookingToDelete.id,
-            },
-            data: {
-              status: BookingStatus.CANCELLED,
-            },
-          });
-        }
-      });
+      await Promise.all(integrationsToUpdate);
     } catch (error) {
       // Shouldn't stop code execution if integrations fail
-      // as integrations was already deleted
+      // as integrations was already updated
     }
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
