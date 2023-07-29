@@ -8,7 +8,7 @@ export const slugify = (str: string) => {
     .replace(/[\s_]+/g, "-") // Replace whitespace and underscores with a single dash
     .replace(/^-+/, "") // Remove dashes from start
     .replace(/-+$/, "") // Remove dashes from end
-    .replace(/-+$/, "");
+    .replace(/-+$/, "") // Remove # Symbol from text;
 };
 
 export default slugify;
