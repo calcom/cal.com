@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import { SchedulingType } from "@calcom/prisma/enums";
+
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -9,23 +11,36 @@ const description = (entity: string) =>
   `This ${entity} link is currently not available. Please contact the ${entity} owner or ask them to publish it.`;
 const avatar = (slug: string) => `http://localhost:3000/team/${slug}/avatar.png`;
 
+test.afterAll(async ({ users }) => {
+  await users.deleteAll();
+});
+
 test.describe("Unpublished", () => {
-  test("Regular team profile", async ({ page }) => {
-    await page.goto("/team/foobar");
-    await page.waitForLoadState("networkidle");
+  test("Regular team profile", async ({ page, users }) => {
+    const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true });
+    const { team } = await owner.getTeam();
+    const { requestedSlug } = team.metadata as { requestedSlug: string };
+    await page.goto(`/team/${requestedSlug}/`);
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title("Foobar Team")}")`).count()).toBe(1);
+    expect(await page.locator(`h2:has-text("${title(team.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("team")}")`).count()).toBe(1);
-    await expect(page.locator(`img`)).toHaveAttribute("src", avatar("foobar"));
+    await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug!));
   });
 
-  test("Regular team event type", async ({ page }) => {
-    await page.goto("/team/foobar/collective");
-    await page.waitForLoadState("networkidle");
+  test("Regular team event type", async ({ page, users }) => {
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isUnpublished: true,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+    const { team } = await owner.getTeam();
+    const { requestedSlug } = team.metadata as { requestedSlug: string };
+    const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
+    await page.goto(`/team/${requestedSlug}/${teamEventSlug}`);
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title("Foobar Team")}")`).count()).toBe(1);
+    expect(await page.locator(`h2:has-text("${title(team.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("team")}")`).count()).toBe(1);
-    await expect(page.locator(`img`)).toHaveAttribute("src", avatar("foobar"));
+    await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug!));
   });
 
   test("Organization profile", async ({ page }) => {

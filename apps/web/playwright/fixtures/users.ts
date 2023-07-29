@@ -6,8 +6,7 @@ import { hashSync as hash } from "bcryptjs";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { TimeZoneEnum } from "./types";
@@ -38,14 +37,20 @@ const seededForm = {
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
 const createTeamAndAddUser = async (
-  { user }: { user: { id: number; role?: MembershipRole } },
+  { user, isUnpublished }: { user: { id: number; role?: MembershipRole }; isUnpublished?: boolean },
   workerInfo: WorkerInfo
 ) => {
+  const slug = `team-${workerInfo.workerIndex}-${Date.now()}`;
+  const data: PrismaType.TeamCreateInput = {
+    name: `user-id-${user.id}'s Team`,
+  };
+  if (isUnpublished) {
+    data.metadata = { requestedSlug: slug };
+  } else {
+    data.slug = slug;
+  }
   const team = await prisma.team.create({
-    data: {
-      name: `user-id-${user.id}'s Team`,
-      slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
-    },
+    data,
   });
 
   const { role = MembershipRole.OWNER, id: userId } = user;
@@ -69,6 +74,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
+        isUnpublished?: true;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
@@ -216,7 +222,10 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        const team = await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        const team = await createTeamAndAddUser(
+          { user: { id: user.id, role: "OWNER" }, isUnpublished: scenario.isUnpublished },
+          workerInfo
+        );
         const teamEvent = await prisma.eventType.create({
           data: {
             team: {
