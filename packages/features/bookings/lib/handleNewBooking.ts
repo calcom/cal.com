@@ -920,13 +920,6 @@ async function handler(
     }
   }
 
-  const firstAndLastName: Record<string, string | undefined> = { firstName: "", lastName: "" };
-
-  if (typeof bookerName === "object") {
-    firstAndLastName.firstName = bookerName.firstName;
-    firstAndLastName.lastName = bookerName.lastName;
-  }
-
   const invitee = [
     {
       email: bookerEmail,
