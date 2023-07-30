@@ -36,19 +36,69 @@ const seededForm = {
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
+const createTeamEventType = async (
+  user: { id: number },
+  team: { id: number },
+  scenario?: {
+    schedulingType?: SchedulingType;
+    teamEventTitle?: string;
+    teamEventSlug?: string;
+  }
+) => {
+  return await prisma.eventType.create({
+    data: {
+      team: {
+        connect: {
+          id: team.id,
+        },
+      },
+      users: {
+        connect: {
+          id: user.id,
+        },
+      },
+      owner: {
+        connect: {
+          id: user.id,
+        },
+      },
+      schedulingType: scenario?.schedulingType ?? SchedulingType.COLLECTIVE,
+      title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
+      slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
+      length: 30,
+    },
+  });
+};
+
 const createTeamAndAddUser = async (
-  { user, isUnpublished }: { user: { id: number; role?: MembershipRole }; isUnpublished?: boolean },
+  {
+    user,
+    isUnpublished,
+    isOrg,
+    hasSubteam,
+  }: {
+    user: { id: number; username: string | null; role?: MembershipRole };
+    isUnpublished?: boolean;
+    isOrg?: boolean;
+    hasSubteam?: true;
+  },
   workerInfo: WorkerInfo
 ) => {
   const slug = `team-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
-    name: `user-id-${user.id}'s Team`,
+    name: `user-id-${user.id}'s Team ${isOrg ? "Org" : "Team"}`,
   };
-  if (isUnpublished) {
-    data.metadata = { requestedSlug: slug };
-  } else {
-    data.slug = slug;
+  data.metadata = {
+    ...(isUnpublished ? { requestedSlug: slug } : {}),
+    ...(isOrg ? { isOrganization: true } : {}),
+  };
+  data.slug = !isUnpublished ? slug : undefined;
+  if (isOrg && hasSubteam) {
+    const team = await createTeamAndAddUser({ user }, workerInfo);
+    await createTeamEventType(user, team);
+    data.children = { connect: [{ id: team.id }] };
   }
+  data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
   const team = await prisma.team.create({
     data,
   });
@@ -69,9 +119,9 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
-    create: async (
-      opts?: CustomUserOpts | null,
-      scenario: {
+    create: async (args?: {
+      opts?: CustomUserOpts | null;
+      scenario?: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
         isUnpublished?: true;
@@ -79,8 +129,11 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
-      } = {}
-    ) => {
+        isOrg?: boolean;
+        hasSubteam?: true;
+      };
+    }) => {
+      const { opts, scenario } = args || {};
       const _user = await prisma.user.create({
         data: createUser(workerInfo, opts),
       });
@@ -101,7 +154,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         });
       }
 
-      if (scenario.seedRoutingForms) {
+      if (scenario?.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -221,34 +274,17 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         where: { id: _user.id },
         include: userIncludes,
       });
-      if (scenario.hasTeam) {
+      if (scenario?.hasTeam) {
         const team = await createTeamAndAddUser(
-          { user: { id: user.id, role: "OWNER" }, isUnpublished: scenario.isUnpublished },
+          {
+            user: { id: user.id, username: user.username, role: "OWNER" },
+            isUnpublished: scenario.isUnpublished,
+            isOrg: scenario.isOrg,
+            hasSubteam: scenario.hasSubteam,
+          },
           workerInfo
         );
-        const teamEvent = await prisma.eventType.create({
-          data: {
-            team: {
-              connect: {
-                id: team.id,
-              },
-            },
-            users: {
-              connect: {
-                id: _user.id,
-              },
-            },
-            owner: {
-              connect: {
-                id: _user.id,
-              },
-            },
-            schedulingType: scenario.schedulingType ?? SchedulingType.COLLECTIVE,
-            title: scenario.teamEventTitle ?? teamEventTitle,
-            slug: scenario.teamEventSlug ?? teamEventSlug,
-            length: 30,
-          },
-        });
+        const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
           for (const teammateObj of scenario.teammates) {
@@ -335,6 +371,20 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       return prisma.membership.findFirstOrThrow({
         where: { userId: user.id },
         include: { team: true },
+      });
+    },
+    getOrg: async () => {
+      return prisma.membership.findFirstOrThrow({
+        where: {
+          userId: user.id,
+          team: {
+            metadata: {
+              path: ["isOrganization"],
+              equals: true,
+            },
+          },
+        },
+        include: { team: { select: { children: true, metadata: true, name: true } } },
       });
     },
     getFirstTeamEvent: async (teamId: number) => {

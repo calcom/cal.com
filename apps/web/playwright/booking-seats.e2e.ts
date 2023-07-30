@@ -20,16 +20,18 @@ test.afterEach(({ users }) => users.deleteAll());
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
   const slug = "seats";
   const user = await users.create({
-    eventTypes: [
-      {
-        title: "Seated event",
-        slug,
-        seatsPerTimeSlot: 10,
-        requiresConfirmation: true,
-        length: 30,
-        disableGuests: true, // should always be true for seated events
-      },
-    ],
+    opts: {
+      eventTypes: [
+        {
+          title: "Seated event",
+          slug,
+          seatsPerTimeSlot: 10,
+          requiresConfirmation: true,
+          length: 30,
+          disableGuests: true, // should always be true for seated events
+        },
+      ],
+    },
   });
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
@@ -57,7 +59,7 @@ async function createUserWithSeatedEventAndAttendees(
 
 test.describe("Booking with Seats", () => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
-    const user = await users.create({ name: "Seated event" });
+    const user = await users.create({ opts: { name: "Seated event" } });
     await user.apiLogin();
     await page.goto("/event-types");
     // We wait until loading is finished
@@ -70,16 +72,18 @@ test.describe("Booking with Seats", () => {
   test("Multiple Attendees can book a seated event time slot", async ({ users, page }) => {
     const slug = "my-2-seated-event";
     const user = await users.create({
-      name: "Seated event user",
-      eventTypes: [
-        {
-          title: "My 2-seated event",
-          slug,
-          length: 60,
-          seatsPerTimeSlot: 2,
-          seatsShowAttendees: true,
-        },
-      ],
+      opts: {
+        name: "Seated event user",
+        eventTypes: [
+          {
+            title: "My 2-seated event",
+            slug,
+            length: 60,
+            seatsPerTimeSlot: 2,
+            seatsShowAttendees: true,
+          },
+        ],
+      },
     });
     await page.goto(`/${user.username}/${slug}`);
 

@@ -71,7 +71,7 @@ test.describe("Login and logout tests", () => {
     test("Should warn when password is incorrect", async ({ page, users }) => {
       const alertMessage = (await localize("en"))("incorrect_email_password");
       // by default password===username with the users fixture
-      const pro = await users.create({ username: "pro" });
+      const pro = await users.create({ opts: { username: "pro" } });
 
       // login with a wrong password
       await login({ username: pro.username, password: "wrong" }, page);

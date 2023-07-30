@@ -16,7 +16,7 @@ test.skip("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.apiLogin();
 
-  const free = await users.create({ username: "free" });
+  const free = await users.create({ opts: { username: "free" } });
   await page.goto(`/${pro.username}+${free.username}`);
 
   await test.step("book an event first day in next month", async () => {

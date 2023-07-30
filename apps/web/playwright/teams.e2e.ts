@@ -73,10 +73,13 @@ test.describe("Teams", () => {
       { name: "teammate-4" },
     ];
 
-    const owner = await users.create(ownerObj, {
-      hasTeam: true,
-      teammates: teamMatesObj,
-      schedulingType: SchedulingType.COLLECTIVE,
+    const owner = await users.create({
+      opts: ownerObj,
+      scenario: {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      },
     });
     const { team } = await owner.getTeam();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
@@ -107,10 +110,13 @@ test.describe("Teams", () => {
       { name: "teammate-3" },
       { name: "teammate-4" },
     ];
-    const owner = await users.create(ownerObj, {
-      hasTeam: true,
-      teammates: teamMatesObj,
-      schedulingType: SchedulingType.ROUND_ROBIN,
+    const owner = await users.create({
+      opts: ownerObj,
+      scenario: {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      },
     });
 
     const { team } = await owner.getTeam();

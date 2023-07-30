@@ -10,7 +10,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     test("Onboarding Flow", async ({ page, users }) => {
-      const user = await users.create({ completedOnboarding: false, name: null });
+      const user = await users.create({ opts: { completedOnboarding: false, name: null } });
       await user.apiLogin();
       await page.goto("/getting-started");
       // tests whether the user makes it to /getting-started

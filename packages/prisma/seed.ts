@@ -622,66 +622,6 @@ async function main() {
       },
     ]
   );
-
-  await createTeamAndAddUsers({
-    name: "Foobar Team",
-    metadata: {
-      requestedSlug: "foobar", // Unpublished
-    },
-    eventTypes: {
-      createMany: {
-        data: [
-          {
-            title: "Collective Foobar Team Event",
-            slug: "collective",
-            length: 15,
-            schedulingType: "COLLECTIVE",
-          },
-        ],
-      },
-    },
-  });
-
-  const orgUser = await createUserAndEventType({
-    user: {
-      email: "john@acme.com",
-      password: "john",
-      username: "john",
-      name: "John Acme Org Owner",
-    },
-    eventTypes: [{ slug: "30min", length: 30, title: "30min" }],
-  });
-
-  await createTeamAndAddUsers({
-    name: "Acme",
-    metadata: {
-      requestedSlug: "acme", // Unpublished
-      isOrganization: true,
-    },
-    children: {
-      create: [
-        {
-          name: "Marketing",
-          slug: "marketing",
-          eventTypes: {
-            createMany: {
-              data: [
-                {
-                  title: "Collective Marketing Team Event",
-                  slug: "collective",
-                  length: 15,
-                  schedulingType: "COLLECTIVE",
-                },
-              ],
-            },
-          },
-        },
-      ],
-    },
-    orgUsers: {
-      connect: [{ id: orgUser.id }],
-    },
-  });
 }
 
 main()
