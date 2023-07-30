@@ -10,12 +10,12 @@ import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
 const installApps = async (page: Page, users: Fixtures["users"]) => {
-  const user = await users.create({
-    opts: { username: "routing-forms" },
-    scenario: {
+  const user = await users.create(
+    { username: "routing-forms" },
+    {
       hasTeam: true,
-    },
-  });
+    }
+  );
   await user.login();
   await page.goto(`/apps/typeform`);
   await page.click('[data-testid="install-app-button"]');

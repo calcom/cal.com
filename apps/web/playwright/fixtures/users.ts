@@ -119,21 +119,20 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
-    create: async (args?: {
-      opts?: CustomUserOpts | null;
-      scenario?: {
+    create: async (
+      opts?: CustomUserOpts | null,
+      scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
-        isUnpublished?: true;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
         isOrg?: boolean;
         hasSubteam?: true;
-      };
-    }) => {
-      const { opts, scenario } = args || {};
+        isUnpublished?: true;
+      } = {}
+    ) => {
       const _user = await prisma.user.create({
         data: createUser(workerInfo, opts),
       });
@@ -154,7 +153,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         });
       }
 
-      if (scenario?.seedRoutingForms) {
+      if (scenario.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -274,7 +273,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         where: { id: _user.id },
         include: userIncludes,
       });
-      if (scenario?.hasTeam) {
+      if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
             user: { id: user.id, username: user.username, role: "OWNER" },

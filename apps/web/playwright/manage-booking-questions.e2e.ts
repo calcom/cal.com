@@ -539,10 +539,8 @@ async function createAndLoginUserWithEventTypes({
   users: ReturnType<typeof createUsersFixture>;
   page: Page;
 }) {
-  const user = await users.create({
-    scenario: {
-      hasTeam: true,
-    },
+  const user = await users.create(null, {
+    hasTeam: true,
   });
   await user.apiLogin();
   await page.goto("/event-types");
