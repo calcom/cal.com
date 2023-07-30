@@ -93,7 +93,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   return (
     <>
       <div
-        className="bg-muted flex min-h-screen flex-col justify-center "
+        className="overflow-x-hidden bg-muted flex min-h-screen flex-col justify-center "
         style={
           {
             "--cal-brand": "#111827",
