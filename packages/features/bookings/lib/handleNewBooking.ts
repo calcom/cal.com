@@ -919,12 +919,19 @@ async function handler(
     }
   }
 
+  const firstAndLastName: Record<string, string | undefined> = { firstName: "", lastName: "" };
+
+  if (typeof bookerName === "object") {
+    firstAndLastName.firstName = bookerName.firstName;
+    firstAndLastName.lastName = bookerName.lastName;
+  }
+
   const invitee = [
     {
       email: bookerEmail,
       name: fullName,
-      firstName: (typeof bookerName === "object" && (bookerName.firstName as string)) || "",
-      lastName: (typeof bookerName === "object" && (bookerName.lastName as string)) || "",
+      firstName: firstAndLastName.firstName,
+      lastName: firstAndLastName.lastName,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
