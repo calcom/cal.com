@@ -33,7 +33,7 @@ export function orgDomainConfig(hostname: string) {
 
 export function subdomainSuffix() {
   const urlSplit = WEBAPP_URL.replace("https://", "")?.replace("http://", "").split(".");
-  return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
+  return urlSplit.length >= 3 ? urlSplit.slice(-2).join(".") : urlSplit.join(".");
 }
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
