@@ -930,8 +930,8 @@ async function handler(
     {
       email: bookerEmail,
       name: fullName,
-      firstName: firstAndLastName.firstName,
-      lastName: firstAndLastName.lastName,
+      firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
+      lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
