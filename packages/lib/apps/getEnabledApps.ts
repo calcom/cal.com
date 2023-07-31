@@ -33,15 +33,11 @@ const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials
 
   const enabledApps = await prisma.app.findMany({
     where: {
-      OR: [
-        { enabled: true, ...(filterOnIds.credentials.some.OR.length && filterOnIds) },
-        // Even if filtering on credentials, everyone has Daily installed
-        { slug: "daily-video", enabled: true },
-      ],
+      OR: [{ enabled: true, ...(filterOnIds.credentials.some.OR.length && filterOnIds) }],
     },
     select: { slug: true, enabled: true },
   });
-  const apps = getApps(credentials);
+  const apps = getApps(credentials, filterOnCredentials);
 
   const filteredApps = enabledApps.reduce((reducedArray, app) => {
     const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
