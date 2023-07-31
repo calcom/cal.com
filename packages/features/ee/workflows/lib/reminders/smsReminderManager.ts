@@ -62,7 +62,6 @@ export const scheduleSMSReminder = async (
   teamId?: number | null,
   isVerificationPending = false
 ) => {
-  if (action === WorkflowActions.SMS_ATTENDEE) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -137,7 +136,7 @@ export const scheduleSMSReminder = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  if (message.length > 0 && reminderPhone && isNumberVerified && action !== WorkflowActions.SMS_ATTENDEE) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
