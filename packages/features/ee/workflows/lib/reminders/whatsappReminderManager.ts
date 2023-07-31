@@ -8,7 +8,7 @@ import {
   WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
-} from "@calcom/prisma/enum";
+} from "@calcom/prisma/enums";
 
 import * as twilio from "./smsProviders/twilioProvider";
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -38,8 +38,6 @@ export const scheduleWhatsappReminder = async (
   teamId?: number | null,
   isVerificationPending = false
 ) => {
-  if (action === WorkflowActions.WHATSAPP_ATTENDEE) return;
-
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -142,7 +140,12 @@ export const scheduleWhatsappReminder = async (
 
   // Allows debugging generated whatsapp content without waiting for twilio to send whatsapp messages
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, message);
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  if (
+    message.length > 0 &&
+    reminderPhone &&
+    isNumberVerified &&
+    action !== WorkflowActions.WHATSAPP_ATTENDEE
+  ) {
     //send WHATSAPP when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
