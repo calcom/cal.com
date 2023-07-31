@@ -25,6 +25,7 @@ interface ICustomUsernameProps {
 const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
   const { data: session, update } = useSession();
+
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -71,7 +72,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
-      await update();
+      await update({ username: inputUsernameValue });
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);

@@ -91,6 +91,7 @@ export default async function getEventTypeById({
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,

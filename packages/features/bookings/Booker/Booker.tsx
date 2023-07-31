@@ -27,6 +27,7 @@ import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -38,7 +39,7 @@ const BookerComponent = ({
   bookingData,
   hideBranding = false,
   isTeamEvent,
-  org,
+  entity,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -98,7 +99,7 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org,
+    org: entity.orgSlug,
   });
 
   useEffect(() => {
@@ -139,6 +140,10 @@ const BookerComponent = ({
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
+  if (entity.isUnpublished) {
+    return <UnpublishedEntity {...entity} />;
+  }
+
   if (event.isSuccess && !event.data) {
     return <NotFound />;
   }
@@ -158,6 +163,11 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
+  if (bookerState === "loading") {
+    return null;
+  }
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -178,9 +188,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
-            // We don't want any margins for Embed. Any margin needed should be added by Embed user.
-            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-0"
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
             <BookerSection
@@ -209,7 +217,7 @@ const BookerComponent = ({
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className=" mt-auto px-5 py-3">
+                    <div className="mt-auto px-5 py-3 ">
                       <DatePicker />
                     </div>
                   )}

@@ -2,6 +2,7 @@ import { type PrismaClient, Prisma } from "@prisma/client";
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
@@ -77,6 +78,11 @@ export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole
 
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   const { prisma } = ctx;
+
+  await checkRateLimitAndThrowError({
+    identifier: `eventTypes:getByViewer:${ctx.user.id}`,
+    rateLimitingType: "common",
+  });
 
   const user = await prisma.user.findUnique({
     where: {
