@@ -69,6 +69,7 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
         userId,
         teamId,
         role: MembershipRole.MEMBER,
+        accepted: true, // Auto accept cause we know at this point they are already in the organization
       } as Prisma.MembershipCreateManyInput;
     })
   );
