@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { HttpError } from "../http-error";
@@ -56,23 +57,14 @@ export async function checkBookingLimit({
     // This allows us to easily add it within dayjs
     const bookingsInPeriod = await prisma.booking.count({
       where: {
-        status: "ACCEPTED",
-        eventType: {
-          AND: [
-            {
-              id: eventId,
-              bookings: {
-                every: {
-                  startTime: {
-                    gte: startDate,
-                  },
-                  endTime: {
-                    lte: endDate,
-                  },
-                },
-              },
-            },
-          ],
+        status: BookingStatus.ACCEPTED,
+        eventTypeId: eventId,
+        // FIXME: bookings that overlap on one side will never be counted
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
         },
       },
     });
