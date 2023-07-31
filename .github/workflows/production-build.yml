@@ -25,6 +25,7 @@ env:
   SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  ALLOWED_HOSTNAMES: '"cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000"'
 
 jobs:
   build:
