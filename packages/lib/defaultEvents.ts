@@ -86,6 +86,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
+  requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
   hidden: false,
@@ -101,6 +102,7 @@ const commons = {
     customInputs: [],
     // Default value of disableGuests from DB.
     disableGuests: false,
+    disableBookingTitle: false,
     metadata: {},
     workflows: [],
   }),

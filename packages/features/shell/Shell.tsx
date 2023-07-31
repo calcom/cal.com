@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
+import type { Dispatch, ReactNode, SetStateAction, ReactElement } from "react";
+import React, { Fragment, useEffect, useState, useRef, useMemo, cloneElement } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -218,7 +218,11 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
+          {props.SidebarContainer ? (
+            cloneElement(props.SidebarContainer, { bannersHeight })
+          ) : (
+            <SideBarContainer bannersHeight={bannersHeight} />
+          )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -240,7 +244,7 @@ type LayoutProps = {
   CTA?: ReactNode;
   large?: boolean;
   MobileNavigationContainer?: ReactNode;
-  SidebarContainer?: ReactNode;
+  SidebarContainer?: ReactElement;
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
@@ -312,6 +316,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
+  const utils = trpc.useContext();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -324,16 +329,31 @@ function UserDropdown({ small }: UserDropdownProps) {
       });
   });
   const mutation = trpc.viewer.away.useMutation({
+    onMutate: async ({ away }) => {
+      await utils.viewer.me.cancel();
+
+      const previousValue = utils.viewer.me.getData();
+
+      if (previousValue) {
+        utils.viewer.me.setData(undefined, { ...previousValue, away });
+      }
+
+      return { previousValue };
+    },
+    onError: (_, __, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
+
+      showToast(t("toggle_away_error"), "error");
+    },
     onSettled() {
       utils.viewer.me.invalidate();
     },
   });
-  const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  if (!user) {
-    return null;
-  }
+
   const onHelpItemSelect = () => {
     setHelpOpen(false);
     setMenuOpen(false);
@@ -344,6 +364,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   if (!user) {
     return null;
   }
+
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
@@ -425,8 +446,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                       <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
-                      mutation.mutate({ away: !user?.away });
-                      utils.viewer.me.invalidate();
+                      mutation.mutate({ away: !user.away });
                     }}>
                     {user.away ? t("set_as_free") : t("set_as_away")}
                   </DropdownItem>
@@ -434,7 +454,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Discord className="text-default h-4 w-4" />}
+                    StartIcon={() => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>

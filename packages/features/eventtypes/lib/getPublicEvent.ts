@@ -32,6 +32,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   disableGuests: true,
   metadata: true,
   requiresConfirmation: true,
+  requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
   currency: true,
@@ -131,10 +132,10 @@ export const getPublicEvent = async (
       enabledLayouts: [...bookerLayoutOptions],
       defaultLayout: BookerLayouts.MONTH_VIEW,
     } as BookerLayoutSettings;
-
+    const disableBookingTitle = !defaultEvent.isDynamic;
     return {
       ...defaultEvent,
-      bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
+      bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
       locations: privacyFilteredLocations(locations),
@@ -201,6 +202,7 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(event),
     users,
     orgDomain: org,
+    isDynamic: false,
   };
 };
 
