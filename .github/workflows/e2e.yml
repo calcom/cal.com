@@ -31,6 +31,7 @@ jobs:
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
+          ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
@@ -53,7 +54,6 @@ jobs:
           SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-          ALLOWED_HOSTNAMES: '"cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000"'
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

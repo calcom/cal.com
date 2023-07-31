@@ -9,7 +9,7 @@ test.describe.configure({ mode: "parallel" });
 const title = (name: string) => `${name} is unpublished`;
 const description = (entity: string) =>
   `This ${entity} link is currently not available. Please contact the ${entity} owner or ask them to publish it.`;
-const avatar = (slug: string) => `${process.env.NEXT_PUBLIC_WEBAPP_URL}/team/${slug}/avatar.png`;
+const avatar = (slug: string) => `http://localhost:3000/team/${slug}/avatar.png`;
 
 test.afterAll(async ({ users }) => {
   await users.deleteAll();
