@@ -62,6 +62,7 @@ export const scheduleSMSReminder = async (
   teamId?: number | null,
   isVerificationPending = false
 ) => {
+  if (action === WorkflowActions.SMS_ATTENDEE) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
