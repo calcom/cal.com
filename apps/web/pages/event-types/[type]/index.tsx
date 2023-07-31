@@ -87,6 +87,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
+  requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
@@ -251,6 +252,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
+      hashedLink: eventType.hashedLink?.link || undefined,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,

@@ -217,6 +217,7 @@ export type UserPageProps = {
     | "length"
     | "hidden"
     | "requiresConfirmation"
+    | "requiresBookerEmailVerification"
     | "price"
     | "currency"
     | "recurringEvent"
