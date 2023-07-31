@@ -8,6 +8,9 @@ dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
 
+/**
+ * Should we set these in all yml files instead?
+ */
 (function setOrgEnvVariables() {
   // TODO: Let's consider setting ALLOWED_HOSTNAMES by default now for all instances of cal.com?
   process.env.ALLOWED_HOSTNAMES =
