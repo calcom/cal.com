@@ -1,11 +1,11 @@
 /* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
-import { WorkflowActions, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
@@ -90,7 +90,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         userName
       );
 
-      if (message?.length && message?.length > 0 && sendTo) {
+      if (
+        message?.length &&
+        message?.length > 0 &&
+        sendTo &&
+        reminder.workflowStep.action !== WorkflowActions.WHATSAPP_ATTENDEE
+      ) {
         const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, "", true);
 
         await prisma.workflowReminder.update({
