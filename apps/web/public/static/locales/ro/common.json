@@ -1178,6 +1178,7 @@
   "event_time_variable": "Oră eveniment",
   "timezone_variable": "Timezone",
   "location_variable": "Loc",
+  "additional_notes_variable": "Note suplimentare",
   "organizer_name_variable": "Nume organizator",
   "app_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "invalid_number": "Număr de telefon nevalid",
