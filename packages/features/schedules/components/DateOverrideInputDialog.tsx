@@ -52,27 +52,15 @@ const DateOverrideForm = ({
   const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
 
   const onDateChange = (newDate: Dayjs) => {
-    if (!value && selectedDates.length === 1 && yyyymmdd(selectedDates[0]) !== yyyymmdd(newDate)) {
-      const currentSelectedDate = selectedDates[0];
+    // If clicking on a selected date unselect it
+    if (selectedDates.some((date) => yyyymmdd(date) === yyyymmdd(newDate))) {
+      setSelectedDates(selectedDates.filter((date) => yyyymmdd(date) !== yyyymmdd(newDate)));
+      return;
+    }
 
-      const updatedSelectedDates: Dayjs[] = [];
-
-      // Determine the start and end dates for the loop
-      const startDate = currentSelectedDate.isBefore(newDate) ? currentSelectedDate : newDate;
-      const endDate = currentSelectedDate.isBefore(newDate) ? newDate : currentSelectedDate;
-
-      // Loop from startDate to endDate and add each date to updatedSelectedDates
-      let currentDate = startDate;
-
-      while (!currentDate.isAfter(endDate, "day")) {
-        if (!excludedDates || !excludedDates.includes(yyyymmdd(currentDate))) {
-          updatedSelectedDates.push(currentDate);
-        }
-        currentDate = currentDate.add(1, "day");
-      }
-
-      setSelectedDates(updatedSelectedDates);
-
+    // If it's not editing we can allow multiple select
+    if (!value) {
+      setSelectedDates((prev) => [...prev, newDate]);
       return;
     }
 
