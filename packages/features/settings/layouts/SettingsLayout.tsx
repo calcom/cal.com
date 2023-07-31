@@ -525,7 +525,7 @@ const SidebarContainerElement = ({
 type SidebarContainerElementProps = {
   sideContainerOpen: boolean;
   bannersHeight?: number;
-  setSideContainerOpen: React.Dispatch<React.SetStateAction>;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
