@@ -32,11 +32,10 @@ export function orgDomainConfig(hostname: string, fallback?: string | string[]) 
       isValidOrgDomain,
     };
   }
-  const fallbackOrgDomain = getOrgSlug(`${fallback}.${subdomainSuffix()}`);
-  const isValidFallbackDomain =
-    fallbackOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(fallbackOrgDomain);
+  const fallbackOrgSlug = fallback as string;
+  const isValidFallbackDomain = !RESERVED_SUBDOMAINS.includes(fallbackOrgSlug);
   return {
-    currentOrgDomain: isValidFallbackDomain ? fallbackOrgDomain : null,
+    currentOrgDomain: isValidFallbackDomain ? fallbackOrgSlug : null,
     isValidOrgDomain: isValidFallbackDomain,
   };
 }
