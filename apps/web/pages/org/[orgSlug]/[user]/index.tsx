@@ -24,9 +24,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
   if (team) {
-    return GSSTeamPage({ ...ctx, query: { slug: ctx.query.user, orgSlug: ctx.query.orgSlug } });
+    return GSSTeamPage({ ...ctx, query: { slug: ctx.query.user } });
   }
-  return GSSUserPage({ ...ctx, query: { user: ctx.query.user, orgSlug: ctx.query.orgSlug } });
+  return GSSUserPage({ ...ctx, query: { user: ctx.query.user } });
 };
 
 type Props = UserPageProps | TeamPageProps;
