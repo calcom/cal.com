@@ -329,7 +329,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const unPublishedOrgUser = usersWithoutAvatar.find((us) => us.organization?.slug === null);
+  const org = usersWithoutAvatar[0].organization;
 
   return {
     props: {
@@ -341,9 +341,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         verified: user.verified,
       })),
       entity: {
-        isUnpublished: unPublishedOrgUser !== undefined,
+        isUnpublished: org?.slug == null,
         orgSlug: currentOrgDomain,
-        name: unPublishedOrgUser?.organization?.name ?? null,
+        name: org?.name ?? null,
       },
       eventTypes,
       safeBio,
