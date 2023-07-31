@@ -242,7 +242,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
-    context.query.orgSlug
+    context.params?.orgSlug
   );
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();

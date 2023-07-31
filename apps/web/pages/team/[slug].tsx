@@ -247,7 +247,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
-    context.query.orgSlug
+    context.params?.orgSlug
   );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
