@@ -8,17 +8,6 @@ dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
 
-/**
- * Should we set these in all yml files instead?
- */
-(function setOrgEnvVariables() {
-  // TODO: Let's consider setting ALLOWED_HOSTNAMES by default now for all instances of cal.com?
-  process.env.ALLOWED_HOSTNAMES =
-    '"cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000"';
-  // We can't set this to 1 for all as it decides on which domain cookie would be set.
-  process.env.ORGANIZATIONS_ENABLED = "1";
-})();
-
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
