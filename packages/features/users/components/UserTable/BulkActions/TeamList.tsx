@@ -26,8 +26,16 @@ export function TeamListBulkAction() {
   // Add a value to the set
   const addValue = (value: number) => {
     const updatedSet = new Set(selectedValues);
+    console.log({
+      updatedSet,
+      selectedValues,
+    });
     updatedSet.add(value);
     setSelectedValues(updatedSet);
+    console.log({
+      updatedSet,
+      selectedValues,
+    });
   };
 
   // Remove a value from the set
@@ -57,7 +65,8 @@ export function TeamListBulkAction() {
                     <CommandItem
                       key={option.id}
                       onSelect={() => {
-                        if (isSelected) {
+                        console.log("onSelect", isSelected);
+                        if (!isSelected) {
                           addValue(option.id);
                         } else {
                           removeValue(option.id);
