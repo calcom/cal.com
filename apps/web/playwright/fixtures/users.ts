@@ -315,7 +315,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     name: user.name,
     username: user.username,
     email: user.email,
-    name: user.name,
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
