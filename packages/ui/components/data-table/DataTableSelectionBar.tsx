@@ -5,7 +5,7 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button } from "../button";
 
-export type ActionItem =
+export type ActionItem<TData> =
   | {
       type: "action";
       label: string;
@@ -14,12 +14,12 @@ export type ActionItem =
     }
   | {
       type: "render";
-      render: () => React.ReactNode;
+      render: (table: Table<TData>) => React.ReactNode;
     };
 
 interface DataTableSelectionBarProps<TData> {
   table: Table<TData>;
-  actions?: ActionItem[];
+  actions?: ActionItem<TData>[];
 }
 
 export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelectionBarProps<TData>) {
@@ -37,7 +37,7 @@ export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelect
               {action.label}
             </Button>
           ) : action.type === "render" ? (
-            action.render()
+            action.render(table)
           ) : null}
         </Fragment>
       ))}

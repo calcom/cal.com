@@ -1,3 +1,4 @@
+import type { Table } from "@tanstack/react-table";
 import { Users, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -18,8 +19,13 @@ import {
   CommandSeparator,
 } from "@calcom/ui";
 
-export function TeamListBulkAction() {
+interface Props {
+  table: Table<User>;
+}
+
+export function TeamListBulkAction({ table }: Props) {
   const { data: teams, isLoading } = trpc.viewer.organizations.getTeams.useQuery();
+  const mutation = trpc.viewer.organizations.bulkAddToTeams.useMutation();
   const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
   const { t } = useLocale();
 
@@ -88,7 +94,20 @@ export function TeamListBulkAction() {
               <CommandSeparator />
               <CommandGroup>
                 <div className="mb-1.5 flex w-full">
-                  <Button className="ml-auto mr-1.5 rounded-md" size="sm">
+                  <Button
+                    loading={mutation.isLoading}
+                    className="ml-auto mr-1.5 rounded-md"
+                    size="sm"
+                    onClick={() => {
+                      const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
+                      console.log({
+                        selectedRows,
+                      });
+                      mutation.mutate({
+                        userIds: selectedRows.map((row) => row.id),
+                        teamIds: Array.from(selectedValues),
+                      });
+                    }}>
                     {t("apply")}
                   </Button>
                 </div>

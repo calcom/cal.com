@@ -29,7 +29,7 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   filterableItems?: FilterableItems;
-  selectionOptions?: ActionItem[];
+  selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;

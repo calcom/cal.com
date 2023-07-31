@@ -284,7 +284,7 @@ export function UserListTable() {
         selectionOptions={[
           {
             type: "render",
-            render: () => <TeamListBulkAction />,
+            render: (table) => <TeamListBulkAction table={table} />,
           },
           {
             type: "action",

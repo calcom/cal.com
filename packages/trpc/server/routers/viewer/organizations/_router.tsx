@@ -1,5 +1,6 @@
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAddBulkTeams } from "./addBulkTeams.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
@@ -28,6 +29,7 @@ type OrganizationsRouterHandlerCache = {
   getUser?: typeof import("./getUser.handler").getUserHandler;
   updateUser?: typeof import("./updateUser.handler").updateUserHandler;
   getTeams?: typeof import("./getTeams.handler").getTeamsHandler;
+  bulkAddToTeams?: typeof import("./addBulkTeams.handler").addBulkTeamsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -275,6 +277,23 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getTeams({
       ctx,
+    });
+  }),
+  bulkAddToTeams: authedProcedure.input(ZAddBulkTeams).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.bulkAddToTeams) {
+      UNSTABLE_HANDLER_CACHE.bulkAddToTeams = await import("./addBulkTeams.handler").then(
+        (mod) => mod.addBulkTeamsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.bulkAddToTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.bulkAddToTeams({
+      ctx,
+      input,
     });
   }),
 });
