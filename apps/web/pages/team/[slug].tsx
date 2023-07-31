@@ -252,6 +252,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
+  console.warn("gSSP, team/[slug] - ", {
+    isValidOrgDomain,
+    currentOrgDomain,
+    ALLOWED_HOSTNAMES: process.env.ALLOWED_HOSTNAMES,
+    flags: JSON.stringify,
+  });
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
