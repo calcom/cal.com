@@ -1,4 +1,3 @@
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Avatar } from "@calcom/ui";
 
@@ -14,7 +13,7 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
   return (
     <div className="m-8 flex items-center justify-center">
       <EmptyScreen
-        avatar={<Avatar alt={slug ?? ""} imageSrc={`${CAL_URL}/team/${slug}/avatar.png`} size="lg" />}
+        avatar={<Avatar alt={slug ?? ""} imageSrc={`/team/${slug}/avatar.png`} size="lg" />}
         headline={t("team_is_unpublished", {
           team: props.name,
         })}
