@@ -210,121 +210,63 @@ export async function getBusyTimes(params: {
   return busyTimes;
 }
 
-export default getBusyTimes;
-
-// this funcationality cannot be imolpemented in getBusyTime because it has optional and eventTypeId and while searching for bookings it doesnt use eventTypeId filter which can fetch unnecessary bookings
-export async function getEventBookingsForPeriod(params: {
+export async function getBusyTimesForLimitChecks(params: {
   userId: number;
   eventTypeId: number;
-  startTime: string;
-  endTime: string;
-  seatedEvent?: boolean;
+  startDate: Date;
+  endDate: Date;
 }) {
-  const { userId, eventTypeId, startTime, endTime, seatedEvent } = params;
+  const { userId, eventTypeId, startDate, endDate } = params;
   logger.silly(
-    `Fetch bookings from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
+    `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
       userId,
       eventTypeId,
       status: BookingStatus.ACCEPTED,
     })}`
   );
-  // get user email for attendee checking.
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
-    select: {
-      email: true,
-    },
-  });
+  performance.mark("getBusyTimesForLimitChecksStart");
 
-  /**
-   * A user is considered busy within a given time period if there
-   * is a booking they own OR attend.
-   *
-   * Performs a query for all bookings where:
-   *   - The given booking is owned by this user, or..
-   *   - The current user has a different booking at this time he/she attends
-   *
-   * See further discussion within this GH issue:
-   * https://github.com/calcom/cal.com/issues/6374
-   *
-   * NOTE: Changes here will likely require changes to some mocking
-   *  logic within getSchedule.test.ts:addBookings
-   */
-  performance.mark("prismaBookingGetStart");
-
-  const sharedQuery = {
-    startTime: { gte: new Date(startTime) },
-    endTime: { lte: new Date(endTime) },
-    status: {
-      in: [BookingStatus.ACCEPTED],
-    },
-  };
-  // Find bookings that block this user from hosting further bookings.
   const bookings = await prisma.booking.findMany({
-    where:
-      // User is primary host (individual events, or primary organizer)
-      {
-        ...sharedQuery,
-        eventTypeId,
-        userId,
+    where: {
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      // FIXME: bookings that overlap on one side will never be counted
+      startTime: {
+        gte: startDate,
       },
+      endTime: {
+        lte: endDate,
+      },
+    },
     select: {
       id: true,
       startTime: true,
       endTime: true,
-      title: true,
       eventType: {
         select: {
           id: true,
-          seatsPerTimeSlot: true,
         },
       },
-      ...(seatedEvent && {
-        _count: {
-          select: {
-            seatsReferences: true,
-          },
-        },
-      }),
+      title: true,
     },
   });
 
-  const bookingSeatCountMap: { [x: string]: number } = {};
-  const busyTimes = bookings.reduce(
-    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-      if (rest._count?.seatsReferences) {
-        const bookedAt = dayjs(startTime).utc().format() + "<>" + dayjs(endTime).utc().format();
-        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-        bookingSeatCountMap[bookedAt]++;
-        // Seat references on the current event are non-blocking until the event is fully booked.
-        if (
-          // there are still seats available.
-          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
-          // and this is the seated event, other event types should be blocked.
-          eventTypeId === eventType?.id
-        ) {
-          // then we do not add the booking to the busyTimes.
-          return aggregate;
-        }
-        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
-        // doing this allows using the map later to remove the ranges from calendar busy times.
-        delete bookingSeatCountMap[bookedAt];
-      }
-      aggregate.push({
-        start: dayjs(startTime).toDate(),
-        end: dayjs(endTime).toDate(),
-        title,
-        source: `eventType-${eventType?.id}-booking-${id}`,
-      });
-      return aggregate;
-    },
-    []
-  );
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventType?.id}-booking-${id}`,
+  }));
 
-  logger.silly(`Bookings from Cal Bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
-  performance.mark("prismaBookingGetEnd");
-  performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
+  logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
+  performance.mark("getBusyTimesForLimitChecksEnd");
+  performance.measure(
+    `prisma booking get for limits took $1'`,
+    "getBusyTimesForLimitChecksStart",
+    "getBusyTimesForLimitChecksEnd"
+  );
   return busyTimes;
 }
+
+export default getBusyTimes;

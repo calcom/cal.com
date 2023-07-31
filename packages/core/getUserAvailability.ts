@@ -16,7 +16,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
-import { getBusyTimes, getEventBookingsForPeriod } from "./getBusyTimes";
+import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 
 const availabilitySchema = z
   .object({
@@ -207,20 +207,18 @@ export async function getUserAvailability(
       }
     }
 
-    const currentEventBookingsBeforeDateFromPromise = getEventBookingsForPeriod({
-      startTime: startDate.toISOString(),
-      endTime: dateFrom.toISOString(),
+    const currentEventBookingsBeforeDateFromPromise = getBusyTimesForLimitChecks({
+      startDate: startDate.toDate(),
+      endDate: dateFrom.toDate(),
       eventTypeId: eventType?.id as number,
       userId: user.id,
-      seatedEvent: !!eventType?.seatsPerTimeSlot,
     });
 
-    const currentEventBookingsAfterDateToPromise = getEventBookingsForPeriod({
-      startTime: dateTo.toISOString(),
-      endTime: endDate.toISOString(),
+    const currentEventBookingsAfterDateToPromise = getBusyTimesForLimitChecks({
+      startDate: dateTo.toDate(),
+      endDate: endDate.toDate(),
       eventTypeId: eventType?.id as number,
       userId: user.id,
-      seatedEvent: !!eventType?.seatsPerTimeSlot,
     });
 
     const [currentEventBookingsBeforeDateFrom, currentEventBookingsAfterDateTo] = await Promise.all([
