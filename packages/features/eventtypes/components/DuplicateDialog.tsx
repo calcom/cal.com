@@ -143,13 +143,13 @@ const DuplicateDialog = () => {
                 required
                 min="1"
                 placeholder="15"
-                label={t("length")}
+                label={t("duration")}
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />
             </div>
           </div>
-          <DialogFooter showDivider className="mt-10 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-10">
             <DialogClose />
             <Button type="submit" loading={duplicateMutation.isLoading}>
               {t("continue")}

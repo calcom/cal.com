@@ -1,6 +1,6 @@
 import { describe, it, vi, expect } from "vitest";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { checkInputEmailIsValid, checkPermissions, getEmailsToInvite, getIsOrgVerified, getOrgConnectionInfo, throwIfInviteIsToOrgAndUserExists } from "./utils";
+import { checkInputEmailIsValid, checkPermissions, getEmailsToInvite, getIsOrgVerified, getOrgConnectionInfo, throwIfInviteIsToOrgAndUserExists,createAndAutoJoinIfInOrg } from "./utils";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { TRPCError } from "@trpc/server";
@@ -304,5 +304,25 @@ describe("Invite Member Utils", () => {
         throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)
       ).not.toThrow();
     });
+  });
+  describe("createAndAutoJoinIfInOrg", () => {
+    it("should return autoJoined: false if the user is not in the same organization as the team", async () => {
+      const result = await createAndAutoJoinIfInOrg({
+        team: mockedTeam,
+        role: MembershipRole.ADMIN,
+        invitee: mockUser,
+      });
+      expect(result).toEqual({ autoJoined: false });
+    });
+  
+    it("should return autoJoined: false if the team does not have a parent organization", async () => {
+      const result = await createAndAutoJoinIfInOrg({
+        team: { ...mockedTeam, parentId: null },
+        role: MembershipRole.ADMIN,
+        invitee: mockUser,
+      });
+      expect(result).toEqual({ autoJoined: false });
+    });
+    // TODO: Add test for when the user is already a member of the organization - need to mock prisma response value
   });
 })
