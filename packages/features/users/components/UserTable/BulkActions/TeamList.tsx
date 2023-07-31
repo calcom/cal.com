@@ -28,6 +28,8 @@ interface Props {
 
 export function TeamListBulkAction({ table }: Props) {
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
+  const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
+  const utils = trpc.useContext();
   const mutation = trpc.viewer.organizations.bulkAddToTeams.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
@@ -37,9 +39,15 @@ export function TeamListBulkAction({ table }: Props) {
         `${res.invitedTotalUsers} Users invited to ${Array.from(selectedValues).length} teams`,
         "success"
       );
+      // Optimistically update the data from query trpc cache listMembers
+      // We may need to set this data instread of invalidating. Will see how performance handles it
+      utils.viewer.organizations.listMembers.invalidate();
+
+      // Clear the selected values
+      setSelectedValues(new Set());
+      table.toggleAllRowsSelected(false);
     },
   });
-  const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
 
   const { t } = useLocale();
 
