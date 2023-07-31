@@ -122,7 +122,7 @@ export interface RecurringEvent {
 
 export type IntervalLimitUnit = "day" | "week" | "month" | "year";
 
-export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number>>;
+export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
 
 export type AppsStatus = {
   appName: string;

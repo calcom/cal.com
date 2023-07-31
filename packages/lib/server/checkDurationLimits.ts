@@ -3,7 +3,7 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { getErrorFromUnknown } from "../errors";
 import { HttpError } from "../http-error";
-import { intervalLimitKeyToUnit } from "../intervalLimit";
+import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import { parseDurationLimit } from "../isDurationLimits";
 import { getTotalBookingDuration } from "./queries";
 
@@ -15,10 +15,12 @@ export async function checkDurationLimits(
   const parsedDurationLimits = parseDurationLimit(durationLimits);
   if (!parsedDurationLimits) return false;
 
-  const entries = Object.entries(parsedDurationLimits) as [keyof IntervalLimit, number][];
-  const limitCalculations = entries.map(([key, limitingNumber]) =>
-    checkDurationLimit({ key, limitingNumber, eventStartDate, eventId })
-  );
+  // convoluted but typesafe
+  const limitCalculations = ascendingLimitKeys
+    .filter((key) => parsedDurationLimits[key])
+    .map((key) =>
+      checkDurationLimit({ key, limitingNumber: parsedDurationLimits[key], eventStartDate, eventId })
+    );
 
   try {
     return !!(await Promise.all(limitCalculations));
@@ -37,10 +39,12 @@ export async function checkDurationLimit({
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
-  limitingNumber: number;
+  limitingNumber: number | undefined;
   returnBusyTimes?: boolean;
 }) {
   {
+    if (!limitingNumber) return;
+
     const unit = intervalLimitKeyToUnit(key);
 
     const startDate = dayjs(eventStartDate).startOf(unit).toDate();
