@@ -10,6 +10,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import timeZone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
+import weekOfYear from "dayjs/plugin/weekOfYear";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(dayjsBusinessTime);
@@ -20,6 +21,7 @@ dayjs.extend(relativeTime);
 dayjs.extend(timeZone);
 dayjs.extend(toArray);
 dayjs.extend(utc);
+dayjs.extend(weekOfYear);
 dayjs.extend(minmax);
 
 export type Dayjs = dayjs.Dayjs;
