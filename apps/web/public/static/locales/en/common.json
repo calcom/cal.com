@@ -19,8 +19,13 @@
   "verify_email_email_button": "Verify email",
   "copy_somewhere_safe": "Save this API key somewhere safe. You will not be able to view it again.",
   "verify_email_email_body": "Please verify your email address by clicking the button below.",
+  "verify_email_by_code_email_body": "Please verify your email address by using the below code.",
   "verify_email_email_link_text": "Here's the link in case you don't like clicking buttons:",
+  "email_verification_code": "Enter verification code",
+  "email_verification_code_placeholder": "Enter verification code sent to your mail",
+  "incorrect_email_verification_code": "Verification code is incorrect.",
   "email_sent": "Email sent successfully",
+  "email_not_sent": "Error occurred while sending email",
   "event_declined_subject": "Declined: {{title}} at {{date}}",
   "event_cancelled_subject": "Canceled: {{title}} at {{date}}",
   "event_request_declined": "Your event request has been declined",
@@ -1965,5 +1970,7 @@
   "org_team_names_example_5": "e.g. Data Analytics Team",
   "org_max_team_warnings": "You will be able to add more teams later on.",
   "what_is_this_meeting_about": "What is this meeting about?",
+  "requires_booker_email_verification": "Requires booker email verification",
+  "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
