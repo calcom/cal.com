@@ -1,13 +1,14 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
 
 import PageWrapper from "@components/PageWrapper";
 
 import type { PageProps as UserTypePageProps } from "../../../[user]/[type]";
 import UserTypePage, { getServerSideProps as GSSUserTypePage } from "../../../[user]/[type]";
-import TeamTypePage, { getServerSideProps as GSSTeamTypePage } from "../../../team/[slug]/[type]";
 import type { PageProps as TeamTypePageProps } from "../../../team/[slug]/[type]";
+import TeamTypePage, { getServerSideProps as GSSTeamTypePage } from "../../../team/[slug]/[type]";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const team = await prisma.team.findFirst({
@@ -16,9 +17,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       parentId: {
         not: null,
       },
-      parent: {
-        slug: ctx.query.orgSlug as string,
-      },
+      parent: getSlugOrRequestedSlug(ctx.query.orgSlug as string),
     },
     select: {
       id: true,

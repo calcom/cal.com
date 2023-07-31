@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -8,7 +9,13 @@ import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
-export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
+export async function getTeamWithMembers(args: {
+  id?: number;
+  slug?: string;
+  userId?: number;
+  orgSlug?: string | null;
+}) {
+  const { id, slug, userId, orgSlug } = args;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -92,6 +99,11 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   const where: Prisma.TeamFindFirstArgs["where"] = {};
 
   if (userId) where.members = { some: { userId } };
+  if (orgSlug) {
+    where.parent = getSlugOrRequestedSlug(orgSlug);
+  } else {
+    where.parentId = null;
+  }
   if (id) where.id = id;
   if (slug) where.slug = slug;
 
