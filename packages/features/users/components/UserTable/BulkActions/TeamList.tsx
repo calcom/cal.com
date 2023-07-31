@@ -42,7 +42,8 @@ export function TeamListBulkAction() {
       <PopoverTrigger asChild>
         <Button StartIcon={Users}>{t("add_to_team")}</Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start" sideOffset={12}>
+      {/* We dont really use shadows much - but its needed here  */}
+      <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
         <Command>
           <CommandInput placeholder={t("search")} />
           <CommandList>
@@ -77,7 +78,7 @@ export function TeamListBulkAction() {
             <>
               <CommandSeparator />
               <CommandGroup>
-                <div className="flex w-full">
+                <div className="mb-1.5 flex w-full">
                   <Button className="ml-auto mr-1.5 rounded-md" size="sm">
                     {t("apply")}
                   </Button>
