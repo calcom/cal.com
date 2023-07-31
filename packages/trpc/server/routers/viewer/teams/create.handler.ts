@@ -28,7 +28,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
-      ...(isOrgChildTeam && { parentId: user.organizationId }),
+      parentId: isOrgChildTeam ? user.organizationId : null,
     },
   });
 
