@@ -1,4 +1,4 @@
-import { chromium, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -20,7 +20,7 @@ test.describe("Unpublished", () => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true });
     const { team } = await owner.getTeam();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
-    await page.goto(`/team/${requestedSlug}/`);
+    await page.goto(`/team/${requestedSlug}`);
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(team.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("team")}")`).count()).toBe(1);
@@ -43,15 +43,11 @@ test.describe("Unpublished", () => {
     await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug));
   });
 
-  test("Organization profile", async ({ users }) => {
+  test("Organization profile", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
     const { team: org } = await owner.getOrg();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${requestedSlug}.cal.com localhost:3000`],
-    });
-    const page = await browser.newPage();
-    await page.goto(`http://${requestedSlug}.cal.com//org/${requestedSlug}`);
+    await page.goto(`/org/${requestedSlug}`);
     await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
@@ -59,7 +55,7 @@ test.describe("Unpublished", () => {
     await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug));
   });
 
-  test("Organization sub-team", async ({ users }) => {
+  test("Organization sub-team", async ({ users, page }) => {
     const owner = await users.create(undefined, {
       hasTeam: true,
       isUnpublished: true,
@@ -69,11 +65,7 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrg();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug }] = org.children as { slug: string }[];
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${requestedSlug}.cal.com localhost:3000`],
-    });
-    const page = await browser.newPage();
-    await page.goto(`http://${requestedSlug}.cal.com//org/${requestedSlug}/team/${subteamSlug}`);
+    await page.goto(`/org/${requestedSlug}/team/${subteamSlug}`);
     await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
@@ -81,7 +73,7 @@ test.describe("Unpublished", () => {
     await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug));
   });
 
-  test("Organization sub-team event-type", async ({ users }) => {
+  test("Organization sub-team event-type", async ({ users, page }) => {
     const owner = await users.create(undefined, {
       hasTeam: true,
       isUnpublished: true,
@@ -92,14 +84,7 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug, id: subteamId }] = org.children as { slug: string; id: number }[];
     const { slug: subteamEventSlug } = await owner.getFirstTeamEvent(subteamId);
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${requestedSlug}.cal.com localhost:3000`],
-    });
-    const page = await browser.newPage();
-
-    await page.goto(
-      `http://${requestedSlug}.cal.com/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`
-    );
+    await page.goto(`/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`);
     await page.waitForLoadState("networkidle");
 
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
@@ -108,15 +93,11 @@ test.describe("Unpublished", () => {
     await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug));
   });
 
-  test("Organization user", async ({ users }) => {
+  test("Organization user", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
     const { team: org } = await owner.getOrg();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${requestedSlug}.cal.com localhost:3000`],
-    });
-    const page = await browser.newPage();
-    await page.goto(`http://${requestedSlug}.cal.com/org/${requestedSlug}/${owner.username}`);
+    await page.goto(`/org/${requestedSlug}/${owner.username}`);
     await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
@@ -124,18 +105,12 @@ test.describe("Unpublished", () => {
     await expect(page.locator(`img`)).toHaveAttribute("src", avatar(requestedSlug));
   });
 
-  test("Organization user event-type", async ({ users }) => {
+  test("Organization user event-type", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
     const { team: org } = await owner.getOrg();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: ownerEventType }] = owner.eventTypes;
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${requestedSlug}.cal.com localhost:3000`],
-    });
-    const page = await browser.newPage();
-    await page.goto(
-      `http://${requestedSlug}.cal.com/org/${requestedSlug}/${owner.username}/${ownerEventType}`
-    );
+    await page.goto(`/org/${requestedSlug}/${owner.username}/${ownerEventType}`);
     await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
