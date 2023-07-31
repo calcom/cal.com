@@ -3,7 +3,6 @@ import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,8 +23,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
   const formMethods = useForm<{ new_password: string }>();
   const success = formMethods.formState.isSubmitSuccessful;
   const loading = formMethods.formState.isSubmitting;
-  const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const passwordValue = formMethods.watch("new_password");
+  const isEmpty = passwordValue?.length === 0;
 
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
     const res = await fetch("/api/auth/reset-password", {
@@ -76,14 +75,6 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
       </>
     );
   };
-  useEffect(() => {
-    // disbale Reset Password button if password input field is empty
-    if (passwordValue) {
-      setIsEmpty(passwordValue.length === 0);
-      return;
-    }
-    setIsEmpty(true);
-  }, [passwordValue]);
 
   return (
     <AuthContainer
