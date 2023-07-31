@@ -342,7 +342,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         verified: user.verified,
       })),
       entity: {
-        isUnpublished: org?.slug == null,
+        isUnpublished: org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },
