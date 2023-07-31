@@ -45,8 +45,25 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
     });
   }
 
+  // loop over all users and check if they are already in team they are being invited to
+  const usersInTeams = await prisma.membership.findMany({
+    where: {
+      userId: {
+        in: input.userIds,
+      },
+      teamId: {
+        in: input.teamIds,
+      },
+    },
+  });
+
+  // Filter out users who are already in teams they are being invited to
+  const filteredUserIds = input.userIds.filter((userId) => {
+    return !usersInTeams.some((membership) => membership.userId === userId);
+  });
+
   // Loop over all users and add them to all teams in the array
-  const membershipData = input.userIds.flatMap((userId) =>
+  const membershipData = filteredUserIds.flatMap((userId) =>
     input.teamIds.map((teamId) => {
       return {
         userId,
