@@ -136,8 +136,7 @@ const Filter = (props: {
           <Avatar
             imageSrc={userAvatar || ""}
             size="sm"
-            alt={`${user} Avatar`}
-            gravatarFallbackMd5="fallback"
+            alt={`${user}` || ""}
             className="self-center"
             asChild
           />
@@ -173,8 +172,7 @@ const Filter = (props: {
             <Avatar
               imageSrc={profile.image || ""}
               size="sm"
-              alt={`${profile.slug} Avatar`}
-              gravatarFallbackMd5="fallback"
+              alt={`${profile.name}`}
               className="self-center"
               asChild
             />

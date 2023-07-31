@@ -404,7 +404,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           truncateAfter={4}
                           items={type.users.map(
                             (organizer: { name: string | null; username: string | null }) => ({
-                              alt: organizer.name || "",
+                              alt: organizer.name || organizer.username || "",
                               image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
                                 organizer.username
                               }/avatar.png`,

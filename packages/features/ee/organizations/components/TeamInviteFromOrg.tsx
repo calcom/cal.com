@@ -77,10 +77,9 @@ function UserToInviteItem({
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <Avatar
           size="sm"
-          alt="Users avatar"
+          alt={member.user.name || member.user.username || member.user.email}
           asChild
           imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
-          gravatarFallbackMd5="hash"
         />
         <label
           htmlFor={`${member.user.id}`}

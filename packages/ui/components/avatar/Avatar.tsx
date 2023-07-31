@@ -3,7 +3,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
@@ -17,7 +17,6 @@ export type AvatarProps = {
   title?: string;
   alt: string;
   href?: string;
-  gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
@@ -35,7 +34,7 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  const { imageSrc, size, alt, title, href } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
@@ -50,12 +49,9 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
+        <AvatarPrimitive.Fallback asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback && !gravatarFallbackMd5 && props.fallback}
-            {gravatarFallbackMd5 && (
-              <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
-            )}
+            <img src={getPlaceholderAvatar(null, alt)} alt={alt} className={rootClass} />
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (

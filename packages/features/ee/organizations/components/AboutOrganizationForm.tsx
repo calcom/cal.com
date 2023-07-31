@@ -61,7 +61,7 @@ export const AboutOrganizationForm = () => {
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
                   <Avatar
-                    alt=""
+                    alt={t("organization_logo")}
                     fallback={<Plus className="text-subtle h-6 w-6" />}
                     asChild
                     className="items-center"

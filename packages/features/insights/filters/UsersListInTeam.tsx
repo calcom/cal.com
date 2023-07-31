@@ -67,7 +67,7 @@ export const UserListInTeam = () => {
             }}
             icon={
               <Avatar
-                alt={`${member?.value} avatar`}
+                alt={`${member?.label}`}
                 imageSrc={member.username ? `${bookerUrl}/${member.username}/avatar.png` : undefined}
                 size="xs"
               />

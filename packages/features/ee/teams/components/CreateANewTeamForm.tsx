@@ -133,7 +133,7 @@ export const CreateANewTeamForm = () => {
                 <Label>{t("team_logo")}</Label>
                 <div className="flex items-center">
                   <Avatar
-                    alt=""
+                    alt={orgBranding?.name || orgBranding?.slug || ""}
                     imageSrc={value}
                     fallback={<Plus className="text-subtle h-6 w-6" />}
                     size="lg"

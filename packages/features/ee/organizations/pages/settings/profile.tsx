@@ -130,7 +130,7 @@ const OrgProfileView = () => {
                   render={({ field: { value } }) => (
                     <>
                       <Avatar
-                        alt=""
+                        alt={currentOrganisation?.name as string}
                         imageSrc={getPlaceholderAvatar(value, currentOrganisation?.name as string)}
                         size="lg"
                       />
