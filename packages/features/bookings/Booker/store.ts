@@ -22,6 +22,7 @@ type StoreInitializeType = {
   bookingUid?: string | null;
   isTeamEvent?: boolean;
   bookingData?: GetBookingType | null | undefined;
+  verifiedEmail?: string | null;
   rescheduleUid?: string | null;
   seatReferenceUid?: string;
   org?: string | null;
@@ -41,6 +42,12 @@ export type BookerStore = {
   username: string | null;
   eventSlug: string | null;
   eventId: number | null;
+  /**
+   * Verified booker email.
+   * Needed in case user turns on Requires Booker Email Verification for an event
+   */
+  verifiedEmail: string | null;
+  setVerifiedEmail: (email: string | null) => void;
   /**
    * Current month being viewed. Format is YYYY-MM.
    */
@@ -173,6 +180,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   username: null,
   eventSlug: null,
   eventId: null,
+  verifiedEmail: null,
+  setVerifiedEmail: (email: string | null) => {
+    set({ verifiedEmail: email });
+  },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     set({ month, selectedTimeslot: null });
@@ -268,6 +279,7 @@ export const useInitializeBookerStore = ({
   eventId,
   rescheduleUid = null,
   bookingData = null,
+  verifiedEmail = null,
   layout,
   isTeamEvent,
   org,
@@ -284,6 +296,7 @@ export const useInitializeBookerStore = ({
       layout,
       isTeamEvent,
       org,
+      verifiedEmail,
     });
   }, [
     initializeStore,
@@ -296,5 +309,6 @@ export const useInitializeBookerStore = ({
     bookingData,
     layout,
     isTeamEvent,
+    verifiedEmail,
   ]);
 };

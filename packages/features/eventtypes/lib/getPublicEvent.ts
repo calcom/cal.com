@@ -34,6 +34,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   disableGuests: true,
   metadata: true,
   requiresConfirmation: true,
+  requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
   currency: true,
