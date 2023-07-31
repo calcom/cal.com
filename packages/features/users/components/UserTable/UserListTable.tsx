@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, StopCircle, Users } from "lucide-react";
+import { Plus, StopCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
 
@@ -7,9 +7,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, DataTable } from "@calcom/ui";
+import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
+import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
@@ -134,25 +135,25 @@ export function UserListTable() {
     };
     const cols: ColumnDef<User>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
-      // {
-      //   id: "select",
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       checked={table.getIsAllPageRowsSelected()}
-      //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      //       aria-label="Select all"
-      //       className="translate-y-[2px]"
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       checked={row.getIsSelected()}
-      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-      //       aria-label="Select row"
-      //       className="translate-y-[2px]"
-      //     />
-      //   ),
-      // },
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+      },
       {
         id: "member",
         accessorFn: (data) => data.email,
@@ -282,13 +283,11 @@ export function UserListTable() {
         searchKey="member"
         selectionOptions={[
           {
-            label: "Add To Team",
-            onClick: () => {
-              console.log("Add To Team");
-            },
-            icon: Users,
+            type: "render",
+            render: () => <TeamListBulkAction />,
           },
           {
+            type: "action",
             label: "Delete",
             onClick: () => {
               console.log("Delete");

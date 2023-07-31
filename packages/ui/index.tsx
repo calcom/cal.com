@@ -147,3 +147,16 @@ export {
   SheetTitle,
   SheetTrigger,
 } from "./components/sheet/sheet";
+export {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandInput,
+  CommandSeparator,
+  CommandShortcut,
+} from "./components/command";
+
+export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";

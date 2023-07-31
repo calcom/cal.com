@@ -8,7 +8,7 @@ import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
-import { ZUpdateUserInputSchema } from "./updateuser.schema";
+import { ZUpdateUserInputSchema } from "./updateUser.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
 type OrganizationsRouterHandlerCache = {
@@ -27,6 +27,7 @@ type OrganizationsRouterHandlerCache = {
   getMembers?: typeof import("./getMembers.handler").getMembersHandler;
   getUser?: typeof import("./getUser.handler").getUserHandler;
   updateUser?: typeof import("./updateUser.handler").updateUserHandler;
+  getTeams?: typeof import("./getTeams.handler").getTeamsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -260,6 +261,20 @@ export const viewerOrganizationsRouter = router({
     return UNSTABLE_HANDLER_CACHE.updateUser({
       ctx,
       input,
+    });
+  }),
+  getTeams: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getTeams) {
+      UNSTABLE_HANDLER_CACHE.getTeams = await import("./getTeams.handler").then((mod) => mod.getTeamsHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getTeams({
+      ctx,
     });
   }),
 });
