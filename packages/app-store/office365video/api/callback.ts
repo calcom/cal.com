@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
+  await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
 
   const state = decodeOAuthState(req);
   return res.redirect(
