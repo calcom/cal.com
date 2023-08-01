@@ -118,6 +118,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
+
+  const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
+    step?.action === WorkflowActions.SMS_ATTENDEE || step?.action === WorkflowActions.WHATSAPP_ATTENDEE
+  );
+
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action);
@@ -449,6 +454,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             }
 
                             if (
+                              val.value === WorkflowActions.SMS_ATTENDEE ||
+                              val.value === WorkflowActions.WHATSAPP_ATTENDEE
+                            ) {
+                              setIsRequiresConfirmationNeeded(true);
+                            } else {
+                              setIsRequiresConfirmationNeeded(false);
+                            }
+
+                            if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
                             ) {
@@ -523,6 +537,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     );
                   }}
                 />
+                {isRequiresConfirmationNeeded ? (
+                  <div className="text-attention mb-3 mt-2 flex">
+                    <Info className="mr-1 mt-0.5 h-4 w-4" />
+                    <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">

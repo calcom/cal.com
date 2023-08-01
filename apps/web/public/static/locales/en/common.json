@@ -1972,5 +1972,6 @@
   "what_is_this_meeting_about": "What is this meeting about?",
   "requires_booker_email_verification": "Requires booker email verification",
   "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
+  "requires_confirmation_mandatory": "Text messages can only be sent to attendees when event type requires confirmation."
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

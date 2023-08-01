@@ -10,7 +10,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
-import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
+import { ExternalLink, Zap, Lock, Info } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -22,6 +22,7 @@ type ItemProps = {
   eventType: {
     id: number;
     title: string;
+    requiresConfirmation: boolean;
   };
   isChildrenManagedEventType: boolean;
 };
@@ -122,16 +123,28 @@ const WorkflowListItem = (props: ItemProps) => {
               `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
               ")"}
         </div>
-        <div
-          className={classNames(
-            " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
-            isActive ? "text-default" : "text-muted"
-          )}>
-          <span className="mr-1">{t("to")}:</span>
-          {Array.from(sendTo).map((sendToPerson, index) => {
-            return <span key={index}>{`${index ? ", " : ""}${sendToPerson}`}</span>;
-          })}
-        </div>
+        <>
+          <div
+            className={classNames(
+              " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
+              isActive ? "text-default" : "text-muted"
+            )}>
+            <span className="mr-1">{t("to")}:</span>
+            {Array.from(sendTo).map((sendToPerson, index) => {
+              return <span key={index}>{`${index ? ", " : ""}${sendToPerson}`}</span>;
+            })}
+          </div>
+
+          {Array.from(sendTo).find((sendTo) => sendTo === t("attendee_name_variable")) &&
+          !eventType.requiresConfirmation ? (
+            <div className="text-attention mt-2 flex">
+              <Info className="mr-1 mt-0.5 h-4 w-4" />
+              <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
+            </div>
+          ) : (
+            <></>
+          )}
+        </>
       </div>
       {!workflow.readOnly && (
         <div className="flex-none">
