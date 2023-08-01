@@ -36,7 +36,8 @@ export const scheduleWhatsappReminder = async (
   template: WorkflowTemplates,
   userId?: number | null,
   teamId?: number | null,
-  isVerificationPending = false
+  isVerificationPending = false,
+  seatReferenceUid?: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -184,6 +185,7 @@ export const scheduleWhatsappReminder = async (
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledWHATSAPP.sid,
+              seatReferenceId: seatReferenceUid,
             },
           });
         } catch (error) {
@@ -198,6 +200,7 @@ export const scheduleWhatsappReminder = async (
             method: WorkflowMethods.WHATSAPP,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
+            seatReferenceId: seatReferenceUid,
           },
         });
       }
