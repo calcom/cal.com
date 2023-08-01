@@ -40,7 +40,8 @@ export const scheduleEmailReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates,
   sender: string,
-  hideBranding?: boolean
+  hideBranding?: boolean,
+  seatReferenceUid?: string
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -221,6 +222,7 @@ export const scheduleEmailReminder = async (
             scheduledDate: scheduledDate.toDate(),
             scheduled: true,
             referenceId: batchIdResponse[1].batch_id,
+            seatReferenceId: seatReferenceUid,
           },
         });
       } catch (error) {
@@ -235,6 +237,7 @@ export const scheduleEmailReminder = async (
           method: WorkflowMethods.EMAIL,
           scheduledDate: scheduledDate.toDate(),
           scheduled: false,
+          seatReferenceId: seatReferenceUid,
         },
       });
     }
