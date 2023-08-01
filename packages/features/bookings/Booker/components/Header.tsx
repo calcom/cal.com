@@ -57,11 +57,17 @@ export function Header({
     return <LayoutToggleWithData />;
   }
 
+  const endDate = selectedDate.add(extraDays, "days");
+
+  const isSameMonth = () => {
+    return selectedDate.format("MMM") === endDate.format("MMM");
+  }
+
   return (
     <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
+          {selectedDate.format("MMM D")}-{isSameMonth() ? endDate.format("D") : endDate.format("D MMM")},{" "}
           <span className="text-subtle">{selectedDate.format("YYYY")}</span>
         </h3>
         <ButtonGroup>
