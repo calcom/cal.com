@@ -2,6 +2,7 @@ import authedProcedure, { authedAdminProcedure } from "../../../procedures/authe
 import { router } from "../../../trpc";
 import { ZAddBulkTeams } from "./addBulkTeams.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
+import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
@@ -30,6 +31,7 @@ type OrganizationsRouterHandlerCache = {
   updateUser?: typeof import("./updateUser.handler").updateUserHandler;
   getTeams?: typeof import("./getTeams.handler").getTeamsHandler;
   bulkAddToTeams?: typeof import("./addBulkTeams.handler").addBulkTeamsHandler;
+  bulkDeleteUsers?: typeof import("./bulkDeleteUsers.handler").bulkDeleteUsersHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -292,6 +294,23 @@ export const viewerOrganizationsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.bulkAddToTeams({
+      ctx,
+      input,
+    });
+  }),
+  bulkDeleteUsers: authedProcedure.input(ZBulkUsersDelete).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.bulkDeleteUsers) {
+      UNSTABLE_HANDLER_CACHE.bulkDeleteUsers = await import("./bulkDeleteUsers.handler").then(
+        (mod) => mod.bulkDeleteUsersHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.bulkDeleteUsers) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.bulkDeleteUsers({
       ctx,
       input,
     });
