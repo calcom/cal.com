@@ -1,7 +1,7 @@
 import { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 import logger from "@calcom/lib/logger";
 
-import { TSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema"
+import type { TSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 
 type SendVerifyEmailCode = {
   input: TSendVerifyEmailCodeSchema;
