@@ -1,3 +1,4 @@
+import type { Credential } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
@@ -33,7 +34,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, appId: true, invalid: true },
+  select: { id: true, type: true, key: true, userId: true, teamId: true, appId: true, invalid: true },
 });
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -108,26 +109,30 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.map((appMeta) => {
-    const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
+function getApps(credentials: CredentialData[], filterOnCredentials?: boolean) {
+  const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
+    const appCredentials = credentials.filter((credential) => credential.type === appMeta.type);
+
+    if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
+
     let locationOption: LocationOption | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
-      credentials.push({
+      appCredentials.push({
         id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
+        teamId: 0,
         appId: appMeta.slug,
         invalid: false,
       });
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
-    if (credentials.length > 0 && appMeta?.appData?.location) {
+    if (appCredentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
         value: appMeta.appData.location.type,
         label: appMeta.appData.location.label || "No label set",
@@ -135,18 +140,21 @@ function getApps(userCredentials: CredentialData[]) {
       };
     }
 
-    const credential: (typeof credentials)[number] | null = credentials[0] || null;
-    return {
+    const credential: (typeof appCredentials)[number] | null = appCredentials[0] || null;
+
+    reducedArray.push({
       ...appMeta,
       /**
        * @deprecated use `credentials`
        */
       credential,
-      credentials,
+      credentials: appCredentials,
       /** Option to display in `location` field while editing event types */
       locationOption,
-    };
-  });
+    });
+
+    return reducedArray;
+  }, [] as (App & { credential: Credential; credentials: Credential[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }

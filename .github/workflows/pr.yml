@@ -44,11 +44,6 @@ jobs:
               - 'packages/embeds/**'
               - 'playwright.config.ts'
 
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
-
   type-check:
     name: Type check
     uses: ./.github/workflows/check-types.yml
@@ -66,13 +61,11 @@ jobs:
 
   build:
     name: Production build
-    needs: env
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   build-without-database:
     name: Production build (without database)
-    needs: env
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 

@@ -42,6 +42,7 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import AttendeeVerifyEmail, { EmailVerifyCode } from "./templates/attendee-verify-email";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -273,6 +274,10 @@ export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvit
 
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
+};
+
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
