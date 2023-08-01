@@ -25,7 +25,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { schedulingType, teamId, metadata, ...rest } = input;
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-  // Get Users default conferncing app
+  // Get Users default conferencing app
 
   const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
   const appKeys = await getAppKeysFromSlug("daily-video");
@@ -42,7 +42,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
     const credentials = ctx.user.credentials;
-    const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
+    const foundApp = getApps(credentials, true).filter(
+      (app) => app.slug === defaultConferencingData.appSlug
+    )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
     const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
     locations = [{ type: locationType, link: defaultConferencingData.appLink }];
   }

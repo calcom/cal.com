@@ -25,7 +25,7 @@ export default function Type({
   away,
   isBrandingHidden,
   isTeamEvent,
-  org,
+  entity,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -34,7 +34,7 @@ export default function Type({
         eventSlug={slug}
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
-        org={org}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -43,7 +43,7 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
-        org={org}
+        entity={entity}
       />
     </main>
   );
@@ -132,7 +132,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      org,
+      entity: eventData.entity,
       booking,
       away: user?.away,
       user: username,

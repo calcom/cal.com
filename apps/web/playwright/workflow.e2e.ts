@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+import { selectSecondAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -34,7 +34,7 @@ test.describe("Workflow tests", () => {
 
       // book event type
       await page.goto(`/${user.username}/${eventType.slug}`);
-      await selectFirstAvailableTimeSlotNextMonth(page);
+      await selectSecondAvailableTimeSlotNextMonth(page);
 
       await page.fill('[name="name"]', "Test");
       await page.fill('[name="email"]', "test@example.com");
