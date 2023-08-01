@@ -1,4 +1,3 @@
-import type { Credential } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 // If you import this file on any app it should produce circular dependency
@@ -67,6 +66,9 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         teamId: null,
         appId: appMeta.slug,
         invalid: false,
+        team: {
+          name: "Global",
+        },
       });
     }
 
@@ -93,7 +95,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     });
 
     return reducedArray;
-  }, [] as (App & { credential: Credential; credentials: Credential[]; locationOption: LocationOption | null })[]);
+  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }
