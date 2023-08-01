@@ -38,6 +38,7 @@ export function Calendar(props: CalendarComponentProps) {
 
   // Initalise State on inital mount
   useEffect(() => {
+    console.log("PROPS", props);
     initalState(props);
   }, [props, initalState]);
 

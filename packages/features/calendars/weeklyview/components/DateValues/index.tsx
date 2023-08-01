@@ -36,6 +36,7 @@ export function DateValues({ days, containerNavRef }: Props) {
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
         <div className="border-default col-end-1 w-14 border-l" />
         {days.map((day) => {
+          const options = { weekday: "short" };
           const isToday = dayjs().isSame(day, "day");
           return (
             <div
@@ -45,13 +46,15 @@ export function DateValues({ days, containerNavRef }: Props) {
                 isToday && "font-bold"
               )}>
               <span>
-                {day.format("ddd")}{" "}
+                {/* {day.format("ddd")}{" "} */}
+                {day.toDate().toLocaleString("en-US", options)}
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
                     isToday && "bg-brand-default text-brand rounded-full"
                   )}>
-                  {day.format("DD")}
+                  {/* {day.format("DD")} */}
+                  {day.toDate().getDate()}
                 </span>
               </span>
             </div>

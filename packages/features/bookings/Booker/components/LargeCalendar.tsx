@@ -37,6 +37,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
 
     return availableTimeslots;
   }, [schedule, timezone, eventDuration]);
+  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
+  const endDate = dayjs(startDate)
+    .add(extraDays - 1, "day")
+    .toDate();
+  console.log("LARGE", startDate, endDate);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
@@ -46,8 +51,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         startHour={0}
         endHour={23}
         events={[]}
-        startDate={selectedDate ? new Date(selectedDate) : new Date()}
-        endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
+        startDate={startDate}
+        endDate={endDate}
         onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}

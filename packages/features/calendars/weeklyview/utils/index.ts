@@ -40,14 +40,20 @@ export function gridCellToDateTime({
 
 export function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom).utc().hour(0).minute(0).second(0).millisecond(0);
+
+  let startDate = dayjs(dateFrom).hour(0).minute(0).second(0).millisecond(0);
+  console.log("start", startDate);
+
   dates.push(startDate);
-  const endDate = dayjs(dateTo).utc().hour(0).minute(0).second(0).millisecond(0);
+  const endDate = dayjs(dateTo).hour(0).minute(0).second(0).millisecond(0);
+  console.log("endDate", endDate);
+
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "day"));
     startDate = startDate.add(1, "day");
   }
-  return dates;
+  console.log("DATES", dates);
+  return dates.slice(0, 7);
 }
 
 export function getHoursToDisplay(startHour: number, endHour: number) {
