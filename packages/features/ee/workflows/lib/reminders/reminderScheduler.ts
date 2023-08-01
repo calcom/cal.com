@@ -20,6 +20,7 @@ type ProcessWorkflowStepParams = {
   calendarEvent: ExtendedCalendarEvent;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
+  seatReferenceUid?: string;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
@@ -41,6 +42,7 @@ const processWorkflowStep = async (
     calendarEvent: evt,
     emailAttendeeSendToOverride,
     hideBranding,
+    seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
@@ -60,7 +62,8 @@ const processWorkflowStep = async (
       step.sender || SENDER_ID,
       workflow.userId,
       workflow.teamId,
-      step.numberVerificationPending
+      step.numberVerificationPending,
+      seatReferenceUid
     );
   } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
     let sendTo: string[] = [];
@@ -93,7 +96,8 @@ const processWorkflowStep = async (
       step.id,
       step.template,
       step.sender || SENDER_NAME,
-      hideBranding
+      hideBranding,
+      seatReferenceUid
     );
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -111,7 +115,8 @@ const processWorkflowStep = async (
       step.template,
       workflow.userId,
       workflow.teamId,
-      step.numberVerificationPending
+      step.numberVerificationPending,
+      seatReferenceUid
     );
   }
 };
@@ -126,7 +131,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     isFirstRecurringEvent = false,
     emailAttendeeSendToOverride = "",
     hideBranding,
+    seatReferenceUid,
   } = args;
+
   if (requiresConfirmation || !workflows.length) return;
 
   for (const workflowReference of workflows) {
@@ -157,6 +164,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         emailAttendeeSendToOverride,
         smsReminderNumber,
         hideBranding,
+        seatReferenceUid,
       });
     }
   }
