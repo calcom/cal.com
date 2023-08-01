@@ -28,9 +28,10 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
       steps: WorkflowStep[];
     };
   })[];
-  requiresConfirmation?: boolean;
+  isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  eventTypeRequiresConfirmation?: boolean;
 }
 
 const processWorkflowStep = async (
@@ -121,13 +122,14 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     workflows,
     smsReminderNumber,
     calendarEvent: evt,
-    requiresConfirmation = false,
+    isNotConfirmed = false,
     isRescheduleEvent = false,
     isFirstRecurringEvent = false,
     emailAttendeeSendToOverride = "",
     hideBranding,
+    eventTypeRequiresConfirmation = false,
   } = args;
-  if (requiresConfirmation || !workflows.length) return;
+  if (isNotConfirmed || !workflows.length) return;
 
   for (const workflowReference of workflows) {
     if (workflowReference.workflow.steps.length === 0) continue;
@@ -152,6 +154,12 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     }
 
     for (const step of workflow.steps) {
+      if (
+        (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+        !eventTypeRequiresConfirmation
+      )
+        continue;
+
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,
         emailAttendeeSendToOverride,

@@ -229,6 +229,7 @@ export async function handleConfirmation(args: {
           },
           isFirstRecurringEvent: isFirstBooking,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          eventTypeRequiresConfirmation: true,
         });
       }
     }
