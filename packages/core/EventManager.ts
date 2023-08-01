@@ -75,7 +75,7 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
-    const appCredentials = getApps(user.credentials).flatMap((app) =>
+    const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar

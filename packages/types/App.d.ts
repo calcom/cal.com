@@ -111,7 +111,7 @@ export interface App {
   /** Number of reviews, harcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
-   *  Wheter if the app is installed globally or needs user intervention.
+   *  Whether if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
