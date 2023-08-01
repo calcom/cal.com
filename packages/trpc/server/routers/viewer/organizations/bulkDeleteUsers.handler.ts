@@ -46,7 +46,12 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       },
     },
     data: {
+      // Remove organization relation
       organizationId: null,
+      // Set username to null - to make sure there is no conflicts
+      username: null,
+      // Set completedOnboarding to false - to make sure the user has to complete onboarding again -> Setup a new username
+      completedOnboarding: false,
     },
   });
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
