@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Avatar } from "../../avatar";
@@ -27,11 +27,9 @@ const HorizontalTabItem = function ({
   avatar,
   ...props
 }: HorizontalTabItemProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { t, isLocaleReady } = useLocale();
 
-  const isCurrent = `${pathname}?${searchParams.toString()}` === href;
+  const isCurrent = useUrlMatchesCurrentUrl(href);
 
   return (
     <Link
