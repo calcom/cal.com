@@ -22,7 +22,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
 }: UpdateUserDefaultConferencingAppOptions) => {
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
   const credentials = ctx.user.credentials;
-  const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
+  const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 
   if (!foundApp || !appLocation) throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
