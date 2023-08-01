@@ -10,8 +10,8 @@ import type {
   BookerLayouts,
 } from "./embed-iframe";
 import css from "./embed.css";
-import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
+import type { EventData, EventDataMap } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css?inline";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -598,10 +598,16 @@ class CalApi {
 
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
+
+    this.handleClose();
+    containerEl.appendChild(template.content);
+  }
+
+  private handleClose() {
+    // A request, to close from the iframe, should close the modal
     this.cal.actionManager.on("__closeIframe", () => {
       this.cal.modalBox.setAttribute("state", "closed");
     });
-    containerEl.appendChild(template.content);
   }
 
   on<T extends keyof EventDataMap>({
@@ -749,6 +755,7 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
+
   const modalUniqueId = (targetEl.dataset.uniqueId = targetEl.dataset.uniqueId || String(Date.now()));
   const namespace = targetEl.dataset.calNamespace;
   const configString = targetEl.dataset.calConfig || "";
