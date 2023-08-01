@@ -1,3 +1,4 @@
+import type { Credential } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 // If you import this file on any app it should produce circular dependency
@@ -47,14 +48,17 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(userCredentials: CredentialDataWithTeamName[]) {
-  const apps = ALL_APPS.map((appMeta) => {
-    const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
+function getApps(credentials: CredentialData[], filterOnCredentials?: boolean) {
+  const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
+    const appCredentials = credentials.filter((credential) => credential.type === appMeta.type);
+
+    if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
+
     let locationOption: LocationOption | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
-      credentials.push({
+      appCredentials.push({
         id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -67,7 +71,7 @@ function getApps(userCredentials: CredentialDataWithTeamName[]) {
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
-    if (credentials.length > 0 && appMeta?.appData?.location) {
+    if (appCredentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
         value: appMeta.appData.location.type,
         label: appMeta.appData.location.label || "No label set",
@@ -75,18 +79,21 @@ function getApps(userCredentials: CredentialDataWithTeamName[]) {
       };
     }
 
-    const credential: (typeof credentials)[number] | null = credentials[0] || null;
-    return {
+    const credential: (typeof appCredentials)[number] | null = appCredentials[0] || null;
+
+    reducedArray.push({
       ...appMeta,
       /**
        * @deprecated use `credentials`
        */
       credential,
-      credentials,
+      credentials: appCredentials,
       /** Option to display in `location` field while editing event types */
       locationOption,
-    };
-  });
+    });
+
+    return reducedArray;
+  }, [] as (App & { credential: Credential; credentials: Credential[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }

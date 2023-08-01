@@ -15,6 +15,8 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
+import getEnabledApps from "./apps/getEnabledApps";
+
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
@@ -91,6 +93,7 @@ export default async function getEventTypeById({
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
@@ -337,6 +340,7 @@ export default async function getEventTypeById({
   }
 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
+  const integrations = await getEnabledApps(credentials, true);
   const locationOptions = await getLocationGroupedOptions(
     eventType.teamId ? { teamId: eventType.teamId } : { userId: currentUser.id },
     t

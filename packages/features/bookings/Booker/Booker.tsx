@@ -27,6 +27,7 @@ import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -38,7 +39,7 @@ const BookerComponent = ({
   bookingData,
   hideBranding = false,
   isTeamEvent,
-  org,
+  entity,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -98,7 +99,7 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org,
+    org: entity.orgSlug,
   });
 
   useEffect(() => {
@@ -138,6 +139,10 @@ const BookerComponent = ({
   }, [layout]);
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  if (entity.isUnpublished) {
+    return <UnpublishedEntity {...entity} />;
+  }
 
   if (event.isSuccess && !event.data) {
     return <NotFound />;

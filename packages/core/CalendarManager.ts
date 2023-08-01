@@ -21,7 +21,7 @@ import getCalendarsEvents from "./getCalendarsEvents";
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
-  const calendarCredentials = getApps(credentials)
+  const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {

@@ -303,13 +303,13 @@ export const getHumanReadableLocationValue = (
 
   // Just in case linkValue is a `locationType.type`(for old bookings)
   const eventLocationType = getEventLocationType(linkValue);
-
+  const isDefault = eventLocationType?.default;
   if (eventLocationType) {
     // If we can find a video location based on linkValue then it means that the linkValue is something like integrations:google-meet and in that case we don't have the meeting URL to show.
     // Show a generic message in that case.
-    return `${eventLocationType.label}`;
+    return isDefault ? translationFunction(eventLocationType.label) : `${eventLocationType.label}`;
   }
-  // Otherwise just show the available link value which can be a Phone number, a URL or a physical address of a place.
+  // Otherwise just show the available link value.
   return linkValue || "";
 };
 
