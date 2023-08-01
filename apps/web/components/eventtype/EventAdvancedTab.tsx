@@ -205,6 +205,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
       <hr className="border-subtle" />
       <Controller
+        name="requiresBookerEmailVerification"
+        control={formMethods.control}
+        defaultValue={eventType.requiresBookerEmailVerification}
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            title={t("requires_booker_email_verification")}
+            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            description={t("description_requires_booker_email_verification")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <hr className="border-subtle" />
+      <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}

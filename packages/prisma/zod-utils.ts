@@ -598,3 +598,10 @@ export const emailSchemaRefinement = (value: string) => {
   const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
   return emailRegex.test(value);
 };
+
+export const ZVerifyCodeInputSchema = z.object({
+  email: z.string().email(),
+  code: z.string(),
+});
+
+export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
