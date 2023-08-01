@@ -1,9 +1,10 @@
+import type { Dispatch, SetStateAction } from "react";
 import type { GroupBase, InputProps, OptionProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { UpgradeTeamsBadge } from "../../badge";
+import { UpgradeTeamsBadge, KYCVerificationBadge } from "../../badge";
 import { Check } from "../../icon";
 
 export const InputComponent = <
@@ -30,6 +31,8 @@ type ExtendedOption = {
   value: string | number;
   label: string;
   needsUpgrade?: boolean;
+  needsVerification?: boolean;
+  needsVerificationAction?: Dispatch<SetStateAction<boolean>>;
 };
 
 export const OptionComponent = <
@@ -46,7 +49,15 @@ export const OptionComponent = <
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
+        {(props.data as unknown as ExtendedOption).needsUpgrade ? (
+          <UpgradeTeamsBadge />
+        ) : (props.data as unknown as ExtendedOption).needsVerification ? (
+          <KYCVerificationBadge
+            verifyTeam={(props.data as unknown as ExtendedOption).needsVerificationAction}
+          />
+        ) : (
+          <></>
+        )}
         {props.isSelected && <Check className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>

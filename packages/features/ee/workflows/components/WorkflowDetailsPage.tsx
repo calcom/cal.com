@@ -18,6 +18,7 @@ import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
+import { KYCVerificationDialog } from "./KYCVerificationDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"];
@@ -39,6 +40,8 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
+  const [isKYCVerificationDialogOpen, setIsKYCVerificationDialogOpen] = useState(false);
+
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -114,7 +117,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="my-8 sm:my-0 md:flex">
+      <div className="z-1 my-8 sm:my-0 md:flex">
         <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
@@ -163,7 +166,13 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} user={props.user} teamId={teamId} readOnly={props.readOnly} />
+              <WorkflowStepContainer
+                form={form}
+                user={props.user}
+                teamId={teamId}
+                readOnly={props.readOnly}
+                setIsKYCVerificationDialogOpen={setIsKYCVerificationDialogOpen}
+              />
             </div>
           )}
           {form.getValues("steps") && (
@@ -179,6 +188,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    setIsKYCVerificationDialogOpen={setIsKYCVerificationDialogOpen}
                   />
                 );
               })}
@@ -206,6 +216,10 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+      />
+      <KYCVerificationDialog
+        isOpenDialog={isKYCVerificationDialogOpen}
+        setIsOpenDialog={setIsKYCVerificationDialogOpen}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

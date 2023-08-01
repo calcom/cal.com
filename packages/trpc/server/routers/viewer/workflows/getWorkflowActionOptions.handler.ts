@@ -2,6 +2,7 @@ import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getO
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
@@ -25,6 +26,35 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
     const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
     isTeamsPlan = !!hasTeamPlan;
   }
+
+  const memberships = await prisma.membership.findMany({
+    where: {
+      accepted: true,
+      userId: ctx.user.id,
+      team: {
+        slug: {
+          not: null,
+        },
+      },
+    },
+    select: {
+      team: {
+        select: {
+          metadata: true,
+        },
+      },
+    },
+  });
+
+  const isKYCVerified = memberships.find(
+    (membership) =>
+      hasKeyInMetadata(membership.team, "kyc_verified") && !!membership.team.metadata.kyc_verified
+  );
+
   const t = await getTranslation(ctx.user.locale, "common");
-  return getWorkflowActionOptions(t, IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan);
+  return getWorkflowActionOptions(
+    t,
+    IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan,
+    !!isKYCVerified
+  );
 };

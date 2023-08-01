@@ -66,6 +66,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
+  setIsKYCVerificationDialogOpen?: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -336,6 +337,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsUpgrade: false,
+      needsVerification: false,
+      needsVerificationAction: props.setIsKYCVerificationDialogOpen,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -453,10 +456,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (
-                              val.value === WorkflowActions.SMS_ATTENDEE ||
-                              val.value === WorkflowActions.WHATSAPP_ATTENDEE
-                            ) {
+                            if (isAttendeeAction(val.value) && isSMSOrWhatsappAction(val.value)) {
                               setIsRequiresConfirmationNeeded(true);
                             } else {
                               setIsRequiresConfirmationNeeded(false);
@@ -527,12 +527,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions}
+                        options={actionOptions?.map((option) => ({
+                          ...option,
+                          needsVerificationAction: props.setIsKYCVerificationDialogOpen,
+                        }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
                           needsUpgrade: boolean;
-                        }) => option.needsUpgrade}
+                          needsVerification: boolean;
+                        }) => option.needsUpgrade || option.needsVerification}
                       />
                     );
                   }}
