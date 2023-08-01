@@ -1,55 +1,60 @@
-import { shallow } from "zustand/shallow";
-
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SheetClose, Button } from "@calcom/ui";
 import { Pencil } from "@calcom/ui/components/icon";
 
 import { useEditMode } from "./store";
 
-export function SheetFooterControls() {
-  const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
+function EditModeFooter() {
+  const { t } = useLocale();
+  const setEditMode = useEditMode((state) => state.setEditMode);
   const isLoading = useEditMode((state) => state.mutationLoading);
+
   return (
     <>
-      {editMode ? (
-        <>
-          <Button
-            color="secondary"
-            type="button"
-            className="justify-center md:w-1/5"
-            onClick={() => {
-              setEditMode(false);
-            }}>
-            Cancel
-          </Button>
+      <Button
+        color="secondary"
+        type="button"
+        className="justify-center md:w-1/5"
+        onClick={() => {
+          setEditMode(false);
+        }}>
+        {t("cancel")}
+      </Button>
 
-          <Button type="submit" className="w-full justify-center" form="edit-user-form" loading={isLoading}>
-            Update
-          </Button>
-        </>
-      ) : (
-        <>
-          <SheetClose asChild>
-            <Button color="secondary" type="button" className="justify-center md:w-1/5">
-              Close
-            </Button>
-          </SheetClose>
-          {/* 
-            Weird that we need to provide a key to tell react that these are different buttons.
-            When it gets mounted it automatically submits without the key to tell it that it's a different button.
-          */}
-          <Button
-            type="button"
-            onClick={() => {
-              setEditMode(true);
-            }}
-            className="w-full justify-center gap-2" // Add a gap cause us adding justify-center overrides the default gap
-            variant="icon"
-            key="EDIT_BUTTON"
-            StartIcon={Pencil}>
-            Edit
-          </Button>
-        </>
-      )}
+      <Button type="submit" className="w-full justify-center" form="edit-user-form" loading={isLoading}>
+        {t("update")}
+      </Button>
     </>
   );
+}
+
+function MoreInfoFooter() {
+  const { t } = useLocale();
+  const setEditMode = useEditMode((state) => state.setEditMode);
+
+  return (
+    <>
+      <SheetClose asChild>
+        <Button color="secondary" type="button" className="justify-center md:w-1/5">
+          {t("close")}
+        </Button>
+      </SheetClose>
+      <Button
+        type="button"
+        onClick={() => {
+          setEditMode(true);
+        }}
+        className="w-full justify-center gap-2"
+        variant="icon"
+        key="EDIT_BUTTON"
+        StartIcon={Pencil}>
+        {t("close")}
+      </Button>
+    </>
+  );
+}
+
+export function SheetFooterControls() {
+  const editMode = useEditMode((state) => state.editMode);
+  return <>{editMode ? <EditModeFooter /> : <MoreInfoFooter />}</>;
 }
