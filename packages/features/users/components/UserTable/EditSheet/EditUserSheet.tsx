@@ -45,12 +45,15 @@ function EditForm({
   selectedUser,
   avatarUrl,
   domainUrl,
+  dispatch,
 }: {
   selectedUser: RouterOutputs["viewer"]["organizations"]["getUser"];
   avatarUrl: string;
   domainUrl: string;
+  dispatch: Dispatch<Action>;
 }) {
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const form = useForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
@@ -64,6 +67,8 @@ function EditForm({
 
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
+      dispatch({ type: "CLOSE_MODAL" });
+      utils.viewer.organizations.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
     },
     onError: (error) => {
@@ -74,7 +79,19 @@ function EditForm({
   const watchTimezone = form.watch("timeZone");
 
   return (
-    <Form form={form} handleSubmit={(values) => console.log(values)}>
+    <Form
+      form={form}
+      id="edit-user-form"
+      handleSubmit={(values) => {
+        mutation.mutate({
+          userId: selectedUser?.id ?? "",
+          role: values.role as "ADMIN" | "MEMBER", // Cast needed as we dont provide an option for owner
+          name: values.name,
+          email: values.email,
+          bio: values.bio,
+          timeZone: values.timeZone,
+        });
+      }}>
       <div className="mt-4 flex items-center gap-2">
         <Avatar
           size="lg"
@@ -193,7 +210,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     label={t("teams")}
                     displayCount={teamNames?.length ?? 0}
                     value={
-                      teamNames && teamNames?.length === 0 ? ["user_isnt_in_any_team"] : teamNames ?? "" // TS wtf
+                      teamNames && teamNames?.length === 0 ? ["user_isnt_in_any_teams"] : teamNames ?? "" // TS wtf
                     }
                     asBadge={teamNames && teamNames?.length > 0}
                   />
@@ -205,6 +222,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                   selectedUser={loadedUser}
                   avatarUrl={avatarURL}
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
+                  dispatch={dispatch}
                 />
               </div>
             )}

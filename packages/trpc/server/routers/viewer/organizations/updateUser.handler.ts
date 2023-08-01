@@ -4,7 +4,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TUpdateUserInputSchema } from "./updateuser.schema";
+import type { TUpdateUserInputSchema } from "./updateUser.schema";
 
 type UpdateUserOptions = {
   ctx: {

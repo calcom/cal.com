@@ -31,6 +31,7 @@ export function SheetFooterControls() {
             </Button>
           </SheetClose>
           <Button
+            type="button"
             onClick={() => {
               setEditMode(true);
             }}

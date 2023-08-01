@@ -1966,5 +1966,10 @@
   "org_team_names_example_5": "e.g. Data Analytics Team",
   "org_max_team_warnings": "You will be able to add more teams later on.",
   "what_is_this_meeting_about": "What is this meeting about?",
+  "add_to_team":"Add to team",
+  "remove_users_from_org": "Remove users from organization",
+  "remove_users_from_org_confirm":"Are you sure you want to remove {{userCount}} users from this organization?",
+  "user_has_no_schedules":"This user has not setup any schedules yet",
+  "user_isnt_in_any_teams":"This user is not in any teams",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

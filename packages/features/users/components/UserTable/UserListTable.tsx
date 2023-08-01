@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, StopCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
 
@@ -10,6 +10,7 @@ import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
+import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -287,12 +288,8 @@ export function UserListTable() {
             render: (table) => <TeamListBulkAction table={table} />,
           },
           {
-            type: "action",
-            label: "Delete",
-            onClick: () => {
-              console.log("Delete");
-            },
-            icon: StopCircle,
+            type: "render",
+            render: (table) => <DeleteBulkUsers table={table} />,
           },
         ]}
         tableContainerRef={tableContainerRef}
