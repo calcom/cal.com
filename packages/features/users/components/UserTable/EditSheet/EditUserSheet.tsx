@@ -212,7 +212,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     label={t("availability_schedules")}
                     value={
                       schedulesNames && schedulesNames?.length === 0
-                        ? ["user_has_no_schedules"]
+                        ? [t("user_has_no_schedules")]
                         : schedulesNames ?? "" // TS wtf
                     }
                   />
@@ -220,7 +220,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     label={t("teams")}
                     displayCount={teamNames?.length ?? 0}
                     value={
-                      teamNames && teamNames?.length === 0 ? ["user_isnt_in_any_teams"] : teamNames ?? "" // TS wtf
+                      teamNames && teamNames?.length === 0 ? [t("user_isnt_in_any_teams")] : teamNames ?? "" // TS wtf
                     }
                     asBadge={teamNames && teamNames?.length > 0}
                   />

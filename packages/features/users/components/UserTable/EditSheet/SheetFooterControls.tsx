@@ -48,7 +48,7 @@ function MoreInfoFooter() {
         variant="icon"
         key="EDIT_BUTTON"
         StartIcon={Pencil}>
-        {t("close")}
+        {t("edit")}
       </Button>
     </>
   );

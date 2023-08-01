@@ -35,6 +35,7 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
       },
       accepted: true,
     },
+    distinct: ["userId"],
   });
 
   // Throw error if any of the users are not in the organization. They should be invited to the organization via the onboaring flow first.
