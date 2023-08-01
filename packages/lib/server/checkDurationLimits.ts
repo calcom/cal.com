@@ -15,12 +15,10 @@ export async function checkDurationLimits(
   const parsedDurationLimits = parseDurationLimit(durationLimits);
   if (!parsedDurationLimits) return false;
 
-  // convoluted but typesafe
-  const limitCalculations = ascendingLimitKeys
-    .filter((key) => parsedDurationLimits[key])
-    .map((key) =>
-      checkDurationLimit({ key, limitingNumber: parsedDurationLimits[key], eventStartDate, eventId })
-    );
+  // not iterating entries to preserve types
+  const limitCalculations = ascendingLimitKeys.map((key) =>
+    checkDurationLimit({ key, limitingNumber: parsedDurationLimits[key], eventStartDate, eventId })
+  );
 
   try {
     return !!(await Promise.all(limitCalculations));

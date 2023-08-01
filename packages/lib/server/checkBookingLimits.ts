@@ -17,12 +17,10 @@ export async function checkBookingLimits(
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
 
-  // convoluted but typesafe
-  const limitCalculations = ascendingLimitKeys
-    .filter((key) => parsedBookingLimits[key])
-    .map((key) =>
-      checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId })
-    );
+  // not iterating entries to preserve types
+  const limitCalculations = ascendingLimitKeys.map((key) =>
+    checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId })
+  );
 
   try {
     const res = await Promise.all(limitCalculations);
