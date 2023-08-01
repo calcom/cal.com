@@ -194,6 +194,7 @@ function Dialogs({
   deleteDialogFormId: string | null;
 }) {
   const utils = trpc.useContext();
+  const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
@@ -214,6 +215,7 @@ function Dialogs({
     onSuccess: () => {
       showToast(t("form_deleted"), "success");
       setDeleteDialogOpen(false);
+      router.push(`${appUrl}/forms`);
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
