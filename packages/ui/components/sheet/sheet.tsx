@@ -105,12 +105,12 @@ const sheetVariants = cva(
       {
         position: ["right", "left"],
         size: "default",
-        class: "w-1/3 h-[calc(100vh-2rem)]",
+        class: "w-1/3 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "sm",
-        class: "w-1/4 h-[calc(100vh-2rem)]",
+        class: "w-1/4 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],

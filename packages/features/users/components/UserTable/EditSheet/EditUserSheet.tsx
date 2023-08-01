@@ -52,6 +52,7 @@ function EditForm({
   domainUrl: string;
   dispatch: Dispatch<Action>;
 }) {
+  const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const { t } = useLocale();
   const utils = trpc.useContext();
   const form = useForm({
@@ -74,6 +75,13 @@ function EditForm({
     onError: (error) => {
       showToast(error.message, "error");
     },
+    onSettled: () => {
+      /**
+       * /We need to do this as the submit button lives out side
+       *  the form for some complicated reason so we can't relay on mutationState
+       */
+      setMutationLoading(false);
+    },
   });
 
   const watchTimezone = form.watch("timeZone");
@@ -83,6 +91,7 @@ function EditForm({
       form={form}
       id="edit-user-form"
       handleSubmit={(values) => {
+        setMutationLoading(true);
         mutation.mutate({
           userId: selectedUser?.id ?? "",
           role: values.role as "ADMIN" | "MEMBER", // Cast needed as we dont provide an option for owner
