@@ -1,23 +1,22 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { CAL_URL } from "@calcom/lib/constants";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { App as AppType } from "@calcom/types/App";
+import type { App as AppType, AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
-import type { AppFrontendPayload as App } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
 import {
   Dropdown,
@@ -28,9 +27,7 @@ import {
   DropdownItem,
   Avatar,
 } from "@calcom/ui";
-import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
-import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
-
+import { BookOpen, Check, ExternalLink, File, Flag, Mail, Shield } from "@calcom/ui/components/icon";
 
 /* These app slugs all require Google Cal to be installed */
 
@@ -82,9 +79,11 @@ const Component = ({
     { appType: type },
     {
       onSettled(data) {
-        const credentialsCount = data?.credentials.length || 0
-        setShowDisconnectIntegration(data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0);
-        setExistingCredentials(data?.credentials.map(credential => credential.id) || []);
+        const credentialsCount = data?.credentials.length || 0;
+        setShowDisconnectIntegration(
+          data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
+        );
+        setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
       },
     }
   );
@@ -186,7 +185,13 @@ const Component = ({
                       };
                     }
                     return (
-                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
+                      <InstallAppButtonChild
+                        appCategories={categories}
+                        userAdminTeams={appDbQuery.data?.userAdminTeams}
+                        addAppMutationInput={{ type, variant, slug }}
+                        multiInstall
+                        {...props}
+                      />
                     );
                   }}
                 />
@@ -217,7 +222,13 @@ const Component = ({
                   };
                 }
                 return (
-                  <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} credentials={appDbQuery.data?.credentials} {...props} />
+                  <InstallAppButtonChild
+                    appCategories={categories}
+                    userAdminTeams={appDbQuery.data?.userAdminTeams}
+                    addAppMutationInput={{ type, variant, slug }}
+                    credentials={appDbQuery.data?.credentials}
+                    {...props}
+                  />
                 );
               }}
             />
@@ -398,13 +409,12 @@ const InstallAppButtonChild = ({
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
-  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  addAppMutationInput: { type: AppFrontendPayload["type"]; variant: string; slug: string };
   appCategories: string[];
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
 } & ButtonProps) => {
   const { t } = useLocale();
-  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -416,17 +426,21 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => ["calendar", "conferencing"].includes(category))) {
-    return <Button
-      data-testid="install-app-button"
-      {...props}
-      // @TODO: Overriding color and size prevent us from
-      // having to duplicate InstallAppButton for now.
-      color="primary"
-      size="base">
-      {multiInstall ? t("install_another") : t("install_app")}
-    </Button>
-
+  if (
+    !userAdminTeams?.length ||
+    appCategories.some((category) => ["calendar", "conferencing"].includes(category))
+  ) {
+    return (
+      <Button
+        data-testid="install-app-button"
+        {...props}
+        // @TODO: Overriding color and size prevent us from
+        // having to duplicate InstallAppButton for now.
+        color="primary"
+        size="base">
+        {multiInstall ? t("install_another") : t("install_app")}
+      </Button>
+    );
   }
 
   return (
@@ -446,8 +460,7 @@ const InstallAppButtonChild = ({
         <DropdownMenuContent
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
-          }}
-        >
+          }}>
           {mutation.isLoading && (
             <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <Spinner />
@@ -455,20 +468,18 @@ const InstallAppButtonChild = ({
           )}
           <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
           {userAdminTeams.map((team) => {
-
-            const isInstalled = credentials &&
+            const isInstalled =
+              credentials &&
               credentials.some((credential) =>
                 credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-              )
+              );
 
             return (
               <DropdownItem
                 type="button"
                 data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
                 key={team.id}
-                disabled={
-                  isInstalled
-                }
+                disabled={isInstalled}
                 StartIcon={(props) => (
                   <Avatar
                     alt={team.logo || ""}
@@ -482,11 +493,11 @@ const InstallAppButtonChild = ({
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                   );
                 }}>
-                <p>{team.name}{" "}
-                  {isInstalled &&
-                    `(${t("installed")})`}</p>
+                <p>
+                  {team.name} {isInstalled && `(${t("installed")})`}
+                </p>
               </DropdownItem>
-            )
+            );
           })}
         </DropdownMenuContent>
       </DropdownMenuPortal>
