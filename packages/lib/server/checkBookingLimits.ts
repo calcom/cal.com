@@ -11,8 +11,7 @@ import { parseBookingLimit } from "../isBookingLimits";
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
-  eventId: number,
-  returnBusyTimes?: boolean
+  eventId: number
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
@@ -23,9 +22,7 @@ export async function checkBookingLimits(
   );
 
   try {
-    const res = await Promise.all(limitCalculations);
-    if (!returnBusyTimes) return true;
-    return res;
+    return !!(await Promise.all(limitCalculations));
   } catch (error) {
     throw new HttpError({ message: getErrorFromUnknown(error).message, statusCode: 401 });
   }
@@ -36,13 +33,11 @@ export async function checkBookingLimit({
   eventId,
   key,
   limitingNumber,
-  returnBusyTimes = false,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
-  returnBusyTimes?: boolean;
 }) {
   {
     if (!limitingNumber) return;
@@ -67,14 +62,6 @@ export async function checkBookingLimit({
     });
 
     if (bookingsInPeriod < limitingNumber) return;
-
-    // This is used when getting availability
-    if (returnBusyTimes) {
-      return {
-        start: startDate,
-        end: endDate,
-      };
-    }
 
     throw new HttpError({
       message: `booking_limit_reached`,

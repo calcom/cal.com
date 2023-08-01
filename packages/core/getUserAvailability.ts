@@ -444,14 +444,14 @@ const getBusyTimesFromBookingLimits = async (
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
-        const yearlyBusyTime = await checkBookingLimit({
-          eventStartDate: periodStart.toDate(),
-          limitingNumber: limit,
-          eventId: eventTypeId,
-          key,
-          returnBusyTimes: true,
-        });
-        if (yearlyBusyTime) {
+        try {
+          await checkBookingLimit({
+            eventStartDate: periodStart.toDate(),
+            limitingNumber: limit,
+            eventId: eventTypeId,
+            key,
+          });
+        } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
           if (periodStartDates.every((start) => limitManager.isAlreadyBusy(start, unit))) {
             return;

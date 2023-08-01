@@ -32,13 +32,11 @@ export async function checkDurationLimit({
   eventId,
   key,
   limitingNumber,
-  returnBusyTimes = false,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
-  returnBusyTimes?: boolean;
 }) {
   {
     if (!limitingNumber) return;
@@ -51,14 +49,6 @@ export async function checkDurationLimit({
     const totalBookingDuration = await getTotalBookingDuration({ eventId, startDate, endDate });
 
     if (totalBookingDuration < limitingNumber) return;
-
-    // This is used when getting availability
-    if (returnBusyTimes) {
-      return {
-        start: startDate,
-        end: endDate,
-      };
-    }
 
     throw new HttpError({
       message: `duration_limit_reached`,
