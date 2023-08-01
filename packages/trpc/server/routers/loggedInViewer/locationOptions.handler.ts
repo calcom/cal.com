@@ -29,12 +29,13 @@ export const locationOptionsHandler = async ({ ctx, input }: LocationOptionsOpti
       type: true,
       key: true,
       userId: true,
+      teamId: true,
       appId: true,
       invalid: true,
     },
   });
 
-  const integrations = await getEnabledApps(credentials);
+  const integrations = await getEnabledApps(credentials, true);
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
 

@@ -114,7 +114,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     }
   }
 
-  const enabledApps = await getEnabledApps(credentials);
+  const enabledApps = await getEnabledApps(credentials, onlyInstalled);
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
