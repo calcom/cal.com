@@ -111,10 +111,15 @@ export interface App {
   /** Number of reviews, harcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
-   *  Wheter if the app is installed globally or needs user intervention.
+   *  Whether if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
+  /**
+   * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
+   * e.g. Routing Forms App is available as /routing-forms in addition to regular /apps/routing-forms.
+   */
+  simplePath?: string;
   /** A contact email, mainly to ask for support */
   email: string;
   /** Needed API Keys (usually for global apps) */
