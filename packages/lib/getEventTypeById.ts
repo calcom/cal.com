@@ -15,8 +15,6 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
-import getEnabledApps from "./apps/getEnabledApps";
-
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
@@ -332,17 +330,17 @@ export default async function getEventTypeById({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
 
-  if (!currentUser && !eventType.teamId) {
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+
+  if (!currentUser?.id && !eventType.teamId) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Could not find user or team",
     });
   }
 
-  const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = await getEnabledApps(credentials, true);
   const locationOptions = await getLocationGroupedOptions(
-    eventType.teamId ? { teamId: eventType.teamId } : { userId: currentUser.id },
+    eventType.teamId ? { teamId: eventType.teamId } : { userId },
     t
   );
   if (eventType.schedulingType === SchedulingType.MANAGED) {

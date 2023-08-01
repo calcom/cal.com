@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -37,9 +38,9 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       },
     });
 
-    let conferenceCredential: CredentialPayload | undefined;
+    let conferenceCredential: CredentialPayload | null = null;
 
-    if (details.credentialId) {
+    if (details?.credentialId) {
       conferenceCredential = await prisma.credential.findFirst({
         where: {
           id: details.credentialId,
@@ -79,7 +80,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       uid: booking.uid,
       recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
       location,
-      conferenceCredentialId: details.credentialId,
+      conferenceCredentialId: details?.credentialId,
       destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
@@ -87,7 +88,10 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
 
     const eventManager = new EventManager({
       ...ctx.user,
-      credentials: [...ctx.user.credentials, ...[conferenceCredential ? conferenceCredential : []]],
+      credentials: [
+        ...(ctx.user.credentials ? ctx.user.credentials : []),
+        ...(conferenceCredential ? [conferenceCredential] : []),
+      ],
     });
 
     const updatedResult = await eventManager.updateLocation(evt, booking);
@@ -123,8 +127,8 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         console.log("Error sending LocationChangeEmails");
       }
     }
-  } catch (error) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+  } catch {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
   return { message: "Location updated" };
 };
