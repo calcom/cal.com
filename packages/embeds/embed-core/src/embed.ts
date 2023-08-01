@@ -598,10 +598,16 @@ class CalApi {
 
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
+
+    this.handleClose();
+    containerEl.appendChild(template.content);
+  }
+
+  private handleClose() {
+    // A request, to close from the iframe, should close the modal
     this.cal.actionManager.on("__closeIframe", () => {
       this.cal.modalBox.setAttribute("state", "closed");
     });
-    containerEl.appendChild(template.content);
   }
 
   on<T extends keyof EventDataMap>({
@@ -745,23 +751,11 @@ document.addEventListener("click", (e) => {
   if (!(targetEl instanceof HTMLElement)) {
     return;
   }
-
-  /**
-   * on click, checks if the target element is the floating button
-   * if so, hides the button to ensure that it does not cover
-   * any of the modal's content.
-   *
-   * bringing the element back - check out the close() method
-   * of ModalBox element
-   */
-  if (targetEl.dataset.calNamespace === "floatingButton") {
-    targetEl.style.display = "none";
-  }
-
   const path = targetEl.dataset.calLink;
   if (!path) {
     return;
   }
+
   const modalUniqueId = (targetEl.dataset.uniqueId = targetEl.dataset.uniqueId || String(Date.now()));
   const namespace = targetEl.dataset.calNamespace;
   const configString = targetEl.dataset.calConfig || "";
