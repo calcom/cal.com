@@ -22,6 +22,7 @@ import {
   TimezoneSelect,
   Label,
   showToast,
+  Loader,
 } from "@calcom/ui";
 
 import type { State, Action } from "../UserListTable";
@@ -239,7 +240,9 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
               <SheetFooterControls />
             </SheetFooter>
           </div>
-        ) : null}
+        ) : (
+          <Loader />
+        )}
       </SheetContent>
     </Sheet>
   );
