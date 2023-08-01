@@ -1721,7 +1721,7 @@
   "show_on_booking_page": "Show on booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
   "team_is_unpublished": "{{team}} is unpublished",
-  "team_is_unpublished_description": "This {{entity}} link is currently not available. Please contact the {{entity}} owner or ask them publish it.",
+  "team_is_unpublished_description": "This {{entity}} link is currently not available. Please contact the {{entity}} owner or ask them to publish it.",
   "team_member": "Team member",
   "a_routing_form": "A Routing Form",
   "form_description_placeholder": "Form Description",

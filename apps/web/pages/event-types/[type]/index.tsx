@@ -252,6 +252,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
+      hashedLink: eventType.hashedLink?.link || undefined,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
