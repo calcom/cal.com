@@ -2,9 +2,9 @@ import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -35,6 +35,7 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
+  ButtonOrLink,
   Credits,
   Dropdown,
   DropdownItem,
@@ -46,18 +47,19 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  showToast,
   SkeletonText,
   Tooltip,
-  showToast,
   useCalcomTheme,
-  ButtonOrLink,
 } from "@calcom/ui";
 import {
   ArrowLeft,
   ArrowRight,
   BarChart,
   Calendar,
+  ChevronDown,
   Clock,
+  Copy,
   Download,
   ExternalLink,
   FileText,
@@ -68,12 +70,10 @@ import {
   Map,
   Moon,
   MoreHorizontal,
-  ChevronDown,
-  Copy,
   Settings,
+  User as UserIcon,
   Users,
   Zap,
-  User as UserIcon,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
@@ -210,7 +210,11 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
+          {props.SidebarContainer ? (
+            cloneElement(props.SidebarContainer, { bannersHeight })
+          ) : (
+            <SideBarContainer bannersHeight={bannersHeight} />
+          )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -232,7 +236,7 @@ type LayoutProps = {
   CTA?: ReactNode;
   large?: boolean;
   MobileNavigationContainer?: ReactNode;
-  SidebarContainer?: ReactNode;
+  SidebarContainer?: ReactElement;
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
