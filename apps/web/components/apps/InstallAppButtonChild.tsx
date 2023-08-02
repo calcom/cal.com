@@ -1,10 +1,11 @@
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
 import {
   Avatar,
@@ -24,13 +25,15 @@ export const InstallAppButtonChild = ({
   appCategories,
   multiInstall,
   credentials,
+  concurrentMeetings,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
-  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  addAppMutationInput: { type: AppFrontendPayload["type"]; variant: string; slug: string };
   appCategories: string[];
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+  concurrentMeetings?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
 
@@ -44,10 +47,7 @@ export const InstallAppButtonChild = ({
     },
   });
 
-  if (
-    !userAdminTeams?.length ||
-    appCategories.some((category) => ["calendar", "conferencing"].includes(category))
-  ) {
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return (
       <Button
         data-testid="install-app-button"

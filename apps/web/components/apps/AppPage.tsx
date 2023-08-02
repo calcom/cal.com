@@ -41,6 +41,7 @@ export type AppPageProps = {
   isTemplate?: boolean;
   disableInstall?: boolean;
   dependencies?: string[];
+  concurrentMeetings: AppType["concurrentMeetings"];
 };
 
 export const AppPage = ({
@@ -65,6 +66,7 @@ export const AppPage = ({
   descriptionItems,
   isTemplate,
   dependencies,
+  concurrentMeetings,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -202,6 +204,7 @@ export const AppPage = ({
                         userAdminTeams={appDbQuery.data?.userAdminTeams}
                         addAppMutationInput={{ type, variant, slug }}
                         multiInstall
+                        concurrentMeetings={concurrentMeetings}
                         {...props}
                       />
                     );
@@ -239,6 +242,7 @@ export const AppPage = ({
                     userAdminTeams={appDbQuery.data?.userAdminTeams}
                     addAppMutationInput={{ type, variant, slug }}
                     credentials={appDbQuery.data?.credentials}
+                    concurrentMeetings={concurrentMeetings}
                     {...props}
                   />
                 );

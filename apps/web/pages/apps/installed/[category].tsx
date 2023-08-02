@@ -169,7 +169,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && (
+                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"

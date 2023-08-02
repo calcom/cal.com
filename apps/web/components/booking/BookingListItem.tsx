@@ -250,7 +250,7 @@ function BookingListItem(booking: BookingItemProps) {
     if (eventLocationType?.organizerInputType) {
       newLocation = details[Object.keys(details)[0]];
     }
-    setLocationMutation.mutate({ bookingId: booking.id, newLocation });
+    setLocationMutation.mutate({ bookingId: booking.id, newLocation, details });
   };
 
   // Getting accepted recurring dates to show
@@ -286,6 +286,7 @@ function BookingListItem(booking: BookingItemProps) {
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
+        teamId={booking.eventType?.team?.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
