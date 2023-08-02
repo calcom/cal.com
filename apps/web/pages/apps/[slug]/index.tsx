@@ -77,6 +77,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       descriptionItems={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
       dependencies={data.dependencies}
+      concurrentMeetings={data.concurrentMeetings}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
