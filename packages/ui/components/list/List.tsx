@@ -15,6 +15,7 @@ export type ListProps = {
 export function List(props: ListProps) {
   return (
     <ul
+      data-testid="list"
       {...props}
       className={classNames(
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
@@ -50,6 +51,7 @@ export function ListItem(props: ListItemProps) {
         props.className,
         (props.onClick || href) && "hover:bg-muted"
       ),
+      "data-testid": "list-item",
     },
     props.children
   );
@@ -80,6 +82,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
   }
   return (
     <li
+      data-testid="list-link-item"
       className={classNames(
         "group flex w-full items-center justify-between p-5 pb-4",
         className,
@@ -95,7 +98,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         <div className="flex items-center">
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
           {disabled && (
-            <Badge variant="gray" className="ml-2">
+            <Badge data-testid="badge" variant="gray" className="ml-2">
               {t("readonly")}
             </Badge>
           )}
@@ -121,6 +124,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     {
       ...passThroughProps,
       className: classNames("text-sm font-medium text-emphasis truncate", props.className),
+      "data-testid": "list-item-title",
     },
     props.children
   );
@@ -136,6 +140,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     {
       ...passThroughProps,
       className: classNames("text-sm text-subtle truncate", props.className),
+      "data-testid": "list-item-text",
     },
     props.children
   );
