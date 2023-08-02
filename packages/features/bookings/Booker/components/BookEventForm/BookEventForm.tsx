@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -14,23 +14,24 @@ import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import {
-  useTimePreferences,
-  mapBookingToMutationInput,
   createBooking,
   createRecurringBooking,
+  mapBookingToMutationInput,
   mapRecurringBookingToMutationInput,
+  useTimePreferences,
 } from "@calcom/features/bookings/lib";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Alert, EmptyScreen, showToast } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
@@ -43,7 +44,10 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const searchParams = useSearchParams();
+  const routerQuery = useRouterQuery();
   const session = useSession();
+  const bookingSuccessRedirect = useBookingSuccessRedirect();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: { context: { skipBatch: true } },
   });
@@ -113,10 +117,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     });
 
     const parsedQuery = querySchema.parse({
-      ...router.query,
+      ...routerQuery,
       // `guest` because we need to support legacy URL with `guest` query param support
       // `guests` because the `name` of the corresponding bookingField is `guests`
-      guests: router.query.guests || router.query.guest,
+      guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),
     });
 
     const defaultUserValues = {
@@ -204,11 +208,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   });
 
   const createBookingMutation = useMutation(createBooking, {
-    onSuccess: async (responseData) => {
+    onSuccess: (responseData) => {
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
       if (paymentUid) {
-        return await router.push(
+        return router.push(
           createPaymentLink({
             paymentUid,
             date: timeslot,
@@ -234,7 +238,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       };
 
       return bookingSuccessRedirect({
-        router,
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
         bookingUid: uid,
@@ -264,7 +267,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       };
 
       return bookingSuccessRedirect({
-        router,
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
         bookingUid: uid,
@@ -347,12 +349,12 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       rescheduleUid: rescheduleUid || undefined,
       bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
       username: username || "",
-      metadata: Object.keys(router.query)
+      metadata: Object.keys(routerQuery)
         .filter((key) => key.startsWith("metadata"))
         .reduce(
           (metadata, key) => ({
             ...metadata,
-            [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+            [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
           }),
           {}
         ),
@@ -368,7 +370,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   };
 
   if (!eventType) {
-    console.warn("No event type found for event", router.query);
+    console.warn("No event type found for event", routerQuery);
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
