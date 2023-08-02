@@ -78,7 +78,6 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  // const timeFormat = useTimePreferences((state) => state.timeFormat);
   const { timeFormat, timezone } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
