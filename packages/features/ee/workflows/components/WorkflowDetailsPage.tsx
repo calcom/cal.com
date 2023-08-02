@@ -5,6 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
@@ -46,6 +47,8 @@ export default function WorkflowDetailsPage(props: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const isPartOfTeam = useHasTeamPlan();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -220,6 +223,7 @@ export default function WorkflowDetailsPage(props: Props) {
       <KYCVerificationDialog
         isOpenDialog={isKYCVerificationDialogOpen}
         setIsOpenDialog={setIsKYCVerificationDialogOpen}
+        isPartOfTeam={!!isPartOfTeam.hasTeamPlan}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

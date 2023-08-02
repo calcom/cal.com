@@ -15,7 +15,7 @@ export const KYCVerificationBadge = function KYCVerificationBadge(props: {
       <>
         <Tooltip content={t("Verify your team to enable sending messages to attendees")}>
           <Badge variant="gray" onClick={() => verifyTeam(true)}>
-            {t("Verify Team")}
+            {t("verify_account")}
           </Badge>
         </Tooltip>
       </>

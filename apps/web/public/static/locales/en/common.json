@@ -1973,7 +1973,8 @@
   "requires_booker_email_verification": "Requires booker email verification",
   "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
   "requires_confirmation_mandatory": "Text messages can only be sent to attendees when event type requires confirmation.",
-  "kyc_verification_information": "To ensure security, you have to verify your team or user before sending text messages to attendees. Please contact our customer support at {{supportEmail}} for assistance.",
-  "verify_team": "Verify Team/User",
+  "kyc_verification_information": "To ensure security, you have to verify your {{teamOrAccount}} before sending text messages to attendees. Please contact our customer support at {{supportEmail}} for assistance.",
+  "verify_team_or_account": "Verify {{teamOrAccount}}",
+  "verify_account": "Verify Account",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
