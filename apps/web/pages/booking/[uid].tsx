@@ -319,7 +319,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -399,7 +399,7 @@ export default function Success(props: SuccessProps) {
                       </h4>
                     )}
 
-                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left">
+                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
