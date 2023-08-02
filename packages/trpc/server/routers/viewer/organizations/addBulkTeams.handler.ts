@@ -27,13 +27,12 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
   // Loop over all users and check if they are already in the organization
   const usersInOrganization = await prisma.membership.findMany({
     where: {
+      teamId: currentUser.organizationId,
       user: {
-        organizationId: currentUser.organizationId,
         id: {
           in: input.userIds,
         },
       },
-      accepted: true,
     },
     distinct: ["userId"],
   });
@@ -63,14 +62,17 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
     return !usersInTeams.some((membership) => membership.userId === userId);
   });
 
+  // TODO: might need to come back to this is people are doing ALOT of invites with bulk actions.
   // Loop over all users and add them to all teams in the array
   const membershipData = filteredUserIds.flatMap((userId) =>
     input.teamIds.map((teamId) => {
+      const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
+      const accepted = userMembership && userMembership.accepted;
       return {
         userId,
         teamId,
         role: MembershipRole.MEMBER,
-        accepted: true, // Auto accept cause we know at this point they are already in the organization
+        accepted: accepted || false,
       } as Prisma.MembershipCreateManyInput;
     })
   );
