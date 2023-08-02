@@ -76,6 +76,8 @@ test.describe("Event Types tests", () => {
 
       await page.click(`[data-testid=event-type-options-${eventTypeId}]`);
       await page.click(`[data-testid=event-type-duplicate-${eventTypeId}]`);
+      // Wait for the dialog to appear so we can get the URL
+      await page.waitForSelector('[data-testid="dialog-title"]');
 
       const url = page.url();
       const params = new URLSearchParams(url);
