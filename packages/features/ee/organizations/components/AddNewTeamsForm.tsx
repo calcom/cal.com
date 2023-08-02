@@ -1,13 +1,14 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextField } from "@calcom/ui";
-import { Plus, X, ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -26,7 +27,8 @@ const schema = z.object({
 export const AddNewTeamsForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { id: orgId } = querySchema.parse(router.query);
+  const routerQuery = useRouterQuery();
+  const { id: orgId } = querySchema.parse(routerQuery);
   const [counter, setCounter] = useState(1);
 
   const { register, control, handleSubmit, formState, trigger, setValue, getValues } = useForm({

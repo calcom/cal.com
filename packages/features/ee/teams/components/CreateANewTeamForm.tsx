@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { z } from "zod";
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -24,7 +25,8 @@ export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const parsedQuery = querySchema.safeParse(router.query);
+  const params = useParamsWithFallback();
+  const parsedQuery = querySchema.safeParse(params);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const orgBranding = useOrgBranding();
 
