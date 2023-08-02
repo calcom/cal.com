@@ -100,7 +100,7 @@ const BookerComponent = ({
     layout: defaultLayout,
     isTeamEvent,
     org: entity.orgSlug,
-    durationConfig: event?.data?.metadata.multipleDuration,
+    durationConfig: event?.data?.metadata?.multipleDuration,
   });
 
   useEffect(() => {
