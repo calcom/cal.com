@@ -1,8 +1,8 @@
 import { createHash } from "crypto";
 import { totp } from "otplib";
 
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
@@ -37,11 +38,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-  const enabledOnTeams = !app.categories.some(
-    (category) => category === "calendar" || category === "conferencing"
-  );
 
-  const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length === appAdded : appAdded > 0;
+  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
+
+  const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
@@ -119,6 +119,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       {...props}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
+                      concurrentMeetings={app.concurrentMeetings}
                     />
                   );
                 }}
@@ -144,6 +145,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       credentials={credentials}
+                      concurrentMeetings={app.concurrentMeetings}
                       {...props}
                     />
                   );
@@ -176,12 +178,14 @@ const InstallAppButtonChild = ({
   addAppMutationInput,
   appCategories,
   credentials,
+  concurrentMeetings,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   credentials?: Credential[];
+  concurrentMeetings?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -198,10 +202,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (
-    !userAdminTeams?.length ||
-    appCategories.some((category) => category === "calendar" || category === "conferencing")
-  ) {
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return (
       <Button
         color="secondary"
