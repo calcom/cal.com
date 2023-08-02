@@ -61,15 +61,29 @@ export function Header({
 
   const isSameMonth = () => {
     return selectedDate.format("MMM") === endDate.format("MMM");
-  }
+  };
+
+  const isSameYear = () => {
+    return selectedDate.format("YYYY") === endDate.format("YYYY");
+  };
+
+  const FormattedSelectedDateRange = () => {
+    return (
+      <h3 className="min-w-[150px] text-base font-semibold leading-4">
+        {selectedDate.format("MMM D")}
+        {!isSameYear() && <span className="text-subtle">, {selectedDate.format("YYYY")} </span>}-{" "}
+        {isSameMonth() ? endDate.format("D") : endDate.format("MMM D")},{" "}
+        <span className="text-subtle">
+          {isSameYear() ? selectedDate.format("YYYY") : endDate.format("YYYY")}
+        </span>
+      </h3>
+    );
+  };
 
   return (
     <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
-        <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {selectedDate.format("MMM D")}-{isSameMonth() ? endDate.format("D") : endDate.format("D MMM")},{" "}
-          <span className="text-subtle">{selectedDate.format("YYYY")}</span>
-        </h3>
+        <FormattedSelectedDateRange />
         <ButtonGroup>
           <Button
             variant="icon"
@@ -127,11 +141,7 @@ const LayoutToggle = ({
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   const { t } = useLocale();
-  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
-  // There is a Embed API to control the layout toggle from outside of the iframe.
-  if (isEmbed) {
-    return null;
-  }
+
   const layoutOptions = useMemo(() => {
     return [
       {
@@ -151,6 +161,12 @@ const LayoutToggle = ({
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);
+
+  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
+  // There is a Embed API to control the layout toggle from outside of the iframe.
+  if (isEmbed) {
+    return null;
+  }
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };
