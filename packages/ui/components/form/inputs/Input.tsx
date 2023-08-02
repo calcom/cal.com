@@ -52,6 +52,7 @@ type InputFieldProps = {
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
+  showAsteriskIndicator?: boolean;
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
@@ -106,6 +107,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelSrOnly,
     containerClassName,
     readOnly,
+    showAsteriskIndicator,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -123,6 +125,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
+          {showAsteriskIndicator && !readOnly && passThrough.required ? (
+            <span className="text-default ml-1 font-medium">*</span>
+          ) : null}
           {LockedIcon}
         </Skeleton>
       )}
@@ -420,7 +425,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
       dir="ltr"
       className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
       <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0">
-        <Search className="ms-3 h-4 w-4" />
+        <Search className="ms-3 h-4 w-4" data-testid="search-icon" />
       </div>
       <Input
         ref={ref}

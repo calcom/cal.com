@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -8,35 +8,36 @@ import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
-  // useRouter to get initial values from query params
+  // searchParams to get initial values from query params
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { startTime, endTime, teamId, userId, eventTypeId, filter, memberUserId } = router.query;
+  const pathname = usePathname();
   const querySchema = z.object({
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    teamId: z.coerce.number().optional(),
-    userId: z.coerce.number().optional(),
-    memberUserId: z.coerce.number().optional(),
-    eventTypeId: z.coerce.number().optional(),
-    filter: z.enum(["event-type", "user"]).optional(),
+    startTime: z.string().nullable(),
+    endTime: z.string().nullable(),
+    teamId: z.coerce.number().nullable(),
+    userId: z.coerce.number().nullable(),
+    memberUserId: z.coerce.number().nullable(),
+    eventTypeId: z.coerce.number().nullable(),
+    filter: z.enum(["event-type", "user"]).nullable(),
   });
 
   let startTimeParsed,
     endTimeParsed,
-    teamIdParsed: number | undefined,
+    teamIdParsed: number | undefined | null,
     userIdParsed,
     eventTypeIdParsed,
     filterParsed,
     memberUserIdParsed;
 
   const safe = querySchema.safeParse({
-    startTime,
-    endTime,
-    teamId,
-    userId,
-    eventTypeId,
-    filter,
-    memberUserId,
+    startTime: searchParams.get("startTime"),
+    endTime: searchParams.get("endTime"),
+    teamId: searchParams.get("teamId"),
+    userId: searchParams.get("userId"),
+    eventTypeId: searchParams.get("eventTypeId"),
+    filter: searchParams.get("filter"),
+    memberUserId: searchParams.get("memberUserId"),
   });
 
   if (!safe.success) {
@@ -115,24 +116,19 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             dateRange,
           } = newConfigFilters;
           const [startTime, endTime] = dateRange || [null, null];
-
-          const mergedQueryParams = {
-            ...(router.query || {}),
-            ...(selectedMemberUserId !== undefined && { memberUserId: selectedMemberUserId }),
-            ...(selectedTeamId !== undefined && { teamId: selectedTeamId }),
-            ...(selectedUserId !== undefined && { userId: selectedUserId }),
-            ...(selectedEventTypeId !== undefined && { eventTypeId: selectedEventTypeId }),
-            ...(selectedFilter !== undefined &&
-              selectedFilter &&
-              selectedFilter?.length > 0 && { filter: selectedFilter[0] }),
-            ...(isAll !== undefined && { isAll }),
-            ...(startTime !== undefined && startTime && { startTime: startTime.toISOString() }),
-            ...(endTime !== undefined && endTime && { endTime: endTime.toISOString() }),
-          };
-
-          router.push({
-            query: mergedQueryParams,
-          });
+          const newSearchParams = new URLSearchParams(searchParams);
+          function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
+            if (value !== undefined && value !== null) newSearchParams.set(key, value.toString());
+          }
+          setParamsIfDefined("memberUserId", selectedMemberUserId);
+          setParamsIfDefined("teamId", selectedTeamId);
+          setParamsIfDefined("userId", selectedUserId);
+          setParamsIfDefined("eventTypeId", selectedEventTypeId);
+          setParamsIfDefined("isAll", isAll);
+          setParamsIfDefined("startTime", startTime?.toISOString());
+          setParamsIfDefined("endTime", endTime?.toISOString());
+          setParamsIfDefined("filter", selectedFilter?.[0]);
+          router.push(`${pathname}?${newSearchParams.toString()}`);
         },
         clearFilters: () => {
           const { initialConfig } = configFilters;
@@ -152,12 +148,11 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             initialConfig,
           });
 
-          router.push({
-            query: {
-              ...(teamId && { teamId: teamId }),
-              ...(userId && { userId: userId }),
-            },
-          });
+          const newSearchParams = new URLSearchParams();
+          if (teamId) newSearchParams.set("teamId", teamId.toString());
+          if (userId) newSearchParams.set("userId", userId.toString());
+
+          router.push(`${pathname}?${newSearchParams.toString()}`);
         },
       }}>
       {children}

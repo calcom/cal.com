@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -118,6 +118,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
+              data-testid="workflow-name"
               disabled={props.readOnly}
               label={`${t("workflow_name")}:`}
               type="text"
@@ -162,7 +163,12 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} user={props.user} teamId={teamId} readOnly={props.readOnly} />
+              <WorkflowStepContainer
+                form={form}
+                user={props.user}
+                teamId={teamId}
+                readOnly={props.readOnly}
+              />
             </div>
           )}
           {form.getValues("steps") && (
@@ -210,7 +216,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={deleteDialogOpen}
         setIsOpenDialog={setDeleteDialogOpen}
         workflowId={workflowId}
-        additionalFunction={async () => await router.push("/workflows")}
+        additionalFunction={async () => router.push("/workflows")}
       />
     </>
   );

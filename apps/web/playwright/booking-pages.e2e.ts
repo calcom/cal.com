@@ -213,3 +213,43 @@ test.describe("pro user", () => {
     expect(firstSlotAvailableText).toContain("9:00");
   });
 });
+
+test.describe("prefill", () => {
+  test("logged in", async ({ page, users }) => {
+    const prefill = await users.create({ name: "Prefill User" });
+    await prefill.apiLogin();
+    await page.goto("/pro/30min");
+
+    await test.step("from session", async () => {
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await expect(page.locator('[name="name"]')).toHaveValue(prefill.name || "");
+      await expect(page.locator('[name="email"]')).toHaveValue(prefill.email);
+    });
+
+    await test.step("from query params", async () => {
+      const url = new URL(page.url());
+      url.searchParams.set("name", testName);
+      url.searchParams.set("email", testEmail);
+      await page.goto(url.toString());
+
+      await expect(page.locator('[name="name"]')).toHaveValue(testName);
+      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
+    });
+  });
+
+  test("logged out", async ({ page, users }) => {
+    await page.goto("/pro/30min");
+
+    await test.step("from query params", async () => {
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      const url = new URL(page.url());
+      url.searchParams.set("name", testName);
+      url.searchParams.set("email", testEmail);
+      await page.goto(url.toString());
+
+      await expect(page.locator('[name="name"]')).toHaveValue(testName);
+      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
+    });
+  });
+});

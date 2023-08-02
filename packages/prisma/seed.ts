@@ -1,5 +1,6 @@
 import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
+import type z from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
@@ -11,8 +12,12 @@ import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
+import type { teamMetadataSchema } from "./zod-utils";
 
-async function createUserAndEventType(opts: {
+async function createUserAndEventType({
+  user,
+  eventTypes = [],
+}: {
   user: {
     email: string;
     password: string;
@@ -23,20 +28,20 @@ async function createUserAndEventType(opts: {
     role?: UserPermissionRole;
     theme?: "dark" | "light";
   };
-  eventTypes: Array<
-    Prisma.EventTypeCreateInput & {
+  eventTypes?: Array<
+    Prisma.EventTypeUncheckedCreateInput & {
       _bookings?: Prisma.BookingCreateInput[];
     }
   >;
 }) {
   const userData = {
-    ...opts.user,
-    password: await hashPassword(opts.user.password),
+    ...user,
+    password: await hashPassword(user.password),
     emailVerified: new Date(),
-    completedOnboarding: opts.user.completedOnboarding ?? true,
+    completedOnboarding: user.completedOnboarding ?? true,
     locale: "en",
     schedules:
-      opts.user.completedOnboarding ?? true
+      user.completedOnboarding ?? true
         ? {
             create: {
               name: "Working Hours",
@@ -50,20 +55,20 @@ async function createUserAndEventType(opts: {
         : undefined,
   };
 
-  const user = await prisma.user.upsert({
-    where: { email_username: { email: opts.user.email, username: opts.user.username } },
+  const theUser = await prisma.user.upsert({
+    where: { email_username: { email: user.email, username: user.username } },
     update: userData,
     create: userData,
   });
 
   console.log(
-    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${opts.user.username}`
+    `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
-  for (const eventTypeInput of opts.eventTypes) {
+  for (const eventTypeInput of eventTypes) {
     const { _bookings: bookingFields = [], ...eventTypeData } = eventTypeInput;
-    eventTypeData.userId = user.id;
-    eventTypeData.users = { connect: { id: user.id } };
+    eventTypeData.userId = theUser.id;
+    eventTypeData.users = { connect: { id: theUser.id } };
 
     const eventType = await prisma.eventType.findFirst({
       where: {
@@ -98,13 +103,13 @@ async function createUserAndEventType(opts: {
           ...bookingInput,
           user: {
             connect: {
-              email: opts.user.email,
+              email: user.email,
             },
           },
           attendees: {
             create: {
-              email: opts.user.email,
-              name: opts.user.name,
+              email: user.email,
+              name: user.name,
               timeZone: "Europe/London",
             },
           },
@@ -124,15 +129,32 @@ async function createUserAndEventType(opts: {
     }
   }
 
-  return user;
+  return theUser;
 }
 
 async function createTeamAndAddUsers(
   teamInput: Prisma.TeamCreateInput,
-  users: { id: number; username: string; role?: MembershipRole }[]
+  users: { id: number; username: string; role?: MembershipRole }[] = []
 ) {
+  const checkUnpublishedTeam = async (slug: string) => {
+    return await prisma.team.findFirst({
+      where: {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    });
+  };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
+      const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+      if (requestedSlug) {
+        const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
+        if (unpublishedTeam) {
+          throw Error("Unique constraint failed on the fields");
+        }
+      }
       return await prisma.team.create({
         data: {
           ...team,
@@ -168,6 +190,8 @@ async function createTeamAndAddUsers(
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
+
+  return team;
 }
 
 async function main() {
@@ -178,7 +202,6 @@ async function main() {
       username: "delete-me",
       name: "delete-me",
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -189,7 +212,6 @@ async function main() {
       name: "onboarding",
       completedOnboarding: false,
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -279,19 +301,19 @@ async function main() {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
-        locations: [{ type: zoomMeta.appData?.location.type }],
+        locations: [{ type: zoomMeta.appData?.location?.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
-        locations: [{ type: dailyMeta.appData?.location.type }],
+        locations: [{ type: dailyMeta.appData?.location?.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
-        locations: [{ type: googleMeetMeta.appData?.location.type }],
+        locations: [{ type: googleMeetMeta.appData?.location?.type }],
       },
       {
         title: "Yoga class",
@@ -503,7 +525,6 @@ async function main() {
       username: "teamfree",
       name: "Team Free Example",
     },
-    eventTypes: [],
   });
 
   const proUserTeam = await createUserAndEventType({
@@ -513,7 +534,6 @@ async function main() {
       username: "teampro",
       name: "Team Pro Example",
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -525,7 +545,6 @@ async function main() {
       name: "Admin Example",
       role: "ADMIN",
     },
-    eventTypes: [],
   });
 
   const pro2UserTeam = await createUserAndEventType({
@@ -535,7 +554,6 @@ async function main() {
       username: "teampro2",
       name: "Team Pro Example 2",
     },
-    eventTypes: [],
   });
 
   const pro3UserTeam = await createUserAndEventType({
@@ -545,7 +563,6 @@ async function main() {
       username: "teampro3",
       name: "Team Pro Example 3",
     },
-    eventTypes: [],
   });
 
   const pro4UserTeam = await createUserAndEventType({
@@ -555,7 +572,6 @@ async function main() {
       username: "teampro4",
       name: "Team Pro Example 4",
     },
-    eventTypes: [],
   });
 
   await createTeamAndAddUsers(

@@ -1,9 +1,9 @@
 import type { GetServerSidePropsContext } from "next";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import type { AppProps as NextAppProps } from "next/app";
 import React from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppPrisma, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
@@ -15,7 +15,7 @@ type Component = {
   default: React.ComponentType & Pick<AppProps["Component"], "getLayout">;
   getServerSideProps?: (context: GetServerSidePropsContext, ...rest: GetServerSidePropsRestArgs) => void;
 };
-const getComponent = (route: string | NextRouter): Component => {
+const getComponent = (route: string | NextAppProps["router"]): Component => {
   const defaultRoute = "forms";
   const routeKey =
     typeof route === "string" ? route || defaultRoute : route?.query?.pages?.[0] || defaultRoute;
@@ -23,9 +23,9 @@ const getComponent = (route: string | NextRouter): Component => {
 };
 
 export default function LayoutHandler(props: { [key: string]: unknown }) {
+  const params = useParamsWithFallback();
   const methods = useForm();
-  const router = useRouter();
-  const pageKey = router?.query?.pages?.[0] || "forms";
+  const pageKey = params?.pages?.[0] || "forms";
   const PageComponent = getComponent(pageKey).default;
   return (
     <FormProvider {...methods}>
@@ -34,7 +34,7 @@ export default function LayoutHandler(props: { [key: string]: unknown }) {
   );
 }
 
-LayoutHandler.getLayout = (page: React.ReactElement, router: NextRouter) => {
+LayoutHandler.getLayout = (page: React.ReactElement, router: NextAppProps["router"]) => {
   const component = getComponent(router).default;
   if (component && "getLayout" in component) {
     return component.getLayout?.(page, router);

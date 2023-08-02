@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
 } from "@calcom/ui";
 
-import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
 import type { Action } from "./UserListTable";
 import type { User } from "./UserListTable";
 
@@ -34,7 +33,6 @@ export function TableActions({
   };
 }) {
   const { t } = useLocale();
-  const orgBranding = useOrgBrandingValues();
 
   const usersProfileUrl = domain + "/" + user.username;
 

@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
@@ -74,7 +75,7 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
-    const appCredentials = getApps(user.credentials).flatMap((app) =>
+    const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
@@ -94,7 +95,22 @@ export default class EventManager {
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     // Fallback to cal video if no location is set
-    if (!evt.location) evt["location"] = "integrations:daily";
+    if (!evt.location) {
+      // See if cal video is enabled & has keys
+      const calVideo = await prisma.app.findFirst({
+        where: {
+          slug: "daily-video",
+        },
+        select: {
+          keys: true,
+          enabled: true,
+        },
+      });
+
+      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+
+      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+    }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
@@ -380,13 +396,15 @@ export default class EventManager {
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
 
-    let videoCredential = this.videoCredentials
-      // Whenever a new video connection is added, latest credentials are added with the highest ID.
-      // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
-      .sort((a, b) => {
-        return b.id - a.id;
-      })
-      .find((credential: CredentialPayload) => credential.type.includes(integrationName));
+    let videoCredential = event.conferenceCredentialId
+      ? this.videoCredentials.find((credential) => credential.id === event.conferenceCredentialId)
+      : this.videoCredentials
+          // Whenever a new video connection is added, latest credentials are added with the highest ID.
+          // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
+          .sort((a, b) => {
+            return b.id - a.id;
+          })
+          .find((credential: CredentialPayload) => credential.type.includes(integrationName));
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
