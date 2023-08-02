@@ -213,7 +213,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker />
+                      <DatePicker rescheduleUid={rescheduleUid} />
                     </div>
                   )}
               </BookerSection>
@@ -242,7 +242,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker />
+              <DatePicker rescheduleUid={rescheduleUid} />
             </BookerSection>
 
             <BookerSection
@@ -251,7 +251,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} />
+              <LargeCalendar extraDays={extraDays} rescheduleUid={rescheduleUid} />
             </BookerSection>
 
             <BookerSection

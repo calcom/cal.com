@@ -8,13 +8,14 @@ import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+export const LargeCalendar = ({ extraDays, rescheduleUid }: { extraDays: number; rescheduleUid: string }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+    rescheduleUid,
   });
   const { timezone } = useTimePreferences();
 
