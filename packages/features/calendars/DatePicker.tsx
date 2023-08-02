@@ -238,7 +238,7 @@ const DatePicker = ({
           )}
         </span>
         <div className="text-emphasis">
-          <div className="flex">
+          <div className="flex rtl:flex-row-reverse">
             <Button
               className={classNames(
                 "group p-1 opacity-70 hover:opacity-100",

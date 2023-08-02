@@ -408,11 +408,11 @@ export default function Success(props: SuccessProps) {
                         <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                       </>
                     )}
-                    <div className="font-medium">{t("what")}</div>
+                    <div className="font-medium rtl:ml-24">{t("what")}</div>
                     <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
                       {eventName}
                     </div>
-                    <div className="font-medium">{t("when")}</div>
+                    <div className="font-medium rtl:ml-24">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
                         <p className="line-through">
@@ -441,7 +441,7 @@ export default function Success(props: SuccessProps) {
                     </div>
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
                       <>
-                        <div className="font-medium">{t("who")}</div>
+                        <div className="font-medium rtl:ml-24">{t("who")}</div>
                         <div className="col-span-2 last:mb-0">
                           {bookingInfo?.user && (
                             <div className="mb-3">
@@ -467,7 +467,7 @@ export default function Success(props: SuccessProps) {
                     )}
                     {locationToDisplay && !isCancelled && (
                       <>
-                        <div className="mt-3 font-medium">{t("where")}</div>
+                        <div className="mt-3 font-medium rtl:ml-24">{t("where")}</div>
                         <div className="col-span-2 mt-3">
                           {locationToDisplay.startsWith("http") ? (
                             <a
@@ -487,7 +487,7 @@ export default function Success(props: SuccessProps) {
                     )}
                     {bookingInfo?.description && (
                       <>
-                        <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                        <div className="mt-9 font-medium rtl:ml-12">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
                           <p className="break-words">{bookingInfo.description}</p>
                         </div>
@@ -720,7 +720,7 @@ export default function Success(props: SuccessProps) {
               </div>
               {isGmail && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block text-left sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>
