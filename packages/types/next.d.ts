@@ -22,3 +22,10 @@ export declare module "next" {
     pagination: { take: number; skip: number };
   }
 }
+
+export declare module "next/navigation" {
+  interface Params {
+    [key: string]: string;
+  }
+  export declare function useParams(): Params | null;
+}

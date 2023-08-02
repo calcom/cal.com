@@ -97,7 +97,7 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -133,7 +133,7 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, ...evType } =
+      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId,requiresBookerEmailVerification, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -218,7 +218,7 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -255,7 +255,7 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId, ...evType } =
+      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId,requiresBookerEmailVerification, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -303,6 +303,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone: _timeZone,
         parentId: _parentId,
         userId: _userId,
+        requiresBookerEmailVerification,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
