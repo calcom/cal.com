@@ -12,7 +12,6 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeSlot?: number | null;
-  rescheduleUid?: string | null;
 };
 
 /**
@@ -22,12 +21,7 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({
-  extraDays,
-  limitHeight,
-  seatsPerTimeSlot,
-  rescheduleUid,
-}: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
@@ -60,9 +54,7 @@ export const AvailableTimeSlots = ({
 
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
-    rescheduleUid,
   });
-
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
   const dates = useMemo(

@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-export const DatePicker = ({ rescheduleUid }: { rescheduleUid?: string | null }) => {
+export const DatePicker = () => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth] = useBookerStore(
@@ -18,7 +18,7 @@ export const DatePicker = ({ rescheduleUid }: { rescheduleUid?: string | null })
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ rescheduleUid });
+  const schedule = useScheduleForEvent();
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   return (
