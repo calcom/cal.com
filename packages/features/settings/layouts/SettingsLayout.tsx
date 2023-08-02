@@ -232,7 +232,7 @@ const SettingsSidebarContainer = ({
     if (otherTeams) {
       const otherTeamStates = otherTeams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === router.query.id,
+        teamMenuOpen: String(team.id) === searchParams?.get("id"),
       }));
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
@@ -243,7 +243,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [router.query.id, otherTeams]);
+  }, [searchParams?.get("id"), otherTeams]);
 
   if (currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role)) {
     const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
