@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText, Avatar } from "@calcom/ui";
@@ -96,7 +97,7 @@ export default function AppListCard(props: AppListCardProps) {
                   className="mr-2"
                   alt={credentialOwner.name || "Nameless"}
                   size="xs"
-                  imageSrc={credentialOwner.avatar}
+                  imageSrc={getPlaceholderAvatar(credentialOwner.avatar, credentialOwner?.name as string)}
                 />
                 {credentialOwner.name}
               </div>
