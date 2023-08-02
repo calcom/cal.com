@@ -86,28 +86,49 @@ export const scheduleSMSReminder = async (
   }
   const isNumberVerified = await getIsNumberVerified();
 
+  let attendeeToBeUsedInSms: {
+    name: string;
+    email: string;
+    timeZone: string;
+    language: {
+      locale: string;
+    };
+  } | null = null;
+  if (action === WorkflowActions.SMS_ATTENDEE) {
+    const attendeeWithReminderPhoneAsSmsReminderNumber =
+      reminderPhone &&
+      evt.responses?.smsReminderNumber?.value === reminderPhone &&
+      evt.attendees.find((attendee) => attendee.email === evt.responses?.email?.value);
+    attendeeToBeUsedInSms = attendeeWithReminderPhoneAsSmsReminderNumber
+      ? attendeeWithReminderPhoneAsSmsReminderNumber
+      : evt.attendees[0];
+  } else {
+    attendeeToBeUsedInSms = evt.attendees[0];
+  }
+
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
-  const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+  const name = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSms.name : "";
+  const attendeeName =
+    action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : attendeeToBeUsedInSms.name;
   const timeZone =
-    action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+    action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSms.timeZone : evt.organizer.timeZone;
 
   const locale =
     action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-      ? evt.attendees[0].language?.locale
+      ? attendeeToBeUsedInSms.language?.locale
       : evt.organizer.language.locale;
 
   if (message) {
     const variables: VariablesType = {
       eventName: evt.title,
       organizerName: evt.organizer.name,
-      attendeeName: evt.attendees[0].name,
-      attendeeEmail: evt.attendees[0].email,
+      attendeeName: attendeeToBeUsedInSms.name,
+      attendeeEmail: attendeeToBeUsedInSms.email,
       eventDate: dayjs(evt.startTime).tz(timeZone),
       eventEndTime: dayjs(evt.endTime).tz(timeZone),
       timeZone: timeZone,
