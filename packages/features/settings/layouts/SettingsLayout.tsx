@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
@@ -10,26 +10,25 @@ import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { IdentityProvider } from "@calcom/prisma/enums";
-import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
-  User,
-  Key,
-  CreditCard,
-  Terminal,
-  Users,
-  Loader,
-  Lock,
   ArrowLeft,
+  Building,
   ChevronDown,
   ChevronRight,
-  Plus,
+  CreditCard,
+  Key,
+  Loader,
+  Lock,
   Menu,
-  Building,
+  Plus,
+  Terminal,
+  User,
+  Users,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -193,20 +192,23 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
 }: SettingsSidebarContainerProps) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const session = useSession();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.organizationId,
+  });
 
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === router.query.id,
+        teamMenuOpen: String(team.id) === searchParams?.get("id"),
       }));
       setTeamMenuState(teamStates);
       setTimeout(() => {
@@ -216,7 +218,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [router.query.id, teams]);
+  }, [searchParams?.get("id"), teams]);
 
   return (
     <nav
@@ -363,11 +365,11 @@ const SettingsSidebarContainer = ({
                               <>
                                 {/* TODO */}
                                 {/* <VerticalTabItem
-                              name={t("general")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              disableChevron
-                            /> */}
+                                  name={t("general")}
+                                  href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                /> */}
                                 <VerticalTabItem
                                   name={t("appearance")}
                                   href={`/settings/teams/${team.id}/appearance`}
@@ -445,7 +447,7 @@ export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const router = useRouter();
+  const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -467,7 +469,7 @@ export default function SettingsLayout({
     if (sideContainerOpen) {
       setSideContainerOpen(!sideContainerOpen);
     }
-  }, [router.asPath]);
+  }, [pathname]);
 
   return (
     <Shell

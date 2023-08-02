@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -225,7 +225,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={deleteDialogOpen}
         setIsOpenDialog={setDeleteDialogOpen}
         workflowId={workflowId}
-        additionalFunction={async () => await router.push("/workflows")}
+        additionalFunction={async () => router.push("/workflows")}
       />
     </>
   );

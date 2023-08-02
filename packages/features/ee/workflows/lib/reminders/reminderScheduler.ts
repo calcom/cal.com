@@ -2,13 +2,12 @@ import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/clie
 
 import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { scheduleEmailReminder, deleteScheduledEmailReminder } from "./emailReminderManager";
-import { scheduleSMSReminder, deleteScheduledSMSReminder } from "./smsReminderManager";
-import { scheduleWhatsappReminder, deleteScheduledWhatsappReminder } from "./whatsappReminderManager";
+import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
+import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
@@ -20,6 +19,7 @@ type ProcessWorkflowStepParams = {
   calendarEvent: ExtendedCalendarEvent;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
+  seatReferenceUid?: string;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
@@ -42,6 +42,7 @@ const processWorkflowStep = async (
     calendarEvent: evt,
     emailAttendeeSendToOverride,
     hideBranding,
+    seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
@@ -61,7 +62,8 @@ const processWorkflowStep = async (
       step.sender || SENDER_ID,
       workflow.userId,
       workflow.teamId,
-      step.numberVerificationPending
+      step.numberVerificationPending,
+      seatReferenceUid
     );
   } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
     let sendTo: string[] = [];
@@ -94,7 +96,8 @@ const processWorkflowStep = async (
       step.id,
       step.template,
       step.sender || SENDER_NAME,
-      hideBranding
+      hideBranding,
+      seatReferenceUid
     );
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -112,7 +115,8 @@ const processWorkflowStep = async (
       step.template,
       workflow.userId,
       workflow.teamId,
-      step.numberVerificationPending
+      step.numberVerificationPending,
+      seatReferenceUid
     );
   }
 };
@@ -127,6 +131,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     isFirstRecurringEvent = false,
     emailAttendeeSendToOverride = "",
     hideBranding,
+    seatReferenceUid,
     eventTypeRequiresConfirmation = false,
   } = args;
   if (isNotConfirmed || !workflows.length) return;
@@ -165,6 +170,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         emailAttendeeSendToOverride,
         smsReminderNumber,
         hideBranding,
+        seatReferenceUid,
       });
     }
   }
@@ -199,7 +205,6 @@ export interface SendCancelledRemindersArgs {
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   const { workflows, smsReminderNumber, evt, hideBranding } = args;
-
   if (!workflows.length) return;
 
   for (const workflowRef of workflows) {

@@ -60,7 +60,8 @@ export const scheduleSMSReminder = async (
   sender: string,
   userId?: number | null,
   teamId?: number | null,
-  isVerificationPending = false
+  isVerificationPending = false,
+  seatReferenceUid?: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -174,6 +175,7 @@ export const scheduleSMSReminder = async (
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledSMS.sid,
+              seatReferenceId: seatReferenceUid,
             },
           });
         } catch (error) {
@@ -188,6 +190,7 @@ export const scheduleSMSReminder = async (
             method: WorkflowMethods.SMS,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
+            seatReferenceId: seatReferenceUid,
           },
         });
       }
@@ -200,6 +203,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
     if (referenceId) {
       await twilio.cancelSMS(referenceId);
     }
+
     await prisma.workflowReminder.delete({
       where: {
         id: reminderId,

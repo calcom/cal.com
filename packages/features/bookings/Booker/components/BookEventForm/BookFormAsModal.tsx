@@ -15,7 +15,7 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const { data } = useEvent();
   const parsedSelectedTimeslot = dayjs(selectedTimeslot);
-  const { timeFormat ,timezone} = useTimePreferences();
+  const { timeFormat, timezone } = useTimePreferences();
 
   return (
     <Dialog open={visible} onOpenChange={onCancel}>

@@ -2,10 +2,9 @@ import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
-import type { Dispatch, ReactNode, SetStateAction, ReactElement } from "react";
-import React, { Fragment, useEffect, useState, useRef, useMemo, cloneElement } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -36,6 +35,7 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
+  ButtonOrLink,
   Credits,
   Dropdown,
   DropdownItem,
@@ -47,18 +47,19 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  showToast,
   SkeletonText,
   Tooltip,
-  showToast,
   useCalcomTheme,
-  ButtonOrLink,
 } from "@calcom/ui";
 import {
   ArrowLeft,
   ArrowRight,
   BarChart,
   Calendar,
+  ChevronDown,
   Clock,
+  Copy,
   Download,
   ExternalLink,
   FileText,
@@ -69,18 +70,15 @@ import {
   Map,
   Moon,
   MoreHorizontal,
-  ChevronDown,
-  Copy,
   Settings,
+  User as UserIcon,
   Users,
   Zap,
-  User as UserIcon,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -120,12 +118,9 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
     }
 
     if (!loading && !session) {
-      router.replace({
-        pathname: "/auth/login",
-        query: {
-          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
-        },
-      });
+      const urlSearchParams = new URLSearchParams();
+      urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
@@ -161,7 +156,6 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
 
   return (
     <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-      <NProgressNextRouter router={router} />
       <TeamsUpgradeBanner />
       <OrgUpgradeBanner />
       <ImpersonatingBanner />
@@ -185,9 +179,7 @@ function useRedirectToOnboardingIfNeeded() {
 
   useEffect(() => {
     if (isRedirectingToOnboarding && !needsEmailVerification) {
-      router.replace({
-        pathname: "/getting-started",
-      });
+      router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRedirectingToOnboarding, needsEmailVerification]);
@@ -513,11 +505,11 @@ export type NavigationItemType = {
   isCurrent?: ({
     item,
     isChild,
-    router,
+    pathname,
   }: {
     item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
-    router: NextRouter;
+    pathname: string;
   }) => boolean;
 };
 
@@ -535,10 +527,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ router }) => {
-      const path = router.asPath.split("?")[0];
-      return path.startsWith("/bookings");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
   },
   {
     name: "availability",
@@ -556,30 +545,27 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Grid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
+    isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
+      return path?.startsWith(item.href) || path?.startsWith("/v2" + item.href);
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
+        isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("/installed")
+            (path?.startsWith(item.href) || path?.startsWith("/v2" + item.href)) &&
+            !path.includes("/installed")
           );
         },
       },
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
-        },
+        isCurrent: ({ pathname: path }) =>
+          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
       },
     ],
   },
@@ -592,9 +578,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/routing-forms/");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing-forms/"),
   },
   {
     name: "workflows",
@@ -647,8 +631,8 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return true;
 }
 
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
-  return isChild ? item.href === router.asPath : item.href ? router.asPath.startsWith(item.href) : false;
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) : false;
 };
 
 const NavigationItem: React.FC<{
@@ -658,9 +642,9 @@ const NavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
+  const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -699,7 +683,7 @@ const NavigationItem: React.FC<{
         </Link>
       </Tooltip>
       {item.child &&
-        isCurrent({ router, isChild, item }) &&
+        isCurrent({ pathname, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -736,10 +720,10 @@ const MobileNavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const router = useRouter();
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
