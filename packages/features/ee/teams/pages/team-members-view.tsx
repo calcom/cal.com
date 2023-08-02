@@ -1,12 +1,13 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Meta, TextField, showToast } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Button, Meta, showToast, TextField } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -64,16 +65,18 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
   const session = useSession();
 
   const utils = trpc.useContext();
+  const params = useParamsWithFallback();
 
-  const teamId = Number(router.query.id);
+  const teamId = Number(params.id);
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
@@ -84,7 +87,7 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: router.isReady,
+        enabled: searchParams !== null,
       }
     );
 

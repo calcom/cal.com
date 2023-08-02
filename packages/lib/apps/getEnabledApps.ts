@@ -1,5 +1,5 @@
 import getApps from "@calcom/app-store/utils";
-import type { CredentialData } from "@calcom/app-store/utils";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
 import type { Prisma } from ".prisma/client";
@@ -10,7 +10,7 @@ import type { Prisma } from ".prisma/client";
  * @param filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
-const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials?: boolean) => {
+const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) => {
   const filterOnIds = {
     credentials: {
       some: {
@@ -33,7 +33,8 @@ const getEnabledApps = async (credentials: CredentialData[], filterOnCredentials
 
   const enabledApps = await prisma.app.findMany({
     where: {
-      OR: [{ enabled: true, ...(filterOnIds.credentials.some.OR.length && filterOnIds) }],
+      enabled: true,
+      ...(filterOnIds.credentials.some.OR.length && filterOnIds),
     },
     select: { slug: true, enabled: true },
   });

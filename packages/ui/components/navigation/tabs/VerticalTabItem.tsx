@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { ChevronRight, ExternalLink } from "../../icon";
@@ -39,8 +39,8 @@ const VerticalTabItem = ({
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
-  const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href);
+
   return (
     <Fragment key={name}>
       {!props.hidden && (

@@ -1,20 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "./Dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "./Dialog";
 
-vi.mock("next/router", () => ({
+vi.mock("next/navigation", () => ({
+  usePathname() {
+    return "";
+  },
+  useSearchParams() {
+    return new URLSearchParams();
+  },
   useRouter() {
     return {
-      route: "/",
-      pathname: "",
-      query: "",
-      asPath: "",
       push: vi.fn(),
-      events: {
-        on: vi.fn(),
-        off: vi.fn(),
-      },
       beforePopState: vi.fn(() => null),
       prefetch: vi.fn(() => null),
     };
