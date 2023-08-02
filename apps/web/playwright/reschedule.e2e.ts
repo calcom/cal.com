@@ -256,7 +256,7 @@ test.describe("Reschedule Tests", async () => {
     await page.goto(`/reschedule/${booking.uid}`);
 
     //book same slot again
-    page.getByRole("button", { name: dayjs(startTime).format("D") }).click();
+    page.getByRole("button", { name: dayjs(startTime).format("D"), exact: true }).click();
 
     page.getByRole("button", { name: dayjs(startTime).format("h:mmA") }).click();
 
