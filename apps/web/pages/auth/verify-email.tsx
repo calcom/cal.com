@@ -1,6 +1,6 @@
 import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";

@@ -2,8 +2,7 @@ import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -13,7 +12,7 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
-import { useInitializeBookerStore, useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
@@ -21,30 +20,29 @@ import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { CAL_URL } from "@calcom/lib/constants";
-import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { TimezoneSelect } from "@calcom/ui";
 import {
   Button,
+  ColorPicker,
   Dialog,
   DialogClose,
-  DialogFooter,
   DialogContent,
+  DialogFooter,
   HorizontalTabs,
   Label,
+  Select,
   showToast,
   Switch,
   TextArea,
   TextField,
-  ColorPicker,
-  Select,
+  TimezoneSelect,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowLeft, ArrowUp, Code, Sun, Trello } from "@calcom/ui/components/icon";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
@@ -87,25 +85,31 @@ const getDimension = (dimension: string) => {
   return dimension;
 };
 
-const goto = (router: NextRouter, searchParams: Record<string, string>) => {
-  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
-  Object.keys(searchParams).forEach((key) => {
-    newQuery.set(key, searchParams[key]);
-  });
-  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
-    shallow: true,
-  });
-};
+function useRouterHelpers() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
-  const params = new URLSearchParams(window.location.search);
+  const goto = (newSearchParams: Record<string, string>) => {
+    const newQuery = new URLSearchParams(searchParams);
+    Object.keys(newSearchParams).forEach((key) => {
+      newQuery.set(key, newSearchParams[key]);
+    });
+    router.push(`${pathname}?${newQuery.toString()}`);
+  };
 
-  queryParams.forEach((param) => {
-    params.delete(param);
-  });
+  const removeQueryParams = (queryParams: string[]) => {
+    const params = new URLSearchParams(searchParams);
 
-  router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
-};
+    queryParams.forEach((param) => {
+      params.delete(param);
+    });
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  return { goto, removeQueryParams };
+}
 
 const getQueryParam = (queryParam: string) => {
   const params = new URLSearchParams(window.location.search);
@@ -325,6 +329,8 @@ ${uiInstructionCode}`;
   },
 };
 
+type EmbedCommonProps = { embedType: EmbedType; calLink: string; previewState: PreviewState };
+
 const getEmbedTypeSpecificString = ({
   embedFramework,
   embedType,
@@ -332,10 +338,7 @@ const getEmbedTypeSpecificString = ({
   previewState,
 }: {
   embedFramework: EmbedFramework;
-  embedType: EmbedType;
-  calLink: string;
-  previewState: PreviewState;
-}) => {
+} & EmbedCommonProps) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
@@ -823,77 +826,74 @@ const tabs = [
     href: "embedTabName=embed-code",
     icon: Code,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
-      const { t } = useLocale();
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
-        return null;
-      }
-      return (
-        <>
-          <div>
-            <small className="text-subtle flex py-4">
-              {t("place_where_cal_widget_appear", { appName: APP_NAME })}
-            </small>
-          </div>
-          <TextArea
-            data-testid="embed-code"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-code"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
-            style={{ resize: "none", overflow: "auto" }}
-            readOnly
-            value={
-              `<!-- Cal ${embedType} embed code begins -->\n` +
-              (embedType === "inline"
-                ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
-                    previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline"></div>\n`
-                : "") +
-              `<script type="text/javascript">
+    Component: forwardRef<HTMLTextAreaElement | HTMLIFrameElement | null, EmbedCommonProps>(
+      function EmbedHtml({ embedType, calLink, previewState }, ref) {
+        const { t } = useLocale();
+        if (ref instanceof Function || !ref) {
+          return null;
+        }
+        if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+          return null;
+        }
+        return (
+          <>
+            <div>
+              <small className="text-subtle flex py-4">
+                {t("place_where_cal_widget_appear", { appName: APP_NAME })}
+              </small>
+            </div>
+            <TextArea
+              data-testid="embed-code"
+              ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+              name="embed-code"
+              className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+              style={{ resize: "none", overflow: "auto" }}
+              readOnly
+              value={
+                `<!-- Cal ${embedType} embed code begins -->\n` +
+                (embedType === "inline"
+                  ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
+                      previewState.inline.height
+                    )};overflow:scroll" id="my-cal-inline"></div>\n`
+                  : "") +
+                `<script type="text/javascript">
 ${getEmbedSnippetString()}
 ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
 </script>
 <!-- Cal ${embedType} embed code ends -->`
-            }
-          />
-          <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
-        </>
-      );
-    }),
+              }
+            />
+            <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
+          </>
+        );
+      }
+    ),
   },
   {
     name: "React",
     href: "embedTabName=embed-react",
     icon: Code,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
-      const { t } = useLocale();
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
-        return null;
-      }
-      return (
-        <>
-          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
-          <TextArea
-            data-testid="embed-react"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-react"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
-            readOnly
-            style={{ resize: "none", overflow: "auto" }}
-            value={`/* First make sure that you have installed the package */
+    Component: forwardRef<HTMLTextAreaElement | HTMLIFrameElement | null, EmbedCommonProps>(
+      function EmbedReact({ embedType, calLink, previewState }, ref) {
+        const { t } = useLocale();
+        if (ref instanceof Function || !ref) {
+          return null;
+        }
+        if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+          return null;
+        }
+        return (
+          <>
+            <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
+            <TextArea
+              data-testid="embed-react"
+              ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+              name="embed-react"
+              className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+              readOnly
+              style={{ resize: "none", overflow: "auto" }}
+              value={`/* First make sure that you have installed the package */
 
 /* If you are using yarn */
 // yarn add @calcom/embed-react
@@ -902,20 +902,21 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 // npm install @calcom/embed-react
 ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
 `}
-          />
-        </>
-      );
-    }),
+            />
+          </>
+        );
+      }
+    ),
   },
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
     icon: Trello,
     type: "iframe",
-    Component: forwardRef<
-      HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
-    >(function Preview({ calLink, embedType }, ref) {
+    Component: forwardRef<HTMLIFrameElement | HTMLTextAreaElement | null, EmbedCommonProps>(function Preview(
+      { calLink, embedType },
+      ref
+    ) {
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -943,7 +944,16 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 `;
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<
+  {
+    value: Theme;
+    label: string;
+  },
+  false
+>) => {
   return (
     <components.Control {...props}>
       <Sun className="text-subtle mr-2 h-4 w-4" />
@@ -954,8 +964,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
-  const router = useRouter();
-
+  const { goto } = useRouterHelpers();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -973,7 +982,7 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              goto(router, {
+              goto({
                 embedType: embed.type,
               });
             }}>
@@ -1375,8 +1384,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType: EmbedType;
   embedUrl: string;
 }) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t } = useLocale();
-  const router = useRouter();
+  const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
@@ -1395,10 +1406,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   const s = (href: string) => {
-    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
+    const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
-    searchParams.set(a, b);
-    return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
+    _searchParams.set(a, b);
+    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -1429,12 +1440,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   });
 
   const close = () => {
-    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
+    removeQueryParams(["dialog", ...queryParamsForDialog]);
   };
 
   // Use embed-code as default tab
-  if (!router.query.embedTabName) {
-    goto(router, {
+  if (!searchParams?.get("embedTabName")) {
+    goto({
       embedTabName: "embed-code",
     });
   }
@@ -1568,7 +1579,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <button
               className="h-6 w-6"
               onClick={() => {
-                removeQueryParams(router, ["embedType", "embedTabName"]);
+                removeQueryParams(["embedType", "embedTabName"]);
               }}>
               <ArrowLeft className="mr-4 w-4" />
             </button>
@@ -1865,7 +1876,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 <div
                   key={tab.href}
                   className={classNames(
-                    router.query.embedTabName === tab.href.split("=")[1]
+                    searchParams?.get("embedTabName") === tab.href.split("=")[1]
                       ? "flex flex-grow flex-col"
                       : "hidden"
                   )}>
@@ -1886,7 +1897,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     )}
                   </div>
-                  <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                  <div
+                    className={
+                      searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                    }
+                  />
                   <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                     <DialogClose />
                     {tab.type === "code" ? (
@@ -1925,7 +1940,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     }
                   />
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <div
+                  className={searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"}
+                />
                 <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                   <DialogClose />
                   <Button
@@ -1945,15 +1962,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 };
 
 export const EmbedDialog = () => {
-  const router = useRouter();
-  const embedUrl: string = router.query.embedUrl as string;
+  const searchParams = useSearchParams();
+  const embedUrl = searchParams?.get("embedUrl") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
-      {!router.query.embedType ? (
+      {!searchParams?.get("embedType") ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          embedType={router.query.embedType as EmbedType}
+          embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
         />
       )}
@@ -1976,10 +1993,10 @@ export const EmbedButton = <T extends React.ElementType>({
   eventId,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
-  const router = useRouter();
+  const { goto } = useRouterHelpers();
   className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
-    goto(router, {
+    goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
       embedUrl,
