@@ -20,16 +20,12 @@ export const DatePicker = () => {
   const event = useEvent();
   const schedule = useScheduleForEvent();
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  
+
   return (
     <DatePickerComponent
       isLoading={schedule.isLoading}
-      onChange={(date: Dayjs) => {
-        setSelectedDate(date.format("YYYY-MM-DD"));
-      }}
-      onMonthChange={(date: Dayjs) => {
-        setMonth(date.format("YYYY-MM"));
-      }}
+      onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : date)}
+      onMonthChange={(date) => setMonth(date.format("YYYY-MM"))}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}

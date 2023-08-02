@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -13,11 +15,12 @@ import { Button, SkeletonText } from "@calcom/ui";
 import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
+
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Dayjs) => void;
+  onChange: (date: Dayjs | null) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date is currently selected (not tracked from here) */
@@ -137,27 +140,39 @@ const Days = ({
 
   const includedDates = currentDate.isSame(browsingDate, "month")
     ? availableDates(props.includedDates)
-    : props?.includedDates
-    ? props.includedDates
-    : [];
-
-  useEffect(() => {
-    if (selected && selected.date()) {
-      if (selected.format("YYYY-MM") === browsingDate.format("YYYY-MM")) return;
-      includedDates.some((date) => {
-        if (!excludedDates.includes(date)) {
-          props.onChange(dayjs(date));
-          return true;
-        }
-      });
-    }
-  });
+    : props.includedDates;
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
     const date = browsingDate.set("date", day);
     days.push(date);
   }
+
+  const daysToRender = days.map((day) => {
+    if (!day) return { day: null, disabled: true };
+    return {
+      day: day,
+      disabled:
+        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+    };
+  });
+
+  const firstAvailableDate = daysToRender.find((day) => !day.disabled)?.day;
+
+  const doesMonthContainAvailableDates = firstAvailableDate ? true : false;
+
+  const isSelectedDateAvailable =
+    selected && doesMonthContainAvailableDates
+      ? daysToRender.some(({ day, disabled }) => {
+          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+        })
+      : false;
+
+  useEffect(() => {
+    if (!selected || !selected.date() || props.isLoading) return;
+    else if (!doesMonthContainAvailableDates) props.onChange(null);
+    else if (!isSelectedDateAvailable && firstAvailableDate) props.onChange(firstAvailableDate);
+  });
 
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
@@ -183,7 +198,7 @@ const Days = ({
 
   return (
     <>
-      {days.map((day, idx) => (
+      {daysToRender.map(({ day, disabled }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -200,10 +215,7 @@ const Days = ({
               onClick={() => {
                 props.onChange(day);
               }}
-              disabled={
-                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
-                excludedDates.includes(yyyymmdd(day))
-              }
+              disabled={disabled}
               active={isActive(day)}
             />
           )}

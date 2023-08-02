@@ -144,7 +144,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("date", selectedDate ?? "");
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
-    if (newSelection.month() !== currentSelection.month()) {
+    // If selectedDate is null, prevents setting month to Invalid-Date
+    if (selectedDate && newSelection.month() !== currentSelection.month() ) {
       set({ month: newSelection.format("YYYY-MM") });
       updateQueryParam("month", newSelection.format("YYYY-MM"));
     }

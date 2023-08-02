@@ -116,9 +116,7 @@ const DateOverrideForm = ({
           weekStart={0}
           selected={date}
           onChange={(day) => setDate(day)}
-          onMonthChange={(newMonth) => {
-            setBrowsingDate(newMonth);
-          }}
+          onMonthChange={(newMonth) => setBrowsingDate(newMonth)}
           browsingDate={browsingDate}
           locale={isLocaleReady ? i18n.language : "en"}
         />

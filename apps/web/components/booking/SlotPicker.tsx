@@ -167,12 +167,8 @@ export const SlotPicker = ({
         includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
-        onChange={(newDate) => {
-          setDate(newDate.format("YYYY-MM-DD"));
-        }}
-        onMonthChange={(newMonth) => {
-          setMonth(newMonth.format("YYYY-MM"));
-        }}
+        onChange={(newDate) => setDate(newDate ? newDate.format("YYYY-MM-DD") : newDate)}
+        onMonthChange={(newMonth) => setMonth(newMonth.format("YYYY-MM"))}
         browsingDate={browsingDate}
         weekStart={weekStart}
       />
