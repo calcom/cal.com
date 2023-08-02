@@ -1,6 +1,6 @@
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
@@ -177,20 +177,35 @@ function isValidNamespace(ns: string | null | undefined) {
   return typeof ns !== "undefined" && ns !== null;
 }
 
+/**
+ * It handles any URL change done through Web history API as well
+ * History API is currenty being used by Booker/utils/query-param
+ */
+const useUrlChange = (callback: (newUrl: string) => void) => {
+  const currentFullUrl = isBrowser ? new URL(document.URL) : null;
+  const pathname = currentFullUrl?.pathname ?? "";
+  const searchParams = currentFullUrl?.searchParams ?? null;
+  const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
+  useEffect(() => {
+    const newUrl = `${pathname}?${searchParams}`;
+    if (lastKnownUrl.current !== newUrl) {
+      lastKnownUrl.current = newUrl;
+      callback(newUrl);
+    }
+  }, [pathname, searchParams, callback]);
+};
+
 export const useEmbedTheme = () => {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const url = useRef(`${pathname}?${searchParams}`);
   const [theme, setTheme] = useState(
     embedStore.theme || (searchParams?.get("theme") as typeof embedStore.theme)
   );
-  useEffect(() => {
-    const newUrl = `${pathname}?${searchParams}`;
-    if (url.current !== newUrl) {
-      url.current = newUrl;
-      sdkActionManager?.fire("__routeChanged", {});
-    }
-  }, [pathname, searchParams]);
+
+  const onUrlChange = useCallback(() => {
+    sdkActionManager?.fire("__routeChanged", {});
+  }, []);
+  useUrlChange(onUrlChange);
+
   embedStore.setTheme = setTheme;
   return theme;
 };
