@@ -42,7 +42,6 @@ const getEventType = async (id: number) => {
       bookingLimits: true,
       durationLimits: true,
       timeZone: true,
-      length: true,
       metadata: true,
       schedule: {
         select: {
@@ -166,9 +165,8 @@ export async function getUserAvailability(
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
-    // needed to correctly apply limits (weeks can be part of two months)
-    startTime: dateFrom.startOf("week").toISOString(),
-    endTime: dateTo.endOf("week").toISOString(),
+    startTime: dateFrom.toISOString(),
+    endTime: dateTo.toISOString(),
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
@@ -376,7 +374,7 @@ const getBusyTimesFromDurationLimits = async (
 
     // loop through all dates and check if we have reached the limit
     for (const date of dates) {
-      let total = (duration || eventType?.length) ?? 0;
+      let total = duration ?? 0;
       const startDate = date.startOf(filter);
       const endDate = date.endOf(filter);
 
