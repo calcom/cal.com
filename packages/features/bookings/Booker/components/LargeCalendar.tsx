@@ -8,7 +8,13 @@ import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-export const LargeCalendar = ({ extraDays, rescheduleUid }: { extraDays: number; rescheduleUid: string }) => {
+export const LargeCalendar = ({
+  extraDays,
+  rescheduleUid,
+}: {
+  extraDays: number;
+  rescheduleUid: string | null;
+}) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
