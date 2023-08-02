@@ -7,6 +7,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -24,14 +25,29 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-const signupSchema = z.object({
+export const apiSignupSchema = z.object({
   username: z.string().refine((value) => !value.includes("+"), {
     message: "String should not contain a plus symbol (+).",
   }),
   email: z.string().email(),
-  password: z.string().min(7),
+  password: z.string().superRefine((data, ctx) => {
+    const isStrict = false;
+    const result = isPasswordValid(data, true, isStrict);
+    Object.keys(result).map((key: string) => {
+      if (!result[key as keyof typeof result]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: key,
+        });
+      }
+    });
+  }),
   language: z.string().optional(),
   token: z.string().optional(),
+});
+
+const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
 
@@ -45,6 +61,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const flags = useFlagMap();
   const telemetry = useTelemetry();
   const methods = useForm<FormValues>({
+    mode: "onChange",
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
