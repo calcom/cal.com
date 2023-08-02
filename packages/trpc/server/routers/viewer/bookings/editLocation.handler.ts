@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +22,7 @@ type EditLocationOptions = {
 };
 
 export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
-  const { bookingId, newLocation: location } = input;
+  const { bookingId, newLocation: location, details } = input;
   const { booking } = ctx;
 
   try {
@@ -36,6 +37,16 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         locale: true,
       },
     });
+
+    let conferenceCredential: CredentialPayload | null = null;
+
+    if (details?.credentialId) {
+      conferenceCredential = await prisma.credential.findFirst({
+        where: {
+          id: details.credentialId,
+        },
+      });
+    }
 
     const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
@@ -69,12 +80,19 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       uid: booking.uid,
       recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
       location,
+      conferenceCredentialId: details?.credentialId,
       destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
-    const eventManager = new EventManager(ctx.user);
+    const eventManager = new EventManager({
+      ...ctx.user,
+      credentials: [
+        ...(ctx.user.credentials ? ctx.user.credentials : []),
+        ...(conferenceCredential ? [conferenceCredential] : []),
+      ],
+    });
 
     const updatedResult = await eventManager.updateLocation(evt, booking);
     const results = updatedResult.results;

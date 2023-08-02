@@ -2,10 +2,9 @@ import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -36,6 +35,7 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
+  ButtonOrLink,
   Credits,
   Dropdown,
   DropdownItem,
@@ -47,18 +47,19 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  showToast,
   SkeletonText,
   Tooltip,
-  showToast,
   useCalcomTheme,
-  ButtonOrLink,
 } from "@calcom/ui";
 import {
   ArrowLeft,
   ArrowRight,
   BarChart,
   Calendar,
+  ChevronDown,
   Clock,
+  Copy,
   Download,
   ExternalLink,
   FileText,
@@ -69,18 +70,15 @@ import {
   Map,
   Moon,
   MoreHorizontal,
-  ChevronDown,
-  Copy,
   Settings,
+  User as UserIcon,
   Users,
   Zap,
-  User as UserIcon,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { NProgressNextRouter } from "./NProgressPageIndicator";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
@@ -120,12 +118,9 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
     }
 
     if (!loading && !session) {
-      router.replace({
-        pathname: "/auth/login",
-        query: {
-          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
-        },
-      });
+      const urlSearchParams = new URLSearchParams();
+      urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
@@ -161,7 +156,6 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
 
   return (
     <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-      <NProgressNextRouter router={router} />
       <TeamsUpgradeBanner />
       <OrgUpgradeBanner />
       <ImpersonatingBanner />
@@ -185,9 +179,7 @@ function useRedirectToOnboardingIfNeeded() {
 
   useEffect(() => {
     if (isRedirectingToOnboarding && !needsEmailVerification) {
-      router.replace({
-        pathname: "/getting-started",
-      });
+      router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRedirectingToOnboarding, needsEmailVerification]);
@@ -218,7 +210,11 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
+          {props.SidebarContainer ? (
+            cloneElement(props.SidebarContainer, { bannersHeight })
+          ) : (
+            <SideBarContainer bannersHeight={bannersHeight} />
+          )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -240,7 +236,7 @@ type LayoutProps = {
   CTA?: ReactNode;
   large?: boolean;
   MobileNavigationContainer?: ReactNode;
-  SidebarContainer?: ReactNode;
+  SidebarContainer?: ReactElement;
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
@@ -312,6 +308,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
+  const utils = trpc.useContext();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -324,16 +321,31 @@ function UserDropdown({ small }: UserDropdownProps) {
       });
   });
   const mutation = trpc.viewer.away.useMutation({
+    onMutate: async ({ away }) => {
+      await utils.viewer.me.cancel();
+
+      const previousValue = utils.viewer.me.getData();
+
+      if (previousValue) {
+        utils.viewer.me.setData(undefined, { ...previousValue, away });
+      }
+
+      return { previousValue };
+    },
+    onError: (_, __, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
+
+      showToast(t("toggle_away_error"), "error");
+    },
     onSettled() {
       utils.viewer.me.invalidate();
     },
   });
-  const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  if (!user) {
-    return null;
-  }
+
   const onHelpItemSelect = () => {
     setHelpOpen(false);
     setMenuOpen(false);
@@ -344,6 +356,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   if (!user) {
     return null;
   }
+
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
@@ -425,8 +438,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                       <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
-                      mutation.mutate({ away: !user?.away });
-                      utils.viewer.me.invalidate();
+                      mutation.mutate({ away: !user.away });
                     }}>
                     {user.away ? t("set_as_free") : t("set_as_away")}
                   </DropdownItem>
@@ -434,7 +446,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Discord className="text-default h-4 w-4" />}
+                    StartIcon={() => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
@@ -493,11 +505,11 @@ export type NavigationItemType = {
   isCurrent?: ({
     item,
     isChild,
-    router,
+    pathname,
   }: {
     item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
-    router: NextRouter;
+    pathname: string;
   }) => boolean;
 };
 
@@ -515,10 +527,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ router }) => {
-      const path = router.asPath.split("?")[0];
-      return path.startsWith("/bookings");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
   },
   {
     name: "availability",
@@ -536,8 +545,7 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Grid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
+    isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return path.startsWith(item.href) && !path.includes("routing-forms/");
     },
@@ -545,8 +553,7 @@ const navigation: NavigationItemType[] = [
       {
         name: "app_store",
         href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
+        isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
             path.startsWith(item.href) && !path.includes("routing-forms/") && !path.includes("/installed")
@@ -556,10 +563,8 @@ const navigation: NavigationItemType[] = [
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
-        },
+        isCurrent: ({ pathname: path }) =>
+          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
       },
     ],
   },
@@ -572,9 +577,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
   },
   {
     name: "workflows",
@@ -627,8 +630,8 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return true;
 }
 
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
-  return isChild ? item.href === router.asPath : item.href ? router.asPath.startsWith(item.href) : false;
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) : false;
 };
 
 const NavigationItem: React.FC<{
@@ -638,9 +641,9 @@ const NavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
+  const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -679,7 +682,7 @@ const NavigationItem: React.FC<{
         </Link>
       </Tooltip>
       {item.child &&
-        isCurrent({ router, isChild, item }) &&
+        isCurrent({ pathname, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -716,10 +719,10 @@ const MobileNavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const router = useRouter();
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
