@@ -157,9 +157,9 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
 }
 
 function getIntersection(range1: DateRange, range2: DateRange) {
-  const start = range1.start.isAfter(range2.start) ? range1.start : range2.start;
-  const end = range1.end.isBefore(range2.end) ? range1.end : range2.end;
-  if (start.isBefore(end)) {
+  const start = range1.start.utc().isAfter(range2.start) ? range1.start : range2.start;
+  const end = range1.end.utc().isBefore(range2.end) ? range1.end : range2.end;
+  if (start.utc().isBefore(end)) {
     return { start, end };
   }
   return null;
