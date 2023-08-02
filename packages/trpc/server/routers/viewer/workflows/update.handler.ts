@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isAttendeeAction,
+  isSMSOrWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -22,6 +25,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { isKYCVerifiedHandler } from "../../loggedInViewer/isKYCVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
@@ -79,6 +83,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isTeamsPlan = !!hasTeamPlan;
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
+
+  const kycVerified = await isKYCVerifiedHandler({ ctx });
+
+  const isKYCVerified = IS_SELF_HOSTED || kycVerified.isKYCVerified;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
@@ -418,8 +426,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
+      console.log("update step");
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+      if (!isKYCVerified && isAttendeeAction(newStep.action) && isSMSOrWhatsappAction(newStep.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
@@ -592,6 +604,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (s.id <= 0) {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+      if (isAttendeeAction(s.action) && isSMSOrWhatsappAction(s.action) && !isKYCVerified) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;

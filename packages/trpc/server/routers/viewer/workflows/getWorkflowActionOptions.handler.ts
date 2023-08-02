@@ -2,7 +2,6 @@ import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getO
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { isKYCVerifiedHandler } from "../../loggedInViewer/isKYCVerified.handler";
@@ -27,25 +26,6 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
     const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
     isTeamsPlan = !!hasTeamPlan;
   }
-
-  const memberships = await prisma.membership.findMany({
-    where: {
-      accepted: true,
-      userId: ctx.user.id,
-      team: {
-        slug: {
-          not: null,
-        },
-      },
-    },
-    select: {
-      team: {
-        select: {
-          metadata: true,
-        },
-      },
-    },
-  });
 
   const { isKYCVerified } = await isKYCVerifiedHandler({ ctx });
 
