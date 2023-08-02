@@ -1,4 +1,3 @@
-import type { Table } from "@tanstack/react-table";
 import { BanIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,12 +7,12 @@ import { Dialog, DialogTrigger, ConfirmationDialogContent, Button, showToast } f
 import type { User } from "../UserListTable";
 
 interface Props {
-  table: Table<User>;
+  users: User[];
 }
 
-export function DeleteBulkUsers({ table }: Props) {
+export function DeleteBulkUsers({ users }: Props) {
   const { t } = useLocale();
-  const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original); // Get selected rows from table
+  const selectedRows = users; // Get selected rows from table
   const utils = trpc.useContext();
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
     onSuccess: () => {

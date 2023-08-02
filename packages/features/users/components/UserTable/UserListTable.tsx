@@ -289,7 +289,9 @@ export function UserListTable() {
           },
           {
             type: "render",
-            render: (table) => <DeleteBulkUsers table={table} />,
+            render: (table) => (
+              <DeleteBulkUsers users={table.getSelectedRowModel().flatRows.map((row) => row.original)} />
+            ),
           },
         ]}
         tableContainerRef={tableContainerRef}
