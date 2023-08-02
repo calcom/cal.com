@@ -6,6 +6,7 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -17,7 +18,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isEmbed, isBrandingHidden, org }: PageProps) {
+export default function Type({ slug, user, booking, away, isEmbed, isBrandingHidden, entity }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
@@ -26,7 +27,7 @@ export default function Type({ slug, user, booking, away, isEmbed, isBrandingHid
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        org={org}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -35,7 +36,7 @@ export default function Type({ slug, user, booking, away, isEmbed, isBrandingHid
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        org={org}
+        entity={entity}
       />
     </main>
   );
@@ -57,16 +58,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.params?.orgSlug
+  );
 
   const team = await prisma.team.findFirst({
     where: {
-      slug: teamSlug,
-      parent: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
+      ...getSlugOrRequestedSlug(teamSlug),
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
@@ -103,7 +103,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      org,
+      entity: eventData.entity,
       booking,
       away: false,
       user: teamSlug,
