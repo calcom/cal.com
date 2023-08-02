@@ -98,7 +98,6 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 
 const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   const { t } = useLocale();
-  const router = useRouter();
   const { goto } = useRouterHelpers();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
