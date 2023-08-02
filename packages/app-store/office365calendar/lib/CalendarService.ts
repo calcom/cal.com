@@ -149,7 +149,7 @@ export default class Office365CalendarService implements Calendar {
       const requests = ids.map((calendarId, id) => ({
         id,
         method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
+        url: `/me/calendars/${calendarId}/calendarView${filter}&$select=showAs,start,end`,
       }));
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
