@@ -16,7 +16,6 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  CommandSeparator,
   showToast,
 } from "@calcom/ui";
 
@@ -104,28 +103,23 @@ export function TeamListBulkAction({ table }: Props) {
                     );
                   })}
               </CommandGroup>
-              <>
-                <CommandSeparator />
-                <CommandGroup>
-                  <div className="mb-1.5 flex w-full">
-                    <Button
-                      loading={mutation.isLoading}
-                      className="ml-auto mr-1.5 rounded-md"
-                      size="sm"
-                      onClick={async () => {
-                        const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
-                        mutation.mutateAsync({
-                          userIds: selectedRows.map((row) => row.id),
-                          teamIds: Array.from(selectedValues),
-                        });
-                      }}>
-                      {t("apply")}
-                    </Button>
-                  </div>
-                </CommandGroup>
-              </>
             </CommandList>
           </Command>
+          <div className="my-1.5 flex w-full">
+            <Button
+              loading={mutation.isLoading}
+              className="ml-auto mr-1.5 rounded-md"
+              size="sm"
+              onClick={async () => {
+                const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
+                mutation.mutateAsync({
+                  userIds: selectedRows.map((row) => row.id),
+                  teamIds: Array.from(selectedValues),
+                });
+              }}>
+              {t("apply")}
+            </Button>
+          </div>
         </PopoverContent>
       </Popover>
     </>
