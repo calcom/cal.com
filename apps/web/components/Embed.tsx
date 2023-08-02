@@ -1010,6 +1010,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     eventSlug: eventType?.slug ?? "",
     eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
+    durationConfig: eventType?.metadata?.multipleDuration,
   });
 
   const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
