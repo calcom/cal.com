@@ -1,3 +1,5 @@
+import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+
 import authedProcedure, {
   authedAdminProcedure,
   authedOrgAdminProcedure,
@@ -12,7 +14,6 @@ import { ZListMembersSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
-import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
 type OrganizationsRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;

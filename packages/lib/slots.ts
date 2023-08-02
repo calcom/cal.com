@@ -165,7 +165,9 @@ function buildSlotsWithDateRanges({
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-    let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
+    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+      ? range.start
+      : startTimeWithMinNotice;
 
     let interval = 15;
 
@@ -190,10 +192,11 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").isAfter(rangeEnd)) {
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
-        time: slotStartTime.tz(timeZone),
+        time: slotStartTime,
       });
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
