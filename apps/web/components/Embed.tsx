@@ -2,8 +2,7 @@ import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -13,7 +12,7 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
-import { useInitializeBookerStore, useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
@@ -21,31 +20,30 @@ import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { TimezoneSelect } from "@calcom/ui";
 import {
   Button,
+  ColorPicker,
   Dialog,
   DialogClose,
-  DialogFooter,
   DialogContent,
+  DialogFooter,
   HorizontalTabs,
   Label,
+  Select,
   showToast,
   Switch,
   TextArea,
   TextField,
-  ColorPicker,
-  Select,
+  TimezoneSelect,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft, ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowLeft, ArrowUp, Code, Sun, Trello } from "@calcom/ui/components/icon";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
@@ -94,25 +92,31 @@ const getDimension = (dimension: string) => {
   return dimension;
 };
 
-const goto = (router: NextRouter, searchParams: Record<string, string>) => {
-  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
-  Object.keys(searchParams).forEach((key) => {
-    newQuery.set(key, searchParams[key]);
-  });
-  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
-    shallow: true,
-  });
-};
+function useRouterHelpers() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
-  const params = new URLSearchParams(window.location.search);
+  const goto = (newSearchParams: Record<string, string>) => {
+    const newQuery = new URLSearchParams(searchParams);
+    Object.keys(newSearchParams).forEach((key) => {
+      newQuery.set(key, newSearchParams[key]);
+    });
+    router.push(`${pathname}?${newQuery.toString()}`);
+  };
 
-  queryParams.forEach((param) => {
-    params.delete(param);
-  });
+  const removeQueryParams = (queryParams: string[]) => {
+    const params = new URLSearchParams(searchParams);
 
-  router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
-};
+    queryParams.forEach((param) => {
+      params.delete(param);
+    });
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  return { goto, removeQueryParams };
+}
 
 const getQueryParam = (queryParam: string) => {
   const params = new URLSearchParams(window.location.search);
@@ -336,6 +340,12 @@ ${uiInstructionCode}`;
   },
 } satisfies Record<string, Record<string, (...args: any[]) => string>>;
 
+type EmbedCommonProps = {
+  embedType: EmbedType;
+  calLink: string;
+  previewState: PreviewState;
+};
+
 const getEmbedTypeSpecificString = ({
   embedFramework,
   embedType,
@@ -344,11 +354,8 @@ const getEmbedTypeSpecificString = ({
   embedCalOrigin,
 }: {
   embedFramework: EmbedFramework;
-  embedType: EmbedType;
-  calLink: string;
-  previewState: PreviewState;
   embedCalOrigin: string;
-}) => {
+} & EmbedCommonProps) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
@@ -396,7 +403,7 @@ const getEmbedTypeSpecificString = ({
     };
     return frameworkCodes[embedType]({
       floatingButtonArg: JSON.stringify(floatingButtonArg),
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg)
+      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
@@ -601,17 +608,230 @@ const embeds = (t: TFunction) =>
             viewBox="0 0 308 265"
             fill="none"
             xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
-              fill="white"
-            />
-            <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
-            <rect x="24" y="50.5" width="120" height="76" rx="6" fill="#F3F4F6" />
-            <rect x="24" y="138.5" width="120" height="76" rx="6" fill="#F3F4F6" />
-            <rect x="156" y="50.5" width="128" height="164" rx="6" fill="#F3F4F6" />
-            <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
-            <rect x="226" y="223.5" width="66" height="26" rx="6" fill="#292929" />
-            <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
+            <g clip-path="url(#clip0_457_1339)">
+              <rect width="308" height="265" rx="8" fill="white" />
+              <rect width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="19" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="38" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="57" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="76" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="95" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="114" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="133" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="152" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="171" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="190" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="209" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="228" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <rect y="247" width="308" height="18" rx="4" fill="#F3F4F6" />
+              <g clip-path="url(#clip1_457_1339)">
+                <rect x="107" y="64" width="189" height="189" rx="6" fill="white" />
+                <g clip-path="url(#clip2_457_1339)">
+                  <path
+                    d="M124.671 75.5243C124.671 75.1018 124.325 74.756 123.902 74.756H117.756C117.334 74.756 116.988 75.1018 116.988 75.5243M124.671 75.5243V80.1341C124.671 80.5567 124.325 80.9024 123.902 80.9024H117.756C117.334 80.9024 116.988 80.5567 116.988 80.1341V75.5243M124.671 75.5243L120.829 78.2134L116.988 75.5243"
+                    stroke="#9CA3AF"
+                    stroke-width="1.15244"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </g>
+                <rect x="130.049" y="75.5244" width="92.1951" height="4.60976" rx="2.30488" fill="#D1D5DB" />
+                <rect x="130.049" y="84.7439" width="55.3171" height="4.60976" rx="2.30488" fill="#E5E7EB" />
+                <rect
+                  opacity="0.8"
+                  x="107"
+                  y="98.5732"
+                  width="189"
+                  height="1.15244"
+                  rx="0.576219"
+                  fill="#E5E7EB"
+                />
+                <rect x="116.219" y="113.555" width="92.1951" height="4.60976" rx="2.30488" fill="#D1D5DB" />
+                <rect x="116.219" y="122.774" width="42.6402" height="4.60976" rx="2.30488" fill="#E5E7EB" />
+                <rect x="116.219" y="136.604" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
+                <rect
+                  x="116.719"
+                  y="145.171"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="142.073"
+                  y="145.171"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="167.427"
+                  y="145.171"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="192.781"
+                  y="145.171"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="218.134"
+                  y="145.171"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect x="116.219" y="160.805" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
+                <rect
+                  x="116.719"
+                  y="169.372"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="142.073"
+                  y="169.372"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="167.427"
+                  y="169.372"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="192.781"
+                  y="169.372"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="218.134"
+                  y="169.372"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect x="116.219" y="185.006" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
+                <rect
+                  x="116.719"
+                  y="193.573"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="142.073"
+                  y="193.573"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="167.427"
+                  y="193.573"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="192.781"
+                  y="193.573"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  x="218.134"
+                  y="193.573"
+                  width="22.0488"
+                  height="5.91463"
+                  rx="2.95732"
+                  stroke="#9CA3AF"
+                />
+                <rect
+                  opacity="0.8"
+                  x="107"
+                  y="223.037"
+                  width="189"
+                  height="1.15244"
+                  rx="0.576219"
+                  fill="#E5E7EB"
+                />
+                <rect width="189" height="28.811" transform="translate(107 224.189)" fill="#F9FAFB" />
+                <rect x="116.219" y="233.985" width="23.0488" height="9.21951" rx="2.30488" fill="#9CA3AF" />
+                <rect
+                  opacity="0.8"
+                  x="141.573"
+                  y="233.985"
+                  width="9.21951"
+                  height="9.21951"
+                  rx="2.30488"
+                  fill="#E5E7EB"
+                />
+                <rect
+                  opacity="0.8"
+                  x="153.098"
+                  y="233.985"
+                  width="9.21951"
+                  height="9.21951"
+                  rx="2.30488"
+                  fill="#E5E7EB"
+                />
+                <rect
+                  opacity="0.8"
+                  x="164.622"
+                  y="233.985"
+                  width="9.21951"
+                  height="9.21951"
+                  rx="2.30488"
+                  fill="#E5E7EB"
+                />
+              </g>
+              <rect
+                x="106.424"
+                y="63.4238"
+                width="190.152"
+                height="190.152"
+                rx="6.57622"
+                stroke="#101010"
+                stroke-width="1.15244"
+              />
+            </g>
+            <rect x="0.5" y="0.5" width="307" height="264" rx="7.5" stroke="#E5E7EB" />
+            <defs>
+              <clipPath id="clip0_457_1339">
+                <rect width="308" height="265" rx="8" fill="white" />
+              </clipPath>
+              <clipPath id="clip1_457_1339">
+                <rect x="107" y="64" width="189" height="189" rx="6" fill="white" />
+              </clipPath>
+              <clipPath id="clip2_457_1339">
+                <rect width="9.21951" height="9.21951" fill="white" transform="translate(116.219 73.2195)" />
+              </clipPath>
+            </defs>
           </svg>
         ),
       },
@@ -728,10 +948,10 @@ ${getEmbedTypeSpecificString({
     href: "embedTabName=embed-preview",
     icon: Trello,
     type: "iframe",
-    Component: forwardRef<
-      HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
-    >(function Preview({ calLink, embedType }, ref) {
+    Component: forwardRef<HTMLIFrameElement | HTMLTextAreaElement | null, EmbedCommonProps>(function Preview(
+      { calLink, embedType },
+      ref
+    ) {
       const bookerUrl = useBookerUrl();
       if (ref instanceof Function || !ref) {
         return null;
@@ -761,7 +981,16 @@ Cal("init", {origin:"${bookerUrl}"});
 `;
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<
+  {
+    value: Theme;
+    label: string;
+  },
+  false
+>) => {
   return (
     <components.Control {...props}>
       <Sun className="text-subtle mr-2 h-4 w-4" />
@@ -772,8 +1001,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
-  const router = useRouter();
-
+  const { goto } = useRouterHelpers();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -791,7 +1019,7 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              goto(router, {
+              goto({
                 embedType: embed.type,
               });
             }}>
@@ -819,6 +1047,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     eventSlug: eventType?.slug ?? "",
     eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
+    durationConfig: eventType?.metadata?.multipleDuration,
   });
 
   const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
@@ -1193,8 +1422,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType: EmbedType;
   embedUrl: string;
 }) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t } = useLocale();
-  const router = useRouter();
+  const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
@@ -1213,10 +1444,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   const s = (href: string) => {
-    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
+    const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
-    searchParams.set(a, b);
-    return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
+    _searchParams.set(a, b);
+    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -1247,12 +1478,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   });
 
   const close = () => {
-    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
+    removeQueryParams(["dialog", ...queryParamsForDialog]);
   };
 
   // Use embed-code as default tab
-  if (!router.query.embedTabName) {
-    goto(router, {
+  if (!searchParams?.get("embedTabName")) {
+    goto({
       embedTabName: "embed-code",
     });
   }
@@ -1386,7 +1617,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <button
               className="h-6 w-6"
               onClick={() => {
-                removeQueryParams(router, ["embedType", "embedTabName"]);
+                removeQueryParams(["embedType", "embedTabName"]);
               }}>
               <ArrowLeft className="mr-4 w-4" />
             </button>
@@ -1683,7 +1914,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 <div
                   key={tab.href}
                   className={classNames(
-                    router.query.embedTabName === tab.href.split("=")[1]
+                    searchParams?.get("embedTabName") === tab.href.split("=")[1]
                       ? "flex flex-grow flex-col"
                       : "hidden"
                   )}>
@@ -1704,7 +1935,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     )}
                   </div>
-                  <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                  <div
+                    className={
+                      searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                    }
+                  />
                   <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                     <DialogClose />
                     {tab.type === "code" ? (
@@ -1743,7 +1978,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     }
                   />
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <div
+                  className={searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"}
+                />
                 <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
                   <DialogClose />
                   <Button
@@ -1763,15 +2000,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 };
 
 export const EmbedDialog = () => {
-  const router = useRouter();
-  const embedUrl: string = router.query.embedUrl as string;
+  const searchParams = useSearchParams();
+  const embedUrl = searchParams?.get("embedUrl") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
-      {!router.query.embedType ? (
+      {!searchParams?.get("embedType") ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          embedType={router.query.embedType as EmbedType}
+          embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
         />
       )}
@@ -1794,10 +2031,10 @@ export const EmbedButton = <T extends React.ElementType>({
   eventId,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
-  const router = useRouter();
+  const { goto } = useRouterHelpers();
   className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
-    goto(router, {
+    goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
       embedUrl,

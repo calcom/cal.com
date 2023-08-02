@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,6 +38,8 @@ export type CreateBtnProps = {
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const bookerUrl = useBookerUrl();
 
   const {
@@ -56,23 +58,17 @@ export function CreateButton(props: CreateBtnProps) {
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const query = {
-      ...router.query,
-      dialog: "new",
-      eventPage: option.slug,
-      teamId: option.teamId,
-    };
-    if (!option.teamId) {
-      delete query.teamId;
+    const _searchParams = new URLSearchParams(searchParams);
+    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
+      if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
+    setParamsIfDefined("dialog", "new");
+    setParamsIfDefined("eventPage", option.slug);
+    setParamsIfDefined("teamId", option.teamId);
+    if (!option.teamId) {
+      _searchParams.delete("teamId");
+    }
+    router.push(`${pathname}?${_searchParams.toString()}`);
   };
 
   return (
@@ -138,7 +134,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {router.query.dialog === "new" && CreateDialog}
+      {searchParams.get("dialog") === "new" && CreateDialog}
     </>
   );
 }
