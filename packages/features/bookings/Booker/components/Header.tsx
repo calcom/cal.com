@@ -5,7 +5,7 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, ToggleGroup } from "@calcom/ui";
+import { Button, ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -58,14 +58,15 @@ export function Header({
   }
 
   return (
-    <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
-      <div className="flex items-center gap-3">
+    <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
+      <div className="flex items-center gap-5 rtl:flex-grow">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
           <span className="text-subtle">{selectedDate.format("YYYY")}</span>
         </h3>
-        <ButtonGroup>
+        <div className="flex">
           <Button
+            className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
             StartIcon={ChevronLeft}
@@ -73,6 +74,7 @@ export function Header({
             onClick={() => addToSelectedDate(-extraDays - 1)}
           />
           <Button
+            className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
             StartIcon={ChevronRight}
@@ -81,26 +83,26 @@ export function Header({
           />
           {selectedDateMin3DaysDifference && (
             <Button
-              className="capitalize"
+              className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
               onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
               {t("today")}
             </Button>
           )}
-        </ButtonGroup>
+        </div>
       </div>
       <div className="ml-auto flex gap-2">
         <TimeFormatToggle />
-        <div className="fixed right-4 top-4">
+        <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData />
         </div>
         {/*
-          This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
-          for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
-          would be really weird, because the element is positioned fixed in the month view, and then
-          when switching layouts wouldn't anymmore, causing it to animate from the center to the top right,
-          while it actuall already was on place. That's why we have this element twice.
-        */}
+      This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
+      for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
+      would be really weird, because the element is positioned fixed in the month view, and then
+      when switching layouts wouldn't anymore, causing it to animate from the center to the top right,
+      while it actually already was on place. That's why we have this element twice.
+    */}
         <div className="pointer-events-none opacity-0" aria-hidden>
           <LayoutToggleWithData />
         </div>

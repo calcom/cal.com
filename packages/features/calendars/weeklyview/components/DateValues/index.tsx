@@ -12,7 +12,7 @@ export function DateValues({ days, containerNavRef }: Props) {
   return (
     <div
       ref={containerNavRef}
-      className="bg-default dark:bg-muted border-b-subtle sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8">
+      className="bg-default dark:bg-muted border-b-subtle rtl:border-r-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b border-r sm:pr-8">
       <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
@@ -34,7 +34,7 @@ export function DateValues({ days, containerNavRef }: Props) {
         })}
       </div>
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
-        <div className="border-default col-end-1 w-14 border-l" />
+        <div className="border-default col-end-1 w-14 ltr:border-l" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
