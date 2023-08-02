@@ -896,29 +896,27 @@ ${getEmbedTypeSpecificString({
     href: "embedTabName=embed-react",
     icon: Code,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
-      const embedCalOrigin = useEmbedCalOrigin();
-      const { t } = useLocale();
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
-        return null;
-      }
-      return (
-        <>
-          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
-          <TextArea
-            data-testid="embed-react"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-react"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
-            readOnly
-            style={{ resize: "none", overflow: "auto" }}
-            value={`/* First make sure that you have installed the package */
+    Component: forwardRef<HTMLTextAreaElement | HTMLIFrameElement | null, EmbedCommonProps>(
+      function EmbedReact({ embedType, calLink, previewState }, ref) {
+        const embedCalOrigin = useEmbedCalOrigin();
+        const { t } = useLocale();
+        if (ref instanceof Function || !ref) {
+          return null;
+        }
+        if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+          return null;
+        }
+        return (
+          <>
+            <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
+            <TextArea
+              data-testid="embed-react"
+              ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+              name="embed-react"
+              className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+              readOnly
+              style={{ resize: "none", overflow: "auto" }}
+              value={`/* First make sure that you have installed the package */
 
 /* If you are using yarn */
 // yarn add @calcom/embed-react
@@ -933,10 +931,11 @@ ${getEmbedTypeSpecificString({
   embedCalOrigin,
 })}
 `}
-          />
-        </>
-      );
-    }),
+            />
+          </>
+        );
+      }
+    ),
   },
   {
     name: "Preview",
