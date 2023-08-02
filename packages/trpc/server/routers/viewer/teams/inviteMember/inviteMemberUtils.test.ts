@@ -1,11 +1,22 @@
 import { describe, it, vi, expect } from "vitest";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { checkInputEmailIsValid, checkPermissions, getEmailsToInvite, getIsOrgVerified, getOrgConnectionInfo, throwIfInviteIsToOrgAndUserExists } from "./utils";
-import { MembershipRole } from "@calcom/prisma/enums";
+
 import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { TRPCError } from "@trpc/server";
-import type { TeamWithParent } from "./types";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import type { User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TeamWithParent } from "./types";
+import {
+  checkInputEmailIsValid,
+  checkPermissions,
+  getEmailsToInvite,
+  getIsOrgVerified,
+  getOrgConnectionInfo,
+  throwIfInviteIsToOrgAndUserExists,
+  createAndAutoJoinIfInOrg,
+} from "./utils";
 
 vi.mock("@calcom/lib/server/queries", () => {
   return {
@@ -19,7 +30,14 @@ vi.mock("@calcom/lib/server/queries/organisations", () => {
   };
 });
 
-const mockedReturnSuccessCheckPerms = { accepted: true, disableImpersonation: false, id: 1, role: MembershipRole.ADMIN, userId: 1, teamId: 1 }
+const mockedReturnSuccessCheckPerms = {
+  accepted: true,
+  disableImpersonation: false,
+  id: 1,
+  role: MembershipRole.ADMIN,
+  userId: 1,
+  teamId: 1,
+};
 
 const mockedTeam: TeamWithParent = {
   id: 1,
@@ -41,20 +59,20 @@ const mockedTeam: TeamWithParent = {
   metadata: null,
   parentId: null,
   parent: null,
-  isPrivate:false
+  isPrivate: false,
 };
 
 const mockUser: User = {
   id: 4,
-  username: 'pro',
-  name: 'Pro Example',
-  email: 'pro@example.com',
+  username: "pro",
+  name: "Pro Example",
+  email: "pro@example.com",
   emailVerified: new Date(),
-  password: '',
+  password: "",
   bio: null,
   avatar: null,
-  timeZone: 'Europe/London',
-  weekStart: 'Sunday',
+  timeZone: "Europe/London",
+  weekStart: "Sunday",
   startTime: 0,
   endTime: 1440,
   bufferTime: 0,
@@ -64,77 +82,75 @@ const mockUser: User = {
   trialEndsAt: null,
   defaultScheduleId: null,
   completedOnboarding: true,
-  locale: 'en',
+  locale: "en",
   timeFormat: 12,
   twoFactorSecret: null,
   twoFactorEnabled: false,
-  identityProvider: 'CAL',
+  identityProvider: "CAL",
   identityProviderId: null,
   invitedTo: null,
-  brandColor: '#292929',
-  darkBrandColor: '#fafafa',
+  brandColor: "#292929",
+  darkBrandColor: "#fafafa",
   away: false,
   allowDynamicBooking: true,
   metadata: null,
   verified: false,
-  role: 'USER',
+  role: "USER",
   disableImpersonation: false,
-  organizationId: null
-}
+  organizationId: null,
+};
 
 describe("Invite Member Utils", () => {
   describe("checkPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
       await expect(checkPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow();
-    })
+    });
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
       await expect(checkPermissions({ userId: 1, teamId: 1, isOrg: true })).resolves.not.toThrow();
-    })
+    });
     it("It should throw an error if the user is not an admin of the team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(false);
       await expect(checkPermissions({ userId: 1, teamId: 1 })).rejects.toThrow();
-    })
+    });
     it("It should NOT throw an error if the user is an admin of a team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
       await expect(checkPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
-    })
-  })
-  describe('getEmailsToInvite', () => {
-    it('should throw a TRPCError with code BAD_REQUEST if no emails are provided', async () => {
+    });
+  });
+  describe("getEmailsToInvite", () => {
+    it("should throw a TRPCError with code BAD_REQUEST if no emails are provided", async () => {
       await expect(getEmailsToInvite([])).rejects.toThrow(TRPCError);
     });
 
-    it('should return an array with one email if a string is provided', async () => {
-      const result = await getEmailsToInvite('test@example.com');
-      expect(result).toEqual(['test@example.com']);
+    it("should return an array with one email if a string is provided", async () => {
+      const result = await getEmailsToInvite("test@example.com");
+      expect(result).toEqual(["test@example.com"]);
     });
 
-    it('should return an array with multiple emails if an array is provided', async () => {
-      const result = await getEmailsToInvite(['test1@example.com', 'test2@example.com']);
-      expect(result).toEqual(['test1@example.com', 'test2@example.com']);
+    it("should return an array with multiple emails if an array is provided", async () => {
+      const result = await getEmailsToInvite(["test1@example.com", "test2@example.com"]);
+      expect(result).toEqual(["test1@example.com", "test2@example.com"]);
     });
   });
-  describe('checkInputEmailIsValid', () => {
-    it('should throw a TRPCError with code BAD_REQUEST if the email is invalid', () => {
-      const invalidEmail = 'invalid-email';
+  describe("checkInputEmailIsValid", () => {
+    it("should throw a TRPCError with code BAD_REQUEST if the email is invalid", () => {
+      const invalidEmail = "invalid-email";
       expect(() => checkInputEmailIsValid(invalidEmail)).toThrow(TRPCError);
       expect(() => checkInputEmailIsValid(invalidEmail)).toThrowError(
-        'Invite failed because invalid-email is not a valid email address'
+        "Invite failed because invalid-email is not a valid email address"
       );
     });
 
-    it('should not throw an error if the email is valid', () => {
-      const validEmail = 'valid-email@example.com';
+    it("should not throw an error if the email is valid", () => {
+      const validEmail = "valid-email@example.com";
       expect(() => checkInputEmailIsValid(validEmail)).not.toThrow();
     });
   });
   describe("getOrgConnectionInfo", () => {
-
     const orgAutoAcceptDomain = "example.com";
     const usersEmail = "user@example.com";
-
 
     it("should return orgId and autoAccept as true if team has parent and usersEmail domain matches orgAutoAcceptDomain and orgVerified is true", () => {
       const result = getOrgConnectionInfo({
@@ -264,7 +280,6 @@ describe("Invite Member Utils", () => {
     };
     const isOrg = false;
 
-
     it("should not throw when inviting an existing user to the same organization", () => {
       const inviteeWithOrg: User = {
         ...invitee,
@@ -273,10 +288,8 @@ describe("Invite Member Utils", () => {
       const teamWithOrg = {
         ...mockedTeam,
         parentId: 2,
-      }
-      expect(() =>
-        throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
-      ).not.toThrow();
+      };
+      expect(() => throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)).not.toThrow();
     });
     it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
       const inviteeWithOrg: User = {
@@ -286,23 +299,37 @@ describe("Invite Member Utils", () => {
       const teamWithOrg = {
         ...mockedTeam,
         parentId: 3,
-      }
-      expect(() =>
-        throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
-      ).toThrow(TRPCError);
+      };
+      expect(() => throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
     });
 
     it("should throw a TRPCError with code FORBIDDEN if the invitee already exists in Cal.com and is being invited to an organization", () => {
       const isOrg = true;
-      expect(() =>
-        throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)
-      ).toThrow(TRPCError);
+      expect(() => throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)).toThrow(TRPCError);
     });
 
     it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
-      expect(() =>
-        throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)
-      ).not.toThrow();
+      expect(() => throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)).not.toThrow();
     });
   });
-})
+  describe("createAndAutoJoinIfInOrg", () => {
+    it("should return autoJoined: false if the user is not in the same organization as the team", async () => {
+      const result = await createAndAutoJoinIfInOrg({
+        team: mockedTeam,
+        role: MembershipRole.ADMIN,
+        invitee: mockUser,
+      });
+      expect(result).toEqual({ autoJoined: false });
+    });
+
+    it("should return autoJoined: false if the team does not have a parent organization", async () => {
+      const result = await createAndAutoJoinIfInOrg({
+        team: { ...mockedTeam, parentId: null },
+        role: MembershipRole.ADMIN,
+        invitee: mockUser,
+      });
+      expect(result).toEqual({ autoJoined: false });
+    });
+    // TODO: Add test for when the user is already a member of the organization - need to mock prisma response value
+  });
+});

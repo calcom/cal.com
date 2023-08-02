@@ -87,6 +87,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
+  requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
@@ -102,6 +103,7 @@ export type FormValues = {
     phone?: string;
     hostDefault?: string;
     credentialId?: number;
+    teamName?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -205,6 +207,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
+      }
+
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
@@ -247,6 +253,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
+      hashedLink: eventType.hashedLink?.link || undefined,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -526,6 +533,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
+  if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 
