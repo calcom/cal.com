@@ -46,15 +46,13 @@ export function DateValues({ days, containerNavRef }: Props) {
                 isToday && "font-bold"
               )}>
               <span>
-                {/* {day.format("ddd")}{" "} */}
-                {day.toDate().toLocaleString("en-US", options)}
+                {day.format("ddd")}{" "}
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
                     isToday && "bg-brand-default text-brand rounded-full"
                   )}>
-                  {/* {day.format("DD")} */}
-                  {day.toDate().getDate()}
+                  {day.format("DD")}
                 </span>
               </span>
             </div>

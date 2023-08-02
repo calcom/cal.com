@@ -55,6 +55,8 @@ export const EventMeta = () => {
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
+  console.log("selectedTimeslot", selectedTimeslot);
+
   return (
     <div className="relative z-10 p-6">
       {isLoading && (

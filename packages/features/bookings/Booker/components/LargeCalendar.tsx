@@ -2,11 +2,16 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
-import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
+
+export type availableTimeslotsType = {
+  // Key is the date in YYYY-MM-DD format
+  // start and end are ISOstring
+  [key: string]: { start: string; end: string }[];
+};
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -22,26 +27,25 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useMemo(() => {
-    const availableTimeslots: CalendarAvailableTimeslots = {};
+    const availableTimeslots: availableTimeslotsType = {};
     if (!schedule.data) return availableTimeslots;
     if (!schedule.data.slots) return availableTimeslots;
 
     for (const day in schedule.data.slots) {
       availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
-        // First formatting to LLL and then passing it to date prevents toDate()
-        // from changing the timezone to users local machine (instead of itmezone selected in UI dropdown)
-        start: new Date(dayjs(slot.time).utc().tz(timezone).format("LLL")),
-        end: new Date(dayjs(slot.time).utc().tz(timezone).add(eventDuration, "minutes").format("LLL")),
+        start: dayjs(slot.time).toISOString(),
+        end: dayjs(slot.time).add(eventDuration, "minutes").toISOString(),
       }));
     }
 
     return availableTimeslots;
-  }, [schedule, timezone, eventDuration]);
-  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
+  }, [schedule, eventDuration]);
+
+  const startDate = selectedDate ? dayjs(selectedDate).tz(timezone).toDate() : dayjs().toDate();
   const endDate = dayjs(startDate)
+    .tz(timezone)
     .add(extraDays - 1, "day")
     .toDate();
-  console.log("LARGE", startDate, endDate);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
@@ -53,7 +57,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         events={[]}
         startDate={startDate}
         endDate={endDate}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
+        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
