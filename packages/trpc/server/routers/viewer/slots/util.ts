@@ -202,11 +202,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const span = tracer.startSpan("getRegularOrDynamicEventType", undefined, context.active());
   const eventType = await getRegularOrDynamicEventType(input);
   span.end();
-  logger.debug(
-    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
-      input.eventTypeId
-    }`
-  );
+
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
