@@ -30,11 +30,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
 });
 
-const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
   position: true,
   hashedLink: true,
-  locations: true,
   destinationCalendar: true,
   userId: true,
   team: {
@@ -51,13 +50,6 @@ const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
-  children: {
-    include: {
-      users: {
-        select: userSelect,
-      },
-    },
-  },
   parentId: true,
   hosts: {
     select: {
@@ -68,6 +60,17 @@ const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   seatsPerTimeSlot: true,
   ...baseEventTypeSelect,
+});
+
+const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  children: {
+    include: {
+      users: {
+        select: userSelect,
+      },
+    },
+  },
+  ...userEventTypeSelect,
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
@@ -116,7 +119,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 },
               },
               eventTypes: {
-                select: eventTypeSelect,
+                select: teamEventTypeSelect,
                 orderBy: [
                   {
                     position: "desc",
@@ -132,10 +135,10 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       },
       eventTypes: {
         where: {
-          team: null,
+          teamId: null,
           userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
         },
-        select: eventTypeSelect,
+        select: userEventTypeSelect,
         orderBy: [
           {
             position: "desc",
@@ -165,9 +168,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     await prisma.eventType.findMany({
       where: {
         userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        team: null,
+        teamId: null,
       },
-      select: eventTypeSelect,
+      select: userEventTypeSelect,
       orderBy: [
         {
           position: "desc",
