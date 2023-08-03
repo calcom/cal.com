@@ -56,28 +56,32 @@ Alet badge is used in conjunction with an item, profile or label to indicate num
 <Title offset title="Badge" suffix="Variants" />
 
 <Canvas>
-  <Story name="All Variants">
-    <VariantsTable titles={['Default','With Dot', 'With Icon']} columnMinWidth={150}>
-      <VariantRow variant="Default">
-        <Badge variant="default" >Badge text</Badge>
-        <Badge variant="default" withDot>Badge text</Badge>
-        <Badge variant="default" startIcon={Plus}>Badge text</Badge>
+  <Story name="All Variants"
+  args={{
+    severity: 'default',
+    label: 'Badge text',
+  }}
+  argTypes={{
+    severity: {
+      control: {
+        type: 'inline-radio',
+        options: ['default', 'success', 'gray', 'error'],
+      },
+    },
+    label: {
+      control: {
+        type: 'text',
+      },
+    },
+  }}>
+    {({ severity, label }) => (
+  <VariantsTable titles={['Default','With Dot', 'With Icon']} columnMinWidth={150}>
+      <VariantRow variant={severity}>
+        <Badge variant={severity}>{label}</Badge>
+        <Badge variant={severity} withDot>{label}</Badge>
+        <Badge variant={severity} startIcon={Plus}>{label}</Badge>
       </VariantRow>
-      <VariantRow variant="Success">
-        <Badge variant="success" >Badge text</Badge>
-        <Badge variant="success" withDot>Badge text</Badge>
-        <Badge variant="success" startIcon={Plus}>Badge text</Badge>
-      </VariantRow>
-      <VariantRow variant="gray">
-        <Badge variant="gray" >Badge text</Badge>
-        <Badge variant="gray" withDot>Badge text</Badge>
-        <Badge variant="gray" startIcon={Plus}>Badge text</Badge>
-      </VariantRow>
-      <VariantRow variant="error">
-        <Badge variant="error" >Badge text</Badge>
-        <Badge variant="error" withDot>Badge text</Badge>
-        <Badge variant="error" startIcon={Plus}>Badge text</Badge>
-      </VariantRow>
-    </VariantsTable>
+  </VariantsTable>
+    )}
   </Story>
 </Canvas>

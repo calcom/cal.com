@@ -77,5 +77,5 @@ it("should render city name as option label if cityData is not empty", () => {
 });
 
 it("should return timezone as option label if cityData is empty", () => {
-  expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los_Angeles GMT -8:00"`);
+  expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los Angeles GMT -8:00"`);
 });

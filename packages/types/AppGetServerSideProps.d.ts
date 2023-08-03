@@ -15,6 +15,5 @@ export type AppGetServerSideProps = (
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
   user: AppUser,
-  ssrInit: AppSsrInit,
-  caller: any
+  ssrInit: AppSsrInit
 ) => GetServerSidePropsResult;

@@ -28,6 +28,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           id: true,
           slug: true,
           members: true,
+          name: true,
         },
       },
       time: true,

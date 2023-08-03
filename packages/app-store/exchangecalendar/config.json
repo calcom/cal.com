@@ -6,7 +6,7 @@
   "dirName": "exchangecalendar",
   "type": "exchange_calendar",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/exchange",
+  "url": "https://cal.com",
   "variant": "calendar",
   "categories": ["calendar"],
   "publisher": "Cal.com",

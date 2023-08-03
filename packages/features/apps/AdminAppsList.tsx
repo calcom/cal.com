@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -27,8 +27,8 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
   Switch,
+  TextField,
 } from "@calcom/ui";
 import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
@@ -244,7 +244,7 @@ const EditKeysModal: FC<{
             ))}
           </Form>
         )}
-        <DialogFooter>
+        <DialogFooter showDivider className="mt-8">
           <DialogClose onClick={handleModelClose} />
           <Button form="edit-keys" type="submit">
             {t("save")}
@@ -265,13 +265,13 @@ interface EditModalState extends Pick<App, "keys"> {
 }
 
 const AdminAppsListContainer = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
-  const { category } = querySchema.parse(router.query);
+  const category = searchParams.get("category") || AppCategories.calendar;
 
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    { enabled: router.isReady }
+    { enabled: searchParams !== null }
   );
 
   const [modalState, setModalState] = useReducer(
@@ -292,7 +292,7 @@ const AdminAppsListContainer = () => {
 
   if (isLoading) return <SkeletonLoader />;
 
-  if (!apps) {
+  if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
         Icon={AlertCircle}
@@ -333,7 +333,7 @@ export default AdminAppsList;
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer className="w-[30rem] pr-10">
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />

@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -56,7 +56,7 @@ export function NewScheduleButton({
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: ${t("error_schedule_unauthorized_create")}`;
         showToast(message, "error");
       }
     },

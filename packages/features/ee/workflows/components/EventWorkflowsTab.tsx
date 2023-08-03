@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -71,9 +71,12 @@ const WorkflowListItem = (props: ItemProps) => {
         showToast(message, "error");
       }
       if (err.data?.code === "UNAUTHORIZED") {
-        // TODO: Add missing translation
-        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
-        showToast(message, "error");
+        showToast(
+          t("unauthorized_workflow_error_message", {
+            errorCode: err.data.code,
+          }),
+          "error"
+        );
       }
     },
   });
@@ -83,17 +86,15 @@ const WorkflowListItem = (props: ItemProps) => {
   workflow.steps.forEach((step) => {
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
-        sendTo.add(t("organizer_name_variable"));
+        sendTo.add(t("organizer"));
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        sendTo.add(t("attendee_name_variable"));
-        break;
       case WorkflowActions.SMS_ATTENDEE:
+      case WorkflowActions.WHATSAPP_ATTENDEE:
         sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_NUMBER:
-        sendTo.add(step.sendTo || "");
-        break;
+      case WorkflowActions.WHATSAPP_NUMBER:
       case WorkflowActions.EMAIL_ADDRESS:
         sendTo.add(step.sendTo || "");
         break;
@@ -223,7 +224,7 @@ function EventWorkflowsTab(props: Props) {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this workflow`;
+        const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
         showToast(message, "error");
       }
     },

@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -29,6 +30,7 @@ export type BookingInfo = {
     name: string;
     email: string;
     timeZone: string;
+    timeFormat?: TimeFormat;
     username?: string;
   };
   eventType: {
@@ -58,7 +60,8 @@ export const scheduleSMSReminder = async (
   sender: string,
   userId?: number | null,
   teamId?: number | null,
-  isVerificationPending = false
+  isVerificationPending = false,
+  seatReferenceUid?: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -115,17 +118,26 @@ export const scheduleSMSReminder = async (
       cancelLink: `/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };
-    const customMessage = customTemplate(message, variables, locale);
+    const customMessage = customTemplate(message, variables, locale, evt.organizer.timeFormat);
     message = customMessage.text;
   } else if (template === WorkflowTemplates.REMINDER) {
     message =
-      smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      smsReminderTemplate(
+        false,
+        action,
+        evt.organizer.timeFormat,
+        evt.startTime,
+        evt.title,
+        timeZone,
+        attendeeName,
+        name
+      ) || message;
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  if (message.length > 0 && reminderPhone && isNumberVerified && action !== WorkflowActions.SMS_ATTENDEE) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -163,6 +175,7 @@ export const scheduleSMSReminder = async (
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledSMS.sid,
+              seatReferenceId: seatReferenceUid,
             },
           });
         } catch (error) {
@@ -177,6 +190,7 @@ export const scheduleSMSReminder = async (
             method: WorkflowMethods.SMS,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
+            seatReferenceId: seatReferenceUid,
           },
         });
       }
@@ -189,6 +203,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
     if (referenceId) {
       await twilio.cancelSMS(referenceId);
     }
+
     await prisma.workflowReminder.delete({
       where: {
         id: reminderId,

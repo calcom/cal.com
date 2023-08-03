@@ -47,7 +47,7 @@ Button group enables multiple buttons to be combined into a single unit. It offe
 
 <Canvas>
   <Story
-    name="All Variatns">
+    name="All Variants">
     <VariantsTable titles={["Default",'Secondary',"Minimal"]} columnMinWidth={150}>
       <VariantRow variant="Default">
         <ButtonGroup>
@@ -79,5 +79,40 @@ Button group enables multiple buttons to be combined into a single unit. It offe
         </ButtonGroup>
       </VariantRow>
     </VariantsTable>
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="ButtonGroup Playground"
+    args={{
+      color: 'secondary',
+      combined: false,
+    }}
+    argTypes={{
+      color: {
+        control: {
+          type: 'select',
+          options: ['primary', 'secondary', 'minimal'],
+        },
+      },
+      combined: {
+        control: {
+          type: 'boolean',
+        },
+      },
+    }}
+  >
+    {({ color, combined }) => (
+      <VariantsTable titles={[`${color}`]} columnMinWidth={150}>
+        <VariantRow  variant="">
+          <ButtonGroup combined={combined}>
+            <Button StartIcon={Trash} variant="icon" color={color}  />
+            <Button StartIcon={Navigation} variant="icon" color={color}/>
+            <Button StartIcon={Clipboard} variant="icon"  color={color}/>
+          </ButtonGroup>
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

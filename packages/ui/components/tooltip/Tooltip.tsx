@@ -30,14 +30,15 @@ export function Tooltip({
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
+          {...props}
           className={classNames(
             side === "top" && "-mt-7",
             side === "right" && "ml-2",
-            "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg"
+            "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg",
+            props.className && `${props.className}`
           )}
           side={side}
-          align="center"
-          {...props}>
+          align="center">
           {content}
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>

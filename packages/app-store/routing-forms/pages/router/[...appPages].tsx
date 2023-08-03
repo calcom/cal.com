@@ -1,12 +1,14 @@
 import Head from "next/head";
 import z from "zod";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
@@ -36,10 +38,7 @@ const querySchema = z
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
-  prisma: AppPrisma,
-  _user: any,
-  _ssrInit: any,
-  { caller, uuidv4 }: { caller: any; uuidv4: any }
+  prisma: AppPrisma
 ) {
   const queryParsed = querySchema.safeParse(context.query);
   if (!queryParsed.success) {
@@ -49,9 +48,18 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const form = await prisma.app_RoutingForms_Form.findUnique({
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+
+  const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+      user: {
+        organization: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
     },
   });
 
@@ -60,16 +68,16 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const serializableForm = await getSerializableForm(form);
+  const serializableForm = await getSerializableForm({ form });
 
   const response: Response = {};
   serializableForm.fields?.forEach((field) => {
-    const rawFieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-    const fieldResponse =
-      field.type === "multiselect" ? rawFieldResponse.split(",").map((r) => r.trim()) : rawFieldResponse;
+    const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
+    const value =
+      field.type === "multiselect" ? fieldResponse.split(",").map((r) => r.trim()) : fieldResponse;
     response[field.id] = {
       label: field.label,
-      value: fieldResponse,
+      value: transformResponse({ field, value }),
     };
   });
 
@@ -79,6 +87,12 @@ export const getServerSideProps = async function getServerSideProps(
     throw new Error("No matching route could be found");
   }
 
+  const { createContext } = await import("@calcom/trpc/server/createContext");
+  const ctx = await createContext(context);
+
+  const trpcRouter = (await import("@calcom/app-store/routing-forms/trpc/_router")).default;
+  const caller = trpcRouter.createCaller(ctx);
+  const { v4: uuidv4 } = await import("uuid");
   await caller.public.response({
     formId: form.id,
     formFillerId: uuidv4(),

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -48,9 +49,9 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 space-y-6">
         <div className="flex items-center">
-          <SkeletonAvatar className="h-12 w-12 px-4" />
+          <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
         </div>
         <SkeletonText className="h-8 w-full" />
@@ -78,13 +79,16 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const { data: session, update } = useSession();
+
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: (values) => {
       showToast(t("settings_updated_successfully"), "success");
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
+      update(values);
       setTempFormValues(null);
     },
     onError: () => {
@@ -115,7 +119,9 @@ const ProfileView = () => {
 
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
-      if (tempFormValues) mutation.mutate(tempFormValues);
+      if (tempFormValues) {
+        mutation.mutate(tempFormValues);
+      }
       setConfirmPasswordOpen(false);
     },
     onError() {
@@ -203,6 +209,7 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
+        isLoading={mutation.isLoading}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProviver) {
             setTempFormValues(values);
@@ -214,7 +221,6 @@ const ProfileView = () => {
         extraField={
           <div className="mt-8">
             <UsernameAvailabilityField
-              user={user}
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
@@ -243,36 +249,38 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <>
-            <p className="text-default mb-7">
-              {t("delete_account_confirmation_message", { appName: APP_NAME })}
-            </p>
-            {isCALIdentityProviver && (
-              <PasswordField
-                data-testid="password"
-                name="password"
-                id="password"
-                autoComplete="current-password"
-                required
-                label="Password"
-                ref={passwordRef}
-              />
-            )}
+            <div className="mb-10">
+              <p className="text-default mb-4">
+                {t("delete_account_confirmation_message", { appName: APP_NAME })}
+              </p>
+              {isCALIdentityProviver && (
+                <PasswordField
+                  data-testid="password"
+                  name="password"
+                  id="password"
+                  autoComplete="current-password"
+                  required
+                  label="Password"
+                  ref={passwordRef}
+                />
+              )}
 
-            {user?.twoFactorEnabled && isCALIdentityProviver && (
-              <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                <TwoFactor center={false} />
-              </Form>
-            )}
+              {user?.twoFactorEnabled && isCALIdentityProviver && (
+                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                  <TwoFactor center={false} />
+                </Form>
+              )}
 
-            {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            <DialogFooter>
+              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+            </div>
+            <DialogFooter showDivider>
+              <DialogClose />
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}>
                 {t("delete_my_account")}
               </Button>
-              <DialogClose />
             </DialogFooter>
           </>
         </DialogContent>
@@ -285,7 +293,7 @@ const ProfileView = () => {
           description={t("confirm_password_change_email")}
           type="creation"
           Icon={AlertTriangle}>
-          <>
+          <div className="mb-10">
             <PasswordField
               data-testid="password"
               name="password"
@@ -297,13 +305,13 @@ const ProfileView = () => {
             />
 
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
-            <DialogFooter>
-              <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
-                {t("confirm")}
-              </Button>
-              <DialogClose />
-            </DialogFooter>
-          </>
+          </div>
+          <DialogFooter showDivider>
+            <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+              {t("confirm")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
@@ -314,10 +322,12 @@ const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
+  isLoading = false,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
+  isLoading: boolean;
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -327,7 +337,8 @@ const ProfileForm = ({
     avatar: z.string(),
     name: z
       .string()
-      .min(1)
+      .trim()
+      .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
@@ -390,7 +401,7 @@ const ProfileForm = ({
           setFirstRender={setFirstRender}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
+      <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
         {t("update")}
       </Button>
     </Form>

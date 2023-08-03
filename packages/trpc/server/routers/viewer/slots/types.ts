@@ -7,13 +7,13 @@ export const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeId: z.number().int().optional(),
+    eventTypeId: z.coerce.number().int().optional(),
     // Event type slug
-    eventTypeSlug: z.string(),
+    eventTypeSlug: z.string().optional(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
-    usernameList: z.array(z.string()).optional(),
+    usernameList: z.union([z.string(), z.array(z.string())]).optional(),
     debug: z.boolean().optional(),
     // to handle event types with multiple duration options
     duration: z
@@ -21,9 +21,16 @@ export const getScheduleSchema = z
       .optional()
       .transform((val) => val && parseInt(val)),
   })
+  .transform((val) => {
+    // Need this so we can pass a single username in the query string form public API
+    if (val.usernameList) {
+      val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
+    }
+    return val;
+  })
   .refine(
-    (data) => !!data.eventTypeId || !!data.usernameList,
-    "Either usernameList or eventTypeId should be filled in."
+    (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
+    "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
   );
 
 export const reserveSlotSchema = z

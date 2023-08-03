@@ -337,7 +337,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
-      if (object.data == null || JSON.stringify(object.data) == "{}") return;
+      if (!object || object.data == null || JSON.stringify(object.data) == "{}") return;
       let vcalendar: ICAL.Component;
       try {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));

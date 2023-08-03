@@ -171,7 +171,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   return (
     <div className="space-y-8">
       <div className="space-y-4 lg:space-y-8">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="beforeBufferTime">
               {t("before_event")}
@@ -245,7 +245,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="minimumBookingNotice">
               {t("minimum_booking_notice")}
@@ -416,7 +416,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="ms-2 me-2 inline-flex space-x-2 rtl:space-x-reverse">
+                      <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
@@ -437,7 +437,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                       </div>
                     )}
-                    {period.suffix ? <span className="ms-2 me-2">&nbsp;{period.suffix}</span> : null}
+                    {period.suffix ? <span className="me-2 ms-2">&nbsp;{period.suffix}</span> : null}
                   </div>
                 );
               })}

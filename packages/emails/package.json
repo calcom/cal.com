@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dx": "docker compose up -d"
+    "dx": "docker compose up -d || docker-compose up -d"
   },
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
-    "next-i18next": "^11.3.0",
+    "next-i18next": "^13.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rrule": "^2.7.1"

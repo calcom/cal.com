@@ -1,9 +1,10 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
 
+import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
@@ -46,7 +47,7 @@ function getRoute(appName: string, pages: string[]) {
     } as NotFound;
   }
   const mainPage = pages[0];
-  const appPage = routingConfig[mainPage] as AppPageType;
+  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
 
   if (!appPage) {
     return {
@@ -58,8 +59,8 @@ function getRoute(appName: string, pages: string[]) {
 
 const AppPage: AppPageType["default"] = function AppPage(props) {
   const appName = props.appName;
-  const router = useRouter();
-  const pages = router.query.pages as string[];
+  const params = useParamsWithFallback();
+  const pages = (params.pages || []) as string[];
   const route = getRoute(appName, pages);
 
   const componentProps = {
@@ -121,19 +122,18 @@ export async function getServerSideProps(
     return route;
   }
   if (route.getServerSideProps) {
-    const { createContext } = await import("@calcom/trpc/server/createContext");
-    const ctx = await createContext(context);
-
-    const trpcRouter = (await import("@calcom/app-store/routing-forms/trpc/_router")).default;
-    const caller = trpcRouter.createCaller(ctx);
-    const { v4: uuidv4 } = await import("uuid");
-
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
     params.appPages = pages.slice(1);
     const session = await getServerSession({ req, res });
     const user = session?.user;
+    const app = await getAppWithMetadata({ slug: appName });
+    if (!app) {
+      return {
+        notFound: true,
+      };
+    }
 
     const result = await route.getServerSideProps(
       context as GetServerSidePropsContext<{
@@ -143,11 +143,7 @@ export async function getServerSideProps(
       }>,
       prisma,
       user,
-      ssrInit,
-      {
-        caller,
-        uuidv4,
-      }
+      ssrInit
     );
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -164,7 +160,7 @@ export async function getServerSideProps(
     return {
       props: {
         appName,
-        appUrl: `/apps/${appName}`,
+        appUrl: app.simplePath || `/apps/${appName}`,
         ...result.props,
       },
     };

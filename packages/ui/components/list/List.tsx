@@ -2,6 +2,9 @@ import Link from "next/link";
 import { createElement } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { Badge } from "../badge";
 
 export type ListProps = {
   roundContainer?: boolean;
@@ -12,6 +15,7 @@ export type ListProps = {
 export function List(props: ListProps) {
   return (
     <ul
+      data-testid="list"
       {...props}
       className={classNames(
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
@@ -47,6 +51,7 @@ export function ListItem(props: ListItemProps) {
         props.className,
         (props.onClick || href) && "hover:bg-muted"
       ),
+      "data-testid": "list-item",
     },
     props.children
   );
@@ -70,14 +75,16 @@ export type ListLinkItemProps = {
 
 export function ListLinkItem(props: ListLinkItemProps) {
   const { href, heading = "", children, disabled = false, actions = <div />, className = "" } = props;
+  const { t } = useLocale();
   let subHeading = props.subHeading;
   if (!subHeading) {
     subHeading = "";
   }
   return (
     <li
+      data-testid="list-link-item"
       className={classNames(
-        "group flex w-full items-center justify-between p-5",
+        "group flex w-full items-center justify-between p-5 pb-4",
         className,
         disabled ? "hover:bg-muted" : ""
       )}>
@@ -88,8 +95,15 @@ export function ListLinkItem(props: ListLinkItemProps) {
           "text-default flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <h1 className="text-sm font-semibold leading-none">{heading}</h1>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
+        <div className="flex items-center">
+          <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+          {disabled && (
+            <Badge data-testid="badge" variant="gray" className="ml-2">
+              {t("readonly")}
+            </Badge>
+          )}
+        </div>
+        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>
@@ -110,6 +124,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     {
       ...passThroughProps,
       className: classNames("text-sm font-medium text-emphasis truncate", props.className),
+      "data-testid": "list-item-title",
     },
     props.children
   );
@@ -125,6 +140,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     {
       ...passThroughProps,
       className: classNames("text-sm text-subtle truncate", props.className),
+      "data-testid": "list-item-text",
     },
     props.children
   );
