@@ -2,7 +2,7 @@ import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 
@@ -30,10 +30,8 @@ async function getIdentityData(req: NextApiRequest) {
     ? {
         id: orgId,
       }
-    : isValidOrgDomain
-    ? {
-        slug: currentOrgDomain,
-      }
+    : org
+    ? getSlugOrRequestedSlug(org)
     : null;
 
   if (username) {

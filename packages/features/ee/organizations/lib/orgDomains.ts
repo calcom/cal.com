@@ -1,5 +1,7 @@
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 
+import type { Prisma } from ".prisma/client";
+
 /**
  * return the org slug
  * @param hostname
@@ -60,5 +62,5 @@ export function getSlugOrRequestedSlug(slug: string) {
         },
       },
     ],
-  };
+  } satisfies Prisma.TeamWhereInput;
 }
