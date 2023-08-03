@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -35,7 +36,6 @@ interface AppCardProps {
 
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
-
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
 
@@ -78,9 +78,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-default">
-          <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
-          <span className="pl-1 text-subtle">{props.reviews} reviews</span>
-        </div> */}
+            <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
+            <span className="pl-1 text-subtle">{props.reviews} reviews</span>
+          </div> */}
       <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
@@ -189,11 +189,12 @@ const InstallAppButtonChild = ({
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(router.asPath);
+      router.replace(pathname);
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
