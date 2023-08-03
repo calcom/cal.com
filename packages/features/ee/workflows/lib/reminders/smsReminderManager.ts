@@ -98,9 +98,7 @@ export const scheduleSMSReminder = async (
   } | null = null;
   if (action === WorkflowActions.SMS_ATTENDEE) {
     const attendeeWithReminderPhoneAsSMSReminderNumber =
-      reminderPhone &&
-      evt.responses?.smsReminderNumber?.value === reminderPhone &&
-      evt.attendees.find((attendee) => attendee.email === evt.responses?.email?.value);
+      reminderPhone && evt.attendees.find((attendee) => attendee.email === evt.responses?.email?.value);
     attendeeToBeUsedInSMS = attendeeWithReminderPhoneAsSMSReminderNumber
       ? attendeeWithReminderPhoneAsSMSReminderNumber
       : evt.attendees[0];
