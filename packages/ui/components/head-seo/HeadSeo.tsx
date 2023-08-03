@@ -33,6 +33,7 @@ const buildSeoMeta = (pageProps: {
   canonical?: string;
 }): NextSeoProps => {
   const { title, description, image, canonical, siteName = seoConfig.headSeo.siteName } = pageProps;
+
   return {
     title: title,
     canonical: canonical,
@@ -92,6 +93,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
   const pageTitle = `${title}${isBrandingHidden ? "" : ` | ${APP_NAME}`}`;
+
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,
