@@ -181,8 +181,10 @@ export default class Office365CalendarService implements Calendar {
     const officeCalendars: OfficeCalendar[] = [];
     // List calendars from MS are paginated
     let finishedParsingCalendars = false;
+    const calendarFilterParam = "$select=id,name,isDefaultCalendar,canEdit";
+
     // Store @odata.nextLink if in response
-    let requestLink = "/me/calendars";
+    let requestLink = `/me/calendars?${calendarFilterParam}`;
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);
