@@ -1,3 +1,5 @@
+import type { User } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -33,19 +35,8 @@ const guardAgainstTooManyPasswordResets = async (email: string) => {
     throw new Error("Too many password reset attempts. Please try again later.");
   }
 };
-
-const passwordResetRequest = async (email: string) => {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      email,
-    },
-    select: {
-      name: true,
-      identityProvider: true,
-      email: true,
-      locale: true,
-    },
-  });
+const passwordResetRequest = async (user: Pick<User, "email" | "name" | "locale">) => {
+  const { email } = user;
   const t = await getTranslation(user.locale ?? "en", "common");
   await guardAgainstTooManyPasswordResets(email);
   const resetLink = await createPasswordReset(email);

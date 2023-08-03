@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { defaultHandler, getTranslation } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const email = z
@@ -32,8 +33,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    const { language } = await passwordResetRequest(email.data);
-    const t = await getTranslation(language, "common");
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email: email.data },
+      select: { name: true, email: true, locale: true },
+    });
+    const { language: t } = await passwordResetRequest(user);
     return res.status(201).json({ message: t("password_reset_email_sent") });
   } catch (reason) {
     console.error(reason);

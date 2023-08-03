@@ -135,7 +135,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (hasEmailChangedOnNonCalProvider) {
     // Because the email has changed, we are now attempting to use the CAL provider-
     // which has no password yet. We have to send the reset password email.
-    await passwordResetRequest(updatedUser.email);
+    await passwordResetRequest(updatedUser);
     signOutUser = true;
     passwordReset = true;
   }
