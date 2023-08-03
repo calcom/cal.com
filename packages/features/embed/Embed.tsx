@@ -41,8 +41,9 @@ import {
 } from "@calcom/ui";
 import { ArrowDown, ArrowLeft, ArrowUp, Sun } from "@calcom/ui/components/icon";
 
+import { useEmbedTypes } from "./hooks/useEmbedTypes";
 import { getDimension } from "./lib/getDimension";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
+import type { EmbedTabs, EmbedType, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 
@@ -96,9 +97,10 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
   );
 };
 
-const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
+const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const { goto } = useRouterHelpers();
+  const types = useEmbedTypes();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -514,13 +516,11 @@ const EmailEmbedPreview = ({
 const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
-  types,
   tabs,
   eventTypeHideOptionDisabled,
 }: {
   embedType: EmbedType;
   embedUrl: string;
-  types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
@@ -528,6 +528,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { goto, removeQueryParams } = useRouterHelpers();
+  const types = useEmbedTypes();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
@@ -1104,11 +1105,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 };
 
 export const EmbedDialog = ({
-  types,
   tabs,
   eventTypeHideOptionDisabled,
 }: {
-  types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
@@ -1117,12 +1116,11 @@ export const EmbedDialog = ({
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!searchParams?.get("embedType") ? (
-        <ChooseEmbedTypesDialogContent types={types} />
+        <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
-          types={types}
           tabs={tabs}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
         />
