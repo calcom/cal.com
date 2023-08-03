@@ -92,7 +92,10 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   }
 
   const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    return userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id] ? 1 : -1;
+    if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
+    else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
+    // if two (or more) dates are identical, we randomize the order
+    else return Math.random() > 0.5 ? 1 : -1;
   })[0];
 
   return leastRecentlyBookedUser;
