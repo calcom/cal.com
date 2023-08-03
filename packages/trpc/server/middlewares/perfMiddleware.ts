@@ -1,4 +1,4 @@
-import { tracer, context } from "@calcom/lib/server/OTEL-initializer";
+import { tracer, context } from "@calcom/lib/server/otel-initializer";
 
 import { middleware } from "../trpc";
 
