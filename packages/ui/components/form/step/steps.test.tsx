@@ -1,11 +1,13 @@
+/* eslint-disable playwright/no-conditional-in-test */
+
 /* eslint-disable playwright/missing-playwright-await */
 import { render, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Steps } from "./Steps";
 
-const MAX_STEPS = 4;
-let CURRENT_STEP = 2;
+const MAX_STEPS = 10;
+const CURRENT_STEP = 5;
 const mockNavigateToStep = vi.fn();
 
 const Props = {
@@ -17,27 +19,44 @@ const Props = {
 
 describe("Tests for Steps Component", () => {
   test("Should render the correct number of steps", () => {
-    const { getByTestId, getByText } = render(<Steps {...Props} />);
+    const { queryByTestId } = render(<Steps {...Props} />);
 
-    for (let i = 0; i < Props.maxSteps; i++) {
-      const step = getByTestId(`step-indicator-${i}`);
-      const expectedTestId = `step-indicator-${i}`;
-      expect(step).toHaveAttribute("data-testid", expectedTestId);
+    const stepIndicatorDivs = queryByTestId("step-indicator-container");
+    const childDivs = stepIndicatorDivs?.querySelectorAll("div");
+
+    const count = childDivs?.length;
+    expect(stepIndicatorDivs).toBeInTheDocument();
+
+    expect(count).toBe(MAX_STEPS);
+
+    for (let i = 0; i < MAX_STEPS; i++) {
+      const step = queryByTestId(`step-indicator-${i}`);
+      if (i < CURRENT_STEP - 1) {
+        expect(step).toHaveClass("cursor-pointer");
+      } else {
+        expect(step).not.toHaveClass("cursor-pointer");
+      }
     }
+  });
+
+  test("Should render correctly the label of the steps", () => {
+    const { getByText } = render(<Steps {...Props} />);
 
     expect(getByText(`Test Step ${CURRENT_STEP} of ${MAX_STEPS}`)).toBeInTheDocument();
   });
-  test("Should navigate to the correct step when clicked", () => {
-    const { getByTestId, getByText, rerender } = render(<Steps {...Props} />);
 
-    const stepIndicators = getByTestId("step-indicator-1");
-    fireEvent.click(stepIndicators);
-    expect(mockNavigateToStep).toHaveBeenCalledTimes(1);
+  test("Should navigate to the correct step when clicked", async () => {
+    const { getByTestId } = render(<Steps {...Props} />);
 
-    CURRENT_STEP = CURRENT_STEP + 1;
-
-    rerender(<Steps {...{ ...Props, currentStep: CURRENT_STEP }} />);
-    const newLabel = getByText(`Test Step ${CURRENT_STEP} of ${MAX_STEPS}`);
-    expect(newLabel).toBeInTheDocument();
+    for (let i = 0; i < MAX_STEPS; i++) {
+      const stepIndicator = getByTestId(`step-indicator-${i}`);
+      if (i < CURRENT_STEP - 1) {
+        fireEvent.click(stepIndicator);
+        expect(mockNavigateToStep).toHaveBeenCalledWith(i);
+        mockNavigateToStep.mockClear();
+      } else {
+        expect(mockNavigateToStep).not.toHaveBeenCalled();
+      }
+    }
   });
 });
