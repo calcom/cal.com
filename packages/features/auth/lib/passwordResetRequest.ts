@@ -46,10 +46,6 @@ const passwordResetRequest = async (user: Pick<User, "email" | "name" | "locale"
     user,
     resetLink,
   });
-  return {
-    resetLink,
-    language: t,
-  };
 };
 
 export { passwordResetRequest };

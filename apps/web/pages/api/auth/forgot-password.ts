@@ -33,12 +33,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { email: email.data },
       select: { name: true, email: true, locale: true },
     });
-    const { language: t } = await passwordResetRequest(user);
-    return res.status(201).json({ message: t("password_reset_email_sent") });
+    // Don't leak info about whether the user exists
+    if (!user) return res.status(201).json({ message: "password_reset_email_sent" });
+    await passwordResetRequest(user);
+    return res.status(201).json({ message: "password_reset_email_sent" });
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
