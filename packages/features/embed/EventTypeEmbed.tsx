@@ -1,10 +1,13 @@
 import type { ComponentProps } from "react";
 
 import { EmbedButton, EmbedDialog } from "./Embed";
+import { useEmbedTypes } from "./hooks/useEmbedTypes";
 import { tabs } from "./lib/EmbedTabs";
 
 export const EventTypeEmbedDialog = () => {
-  return <EmbedDialog tabs={tabs} eventTypeHideOptionDisabled={false} />;
+  const types = useEmbedTypes();
+
+  return <EmbedDialog types={types} tabs={tabs} eventTypeHideOptionDisabled={false} />;
 };
 
 export const EventTypeEmbedButton = (props: ComponentProps<typeof EmbedButton>) => {
