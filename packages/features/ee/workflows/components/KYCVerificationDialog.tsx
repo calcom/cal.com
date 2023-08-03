@@ -1,3 +1,4 @@
+import { Trans } from "next-i18next";
 import type { Dispatch, SetStateAction } from "react";
 
 import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
@@ -12,16 +13,24 @@ export const KYCVerificationDialog = (props: {
   const { isOpenDialog, setIsOpenDialog, isPartOfTeam } = props;
   const { t } = useLocale();
 
-  const teamOrAccount = isPartOfTeam ? "team" : "account";
+  const isTeamString = isPartOfTeam ? "team" : "";
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("verify_team_or_account", { teamOrAccount })}>
+      <DialogContent title={t("verify_team_or_account", { teamOrAccount: isTeamString || "account" })}>
         <div>
-          {t("kyc_verification_information", {
-            supportEmail: SUPPORT_MAIL_ADDRESS === "help@cal.com" ? "support@cal.com" : SUPPORT_MAIL_ADDRESS,
-            teamOrAccount,
-          })}
+          <div className="mb-4">
+            {t("kyc_verification_information", {
+              supportEmail:
+                SUPPORT_MAIL_ADDRESS === "help@cal.com" ? "support@cal.com" : SUPPORT_MAIL_ADDRESS,
+              teamOrAccount: isTeamString || "account",
+            })}
+          </div>
+          <Trans
+            i18nKey="kyc_verification_documents"
+            components={{ li: <li />, ul: <ul className="ml-8 list-disc" /> }}
+            values={{ teamOrUser: isTeamString || "user" }}
+          />
         </div>
         <DialogFooter>
           <DialogClose />
