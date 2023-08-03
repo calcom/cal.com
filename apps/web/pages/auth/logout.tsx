@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,8 +20,6 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
-  const [emailChange, setEmailChange] = useState(false);
-  const [passReset, setPassReset] = useState(false);
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
@@ -29,19 +27,13 @@ export function Logout(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.query?.survey]);
-  useEffect(() => {
-    if (props.query?.emailChange === "true") {
-      setEmailChange(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.query?.emailChange]);
-  useEffect(() => {
-    if (props.query?.passReset === "true") {
-      setPassReset(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.query?.passReset]);
   const { t } = useLocale();
+
+  const message = () => {
+    if (props.query?.passReset === "true") return "reset_your_password";
+    if (props.query?.emailChange === "true") return "email_change";
+    return "hope_to_see_you_soon";
+  };
 
   return (
     <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
@@ -54,13 +46,7 @@ export function Logout(props: Props) {
             {t("youve_been_logged_out")}
           </h3>
           <div className="mt-2">
-            <p className="text-subtle text-sm">
-              {passReset
-                ? t("reset_your_password")
-                : emailChange
-                ? t("email_change")
-                : t("hope_to_see_you_soon")}
-            </p>
+            <p className="text-subtle text-sm">{t(message())}</p>
           </div>
         </div>
       </div>
