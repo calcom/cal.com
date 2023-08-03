@@ -137,6 +137,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
+  experimental: {
+    instrumentationHook: true,
+  },
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/core",
