@@ -7,7 +7,7 @@ import WebSocket from "ws";
 import type { NamespaceMode } from "./mail-server";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
-const EMAIL_SERVER_PORT = Number(process.env.EMAIL_SERVER_PORT) || 8825;
+const EMAIL_SERVER_PORT = 8825;
 const WS_SERVER_PORT = EMAIL_SERVER_PORT + 1;
 
 export type EmailFilter = Partial<Record<string, string>>;

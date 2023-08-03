@@ -5,7 +5,7 @@ import { isENVDev } from "@calcom/lib/env";
 
 function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string {
   if (process.env.NEXT_PUBLIC_IS_E2E) {
-    return `smtp://localhost:${process.env.EMAIL_SERVER_PORT || 8825}`;
+    return "smtp://localhost:8825";
   }
 
   if (process.env.EMAIL_SERVER) {
