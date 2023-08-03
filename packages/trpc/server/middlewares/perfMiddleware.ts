@@ -1,4 +1,5 @@
-import { tracer, context } from "../../../lib/server/OTEL-initializer";
+import { tracer, context } from "@calcom/lib/server/OTEL-initializer";
+
 import { middleware } from "../trpc";
 
 const perfMiddleware = middleware(async ({ path, type, next }) => {
