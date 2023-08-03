@@ -45,11 +45,13 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
 };
 
+type ScheduleSMSReminderAction = Extract<WorkflowActions, "SMS_ATTENDEE" | "SMS_NUMBER">;
+
 export const scheduleSMSReminder = async (
   evt: BookingInfo,
   reminderPhone: string | null,
   triggerEvent: WorkflowTriggerEvents,
-  action: WorkflowActions,
+  action: ScheduleSMSReminderAction,
   timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
@@ -86,7 +88,7 @@ export const scheduleSMSReminder = async (
   }
   const isNumberVerified = await getIsNumberVerified();
 
-  let attendeeToBeUsedInSms: {
+  let attendeeToBeUsedInSMS: {
     name: string;
     email: string;
     timeZone: string;
@@ -95,15 +97,15 @@ export const scheduleSMSReminder = async (
     };
   } | null = null;
   if (action === WorkflowActions.SMS_ATTENDEE) {
-    const attendeeWithReminderPhoneAsSmsReminderNumber =
+    const attendeeWithReminderPhoneAsSMSReminderNumber =
       reminderPhone &&
       evt.responses?.smsReminderNumber?.value === reminderPhone &&
       evt.attendees.find((attendee) => attendee.email === evt.responses?.email?.value);
-    attendeeToBeUsedInSms = attendeeWithReminderPhoneAsSmsReminderNumber
-      ? attendeeWithReminderPhoneAsSmsReminderNumber
+    attendeeToBeUsedInSMS = attendeeWithReminderPhoneAsSMSReminderNumber
+      ? attendeeWithReminderPhoneAsSMSReminderNumber
       : evt.attendees[0];
   } else {
-    attendeeToBeUsedInSms = evt.attendees[0];
+    attendeeToBeUsedInSMS = evt.attendees[0];
   }
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
@@ -112,23 +114,23 @@ export const scheduleSMSReminder = async (
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  const name = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSms.name : "";
+  const name = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.name : "";
   const attendeeName =
-    action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : attendeeToBeUsedInSms.name;
+    action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : attendeeToBeUsedInSMS.name;
   const timeZone =
-    action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSms.timeZone : evt.organizer.timeZone;
+    action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
 
   const locale =
-    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-      ? attendeeToBeUsedInSms.language?.locale
+    action === WorkflowActions.SMS_ATTENDEE
+      ? attendeeToBeUsedInSMS.language?.locale
       : evt.organizer.language.locale;
 
   if (message) {
     const variables: VariablesType = {
       eventName: evt.title,
       organizerName: evt.organizer.name,
-      attendeeName: attendeeToBeUsedInSms.name,
-      attendeeEmail: attendeeToBeUsedInSms.email,
+      attendeeName: attendeeToBeUsedInSMS.name,
+      attendeeEmail: attendeeToBeUsedInSMS.email,
       eventDate: dayjs(evt.startTime).tz(timeZone),
       eventEndTime: dayjs(evt.endTime).tz(timeZone),
       timeZone: timeZone,
