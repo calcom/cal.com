@@ -8,57 +8,44 @@ import { test } from "../lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test("Can reset forgotten password", async ({ page, users }) => {
-  const user = await users.create();
+test("Can reset forgotten password", async ({ page, users, emails }) => {
+  const user = await users.create({ email: emails.generateAddress() });
 
   // Got to reset password flow
   await page.goto("/auth/forgot-password");
 
-  await page.fill('input[name="email"]', `${user.username}@example.com`);
+  await page.fill('input[name="email"]', user.email);
   await page.press('input[name="email"]', "Enter");
 
   // wait for confirm page.
   await page.waitForSelector("text=Reset link sent");
 
-  // As a workaround, we query the db for the last created password request
-  // there should be one, otherwise we throw
-  const { id } = await prisma.resetPasswordRequest.findFirstOrThrow({
-    where: {
-      email: `${user.username}@example.com`,
-    },
-    select: {
-      id: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const email = await emails.waitForOne(user.email);
 
   // Test when a user changes his email after starting the password reset flow
   await prisma.user.update({
     where: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
     data: {
-      email: `${user.username}-2@example.com`,
+      email: `2-${user.email}`,
     },
   });
 
-  await page.goto(`/auth/forgot-password/${id}`);
-
+  await email.clickCta();
   await page.waitForSelector("text=That request is expired.");
 
   // Change the email back to continue testing.
   await prisma.user.update({
     where: {
-      email: `${user.username}-2@example.com`,
+      email: `2-${user.email}`,
     },
     data: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
   });
 
-  await page.goto(`/auth/forgot-password/${id}`);
+  await email.clickCta();
 
   const newPassword = `${user.username}-123CAL-${uuid().toString()}`; // To match the password policy
 
@@ -75,7 +62,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // we're not logging in to the UI to speed up test performance.
   const updatedUser = await prisma.user.findUniqueOrThrow({
     where: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
     select: {
       id: true,
@@ -87,7 +74,6 @@ test("Can reset forgotten password", async ({ page, users }) => {
   await expect(await verifyPassword(newPassword, updatedUser.password!)).toBeTruthy();
 
   // finally, make sure the same URL cannot be used to reset the password again, as it should be expired.
-  await page.goto(`/auth/forgot-password/${id}`);
-
+  await email.clickCta();
   await page.waitForSelector("text=That request is expired.");
 });
