@@ -2,16 +2,18 @@ import { forwardRef } from "react";
 import type { MutableRefObject } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { APP_NAME, IS_SELF_HOSTED, WEBAPP_URL, EMBED_LIB_URL } from "@calcom/lib/constants";
+import { APP_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 import { Code, Trello } from "@calcom/ui/components/icon";
 
 import type { EmbedType, PreviewState, EmbedFramework } from "../types";
 import { Codes } from "./EmbedCodes";
+import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
 import { getDimension } from "./getDimension";
+import { useEmbedCalOrigin } from "./hooks";
 
-const EMBED_CAL_ORIGIN = WEBAPP_URL;
 export const tabs = [
   {
     name: "HTML",
@@ -23,6 +25,8 @@ export const tabs = [
       { embedType: EmbedType; calLink: string; previewState: PreviewState }
     >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
+      const embedSnippetString = useGetEmbedSnippetString();
+      const embedCalOrigin = useEmbedCalOrigin();
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -51,8 +55,8 @@ export const tabs = [
                   )};overflow:scroll" id="my-cal-inline"></div>\n`
                 : "") +
               `<script type="text/javascript">
-  ${getEmbedSnippetString()}
-  ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
+  ${embedSnippetString}
+  ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState, embedCalOrigin })}
   </script>
   <!-- Cal ${embedType} embed code ends -->`
             }
@@ -72,6 +76,8 @@ export const tabs = [
       { embedType: EmbedType; calLink: string; previewState: PreviewState }
     >(function EmbedReact({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
+      const embedCalOrigin = useEmbedCalOrigin();
+
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -95,7 +101,7 @@ export const tabs = [
   
   /* If you are using npm */
   // npm install @calcom/embed-react
-  ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
+  ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState, embedCalOrigin })}
   `}
           />
         </>
@@ -111,6 +117,7 @@ export const tabs = [
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState }
     >(function Preview({ calLink, embedType }, ref) {
+      const bookerUrl = useBookerUrl();
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -124,7 +131,7 @@ export const tabs = [
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
+          src={`${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`}
         />
       );
     }),
@@ -135,12 +142,14 @@ const getEmbedTypeSpecificString = ({
   embedFramework,
   embedType,
   calLink,
+  embedCalOrigin,
   previewState,
 }: {
   embedFramework: EmbedFramework;
   embedType: EmbedType;
   calLink: string;
   previewState: PreviewState;
+  embedCalOrigin: string;
 }) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
@@ -179,23 +188,24 @@ const getEmbedTypeSpecificString = ({
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,
+      embedCalOrigin,
     });
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
       calLink,
-      ...(IS_SELF_HOSTED ? { calOrigin: EMBED_CAL_ORIGIN } : null),
+      ...(IS_SELF_HOSTED ? { calOrigin: embedCalOrigin } : null),
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({
       floatingButtonArg: JSON.stringify(floatingButtonArg),
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,
+      embedCalOrigin,
     });
   }
   return "";
@@ -243,9 +253,10 @@ const getInstructionString = ({
   return `${apiName}("${instructionName}", ${JSON.stringify(instructionArg)});`;
 };
 
-function getEmbedSnippetString() {
+function useGetEmbedSnippetString() {
+  const bookerUrl = useBookerUrl();
   // TODO: Import this string from @calcom/embed-snippet
-  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${EMBED_LIB_URL}", "init");
-Cal("init", {origin:"${WEBAPP_URL}"});
+  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${embedLibUrl}", "init");
+Cal("init", {origin:"${bookerUrl}"});
 `;
 }

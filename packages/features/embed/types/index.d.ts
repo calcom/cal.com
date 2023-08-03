@@ -1,5 +1,5 @@
-import type { useEmbedTypes } from "../hooks/useEmbedTypes";
 import type { tabs } from "../lib/EmbedTabs";
+import type { useEmbedTypes } from "../lib/hooks";
 
 export type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 export type PreviewState = {

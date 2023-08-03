@@ -2,8 +2,8 @@ import type { ComponentProps } from "react";
 
 import { EmbedDialog, EmbedButton } from "@calcom/features/embed/Embed";
 
-import { useEmbedTypes } from "./hooks/useEmbedTypes";
 import { tabs } from "./lib/EmbedTabs";
+import { useEmbedTypes } from "./lib/hooks";
 
 export const RoutingFormEmbedDialog = () => {
   const types = useEmbedTypes();

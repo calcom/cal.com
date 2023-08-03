@@ -1,22 +1,22 @@
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
+import { embedLibUrl } from "./constants";
 import { getDimension } from "./getDimension";
 
-const EMBED_CAL_ORIGIN = WEBAPP_URL;
-const EMBED_CAL_JS_URL = `${WEBAPP_URL}/embed/embed.js`;
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
+export const Codes = {
   react: {
     inline: ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      embedCalOrigin: string;
     }) => {
       const width = getDimension(previewState.inline.width);
       const height = getDimension(previewState.inline.height);
@@ -36,8 +36,8 @@ export const Codes: Record<string, Record<string, (...args: any[]) => string>> =
 	  ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
         IS_SELF_HOSTED
           ? `
-	  calOrigin="${EMBED_CAL_ORIGIN}"
-	  calJsUrl="${EMBED_CAL_JS_URL}"`
+	  calOrigin="${embedCalOrigin}"
+	  calJsUrl="${embedLibUrl}"`
           : ""
       }
 	/>;
@@ -56,7 +56,7 @@ export const Codes: Record<string, Record<string, (...args: any[]) => string>> =
   export default function App() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
+		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
 		cal("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
@@ -67,10 +67,12 @@ export const Codes: Record<string, Record<string, (...args: any[]) => string>> =
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      embedCalOrigin: string;
     }) => {
       return code`
   import { getCalApi } from "@calcom/embed-react";
@@ -78,12 +80,12 @@ export const Codes: Record<string, Record<string, (...args: any[]) => string>> =
   export default function App() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
+		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
 	return <button
-	  data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
+	  data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${embedCalOrigin}"` : ""}
 	  ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
     })}'`}
@@ -139,7 +141,8 @@ export const Codes: Record<string, Record<string, (...args: any[]) => string>> =
   ${uiInstructionCode}`;
     },
   },
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} satisfies Record<string, Record<string, (...args: any[]) => string>>;
 
 /**
  * It allows us to show code with certain reusable blocks indented according to the block variable placement
