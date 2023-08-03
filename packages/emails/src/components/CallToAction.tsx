@@ -55,6 +55,7 @@ export const CallToAction = (props: {
           justifyContent: "center",
           margin: "auto",
         }}
+        data-testid="cta-link"
         href={href}
         target="_blank"
         rel="noreferrer">
