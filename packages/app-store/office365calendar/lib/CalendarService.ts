@@ -133,6 +133,8 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
+    const calendarSelectParams = "$select=showAs,start,end";
+
     try {
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
@@ -149,7 +151,7 @@ export default class Office365CalendarService implements Calendar {
       const requests = ids.map((calendarId, id) => ({
         id,
         method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}&$select=showAs,start,end`,
+        url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
