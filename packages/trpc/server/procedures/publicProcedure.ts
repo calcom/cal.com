@@ -1,7 +1,7 @@
+import captureErrorsMiddleware from "../middlewares/captureErrorsMiddleware";
 import perfMiddleware from "../middlewares/perfMiddleware";
-import reactErrorsMiddleware from "../middlewares/redactErrors";
 import { tRPCContext } from "../trpc";
 
-const publicProcedure = tRPCContext.procedure.use(perfMiddleware).use(reactErrorsMiddleware);
+const publicProcedure = tRPCContext.procedure.use(perfMiddleware).use(captureErrorsMiddleware);
 
 export default publicProcedure;
