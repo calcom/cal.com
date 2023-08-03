@@ -56,12 +56,12 @@ export function Header({
   if (isMonthView) {
     return <LayoutToggleWithData />;
   }
-  const intlmonth = new Intl.DateTimeFormat(i18n.language, { month: "short" }).format(selectedDate.toDate());
+  const month = new Intl.DateTimeFormat(i18n.language, { month: "short" }).format(selectedDate.toDate());
   return (
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {intlmonth} {selectedDate.format("D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
+          {month} {selectedDate.format("D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
           <span className="text-subtle">{selectedDate.format("YYYY")}</span>
         </h3>
         <div className="flex">
