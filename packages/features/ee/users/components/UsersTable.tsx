@@ -32,16 +32,17 @@ function UsersTableBare() {
       showToast("User has been deleted", "success");
       // Lets not invalidated the whole cache, just remove the user from the cache.
       // usefull cause in prod this will be fetching 100k+ users
-      utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (data) => {
-        if (!data) {
+      // FIXME: Tested locally and it doesnt't work, need to investigate
+      utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
+        if (!cachedData) {
           return {
             pages: [],
             pageParams: [],
           };
         }
         return {
-          ...data,
-          pages: data.pages.map((page) => ({
+          ...cachedData,
+          pages: cachedData.pages.map((page) => ({
             ...page,
             rows: page.rows.filter((row) => row.id !== userToDelete),
           })),

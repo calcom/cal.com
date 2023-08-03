@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";

@@ -2,7 +2,6 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -18,6 +17,7 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
@@ -39,7 +39,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
-  const router = useRouter();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -47,9 +46,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const query = { ...router.query };
-  delete query.user; // So it doesn't display in the Link (and make tests fail)
-  delete query.orgSlug;
+  const {
+    // So it doesn't display in the Link (and make tests fail)
+    user: _user,
+    orgSlug: _orgSlug,
+    ...query
+  } = useRouterQuery();
+  const nameOrUsername = user.name || user.username || "";
 
   /*
    const telemetry = useTelemetry();
