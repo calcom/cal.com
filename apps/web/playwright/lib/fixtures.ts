@@ -5,6 +5,7 @@ import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
+import { createEmailsFixture } from "../fixtures/emails";
 import { createEmbedsFixture, createGetActionFiredDetails } from "../fixtures/embeds";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createServersFixture } from "../fixtures/servers";
@@ -14,6 +15,7 @@ export interface Fixtures {
   page: Page;
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
+  emails: ReturnType<typeof createEmailsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
   addEmbedListeners: ReturnType<typeof createEmbedsFixture>;
   getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
@@ -47,6 +49,12 @@ export const test = base.extend<Fixtures>({
   bookings: async ({ page }, use) => {
     const bookingsFixture = createBookingsFixture(page);
     await use(bookingsFixture);
+  },
+  emails: async ({ page }, use) => {
+    const emails = createEmailsFixture(page);
+    await emails.start();
+    await use(emails);
+    await emails.stop();
   },
   payments: async ({ page }, use) => {
     const payemntsFixture = createPaymentsFixture(page);

@@ -31,6 +31,11 @@ const webServer: PlaywrightTestConfig["webServer"] = [
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
   },
+  {
+    command: "yarn workspace @calcom/web e2e:mail-server",
+    url: `http://localhost:${Number(process.env.EMAIL_SERVER_PORT) + 1}`,
+    reuseExistingServer: !process.env.CI,
+  },
 ];
 
 if (IS_EMBED_TEST) {
