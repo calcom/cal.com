@@ -1,6 +1,6 @@
 import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -22,7 +22,7 @@ import {
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
-import { useOrgBrandingValues } from "../../organizations/hooks";
+import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -58,7 +58,7 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
 
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
   const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   return (

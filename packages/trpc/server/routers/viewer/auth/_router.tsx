@@ -1,12 +1,18 @@
+import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+
 import authedProcedure from "../../../procedures/authedProcedure";
+import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
+import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
 
 type AuthRouterHandlerCache = {
   changePassword?: typeof import("./changePassword.handler").changePasswordHandler;
   verifyPassword?: typeof import("./verifyPassword.handler").verifyPasswordHandler;
+  verifyCodeUnAuthenticated?: typeof import("./verifyCodeUnAuthenticated.handler").verifyCodeUnAuthenticatedHandler;
   resendVerifyEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
+  sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AuthRouterHandlerCache = {};
@@ -47,6 +53,41 @@ export const authRouter = router({
       input,
     });
   }),
+
+  verifyCodeUnAuthenticated: publicProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
+      UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated = await import(
+        "./verifyCodeUnAuthenticated.handler"
+      ).then((mod) => mod.verifyCodeUnAuthenticatedHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated({
+      input,
+    });
+  }),
+
+  sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
+      UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode = await import("./sendVerifyEmailCode.handler").then(
+        (mod) => mod.sendVerifyEmailCodeHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode({
+      input,
+    });
+  }),
+
   resendVerifyEmail: authedProcedure.mutation(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.resendVerifyEmail) {
       UNSTABLE_HANDLER_CACHE.resendVerifyEmail = await import("./resendVerifyEmail.handler").then(

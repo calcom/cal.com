@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";

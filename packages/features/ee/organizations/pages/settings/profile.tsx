@@ -1,13 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { LinkIcon } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -30,6 +29,7 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
+import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
@@ -42,7 +42,7 @@ const OrgProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -223,24 +223,24 @@ const OrgProfileView = () => {
             </div>
           )}
           {/* Disable Org disbanding */}
-          {/* <hr className="border-subtle my-8 border" /> 
-           <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-          {currentOrganisation?.user.role === "OWNER" ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Trash2}>
-                  {t("disband_org")}
-                </Button>
-              </DialogTrigger>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("disband_org")}
-                confirmBtnText={t("confirm")}
-                onConfirm={deleteTeam}>
-                {t("disband_org_confirmation_message")}
-              </ConfirmationDialogContent>
-            </Dialog>
-          ) : null} */}
+          {/* <hr className="border-subtle my-8 border" />
+             <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
+            {currentOrganisation?.user.role === "OWNER" ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button color="destructive" className="border" StartIcon={Trash2}>
+                    {t("disband_org")}
+                  </Button>
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  variety="danger"
+                  title={t("disband_org")}
+                  confirmBtnText={t("confirm")}
+                  onConfirm={deleteTeam}>
+                  {t("disband_org_confirmation_message")}
+                </ConfirmationDialogContent>
+              </Dialog>
+            ) : null} */}
           {/* LEAVE ORG should go above here ^ */}
         </>
       )}
