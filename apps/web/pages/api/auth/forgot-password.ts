@@ -5,14 +5,6 @@ import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetReq
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { defaultHandler, getTranslation } from "@calcom/lib/server";
 
-function delay(cb: () => unknown, delay: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(cb());
-    }, delay);
-  });
-}
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const email = z
     .string()
@@ -40,21 +32,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    const { resetLink, language } = await passwordResetRequest(email.data);
+    const { language } = await passwordResetRequest(email.data);
     const t = await getTranslation(language, "common");
-    // By adding a random delay any attacker is unable to bruteforce existing email addresses.
-    const delayInMs = Math.floor(Math.random() * 2000) + 1000;
-    return await delay(() => {
-      /** So we can test the password reset flow on CI */
-      if (process.env.NEXT_PUBLIC_IS_E2E) {
-        return res.status(201).json({
-          message: t("password_reset_email_sent"),
-          resetLink,
-        });
-      } else {
-        return res.status(201).json({ message: t("password_reset_email_sent") });
-      }
-    }, delayInMs);
+    return res.status(201).json({ message: t("password_reset_email_sent") });
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
