@@ -33,7 +33,7 @@ const webServer: PlaywrightTestConfig["webServer"] = [
   },
   {
     command: "yarn workspace @calcom/web e2e:mail-server",
-    url: `http://localhost:${Number(process.env.EMAIL_SERVER_PORT) + 1}`,
+    url: `http://localhost:${(Number(process.env.EMAIL_SERVER_PORT) || 8825) + 1}`,
     reuseExistingServer: !process.env.CI,
   },
 ];

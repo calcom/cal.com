@@ -40,8 +40,6 @@ export default class BaseEmail {
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       global.E2E_EMAILS = global.E2E_EMAILS || [];
       global.E2E_EMAILS.push(this.getNodeMailerPayload());
-      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E==1");
-      return new Promise((r) => r("Skipped sendEmail for E2E"));
     }
 
     const payload = this.getNodeMailerPayload();
