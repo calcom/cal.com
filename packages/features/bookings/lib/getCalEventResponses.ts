@@ -33,6 +33,9 @@ export const getCalEventResponses = ({
   responses?: z.infer<typeof bookingResponsesDbSchema>;
 }) => {
   const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
+  const calEventUserOwnerSecretFieldsResponses = {} as NonNullable<
+    CalendarEvent["userOwnerSecretFieldsResponses"]
+  >;
   const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
   const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
   const backwardCompatibleResponses =
@@ -54,6 +57,11 @@ export const getCalEventResponses = ({
 
       if (field.editable === "user" || field.editable === "user-readonly") {
         calEventUserFieldsResponses[field.name] = {
+          label,
+          value: backwardCompatibleResponses[field.name],
+        };
+      } else if (field.editable === "user-owner-secret") {
+        calEventUserOwnerSecretFieldsResponses[field.name] = {
           label,
           value: backwardCompatibleResponses[field.name],
         };
@@ -84,5 +92,9 @@ export const getCalEventResponses = ({
       };
     }
   }
-  return { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses };
+  return {
+    userFieldsResponses: calEventUserFieldsResponses,
+    userOwnerSecretFieldsResponses: calEventUserOwnerSecretFieldsResponses,
+    responses: calEventResponses,
+  };
 };

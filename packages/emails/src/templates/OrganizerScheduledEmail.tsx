@@ -48,6 +48,7 @@ export const OrganizerScheduledEmail = (
             : ""}
         </>
       }
+      showUserOwnerSecretFieldsResponses={true}
       {...props}
     />
   );

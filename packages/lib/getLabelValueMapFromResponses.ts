@@ -19,3 +19,20 @@ export default function getLabelValueMapFromResponses(calEvent: CalendarEvent) {
   }
   return labelValueMap;
 }
+
+export function getLabelValueMapFromResponsesForSecretQuestions(calEvent: CalendarEvent) {
+  const { userOwnerSecretFieldsResponses } = calEvent;
+
+  let labelValueMap: Record<string, z.infer<typeof bookingResponse>> = {};
+  if (userOwnerSecretFieldsResponses) {
+    for (const [, value] of Object.entries(userOwnerSecretFieldsResponses)) {
+      if (!value.label) {
+        continue;
+      }
+      labelValueMap[value.label] = value.value;
+    }
+  } else {
+    labelValueMap = customInputs as Record<string, string | string[]>;
+  }
+  return labelValueMap;
+}

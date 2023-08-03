@@ -188,6 +188,8 @@ export interface CalendarEvent {
 
   // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
   userFieldsResponses?: CalEventResponses | null;
+  // It just has responses to only the user-owner-secret fields. It allows to easily iterate over to show only user fields
+  userOwnerSecretFieldsResponses?: CalEventResponses | null;
 }
 
 export interface EntryPoint {

@@ -28,6 +28,7 @@ export const EditableSchema = z.enum([
   "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
   "user", // Fully editable
   "user-readonly", // All fields are readOnly.
+  "user-owner-secret", // Only shared between owner and attendee, no one else can see this response
 ]);
 
 const baseFieldSchema = z.object({
@@ -52,6 +53,7 @@ const baseFieldSchema = z.object({
    */
   defaultPlaceholder: z.string().optional(),
   required: z.boolean().default(false).optional(),
+  secretQuestion: z.boolean().default(false).optional(),
   /**
    * It is the list of options that is valid for a certain type of fields.
    *

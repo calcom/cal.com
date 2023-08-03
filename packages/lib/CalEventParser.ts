@@ -5,7 +5,9 @@ import { v5 as uuidv5 } from "uuid";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
-import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
+import getLabelValueMapFromResponses, {
+  getLabelValueMapFromResponsesForSecretQuestions,
+} from "./getLabelValueMapFromResponses";
 
 const translator = short();
 
@@ -77,6 +79,26 @@ ${calEvent.additionalNotes}
 export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
+  if (!labelValueMap) {
+    return "";
+  }
+  const responsesString = Object.keys(labelValueMap)
+    .map((key) => {
+      if (!labelValueMap) return "";
+      if (labelValueMap[key] !== "") {
+        return `
+${key}:
+${labelValueMap[key]}
+  `;
+      }
+    })
+    .join("");
+
+  return responsesString;
+};
+
+export const getUserOwnerSecretFieldsResponses = (calEvent: CalendarEvent) => {
+  const labelValueMap = getLabelValueMapFromResponsesForSecretQuestions(calEvent);
   if (!labelValueMap) {
     return "";
   }
@@ -177,7 +199,11 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
-export const getRichDescription = (calEvent: CalendarEvent, t_?: TFunction /*, attendee?: Person*/) => {
+export const getRichDescription = (
+  calEvent: CalendarEvent,
+  t_?: TFunction,
+  showUserOwnerSecretFieldsResponses = false /*, attendee?: Person*/
+) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
   return `
@@ -190,6 +216,7 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent, t)}
 ${getAdditionalNotes(calEvent, t)}
 ${getUserFieldsResponses(calEvent)}
+${showUserOwnerSecretFieldsResponses ? getUserOwnerSecretFieldsResponses(calEvent) : ""}
 ${getAppsStatus(calEvent, t)}
 ${
   // TODO: Only the original attendee can make changes to the event

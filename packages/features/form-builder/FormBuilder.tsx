@@ -258,6 +258,8 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+            const isSecretQuestion = data.secretQuestion;
+            delete data.secretQuestion;
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -277,7 +279,11 @@ export const FormBuilder = function FormBuilder({
                   },
                 ],
               };
-              field.editable = field.editable || "user";
+              field.editable = field.editable
+                ? field.editable
+                : isSecretQuestion
+                ? "user-owner-secret"
+                : "user";
               append(field);
             }
             setFieldDialog({
@@ -493,6 +499,23 @@ function FieldEditDialog({
                               onChange(val);
                             }}
                             label={t("required")}
+                          />
+                        );
+                      }}
+                    />
+                    <Controller
+                      name="secretQuestion"
+                      control={fieldForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <BooleanToggleGroupField
+                            data-testid="field-secret-question"
+                            disabled={fieldForm.getValues("editable") === "system"}
+                            value={value ? true : false}
+                            onValueChange={(val) => {
+                              onChange(val);
+                            }}
+                            label={t("secret_question")}
                           />
                         );
                       }}
