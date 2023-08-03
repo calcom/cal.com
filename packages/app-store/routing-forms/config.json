@@ -10,7 +10,7 @@
   "variant": "other",
   "categories": ["automation"],
   "publisher": "Cal.com, Inc.",
-  "simplePath": "/routing-forms",
+  "simplePath": "/apps/routing-forms",
   "email": "help@cal.com",
   "licenseRequired": true,
   "teamsPlanRequired": {
