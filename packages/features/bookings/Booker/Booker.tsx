@@ -40,6 +40,7 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
   entity,
+  org,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -99,7 +100,7 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org: entity.orgSlug,
+    org: entity?.orgSlug,
     durationConfig: event?.data?.metadata?.multipleDuration,
   });
 
@@ -141,7 +142,7 @@ const BookerComponent = ({
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
-  if (entity.isUnpublished) {
+  if (entity?.isUnpublished) {
     return <UnpublishedEntity {...entity} />;
   }
 
@@ -165,9 +166,9 @@ const BookerComponent = ({
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  if (bookerState === "loading") {
-    return null;
-  }
+  // if (bookerState === "loading") {
+  //   return null;
+  // }
 
   return (
     <>
@@ -279,6 +280,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                org={org}
               />
             </BookerSection>
           </AnimatePresence>

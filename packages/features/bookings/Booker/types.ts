@@ -58,6 +58,8 @@ export interface BookerProps {
    * that will always result in the user event being returned.
    */
   isTeamEvent?: boolean;
+
+  org: string | null;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

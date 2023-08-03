@@ -249,6 +249,58 @@ export const getPublicEvent = async (
   };
 };
 
+export const getPublicEventId = async (
+  username: string,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  org: string | null,
+  prisma: PrismaClient
+) => {
+  const usernameList = getUsernameList(username);
+  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
+  // In case of dynamic group event, we fetch user's data and use the default event.
+  if (usernameList.length > 1) {
+    return undefined;
+  }
+
+  const usersOrTeamQuery = isTeamEvent
+    ? {
+        team: {
+          ...getSlugOrRequestedSlug(username),
+          parent: orgQuery,
+        },
+      }
+    : {
+        users: {
+          some: {
+            username,
+            organization: orgQuery,
+          },
+        },
+        team: null,
+      };
+
+  // In case it's not a group event, it's either a single user or a team, and we query that data.
+  const event = await prisma.eventType.findFirst({
+    where: {
+      slug: eventSlug,
+      ...usersOrTeamQuery,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!event) return null;
+
+  const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
+  if (users === null) {
+    throw new Error("Event has no owner");
+  }
+
+  return event?.id;
+};
+
 const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: publicEventSelect,
 });

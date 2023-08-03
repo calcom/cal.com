@@ -36,21 +36,25 @@ export const useEvent = () => {
  * useful when the user is viewing dates near the end of the month,
  * this way the multi day view will show data of both months.
  */
-export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
+export const useScheduleForEvent = ({
+  prefetchNextMonth,
+  org,
+}: { prefetchNextMonth?: boolean; ord: string | null } = {}) => {
   const { timezone } = useTimePreferences();
-  const event = useEvent();
-  const [username, eventSlug, month, duration] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+  // const event = useEvent();
+  const [username, eventSlug, month, duration, isTeamEvent] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.isTeamEvent],
     shallow
   );
 
   return useSchedule({
     username,
     eventSlug,
-    eventId: event.data?.id,
     month,
     timezone,
     prefetchNextMonth,
     duration,
+    org,
+    isTeamEvent,
   });
 };

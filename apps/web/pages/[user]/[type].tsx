@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -11,6 +10,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc/react";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -27,24 +27,32 @@ export default function Type({
   away,
   isBrandingHidden,
   rescheduleUid,
-  entity,
+  org,
 }: PageProps) {
+  const eventData = trpc.viewer.public.event.useQuery({
+    username: user,
+    eventSlug: slug,
+    org,
+  });
+
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
+      {/* TODO: Uncomment this */}
+      {/* <BookerSeo
         username={user}
         eventSlug={slug}
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
-        entity={entity}
-      />
+        entity={eventData?.entity}
+      /> */}
       <Booker
         username={user}
         eventSlug={slug}
         bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
-        entity={entity}
+        entity={eventData?.entity}
+        org={org}
       />
     </main>
   );
@@ -96,21 +104,20 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: usernames.join("+"),
-    eventSlug: slug,
-    org,
-  });
+  // const eventData = await ssr.viewer.public.event.fetch({
+  //   username: usernames.join("+"),
+  //   eventSlug: slug,
+  //   org,
+  // });
 
-  if (!eventData) {
-    return {
-      notFound: true,
-    };
-  }
+  // if (!eventData) {
+  //   return {
+  //     notFound: true,
+  //   };
+  // }
 
   return {
     props: {
-      entity: eventData.entity,
       booking,
       user: usernames.join("+"),
       slug,
@@ -120,6 +127,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      org,
     },
   };
 }
@@ -162,17 +170,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username,
-    eventSlug: slug,
-    org,
-  });
+  // const eventData = await ssr.viewer.public.event.fetch({
+  //   username,
+  //   eventSlug: slug,
+  //   org,
+  // });
 
-  if (!eventData) {
-    return {
-      notFound: true,
-    };
-  }
+  // if (!eventData) {
+  //   return {
+  //     notFound: true,
+  //   };
+  // }
 
   return {
     props: {
@@ -180,12 +188,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       away: user?.away,
       user: username,
       slug,
-      entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      org,
     },
   };
 }

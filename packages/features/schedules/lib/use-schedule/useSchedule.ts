@@ -10,6 +10,8 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
+  org: string | null;
+  isTeamEvent: boolean;
 };
 
 export const useSchedule = ({
@@ -17,15 +19,17 @@ export const useSchedule = ({
   timezone,
   username,
   eventSlug,
-  eventId,
   prefetchNextMonth,
   duration,
+  org,
+  isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typscript.
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       usernameList: getUsernameList(username ?? ""),
@@ -36,17 +40,13 @@ export const useSchedule = ({
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
-      eventTypeId: eventId!,
       duration: duration ? `${duration}` : undefined,
+      org,
+      isTeamEvent,
     },
     {
       refetchOnWindowFocus: false,
-      enabled:
-        Boolean(username) &&
-        Boolean(eventSlug) &&
-        (Boolean(eventId) || eventId === 0) &&
-        Boolean(month) &&
-        Boolean(timezone),
+      enabled: Boolean(username) && Boolean(eventSlug) && Boolean(month) && Boolean(timezone),
     }
   );
 };

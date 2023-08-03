@@ -14,6 +14,7 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeSlot?: number | null;
+  org: string | null;
 };
 
 /**
@@ -23,7 +24,12 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  limitHeight,
+  seatsPerTimeSlot,
+  org,
+}: AvailableTimeSlotsProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -58,6 +64,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
 
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+    org,
   });
 
   // Creates an array of dates to fetch slots for.
