@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
