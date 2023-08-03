@@ -132,7 +132,7 @@
   "upgrade_to_per_seat": "Upgrade to Per-Seat",
   "seat_options_doesnt_support_confirmation": "Seats option doesn't support confirmation requirement",
   "team_upgrade_seats_details": "Of the {{memberCount}} members in your team, {{unpaidCount}} seat(s) are unpaid. At ${{seatPrice}}/month per seat the estimated total cost of your membership is ${{totalCost}}/month.",
-  "team_upgrade_banner_description": "Thank you for trialing our new team plan. We noticed your team \"{{teamName}}\" needs to be upgraded.",
+  "team_upgrade_banner_description": "You haven't finished your team setup. Your team \"{{teamName}}\" needs to be upgraded.",
   "upgrade_banner_action": "Upgrade here",
   "team_upgraded_successfully": "Your team was upgraded successfully!",
   "org_upgrade_banner_description": "Thank you for trialing our Organization plan. We noticed your Organization \"{{teamName}}\" needs to be upgraded.",
@@ -1976,5 +1976,9 @@
   "attendee_last_name_variable": "Attendee last name",
   "attendee_first_name_info": "The person booking's first name",
   "attendee_last_name_info": "The person booking's last name",
+  "org_admin_other_teams": "Other teams",
+  "org_admin_other_teams_description": "Here you can see teams inside your organization but that you are not part of. You can add yourself to them if needed.",
+  "no_other_teams_found": "No other teams found",
+  "no_other_teams_found_description": "There are no other teams in this organization.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

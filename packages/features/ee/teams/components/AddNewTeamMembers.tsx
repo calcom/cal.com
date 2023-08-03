@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -33,10 +33,13 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = () => {
+  const searchParams = useSearchParams();
   const session = useSession();
-  const router = useRouter();
-  const { id: teamId } = router.isReady ? querySchema.parse(router.query) : { id: -1 };
-  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: router.isReady });
+  const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
+  const teamQuery = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    { enabled: session.status === "authenticated" }
+  );
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
@@ -49,16 +52,17 @@ export const AddNewTeamMembersForm = ({
   defaultValues: FormValues;
   teamId: number;
 }) => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 

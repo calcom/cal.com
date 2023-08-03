@@ -6,8 +6,7 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import type { ParsedUrlQuery } from "querystring";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -23,20 +22,26 @@ import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
-const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
-  ({ children }) => <>{children}</>
-);
+const I18nextAdapter = appWithTranslation<
+  NextJsAppProps<SSRConfig> & {
+    children: React.ReactNode;
+  }
+>(({ children }) => <>{children}</>);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
-  NextAppProps<WithNonceProps & { themeBasis?: string } & Record<string, unknown>>,
+  NextAppProps<
+    WithNonceProps & {
+      themeBasis?: string;
+    } & Record<string, unknown>
+  >,
   "Component"
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
-    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
+    isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
+    getLayout?: (page: React.ReactElement, router: NextAppProps["router"]) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -48,7 +53,7 @@ type AppPropsWithChildren = AppProps & {
   children: ReactNode;
 };
 
-const getEmbedNamespace = (query: ReturnType<typeof useRouter>["query"]) => {
+const getEmbedNamespace = (query: ParsedUrlQuery) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
   return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
@@ -89,20 +94,19 @@ const enum ThemeSupport {
 }
 
 type CalcomThemeProps = PropsWithChildren<
-  Pick<AppProps["pageProps"], "nonce" | "themeBasis"> &
+  Pick<AppProps, "router"> &
+    Pick<AppProps["pageProps"], "nonce" | "themeBasis"> &
     Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
 >;
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
-  const router = useRouter();
-
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
-  const embedNamespace = getEmbedNamespace(router.query);
+  const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
   return (
-    <ThemeProvider {...getThemeProviderProps({ props, isEmbedMode, embedNamespace, router })}>
+    <ThemeProvider {...getThemeProviderProps({ props, isEmbedMode, embedNamespace })}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -148,16 +152,14 @@ function getThemeProviderProps({
   props,
   isEmbedMode,
   embedNamespace,
-  router,
 }: {
   props: Omit<CalcomThemeProps, "children">;
   isEmbedMode: boolean;
   embedNamespace: string | null;
-  router: NextRouter;
 }) {
   const isBookingPage = (() => {
     if (typeof props.isBookingPage === "function") {
-      return props.isBookingPage({ router: router });
+      return props.isBookingPage({ router: props.router });
     }
     return props.isBookingPage;
   })();
@@ -263,7 +265,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
               themeBasis={props.pageProps.themeBasis}
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage}>
+              isBookingPage={props.Component.isBookingPage}
+              router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
                   <MetaProvider>{props.children}</MetaProvider>
