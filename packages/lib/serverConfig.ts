@@ -39,5 +39,5 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
 
 export const serverConfig = {
   transport: detectTransport(),
-  from: process.env.EMAIL_FROM,
+  from: process.env.NEXT_PUBLIC_IS_E2E ? "e2e@example.com" : process.env.EMAIL_FROM,
 };
