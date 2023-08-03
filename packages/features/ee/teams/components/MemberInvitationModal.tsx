@@ -37,9 +37,10 @@ type MemberInvitationModalProps = {
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
   onSettingsOpen?: () => void;
   teamId: number;
-  members: PendingMember[];
+  members?: PendingMember[];
   token?: string;
   isLoading?: boolean;
+  disableCopyLink?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -66,6 +67,7 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
+  const { disableCopyLink = false } = props;
   const trpcContext = trpc.useContext();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
@@ -119,9 +121,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const validateUniqueInvite = (value: string) => {
+    if (!props?.members?.length) return true;
     return !(
-      props.members.some((member) => member?.username === value) ||
-      props.members.some((member) => member?.email === value)
+      props?.members.some((member) => member?.username === value) ||
+      props?.members.some((member) => member?.email === value)
     );
   };
 
@@ -351,23 +354,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             )}
           </div>
           <DialogFooter showDivider>
-            <div className="relative right-40">
-              <Button
-                type="button"
-                color="minimal"
-                variant="icon"
-                onClick={() =>
-                  props.token
-                    ? copyInviteLinkToClipboard(props.token)
-                    : createInviteMutation.mutate({ teamId: props.teamId })
-                }
-                className={classNames("gap-2", props.token && "opacity-50")}
-                data-testid="copy-invite-link-button">
-                <Link className="text-default h-4 w-4" aria-hidden="true" />
-                {t("copy_invite_link")}
-              </Button>
-            </div>
-
+            {!disableCopyLink && (
+              <div className="relative right-40">
+                <Button
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  onClick={() =>
+                    props.token
+                      ? copyInviteLinkToClipboard(props.token)
+                      : createInviteMutation.mutate({ teamId: props.teamId })
+                  }
+                  className={classNames("gap-2", props.token && "opacity-50")}
+                  data-testid="copy-invite-link-button">
+                  <Link className="text-default h-4 w-4" aria-hidden="true" />
+                  {t("copy_invite_link")}
+                </Button>
+              </div>
+            )}
             <Button
               type="button"
               color="minimal"

@@ -103,6 +103,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
+  const hasEmailBeenChanged = userToUpdate.email !== data.email;
+
+  if (hasEmailBeenChanged) {
+    data.emailVerified = null;
+  }
 
   let updatedUser;
 

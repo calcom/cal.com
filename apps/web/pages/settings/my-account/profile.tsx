@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -7,8 +7,7 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -25,6 +24,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogTrigger,
+  Editor,
   Form,
   ImageUploader,
   Label,
@@ -36,7 +36,6 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
-  Editor,
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
@@ -78,6 +77,8 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const { data: session, update } = useSession();
+
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
@@ -96,6 +97,7 @@ const ProfileView = () => {
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
       setConfirmAuthEmailChangeWarningDialogOpen(false);
+      update(res);
       setTempFormValues(null);
     },
     onError: () => {

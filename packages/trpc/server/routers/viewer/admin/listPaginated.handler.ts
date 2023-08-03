@@ -49,6 +49,7 @@ export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
+      organizationId: true,
     },
   });
 

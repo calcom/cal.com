@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -39,6 +39,7 @@ import {
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -47,11 +48,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme, Alert } from "@calcom/ui";
-import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
+import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -99,6 +98,9 @@ const querySchema = z.object({
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const routerQuery = useRouterQuery();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -106,7 +108,7 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
-  } = querySchema.parse(router.query);
+  } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
@@ -145,30 +147,27 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   function setIsCancellationMode(value: boolean) {
-    const query_ = { ...router.query };
+    const _searchParams = new URLSearchParams(searchParams);
 
     if (value) {
-      query_.cancel = "true";
+      _searchParams.set("cancel", "true");
     } else {
-      if (query_.cancel) {
-        delete query_.cancel;
+      if (_searchParams.get("cancel")) {
+        _searchParams.delete("cancel");
       }
     }
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...query_ },
-      },
-      undefined,
-      { scroll: false }
-    );
+    router.replace(`${pathname}?${_searchParams.toString()}`);
   }
 
+  let evtName = props.eventType.eventName;
+  if (eventType.isDynamic && bookingInfo.responses?.title) {
+    evtName = bookingInfo.responses.title as string;
+  }
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
-    eventName: (props.dynamicEventName as string) || props.eventType.eventName,
+    eventName: evtName,
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
@@ -405,7 +404,9 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                      {eventName}
+                    </div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -440,7 +441,7 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>
-                                <span data-testid={`host-name-${bookingInfo.user.name}`} className="mr-2">
+                                <span data-testid="booking-host-name" className="mr-2">
                                   {bookingInfo.user.name}
                                 </span>
                                 <Badge variant="blue">{t("Host")}</Badge>

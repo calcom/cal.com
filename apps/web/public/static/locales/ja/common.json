@@ -514,7 +514,7 @@
   "in_person_attendee_address": "対面（出席者のアドレス）",
   "yes": "はい",
   "no": "いいえ",
-  "additional_notes": "追加メモ",
+  "additional_notes": "備考",
   "booking_fail": "ミーティングを予約できませんでした。",
   "reschedule_fail": "会議を再スケジュールできませんでした。",
   "share_additional_notes": "会議の準備に役立つものを何でもシェアしてください。",
