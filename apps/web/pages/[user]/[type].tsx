@@ -26,6 +26,7 @@ export default function Type({
   booking,
   away,
   isBrandingHidden,
+  isSEOIndexable,
   rescheduleUid,
   entity,
 }: PageProps) {
@@ -36,6 +37,7 @@ export default function Type({
         eventSlug={slug}
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
+        isSEOIndexable={isSEOIndexable}
         entity={entity}
       />
       <Booker
@@ -143,6 +145,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     select: {
       away: true,
       hideBranding: true,
+      allowSEOIndexing: true,
     },
   });
 
@@ -183,6 +186,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      isSEOIndexable: user?.allowSEOIndexing,
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
