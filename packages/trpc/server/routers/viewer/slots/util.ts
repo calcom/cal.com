@@ -10,7 +10,6 @@ import dayjs from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -199,9 +198,9 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.setSettings({ minLevel: "silly" });
   }
-  const startPrismaEventTypeGet = performance.now();
+  const span = tracer.startSpan("getRegularOrDynamicEventType", undefined, context.active());
   const eventType = await getRegularOrDynamicEventType(input);
-  const endPrismaEventTypeGet = performance.now();
+  span.end();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
       input.eventTypeId
