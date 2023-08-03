@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -61,16 +61,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
   }
-  const userToUpdate = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-  });
-
-  if (!userToUpdate) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-  }
-  const metadata = userMetadata.parse(userToUpdate.metadata);
+  const metadata = userMetadata.parse(user.metadata);
 
   const isPremium = metadata?.isPremium;
   if (isPremiumUsername) {
@@ -103,68 +94,51 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-  const hasEmailBeenChanged = userToUpdate.email !== data.email;
+  const hasEmailBeenChanged = data.email && user.email !== data.email;
 
   if (hasEmailBeenChanged) {
     data.emailVerified = null;
   }
 
-  let updatedUser;
-
   // check if we are changing email and identity provider is not CAL
-  if (input.email && user.identityProvider !== IdentityProvider.CAL) {
-    const email = input.email;
+  const hasEmailChangedOnNonCalProvider =
+    hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
+  const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
+
+  if (hasEmailChangedOnNonCalProvider) {
     // Only validate if we're changing email
-    if (email !== user.email) {
-      data.identityProvider = IdentityProvider.CAL;
-      data.identityProviderId = null;
-      updatedUser = await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data,
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          identityProvider: true,
-          identityProviderId: true,
-          metadata: true,
-          name: true,
-          createdDate: true,
-          locale: true,
-        },
-      });
-      if (updatedUser) {
-        // Because the email has changed, we are now attempting to use the CAL provider-
-        // which has no password yet. We have to send the reset password email.
-        await passwordResetRequest(updatedUser.email, updatedUser.locale || "en");
-        signOutUser = true;
-        passwordReset = true;
-      }
-    }
-  } else {
-    updatedUser = await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data,
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        metadata: true,
-        name: true,
-        createdDate: true,
-      },
-    });
+    data.identityProvider = IdentityProvider.CAL;
+    data.identityProviderId = null;
+  } else if (hasEmailChangedOnCalProvider) {
     // when the email changes, the user needs to sign in again.
-    if (input.email && user.identityProvider === IdentityProvider.CAL) {
-      signOutUser = true;
-    }
+    signOutUser = true;
   }
 
-  Object.freeze(updatedUser);
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data,
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      identityProvider: true,
+      identityProviderId: true,
+      metadata: true,
+      name: true,
+      createdDate: true,
+      locale: true,
+    },
+  });
+
+  if (hasEmailChangedOnNonCalProvider) {
+    // Because the email has changed, we are now attempting to use the CAL provider-
+    // which has no password yet. We have to send the reset password email.
+    await passwordResetRequest(updatedUser.email);
+    signOutUser = true;
+    passwordReset = true;
+  }
 
   // Sync Services
   await syncServicesUpdateWebUser(updatedUser);
