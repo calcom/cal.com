@@ -1,7 +1,8 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 import { z } from "zod";
 
 import NoSSR from "@calcom/core/components/NoSSR";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast } from "@calcom/ui";
@@ -14,8 +15,8 @@ import { userBodySchema } from "../schemas/userBodySchema";
 const userIdSchema = z.object({ id: z.coerce.number() });
 
 const UsersEditPage = () => {
-  const router = useRouter();
-  const input = userIdSchema.safeParse(router.query);
+  const params = useParamsWithFallback();
+  const input = userIdSchema.safeParse(params);
 
   if (!input.success) return <div>Invalid input</div>;
 
@@ -23,16 +24,16 @@ const UsersEditPage = () => {
 };
 
 const UsersEditView = ({ userId }: { userId: number }) => {
+  const pathname = usePathname();
   const router = useRouter();
   const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
   const { user } = data;
   const utils = trpc.useContext();
   const mutation = trpc.viewer.users.update.useMutation({
     onSuccess: async () => {
-      await utils.viewer.users.list.invalidate();
-      await utils.viewer.users.get.invalidate();
+      Promise.all([utils.viewer.users.list.invalidate(), utils.viewer.users.get.invalidate()]);
       showToast("User updated successfully", "success");
-      router.replace(`${router.asPath.split("/users/")[0]}/users`);
+      router.replace(`${pathname?.split("/users/")[0]}/users`);
     },
     onError: (err) => {
       console.error(err.message);
@@ -52,8 +53,6 @@ const UsersEditView = ({ userId }: { userId: number }) => {
               ...parsedValues,
               userId: user.id,
             };
-            // TODO: Add support for avatar in the API
-            delete data.avatar;
             // Don't send username if it's the same as the current one
             if (user.username === data.username) delete data.username;
             mutation.mutate(data);

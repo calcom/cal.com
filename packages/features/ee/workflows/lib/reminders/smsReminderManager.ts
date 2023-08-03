@@ -24,7 +24,14 @@ const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
+  attendees: {
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    timeZone: string;
+    language: { locale: string };
+  }[];
   organizer: {
     language: { locale: string };
     name: string;
@@ -60,7 +67,8 @@ export const scheduleSMSReminder = async (
   sender: string,
   userId?: number | null,
   teamId?: number | null,
-  isVerificationPending = false
+  isVerificationPending = false,
+  seatReferenceUid?: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -106,6 +114,8 @@ export const scheduleSMSReminder = async (
       eventName: evt.title,
       organizerName: evt.organizer.name,
       attendeeName: evt.attendees[0].name,
+      attendeeFirstName: evt.attendees[0].firstName,
+      attendeeLastName: evt.attendees[0].lastName,
       attendeeEmail: evt.attendees[0].email,
       eventDate: dayjs(evt.startTime).tz(timeZone),
       eventEndTime: dayjs(evt.endTime).tz(timeZone),
@@ -136,7 +146,7 @@ export const scheduleSMSReminder = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  if (message.length > 0 && reminderPhone && isNumberVerified && action !== WorkflowActions.SMS_ATTENDEE) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -174,6 +184,7 @@ export const scheduleSMSReminder = async (
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledSMS.sid,
+              seatReferenceId: seatReferenceUid,
             },
           });
         } catch (error) {
@@ -188,6 +199,7 @@ export const scheduleSMSReminder = async (
             method: WorkflowMethods.SMS,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
+            seatReferenceId: seatReferenceUid,
           },
         });
       }
@@ -200,6 +212,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
     if (referenceId) {
       await twilio.cancelSMS(referenceId);
     }
+
     await prisma.workflowReminder.delete({
       where: {
         id: reminderId,

@@ -510,6 +510,7 @@
   "your_name": "Ihr Name",
   "your_full_name": "Ihr vollständiger Name",
   "no_name": "Kein Name",
+  "enter_number_between_range": "Bitte geben Sie eine Zahl zwischen 1 und {{maxOccurences}} ein",
   "email_address": "E-Mail Adresse",
   "enter_valid_email": "Bitte geben Sie eine gültige Emaildresse ein",
   "location": "Ort",
@@ -1957,6 +1958,7 @@
   "org_team_names_example_2": "z.B. Vertriebsteam",
   "org_team_names_example_3": "z. B. Design-Team",
   "org_team_names_example_4": "z.B. Engineering-Team",
+  "org_team_names_example_5": "z.B. Data Analytics Team",
   "org_max_team_warnings": "Weitere Teams können Sie zu einem späteren Zeitpunkt hinzufügen.",
   "what_is_this_meeting_about": "Worum geht es in diesem Termin?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

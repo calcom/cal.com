@@ -11,7 +11,10 @@ const getCalendarsEvents = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ): Promise<EventBusyDate[][]> => {
-  const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+  const calendarCredentials = withCredentials
+    .filter((credential) => credential.type.endsWith("_calendar"))
+    // filter out invalid credentials - these won't work.
+    .filter((credential) => !credential.invalid);
   const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
