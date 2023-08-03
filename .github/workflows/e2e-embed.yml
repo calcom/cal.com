@@ -32,6 +32,7 @@ jobs:
       - name: Run Tests
         run: yarn e2e:embed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
+          ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}

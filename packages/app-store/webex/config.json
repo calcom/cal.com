@@ -21,5 +21,6 @@
   },
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "basic"
+  "__template": "basic",
+  "concurrentMeetings": true
 }
