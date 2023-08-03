@@ -2,6 +2,7 @@ import React from "react";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type Props = {
   days: dayjs.Dayjs[];
@@ -9,6 +10,11 @@ type Props = {
 };
 
 export function DateValues({ days, containerNavRef }: Props) {
+  const { i18n } = useLocale();
+  const formatDate = (date: dayjs.Dayjs): string => {
+    const options = { weekday: "short" };
+    return new Intl.DateTimeFormat(i18n.language, options).format(date.toDate());
+  };
   return (
     <div
       ref={containerNavRef}
@@ -45,7 +51,7 @@ export function DateValues({ days, containerNavRef }: Props) {
                 isToday && "font-bold"
               )}>
               <span>
-                {day.format("ddd")}{" "}
+                {formatDate(day)}{" "}
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
