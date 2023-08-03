@@ -22,9 +22,18 @@ export enum timeUnitLowerCase {
 }
 const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
 
+export type AttendeeInBookingInfo = {
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  timeZone: string;
+  language: { locale: string };
+};
+
 export type BookingInfo = {
   uid?: string | null;
-  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
+  attendees: AttendeeInBookingInfo[];
   organizer: {
     language: { locale: string };
     name: string;
@@ -88,14 +97,7 @@ export const scheduleSMSReminder = async (
   }
   const isNumberVerified = await getIsNumberVerified();
 
-  let attendeeToBeUsedInSMS: {
-    name: string;
-    email: string;
-    timeZone: string;
-    language: {
-      locale: string;
-    };
-  } | null = null;
+  let attendeeToBeUsedInSMS: AttendeeInBookingInfo | null = null;
   if (action === WorkflowActions.SMS_ATTENDEE) {
     const attendeeWithReminderPhoneAsSMSReminderNumber =
       reminderPhone && evt.attendees.find((attendee) => attendee.email === evt.responses?.email?.value);
@@ -128,6 +130,8 @@ export const scheduleSMSReminder = async (
       eventName: evt.title,
       organizerName: evt.organizer.name,
       attendeeName: attendeeToBeUsedInSMS.name,
+      attendeeFirstName: attendeeToBeUsedInSMS.firstName,
+      attendeeLastName: attendeeToBeUsedInSMS.lastName,
       attendeeEmail: attendeeToBeUsedInSMS.email,
       eventDate: dayjs(evt.startTime).tz(timeZone),
       eventEndTime: dayjs(evt.endTime).tz(timeZone),

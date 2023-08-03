@@ -14,7 +14,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
@@ -85,14 +85,7 @@ export const scheduleEmailReminder = async (
   const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;
-  let attendeeToBeUsedInMail: {
-    name: string;
-    email: string;
-    timeZone: string;
-    language: {
-      locale: string;
-    };
-  } | null = null;
+  let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
   let name = "";
   let attendeeName = "";
   let timeZone = "";
@@ -146,6 +139,8 @@ export const scheduleEmailReminder = async (
       eventName: evt.title || "",
       organizerName: evt.organizer.name,
       attendeeName: attendeeToBeUsedInMail.name,
+      attendeeFirstName: attendeeToBeUsedInMail.firstName,
+      attendeeLastName: attendeeToBeUsedInMail.lastName,
       attendeeEmail: attendeeToBeUsedInMail.email,
       eventDate: dayjs(startTime).tz(timeZone),
       eventEndTime: dayjs(endTime).tz(timeZone),
