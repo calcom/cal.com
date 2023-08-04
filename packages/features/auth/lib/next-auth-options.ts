@@ -141,7 +141,7 @@ const providers: Provider[] = [
         );
 
         // check if user-supplied code matches one
-        const index = backupCodes.indexOf(credentials.backupCode);
+        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
         if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
 
         // delete verified backup code and re-encrypt remaining
