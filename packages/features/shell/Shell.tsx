@@ -196,12 +196,12 @@ function useRedirectTo2FAIfNeeded() {
   const { data: session } = useSession();
 
   const user = session?.user;
-  const isRedirectingTo2Fa = user && user.belongsToActiveTeam && !user.twoFactorEnabled;
+  const isRedirectingTo2Fa = user && user.organizationId && !user.twoFactorEnabled;
 
   useEffect(() => {
     if (user) {
-      const { belongsToActiveTeam = false, twoFactorEnabled = false } = user;
-      if (belongsToActiveTeam && !twoFactorEnabled) {
+      const { organizationId = false, twoFactorEnabled = false } = user;
+      if (organizationId && !twoFactorEnabled) {
         router.replace("/settings/security/two-factor-auth");
       }
     }

@@ -10,7 +10,7 @@ function TwoFactorAuthRequiredBanner() {
   const session = useSession();
 
   const user = session?.data?.user;
-  const requiresMFA = user && user.belongsToActiveTeam && !user.twoFactorEnabled;
+  const requiresMFA = user && user.organizationId && !user.twoFactorEnabled;
 
   if (!requiresMFA) return null;
 
