@@ -40,6 +40,7 @@ const VerticalTabItem = ({
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
   const isCurrent = useUrlMatchesCurrentUrl(href);
+  const customMarginTop = name == "calendar" || name == "crm" ? "mt-1" : "mt-0.5";
 
   return (
     <Fragment key={name}>
@@ -70,7 +71,7 @@ const VerticalTabItem = ({
               />
             )}
             <div className="h-fit">
-              <span className="flex items-center space-x-2 rtl:space-x-reverse">
+              <span className={`flex items-center space-x-2 ${customMarginTop} rtl:space-x-reverse`}>
                 <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
                   {t(name)}
                 </Skeleton>
