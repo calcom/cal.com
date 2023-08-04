@@ -13,6 +13,13 @@ export async function getServerSideProps({ req, res }: GetServerSidePropsContext
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
+  if (session.user) {
+    const { belongsToActiveTeam = false, twoFactorEnabled = false } = session.user;
+    if (belongsToActiveTeam && !twoFactorEnabled) {
+      return { redirect: { permanent: false, destination: "/settings/security/two-factor-auth" } };
+    }
+  }
+
   return { redirect: { permanent: false, destination: "/event-types" } };
 }
 

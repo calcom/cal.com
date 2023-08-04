@@ -18,6 +18,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
+import TwoFactorAuthRequiredBanner from "@calcom/features/users/components/TwoFactorAuthRequiredBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
@@ -161,6 +162,7 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
       <ImpersonatingBanner />
       <AdminPasswordBanner />
       <VerifyEmailBanner />
+      <TwoFactorAuthRequiredBanner />
     </div>
   );
 }
@@ -186,6 +188,28 @@ function useRedirectToOnboardingIfNeeded() {
 
   return {
     isRedirectingToOnboarding,
+  };
+}
+
+function useRedirectTo2FAIfNeeded() {
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const user = session?.user;
+  const isRedirectingTo2Fa = user && user.belongsToActiveTeam && !user.twoFactorEnabled;
+
+  useEffect(() => {
+    if (user) {
+      const { belongsToActiveTeam = false, twoFactorEnabled = false } = user;
+      if (belongsToActiveTeam && !twoFactorEnabled) {
+        router.replace("/settings/security/two-factor-auth");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRedirectingTo2Fa, user]);
+
+  return {
+    isRedirectingTo2Fa,
   };
 }
 
@@ -287,6 +311,8 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
+  useRedirectTo2FAIfNeeded();
+  // enforceMFAHere
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
   // useTheme(profile.theme);
   useBrandColors();
