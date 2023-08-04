@@ -427,9 +427,11 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     selectedSlotsProcessing.end();
   }
 
-  const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
+  const isTimeWithinBoundsSpan = tracer.startSpan("isTimeWithinBounds", undefined, context.active());
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  isTimeWithinBoundsSpan.end();
 
+  const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
