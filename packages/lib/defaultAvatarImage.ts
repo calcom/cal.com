@@ -1,6 +1,6 @@
 /**
- * Provided either an email or an MD5 hash, return the URL for the Gravatar
- * image aborting early if neither is provided.
+ * Provided a name, return the URL from ui-avatars.com
+ * Using alt text for the name field from Avatar component
  */
 export const defaultAvatarSrc = function ({ name }: { name?: string }) {
   return (
