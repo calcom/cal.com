@@ -166,10 +166,6 @@ const BookerComponent = ({
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  // if (bookerState === "loading") {
-  //   return null;
-  // }
-
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
