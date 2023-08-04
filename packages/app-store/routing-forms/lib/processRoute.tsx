@@ -52,12 +52,7 @@ export function processRoute({
     let result = false;
     const responseValues: Record<string, Response[string]["value"]> = {};
     for (const [uuid, { value }] of Object.entries(response)) {
-      const foundField = form.fields?.find((f) => f.id === uuid);
-      let transformedValue: number | string | string[] = value;
-      if (foundField?.type === "number") {
-        transformedValue = value instanceof Array ? value : Number(value);
-      }
-      responseValues[uuid] = transformedValue;
+      responseValues[uuid] = value;
     }
 
     if (logic) {

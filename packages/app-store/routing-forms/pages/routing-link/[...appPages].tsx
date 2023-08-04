@@ -20,6 +20,7 @@ import FormInputFields from "../../components/FormInputFields";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import transformResponse from "../../lib/transformResponse";
 import type { Response, Route } from "../../types/types";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -302,9 +303,11 @@ const usePrefilledResponse = (form: Props["form"]) => {
   form.fields?.forEach((field) => {
     const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
     // We only want to keep arrays if the field is a multi-select
+
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
+
     prefillResponse[field.id] = {
-      value: value || "",
+      value: transformResponse({ field, value }),
       label: field.label,
     };
   });

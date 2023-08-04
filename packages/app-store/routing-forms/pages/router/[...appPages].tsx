@@ -1,7 +1,9 @@
 import Head from "next/head";
 import z from "zod";
 
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import logger from "@calcom/lib/logger";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
@@ -11,6 +13,7 @@ import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
+const log = logger.getChildLogger({ prefix: ["[routing-forms]", "[router]"] });
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
@@ -34,7 +37,7 @@ const querySchema = z
     slug: z.string(),
     pages: z.array(z.string()),
   })
-  .catchall(z.string());
+  .catchall(z.string().or(z.array(z.string())));
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -42,6 +45,7 @@ export const getServerSideProps = async function getServerSideProps(
 ) {
   const queryParsed = querySchema.safeParse(context.query);
   if (!queryParsed.success) {
+    log.warn("Error parsing query", queryParsed.error);
     return {
       notFound: true,
     };
@@ -54,11 +58,7 @@ export const getServerSideProps = async function getServerSideProps(
     where: {
       id: formId,
       user: {
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
+        organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
       },
     },
   });
@@ -73,11 +73,10 @@ export const getServerSideProps = async function getServerSideProps(
   const response: Response = {};
   serializableForm.fields?.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-    const value =
-      field.type === "multiselect" ? fieldResponse.split(",").map((r) => r.trim()) : fieldResponse;
+
     response[field.id] = {
       label: field.label,
-      value: transformResponse({ field, value }),
+      value: transformResponse({ field, value: fieldResponse }),
     };
   });
 
