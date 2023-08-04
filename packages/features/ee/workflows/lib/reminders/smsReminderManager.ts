@@ -24,7 +24,14 @@ const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
+  attendees: {
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    timeZone: string;
+    language: { locale: string };
+  }[];
   organizer: {
     language: { locale: string };
     name: string;
@@ -107,6 +114,8 @@ export const scheduleSMSReminder = async (
       eventName: evt.title,
       organizerName: evt.organizer.name,
       attendeeName: evt.attendees[0].name,
+      attendeeFirstName: evt.attendees[0].firstName,
+      attendeeLastName: evt.attendees[0].lastName,
       attendeeEmail: evt.attendees[0].email,
       eventDate: dayjs(evt.startTime).tz(timeZone),
       eventEndTime: dayjs(evt.endTime).tz(timeZone),
