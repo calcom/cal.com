@@ -433,42 +433,59 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   isTimeWithinBoundsSpan.end();
 
   const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
-  const computedAvailableSlots = availableTimeSlots.reduce(
-    (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: _time, ...passThroughProps }
-    ) => {
-      // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-      const time = _time.tz(input.timeZone);
+  const computedAvailableSlots = (() => {
+    // Precompute users
+    const users = (
+      eventType.hosts
+        ? eventType.hosts.map((hostUserWithCredentials) => {
+            const { user } = hostUserWithCredentials;
+            const { credentials: _credentials, ...hostUser } = user;
+            return hostUser;
+          })
+        : eventType.users
+    ).map((user) => user.username || "");
 
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+    // Preprocess currentSeats into a Map for efficient lookups
+    const currentSeatsLookup = new Map();
+    if (currentSeats) {
+      for (const booking of currentSeats) {
+        const startTimeISOString = booking.startTime.toISOString();
+        currentSeatsLookup.set(startTimeISOString, {
+          attendees: booking._count.attendees,
+          bookingUid: booking.uid,
+        });
+      }
+    }
+
+    const timeZone = input.timeZone;
+    const r = new Map();
+
+    for (const { time: _time, ...passThroughProps } of availableTimeSlots) {
+      const time = _time.tz(timeZone);
+      const timeISOString = time.toISOString();
+      const timeDateKey = time.format("YYYY-MM-DD");
+
+      let slots = r.get(timeDateKey);
+      if (!slots) {
+        slots = [];
+        r.set(timeDateKey, slots);
+      }
+
+      const currentSeatInfo = currentSeatsLookup.get(timeISOString);
+
+      slots.push({
         ...passThroughProps,
-        time: time.toISOString(),
-        users: (eventType.hosts
-          ? eventType.hosts.map((hostUserWithCredentials) => {
-              const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
-            })
-          : eventType.users
-        ).map((user) => user.username || ""),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
+        time: timeISOString,
+        users,
+        ...(currentSeatInfo && {
+          attendees: currentSeatInfo.attendees,
+          bookingUid: currentSeatInfo.bookingUid,
         }),
       });
-      return r;
-    },
-    Object.create(null)
-  );
+    }
+
+    return Object.fromEntries(r); // Convert it back to object
+  })();
 
   computedAvailableSlotsSpan.end();
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
