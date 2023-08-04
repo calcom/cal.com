@@ -4,7 +4,7 @@ import { Meta } from "@calcom/ui";
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import { TeamsListing } from "../components";
 
-const BillingView = () => {
+const TeamListingView = () => {
   const { t } = useLocale();
   return (
     <>
@@ -14,6 +14,6 @@ const BillingView = () => {
   );
 };
 
-BillingView.getLayout = getLayout;
+TeamListingView.getLayout = getLayout;
 
-export default BillingView;
+export default TeamListingView;

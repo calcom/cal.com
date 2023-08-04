@@ -2,13 +2,12 @@ import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/clie
 
 import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { scheduleEmailReminder, deleteScheduledEmailReminder } from "./emailReminderManager";
-import { scheduleSMSReminder, deleteScheduledSMSReminder } from "./smsReminderManager";
-import { scheduleWhatsappReminder, deleteScheduledWhatsappReminder } from "./whatsappReminderManager";
+import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
+import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
@@ -199,7 +198,6 @@ export interface SendCancelledRemindersArgs {
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   const { workflows, smsReminderNumber, evt, hideBranding } = args;
-
   if (!workflows.length) return;
 
   for (const workflowRef of workflows) {
