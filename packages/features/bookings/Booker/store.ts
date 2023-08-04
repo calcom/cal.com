@@ -304,6 +304,7 @@ export const useInitializeBookerStore = ({
   org,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
+
   useEffect(() => {
     initializeStore({
       username,

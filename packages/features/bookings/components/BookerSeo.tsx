@@ -1,6 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
+
+import { useEvent } from "../Booker/utils/event";
 
 interface BookerSeoProps {
   username: string;
@@ -16,12 +17,14 @@ interface BookerSeoProps {
 }
 
 export const BookerSeo = (props: BookerSeoProps) => {
-  const { eventSlug, username, rescheduleUid, hideBranding, isTeamEvent, entity } = props;
+  const { eventSlug, username, rescheduleUid, hideBranding, isTeamEvent = false, entity } = props;
   const { t } = useLocale();
-  const { data: event } = trpc.viewer.public.event.useQuery(
-    { username, eventSlug, isTeamEvent, org: entity.orgSlug ?? null },
-    { refetchOnWindowFocus: false }
-  );
+  const { data: event } = useEvent({
+    username,
+    eventSlug,
+    isTeamEvent,
+    org: entity.orgSlug,
+  });
 
   const profileName = event?.profile?.name ?? "";
   const profileImage = event?.profile?.image;

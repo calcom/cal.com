@@ -13,6 +13,7 @@ import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-u
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
+import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
 import { LargeCalendar } from "./components/LargeCalendar";
@@ -28,9 +29,6 @@ import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
-const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
-  ssr: false,
-});
 
 const BookerComponent = ({
   username,
@@ -38,7 +36,7 @@ const BookerComponent = ({
   month,
   bookingData,
   hideBranding = false,
-  isTeamEvent,
+  isTeamEvent = false,
   entity,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -49,7 +47,14 @@ const BookerComponent = ({
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-  const event = useEvent();
+
+  const event = useEvent({
+    username,
+    eventSlug,
+    isTeamEvent,
+    org: entity.orgSlug,
+  });
+
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
   const isEmbed = useIsEmbed();
@@ -165,12 +170,8 @@ const BookerComponent = ({
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  if (bookerState === "loading") {
-    return null;
-  }
-
   return (
-    <>
+    <div className={bookerState === "loading" ? "invisible" : "visible"}>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
@@ -299,7 +300,7 @@ const BookerComponent = ({
         visible={bookerState === "booking" && shouldShowFormInDialog}
         onCancel={() => setSelectedTimeslot(null)}
       />
-    </>
+    </div>
   );
 };
 

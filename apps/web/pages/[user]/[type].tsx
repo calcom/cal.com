@@ -165,6 +165,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const eventData = await ssr.viewer.public.event.fetch({
     username,
     eventSlug: slug,
+    isTeamEvent: false,
     org,
   });
 

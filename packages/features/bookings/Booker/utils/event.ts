@@ -14,15 +14,35 @@ import { useBookerStore } from "../store";
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
+export const useEvent = (initialValues?: {
+  username: string;
+  eventSlug: string;
+  isTeamEvent: boolean;
+  org: string | null | undefined;
+}) => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
+  const params = {
+    username: username ?? initialValues?.username ?? "",
+    eventSlug: eventSlug ?? initialValues?.eventSlug ?? "",
+    isTeamEvent: isTeamEvent ?? initialValues?.isTeamEvent ?? false,
+    org: org ?? initialValues?.org ?? null,
+  };
+  const isQueryEnabled = Boolean(username) && Boolean(eventSlug);
+  const res = trpc.viewer.public.event.useQuery(params, {
+    refetchOnWindowFocus: false,
+    enabled: isQueryEnabled,
+  });
 
-  return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
-  );
+  if (res.isLoading && isQueryEnabled) {
+    console.warn(
+      `Perf Violation: viewer.public.event - The query should have been prefetched in SSR`,
+      params
+    );
+  }
+
+  return res;
 };
 
 /**
