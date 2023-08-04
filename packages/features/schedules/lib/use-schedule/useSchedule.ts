@@ -5,12 +5,12 @@ import { trpc } from "@calcom/trpc/react";
 type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
-  eventId?: number | null;
+  eventId?: number;
   month?: string | null;
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
-  org: string | null;
+  org?: string | null;
   isTeamEvent: boolean;
 };
 
@@ -23,6 +23,7 @@ export const useSchedule = ({
   duration,
   org,
   isTeamEvent,
+  eventId,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(1, "month");
@@ -41,6 +42,7 @@ export const useSchedule = ({
       endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
+      eventTypeId: eventId,
       org,
       isTeamEvent,
     },

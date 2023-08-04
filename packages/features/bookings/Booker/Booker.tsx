@@ -220,7 +220,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker />
+                      <DatePicker org={entity?.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
                     </div>
                   )}
               </BookerSection>
@@ -258,7 +258,11 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} />
+              <LargeCalendar
+                extraDays={extraDays}
+                org={entity?.orgSlug ?? null}
+                isTeamEvent={isTeamEvent ?? false}
+              />
             </BookerSection>
 
             <BookerSection
@@ -280,7 +284,8 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                org={org}
+                org={entity?.orgSlug ?? null}
+                isTeamEvent={isTeamEvent}
               />
             </BookerSection>
           </AnimatePresence>

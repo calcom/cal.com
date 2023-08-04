@@ -160,7 +160,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent();
+  const schedule = useScheduleForEvent({ eventId: eventType?.id });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {

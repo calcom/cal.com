@@ -15,6 +15,7 @@ type AvailableTimeSlotsProps = {
   limitHeight?: boolean;
   seatsPerTimeSlot?: number | null;
   org: string | null;
+  isTeamEvent?: boolean;
 };
 
 /**
@@ -29,6 +30,7 @@ export const AvailableTimeSlots = ({
   limitHeight,
   seatsPerTimeSlot,
   org,
+  isTeamEvent,
 }: AvailableTimeSlotsProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -65,6 +67,7 @@ export const AvailableTimeSlots = ({
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
     org,
+    isTeamEvent,
   });
 
   // Creates an array of dates to fetch slots for.

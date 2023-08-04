@@ -18,7 +18,16 @@ import PageWrapper from "@components/PageWrapper";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isEmbed, isBrandingHidden, entity }: PageProps) {
+export default function Type({
+  slug,
+  user,
+  booking,
+  away,
+  isEmbed,
+  isBrandingHidden,
+  entity,
+  org,
+}: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
@@ -37,6 +46,7 @@ export default function Type({ slug, user, booking, away, isEmbed, isBrandingHid
         hideBranding={isBrandingHidden}
         isTeamEvent
         entity={entity}
+        org={org}
       />
     </main>
   );
@@ -112,6 +122,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
       themeBasis: null,
+      org,
     },
   };
 };
