@@ -283,7 +283,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                     resetState();
                     onEnable();
                   }}>
-                  {t("finish")}
+                  {t("close")}
                 </Button>
               </>
             </WithStep>
