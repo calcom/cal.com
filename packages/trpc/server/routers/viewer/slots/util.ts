@@ -434,12 +434,11 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
   const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
   const computedAvailableSlots = (() => {
-    // Precompute users
+    // Preprocess users
     const users = (
       eventType.hosts
-        ? eventType.hosts.map((hostUserWithCredentials) => {
-            const { user } = hostUserWithCredentials;
-            const { credentials: _credentials, ...hostUser } = user;
+        ? eventType.hosts.map(({ user }) => {
+            const { credentials, ...hostUser } = user;
             return hostUser;
           })
         : eventType.users
@@ -458,22 +457,20 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     }
 
     const timeZone = input.timeZone;
-    const r = new Map();
+    const r = {};
 
     for (const { time: _time, ...passThroughProps } of availableTimeSlots) {
       const time = _time.tz(timeZone);
       const timeISOString = time.toISOString();
       const timeDateKey = time.format("YYYY-MM-DD");
 
-      let slots = r.get(timeDateKey);
-      if (!slots) {
-        slots = [];
-        r.set(timeDateKey, slots);
+      if (!r[timeDateKey]) {
+        r[timeDateKey] = [];
       }
 
       const currentSeatInfo = currentSeatsLookup.get(timeISOString);
 
-      slots.push({
+      r[timeDateKey].push({
         ...passThroughProps,
         time: timeISOString,
         users,
@@ -484,7 +481,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       });
     }
 
-    return Object.fromEntries(r); // Convert it back to object
+    return r;
   })();
 
   computedAvailableSlotsSpan.end();
