@@ -100,7 +100,7 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org: entity?.orgSlug,
+    org: entity.orgSlug,
     durationConfig: event?.data?.metadata?.multipleDuration,
   });
 
@@ -216,7 +216,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker org={entity?.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
+                      <DatePicker org={entity.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
                     </div>
                   )}
               </BookerSection>
@@ -245,7 +245,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker />
+              <DatePicker org={entity.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
             </BookerSection>
 
             <BookerSection
@@ -256,7 +256,7 @@ const BookerComponent = ({
               {...fadeInLeft}>
               <LargeCalendar
                 extraDays={extraDays}
-                org={entity?.orgSlug ?? null}
+                org={entity.orgSlug ?? null}
                 isTeamEvent={isTeamEvent ?? false}
               />
             </BookerSection>
@@ -280,7 +280,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                org={entity?.orgSlug ?? null}
+                org={entity.orgSlug ?? null}
                 isTeamEvent={isTeamEvent}
               />
             </BookerSection>
