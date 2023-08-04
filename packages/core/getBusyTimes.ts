@@ -43,6 +43,8 @@ export async function getBusyTimes(params: {
       status: BookingStatus.ACCEPTED,
     })}`
   );
+
+  const getUserSpan = tracer.startSpan("getUser-" + userId, undefined, context.active());
   // get user email for attendee checking.
   const user = await prisma.user.findUniqueOrThrow({
     where: {
@@ -52,6 +54,7 @@ export async function getBusyTimes(params: {
       email: true,
     },
   });
+  getUserSpan.end();
 
   /**
    * A user is considered busy within a given time period if there
@@ -68,6 +71,7 @@ export async function getBusyTimes(params: {
    *  logic within getSchedule.test.ts:addBookings
    */
   performance.mark("prismaBookingGetStart");
+  const getBookingsSpan = tracer.startSpan("getBookings-" + userId, undefined, context.active());
 
   const sharedQuery = {
     startTime: { gte: new Date(startTime) },
@@ -119,6 +123,14 @@ export async function getBusyTimes(params: {
     },
   });
 
+  getBookingsSpan.end();
+
+  const calculateBusyTimesSpan = tracer.startSpan(
+    "calculateBusyTimes-" + userId,
+    undefined,
+    context.active()
+  );
+
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
@@ -155,11 +167,17 @@ export async function getBusyTimes(params: {
     []
   );
 
+  calculateBusyTimesSpan.end();
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
     const startConnectedCalendarsGet = performance.now();
+    const connectedCalendarSpan = tracer.startSpan(
+      "connectedCalendar-" + userId,
+      undefined,
+      context.active()
+    );
     const calendarBusyTimes = await getBusyCalendarTimes(
       username,
       credentials,
@@ -168,12 +186,15 @@ export async function getBusyTimes(params: {
       selectedCalendars,
       organizationSlug
     );
+    connectedCalendarSpan.end();
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`
     );
+
+    const calculateResultSpan = tracer.startSpan("calculateResult-" + userId, undefined, context.active());
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
@@ -199,6 +220,7 @@ export async function getBusyTimes(params: {
         end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
       }))
     );
+    calculateResultSpan.end();
 
     /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
