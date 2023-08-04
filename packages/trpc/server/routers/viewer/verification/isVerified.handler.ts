@@ -8,7 +8,7 @@ type IsKYCVerifiedOptions = {
   };
 };
 
-export const isKYCVerifiedHandler = async ({ ctx }: IsKYCVerifiedOptions) => {
+export const isVerifiedHandler = async ({ ctx }: IsKYCVerifiedOptions) => {
   const user = ctx.user;
 
   const memberships = await prisma.membership.findMany({

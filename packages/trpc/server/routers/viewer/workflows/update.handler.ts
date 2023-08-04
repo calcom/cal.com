@@ -25,8 +25,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { isKYCVerifiedHandler } from "../../loggedInViewer/isKYCVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
+import { isVerifiedHandler } from "../verification/isVerified.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
@@ -84,8 +84,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
-  const kycVerified = await isKYCVerifiedHandler({ ctx });
-
+  const kycVerified = await isVerifiedHandler({ ctx });
   const isKYCVerified = IS_SELF_HOSTED || kycVerified.isKYCVerified;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({

@@ -20,6 +20,7 @@ import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
+import { verificationRouter } from "./verification/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -50,5 +51,6 @@ export const viewerRouter = mergeRouters(
     users: userAdminRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
+    verification: verificationRouter,
   })
 );
