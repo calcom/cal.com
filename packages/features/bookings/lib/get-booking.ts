@@ -110,7 +110,7 @@ export default getBooking;
 
 export const getBookingForReschedule = async (uid: string) => {
   let rescheduleUid: string | null = null;
-  const eventType = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findFirst({
     where: {
       uid,
     },
