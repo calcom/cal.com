@@ -20,7 +20,7 @@ export const KYCVerificationView = () => {
   //     showToast(`Veriification failed:${error.message}`, "error");
   //   },
   // });
-  const { data, isLoading } = trpc.viewer.verification.isVerified.useQuery();
+  const { data, isLoading } = trpc.viewer.kycVerification.isVerified.useQuery();
 
   useEffect(() => {
     console.log("test");
@@ -50,7 +50,7 @@ export const KYCVerificationView = () => {
               label=""
               type="text"
               id="name"
-              placeholder="user name or team slug"
+              placeholder="team slug"
               className="-mt-2 "
               required
             />
@@ -74,7 +74,7 @@ export const KYCVerificationView = () => {
               label=""
               type="text"
               id="name"
-              placeholder="user name or team slug"
+              placeholder="user name"
               className="-mt-2"
               required
             />

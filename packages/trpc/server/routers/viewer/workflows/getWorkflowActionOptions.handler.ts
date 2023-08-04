@@ -4,8 +4,8 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
-import { isVerifiedHandler } from "../verification/isVerified.handler";
 
 type GetWorkflowActionOptionsOptions = {
   ctx: {

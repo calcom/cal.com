@@ -25,8 +25,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
-import { isVerifiedHandler } from "../verification/isVerified.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,

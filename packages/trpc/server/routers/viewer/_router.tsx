@@ -15,12 +15,12 @@ import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { kycVerificationRouter } from "./kycVerification/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
-import { verificationRouter } from "./verification/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -51,6 +51,6 @@ export const viewerRouter = mergeRouters(
     users: userAdminRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
-    verification: verificationRouter,
+    kycVerification: kycVerificationRouter,
   })
 );

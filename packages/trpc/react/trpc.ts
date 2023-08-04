@@ -40,7 +40,7 @@ const ENDPOINTS = [
   "workflows",
   "appsRouter",
   "googleWorkspace",
-  "verification",
+  "kycVerification",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 

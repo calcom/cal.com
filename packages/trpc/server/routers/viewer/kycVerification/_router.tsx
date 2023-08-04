@@ -1,13 +1,13 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
-type VerificationRouterHandlerCache = {
+type KYCVerificationRouterHandlerCache = {
   isVerified?: typeof import("./isVerified.handler").isVerifiedHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: VerificationRouterHandlerCache = {};
+const UNSTABLE_HANDLER_CACHE: KYCVerificationRouterHandlerCache = {};
 
-export const verificationRouter = router({
+export const kycVerificationRouter = router({
   isVerified: authedAdminProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.isVerified) {
       UNSTABLE_HANDLER_CACHE.isVerified = await import("./isVerified.handler").then(
