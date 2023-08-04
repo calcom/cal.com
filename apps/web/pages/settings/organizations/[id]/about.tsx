@@ -1,8 +1,6 @@
-import { useRouter } from "next/router";
-
 import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
+import { Meta, WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -10,8 +8,6 @@ export { getServerSideProps } from "@calcom/features/ee/organizations/pages/orga
 
 const AboutOrganizationPage = () => {
   const { t } = useLocale();
-  const router = useRouter();
-  if (!router.isReady) return null;
   return (
     <>
       <Meta title={t("about_your_organization")} description={t("about_your_organization_description")} />

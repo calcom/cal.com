@@ -132,7 +132,7 @@
   "upgrade_to_per_seat": "Mise à niveau vers la place",
   "seat_options_doesnt_support_confirmation": "L'option de places ne prend pas en charge l'exigence de confirmation",
   "team_upgrade_seats_details": "Parmi les {{memberCount}} membres de votre équipe, {{unpaidCount}} place(s) sont impayées. À {{seatPrice}} $/mois par place, le coût total estimé de votre abonnement est de {{totalCost}} $/mois.",
-  "team_upgrade_banner_description": "Merci d'avoir essayé notre nouveau plan Équipes. Nous avons remarqué que votre équipe « {{teamName}} » doit être mise à niveau.",
+  "team_upgrade_banner_description": "Vous n'avez pas terminé la configuration de votre équipe. Votre équipe « {{teamName}} » doit être mise à niveau.",
   "upgrade_banner_action": "Mettre à niveau",
   "team_upgraded_successfully": "Votre équipe a été mise à niveau avec succès !",
   "org_upgrade_banner_description": "Merci d'avoir testé notre plan Organisation. Nous avons remarqué que votre organisation « {{teamName}} » doit être mise à niveau.",
@@ -1968,5 +1968,11 @@
   "org_team_names_example_5": "p. ex. Équipe d'analyse de données",
   "org_max_team_warnings": "Vous pourrez ajouter plus d'équipes plus tard.",
   "what_is_this_meeting_about": "En quoi consiste ce rendez-vous ?",
+  "org_admin_other_teams": "Autres équipes",
+  "org_admin_other_teams_description": "Ici, vous pouvez voir les équipes au sein de votre organisation dont vous ne faites pas partie. Vous pouvez vous y ajouter si nécessaire.",
+  "no_other_teams_found": "Aucune autre équipe trouvée",
+  "no_other_teams_found_description": "Il n'y a pas d'autres équipes dans cette organisation.",
+  "attendee_first_name_variable": "Prénom du participant",
+  "attendee_last_name_variable": "Nom du participant",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

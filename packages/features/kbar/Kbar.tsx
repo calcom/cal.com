@@ -10,7 +10,7 @@ import {
   useRegisterActions,
 } from "kbar";
 import type { Action } from "kbar";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";

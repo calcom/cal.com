@@ -1,15 +1,24 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText, Avatar } from "@calcom/ui";
 import { AlertCircle } from "@calcom/ui/components/icon";
 
-type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
+type ShouldHighlight =
+  | {
+      slug: string;
+      shouldHighlight: true;
+    }
+  | {
+      shouldHighlight?: never;
+      slug?: never;
+    };
 
 type AppListCardProps = {
   logo?: string;
@@ -46,14 +55,16 @@ export default function AppListCard(props: AppListCardProps) {
   const router = useRouter();
   const [highlight, setHighlight] = useState(shouldHighlight && hl === slug);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (shouldHighlight && highlight) {
       const timer = setTimeout(() => {
         setHighlight(false);
-        const url = new URL(window.location.href);
-        url.searchParams.delete("hl");
-        router.replace(url.pathname, undefined, { shallow: true });
+        const _searchParams = new URLSearchParams(searchParams);
+        _searchParams.delete("hl");
+        router.replace(`${pathname}?${_searchParams.toString()}`);
       }, 3000);
       timeoutRef.current = timer;
     }
@@ -96,7 +107,7 @@ export default function AppListCard(props: AppListCardProps) {
                   className="mr-2"
                   alt={credentialOwner.name || "Nameless"}
                   size="xs"
-                  imageSrc={credentialOwner.avatar}
+                  imageSrc={getPlaceholderAvatar(credentialOwner.avatar, credentialOwner?.name as string)}
                 />
                 {credentialOwner.name}
               </div>

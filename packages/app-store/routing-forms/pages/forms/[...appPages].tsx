@@ -1,5 +1,4 @@
 // TODO: i18n
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -14,6 +13,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import type {
   AppGetServerSidePropsContext,
@@ -21,46 +21,54 @@ import type {
   AppSsrInit,
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
-import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
-import { CreateButtonWithTeamsList } from "@calcom/ui";
 import {
-  GitMerge,
-  ExternalLink,
-  Link as LinkIcon,
-  Edit,
-  Download,
-  Code,
-  Copy,
-  Trash,
-  Menu,
-  MessageCircle,
-  FileText,
-  Shuffle,
+  Badge,
+  Button,
+  ButtonGroup,
+  CreateButtonWithTeamsList,
+  EmptyScreen,
+  List,
+  ListLinkItem,
+  Tooltip,
+} from "@calcom/ui";
+import {
   BarChart,
   CheckCircle,
+  Code,
+  Copy,
+  Download,
+  Edit,
+  ExternalLink,
+  FileText,
+  GitMerge,
+  Link as LinkIcon,
   Mail,
+  Menu,
+  MessageCircle,
+  Shuffle,
+  Trash,
 } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import {
-  createAction,
   FormAction,
   FormActionsDropdown,
   FormActionsProvider,
+  useOpenModal,
 } from "../../components/FormActions";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 
 function NewFormButton() {
   const { t } = useLocale();
-  const router = useRouter();
+  const openModal = useOpenModal();
   return (
     <CreateButtonWithTeamsList
       subtitle={t("create_routing_form_on").toUpperCase()}
       data-testid="new-routing-form"
       createFunction={(teamId) => {
-        createAction({ router, teamId: teamId ?? null });
+        openModal({ action: "new", target: teamId ? String(teamId) : "" });
       }}
     />
   );
@@ -68,17 +76,18 @@ function NewFormButton() {
 
 export default function RoutingForms({
   appUrl,
-}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+}: inferSSRProps<typeof getServerSideProps> & {
+  appUrl: string;
+}) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
-  const router = useRouter();
-
+  const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   useEffect(() => {
     hookForm.reset({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const filters = getTeamsFiltersFromQuery(router.query);
+  const filters = getTeamsFiltersFromQuery(routerQuery);
 
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
     filters,

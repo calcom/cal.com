@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -10,6 +10,7 @@ import EventTypeDescription from "@calcom/features/eventtypes/components/EventTy
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -32,11 +33,12 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
+  const routerQuery = useRouterQuery();
+  const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
-  const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
@@ -46,7 +48,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry, router.asPath]);
+  }, [telemetry, pathname]);
 
   if (isUnpublished) {
     const slug = team.slug || metadata?.requestedSlug;
@@ -61,7 +63,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
@@ -223,8 +225,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                         href={{
                           pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
                           query: {
-                            members: "1",
                             ...queryParamsToForward,
+                            members: "1",
                           },
                         }}
                         shallow={true}>
