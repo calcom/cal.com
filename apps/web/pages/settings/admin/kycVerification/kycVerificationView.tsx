@@ -1,8 +1,7 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { trpc } from "@calcom/trpc";
-import { Meta, Form, Button, TextField } from "@calcom/ui";
+import { Meta, Form, Button, TextField, showToast } from "@calcom/ui";
 
 type FormValues = {
   name?: string | null;
@@ -12,20 +11,14 @@ export const KYCVerificationView = () => {
   const teamForm = useForm<FormValues>();
   const userForm = useForm<FormValues>();
 
-  // const mutation = trpc.viewer.kycVerification.verify.useMutation({
-  //   onSuccess: async () => {
-  //     showToast("Verification successful", "success");
-  //   },
-  //   onError: (error) => {
-  //     showToast(`Veriification failed:${error.message}`, "error");
-  //   },
-  // });
-  const { data, isLoading } = trpc.viewer.kycVerification.isVerified.useQuery();
-
-  useEffect(() => {
-    console.log("test");
-    console.log(data);
-  }, [isLoading]);
+  const mutation = trpc.viewer.kycVerification.verify.useMutation({
+    onSuccess: async (data) => {
+      showToast(`Successfully verified ${data.isTeam ? "team" : "user"} ${data.name}`, "success");
+    },
+    onError: (error) => {
+      showToast(`Verification failed: ${error.message}`, "error");
+    },
+  });
 
   return (
     <div>
@@ -40,7 +33,7 @@ export const KYCVerificationView = () => {
           form={teamForm}
           handleSubmit={(values) => {
             mutation.mutate({
-              name: values.name,
+              name: values.name || "",
               isTeam: true,
             });
           }}>
@@ -64,13 +57,13 @@ export const KYCVerificationView = () => {
           form={userForm}
           handleSubmit={(values) => {
             mutation.mutate({
-              name: values.name,
+              name: values.name || "",
               isTeam: false,
             });
           }}>
           <div className="flex space-x-2">
             <TextField
-              {...teamForm.register("name")}
+              {...userForm.register("name")}
               label=""
               type="text"
               id="name"
