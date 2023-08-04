@@ -457,24 +457,30 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
     // Create a lookup object for currentSeats
     const bookingLookupSpan = tracer.startSpan("bookingLookup", undefined, context.active());
-    const bookingLookup: Record<string, BookingType> = {};
+    const bookingLookup: Map<string, BookingType> = new Map();
     if (currentSeats) {
-      for (const booking of currentSeats) {
-        bookingLookup[booking.startTime.toISOString()] = booking;
+      const seatsLength = currentSeats.length;
+      for (let i = 0; i < seatsLength; i++) {
+        const booking = currentSeats[i];
+        bookingLookup.set(booking.startTime.toISOString(), booking);
       }
     }
     bookingLookupSpan.end();
 
     const matchingBookingSpan = tracer.startSpan("matchingBooking", undefined, context.active());
-    const matchingBooking = bookingLookup[isoTime];
-    if (matchingBooking) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      slot.attendees = matchingBooking._count.attendees;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      slot.bookingUid = matchingBooking.uid;
+    if (bookingLookup.has(isoTime)) {
+      const matchingBooking = bookingLookup.get(isoTime);
+      // Perform further operations with the matching booking
+      if (matchingBooking) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        slot.attendees = matchingBooking._count.attendees;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        slot.bookingUid = matchingBooking.uid;
+      }
     }
+
     matchingBookingSpan.end();
 
     r[date].push(slot);
