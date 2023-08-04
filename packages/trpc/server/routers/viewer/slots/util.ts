@@ -437,6 +437,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     startTime: Date;
     // Add other properties of the booking object
   }
+  console.log("Number of availableTimeSlots is " + availableTimeSlots.length);
+
+  const slotUsers = (
+    eventType.hosts
+      ? eventType.hosts.map(({ user: { credentials, ...hostUser } }) => hostUser)
+      : eventType.users
+  ).map((user) => user.username || "");
+
   const computedAvailableSlots = availableTimeSlots.reduce((r, { time: _time, ...passThroughProps }) => {
     const time = _time.tz(input.timeZone);
     const date = time.format("YYYY-MM-DD");
@@ -444,44 +452,29 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
     r[date] = r[date] || [];
 
-    const mapSlotSpan = tracer.startSpan("mapSlot", undefined, context.active());
     const slot = {
       ...passThroughProps,
       time: isoTime,
-      users: (eventType.hosts
-        ? eventType.hosts.map(({ user: { credentials, ...hostUser } }) => hostUser)
-        : eventType.users
-      ).map((user) => user.username || ""),
+      users: slotUsers,
     };
-    mapSlotSpan.end();
 
     // Create a lookup object for currentSeats
-    const bookingLookupSpan = tracer.startSpan("bookingLookup", undefined, context.active());
-    const bookingLookup: Map<string, BookingType> = new Map();
+    const bookingLookup: Record<string, BookingType> = {};
     if (currentSeats) {
-      const seatsLength = currentSeats.length;
-      for (let i = 0; i < seatsLength; i++) {
-        const booking = currentSeats[i];
-        bookingLookup.set(booking.startTime.toISOString(), booking);
-      }
-    }
-    bookingLookupSpan.end();
-
-    const matchingBookingSpan = tracer.startSpan("matchingBooking", undefined, context.active());
-    if (bookingLookup.has(isoTime)) {
-      const matchingBooking = bookingLookup.get(isoTime);
-      // Perform further operations with the matching booking
-      if (matchingBooking) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        slot.attendees = matchingBooking._count.attendees;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        slot.bookingUid = matchingBooking.uid;
+      for (const booking of currentSeats) {
+        bookingLookup[booking.startTime.toISOString()] = booking;
       }
     }
 
-    matchingBookingSpan.end();
+    const matchingBooking = bookingLookup[isoTime];
+    if (matchingBooking) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      slot.attendees = matchingBooking._count.attendees;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      slot.bookingUid = matchingBooking.uid;
+    }
 
     r[date].push(slot);
     return r;
