@@ -444,6 +444,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
     r[date] = r[date] || [];
 
+    const mapSlotSpan = tracer.startSpan("mapSlot", undefined, context.active());
     const slot = {
       ...passThroughProps,
       time: isoTime,
@@ -452,15 +453,19 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         : eventType.users
       ).map((user) => user.username || ""),
     };
+    mapSlotSpan.end();
 
     // Create a lookup object for currentSeats
+    const bookingLookupSpan = tracer.startSpan("bookingLookup", undefined, context.active());
     const bookingLookup: Record<string, BookingType> = {};
     if (currentSeats) {
       for (const booking of currentSeats) {
         bookingLookup[booking.startTime.toISOString()] = booking;
       }
     }
+    bookingLookupSpan.end();
 
+    const matchingBookingSpan = tracer.startSpan("matchingBooking", undefined, context.active());
     const matchingBooking = bookingLookup[isoTime];
     if (matchingBooking) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -470,6 +475,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       // @ts-ignore
       slot.bookingUid = matchingBooking.uid;
     }
+    matchingBookingSpan.end();
 
     r[date].push(slot);
     return r;
