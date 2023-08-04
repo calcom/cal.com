@@ -189,9 +189,10 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   }
   const startPrismaEventTypeGet = performance.now();
 
-  if (!input.eventTypeId && input.eventTypeSlug) {
+  if (!input.eventTypeId && input.eventTypeSlug && !!input.usernameList) {
+    const username = Array.isArray(input.usernameList) ? input.usernameList.join("+") : input.usernameList;
     const eventTypeId = await getPublicEventId(
-      input.usernameList[0],
+      username,
       input.eventTypeSlug,
       input.isTeamEvent,
       input?.org ?? null,

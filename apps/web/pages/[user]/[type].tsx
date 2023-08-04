@@ -27,7 +27,6 @@ export default function Type({
   away,
   isBrandingHidden,
   rescheduleUid,
-  org,
   entity,
 }: PageProps) {
   return (
@@ -46,7 +45,6 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         entity={entity}
-        org={org}
       />
     </main>
   );
@@ -121,7 +119,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
-      org,
       entity: eventData.entity,
     },
   };
@@ -189,7 +186,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
-      org,
     },
   };
 }
