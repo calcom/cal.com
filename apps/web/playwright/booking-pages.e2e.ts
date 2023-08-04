@@ -11,7 +11,9 @@ import {
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
-test.afterEach(async ({ users }) => users.deleteAll());
+test.afterEach(async ({ users, emails }) => {
+  await users.deleteAll();
+});
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
@@ -19,21 +21,30 @@ test.describe("free user", () => {
     await page.goto(`/${free.username}`);
   });
 
-  test("cannot book same slot multiple times", async ({ page }) => {
+  test("cannot book same slot multiple times", async ({ page, users, emails }) => {
+    const [user] = users.get();
+    const booker = await users.create();
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await bookTimeSlot(page);
+    await bookTimeSlot(page, { email: booker.email });
 
     // save booking url
     const bookingUrl: string = page.url();
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    const emailsOrganiserReceived = await emails.search(user.email, "to");
+    const emailsBookerReceived = await emails.search(booker.email, "to");
+    expect(emailsOrganiserReceived?.total).toBe(1);
+    expect(emailsBookerReceived?.total).toBe(1);
 
-    // return to same time spot booking page
+    // TODO: Assert the title of the emails
+
+    // TODO: Assert the timezones mentioned in the emails.
+
     await page.goto(bookingUrl);
 
     // book same time spot again
