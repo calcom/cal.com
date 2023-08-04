@@ -243,7 +243,11 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.viewer.public.session.useQuery().data;
+  const session = trpc.viewer.public.session.useQuery(undefined, {
+    trpc: {
+      context: { skipBatch: true },
+    },
+  }).data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const { pageProps, ...rest } = props;
