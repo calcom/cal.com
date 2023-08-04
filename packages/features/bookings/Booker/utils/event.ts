@@ -1,9 +1,11 @@
 import { shallow } from "zustand/shallow";
 
+import dayjs from "@calcom/dayjs";
 import { useSchedule } from "@calcom/features/schedules";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-import { useTimePreferences } from "../../lib/timePreferences";
+import { timezoneLocalStorageKey, useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 
 /**
@@ -27,7 +29,8 @@ export const useEvent = () => {
 
 /**
  * Gets schedule for the current event and current month.
- * Gets all values from the booker store.
+ * Gets all values right away and not the store because it increases network timing, only for the first render.
+ * We can read from the store if we want to get the latest values.
  *
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
@@ -36,21 +39,37 @@ export const useEvent = () => {
  * useful when the user is viewing dates near the end of the month,
  * this way the multi day view will show data of both months.
  */
-export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
-  const { timezone } = useTimePreferences();
+export const useScheduleForEvent = ({
+  prefetchNextMonth,
+  username,
+  eventSlug,
+  eventId,
+  month,
+  duration,
+}: {
+  prefetchNextMonth?: boolean;
+  username?: string | null;
+  eventSlug?: string | null;
+  eventId?: number | null;
+  month?: string | null;
+  duration?: number | null;
+} = {}) => {
+  useTimePreferences();
+
+  const timezone = localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess();
   const event = useEvent();
-  const [username, eventSlug, month, duration] = useBookerStore(
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
   return useSchedule({
-    username,
-    eventSlug,
-    eventId: event.data?.id,
-    month,
+    username: usernameFromStore ?? username,
+    eventSlug: eventSlugFromStore ?? eventSlug,
+    eventId: event.data?.id ?? eventId,
     timezone,
     prefetchNextMonth,
-    duration,
+    month: monthFromStore ?? month,
+    duration: durationFromStore ?? duration,
   });
 };

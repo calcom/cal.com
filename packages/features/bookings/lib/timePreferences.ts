@@ -11,7 +11,7 @@ type TimePreferencesStore = {
   setTimezone: (timeZone: string) => void;
 };
 
-const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
+export const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
 
 /**
  * This hook is NOT inside the user feature, since
