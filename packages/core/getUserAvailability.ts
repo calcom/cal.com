@@ -9,6 +9,7 @@ import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { checkBookingLimit } from "@calcom/lib/server";
+import { tracer, context } from "@calcom/lib/server/otel-initializer";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
@@ -161,8 +162,16 @@ export async function getUserAvailability(
   current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
+    const getCurrentSeatsSpan = tracer.startSpan(
+      "getCurrentSeats-" + eventType.id,
+      undefined,
+      context.active()
+    );
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
+    getCurrentSeatsSpan.end();
   }
+
+  const getBusyTimesSpan = tracer.startSpan("getBusyTimes-" + user.id, undefined, context.active());
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
@@ -178,6 +187,8 @@ export async function getUserAvailability(
     selectedCalendars: user.selectedCalendars,
     seatedEvent: !!eventType?.seatsPerTimeSlot,
   });
+
+  getBusyTimesSpan.end();
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
     ...a,
@@ -234,7 +245,9 @@ export async function getUserAvailability(
     userId: user.id,
   }));
 
+  const getWorkingHoursSpan = tracer.startSpan("getWorkingHours-" + user.id, undefined, context.active());
   const workingHours = getWorkingHours({ timeZone }, availability);
+  getWorkingHoursSpan.end();
 
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);

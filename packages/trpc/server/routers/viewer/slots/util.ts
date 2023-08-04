@@ -234,6 +234,11 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
+      const userAvailabilitySpan = tracer.startSpan(
+        "userAvailability-" + currentUser.id,
+        undefined,
+        context.active()
+      );
       const {
         busy,
         workingHours,
@@ -256,6 +261,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 
+      userAvailabilitySpan.end();
       return {
         timeZone,
         workingHours,
@@ -291,6 +297,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const getSlotsCount = 0;
   const checkForAvailabilityCount = 0;
 
+  const getSlotsSpan = tracer.startSpan("getSlots", undefined, context.active());
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -302,6 +309,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
+  getSlotsSpan.end();
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
