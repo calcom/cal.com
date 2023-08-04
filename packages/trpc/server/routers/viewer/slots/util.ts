@@ -282,6 +282,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     undefined,
     context.active()
   );
+
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   getAggregateWorkingHoursSpan.end();
 
@@ -424,7 +425,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           return !!item;
         }
       );
-    selectedSlotsProcessing.end();
+    selectedSlotsProcessingSpan.end();
   }
 
   const isTimeWithinBoundsSpan = tracer.startSpan("isTimeWithinBounds", undefined, context.active());
