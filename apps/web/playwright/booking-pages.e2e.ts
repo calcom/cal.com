@@ -11,7 +11,7 @@ import {
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
-test.afterEach(async ({ users, emails }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
@@ -23,13 +23,13 @@ test.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
-    const booker = await users.create();
+    const bookerEmail = `testEmail-${Date.now()}@example.com`;
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await bookTimeSlot(page, { email: booker.email });
+    await bookTimeSlot(page, { email: bookerEmail });
 
     // save booking url
     const bookingUrl: string = page.url();
@@ -37,7 +37,7 @@ test.describe("free user", () => {
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const emailsOrganiserReceived = await emails.search(user.email, "to");
-    const emailsBookerReceived = await emails.search(booker.email, "to");
+    const emailsBookerReceived = await emails.search(bookerEmail, "to");
     expect(emailsOrganiserReceived?.total).toBe(1);
     expect(emailsBookerReceived?.total).toBe(1);
 
