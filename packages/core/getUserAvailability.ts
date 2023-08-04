@@ -7,10 +7,8 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
 import { checkBookingLimit } from "@calcom/lib/server";
 import { tracer, context } from "@calcom/lib/server/otel-initializer";
-import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -202,6 +200,11 @@ export async function getUserAvailability(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   if (bookingLimits) {
+    const getBusyTimesFromBookingLimitsSpan = tracer.startSpan(
+      "getBusyTimesFromBookingLimits-" + user.id,
+      undefined,
+      context.active()
+    );
     const bookingBusyTimes = await getBusyTimesFromBookingLimits(
       bookings,
       bookingLimits,
@@ -210,10 +213,16 @@ export async function getUserAvailability(
       eventType
     );
     bufferedBusyTimes = bufferedBusyTimes.concat(bookingBusyTimes);
+    getBusyTimesFromBookingLimitsSpan.end();
   }
 
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   if (durationLimits) {
+    const getBusyTimesFromDurationLimitsSpan = tracer.startSpan(
+      "getBusyTimesFromDurationLimits-" + user.id,
+      undefined,
+      context.active()
+    );
     const durationBusyTimes = await getBusyTimesFromDurationLimits(
       bookings,
       durationLimits,
@@ -223,6 +232,7 @@ export async function getUserAvailability(
       eventType
     );
     bufferedBusyTimes = bufferedBusyTimes.concat(durationBusyTimes);
+    getBusyTimesFromDurationLimitsSpan.end();
   }
 
   const userSchedule = user.schedules.filter(
@@ -234,9 +244,8 @@ export async function getUserAvailability(
       ? eventType.schedule
       : userSchedule;
 
-  const startGetWorkingHours = performance.now();
-
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
+  const getWorkingHoursSpan = tracer.startSpan("getWorkingHours-" + user.id, undefined, context.active());
 
   const availability = (
     schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
@@ -245,13 +254,10 @@ export async function getUserAvailability(
     userId: user.id,
   }));
 
-  const getWorkingHoursSpan = tracer.startSpan("getWorkingHours-" + user.id, undefined, context.active());
   const workingHours = getWorkingHours({ timeZone }, availability);
   getWorkingHoursSpan.end();
 
-  const endGetWorkingHours = performance.now();
-  logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
-
+  const dateOverridesSpan = tracer.startSpan("dateOverrides-" + user.id, undefined, context.active());
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
     .map((override) => {
@@ -263,12 +269,18 @@ export async function getUserAvailability(
       };
     });
 
+  dateOverridesSpan.end();
+
+  const buildDateRangesSpan = tracer.startSpan("buildDateRanges-" + user.id, undefined, context.active());
+
   const dateRanges = buildDateRanges({
     dateFrom,
     dateTo,
     availability,
     timeZone,
   });
+
+  buildDateRangesSpan.end();
 
   const formattedBusyTimes = bufferedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),

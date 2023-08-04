@@ -277,7 +277,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const dateOverrides = userAvailability.flatMap((availability) =>
     availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
   );
+  const getAggregateWorkingHoursSpan = tracer.startSpan(
+    "getAggregateWorkingHours",
+    undefined,
+    context.active()
+  );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
+  getAggregateWorkingHoursSpan.end();
+
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
@@ -313,6 +320,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
+  const selectedSlotsSpan = tracer.startSpan("selectedSlots", undefined, context.active());
   const selectedSlots =
     /* FIXME: For some reason this returns undefined while testing in Jest */
     (await prisma.selectedSlots.findMany({
@@ -333,9 +341,16 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
 
+  selectedSlotsSpan.end();
+
   availableTimeSlots = timeSlots;
 
   if (selectedSlots?.length > 0) {
+    const selectedSlotsProcessingSpan = tracer.startSpan(
+      "selectedSlotsProcessing",
+      undefined,
+      context.active()
+    );
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
       (item) => item.isSeat && item.eventTypeId === eventType.id
     );
@@ -409,8 +424,10 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           return !!item;
         }
       );
+    selectedSlotsProcessing.end();
   }
 
+  const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
@@ -450,6 +467,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     Object.create(null)
   );
 
+  computedAvailableSlotsSpan.end();
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
   logger.debug(
