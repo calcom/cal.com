@@ -92,13 +92,11 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         setBackupCodes(body.backupCodes);
 
         // create backup codes download url
-        const textBlob = new Blob([backupCodes.map(formatBackupCode).join("\n")], {
+        const textBlob = new Blob([body.backupCodes.map(formatBackupCode).join("\n")], {
           type: "text/plain",
         });
-        if (backupCodesUrl) {
-          window.URL.revokeObjectURL(backupCodesUrl);
-        }
-        setBackupCodesUrl(window.URL.createObjectURL(textBlob));
+        if (backupCodesUrl) URL.revokeObjectURL(backupCodesUrl);
+        setBackupCodesUrl(URL.createObjectURL(textBlob));
 
         setDataUri(body.dataUri);
         setSecret(body.secret);
