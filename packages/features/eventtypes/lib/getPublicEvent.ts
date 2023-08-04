@@ -258,7 +258,7 @@ export const getPublicEventId = async (
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
-  // In case of dynamic group event, we fetch user's data and use the default event.
+  // In case of dynamic group event, there is no event id.
   if (usernameList.length > 1) {
     return undefined;
   }
@@ -288,12 +288,25 @@ export const getPublicEventId = async (
     },
     select: {
       id: true,
+      hosts: {
+        select: {
+          userId: true,
+        },
+      },
+      owner: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
   if (!event) return null;
 
-  const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
+  const eventHasOwner = isTeamEvent ? event.hosts?.length > 0 : !!event.owner;
+
+  const users = eventHasOwner || (await getOwnerFromUsersArray(prisma, event.id));
+
   if (users === null) {
     throw new Error("Event has no owner");
   }
