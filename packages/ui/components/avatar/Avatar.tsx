@@ -35,7 +35,7 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  const { imageSrc, size, alt, title, href } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
@@ -52,10 +52,8 @@ export function Avatar(props: AvatarProps) {
         />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback && !gravatarFallbackMd5 && props.fallback}
-            {gravatarFallbackMd5 && (
-              <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
-            )}
+            {props.fallback && !alt && props.fallback}
+            {alt && <img src={defaultAvatarSrc({ name: alt })} alt={alt} className={rootClass} />}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (

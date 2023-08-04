@@ -1,17 +1,12 @@
-import md5Parser from "md5";
-
 /**
  * Provided either an email or an MD5 hash, return the URL for the Gravatar
  * image aborting early if neither is provided.
  */
-export const defaultAvatarSrc = function ({ email, md5 }: { md5?: string; email?: string }) {
-  if (!email && !md5) return "";
-
-  if (email && !md5) {
-    md5 = md5Parser(email);
-  }
-
-  return `https://www.gravatar.com/avatar/${md5}?s=160&d=mp&r=PG`;
+export const defaultAvatarSrc = function ({ name }: { name?: string }) {
+  return (
+    "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=" +
+    encodeURIComponent(name || "")
+  );
 };
 
 /**
