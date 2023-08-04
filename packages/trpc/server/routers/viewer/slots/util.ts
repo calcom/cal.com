@@ -433,42 +433,47 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   isTimeWithinBoundsSpan.end();
 
   const computedAvailableSlotsSpan = tracer.startSpan("computedAvailableSlots", undefined, context.active());
-  const computedAvailableSlots = availableTimeSlots.reduce(
-    (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: _time, ...passThroughProps }
-    ) => {
-      // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-      const time = _time.tz(input.timeZone);
+  interface BookingType {
+    startTime: Date;
+    // Add other properties of the booking object
+  }
+  const computedAvailableSlots = availableTimeSlots.reduce((r, { time: _time, ...passThroughProps }) => {
+    const time = _time.tz(input.timeZone);
+    const date = time.format("YYYY-MM-DD");
+    const isoTime = time.toISOString();
 
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
-        ...passThroughProps,
-        time: time.toISOString(),
-        users: (eventType.hosts
-          ? eventType.hosts.map((hostUserWithCredentials) => {
-              const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
-            })
-          : eventType.users
-        ).map((user) => user.username || ""),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
-        }),
-      });
-      return r;
-    },
-    Object.create(null)
-  );
+    r[date] = r[date] || [];
+
+    const slot = {
+      ...passThroughProps,
+      time: isoTime,
+      users: (eventType.hosts
+        ? eventType.hosts.map(({ user: { credentials, ...hostUser } }) => hostUser)
+        : eventType.users
+      ).map((user) => user.username || ""),
+    };
+
+    // Create a lookup object for currentSeats
+    const bookingLookup: Record<string, BookingType> = {};
+    if (currentSeats) {
+      for (const booking of currentSeats) {
+        bookingLookup[booking.startTime.toISOString()] = booking;
+      }
+    }
+
+    const matchingBooking = bookingLookup[isoTime];
+    if (matchingBooking) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      slot.attendees = matchingBooking._count.attendees;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      slot.bookingUid = matchingBooking.uid;
+    }
+
+    r[date].push(slot);
+    return r;
+  }, Object.create(null));
 
   computedAvailableSlotsSpan.end();
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
