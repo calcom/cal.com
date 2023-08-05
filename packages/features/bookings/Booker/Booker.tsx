@@ -278,6 +278,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                isEmbed={isEmbed}
               />
             </BookerSection>
           </AnimatePresence>

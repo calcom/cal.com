@@ -12,6 +12,7 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeSlot?: number | null;
+  isEmbed?: boolean;
 };
 
 /**
@@ -21,7 +22,12 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  limitHeight,
+  seatsPerTimeSlot,
+  isEmbed,
+}: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
@@ -78,7 +84,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
-    if (containerRef.current && !schedule.isLoading) {
+    if (containerRef.current && !schedule.isLoading && !isEmbed) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [containerRef, schedule.isLoading]);
