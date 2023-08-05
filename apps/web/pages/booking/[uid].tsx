@@ -48,7 +48,12 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  customInputSchema,
+  eventTypeBookingFields,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
@@ -1068,7 +1073,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
+  const bookingInfoWithSecretResponses = getBookingWithResponses(bookingInfoRaw);
+
+  const filteredResponses = bookingInfoWithSecretResponses.responses;
+
+  if (!session || eventTypeRaw.owner?.id !== session.user.id) {
+    const bookingFields = eventTypeRaw.bookingFields;
+    const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
+    parsedBookingFields?.forEach(
+      (field) =>
+        field.editable === "user-owner-secret" && field.label && delete filteredResponses[field.label]
+    );
+  }
+
+  const bookingInfo = {
+    ...bookingInfoWithSecretResponses,
+    responses: filteredResponses,
+  };
+
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
