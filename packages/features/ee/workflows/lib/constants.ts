@@ -46,6 +46,8 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "location",
   "organizer_name",
   "attendee_name",
+  "attendee_first_name",
+  "attendee_last_name",
   "attendee_email",
   "additional_notes",
   "meeting_url",
