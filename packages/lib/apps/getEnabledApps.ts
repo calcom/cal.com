@@ -4,6 +4,8 @@ import { prisma } from "@calcom/prisma";
 
 import type { Prisma } from ".prisma/client";
 
+type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+
 /**
  *
  * @param credentials - Can be user or team credentials
@@ -46,9 +48,17 @@ const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterO
       reducedArray.push({ ...appMetadata, enabled: app.enabled });
     }
     return reducedArray;
-  }, [] as (ReturnType<typeof getApps>[number] & { enabled: boolean })[]);
+  }, [] as EnabledApp[]);
 
-  return filteredApps;
+  const defaultApps = apps.reduce((reducedArray, app) => {
+    //TODO: should write a more robust logic,for apps which are default
+    if (app.isGlobal && app.publisher.toLowerCase().includes("cal")) {
+      reducedArray.push({ ...app, enabled: true });
+    }
+    return reducedArray;
+  }, [] as EnabledApp[]);
+  //this combined of user credential apps + default apps
+  return [...filteredApps, ...defaultApps];
 };
 
 export default getEnabledApps;
