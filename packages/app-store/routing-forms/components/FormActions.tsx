@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,8 +32,6 @@ import {
   TextField,
 } from "@calcom/ui";
 import { MoreHorizontal } from "@calcom/ui/components/icon";
-
-import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";
@@ -230,7 +229,7 @@ function Dialogs({
   });
   return (
     <div id="form-dialogs">
-      <EmbedDialog />
+      <RoutingFormEmbedDialog />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
@@ -430,7 +429,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => openModal({ action: "duplicate", target: routingForm?.id }),
     },
     embed: {
-      as: EmbedButton,
+      as: RoutingFormEmbedButton,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       embedUrl: embedLink,
