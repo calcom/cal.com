@@ -5,7 +5,7 @@
 export const defaultAvatarSrc = function ({ name }: { name?: string }) {
   return (
     "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=" +
-    encodeURIComponent(name || "")
+    encodeURIComponent(name || "Nameless")
   );
 };
 
