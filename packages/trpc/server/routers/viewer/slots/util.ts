@@ -408,17 +408,27 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  // fr-CA uses YYYY-MM-DD
+  const formatter = new Intl.DateTimeFormat("fr-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: input.timeZone,
+  });
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: _time, ...passThroughProps }
+      { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-      const time = _time.tz(input.timeZone);
 
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+      // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
+      // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+      const dateString = formatter.format(time.toDate());
+
+      r[dateString] = r[dateString] || [];
+      r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
         users: (eventType.hosts
