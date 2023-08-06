@@ -368,7 +368,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   };
   return (
     <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
-      <Droppable droppableId="Theresonlyonedroppable">
+      <Droppable droppableId="Droppable">
         {(provided) => (
           <ul ref={provided.innerRef} {...provided.droppableProps} className="divide-subtle !static w-full divide-y" data-testid="event-types">
             {types.map((type, index) => {
@@ -378,10 +378,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               const isChildrenManagedEventType =
                 type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
               return (
-                <Draggable draggableId={index.toString()} index={index} key={index}>
+                <Draggable draggableId={index.toString()} index={index}>
                   {(provided) => (
-                    <li key={type.id}
-                        {...provided.draggableProps}
+                    <li {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         ref={provided.innerRef}
                       >
