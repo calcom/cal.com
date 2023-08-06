@@ -36,14 +36,14 @@ export default function BookingLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest} hideHeadingOnMobile>
-      <div className="flex max-w-6xl flex-col">
+      <div className="flex flex-col">
         <div className="flex flex-col flex-wrap lg:flex-row">
           <HorizontalTabs tabs={tabs} />
           <div className="max-w-full overflow-x-auto xl:ml-auto">
             <FiltersContainer />
           </div>
         </div>
-        <main className="w-full max-w-6xl">{children}</main>
+        <main className="w-full">{children}</main>
       </div>
     </Shell>
   );

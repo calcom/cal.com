@@ -1,21 +1,27 @@
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Form,
   Label,
   showToast,
@@ -24,25 +30,13 @@ import {
   Switch,
   TimezoneSelect,
   Tooltip,
-  Dialog,
-  DialogTrigger,
-  DropdownMenuSeparator,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownItem,
-  DropdownMenuTrigger,
-  ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
+import { Info, MoreHorizontal, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
-
-const querySchema = z.object({
-  schedule: z.coerce.number().positive().optional(),
-});
 
 type AvailabilityFormValues = {
   name: string;
@@ -53,9 +47,10 @@ type AvailabilityFormValues = {
 };
 
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -70,15 +65,15 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           remove={remove}
-          update={update}
+          replace={replace}
           items={fields}
           workingHours={workingHours}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
@@ -92,15 +87,13 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 };
 
 export default function Availability() {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-  const {
-    data: { schedule: scheduleId },
-  } = useTypedQuery(querySchema);
-
-  const { fromEventType } = router.query;
+  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
+  const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
@@ -278,7 +271,11 @@ export default function Availability() {
           </Dropdown>
 
           <div className="border-default border-l-2" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            form="availability-form"
+            loading={updateMutation.isLoading}>
             {t("save")}
           </Button>
         </div>

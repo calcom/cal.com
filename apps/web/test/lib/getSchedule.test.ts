@@ -451,6 +451,7 @@ describe("getSchedule", () => {
         endTime: `${plus2DateString}T18:29:59.999Z`,
         timeZone: Timezones["+5:30"],
       });
+
       expect(scheduleForEventWith30Length).toHaveTimeSlots(
         [
           `04:00:00.000Z`,
@@ -484,8 +485,9 @@ describe("getSchedule", () => {
         timeZone: Timezones["+5:30"],
       });
       // `slotInterval` takes precedence over `length`
+      // 4:30 is utc so it is 10:00 in IST
       expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
-        [`04:00:00.000Z`, `06:00:00.000Z`, `08:00:00.000Z`, `10:00:00.000Z`, `12:00:00.000Z`],
+        [`04:30:00.000Z`, `06:30:00.000Z`, `08:30:00.000Z`, `10:30:00.000Z`, `12:30:00.000Z`],
         {
           dateString: plus2DateString,
         }
@@ -1028,7 +1030,7 @@ describe("getSchedule", () => {
         [
           //`04:00:00.000Z`, - Blocked with User 101
           `04:15:00.000Z`,
-          //`05:30:00.000Z`, - Blocked with User 102 in event 2
+          //`05:00:00.000Z`, - Blocked with User 102 in event 2
           `05:45:00.000Z`,
           `06:30:00.000Z`,
           `07:15:00.000Z`,

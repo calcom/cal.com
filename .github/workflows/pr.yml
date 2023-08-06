@@ -44,11 +44,6 @@ jobs:
               - 'packages/embeds/**'
               - 'playwright.config.ts'
 
-  env:
-    name: Create env file
-    uses: ./.github/workflows/env-create-file.yml
-    secrets: inherit
-
   type-check:
     name: Type check
     uses: ./.github/workflows/check-types.yml
@@ -66,13 +61,11 @@ jobs:
 
   build:
     name: Production build
-    needs: env
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   build-without-database:
     name: Production build (without database)
-    needs: env
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
@@ -84,21 +77,18 @@ jobs:
 
   e2e-app-store:
     name: E2E App Store tests
-    if: ${{ needs.changes.outputs.app-store == 'true' }}
     needs: [changes, lint, build]
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: E2E embeds tests
-    if: ${{ needs.changes.outputs.embed == 'true' }}
     needs: [changes, lint, build]
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: E2E React embeds tests
-    if: ${{ needs.changes.outputs.embed-react == 'true' }}
     needs: [changes, lint, build]
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -109,7 +99,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build, e2e]
+    needs: [lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:

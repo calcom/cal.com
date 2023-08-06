@@ -306,7 +306,9 @@ export const EventSetupTab = (
                         )}
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="ms-1 line-clamp-1 text-sm">{eventLabel}</span>
+                      <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${
+                        location.teamName ? `(${location.teamName})` : ""
+                      }`}</span>
                     </div>
                     <div className="flex">
                       <button

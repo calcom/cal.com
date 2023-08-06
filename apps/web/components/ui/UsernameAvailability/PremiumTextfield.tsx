@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -45,7 +46,11 @@ const obtainNewUsernameChangeCondition = ({
 };
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLocale();
+  const { data: session, update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -59,8 +64,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
-  const router = useRouter();
-  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
+  const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
@@ -94,6 +98,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
+      await update({ username: inputUsernameValue });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -117,7 +122,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${router.asPath}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${pathname}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {
@@ -220,7 +225,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              delete router.query.paymentStatus;
+              const _searchParams = new URLSearchParams(searchParams);
+              _searchParams.delete("paymentStatus");
+              if (searchParams.toString() !== _searchParams.toString()) {
+                router.replace(`${pathname}?${_searchParams.toString()}`);
+              }
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"

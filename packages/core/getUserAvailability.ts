@@ -12,6 +12,7 @@ import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
@@ -41,6 +42,7 @@ const getEventType = async (id: number) => {
       bookingLimits: true,
       durationLimits: true,
       timeZone: true,
+      length: true,
       metadata: true,
       schedule: {
         select: {
@@ -93,6 +95,7 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
         gte: dateFrom.format(),
         lte: dateTo.format(),
       },
+      status: BookingStatus.ACCEPTED,
     },
     select: {
       uid: true,
@@ -163,8 +166,9 @@ export async function getUserAvailability(
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
-    startTime: dateFrom.toISOString(),
-    endTime: dateTo.toISOString(),
+    // needed to correctly apply limits (weeks can be part of two months)
+    startTime: dateFrom.startOf("week").toISOString(),
+    endTime: dateTo.endOf("week").toISOString(),
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
@@ -172,6 +176,7 @@ export async function getUserAvailability(
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
+    seatedEvent: !!eventType?.seatsPerTimeSlot,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
@@ -371,7 +376,7 @@ const getBusyTimesFromDurationLimits = async (
 
     // loop through all dates and check if we have reached the limit
     for (const date of dates) {
-      let total = duration ?? 0;
+      let total = (duration || eventType?.length) ?? 0;
       const startDate = date.startOf(filter);
       const endDate = date.endOf(filter);
 

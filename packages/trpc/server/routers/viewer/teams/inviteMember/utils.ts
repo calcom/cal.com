@@ -120,7 +120,6 @@ export function getOrgConnectionInfo({
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
       autoAccept = orgVerified ?? true;
     } else {
-      // No longer throw error - not needed we just dont auto accept them
       orgId = undefined;
       autoAccept = false;
     }
@@ -279,12 +278,17 @@ export async function sendVerificationEmail({
 }
 
 export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithParent, isOrg: boolean) {
+  if (invitee.organizationId && invitee.organizationId === team.parentId) {
+    return;
+  }
+
   if (invitee.organizationId && invitee.organizationId !== team.parentId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `User ${invitee.username} is already a member of another organization.`,
     });
   }
+
   if ((invitee && isOrg) || (team.parentId && invitee)) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -320,4 +324,54 @@ export function getIsOrgVerified(
   return {
     isInOrgScope: false,
   } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
+}
+
+export async function createAndAutoJoinIfInOrg({
+  team,
+  role,
+  invitee,
+}: {
+  team: TeamWithParent;
+  invitee: User;
+  role: MembershipRole;
+}) {
+  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
+    return {
+      autoJoined: false,
+    };
+  }
+
+  if (!team.parentId) {
+    return {
+      autoJoined: false,
+    };
+  }
+
+  const orgMembership = await prisma.membership.findFirst({
+    where: {
+      userId: invitee.id,
+      teamId: team.parentId,
+    },
+  });
+
+  if (!orgMembership?.accepted) {
+    return {
+      autoJoined: false,
+    };
+  }
+
+  // Since we early return if the user is not a member of the org. Or the team they are being invited to is an org (not having a parentID)
+  // We create the membership in the child team
+  await prisma.membership.create({
+    data: {
+      userId: invitee.id,
+      teamId: team.id,
+      accepted: true,
+      role: role,
+    },
+  });
+
+  return {
+    autoJoined: true,
+  };
 }

@@ -1,12 +1,13 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Meta, TextField, showToast } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Button, Meta, showToast, TextField } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -64,19 +65,33 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
   const session = useSession();
 
   const utils = trpc.useContext();
-  const teamId = Number(router.query.id);
+  const params = useParamsWithFallback();
 
-  const showDialog = router.query.inviteModal === "true";
+  const teamId = Number(params.id);
+
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+        distinctUser: true,
+      },
+      {
+        enabled: searchParams !== null,
+      }
+    );
+
+  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       onError: () => {
@@ -84,6 +99,8 @@ const MembersView = () => {
       },
     }
   );
+
+  const isLoading = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -161,6 +178,7 @@ const MembersView = () => {
             <MemberInvitationModal
               isLoading={inviteMemberMutation.isLoading}
               isOpen={showMemberInvitationModal}
+              orgMembers={orgMembersNotInThisTeam}
               members={team.members}
               teamId={team.id}
               token={team.inviteToken?.token}

@@ -5,6 +5,7 @@ import {
   isNextDayInTimezone,
   isPreviousDayInTimezone,
   sortByTimezone,
+  isSupportedTimeZone,
 } from "@calcom/lib/date-fns";
 
 import { Globe } from "../icon";
@@ -35,7 +36,10 @@ const MeetingTimeInTimezones = ({
 }: MeetingTimeInTimezonesProps) => {
   if (!userTimezone || !attendees.length) return null;
 
-  const attendeeTimezones = attendees.map((attendee) => attendee.timeZone);
+  // If attendeeTimezone is unsupported, we fallback to host timezone. Unsupported Attendee timezone can be used due to bad API booking request in the past | backward-compatibility
+  const attendeeTimezones = attendees.map((attendee) => {
+    return isSupportedTimeZone(attendee.timeZone) ? attendee.timeZone : userTimezone;
+  });
   const uniqueTimezones = [userTimezone, ...attendeeTimezones].filter(
     (value, index, self) => self.indexOf(value) === index
   );
@@ -69,13 +73,13 @@ const MeetingTimeInTimezones = ({
         <Popover.Content
           onClick={preventBubbling}
           side="top"
-          className="popover-content slideInBottom border-5 bg-brand-default text-inverted border-subtle rounded-md p-3 text-sm shadow-sm">
+          className="popover-content slideInBottom border-5 bg-inverted text-inverted border-subtle rounded-md p-3 text-sm shadow-sm">
           {times.map((time) => (
             <span className="mt-2 block first:mt-0" key={time.timezone}>
               <span className="inline-flex align-baseline">
                 {time.startTime} - {time.endTime}
                 {(time.isNextDay || time.isPreviousDay) && (
-                  <span className="text-medium ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-700 text-[10px]">
+                  <span className="text-medium bg-muted text-emphasis ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]">
                     {time.isNextDay ? "+1" : "-1"}
                   </span>
                 )}

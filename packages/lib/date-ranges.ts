@@ -52,9 +52,11 @@ export function processDateOverride({ item, timeZone }: { item: DateOverride; ti
   const startTime = dayjs(item.startTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
   const endTime = dayjs(item.endTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
 
+  const diffDays = startTime.startOf("day").diff(dayjs.utc(item.startTime).startOf("day"), "day");
+
   return {
-    start: date.hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
-    end: date.hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
+    start: date.add(diffDays, "day").hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
+    end: date.add(diffDays, "day").hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
   };
 }
 
@@ -105,7 +107,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs.utc(currentValue.start).format("YYYY-MM-DD");
+      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
 
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
@@ -155,18 +157,21 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
 }
 
 function getIntersection(range1: DateRange, range2: DateRange) {
-  const start = range1.start.isAfter(range2.start) ? range1.start : range2.start;
-  const end = range1.end.isBefore(range2.end) ? range1.end : range2.end;
-  if (start.isBefore(end)) {
+  const start = range1.start.utc().isAfter(range2.start) ? range1.start : range2.start;
+  const end = range1.end.utc().isBefore(range2.end) ? range1.end : range2.end;
+  if (start.utc().isBefore(end)) {
     return { start, end };
   }
   return null;
 }
 
-export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[]) {
+export function subtract(
+  sourceRanges: (DateRange & { [x: string]: unknown })[],
+  excludedRanges: DateRange[]
+) {
   const result: DateRange[] = [];
 
-  for (const { start: sourceStart, end: sourceEnd } of sourceRanges) {
+  for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
 
     const overlappingRanges = excludedRanges.filter(
@@ -183,7 +188,7 @@ export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[])
     }
 
     if (sourceEnd.isAfter(currentStart)) {
-      result.push({ start: currentStart, end: sourceEnd });
+      result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
 

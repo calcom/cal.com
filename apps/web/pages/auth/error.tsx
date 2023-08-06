@@ -1,11 +1,10 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import type { ReactElement } from "react";
+import { useSearchParams } from "next/navigation";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -19,13 +18,10 @@ const querySchema = z.object({
 
 export default function Error() {
   const { t } = useLocale();
-  const router = useRouter();
-  const { error } = querySchema.parse(router.query);
+  const searchParams = useSearchParams();
+  const { error } = querySchema.parse(searchParams);
   const isTokenVerificationError = error?.toLowerCase() === "verification";
-  let errorMsg: string | ReactElement = <SkeletonText />;
-  if (router.isReady) {
-    errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
-  }
+  const errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
 
   return (
     <AuthContainer title="" description="">

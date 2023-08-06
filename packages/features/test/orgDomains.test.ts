@@ -26,7 +26,15 @@ describe("Org Domains Utils", () => {
     it("should return a non valid org domain", () => {
       setupEnvs();
       expect(orgDomainConfig("app.cal.com")).toEqual({
-        currentOrgDomain: "app",
+        currentOrgDomain: null,
+        isValidOrgDomain: false,
+      });
+    });
+
+    it("should return a non valid org domain for localhost", () => {
+      setupEnvs();
+      expect(orgDomainConfig("localhost:3000")).toEqual({
+        currentOrgDomain: null,
         isValidOrgDomain: false,
       });
     });

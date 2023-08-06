@@ -160,18 +160,29 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
-
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-    let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
+    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+      ? range.start
+      : startTimeWithMinNotice;
+
+    let interval = 15;
+
+    const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
+
+    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+        interval = intervalsWithDefinedStartTimes[i];
+        break;
+      }
+    }
 
     slotStartTime =
-      slotStartTime.utc().minute() % 15 !== 0
-        ? slotStartTime
-            .startOf("day")
-            .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 15) * 15, "minute")
+      slotStartTime.minute() % interval !== 0
+        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
@@ -181,10 +192,11 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").isAfter(rangeEnd)) {
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
-        time: slotStartTime.tz(timeZone),
+        time: slotStartTime,
       });
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }

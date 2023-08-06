@@ -9,11 +9,13 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -135,6 +137,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });
 
@@ -235,12 +239,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
     // Send webhook
     const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: bookingToReschedule.eventType?.teamId ?? null },
+        parentId: bookingToReschedule?.eventType?.parentId ?? null,
+      },
+    });
     // Send Webhook call if hooked to BOOKING.CANCELLED
     const subscriberOptions = {
       userId: bookingToReschedule.userId,
       eventTypeId: bookingToReschedule.eventTypeId as number,
       triggerEvent: eventTrigger,
-      teamId: bookingToReschedule.eventType?.teamId,
+      teamId,
     };
     const webhooks = await getWebhooks(subscriberOptions);
     const promises = webhooks.map((webhook) =>

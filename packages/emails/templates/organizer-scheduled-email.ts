@@ -7,6 +7,7 @@ import { RRule } from "rrule";
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { APP_NAME } from "@calcom/lib/constants";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -70,16 +71,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     const clonedCalEvent = cloneDeep(this.calEvent);
-
-    const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.email === member.email);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
       icalEvent: {
@@ -120,17 +112,30 @@ ${callToAction}
     return this.calEvent.organizer.timeZone;
   }
 
+  protected getLocale(): string {
+    return this.calEvent.organizer.language.locale;
+  }
+
   protected getOrganizerStart(format: string) {
-    return this.getRecipientTime(this.calEvent.startTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.startTime,
+      format,
+    });
   }
 
   protected getOrganizerEnd(format: string) {
-    return this.getRecipientTime(this.calEvent.endTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.endTime,
+      format,
+    });
   }
 
   protected getFormattedDate() {
-    return `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
-      this.getOrganizerStart("dddd").toLowerCase()
-    )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart("D, YYYY")}`;
+    const organizerTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+    return `${this.getOrganizerStart(organizerTimeFormat)} - ${this.getOrganizerEnd(
+      organizerTimeFormat
+    )}, ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(
+      this.getOrganizerStart("MMMM").toLowerCase()
+    )} ${this.getOrganizerStart("D, YYYY")}`;
   }
 }

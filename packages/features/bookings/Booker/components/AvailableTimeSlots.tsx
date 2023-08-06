@@ -1,9 +1,11 @@
 import { useMemo, useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
@@ -11,7 +13,7 @@ import { useEvent, useScheduleForEvent } from "../utils/event";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  seatsPerTimeslot?: number | null;
+  seatsPerTimeSlot?: number | null;
 };
 
 /**
@@ -21,15 +23,35 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
+  const isEmbed = useIsEmbed();
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const onTimeSelect = (time: string) => {
+  const onTimeSelect = (
+    time: string,
+    attendees: number,
+    seatsPerTimeSlot?: number | null,
+    bookingUid?: string
+  ) => {
     setSelectedTimeslot(time);
+
+    if (seatsPerTimeSlot) {
+      setSeatedEventData({
+        seatsPerTimeSlot,
+        attendees,
+        bookingUid,
+      });
+
+      if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
+        return;
+      }
+    }
 
     if (!event.data) return;
   };
@@ -60,10 +82,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
-    if (containerRef.current && !schedule.isLoading) {
+    if (isEmbed) return;
+    if (containerRef.current && !schedule.isLoading && isMobile) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [containerRef, schedule.isLoading]);
+  }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
     <div
@@ -80,11 +103,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
             <AvailableTimes
               className="w-full"
               key={slots.date}
-              showTimeformatToggle={!isMultipleDates}
-              onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
-              seatsPerTimeslot={seatsPerTimeslot}
+              onTimeSelect={onTimeSelect}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              showTimeFormatToggle={!isMultipleDates}
             />
           ))}
     </div>
