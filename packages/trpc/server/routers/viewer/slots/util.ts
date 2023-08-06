@@ -114,6 +114,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
+              credentials: true,
               ...availabilityUserSelect,
             },
           },
@@ -121,6 +122,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       },
       users: {
         select: {
+          credentials: true,
           ...availabilityUserSelect,
         },
       },
@@ -154,6 +156,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
+      credentials: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -209,35 +212,18 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithoutCredentials = eventType.users.map((user) => ({
+  let usersWithCredentials = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
   if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithoutCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
-
-  // we need to fetch all user credentials here as this cannot be supplied by external calls.
-  const credentials = (
-    (await prisma.credential.findMany({
-      where: {
-        userId: {
-          in: usersWithoutCredentials.map((user) => user.id),
-        },
-      },
-    })) || []
-  ).reduce((group: { [x: string]: Awaited<ReturnType<typeof prisma.credential.findMany>> }, credential) => {
-    const { userId } = credential;
-    if (!userId) return group;
-    group[userId] = group[userId] ?? [];
-    group[userId].push(credential);
-    return group;
-  }, {});
 
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    usersWithoutCredentials.map(async (currentUser) => {
+    usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
         workingHours,
@@ -257,10 +243,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           duration: input.duration || 0,
         },
         {
-          user: {
-            ...currentUser,
-            credentials: credentials[currentUser.id],
-          },
+          user: currentUser,
           eventType,
           currentSeats,
         }
@@ -320,7 +303,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     /* FIXME: For some reason this returns undefined while testing in Jest */
     (await prisma.selectedSlots.findMany({
       where: {
-        userId: { in: usersWithoutCredentials.map((user) => user.id) },
+        userId: { in: usersWithCredentials.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
       },
       select: {
