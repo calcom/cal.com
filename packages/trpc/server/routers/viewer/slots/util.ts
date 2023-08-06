@@ -220,13 +220,13 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
   // we need to fetch all user credentials here as this cannot be supplied by external calls.
   const credentials = (
-    await prisma.credential.findMany({
+    (await prisma.credential.findMany({
       where: {
         userId: {
           in: usersWithoutCredentials.map((user) => user.id),
         },
       },
-    })
+    })) || []
   ).reduce((group: { [x: string]: Awaited<ReturnType<typeof prisma.credential.findMany>> }, credential) => {
     const { userId } = credential;
     if (!userId) return group;
