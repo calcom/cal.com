@@ -97,6 +97,7 @@ interface EventTypeListProps {
 
 interface MobileTeamsTabProps {
   eventTypeGroups: EventTypeGroups;
+  moveEventType: (group: EventTypeGroup, groupIndex: number, index_1: number, index_2: number) => void;
 }
 
 const querySchema = z.object({
@@ -113,17 +114,27 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
+  const onDragEnd = (result: any) => {
+    if (result.destination) {
+      console.log(result);
+      const index_1 = result.source.index;
+      const index_2 = result.destination.index;
+      data && props.moveEventType(events[0], 0, index_1, index_2);
+    }
+  };
 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
       {events.length && (
-        <EventTypeList
-          types={events[0].eventTypes}
-          group={events[0]}
-          groupIndex={0}
-          readOnly={events[0].metadata.readOnly}
-        />
+        <DragDropContext onDragEnd={onDragEnd}>
+          <EventTypeList
+            types={events[0].eventTypes}
+            group={events[0]}
+            groupIndex={0}
+            readOnly={events[0].metadata.readOnly}
+          />
+        </DragDropContext>
       )}
     </div>
   );
@@ -935,7 +946,7 @@ const Main = ({
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
         <>
           {isMobile ? (
-            <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+            <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} moveEventType={moveEventType} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => {
               const onDragEnd = (result: any) => {
