@@ -284,71 +284,64 @@ const getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: Inte
   return dates;
 };
 
+type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
+
 /**
  * Helps create, check, and return busy times from limits (with parallel support)
  */
-class LimitBusyTimeManager {
-  private busyPeriods: Record<IntervalLimitUnit, Set<string>> = {
-    year: new Set(),
-    month: new Set(),
-    week: new Set(),
-    day: new Set(),
-  };
+class LimitManager {
+  private busyMap: Map<BusyMapKey, EventBusyDate> = new Map();
 
-  public readonly busyTimes: EventBusyDate[] = [];
+  /**
+   * Creates a busy map key
+   */
+  private static createKey(start: Dayjs, unit: IntervalLimitUnit): BusyMapKey {
+    return `${unit}-${start.startOf(unit).toISOString()}`;
+  }
 
   /**
    * Checks if already marked busy by ancestors or siblings
    */
   isAlreadyBusy(start: Dayjs, unit: IntervalLimitUnit) {
-    if (this.busyPeriods.year.has(start.format("YYYY"))) return true;
+    if (this.busyMap.has(LimitManager.createKey(start, "year"))) return true;
 
-    if (unit === "month") {
-      if (this.busyPeriods.month.has(start.format("YYYY-MM"))) {
-        return true;
-      }
-    } else if (unit === "week") {
-      if (
-        // weeks can be part of two months
-        (this.busyPeriods.month.has(start.format("YYYY-MM")) &&
-          this.busyPeriods.month.has(start.endOf("week").format("YYYY-MM"))) ||
-        this.busyPeriods.week.has(`${start.year()}-${start.week()}`)
-      ) {
-        return true;
-      }
-    } else if (unit === "day") {
-      if (
-        this.busyPeriods.month.has(start.format("YYYY-MM")) ||
-        this.busyPeriods.week.has(`${start.year()}-${start.week()}`) ||
-        this.busyPeriods.day.has(`${start.format("YYYY-MM-DD")}`)
-      ) {
-        return true;
-      }
+    if (unit === "month" && this.busyMap.has(LimitManager.createKey(start, "month"))) {
+      return true;
+    } else if (
+      unit === "week" &&
+      // weeks can be part of two months
+      ((this.busyMap.has(LimitManager.createKey(start, "month")) &&
+        this.busyMap.has(LimitManager.createKey(start.endOf("week"), "month"))) ||
+        this.busyMap.has(LimitManager.createKey(start, "week")))
+    ) {
+      return true;
+    } else if (
+      unit === "day" &&
+      (this.busyMap.has(LimitManager.createKey(start, "month")) ||
+        this.busyMap.has(LimitManager.createKey(start, "week")) ||
+        this.busyMap.has(LimitManager.createKey(start, "day")))
+    ) {
+      return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
   /**
    * Adds a new busy time
    */
   addBusyTime(start: Dayjs, unit: IntervalLimitUnit) {
-    switch (unit) {
-      case "year":
-        this.busyPeriods[unit].add(start.format("YYYY"));
-        break;
-      case "month":
-        this.busyPeriods[unit].add(start.format("YYYY-MM"));
-        break;
-      case "week":
-        this.busyPeriods[unit].add(`${start.year()}-${start.week()}`);
-        break;
-      case "day":
-        this.busyPeriods[unit].add(start.format("YYYY-MM-DD"));
-        break;
-      default:
-        break;
-    }
-    this.busyTimes.push({ start: start.toISOString(), end: start.endOf(unit).toISOString() });
+    this.busyMap.set(`${unit}-${start.toISOString()}`, {
+      start: start.toISOString(),
+      end: start.endOf(unit).toISOString(),
+    });
+  }
+
+  /**
+   * Returns all busy times
+   */
+  getBusyTimes() {
+    return Array.from(this.busyMap.values());
   }
 }
 
@@ -364,7 +357,7 @@ const getBusyTimesFromLimits = async (
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
-  const limitManager = new LimitBusyTimeManager();
+  const limitManager = new LimitManager();
 
   let limitDateFrom = dayjs(dateFrom);
   let limitDateTo = dayjs(dateTo);
@@ -421,7 +414,7 @@ const getBusyTimesFromLimits = async (
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
 
-  return limitManager.busyTimes;
+  return limitManager.getBusyTimes();
 };
 
 const getBusyTimesFromBookingLimits = async (
@@ -430,7 +423,7 @@ const getBusyTimesFromBookingLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   eventTypeId: number,
-  limitManager: LimitBusyTimeManager
+  limitManager: LimitManager
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
@@ -485,7 +478,7 @@ const getBusyTimesFromDurationLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  limitManager: LimitBusyTimeManager
+  limitManager: LimitManager
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
