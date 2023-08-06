@@ -97,7 +97,7 @@ interface EventTypeListProps {
 
 interface MobileTeamsTabProps {
   eventTypeGroups: EventTypeGroups;
-  moveEventType: (group: EventTypeGroup, groupIndex: number, index_1: number, index_2: number) => void;
+  moveEventType: (group: EventTypeGroup, groupIndex: number, source: number, destination: number) => void;
 }
 
 const querySchema = z.object({
@@ -117,9 +117,9 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const onDragEnd = (result: any) => {
     if (result.destination) {
       console.log(result);
-      const index_1 = result.source.index;
-      const index_2 = result.destination.index;
-      data && props.moveEventType(events[0], 0, index_1, index_2);
+      const source = result.source.index;
+      const destination = result.destination.index;
+      data && props.moveEventType(events[0], 0, source, destination);
     }
   };
 
@@ -217,7 +217,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
-  //const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
@@ -697,6 +696,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 </Draggable>
               );
             })}
+            {/* provided.placeholder is required to increase the available space in the droppable during a drag. Without this the droppable shrinks during drag */}
             {provided.placeholder}
           </ul>
         )}
@@ -881,12 +881,13 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
+  // Used when there is only 1 event type group
   const onDragEnd = (result: any) => {
     if (result.destination) {
       console.log(result);
-      const index_1 = result.source.index;
-      const index_2 = result.destination.index;
-      data && moveEventType(data.eventTypeGroups[0], 0, index_1, index_2);
+      const source = result.source.index;
+      const destination = result.destination.index;
+      data && moveEventType(data.eventTypeGroups[0], 0, source, destination);
     }
   };
 
@@ -904,13 +905,19 @@ const Main = ({
     },
   });
 
-  async function moveEventType(group: EventTypeGroup, groupIndex: number, index_1: number, index_2: number) {
+  async function moveEventType(
+    group: EventTypeGroup,
+    groupIndex: number,
+    source: number,
+    destination: number
+  ) {
     const newList = [...group.eventTypes];
 
-    const type = group.eventTypes[index_1];
+    const type = group.eventTypes[source];
 
-    newList.splice(index_1, 1);
-    newList.splice(index_2, 0, type);
+    // Rearrange items by first removing the element being dragged from the list and then adding it to the destination index
+    newList.splice(source, 1);
+    newList.splice(destination, 0, type);
 
     await utils.viewer.eventTypes.getByViewer.cancel();
 
@@ -949,12 +956,13 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} moveEventType={moveEventType} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => {
+              // Used when there are more that one event type groups
               const onDragEnd = (result: any) => {
                 if (result.destination) {
                   console.log(result);
-                  const index_1 = result.source.index;
-                  const index_2 = result.destination.index;
-                  moveEventType(group, index, index_1, index_2);
+                  const source = result.source.index;
+                  const destination = result.destination.index;
+                  moveEventType(group, index, source, destination);
                 }
               };
               return (
