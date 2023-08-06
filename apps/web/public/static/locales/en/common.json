@@ -1985,5 +1985,11 @@
   "attendee_last_name_variable": "Attendee last name",
   "attendee_first_name_info": "The person booking's first name",
   "attendee_last_name_info": "The person booking's last name",
+  "30_day_digest_email": "30 Day Digest Email",
+  "member_name": "Member Name",
+  "times_booked": "Times Booked",
+  "here_are_your_most_popular_events": "Here are your most popular events",
+  "here_are_your_most_booked_members": "Here are your most booked members",
+  "summary_of_events_for_your_team_for_the_last_30_days": " Here's your summary of events for your team {{teamName}} for the last 30 days",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
