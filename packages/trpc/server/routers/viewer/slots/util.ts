@@ -114,26 +114,14 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
-              credentials: true, // Don't leak credentials to the client
               ...availabilityUserSelect,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
       },
       users: {
         select: {
-          credentials: true, // Don't leak credentials to the client
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
@@ -165,13 +153,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     },
     select: {
       allowDynamicBooking: true,
-      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -227,17 +209,35 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
+  let usersWithoutCredentials = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
   if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    usersWithoutCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
+
+  // we need to fetch all user credentials here as this cannot be supplied by external calls.
+  const credentials = (
+    await prisma.credential.findMany({
+      where: {
+        userId: {
+          in: usersWithoutCredentials.map((user) => user.id),
+        },
+      },
+    })
+  ).reduce((group: { [x: string]: Awaited<ReturnType<typeof prisma.credential.findMany>> }, credential) => {
+    const { userId } = credential;
+    if (!userId) return group;
+    group[userId] = group[userId] ?? [];
+    group[userId].push(credential);
+    return group;
+  }, {});
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    usersWithCredentials.map(async (currentUser) => {
+    usersWithoutCredentials.map(async (currentUser) => {
       const {
         busy,
         workingHours,
@@ -256,7 +256,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        {
+          user: {
+            ...currentUser,
+            credentials: credentials[currentUser.id],
+          },
+          eventType,
+          currentSeats,
+        }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 
@@ -313,7 +320,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     /* FIXME: For some reason this returns undefined while testing in Jest */
     (await prisma.selectedSlots.findMany({
       where: {
-        userId: { in: usersWithCredentials.map((user) => user.id) },
+        userId: { in: usersWithoutCredentials.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
       },
       select: {
@@ -434,8 +441,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         users: (eventType.hosts
           ? eventType.hosts.map((hostUserWithCredentials) => {
               const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
+              return user;
             })
           : eventType.users
         ).map((user) => user.username || ""),
