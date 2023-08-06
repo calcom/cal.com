@@ -1081,8 +1081,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const bookingFields = eventTypeRaw.bookingFields;
     const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
     parsedBookingFields?.forEach(
-      (field) =>
-        field.editable === "user-owner-secret" && field.label && delete filteredResponses[field.label]
+      (field) => field.editable === "user-owner-secret" && delete filteredResponses[field.name]
     );
   }
 

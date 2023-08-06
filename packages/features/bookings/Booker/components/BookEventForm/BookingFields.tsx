@@ -29,6 +29,7 @@ export const BookingFields = ({
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
+        if (field.editable === "user-owner-secret" && currentView === "reschedule") return null;
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =

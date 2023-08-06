@@ -23,7 +23,7 @@ export default function getLabelValueMapFromResponses(calEvent: CalendarEvent) {
 export function getLabelValueMapFromResponsesForSecretQuestions(calEvent: CalendarEvent) {
   const { userOwnerSecretFieldsResponses } = calEvent;
 
-  let labelValueMap: Record<string, z.infer<typeof bookingResponse>> = {};
+  const labelValueMap: Record<string, z.infer<typeof bookingResponse>> = {};
   if (userOwnerSecretFieldsResponses) {
     for (const [, value] of Object.entries(userOwnerSecretFieldsResponses)) {
       if (!value.label) {
@@ -31,8 +31,6 @@ export function getLabelValueMapFromResponsesForSecretQuestions(calEvent: Calend
       }
       labelValueMap[value.label] = value.value;
     }
-  } else {
-    labelValueMap = customInputs as Record<string, string | string[]>;
   }
   return labelValueMap;
 }

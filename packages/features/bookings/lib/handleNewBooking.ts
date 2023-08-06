@@ -544,11 +544,14 @@ function getBookingData({
     }
     const responses = reqBody.responses;
 
-    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
-      getCalEventResponses({
-        bookingFields: eventType.bookingFields,
-        responses,
-      });
+    const {
+      userFieldsResponses: calEventUserFieldsResponses,
+      userOwnerSecretFieldsResponses: calEventUserOwnerSecretFieldsResponses,
+      responses: calEventResponses,
+    } = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
+    });
     return {
       ...reqBody,
       name: responses.name,
@@ -558,6 +561,7 @@ function getBookingData({
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes || "",
       calEventUserFieldsResponses,
+      calEventUserOwnerSecretFieldsResponses,
       rescheduleReason: responses.rescheduleReason,
       calEventResponses,
     };
@@ -949,6 +953,11 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const calEventUserOwnerSecretFieldsResponses =
+    "calEventUserOwnerSecretFieldsResponses" in reqBody
+      ? reqBody.calEventUserOwnerSecretFieldsResponses
+      : null;
+
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
@@ -969,6 +978,7 @@ async function handler(
     },
     responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
     userFieldsResponses: calEventUserFieldsResponses,
+    userOwnerSecretFieldsResponses: calEventUserOwnerSecretFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,

@@ -258,17 +258,25 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
-            const isSecretQuestion = data.secretQuestion;
+            const updatedData: Parameters<SubmitHandler<RhfFormField>>[0] = {
+              ...data,
+              editable: data.editable?.includes("system")
+                ? data.editable
+                : data.secretQuestion
+                ? "user-owner-secret"
+                : "user",
+            };
+            // no need to store in db as we have editable field for that
             delete data.secretQuestion;
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
             if (fieldDialog.data) {
-              update(fieldDialog.fieldIndex, data);
+              update(fieldDialog.fieldIndex, updatedData);
             } else {
               const field: RhfFormField = {
-                ...data,
+                ...updatedData,
                 type,
                 sources: [
                   {
@@ -279,11 +287,6 @@ export const FormBuilder = function FormBuilder({
                   },
                 ],
               };
-              field.editable = field.editable
-                ? field.editable
-                : isSecretQuestion
-                ? "user-owner-secret"
-                : "user";
               append(field);
             }
             setFieldDialog({
@@ -395,8 +398,11 @@ function FieldEditDialog({
   handleSubmit: SubmitHandler<RhfFormField>;
 }) {
   const { t } = useLocale();
+  const defaultFormValue = dialog.data
+    ? { ...dialog.data, secretQuestion: dialog.data.editable === "user-owner-secret" ? true : false }
+    : {};
   const fieldForm = useForm<RhfFormField>({
-    defaultValues: dialog.data || {},
+    defaultValues: defaultFormValue,
     // resolver: zodResolver(fieldSchema),
   });
   useEffect(() => {
