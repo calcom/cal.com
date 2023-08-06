@@ -1,7 +1,6 @@
 name: Cron - monthlyDigestEmail
 
 on:
-  workflow_dispatch:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
