@@ -103,7 +103,7 @@ ${this.t(
 )}
 ${this.t(subtitle)}
 ${extraInfo}
-${getRichDescription(this.calEvent, null, true)}
+${getRichDescription(this.calEvent, undefined, true)}
 ${callToAction}
 `.trim();
   }
