@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -368,20 +367,22 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
       <Droppable droppableId="Droppable">
         {(provided) => (
-          <ul ref={provided.innerRef} {...provided.droppableProps} className="divide-subtle !static w-full divide-y" data-testid="event-types">
+          <ul
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="divide-subtle !static w-full divide-y"
+            data-testid="event-types">
             {types.map((type, index) => {
               const embedLink = `${group.profile.slug}/${type.slug}`;
               const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
               const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
               const isChildrenManagedEventType =
-                type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
+                type.metadata?.managedEventConfig !== undefined &&
+                type.schedulingType !== SchedulingType.MANAGED;
               return (
-                <Draggable draggableId={index.toString()} index={index}>
+                <Draggable draggableId={index.toString()} index={index} key={index}>
                   {(provided) => (
-                    <li {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        ref={provided.innerRef}
-                      >
+                    <li {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
                       <div className="hover:bg-muted flex w-full items-center justify-between">
                         <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                           {!(firstItem && firstItem.id === type.id) && (
@@ -411,8 +412,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     (organizer: { name: string | null; username: string | null }) => ({
                                       alt: organizer.name || "",
                                       image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                organizer.username
-                              }/avatar.png`,
+                                        organizer.username
+                                      }/avatar.png`,
                                       title: organizer.name || "",
                                     })
                                   )}
@@ -427,7 +428,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     .flatMap((ch) => ch.users)
                                     .map((user: Pick<User, "name" | "username">) => ({
                                       alt: user.name || "",
-                                      image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
+                                      image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                        user.username
+                                      }/avatar.png`,
                                       title: user.name || "",
                                     }))}
                                 />
@@ -437,7 +440,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   <>
                                     {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                                     <Tooltip
-                                      content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
+                                      content={
+                                        type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                                      }>
                                       <div className="self-center rounded-md p-2">
                                         <Switch
                                           name="Hidden"
@@ -479,7 +484,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     </>
                                   )}
                                   <Dropdown modal={false}>
-                                    <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                                    <DropdownMenuTrigger
+                                      asChild
+                                      data-testid={"event-type-options-" + type.id}>
                                       <Button
                                         type="button"
                                         variant="icon"
@@ -521,13 +528,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                             StartIcon={Code}
                                             className="w-full rounded-none"
                                             embedUrl={encodeURIComponent(embedLink)}
-                                    eventId={type.id}>
+                                            eventId={type.id}>
                                             {t("embed")}
                                           </EventTypeEmbedButton>
                                         </DropdownMenuItem>
                                       )}
                                       {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                      {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                                      {(group.metadata?.readOnly === false ||
+                                        group.metadata.readOnly === null) &&
                                         !isChildrenManagedEventType && (
                                           <>
                                             <DropdownMenuSeparator />
@@ -556,7 +564,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <div className="min-w-9 mx-5 flex sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
-                              <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+                              <Button
+                                type="button"
+                                variant="icon"
+                                color="secondary"
+                                StartIcon={MoreHorizontal}
+                              />
                             </DropdownMenuTrigger>
                             <DropdownMenuPortal>
                               <DropdownMenuContent>
@@ -857,10 +870,15 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
+  const onDragEnd = (result: any) => {
+    if (result.destination) {
+      console.log(result);
+      const index_1 = result.source.index;
+      const index_2 = result.destination.index;
+      data && moveEventType(data.eventTypeGroups[0], 0, index_1, index_2);
+    }
+  };
 
-  if (!data || status === "loading") {
-    return <SkeletonLoader />;
-  }
   const utils = trpc.useContext();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
@@ -901,12 +919,17 @@ const Main = ({
     });
   }
 
+  if (!data || status === "loading") {
+    return <SkeletonLoader />;
+  }
+
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={error.message} />;
   }
 
   const isFilteredByOnlyOneItem =
     (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data.eventTypeGroups.length === 1;
+
   return (
     <>
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
@@ -914,99 +937,49 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="flex flex-col" key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  orgSlug={orgBranding?.slug}
-                />
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, filters && { filters });
-
- 
-  return (
-    <div>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
-      <Shell
-        withoutSeo
-        heading={t("event_types_page_title")}
-        hideHeadingOnMobile
-        subtitle={t("event_types_page_subtitle")}
-        afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
-        beforeCTAactions={<Actions />}
-        CTA={<CTA />}>
-        <WithQuery
-          customLoader={<SkeletonLoader />}
-          success={({ data }) => {
-            const onDragEnd = (result: any) => {
-              if (result.destination){
-                console.log(result)
-                const index_1 = result.source.index;
-                const index_2 = result.destination.index;
-                moveEventType(data.eventTypeGroups[0], 0, index_1, index_2);
+            data.eventTypeGroups.map((group: EventTypeGroup, index: number) => {
+              const onDragEnd = (result: any) => {
+                if (result.destination) {
+                  console.log(result);
+                  const index_1 = result.source.index;
+                  const index_2 = result.destination.index;
+                  moveEventType(group, index, index_1, index_2);
+                }
               };
-            }
-            const isFilteredByOnlyOneItem =
-              (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
-              data.eventTypeGroups.length === 1;
-
-            return (
-              <>
-                {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
-                  <>
-                    {isMobile ? (
-                      <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
-                    ) : (
-                      data.eventTypeGroups.map((group: EventTypeGroup, index: number) => {
-                      const onDragEnd = (result: any) => {
-                        if (result.destination){
-                          console.log(result)
-                          const index_1 = result.source.index;
-                          const index_2 = result.destination.index;
-                          moveEventType(group, index, index_1, index_2);
-                        }
-                      };
-                      return (
-                        <div className="flex flex-col" key={group.profile.slug}>
-                          <EventTypeListHeading
-                            profile={group.profile}
-                            membershipCount={group.metadata.membershipCount}
-                            teamId={group.teamId}
-                            orgSlug={orgBranding?.slug}
-                          />
-
-                          <DragDropContext onDragEnd={onDragEnd}>
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
+              return (
+                <div className="flex flex-col" key={group.profile.slug}>
+                  <EventTypeListHeading
+                    profile={group.profile}
+                    membershipCount={group.metadata.membershipCount}
+                    teamId={group.teamId}
+                    orgSlug={orgBranding?.slug}
                   />
-                          </DragDropContext>
-              </div>
-            )})
+
+                  <DragDropContext onDragEnd={onDragEnd}>
+                    <EventTypeList
+                      types={group.eventTypes}
+                      group={group}
+                      groupIndex={index}
+                      readOnly={group.metadata.readOnly}
+                    />
+                  </DragDropContext>
+                </div>
+              );
+            })
           )}
         </>
       ) : (
-          data.eventTypeGroups.length === 1 && (
-
-                      <DragDropContext onDragEnd={onDragEnd}>
-              <EventTypeList
-                types={data.eventTypeGroups[0].eventTypes}
-                group={data.eventTypeGroups[0]}
-                groupIndex={0}
-                readOnly={data.eventTypeGroups[0].metadata.readOnly}
-              />
-            </DragDropContext>
-
-
-                    ))
-      }
+        data.eventTypeGroups.length === 1 && (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <EventTypeList
+              types={data.eventTypeGroups[0].eventTypes}
+              group={data.eventTypeGroups[0]}
+              groupIndex={0}
+              readOnly={data.eventTypeGroups[0].metadata.readOnly}
+            />
+          </DragDropContext>
+        )
+      )}
       {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
@@ -1046,6 +1019,10 @@ const EventTypesPage = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={error.message} />;
+  }
 
   return (
     <div>
