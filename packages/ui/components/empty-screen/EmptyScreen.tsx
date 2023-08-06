@@ -29,6 +29,13 @@ export function EmptyScreen({
   border?: boolean;
   dashedBorder?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>) {
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const buttonClick = (e: React.MouseEvent<HTMLElement>) => {
+    setIsLoading(true);
+    if (buttonOnClick) buttonOnClick(e);
+  };
+
   return (
     <>
       <div
@@ -52,7 +59,11 @@ export function EmptyScreen({
           <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
             {description}
           </div>
-          {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
+          {buttonOnClick && buttonText && (
+            <Button loading={isLoading} onClick={(e) => buttonClick(e)}>
+              {buttonText}
+            </Button>
+          )}
           {buttonRaw}
         </div>
       </div>
