@@ -101,8 +101,6 @@ export async function getTeamWithMembers(args: {
   if (userId) where.members = { some: { userId } };
   if (orgSlug) {
     where.parent = getSlugOrRequestedSlug(orgSlug);
-  } else {
-    where.parentId = null;
   }
   if (id) where.id = id;
   if (slug) where.slug = slug;
