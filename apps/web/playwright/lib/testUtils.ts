@@ -18,6 +18,9 @@ type RequestHandler = (opts: RequestHandlerOptions) => void;
 export const testEmail = "test@example.com";
 export const testName = "Test Testson";
 
+export const teamEventTitle = "Team Event - 30min";
+export const teamEventSlug = "team-event-30min";
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -79,38 +82,21 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
+
   // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
-  // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
+
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
+
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
@@ -170,3 +156,30 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
 };
+
+export async function gotoRoutingLink({
+  page,
+  formId,
+  queryString = "",
+}: {
+  page: Page;
+  formId?: string;
+  queryString?: string;
+}) {
+  let previewLink = null;
+  if (!formId) {
+    // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
+    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
+    if (!href) {
+      throw new Error("Preview link not found");
+    }
+    previewLink = href;
+  } else {
+    previewLink = `/forms/${formId}`;
+  }
+
+  await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
+
+  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}

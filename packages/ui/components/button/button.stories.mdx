@@ -1,5 +1,15 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  RowTitles,
+  CustomArgsTable,
+  VariantRow
+} from "@calcom/storybook/components";
 import { Plus, X } from '../icon';
 import { Button } from './Button';
 
@@ -87,7 +97,6 @@ Button are clickable elements that initiates user actions. Labels in the button 
 
 <Title offset title="Buttons" suffix="Variants" />
 
-
 <Canvas>
   <Story name="All variants">
     <VariantsTable titles={['Primary', 'Secondary', 'Minimal', 'Destructive',"Icon"]} columnMinWidth={150}>
@@ -127,5 +136,67 @@ Button are clickable elements that initiates user actions. Labels in the button 
         <Button disabled color="minimal" variant="icon" StartIcon={X}></Button>
       </VariantRow>
     </VariantsTable>
+  </Story>
+  <Story name="Button Playground"
+         args={{
+           color: 'primary',
+           size: 'base',
+           loading: false,
+           disabled: false,
+           children: 'Button text',
+           className: ''
+         }}
+         argTypes={{
+            color: {
+              control: {
+                type: 'inline-radio',
+                options: ['primary', 'secondary', 'minimal', 'destructive']
+              }
+            },
+            size: {
+              control: {
+                type: 'inline-radio',
+                options: ['base', 'sm']
+              }
+            },
+            loading: {
+              control: {
+                type: 'boolean'
+              }
+            },
+            disabled: {
+              control: {
+                type: 'boolean'
+              }
+            },
+            children: {
+              control: {
+                type: 'text'
+              }
+            },
+            className: {
+              control: {
+                type: 'inline-radio',
+                options: ['', 'sb-pseudo--hover', 'sb-pseudo--focus']
+              }
+            }
+      }}
+  >
+    {({ color, size, loading, disabled, children, className }) => (
+  <VariantsTable titles={["Light & Dark Modes"]} columnMinWidth={150}>
+    <VariantRow variant="Button">
+      <Button
+        color={color}
+        size={size}
+        variant="default"
+        loading={loading}
+        disabled={disabled}
+        className={className}
+      >
+        {children}
+      </Button>
+    </VariantRow>
+  </VariantsTable>
+    )}
   </Story>
 </Canvas>

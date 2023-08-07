@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
@@ -16,14 +17,24 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
-import { Edit, Copy } from "@calcom/ui/components/icon";
+import {
+  Alert,
+  Button,
+  CheckboxField,
+  Label,
+  SettingsToggle,
+  showToast,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
+import { Copy, Edit } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -38,6 +49,7 @@ const generateHashedLink = (id: number) => {
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 
@@ -49,6 +61,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
+  const selectedThemeIsDark =
+    user?.theme === "dark" ||
+    (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -81,6 +96,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           return {
             ...field,
             hidden: !enabled,
+            editable: (!enabled ? "system-but-hidden" : "system-but-optional") as z.infer<
+              typeof EditableSchema
+            >,
           };
         }
         return field;
@@ -153,7 +171,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               color="minimal"
               size="sm"
               aria-label="edit custom name"
-              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}>
               <Edit className="h-4 w-4" />
             </Button>
@@ -162,7 +180,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr className="border-subtle [&:has(+div:empty)]:hidden" />
       <div>
-        <BookerLayoutSelector fallbackToUserSettings />
+        <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
       </div>
       <hr className="border-subtle" />
       <FormBuilder
@@ -184,6 +202,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
+      />
+      <hr className="border-subtle" />
+      <Controller
+        name="requiresBookerEmailVerification"
+        control={formMethods.control}
+        defaultValue={eventType.requiresBookerEmailVerification}
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            title={t("requires_booker_email_verification")}
+            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            description={t("description_requires_booker_email_verification")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
       />
       <hr className="border-subtle" />
       <Controller
@@ -216,7 +249,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 onChange(e ? value : "");
               }}>
               {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
-              <div className="lg:-ml-2 lg:-mb-2">
+              <div className="lg:-mb-2 lg:-ml-2">
                 <TextField
                   className="w-full"
                   label={t("redirect_success_booking")}
@@ -268,7 +301,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   color="minimal"
                   size="sm"
                   type="button"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                   aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);
@@ -333,7 +366,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       }}
                     />
                     <div className="mt-2">
-                      <Checkbox
+                      <CheckboxField
                         description={t("show_attendees")}
                         disabled={seatsLocked.disabled}
                         onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}

@@ -57,13 +57,15 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="font-cal text-emphasis text-xl">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
+            {title}
+          </DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-subtle text-sm">
             {children}
           </DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
+      <div className="my-5 flex flex-row-reverse gap-x-2 sm:my-8">
         {confirmBtn ? (
           confirmBtn
         ) : (

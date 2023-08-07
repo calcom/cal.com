@@ -120,6 +120,6 @@ export type CalendarState = {
   hideHeader?: boolean;
 };
 
-export type CalendarComponentProps = CalendarPublicActions & CalendarState;
+export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isLoading?: boolean };
 
 export type CalendarStoreProps = CalendarComponentProps & CalendarPrivateActions;

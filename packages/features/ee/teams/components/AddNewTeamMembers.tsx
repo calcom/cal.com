@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -7,6 +7,7 @@ import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/Invite
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -32,10 +33,13 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = () => {
+  const searchParams = useSearchParams();
   const session = useSession();
-  const router = useRouter();
-  const { id: teamId } = router.isReady ? querySchema.parse(router.query) : { id: -1 };
-  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: router.isReady });
+  const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
+  const teamQuery = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    { enabled: session.status === "authenticated" }
+  );
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
@@ -48,43 +52,19 @@ export const AddNewTeamMembersForm = ({
   defaultValues: FormValues;
   teamId: number;
 }) => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess(data) {
-      await utils.viewer.teams.get.invalidate();
-      setMemberInviteModal(false);
-      if (data.sendEmailInvitation) {
-        if (Array.isArray(data.usernameOrEmail)) {
-          showToast(
-            t("email_invite_team_bulk", {
-              userCount: data.usernameOrEmail.length,
-            }),
-            "success"
-          );
-        } else {
-          showToast(
-            t("email_invite_team", {
-              email: data.usernameOrEmail,
-            }),
-            "success"
-          );
-        }
-      }
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -117,18 +97,48 @@ export const AddNewTeamMembersForm = ({
       ) : (
         <>
           <MemberInvitationModal
+            isLoading={inviteMemberMutation.isLoading}
             isOpen={memberInviteModal}
             teamId={teamId}
             token={team?.inviteToken?.token}
             onExit={() => setMemberInviteModal(false)}
-            onSubmit={(values) => {
-              inviteMemberMutation.mutate({
-                teamId,
-                language: i18n.language,
-                role: values.role,
-                usernameOrEmail: values.emailOrUsername,
-                sendEmailInvitation: values.sendInviteEmail,
-              });
+            onSubmit={(values, resetFields) => {
+              inviteMemberMutation.mutate(
+                {
+                  teamId,
+                  language: i18n.language,
+                  role: values.role,
+                  usernameOrEmail: values.emailOrUsername,
+                  sendEmailInvitation: values.sendInviteEmail,
+                },
+                {
+                  onSuccess: async (data) => {
+                    await utils.viewer.teams.get.invalidate();
+                    setMemberInviteModal(false);
+                    if (data.sendEmailInvitation) {
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
+                      }
+                    }
+                  },
+                  onError: (error) => {
+                    showToast(error.message, "error");
+                  },
+                }
+              );
             }}
             onSettingsOpen={() => {
               setMemberInviteModal(false);
@@ -188,7 +198,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
-
+  const bookerUrl = useBookerUrl();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -209,7 +219,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Avatar
           gravatarFallbackMd5="teamMember"
           size="mdLg"
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+          imageSrc={bookerUrl + "/" + member.username + "/avatar.png"}
           alt="owner-avatar"
         />
         <div>

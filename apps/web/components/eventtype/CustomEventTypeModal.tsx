@@ -84,7 +84,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
             backgroundImage: "url(/calendar-preview.svg)",
           }}>
           <div className="m-auto flex items-center justify-center self-stretch">
-            <div className="bg-subtle mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black text-[12px] leading-3">
+            <div className="bg-subtle ml-11 mt-3 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black text-[12px] leading-3">
               <p className="text-emphasis overflow-hidden text-ellipsis p-1.5 font-medium">{previewText}</p>
               <p className="text-default ml-1.5 text-[10px] font-normal">8 - 10 AM</p>
             </div>

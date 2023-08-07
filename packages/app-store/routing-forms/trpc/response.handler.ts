@@ -33,7 +33,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
-    const serializableForm = await getSerializableForm(form);
+    const serializableForm = await getSerializableForm({ form });
     if (!serializableForm.fields) {
       // There is no point in submitting a form that doesn't have fields defined
       throw new TRPCError({

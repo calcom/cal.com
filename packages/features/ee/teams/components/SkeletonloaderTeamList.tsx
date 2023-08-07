@@ -26,7 +26,7 @@ function SkeletonItem() {
           </div>
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 pr-4 sm:mt-0 sm:ml-5 lg:flex">
+      <div className="mt-4 hidden flex-shrink-0 pr-4 sm:ml-5 sm:mt-0 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-4 w-12" />
           <SkeletonText className="h-4 w-4" />

@@ -17,6 +17,8 @@ import AttendeeLocationChangeEmail from "./templates/attendee-location-change-em
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import type { EmailVerifyCode } from "./templates/attendee-verify-email";
+import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
@@ -25,8 +27,13 @@ import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
+import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
+import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
+import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
+import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-daily-video-download-recording-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
@@ -262,8 +269,16 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
 };
 
+export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
+  await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
+};
+
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
+};
+
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
@@ -347,10 +362,16 @@ export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarE
 export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
   const emailsToSend: Promise<unknown>[] = [];
 
+  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
+
   for (const attendee of calEvent.attendees) {
     emailsToSend.push(
       sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calEvent, attendee, downloadLink))
     );
   }
   await Promise.all(emailsToSend);
+};
+
+export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
+  await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };

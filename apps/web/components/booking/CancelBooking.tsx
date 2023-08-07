@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,6 +26,9 @@ type Props = {
 };
 
 export default function CancelBooking(props: Props) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const asPath = `${pathname}?${searchParams.toString()}`;
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
@@ -64,7 +67,7 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mt-2 mb-4 w-full "
+            className="mb-4 mt-2 w-full "
             rows={3}
           />
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
@@ -93,11 +96,11 @@ export default function CancelBooking(props: Props) {
                     headers: {
                       "Content-Type": "application/json",
                     },
-                    method: "DELETE",
+                    method: "POST",
                   });
 
                   if (res.status >= 200 && res.status < 300) {
-                    await router.replace(router.asPath);
+                    router.replace(asPath);
                   } else {
                     setLoading(false);
                     setError(

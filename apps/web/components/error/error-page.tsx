@@ -35,7 +35,7 @@ const ErrorDebugPanel: React.FC<{ error: Props["error"]; children?: never }> = (
           {debugMap.map(([key, value]) => {
             if (value !== undefined) {
               return (
-                <div key={key} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                <div key={key} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
                   <dt className="text-emphasis text-sm font-bold">{key}</dt>
                   <dd className="text-emphasis mt-1 text-sm sm:col-span-2 sm:mt-0">{value}</dd>
                 </div>

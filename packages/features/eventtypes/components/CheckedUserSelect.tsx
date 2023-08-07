@@ -44,7 +44,7 @@ export const CheckedUserSelect = ({
                 return (
                   <li
                     key={option.value}
-                    className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-b"}`}>
+                    className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-b"}`}>
                     <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
                     <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
                     <X

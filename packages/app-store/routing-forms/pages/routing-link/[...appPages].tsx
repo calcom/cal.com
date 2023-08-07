@@ -1,11 +1,12 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -246,11 +247,20 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+
   const isEmbed = params.appPages[1] === "embed";
 
-  const form = await prisma.app_RoutingForms_Form.findUnique({
+  const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+      user: {
+        organization: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
     },
     include: {
       user: {
@@ -279,20 +289,22 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      form: await getSerializableForm(form),
+      form: await getSerializableForm({ form }),
     },
   };
 };
 
 const usePrefilledResponse = (form: Props["form"]) => {
-  const router = useRouter();
-
+  const searchParams = useSearchParams();
   const prefillResponse: Response = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
+    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
+    // We only want to keep arrays if the field is a multi-select
+    const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
     prefillResponse[field.id] = {
-      value: router.query[getFieldIdentifier(field)] || "",
+      value: value || "",
       label: field.label,
     };
   });

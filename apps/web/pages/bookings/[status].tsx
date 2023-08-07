@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
 
@@ -9,6 +8,7 @@ import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
@@ -22,7 +22,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { ssgInit } from "@server/lib/ssg";
 
-type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
+type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
@@ -34,7 +34,7 @@ type RecurringInfo = {
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
-const descriptionByStatus: Record<BookingListingStatus, string> = {
+const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
@@ -47,9 +47,9 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
+  const params = useParamsWithFallback();
   const { data: filterQuery } = useFilterQuery();
-  const router = useRouter();
-  const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
+  const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
@@ -62,7 +62,7 @@ export default function Bookings() {
     },
     {
       // first render has status `undefined`
-      enabled: router.isReady,
+      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );

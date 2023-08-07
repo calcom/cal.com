@@ -8,11 +8,11 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
-import { Eye, EyeOff, X } from "../../icon";
+import { Eye, EyeOff, X, Search } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { isFullWidth = true, ...props },
@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -52,6 +52,7 @@ type InputFieldProps = {
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
+  showAsteriskIndicator?: boolean;
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
@@ -106,6 +107,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelSrOnly,
     containerClassName,
     readOnly,
+    showAsteriskIndicator,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -123,6 +125,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
+          {showAsteriskIndicator && !readOnly && passThrough.required ? (
+            <span className="text-default ml-1 font-medium">*</span>
+          ) : null}
           {LockedIcon}
         </Skeleton>
       )}
@@ -140,7 +145,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
-            isStandaloneField={false}
             className={classNames(
               className,
               "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed",
@@ -280,7 +284,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border px-3 py-2 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -409,5 +413,25 @@ export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(functio
       inputMode="numeric"
       {...props}
     />
+  );
+});
+
+export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(
+  props,
+  ref
+) {
+  return (
+    <div
+      dir="ltr"
+      className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
+      <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0">
+        <Search className="ms-3 h-4 w-4" data-testid="search-icon" />
+      </div>
+      <Input
+        ref={ref}
+        className="disabled:bg-subtle disabled:hover:border-subtle !my-0 h-7 rounded-l-none border-l-0 !ring-0 disabled:cursor-not-allowed"
+        {...props}
+      />
+    </div>
   );
 });

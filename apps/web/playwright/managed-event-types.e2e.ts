@@ -32,7 +32,7 @@ test.describe("Managed Event Types tests", () => {
       await page.waitForURL("/settings/teams/**");
       // Going to create an event type
       await page.goto("/event-types");
-      await page.getByTestId("new-event-type-dropdown").click();
+      await page.getByTestId("new-event-type").click();
       await page.getByTestId("option-team-1").click();
       // Expecting we can add a managed event type as team owner
       await expect(page.locator('button[value="MANAGED"]')).toBeVisible();
