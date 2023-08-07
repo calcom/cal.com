@@ -52,8 +52,7 @@ export function Avatar(props: AvatarProps) {
         />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback ? props.fallback : null}
-            {!props.fallback && <img src={getPlaceholderAvatar(null, alt)} alt={alt} className={rootClass} />}
+            {props.fallback || <img src={getPlaceholderAvatar(null, alt)} alt={alt} className={rootClass} />}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (

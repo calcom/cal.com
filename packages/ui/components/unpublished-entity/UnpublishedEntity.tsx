@@ -13,7 +13,7 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
   return (
     <div className="m-8 flex items-center justify-center">
       <EmptyScreen
-        avatar={<Avatar alt={props.name} imageSrc={`/team/${slug}/avatar.png`} size="lg" />}
+        avatar={<Avatar alt={props.name || ""} imageSrc={`/team/${slug}/avatar.png`} size="lg" />}
         headline={t("team_is_unpublished", {
           team: props.name,
         })}

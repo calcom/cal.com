@@ -60,7 +60,7 @@ describe("Default Avatar Image tests", () => {
       const result = getPlaceholderAvatar(null, null);
 
       expect(result).toEqual(
-        "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name="
+        "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=Nameless"
       );
     });
   });
