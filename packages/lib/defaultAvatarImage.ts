@@ -2,7 +2,7 @@
  * Provided a name, return the URL from ui-avatars.com
  * Using alt text for the name field from Avatar component
  */
-export const defaultAvatarSrc = function ({ name }: { name?: string }) {
+export const defaultAvatarSrc = function (name: string | null | undefined) {
   return (
     "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=" +
     encodeURIComponent(name || "Nameless")

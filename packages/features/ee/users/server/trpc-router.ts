@@ -39,7 +39,7 @@ export function getAvatarUrlFromUser(user: {
   username: string | null;
   email: string;
 }) {
-  if (!user.avatar || !user.username) return defaultAvatarSrc({ email: user.email });
+  if (!user.avatar || !user.username) return defaultAvatarSrc(null);
   return `${WEBAPP_URL}/${user.username}/avatar.png`;
 }
 
