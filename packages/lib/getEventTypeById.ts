@@ -120,6 +120,7 @@ export default async function getEventTypeById({
           members: {
             select: {
               role: true,
+              accepted: true,
               user: {
                 select: {
                   ...userSelect,
@@ -264,8 +265,6 @@ export default async function getEventTypeById({
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
   };
 
-  // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
-  // const parsedMetaData = _EventTypeModel.parse(newMetadata);
   const parsedMetaData = newMetadata;
 
   const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
@@ -363,18 +362,21 @@ export default async function getEventTypeById({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
+  const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
-    ? eventTypeObject.team.members.map((member) => {
-        const user: typeof member.user & { avatar: string } = {
-          ...member.user,
-          avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
-        };
-        return {
-          ...user,
-          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-          membership: member.role,
-        };
-      })
+    ? eventTypeObject.team.members
+        .filter((member) => member.accepted || isOrgEventType)
+        .map((member) => {
+          const user: typeof member.user & { avatar: string } = {
+            ...member.user,
+            avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
+          };
+          return {
+            ...user,
+            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            membership: member.role,
+          };
+        })
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.
