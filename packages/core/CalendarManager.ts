@@ -198,8 +198,7 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  organizationSlug?: string | null
+  selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
