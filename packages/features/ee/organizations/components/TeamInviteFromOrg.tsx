@@ -77,7 +77,7 @@ function UserToInviteItem({
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <Avatar
           size="sm"
-          alt={member.user.name || member.user.username}
+          alt={member.user.name || member.user.username || ""}
           asChild
           imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
         />

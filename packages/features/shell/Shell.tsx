@@ -835,7 +835,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <Link href="/event-types" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
-                    alt={orgBranding.name}
+                    alt={orgBranding.name || ""}
                     imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
                     size="xsm"
                   />
