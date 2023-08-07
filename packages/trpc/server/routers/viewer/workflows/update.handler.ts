@@ -85,7 +85,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
   const kycVerified = await isVerifiedHandler({ ctx });
-  const isKYCVerified = IS_SELF_HOSTED || kycVerified.isKYCVerified;
+  const isKYCVerified = kycVerified.isKYCVerified;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {

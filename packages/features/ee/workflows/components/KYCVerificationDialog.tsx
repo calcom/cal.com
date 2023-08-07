@@ -29,7 +29,7 @@ export const KYCVerificationDialog = (props: {
           <Trans
             i18nKey="kyc_verification_documents"
             components={{ li: <li />, ul: <ul className="ml-8 list-disc" /> }}
-            values={{ teamOrUser: isTeamString || "user" }}
+            values={{ teamOrUser: isPartOfTeam ? "team URL" : "user name" }}
           />
         </div>
         <DialogFooter>

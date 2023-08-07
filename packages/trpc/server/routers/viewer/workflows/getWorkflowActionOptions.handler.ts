@@ -33,6 +33,6 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
   return getWorkflowActionOptions(
     t,
     IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan,
-    IS_SELF_HOSTED || isKYCVerified
+    isKYCVerified
   );
 };
