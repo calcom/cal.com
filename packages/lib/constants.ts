@@ -2,7 +2,8 @@ const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.N
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
+export const IS_PRODUCTION = CALCOM_ENV === "production";
 
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
@@ -48,8 +49,6 @@ export const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
 );
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
-export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
-export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const TRIAL_LIMIT_DAYS = 14;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;

@@ -39,7 +39,7 @@ const sourceSchema = z.object({
 function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
   // If it's not production environment, it would be a better idea to inform that the App is disabled.
   if (props.isAppDisabled) {
-    if (process.env.CALCOM_ENV !== "production") {
+    if (!IS_PRODUCTION) {
       // TODO: Improve disabled App UI. This is just a placeholder.
       return (
         <div className="p-2">
