@@ -191,7 +191,6 @@ export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
-/** This should be called getAvailableSlots */
 export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
@@ -259,7 +258,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
         { user: currentUser, eventType, currentSeats }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
       return {
         timeZone,
         workingHours,
