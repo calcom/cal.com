@@ -1,6 +1,9 @@
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
-import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
+import authedProcedure, {
+  authedAdminProcedure,
+  authedOrgAdminProcedure,
+} from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAddBulkTeams } from "./addBulkTeams.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
@@ -8,8 +11,10 @@ import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
+import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
+import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
@@ -33,6 +38,9 @@ type OrganizationsRouterHandlerCache = {
   getTeams?: typeof import("./getTeams.handler").getTeamsHandler;
   bulkAddToTeams?: typeof import("./addBulkTeams.handler").addBulkTeamsHandler;
   bulkDeleteUsers?: typeof import("./bulkDeleteUsers.handler").bulkDeleteUsersHandler;
+  listOtherTeams?: typeof import("./listOtherTeams.handler").listOtherTeamHandler;
+  getOtherTeam?: typeof import("./getOtherTeam.handler").getOtherTeamHandler;
+  listOtherTeamMembers?: typeof import("./listOtherTeamMembers.handler").listOtherTeamMembers;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -312,6 +320,40 @@ export const viewerOrganizationsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.bulkDeleteUsers({
+      ctx,
+      input,
+    });
+  }),
+  listOtherTeamMembers: authedOrgAdminProcedure
+    .input(ZListOtherTeamMembersSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.listOtherTeamMembers) {
+        UNSTABLE_HANDLER_CACHE.listOtherTeamMembers = await import("./listOtherTeamMembers.handler").then(
+          (mod) => mod.listOtherTeamMembers
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.listOtherTeamMembers) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.listOtherTeamMembers({
+        ctx,
+        input,
+      });
+    }),
+  getOtherTeam: authedOrgAdminProcedure.input(ZGetOtherTeamInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getOtherTeam) {
+      UNSTABLE_HANDLER_CACHE.getOtherTeam = await import("./getOtherTeam.handler").then(
+        (mod) => mod.getOtherTeamHandler
+      );
+    }
+    if (!UNSTABLE_HANDLER_CACHE.getOtherTeam) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getOtherTeam({
       ctx,
       input,
     });

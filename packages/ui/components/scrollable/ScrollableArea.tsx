@@ -35,7 +35,7 @@ const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?:
         className // Pass in your max-w / max-h
       )}>
       {children}
-      {isOverflowingY && <div style={overflowIndicatorStyles} />}
+      {isOverflowingY && <div style={overflowIndicatorStyles} data-testid="overflow-indicator" />}
     </div>
   );
 };

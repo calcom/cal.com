@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -47,11 +48,12 @@ const stepRouteSchema = z.object({
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = () => {
+  const pathname = usePathname();
+  const params = useParamsWithFallback();
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-
-  const result = stepRouteSchema.safeParse(router.query);
+  const result = stepRouteSchema.safeParse(params);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
 
@@ -96,12 +98,7 @@ const OnboardingPage = () => {
 
   const goToIndex = (index: number) => {
     const newStep = steps[index];
-    router.push(
-      {
-        pathname: `/getting-started/${stepTransform(newStep)}`,
-      },
-      undefined
-    );
+    router.push(`/getting-started/${stepTransform(newStep)}`);
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
@@ -118,7 +115,7 @@ const OnboardingPage = () => {
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }
-      key={router.asPath}>
+      key={pathname}>
       <Head>
         <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
         <link rel="icon" href="/favicon.ico" />

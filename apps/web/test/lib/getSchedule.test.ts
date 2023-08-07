@@ -17,7 +17,7 @@ import prisma from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
