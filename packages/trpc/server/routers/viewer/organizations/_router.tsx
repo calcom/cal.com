@@ -358,4 +358,18 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
+  listOtherTeams: authedOrgAdminProcedure.query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listOtherTeams) {
+      UNSTABLE_HANDLER_CACHE.listOtherTeams = await import("./listOtherTeams.handler").then(
+        (mod) => mod.listOtherTeamHandler
+      );
+    }
+    if (!UNSTABLE_HANDLER_CACHE.listOtherTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listOtherTeams({
+      ctx,
+    });
+  }),
 });
