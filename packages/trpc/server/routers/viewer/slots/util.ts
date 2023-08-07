@@ -176,7 +176,7 @@ export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
 }
 
 /** This should be called getAvailableSlots */
-export async function getSchedule(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
