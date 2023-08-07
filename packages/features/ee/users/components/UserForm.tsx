@@ -119,7 +119,7 @@ export const UserForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar fallback={<Plus className="text-subtle h-6 w-6" />} imageSrc={value} size="lg" />
+              <Avatar alt="" fallback={<Plus className="text-subtle h-6 w-6" />} imageSrc={value} size="lg" />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"

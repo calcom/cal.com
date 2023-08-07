@@ -72,7 +72,7 @@ const PeopleFilter = () => {
             }}
             icon={
               <Avatar
-                alt={member?.id || ""}
+                alt={member?.name || ""}
                 imageSrc={
                   member.username
                     ? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${member.username}/avatar.png`
