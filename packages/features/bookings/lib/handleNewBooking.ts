@@ -37,6 +37,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import {
   scheduleWorkflowReminders,
   cancelWorkflowReminders,
@@ -52,7 +53,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -278,6 +278,16 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           hideBranding: true,
           metadata: true,
+          teams: {
+            select: {
+              accepted: true,
+              team: {
+                select: {
+                  metadata: true,
+                },
+              },
+            },
+          },
         },
       },
       workflows: {
@@ -1107,9 +1117,7 @@ async function handler(
 
   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-  const eventTypeOwner = eventType.team ? eventType.team : eventType.owner;
-  const isKYCVerified =
-    hasKeyInMetadata(eventTypeOwner, "kycVerified") && !!eventTypeOwner.metadata.kycVerified;
+  const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
 
   const handleSeats = async () => {
     let resultBooking:
