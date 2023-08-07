@@ -425,7 +425,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-      console.log("update step");
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
