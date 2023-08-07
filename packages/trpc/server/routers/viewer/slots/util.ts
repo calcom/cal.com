@@ -150,7 +150,11 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   const users = await prisma.user.findMany({
     where: {
       username: {
-        in: input.usernameList,
+        in: Array.isArray(input.usernameList)
+          ? input.usernameList
+          : input.usernameList
+          ? [input.usernameList]
+          : [],
       },
     },
     select: {
