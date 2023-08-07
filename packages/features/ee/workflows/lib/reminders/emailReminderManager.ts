@@ -14,7 +14,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
@@ -42,10 +42,15 @@ async function getBatchId() {
   return batchIdResponse[1].batch_id as string;
 }
 
+type ScheduleEmailReminderAction = Extract<
+  WorkflowActions,
+  "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
+>;
+
 export const scheduleEmailReminder = async (
   evt: BookingInfo,
   triggerEvent: WorkflowTriggerEvents,
-  action: WorkflowActions,
+  action: ScheduleEmailReminderAction,
   timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
@@ -79,20 +84,49 @@ export const scheduleEmailReminder = async (
 
   const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
+  let attendeeEmailToBeUsedInMail: string | null = null;
+  let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
   let name = "";
   let attendeeName = "";
   let timeZone = "";
 
   switch (action) {
     case WorkflowActions.EMAIL_HOST:
+      attendeeToBeUsedInMail = evt.attendees[0];
       name = evt.organizer.name;
-      attendeeName = evt.attendees[0].name;
+      attendeeName = attendeeToBeUsedInMail.name;
       timeZone = evt.organizer.timeZone;
       break;
     case WorkflowActions.EMAIL_ATTENDEE:
-      name = evt.attendees[0].name;
+      //These type checks are required as sendTo is of type MailData["to"] which in turn is of string | {name?:string, email: string} | string | {name?:string, email: string}[0]
+      // and the email is being sent to the first attendee of event by default instead of the sendTo
+      // so check if first attendee can be extracted from sendTo -> attendeeEmailToBeUsedInMail
+      if (typeof sendTo === "string") {
+        attendeeEmailToBeUsedInMail = sendTo;
+      } else if (Array.isArray(sendTo)) {
+        // If it's an array, take the first entry (if it exists) and extract name and email (if object); otherwise, just put the email (if string)
+        const emailData = sendTo[0];
+        if (typeof emailData === "object" && emailData !== null) {
+          const { name, email } = emailData;
+          attendeeEmailToBeUsedInMail = email;
+        } else if (typeof emailData === "string") {
+          attendeeEmailToBeUsedInMail = emailData;
+        }
+      } else if (typeof sendTo === "object" && sendTo !== null) {
+        const { name, email } = sendTo;
+        attendeeEmailToBeUsedInMail = email;
+      }
+
+      // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
+      const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
+        (attendee) => attendee.email === attendeeEmailToBeUsedInMail
+      );
+      attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
+        ? attendeeEmailToBeUsedInMailFromEvt
+        : evt.attendees[0];
+      name = attendeeToBeUsedInMail.name;
       attendeeName = evt.organizer.name;
-      timeZone = evt.attendees[0].timeZone;
+      timeZone = attendeeToBeUsedInMail.timeZone;
       break;
   }
 
@@ -104,10 +138,10 @@ export const scheduleEmailReminder = async (
     const variables: VariablesType = {
       eventName: evt.title || "",
       organizerName: evt.organizer.name,
-      attendeeName: evt.attendees[0].name,
-      attendeeFirstName: evt.attendees[0].firstName,
-      attendeeLastName: evt.attendees[0].lastName,
-      attendeeEmail: evt.attendees[0].email,
+      attendeeName: attendeeToBeUsedInMail.name,
+      attendeeFirstName: attendeeToBeUsedInMail.firstName,
+      attendeeLastName: attendeeToBeUsedInMail.lastName,
+      attendeeEmail: attendeeToBeUsedInMail.email,
       eventDate: dayjs(startTime).tz(timeZone),
       eventEndTime: dayjs(endTime).tz(timeZone),
       timeZone: timeZone,
@@ -120,8 +154,8 @@ export const scheduleEmailReminder = async (
     };
 
     const locale =
-      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-        ? evt.attendees[0].language?.locale
+      action === WorkflowActions.EMAIL_ATTENDEE
+        ? attendeeToBeUsedInMail.language?.locale
         : evt.organizer.language.locale;
 
     const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
