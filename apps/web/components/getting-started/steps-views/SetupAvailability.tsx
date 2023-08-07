@@ -21,7 +21,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { nextStep } = props;
 
   const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId: defaultScheduleId! },
+    { scheduleId: defaultScheduleId ?? undefined },
     {
       enabled: !!defaultScheduleId,
     }
