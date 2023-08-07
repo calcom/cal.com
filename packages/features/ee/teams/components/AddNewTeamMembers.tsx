@@ -220,7 +220,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           gravatarFallbackMd5="teamMember"
           size="mdLg"
           imageSrc={bookerUrl + "/" + member.username + "/avatar.png"}
-          alt="owner-avatar"
+          alt={member.name || ""}
         />
         <div>
           <div className="flex space-x-1">

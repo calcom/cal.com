@@ -253,7 +253,7 @@ const InstallAppButtonChild = ({
                 key={team.id}
                 StartIcon={(props) => (
                   <Avatar
-                    alt={team.logo || ""}
+                    alt={team.name || ""}
                     imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                     {...props}

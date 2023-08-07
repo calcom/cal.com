@@ -9,7 +9,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
@@ -100,10 +100,10 @@ const UserProfile = () => {
       <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && (
           <Avatar
-            alt={user.username || "user avatar"}
-            gravatarFallbackMd5={user.emailMd5}
+            alt={user.username}
             size="lg"
             imageSrc={imageSrc}
+            fallback={<Plus className="text-subtle h-6 w-6" />}
           />
         )}
         <input

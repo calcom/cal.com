@@ -150,7 +150,7 @@ export function UserListTable() {
             <div className="flex items-center gap-2">
               <Avatar
                 size="sm"
-                alt={username || email}
+                alt={username}
                 imageSrc={domain + "/" + username + "/avatar.png"}
                 gravatarFallbackMd5="fallback"
               />

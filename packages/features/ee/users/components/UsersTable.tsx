@@ -133,7 +133,7 @@ function UsersTableBare() {
                   <div className="min-h-10 flex ">
                     <Avatar
                       size="md"
-                      alt={`Avatar of ${user.username || "Nameless"}`}
+                      alt={user.name || ""}
                       gravatarFallbackMd5=""
                       imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png?orgId=${user.organizationId}`}
                     />

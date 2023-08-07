@@ -64,7 +64,7 @@ export default function TeamInviteListItem(props: Props) {
       <Avatar
         size="mdLg"
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        alt={(team?.name as string) || ""}
         className=""
       />
       <div className="ms-3 inline-block">

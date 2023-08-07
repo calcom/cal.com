@@ -15,6 +15,7 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
+import { Plus } from "@calcom/ui/components/icon";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
@@ -118,7 +119,7 @@ export const UserForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <Avatar fallback={<Plus className="text-subtle h-6 w-6" />} imageSrc={value} size="lg" />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"

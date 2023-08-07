@@ -49,7 +49,7 @@ export default function OtherTeamListItem(props: Props) {
       <Avatar
         size="md"
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        alt={(team?.name as string) || ""}
         className="inline-flex justify-center"
       />
       <div className="ms-3 inline-block truncate">

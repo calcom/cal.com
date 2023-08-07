@@ -1,12 +1,17 @@
+import md5Parser from "md5";
+
 /**
- * Provided a name, return the URL from ui-avatars.com
- * Using alt text for the name field from Avatar component
+ * Provided either an email or an MD5 hash, return the URL for the Gravatar
+ * image aborting early if neither is provided.
  */
-export const defaultAvatarSrc = function (name: string | null | undefined) {
-  return (
-    "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=" +
-    encodeURIComponent(name || "Nameless")
-  );
+export const defaultAvatarSrc = function ({ email, md5 }: { md5?: string; email?: string }) {
+  if (!email && !md5) return "";
+
+  if (email && !md5) {
+    md5 = md5Parser(email);
+  }
+
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=mp&r=PG`;
 };
 
 /**
@@ -21,6 +26,6 @@ export const defaultAvatarSrc = function (name: string | null | undefined) {
 export function getPlaceholderAvatar(avatar: string | null | undefined, name: string | null | undefined) {
   return avatar
     ? avatar
-    : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
-        encodeURIComponent(name || "");
+    : "https://eu.ui-avatars.com/api/?color=f9f9f9&bold=true&background=000000&name=" +
+        encodeURIComponent(name || "Nameless");
 }

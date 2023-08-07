@@ -373,7 +373,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             <Avatar
               size={small ? "xs" : "xsm"}
               imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
-              alt={user.username || "Nameless User"}
+              alt={user.username || ""}
               className="overflow-hidden"
             />
             <span
@@ -835,7 +835,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <Link href="/event-types" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
-                    alt={`${orgBranding.name} logo`}
+                    alt={orgBranding.name}
                     imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
                     size="xsm"
                   />

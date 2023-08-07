@@ -122,7 +122,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <Avatar
                   size="md"
                   imageSrc={getPlaceholderAvatar(ch?.logo, ch?.name as string)}
-                  alt="Team Logo"
+                  alt={ch?.name || ""}
                   className="inline-flex justify-center"
                 />
                 <div className="ms-3 inline-block truncate">

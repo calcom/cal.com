@@ -105,7 +105,7 @@ export default function AppListCard(props: AppListCardProps) {
               <div className="flex items-center">
                 <Avatar
                   className="mr-2"
-                  alt={credentialOwner.name || "Nameless"}
+                  alt={credentialOwner.name}
                   size="xs"
                   imageSrc={getPlaceholderAvatar(credentialOwner.avatar, credentialOwner?.name as string)}
                 />

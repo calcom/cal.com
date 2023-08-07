@@ -57,7 +57,7 @@ const HorizontalTabItem = function ({
       )}
       {isLocaleReady ? (
         <div className="flex items-center gap-x-2">
-          {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" />} {t(name)}
+          {avatar && <Avatar size="sm" imageSrc={avatar} alt={name} />} {t(name)}
         </div>
       ) : (
         <SkeletonText className="h-4 w-24" />

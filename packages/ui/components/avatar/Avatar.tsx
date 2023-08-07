@@ -3,7 +3,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
@@ -17,7 +17,7 @@ export type AvatarProps = {
   title?: string;
   alt: string;
   href?: string;
-  gravatarFallbackMd5?: string;
+  // gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
@@ -52,8 +52,8 @@ export function Avatar(props: AvatarProps) {
         />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback && !alt && props.fallback}
-            {alt && <img src={defaultAvatarSrc(alt)} alt={alt} className={rootClass} />}
+            {props.fallback ? props.fallback : null}
+            {!props.fallback && <img src={getPlaceholderAvatar(null, alt)} alt={alt} className={rootClass} />}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (

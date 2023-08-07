@@ -37,7 +37,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2, Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -405,7 +405,12 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <Avatar
+                fallback={<Plus className="text-subtle h-6 w-6" />}
+                alt={defaultValues.name}
+                imageSrc={value}
+                size="lg"
+              />
               <div className="ms-4">
                 <ImageUploader
                   target="avatar"

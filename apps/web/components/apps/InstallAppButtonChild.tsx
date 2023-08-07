@@ -100,7 +100,7 @@ export const InstallAppButtonChild = ({
                 disabled={isInstalled}
                 StartIcon={(props) => (
                   <Avatar
-                    alt={team.logo || ""}
+                    alt={team.logo}
                     imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                     {...props}
