@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { isTextMessageToAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -102,6 +103,12 @@ const WorkflowListItem = (props: ItemProps) => {
     }
   });
 
+  const needsRequiresConfirmationWarning =
+    !eventType.requiresConfirmation &&
+    workflow.steps.find((step) => {
+      return isTextMessageToAttendeeAction(step.action);
+    });
+
   return (
     <div className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6">
       <div className="flex items-center ">
@@ -172,8 +179,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </Tooltip>
       </div>
 
-      {Array.from(sendTo).find((sendTo) => sendTo === t("attendee_name_variable")) &&
-      !eventType.requiresConfirmation ? (
+      {needsRequiresConfirmationWarning ? (
         <div className="text-attention -mb-2 mt-3 flex">
           <Info className="mr-1 mt-0.5 h-4 w-4" />
           <p className="text-sm">{t("requires_confirmation_mandatory")}</p>

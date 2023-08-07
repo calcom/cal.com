@@ -38,7 +38,7 @@ export function isAttendeeAction(action: WorkflowActions) {
   );
 }
 
-export function isMessageToAttendeeAction(action: WorkflowActions) {
+export function isTextMessageToAttendeeAction(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }
 

@@ -2,7 +2,11 @@ import type { TFunction } from "next-i18next";
 
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-import { isMessageToAttendeeAction, isSMSOrWhatsappAction, isWhatsappAction } from "./actionHelperFunctions";
+import {
+  isTextMessageToAttendeeAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+} from "./actionHelperFunctions";
 import {
   TIME_UNIT,
   WHATSAPP_WORKFLOW_TEMPLATES,
@@ -20,7 +24,7 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, is
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
         needsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
-        needsVerification: isMessageToAttendeeAction(action) && !isKYCVerified,
+        needsVerification: isTextMessageToAttendeeAction(action) && !isKYCVerified,
       };
     });
 }

@@ -1,7 +1,7 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import {
-  isMessageToAttendeeAction,
+  isTextMessageToAttendeeAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -51,7 +51,8 @@ const processWorkflowStep = async (
     isKYCVerified,
   }: ProcessWorkflowStepParams
 ) => {
-  if (isMessageToAttendeeAction(step.action) && (!isKYCVerified || !eventTypeRequiresConfirmation)) return;
+  if (isTextMessageToAttendeeAction(step.action) && (!isKYCVerified || !eventTypeRequiresConfirmation))
+    return;
 
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
