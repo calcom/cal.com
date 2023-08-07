@@ -38,6 +38,10 @@ export function isAttendeeAction(action: WorkflowActions) {
   );
 }
 
+export function isMessageToAttendeeAction(action: WorkflowActions) {
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+}
+
 export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): WorkflowTemplates {
   switch (trigger) {
     case "NEW_EVENT":

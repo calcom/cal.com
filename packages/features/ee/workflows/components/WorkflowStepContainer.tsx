@@ -47,6 +47,7 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
   getWhatsappTemplateForAction,
+  isMessageToAttendeeAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -121,7 +122,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
-    step?.action === WorkflowActions.SMS_ATTENDEE || step?.action === WorkflowActions.WHATSAPP_ATTENDEE
+    isMessageToAttendeeAction(step?.action)
   );
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
