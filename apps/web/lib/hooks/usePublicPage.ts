@@ -8,5 +8,5 @@ export default function usePublicPage() {
   const userParam = searchParams.get("user");
   const teamParam = searchParams.get("team");
 
-  return !isPublicPage && (userParam || teamParam);
+  return isPublicPage || (userParam || teamParam);
 }
