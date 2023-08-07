@@ -20,11 +20,26 @@ export const KYCVerificationDialog = (props: {
       <DialogContent title={t("verify_team_or_account", { teamOrAccount: isTeamString || "account" })}>
         <div>
           <div className="mb-4">
-            {t("kyc_verification_information", {
-              supportEmail:
-                SUPPORT_MAIL_ADDRESS === "help@cal.com" ? "support@cal.com" : SUPPORT_MAIL_ADDRESS,
-              teamOrAccount: isTeamString || "account",
-            })}
+            <Trans
+              i18nKey="kyc_verification_information"
+              components={{
+                a: (
+                  <a
+                    href={`mailto:support@cal.com?subject=${
+                      isPartOfTeam ? "Team%20Verification" : "Account%20Verification"
+                    }`}
+                    style={{ color: "#3E3E3E" }}
+                    target="_blank"
+                    rel="noreferrer"
+                  />
+                ),
+              }}
+              values={{
+                supportEmail:
+                  SUPPORT_MAIL_ADDRESS === "help@cal.com" ? "support@cal.com" : SUPPORT_MAIL_ADDRESS,
+                teamOrAccount: isTeamString || "account",
+              }}
+            />
           </div>
           <Trans
             i18nKey="kyc_verification_documents"

@@ -1978,7 +1978,7 @@
   "requires_booker_email_verification": "Requires booker email verification",
   "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
   "requires_confirmation_mandatory": "Text messages can only be sent to attendees when event type requires confirmation.",
-  "kyc_verification_information": "To ensure security, you have to verify your {{teamOrAccount}} before sending text messages to attendees. Please contact us at {{supportEmail}} and provide the following information:",
+  "kyc_verification_information": "To ensure security, you have to verify your {{teamOrAccount}} before sending text messages to attendees. Please contact us at <a>{{supportEmail}}</a> and provide the following information:",
   "kyc_verification_documents": "<ul><li>Your {{teamOrUser}}</li><li>For businesses: Attach your Business Verification Documentation</li><li>For individuals: Attach a government-issued ID</li></ul>",
   "verify_team_or_account": "Verify {{teamOrAccount}}",
   "verify_account": "Verify Account",
