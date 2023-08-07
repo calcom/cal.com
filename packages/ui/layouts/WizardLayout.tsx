@@ -1,11 +1,11 @@
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { StepCard, Steps, Button, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText, StepCard, Steps } from "@calcom/ui";
 
 export function WizardLayout({
   children,
@@ -17,7 +17,7 @@ export function WizardLayout({
 } & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
   const { t, isLocaleReady } = useLocale();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
-  const router = useRouter();
+  const pathname = usePathname();
   const { title, subtitle } = meta;
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function WizardLayout({
       title: window.document.title,
       subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
     });
-  }, [router.asPath]);
+  }, [pathname]);
 
   return (
     <div

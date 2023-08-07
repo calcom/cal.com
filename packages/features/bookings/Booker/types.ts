@@ -7,6 +7,16 @@ export interface BookerProps {
   username: string;
 
   /**
+   * Whether is a team or org, we gather basic info from both
+   */
+  entity: {
+    isUnpublished?: boolean;
+    orgSlug?: string | null;
+    teamSlug?: string | null;
+    name?: string | null;
+  };
+
+  /**
    * If month is NOT set as a prop on the component, we expect a query parameter
    * called `month` to be present on the url. If that is missing, the component will
    * default to the current month.

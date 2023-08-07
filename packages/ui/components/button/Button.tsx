@@ -35,8 +35,8 @@ export type ButtonProps = ButtonBaseProps &
     | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
 
-const buttonClasses = cva(
-  "inline-flex items-center text-sm font-medium relative rounded-md transition-colors disabled:cursor-not-allowed ",
+export const buttonClasses = cva(
+  "inline-flex items-center text-sm font-medium relative rounded-md transition-colors disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
@@ -155,7 +155,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
-              <Plus className="inline h-6 w-6 md:hidden" />
+              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <StartIcon
@@ -192,7 +192,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <EndIcon className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Plus className="inline h-6 w-6 md:hidden" />
+              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <EndIcon
@@ -209,11 +209,13 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
+    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
       {element}
     </Link>
   ) : (
-    <Wrapper tooltip={props.tooltip}>{element}</Wrapper>
+    <Wrapper data-testid="wrapper" tooltip={props.tooltip}>
+      {element}
+    </Wrapper>
   );
 });
 
@@ -222,5 +224,9 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
     return <>{children}</>;
   }
 
-  return <Tooltip content={tooltip}>{children}</Tooltip>;
+  return (
+    <Tooltip data-testid="tooltip" content={tooltip}>
+      {children}
+    </Tooltip>
+  );
 };

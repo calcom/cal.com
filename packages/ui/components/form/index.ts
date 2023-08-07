@@ -1,4 +1,4 @@
-export { Checkbox, MultiSelectCheckbox } from "./checkbox";
+export { Checkbox, MultiSelectCheckbox, CheckboxField } from "./checkbox";
 export type { Option } from "./checkbox";
 export { HintsOrErrors } from "./inputs/HintOrErrors";
 export {

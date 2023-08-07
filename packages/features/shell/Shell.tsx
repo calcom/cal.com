@@ -2,10 +2,9 @@ import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -13,7 +12,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -37,6 +35,7 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
+  ButtonOrLink,
   Credits,
   Dropdown,
   DropdownItem,
@@ -48,18 +47,19 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  showToast,
   SkeletonText,
   Tooltip,
-  showToast,
   useCalcomTheme,
-  ButtonOrLink,
 } from "@calcom/ui";
 import {
   ArrowLeft,
   ArrowRight,
   BarChart,
   Calendar,
+  ChevronDown,
   Clock,
+  Copy,
   Download,
   ExternalLink,
   FileText,
@@ -70,15 +70,14 @@ import {
   Map,
   Moon,
   MoreHorizontal,
-  ChevronDown,
-  Copy,
   Settings,
-  Slack,
+  User as UserIcon,
   Users,
   Zap,
-  User as UserIcon,
 } from "@calcom/ui/components/icon";
+import { Discord } from "@calcom/ui/components/icon/Discord";
 
+import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
@@ -119,12 +118,9 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
     }
 
     if (!loading && !session) {
-      router.replace({
-        pathname: "/auth/login",
-        query: {
-          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
-        },
-      });
+      const urlSearchParams = new URLSearchParams();
+      urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
@@ -135,36 +131,9 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-function useRedirectToOnboardingIfNeeded() {
+function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
   const router = useRouter();
-  const query = useMeQuery();
-  const user = query.data;
-  const flags = useFlagMap();
-
-  const { data: email } = useEmailVerifyCheck();
-
-  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-
-  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
-
-  useEffect(() => {
-    if (isRedirectingToOnboarding && !needsEmailVerification) {
-      router.replace({
-        pathname: "/getting-started",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding, needsEmailVerification]);
-
-  return {
-    isRedirectingToOnboarding,
-  };
-}
-
-const Layout = (props: LayoutProps) => {
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const bannerRef = useRef<HTMLDivElement | null>(null);
-  const [bannersHeight, setBannersHeight] = useState<number>(0);
 
   useIsomorphicLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -186,6 +155,45 @@ const Layout = (props: LayoutProps) => {
   }, [bannerRef]);
 
   return (
+    <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
+      <TeamsUpgradeBanner />
+      <OrgUpgradeBanner />
+      <ImpersonatingBanner />
+      <AdminPasswordBanner />
+      <VerifyEmailBanner />
+    </div>
+  );
+}
+
+function useRedirectToOnboardingIfNeeded() {
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+  const flags = useFlagMap();
+
+  const { data: email } = useEmailVerifyCheck();
+
+  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
+
+  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
+
+  useEffect(() => {
+    if (isRedirectingToOnboarding && !needsEmailVerification) {
+      router.replace("/getting-started");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRedirectingToOnboarding, needsEmailVerification]);
+
+  return {
+    isRedirectingToOnboarding,
+  };
+}
+
+const Layout = (props: LayoutProps) => {
+  const [bannersHeight, setBannersHeight] = useState<number>(0);
+  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  return (
     <>
       {!props.withoutSeo && (
         <HeadSeo
@@ -200,15 +208,13 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-          <TeamsUpgradeBanner />
-          <OrgUpgradeBanner />
-          <ImpersonatingBanner />
-          <AdminPasswordBanner />
-          <VerifyEmailBanner />
-        </div>
+        <AppTop setBannersHeight={setBannersHeight} />
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
+          {props.SidebarContainer ? (
+            cloneElement(props.SidebarContainer, { bannersHeight })
+          ) : (
+            <SideBarContainer bannersHeight={bannersHeight} />
+          )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -230,7 +236,7 @@ type LayoutProps = {
   CTA?: ReactNode;
   large?: boolean;
   MobileNavigationContainer?: ReactNode;
-  SidebarContainer?: ReactNode;
+  SidebarContainer?: ReactElement;
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
@@ -302,6 +308,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
+  const utils = trpc.useContext();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -314,16 +321,31 @@ function UserDropdown({ small }: UserDropdownProps) {
       });
   });
   const mutation = trpc.viewer.away.useMutation({
+    onMutate: async ({ away }) => {
+      await utils.viewer.me.cancel();
+
+      const previousValue = utils.viewer.me.getData();
+
+      if (previousValue) {
+        utils.viewer.me.setData(undefined, { ...previousValue, away });
+      }
+
+      return { previousValue };
+    },
+    onError: (_, __, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
+
+      showToast(t("toggle_away_error"), "error");
+    },
     onSettled() {
       utils.viewer.me.invalidate();
     },
   });
-  const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  if (!user) {
-    return null;
-  }
+
   const onHelpItemSelect = () => {
     setHelpOpen(false);
     setMenuOpen(false);
@@ -334,6 +356,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   if (!user) {
     return null;
   }
+
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
@@ -415,8 +438,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                       <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
-                      mutation.mutate({ away: !user?.away });
-                      utils.viewer.me.invalidate();
+                      mutation.mutate({ away: !user.away });
                     }}>
                     {user.away ? t("set_as_free") : t("set_as_away")}
                   </DropdownItem>
@@ -424,7 +446,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
+                    StartIcon={() => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
@@ -483,11 +505,11 @@ export type NavigationItemType = {
   isCurrent?: ({
     item,
     isChild,
-    router,
+    pathname,
   }: {
     item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
-    router: NextRouter;
+    pathname: string;
   }) => boolean;
 };
 
@@ -505,10 +527,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ router }) => {
-      const path = router.asPath.split("?")[0];
-      return path.startsWith("/bookings");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
   },
   {
     name: "availability",
@@ -526,34 +545,26 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Grid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
+    isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
-      );
+      return path?.startsWith(item.href) && !path?.includes("routing-forms/");
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
+        isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing-forms/") &&
-            !path.includes("/installed")
+            path?.startsWith(item.href) && !path?.includes("routing-forms/") && !path?.includes("/installed")
           );
         },
       },
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
-        },
+        isCurrent: ({ pathname: path }) =>
+          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
       },
     ],
   },
@@ -566,9 +577,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
-    },
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
   },
   {
     name: "workflows",
@@ -616,21 +625,13 @@ const Navigation = () => {
 };
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
-  const { status } = useSession();
-  const { data: routingForms } = trpc.viewer.appById.useQuery(
-    { appId: "routing-forms" },
-    {
-      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-      trpc: {},
-    }
-  );
   const flags = useFlagMap();
   if (isKeyInObject(item.name, flags)) return flags[item.name];
-  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
+  return true;
 }
 
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
-  return isChild ? item.href === router.asPath : item.href ? router.asPath.startsWith(item.href) : false;
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) : false;
 };
 
 const NavigationItem: React.FC<{
@@ -640,9 +641,9 @@ const NavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
+  const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -681,7 +682,7 @@ const NavigationItem: React.FC<{
         </Link>
       </Tooltip>
       {item.child &&
-        isCurrent({ router, isChild, item }) &&
+        isCurrent({ pathname, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -718,10 +719,10 @@ const MobileNavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const router = useRouter();
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -791,15 +792,19 @@ const getOrganizationUrl = (slug: string) =>
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
-  const orgBranding = useOrgBrandingValues();
-  const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+  const orgBranding = useOrgBranding();
+  const isOrgBrandingDataFetched = orgBranding !== undefined;
+
+  const publicPageUrl = useMemo(() => {
+    if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
+    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    return publicPageUrl;
+  }, [orgBranding?.slug, user?.organizationId, user?.username]);
+
   const bottomNavItems: NavigationItemType[] = [
     {
       name: "view_public_page",
-      href: !!user?.organizationId
-        ? publicPageUrl
-        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      href: publicPageUrl,
       icon: ExternalLink,
       target: "__blank",
     },
@@ -808,9 +813,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       href: "",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        navigator.clipboard.writeText(
-          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
-        );
+        navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
       icon: Copy,
@@ -828,7 +831,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
+            {!isOrgBrandingDataFetched ? null : orgBranding ? (
               <Link href="/event-types" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
@@ -888,6 +891,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
+                id={item.name}
                 href={item.href || undefined}
                 aria-label={t(item.name)}
                 target={item.target}
@@ -898,11 +902,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
                 )}
-                aria-current={
-                  defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                    ? "page"
-                    : undefined
-                }
                 onClick={item.onClick}>
                 {!!Icon && (
                   <Icon
@@ -911,11 +910,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                       "me-3 md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
-                    aria-current={
-                      defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
-                        ? "page"
-                        : undefined
-                    }
                   />
                 )}
                 {isLocaleReady ? (

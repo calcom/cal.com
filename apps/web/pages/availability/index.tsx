@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
@@ -95,6 +95,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
             Icon={Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
+            className="w-full"
             buttonRaw={<NewScheduleButton />}
           />
         </div>

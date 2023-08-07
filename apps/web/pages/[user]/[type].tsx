@@ -2,30 +2,41 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { classNames } from "@calcom/lib";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden, rescheduleUid }: PageProps) {
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+export default function Type({
+  slug,
+  user,
+  isEmbed,
+  booking,
+  away,
+  isBrandingHidden,
+  rescheduleUid,
+  entity,
+}: PageProps) {
   return (
-    <main className={classNames("flex h-full items-center justify-center", !isEmbed && "min-h-[100dvh]")}>
+    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
         username={user}
         eventSlug={slug}
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -33,11 +44,13 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, resc
         bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
+        entity={entity}
       />
     </main>
   );
 }
 
+Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
@@ -46,12 +59,21 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.params?.orgSlug
+  );
 
   const users = await prisma.user.findMany({
     where: {
       username: {
         in: usernames,
       },
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       allowDynamicBooking: true,
@@ -63,6 +85,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -73,7 +96,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username: usernames.join("+"), eventSlug: slug });
+  const eventData = await ssr.viewer.public.event.fetch({
+    username: usernames.join("+"),
+    eventSlug: slug,
+    org,
+  });
 
   if (!eventData) {
     return {
@@ -83,6 +110,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      entity: eventData.entity,
       booking,
       user: usernames.join("+"),
       slug,
@@ -100,18 +128,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.params?.orgSlug
+  );
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       away: true,
@@ -132,9 +159,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
 
+  const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug });
+  // as well as to check if the event exist, so we can show a 404 otherwise.
+  const eventData = await ssr.viewer.public.event.fetch({
+    username,
+    eventSlug: slug,
+    org,
+  });
 
   if (!eventData) {
     return {
@@ -148,6 +180,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       away: user?.away,
       user: username,
       slug,
+      entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
       themeBasis: username,

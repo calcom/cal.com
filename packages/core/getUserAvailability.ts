@@ -29,7 +29,6 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
-    orgSlug: z.string().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -42,6 +41,7 @@ const getEventType = async (id: number) => {
       bookingLimits: true,
       durationLimits: true,
       timeZone: true,
+      length: true,
       metadata: true,
       schedule: {
         select: {
@@ -76,11 +76,6 @@ const getUser = (where: Prisma.UserWhereInput) =>
     select: {
       ...availabilityUserSelect,
       credentials: true,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
     },
   });
 
@@ -121,7 +116,6 @@ export async function getUserAvailability(
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
-    orgSlug?: string;
   },
   initialData?: {
     user?: User;
@@ -129,17 +123,8 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const {
-    username,
-    userId,
-    dateFrom,
-    dateTo,
-    eventTypeId,
-    afterEventBuffer,
-    beforeEventBuffer,
-    duration,
-    orgSlug,
-  } = availabilitySchema.parse(query);
+  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
+    availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -147,7 +132,6 @@ export async function getUserAvailability(
 
   const where: Prisma.UserWhereInput = {};
   if (username) where.username = username;
-  if (orgSlug) where.organization = { slug: orgSlug };
   if (userId) where.id = userId;
 
   const user = initialData?.user || (await getUser(where));
@@ -165,12 +149,12 @@ export async function getUserAvailability(
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
-    startTime: dateFrom.toISOString(),
-    endTime: dateTo.toISOString(),
+    // needed to correctly apply limits (weeks can be part of two months)
+    startTime: dateFrom.startOf("week").toISOString(),
+    endTime: dateTo.endOf("week").toISOString(),
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
-    organizationSlug: initialData?.user?.organization?.slug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
@@ -374,7 +358,7 @@ const getBusyTimesFromDurationLimits = async (
 
     // loop through all dates and check if we have reached the limit
     for (const date of dates) {
-      let total = duration ?? 0;
+      let total = (duration || eventType?.length) ?? 0;
       const startDate = date.startOf(filter);
       const endDate = date.endOf(filter);
 

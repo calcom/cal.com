@@ -114,26 +114,16 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
-              credentials: true, // Don't leak credentials to the client
+              credentials: true,
               ...availabilityUserSelect,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
       },
       users: {
         select: {
-          credentials: true, // Don't leak credentials to the client
+          credentials: true,
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
@@ -165,13 +155,8 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     },
     select: {
       allowDynamicBooking: true,
-      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
+      credentials: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -191,8 +176,7 @@ export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
-/** This should be called getAvailableSlots */
-export async function getSchedule(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -235,6 +219,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (eventType.schedulingType && !!eventType.hosts?.length) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -256,10 +241,13 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        {
+          user: currentUser,
+          eventType,
+          currentSeats,
+        }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
       return {
         timeZone,
         workingHours,
@@ -277,7 +265,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
-    eventLength: eventType.length,
+    eventLength: input.duration || eventType.length,
     currentSeats,
   };
 
@@ -408,24 +396,33 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  // fr-CA uses YYYY-MM-DD
+  const formatter = new Intl.DateTimeFormat("fr-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: input.timeZone,
+  });
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: _time, ...passThroughProps }
+      { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-      const time = _time.tz(input.timeZone);
 
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+      // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
+      // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+      const dateString = formatter.format(time.toDate());
+
+      r[dateString] = r[dateString] || [];
+      r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
         users: (eventType.hosts
           ? eventType.hosts.map((hostUserWithCredentials) => {
               const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
+              return user;
             })
           : eventType.users
         ).map((user) => user.username || ""),

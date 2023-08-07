@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -10,19 +11,30 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent }: PageProps) {
+export default function Type({
+  slug,
+  isEmbed,
+  user,
+  booking,
+  away,
+  isBrandingHidden,
+  isTeamEvent,
+  entity,
+}: PageProps) {
   return (
-    <main className="flex h-full min-h-[100dvh] items-center justify-center">
+    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
         username={user}
         eventSlug={slug}
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -31,17 +43,20 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, isTe
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
+        entity={entity}
       />
     </main>
   );
 }
 
 Type.PageWrapper = PageWrapper;
+Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -107,7 +122,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent });
+  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent, org });
 
   if (!eventData) {
     return {
@@ -117,6 +132,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      entity: eventData.entity,
       booking,
       away: user?.away,
       user: username,

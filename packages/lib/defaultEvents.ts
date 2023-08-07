@@ -43,7 +43,6 @@ const user: User & { credentials: Credential[] } = {
   locale: "en",
   email: "john.doe@example.com",
   name: "John doe",
-  avatar: "",
   destinationCalendar: null,
   hideBranding: true,
   brandColor: "#797979",
@@ -87,6 +86,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
+  requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
   hidden: false,
@@ -102,43 +102,24 @@ const commons = {
     customInputs: [],
     // Default value of disableGuests from DB.
     disableGuests: false,
+    disableBookingTitle: false,
     metadata: {},
     workflows: [],
   }),
 };
 
-const min15Event = {
-  length: 15,
-  slug: "15",
-  title: "15min",
-  eventName: "Dynamic Collective 15min Event",
-  description: "Dynamic Collective 15min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 15min Event",
+const dynamicEvent = {
+  length: 30,
+  slug: "dynamic",
+  title: "Dynamic",
+  eventName: "Dynamic Event",
+  description: "",
+  descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
 };
-const min30Event = {
-  length: 30,
-  slug: "30",
-  title: "30min",
-  eventName: "Dynamic Collective 30min Event",
-  description: "Dynamic Collective 30min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 30min Event",
-  position: 1,
-  ...commons,
-};
-const min60Event = {
-  length: 60,
-  slug: "60",
-  title: "60min",
-  eventName: "Dynamic Collective 60min Event",
-  description: "Dynamic Collective 60min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 60min Event",
-  position: 2,
-  ...commons,
-};
 
-const defaultEvents = [min15Event, min30Event, min60Event];
+const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
@@ -153,7 +134,7 @@ export const getDefaultEvent = (slug: string) => {
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });
-  return event || min15Event;
+  return event || dynamicEvent;
 };
 
 export const getGroupName = (usernameList: string[]): string => {
