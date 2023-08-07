@@ -9,6 +9,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -85,8 +86,12 @@ export async function handleConfirmation(args: {
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
+      team: {
+        metadata: Prisma.JsonValue;
+      } | null;
       owner: {
         hideBranding?: boolean | null;
+        metadata: Prisma.JsonValue;
       } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
@@ -123,9 +128,15 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
+              team: {
+                select: {
+                  metadata: true,
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
+                  metadata: true,
                 },
               },
               workflows: {
@@ -174,9 +185,15 @@ export async function handleConfirmation(args: {
           select: {
             slug: true,
             bookingFields: true,
+            team: {
+              select: {
+                metadata: true,
+              },
+            },
             owner: {
               select: {
                 hideBranding: true,
+                metadata: true,
               },
             },
             workflows: {
@@ -206,6 +223,15 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const eventTypeOwner = updatedBookings[0].eventType?.team
+    ? updatedBookings[0].eventType?.team
+    : updatedBookings[0].eventType?.owner;
+  const isKYCVerified = !!(
+    eventTypeOwner &&
+    hasKeyInMetadata(eventTypeOwner, "kycVerified") &&
+    !!eventTypeOwner.metadata.kycVerified
+  );
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -230,6 +256,7 @@ export async function handleConfirmation(args: {
           isFirstRecurringEvent: isFirstBooking,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
           eventTypeRequiresConfirmation: true,
+          isKYCVerified,
         });
       }
     }

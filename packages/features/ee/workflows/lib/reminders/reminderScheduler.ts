@@ -20,6 +20,7 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
+  isKYCVerified: boolean;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
@@ -43,8 +44,15 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
+    isKYCVerified,
   }: ProcessWorkflowStepParams
 ) => {
+  if (
+    (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+    !isKYCVerified
+  )
+    return;
+
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder(

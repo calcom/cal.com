@@ -52,6 +52,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -245,6 +246,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
+          metadata: true,
         },
       },
       bookingFields: true,
@@ -275,6 +277,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
+          metadata: true,
         },
       },
       workflows: {
@@ -1104,6 +1107,10 @@ async function handler(
 
   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
+  const eventTypeOwner = eventType.team ? eventType.team : eventType.owner;
+  const isKYCVerified =
+    hasKeyInMetadata(eventTypeOwner, "kycVerified") && !!eventTypeOwner.metadata.kycVerified;
+
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -1669,6 +1676,7 @@ async function handler(
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
+        isKYCVerified,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
@@ -2312,6 +2320,7 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
+      isKYCVerified,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
