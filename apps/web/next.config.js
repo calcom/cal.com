@@ -377,6 +377,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/auth",
+        destination: "/auth/login",
+        permanent: false,
+      },
+      {
         source: "/settings",
         destination: "/settings/my-account/profile",
         permanent: true,
