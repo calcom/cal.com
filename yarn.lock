@@ -4966,6 +4966,7 @@ __metadata:
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
+    playwright: ^1.31.2
     postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
@@ -28831,6 +28832,26 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: bf1257b7d80b9d027c99cbfa7ab9d47a2110ec804422b3e3d623bbb3c43e06df7bec4764ca1d852a6d62c76e35c8776efb19941f42ce738db9bc92e7f1b6281c
+  languageName: node
+  linkType: hard
+
+"playwright-core@npm:1.36.2":
+  version: 1.36.2
+  resolution: "playwright-core@npm:1.36.2"
+  bin:
+    playwright-core: cli.js
+  checksum: 2193ce802ef93c28b9b5e11a0b1d7b60778c686015659978d1cbf0eb9cda2cdc85ec5575b887c1346e9d161cc2805bf27638d76a2f7f857dffeae968e6ceffcd
+  languageName: node
+  linkType: hard
+
+"playwright@npm:^1.31.2":
+  version: 1.36.2
+  resolution: "playwright@npm:1.36.2"
+  dependencies:
+    playwright-core: 1.36.2
+  bin:
+    playwright: cli.js
+  checksum: 5876b65a0f1303e45f99c7d120706af0ab808efd5d89c514741584ff1060408b62148ae2790c2e6527642f2b8f49db682710b87d3df7b3ba510e8e847e6041ef
   languageName: node
   linkType: hard
 
