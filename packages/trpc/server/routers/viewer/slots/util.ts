@@ -113,26 +113,16 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
-              credentials: true, // Don't leak credentials to the client
+              credentials: true,
               ...availabilityUserSelect,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
       },
       users: {
         select: {
-          credentials: true, // Don't leak credentials to the client
+          credentials: true,
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
@@ -164,13 +154,8 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     },
     select: {
       allowDynamicBooking: true,
-      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
+      credentials: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -190,8 +175,7 @@ export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
-/** This should be called getAvailableSlots */
-export async function getSchedule(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -234,6 +218,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (eventType.schedulingType && !!eventType.hosts?.length) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -253,7 +238,11 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        {
+          user: currentUser,
+          eventType,
+          currentSeats,
+        }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
@@ -421,8 +410,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         users: (eventType.hosts
           ? eventType.hosts.map((hostUserWithCredentials) => {
               const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
+              return user;
             })
           : eventType.users
         ).map((user) => user.username || ""),
