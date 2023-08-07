@@ -5,6 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,6 +18,7 @@ import {
   userMetadata as userMetadataSchema,
   bookerLayouts as bookerLayoutsSchema,
   BookerLayouts,
+  teamMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -32,12 +34,30 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   disableGuests: true,
   metadata: true,
   requiresConfirmation: true,
+  requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
   currency: true,
   seatsPerTimeSlot: true,
   bookingFields: true,
-  team: true,
+  team: {
+    select: {
+      parentId: true,
+      metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
+      slug: true,
+      name: true,
+      logo: true,
+      theme: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
+    },
+  },
   successRedirectUrl: true,
   workflows: {
     include: {
@@ -72,6 +92,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      organization: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
     },
   },
   hidden: true,
@@ -81,10 +107,11 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
+  org: string | null,
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
-
+  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -92,6 +119,7 @@ export const getPublicEvent = async (
         username: {
           in: usernameList,
         },
+        organization: orgQuery,
       },
       select: {
         username: true,
@@ -101,6 +129,12 @@ export const getPublicEvent = async (
         brandColor: true,
         darkBrandColor: true,
         theme: true,
+        organization: {
+          select: {
+            slug: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -125,10 +159,12 @@ export const getPublicEvent = async (
       enabledLayouts: [...bookerLayoutOptions],
       defaultLayout: BookerLayouts.MONTH_VIEW,
     } as BookerLayoutSettings;
+    const disableBookingTitle = !defaultEvent.isDynamic;
+    const unPublishedOrgUser = users.find((user) => user.organization?.slug === null);
 
     return {
       ...defaultEvent,
-      bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
+      bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
       locations: privacyFilteredLocations(locations),
@@ -144,19 +180,26 @@ export const getPublicEvent = async (
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
       },
+      entity: {
+        isUnpublished: unPublishedOrgUser !== undefined,
+        orgSlug: org,
+        name: unPublishedOrgUser?.organization?.name ?? null,
+      },
     };
   }
 
   const usersOrTeamQuery = isTeamEvent
     ? {
         team: {
-          slug: username,
+          ...getSlugOrRequestedSlug(username),
+          parent: orgQuery,
         },
       }
     : {
         users: {
           some: {
             username,
+            organization: orgQuery,
           },
         },
         team: null,
@@ -174,6 +217,7 @@ export const getPublicEvent = async (
   if (!event) return null;
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
 
   const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
   if (users === null) {
@@ -192,6 +236,16 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
     users,
+    entity: {
+      isUnpublished:
+        event.team?.slug === null ||
+        event.owner?.organization?.slug === null ||
+        event.team?.parent?.slug === null,
+      orgSlug: org,
+      teamSlug: (event.team?.slug || teamMetadata?.requestedSlug) ?? null,
+      name: (event.owner?.organization?.name || event.team?.parent?.name || event.team?.name) ?? null,
+    },
+    isDynamic: false,
   };
 };
 
@@ -207,20 +261,6 @@ function getProfileFromEvent(event: Event) {
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
-  if (!username) {
-    if (event.slug === "test") {
-      // @TODO: This is a temporary debug statement that should be removed asap.
-      throw new Error(
-        "Ciaran event error" +
-          JSON.stringify(team) +
-          " -- " +
-          JSON.stringify(hosts) +
-          " -- " +
-          JSON.stringify(owner)
-      );
-    }
-    throw new Error("Event has no username/team slug");
-  }
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});

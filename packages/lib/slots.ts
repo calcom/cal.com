@@ -161,46 +161,29 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-    let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
+    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+      ? range.start
+      : startTimeWithMinNotice;
 
-    let previousStartTime;
-    // check if we we already have slots on that day (in organizer's timezone)
-    if (
-      slots.length &&
-      dayjs
-        .utc(range.start)
-        .add(range.start.utcOffset())
-        .isSame(dayjs.utc(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
-    ) {
-      previousStartTime = slots[slots.length - 1].time;
-    }
+    let interval = 15;
 
-    if (!previousStartTime) {
-      let interval = 15;
+    const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
 
-      const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
-
-      for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-        if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-          interval = intervalsWithDefinedStartTimes[i];
-          break;
-        }
+    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+        interval = intervalsWithDefinedStartTimes[i];
+        break;
       }
-
-      slotStartTime =
-        slotStartTime.utc().minute() % interval !== 0
-          ? slotStartTime
-              .startOf("hour")
-              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-          : slotStartTime;
-    } else {
-      const minuteOffset =
-        Math.ceil(slotStartTime.diff(previousStartTime, "minutes") / frequency) * frequency;
-      slotStartTime = previousStartTime.add(minuteOffset, "minutes");
     }
+
+    slotStartTime =
+      slotStartTime.minute() % interval !== 0
+        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+        : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
@@ -209,10 +192,11 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").isAfter(rangeEnd)) {
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
-        time: slotStartTime.tz(timeZone),
+        time: slotStartTime,
       });
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }

@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
+  await createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
 
   res.redirect(getInstalledAppPath({ variant: config.variant, slug: config.slug }));
 }

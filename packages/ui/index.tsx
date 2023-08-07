@@ -8,6 +8,7 @@ export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export {
   Checkbox,
+  CheckboxField,
   EmailField,
   EmailInput,
   FieldsetLegend,
@@ -82,6 +83,7 @@ export type { AlertProps } from "./components/alert";
 export { Credits } from "./components/credits";
 export { Divider, VerticalDivider } from "./components/divider";
 export { EmptyScreen } from "./components/empty-screen";
+export { UnpublishedEntity } from "./components/unpublished-entity";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./components/list";
 export type { ListItemProps, ListProps } from "./components/list";
 export { HeadSeo } from "./components/head-seo";
@@ -135,3 +137,4 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
+export { DataTable } from "./components/data-table";

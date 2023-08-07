@@ -2,6 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import type { RouterOutputs } from "@calcom/trpc";
 import { Avatar, TextField } from "@calcom/ui";
 
@@ -19,7 +20,6 @@ export default function TeamInviteFromOrg({
   orgMembers,
 }: TeamInviteFromOrgProps) {
   const [searchQuery, setSearchQuery] = useState("");
-
   const filteredMembers = orgMembers?.filter((member) => {
     if (!searchQuery) {
       return true; // return all members if searchQuery is empty
@@ -65,12 +65,13 @@ function UserToInviteItem({
   isSelected: boolean;
   onChange: () => void;
 }) {
+  const bookerUrl = useBookerUrl();
   return (
     <div
       key={member.userId}
       onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
       className={classNames(
-        "flex cursor-pointer items-center rounded-md py-1 px-2",
+        "flex cursor-pointer items-center rounded-md px-2 py-1",
         isSelected ? "bg-emphasis" : "hover:bg-subtle "
       )}>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -78,7 +79,7 @@ function UserToInviteItem({
           size="sm"
           alt="Users avatar"
           asChild
-          imageSrc={`/api/user/${member.user.username}`}
+          imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
           gravatarFallbackMd5="hash"
         />
         <label

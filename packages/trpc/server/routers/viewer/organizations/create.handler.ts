@@ -4,7 +4,8 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { IS_CALCOM, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -47,7 +48,7 @@ const vercelCreateDomain = async (domain: string) => {
   return true;
 };
 
-export const createHandler = async ({ input }: CreateOptions) => {
+export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
   const userCollisions = await prisma.user.findUnique({
@@ -77,13 +78,33 @@ export const createHandler = async ({ input }: CreateOptions) => {
 
   const emailDomain = adminEmail.split("@")[1];
 
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
   if (check === false) {
+    if (IS_CALCOM) await vercelCreateDomain(slug);
+
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: adminUsername,
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
+        // Default schedule
+        schedules: {
+          create: {
+            name: t("default_schedule_name"),
+            availability: {
+              createMany: {
+                data: availability.map((schedule) => ({
+                  days: schedule.days,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime,
+                })),
+              },
+            },
+          },
+        },
         organization: {
           create: {
             name,
@@ -98,8 +119,6 @@ export const createHandler = async ({ input }: CreateOptions) => {
         },
       },
     });
-
-    if (IS_PRODUCTION) await vercelCreateDomain(slug);
 
     await prisma.membership.create({
       data: {
