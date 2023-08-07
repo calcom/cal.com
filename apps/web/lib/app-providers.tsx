@@ -81,6 +81,18 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
     },
     router: locale ? { locale } : props.router,
   } as unknown as ComponentProps<typeof I18nextAdapter>;
+
+  /**
+   * Prevent flash of untranslated content throughout the app by default.
+   * There are two cases possible
+   * 1. If i18n is prefetched server side, then we should have the data available in first render. So, no harm in returning null JSX as the condition won't hit.
+   * 2. If i18n isn't prefetched server side, then we should wait for the data to be fetched to avoid flash of untranslated content.
+   *    - i18n request is SWR'd so, except the first visit, it whould be almost immmediately available, not in the first render though,
+   *      as a network request is still made which responds from cache of the browser.
+   */
+  if (!i18n) {
+    return null;
+  }
   return <I18nextAdapter {...passedProps} />;
 };
 

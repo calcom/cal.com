@@ -63,7 +63,13 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
           session: "no-cache",
 
           // i18n data is user specific and thus should not be cached
-          i18n: "no-cache",
+          i18n: {
+            // Never cache it on any server/CDN as it is user specific
+            "cdn-cache-control": "no-cache",
+            // We can cache it for client, as for the client it won't change unless he changes the language in settings.
+            // So, if a client fetches on Day 1 and then even on Day 30 if he returns, he gets the cached response and thus faster experience.
+            "cache-control": `max-age=1, stale-while-revalidate=${30 * ONE_DAY_IN_SECONDS}`,
+          },
 
           // We want getSchedule to be fresh always, but we would let it be stale for 60 seconds in worst case without impacting the user experience
           // Note that, after 1 second, if getSchedule takes say 0.1s to respond, a request sent after 1.1s would get the fresh value of getSchedule.
@@ -84,9 +90,19 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         if (matchedPath) {
           const cacheRule = cacheRules[prependNamespace(matchedPath)];
 
-          // We must set cdn-cache-control as well to ensure that Vercel doesn't strip stale-while-revalidate
-          // https://vercel.com/docs/concepts/edge-network/caching#:~:text=If%20you%20set,in%20the%20response.
-          defaultHeaders.headers["cache-control"] = defaultHeaders.headers["cdn-cache-control"] = cacheRule;
+          if (typeof cacheRule === "string") {
+            // We must set cdn-cache-control as well to ensure that Vercel doesn't strip stale-while-revalidate
+            // https://vercel.com/docs/concepts/edge-network/caching#:~:text=If%20you%20set,in%20the%20response.
+            defaultHeaders.headers["cache-control"] = defaultHeaders.headers["cdn-cache-control"] = cacheRule;
+          } else {
+            if (cacheRule["cache-control"]) {
+              defaultHeaders.headers["cache-control"] = cacheRule["cache-control"];
+            }
+
+            if (cacheRule["cdn-cache-control"]) {
+              defaultHeaders.headers["cdn-cache-control"] = cacheRule["cdn-cache-control"];
+            }
+          }
         }
       }
 
