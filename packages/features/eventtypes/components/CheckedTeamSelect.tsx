@@ -45,7 +45,7 @@ export const CheckedTeamSelect = ({
           <li
             key={option.value}
             className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
-            <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+            <Avatar size="sm" imageSrc={option.avatar} alt={option.label || ""} />
             <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
             <X
               onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}

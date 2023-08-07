@@ -130,14 +130,7 @@ const Filter = (props: {
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
         <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
-          <Avatar
-            imageSrc={userAvatar || ""}
-            size="sm"
-            alt={user}
-            gravatarFallbackMd5="fallback"
-            className="self-center"
-            asChild
-          />
+          <Avatar imageSrc={userAvatar || ""} size="sm" alt={user || ""} className="self-center" asChild />
           <label
             htmlFor="yourWorkflows"
             className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
@@ -170,8 +163,7 @@ const Filter = (props: {
             <Avatar
               imageSrc={profile.image || ""}
               size="sm"
-              alt={profile.name}
-              gravatarFallbackMd5="fallback"
+              alt={profile.name || ""}
               className="self-center"
               asChild
             />

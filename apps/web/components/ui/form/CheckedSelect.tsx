@@ -40,7 +40,7 @@ export const CheckedSelect = ({
             className="inline ltr:mr-2 rtl:ml-2"
             size="sm"
             imageSrc={option.avatar}
-            alt={option.label}
+            alt={option.label || ""}
           />
           {option.label}
           <X

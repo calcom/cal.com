@@ -407,7 +407,7 @@ const ProfileForm = ({
             <>
               <Avatar
                 fallback={<Plus className="text-subtle h-6 w-6" />}
-                alt={defaultValues.name}
+                alt={defaultValues.name || ""}
                 imageSrc={value}
                 size="lg"
               />

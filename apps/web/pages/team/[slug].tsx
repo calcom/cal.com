@@ -177,7 +177,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
             <Avatar
-              alt={teamName}
+              alt={teamName || ""}
               imageSrc={getPlaceholderAvatar(team.parent ? team.parent.logo : team.logo, team.name)}
               size="lg"
             />

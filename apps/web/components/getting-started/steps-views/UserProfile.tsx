@@ -100,7 +100,7 @@ const UserProfile = () => {
       <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && (
           <Avatar
-            alt={user.username}
+            alt={user.username || ""}
             size="lg"
             imageSrc={imageSrc}
             fallback={<Plus className="text-subtle h-6 w-6" />}

@@ -15,7 +15,7 @@ export type AvatarProps = {
   size: "xxs" | "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
   imageSrc?: Maybe<string>;
   title?: string;
-  alt: string | null | undefined;
+  alt: string;
   href?: string;
   // gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;

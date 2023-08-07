@@ -45,7 +45,7 @@ export const CheckedUserSelect = ({
                   <li
                     key={option.value}
                     className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-b"}`}>
-                    <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+                    <Avatar size="sm" imageSrc={option.avatar} alt={option.label || ""} />
                     <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
                     <X
                       onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}

@@ -103,7 +103,7 @@ export const TeamsFilter = ({
                 }}
                 icon={
                   <Avatar
-                    alt={team?.name}
+                    alt={team?.name || ""}
                     imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
                     size="xs"
                   />
