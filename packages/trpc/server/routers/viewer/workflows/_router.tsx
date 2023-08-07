@@ -7,6 +7,7 @@ import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
+import { ZSendDigestInputSchema } from "./sendDigest.schema";
 import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
@@ -23,6 +24,7 @@ type WorkflowsRouterHandlerCache = {
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
+  sendDigest?: typeof import("./sendDigest.handler").sendDigestHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -211,6 +213,24 @@ export const workflowsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.filteredList({
+      ctx,
+      input,
+    });
+  }),
+  sendDigest: authedProcedure.input(ZSendDigestInputSchema).mutation(async ({ input, ctx }) => {
+    console.log("inside digestRouter");
+    if (!UNSTABLE_HANDLER_CACHE.sendDigest) {
+      UNSTABLE_HANDLER_CACHE.sendDigest = await import("./sendDigest.handler").then(
+        (mod) => mod.sendDigestHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.sendDigest) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.sendDigest({
       ctx,
       input,
     });

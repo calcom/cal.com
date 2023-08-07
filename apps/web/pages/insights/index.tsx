@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
@@ -35,6 +36,14 @@ const Heading = () => {
 export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
+  const sendEmailDigestCodeMutation = trpc.viewer.workflows.sendDigest.useMutation({
+    onSuccess() {
+      console.log("sent successfully");
+    },
+    onError() {
+      console.log("couldnt send");
+    },
+  });
 
   const features = [
     {
@@ -54,8 +63,21 @@ export default function InsightsPage() {
     },
   ];
 
+  const endTime = dayjs(new Date());
+  const startTime = endTime.subtract(1, "month");
+
   return (
     <div>
+      <button
+        onClick={() =>
+          sendEmailDigestCodeMutation.mutate({
+            userId: user.id,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+          })
+        }>
+        GET 30 day email digest
+      </button>
       <Shell hideHeadingOnMobile>
         <UpgradeTip
           title={t("make_informed_decisions")}

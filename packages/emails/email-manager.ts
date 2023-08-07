@@ -22,6 +22,8 @@ import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
+import type { DigestEmailType } from "./templates/email-digest";
+import DigestEmail from "./templates/email-digest";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
@@ -259,6 +261,10 @@ export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEv
   }
 
   await Promise.all(emailsToSend);
+};
+
+export const sendDigestEmail = async (digestEmail: DigestEmailType) => {
+  await sendEmail(() => new DigestEmail(digestEmail));
 };
 
 export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
