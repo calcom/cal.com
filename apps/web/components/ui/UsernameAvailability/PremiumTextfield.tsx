@@ -14,7 +14,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
 import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
@@ -290,7 +290,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-row-reverse gap-x-2">
+          <DialogFooter className="mt-4">
             {/* redirect to checkout */}
             {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
@@ -318,7 +318,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
               {t("cancel")}
             </DialogClose>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
