@@ -4026,6 +4026,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/debugging@workspace:packages/debugging":
+  version: 0.0.0-use.local
+  resolution: "@calcom/debugging@workspace:packages/debugging"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/discord@workspace:packages/app-store/discord":
   version: 0.0.0-use.local
   resolution: "@calcom/discord@workspace:packages/app-store/discord"
