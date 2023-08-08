@@ -37,7 +37,8 @@ export const useSchedule = ({
 
   const isValidOrgPropPassed = stringOrNullSchema.safeParse(org);
 
-  // we either have eventId or org, username, eventSlug, isTeamEvent to fetch eventId on the server
+  // we can get eventId on the server with org, username, eventSlug and isTeamEvent as input to getPublicEventId
+  // we can also pass eventId after fetching it from useEvent() hook
   const isEnabled =
     Boolean(username) &&
     Boolean(eventSlug) &&
