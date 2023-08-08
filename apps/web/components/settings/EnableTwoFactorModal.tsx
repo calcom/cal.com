@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, DialogFooter, Form, TextField, showToast } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, PasswordField, showToast } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -171,7 +171,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
-              <TextField
+              <PasswordField
                 label={t("password")}
                 type="password"
                 name="password"
