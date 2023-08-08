@@ -4,7 +4,7 @@ import type { CreateBtnProps } from "./CreateButton";
 import { CreateButton } from "./CreateButton";
 
 export function CreateButtonWithTeamsList(
-  props: Omit<CreateBtnProps, "options"> & { onlyShowWithTeams?: boolean; onlyShowWithNoTeams?: boolean }
+  props: Omit<CreateBtnProps, "options"> & { showOnlyWithTeams?: boolean; showOnlyWithNoTeams?: boolean }
 ) {
   const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
   if (!query.data) return null;
@@ -20,9 +20,9 @@ export function CreateButtonWithTeamsList(
       };
     });
 
-  if (props.onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
+  if (props.showOnlyWithTeams && teamsAndUserProfiles.length < 2) return null;
 
-  if (props.onlyShowWithNoTeams && teamsAndUserProfiles.length > 1) return null;
+  if (props.showOnlyWithNoTeams && teamsAndUserProfiles.length > 1) return null;
 
   return <CreateButton {...props} options={teamsAndUserProfiles} />;
 }
