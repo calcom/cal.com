@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
 import type { GroupBase, InputProps, OptionProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
@@ -32,7 +31,7 @@ type ExtendedOption = {
   label: string;
   needsUpgrade?: boolean;
   needsVerification?: boolean;
-  needsVerificationAction?: Dispatch<SetStateAction<boolean>>;
+  verificationAction?: () => void;
 };
 
 export const OptionComponent = <
@@ -53,7 +52,7 @@ export const OptionComponent = <
           <UpgradeTeamsBadge />
         ) : (props.data as unknown as ExtendedOption).needsVerification ? (
           <KYCVerificationBadge
-            verifyTeam={(props.data as unknown as ExtendedOption).needsVerificationAction}
+            verifyTeamAction={(props.data as unknown as ExtendedOption).verificationAction}
           />
         ) : (
           <></>

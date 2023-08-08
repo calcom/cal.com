@@ -41,7 +41,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
-  const [isKYCVerificationDialogOpen, setIsKYCVerificationDialogOpen] = useState(false);
+  const [isKYCVerificationDialogOpen, setKYCVerificationDialogOpen] = useState(false);
 
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -174,7 +174,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
-                setIsKYCVerificationDialogOpen={setIsKYCVerificationDialogOpen}
+                setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
               />
             </div>
           )}
@@ -191,7 +191,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
-                    setIsKYCVerificationDialogOpen={setIsKYCVerificationDialogOpen}
+                    setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
                   />
                 );
               })}
@@ -222,7 +222,7 @@ export default function WorkflowDetailsPage(props: Props) {
       />
       <KYCVerificationDialog
         isOpenDialog={isKYCVerificationDialogOpen}
-        setIsOpenDialog={setIsKYCVerificationDialogOpen}
+        setIsOpenDialog={setKYCVerificationDialogOpen}
         isPartOfTeam={!!isPartOfTeam.hasTeamPlan}
       />
       <DeleteDialog

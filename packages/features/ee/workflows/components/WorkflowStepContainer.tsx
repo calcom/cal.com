@@ -67,7 +67,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
-  setIsKYCVerificationDialogOpen?: Dispatch<SetStateAction<boolean>>;
+  setKYCVerificationDialogOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -339,7 +339,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       value: step.action,
       needsUpgrade: false,
       needsVerification: false,
-      needsVerificationAction: props.setIsKYCVerificationDialogOpen,
+      verificationAction: () => props.setKYCVerificationDialogOpen(true),
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -457,7 +457,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (isAttendeeAction(val.value) && isSMSOrWhatsappAction(val.value)) {
+                            if (isTextMessageToAttendeeAction(val.value)) {
                               setIsRequiresConfirmationNeeded(true);
                             } else {
                               setIsRequiresConfirmationNeeded(false);
@@ -530,7 +530,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
-                          needsVerificationAction: props.setIsKYCVerificationDialogOpen,
+                          verificationAction: () => props.setKYCVerificationDialogOpen(true),
                         }))}
                         isOptionDisabled={(option: {
                           label: string;

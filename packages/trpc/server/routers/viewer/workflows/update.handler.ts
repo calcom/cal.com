@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
 import {
-  isAttendeeAction,
   isSMSOrWhatsappAction,
+  isTextMessageToAttendeeAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
@@ -428,7 +428,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      if (!isKYCVerified && isAttendeeAction(newStep.action) && isSMSOrWhatsappAction(newStep.action)) {
+      if (!isKYCVerified && isTextMessageToAttendeeAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const requiresSender =
@@ -603,7 +603,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      if (isAttendeeAction(s.action) && isSMSOrWhatsappAction(s.action) && !isKYCVerified) {
+      if (isTextMessageToAttendeeAction(s.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const { id: _stepId, ...stepToAdd } = s;

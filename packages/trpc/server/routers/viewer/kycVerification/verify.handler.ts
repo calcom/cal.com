@@ -13,7 +13,6 @@ type VerifyOptions = {
 
 export const verifyHandler = async ({ ctx, input }: VerifyOptions) => {
   const { name, isTeam } = input;
-  console.log("name", JSON.stringify(input));
   if (isTeam) {
     const team = await prisma.team.findFirst({
       where: {
