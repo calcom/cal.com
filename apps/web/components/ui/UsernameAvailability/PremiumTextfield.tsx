@@ -50,7 +50,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,

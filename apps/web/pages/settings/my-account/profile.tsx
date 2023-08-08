@@ -77,7 +77,7 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
