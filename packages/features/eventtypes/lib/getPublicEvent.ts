@@ -254,8 +254,10 @@ export const getPublicEventId = async (
   eventSlug: string | undefined,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  eventTypeId?: number
 ) => {
+  if (eventTypeId) return eventTypeId;
   // In case of dynamic group event, there is no event id.
   if (!usernameList || (Array.isArray(usernameList) && usernameList.length > 1)) {
     return undefined;

@@ -189,16 +189,15 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   }
   const startPrismaEventTypeGet = performance.now();
 
-  if (!input.eventTypeId) {
-    const eventTypeId = await getPublicEventId(
-      input.usernameList,
-      input.eventTypeSlug,
-      input.isTeamEvent,
-      input?.org ?? null,
-      prisma
-    );
-    if (eventTypeId) input.eventTypeId = eventTypeId;
-  }
+  const eventTypeId = await getPublicEventId(
+    input.usernameList,
+    input.eventTypeSlug,
+    input.isTeamEvent,
+    input?.org ?? null,
+    prisma,
+    input.eventTypeId
+  );
+  if (eventTypeId) input.eventTypeId = eventTypeId;
 
   const eventType = await getRegularOrDynamicEventType(input);
   const endPrismaEventTypeGet = performance.now();
