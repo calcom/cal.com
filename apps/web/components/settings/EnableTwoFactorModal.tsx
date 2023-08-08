@@ -262,6 +262,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               <>
                 <Button
                   color="secondary"
+                  data-testid="backup-codes-close"
                   onClick={(e) => {
                     e.preventDefault();
                     resetState();
@@ -271,6 +272,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 </Button>
                 <Button
                   color="secondary"
+                  data-testid="backup-codes-copy"
                   onClick={(e) => {
                     e.preventDefault();
                     navigator.clipboard.writeText(backupCodes.map(formatBackupCode).join("\n"));
@@ -279,7 +281,9 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                   {t("copy")}
                 </Button>
                 <a download="cal-backup-codes.txt" href={backupCodesUrl}>
-                  <Button color="primary">{t("download")}</Button>
+                  <Button color="primary" data-testid="backup-codes-download">
+                    {t("download")}
+                  </Button>
                 </a>
               </>
             </WithStep>
