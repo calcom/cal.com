@@ -34,6 +34,7 @@ jobs:
           yarn e2e:embed-react --shard=${{ matrix.shard }}/${{ strategy.job-total }}
           yarn workspace @calcom/embed-react packaged:tests
         env:
+          ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}

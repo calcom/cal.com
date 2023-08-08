@@ -2,7 +2,7 @@ import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 
@@ -12,22 +12,33 @@ const querySchema = z
   .object({
     username: z.string(),
     teamname: z.string(),
+    /**
+     * Allow fetching avatar of a particular organization
+     * Avatars being public, we need not worry about others accessing it.
+     */
+    orgId: z.string().transform((s) => Number(s)),
   })
   .partial();
 
 async function getIdentityData(req: NextApiRequest) {
-  const { username, teamname } = querySchema.parse(req.query);
+  const { username, teamname, orgId } = querySchema.parse(req.query);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
+
   const org = isValidOrgDomain ? currentOrgDomain : null;
+
+  const orgQuery = orgId
+    ? {
+        id: orgId,
+      }
+    : org
+    ? getSlugOrRequestedSlug(org)
+    : null;
+
   if (username) {
     const user = await prisma.user.findFirst({
       where: {
         username,
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
+        organization: orgQuery,
       },
       select: { avatar: true, email: true },
     });
@@ -42,11 +53,7 @@ async function getIdentityData(req: NextApiRequest) {
     const team = await prisma.team.findFirst({
       where: {
         slug: teamname,
-        parent: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
+        parent: orgQuery,
       },
       select: { logo: true },
     });

@@ -179,6 +179,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
             seatsShowAttendees: true,
             team: {
               select: {
+                id: true,
                 name: true,
               },
             },

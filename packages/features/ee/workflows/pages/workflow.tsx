@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,15 +11,20 @@ import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
-import { TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents, MembershipRole } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  TimeUnit,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
+import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -82,6 +87,7 @@ function WorkflowPage() {
   const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
+  const params = useParamsWithFallback();
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -92,7 +98,7 @@ function WorkflowPage() {
     resolver: zodResolver(formSchema),
   });
 
-  const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
+  const { workflow: workflowId } = params ? querySchema.parse(params) : { workflow: -1 };
   const utils = trpc.useContext();
 
   const userQuery = useMeQuery();
@@ -106,7 +112,7 @@ function WorkflowPage() {
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: router.isReady && !!workflowId,
+      enabled: !!workflowId,
     }
   );
 
@@ -186,7 +192,7 @@ function WorkflowPage() {
           "success"
         );
       }
-      await router.push("/workflows");
+      router.push("/workflows");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -245,7 +251,7 @@ function WorkflowPage() {
             });
           }
           updateMutation.mutate({
-            id: parseInt(router.query.workflow as string, 10),
+            id: workflowId,
             name: values.name,
             activeOn: activeOnEventTypeIds,
             steps: values.steps,

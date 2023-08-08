@@ -11,9 +11,11 @@ import z from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { getLocationValueForDB } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import {
+  getLocationValueForDB,
+  MeetLocationType,
+  OrganizerDefaultConferencingAppType,
+} from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -26,8 +28,8 @@ import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
-  sendScheduledEmails,
   sendRescheduledSeatEmail,
+  sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -38,8 +40,8 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import {
-  scheduleWorkflowReminders,
   cancelWorkflowReminders,
+  scheduleWorkflowReminders,
 } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -47,7 +49,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -65,9 +67,9 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
   bookingCreateBodySchemaForApi,
+  bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
@@ -259,6 +261,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodDays: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      requiresBookerEmailVerification: true,
       userId: true,
       price: true,
       currency: true,
@@ -652,9 +655,7 @@ async function handler(
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
-  const dynamicUserList = Array.isArray(reqBody.user)
-    ? getGroupName(reqBody.user)
-    : getUsernameList(reqBody.user);
+  const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const isTeamEventType =
@@ -865,6 +866,8 @@ async function handler(
     {
       email: bookerEmail,
       name: fullName,
+      firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
+      lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -878,6 +881,8 @@ async function handler(
     guestArray.push({
       email: guest,
       name: "",
+      firstName: "",
+      lastName: "",
       timeZone: reqBody.timeZone,
       language: { translate: tGuests, locale: "en" },
     });
@@ -889,8 +894,11 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  const bookingLocation = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
-    ? organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+  const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    ? {
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
@@ -963,6 +971,7 @@ async function handler(
     userFieldsResponses: calEventUserFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
+    conferenceCredentialId,
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1663,6 +1672,7 @@ async function handler(
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
+        seatReferenceUid: evt.attendeeSeatId,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
@@ -2305,6 +2315,7 @@ async function handler(
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
@@ -2384,6 +2395,7 @@ const findBookingQuery = async (bookingId: number) => {
           currency: true,
           length: true,
           requiresConfirmation: true,
+          requiresBookerEmailVerification: true,
           price: true,
         },
       },

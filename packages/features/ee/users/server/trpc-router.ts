@@ -30,8 +30,7 @@ const userBodySchema = User.pick({
   identityProvider: true,
   // away: true,
   role: true,
-  // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.
-  // avatar: true,
+  avatar: true,
 });
 
 /** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */

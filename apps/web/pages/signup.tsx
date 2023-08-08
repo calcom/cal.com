@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -40,10 +40,10 @@ type FormValues = z.infer<typeof signupSchema>;
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
-  const { t, i18n } = useLocale();
-  const router = useRouter();
-  const flags = useFlagMap();
+  const searchParams = useSearchParams();
   const telemetry = useTelemetry();
+  const { t, i18n } = useLocale();
+  const flags = useFlagMap();
   const methods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
@@ -79,8 +79,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: `${
-            router.query.callbackUrl
-              ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+            searchParams?.get("callbackUrl")
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
               : `${WEBAPP_URL}/${verifyOrGettingStarted}`
           }?from=signup`,
         });
@@ -160,8 +160,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: router.query.callbackUrl
-                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          callbackUrl: searchParams?.get("callbackUrl")
+                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
