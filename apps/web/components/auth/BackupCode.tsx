@@ -19,6 +19,8 @@ export default function TwoFactor({ center = true }) {
         label=""
         defaultValue=""
         placeholder="XXXXX-XXXXX"
+        minLength={10} // without dash
+        maxLength={11} // with dash
         required
         {...methods.register("backupCode")}
       />
