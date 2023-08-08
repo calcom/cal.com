@@ -1,5 +1,8 @@
 import { expect } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/client";
+
 import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
@@ -386,6 +389,66 @@ test.describe("BOOKING_REQUESTED", async () => {
     });
 
     webhookReceiver.close();
+  });
+});
+
+test.describe("BOOKING_RESCHEDULED", async () => {
+  test("can reschedule a booking and get a booking rescheduled event", async ({ page, users, bookings }) => {
+    const webhookReceiver = createHttpServer();
+
+    // --- create a user
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+
+    // --- login as that user
+    await user.apiLogin();
+
+    await page.goto(`/settings/developer/webhooks`);
+
+    // --- add webhook
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+    await page.fill('[name="secret"]', "secret");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    // page contains the url
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+
+    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } })!;
+    expect(newBooking).not.toBeNull();
+
+    // --- check that webhook was called
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
+
+    const [request] = webhookReceiver.requestList;
+
+    expect(request.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        uid: newBooking?.uid,
+      },
+    });
   });
 });
 
