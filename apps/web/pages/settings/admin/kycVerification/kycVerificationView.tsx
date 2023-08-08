@@ -47,7 +47,7 @@ export const KYCVerificationView = () => {
               className="-mt-2 "
               required
             />
-            <Button type="submit ml-2">Verify</Button>
+            <Button type="submit">Verify</Button>
           </div>
         </Form>
       </div>
