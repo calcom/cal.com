@@ -261,7 +261,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <WithStep step={SetupStep.DisplayBackupCodes} current={step}>
               <>
                 <a download="cal-backup-codes.txt" href={backupCodesUrl}>
-                  <Button color="secondary">Download</Button>
+                  <Button color="secondary">{t("download")}</Button>
                 </a>
 
                 <Button
@@ -271,7 +271,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                     navigator.clipboard.writeText(backupCodes.map(formatBackupCode).join("\n"));
                     showToast(t("backup_codes_copied"), "success");
                   }}>
-                  Copy
+                  {t("copy")}
                 </Button>
                 <Button
                   type="submit"
