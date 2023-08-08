@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
-import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { classNames } from "@calcom/lib";
 
@@ -24,7 +23,7 @@ export function Calendar(props: CalendarComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
   const initalState = useCalendarStore((state) => state.initState);
-  const { timezone, timeFormat } = useTimePreferences();
+  const { timezone } = useTimePreferences();
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);
@@ -34,10 +33,8 @@ export function Calendar(props: CalendarComponentProps) {
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
 
-  const days = useMemo(
-    () => getDaysBetweenDates(startDate, endDate, timezone),
-    [startDate, endDate, timezone]
-  );
+  const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
+
   const hours = useMemo(
     () => getHoursToDisplay(startHour || 0, endHour || 23, timezone),
     [startHour, endHour, timezone]
@@ -117,7 +114,7 @@ export function Calendar(props: CalendarComponentProps) {
                         {availableTimeslots ? (
                           <AvailableCellsForDay
                             key={days[i].toISOString()}
-                            day={dayjs(days[i]).tz(timezone)}
+                            day={days[i]}
                             startHour={startHour}
                             availableSlots={availableTimeslots}
                           />
@@ -128,11 +125,12 @@ export function Calendar(props: CalendarComponentProps) {
                               return (
                                 <EmptyCell
                                   key={key}
-                                  day={dayjs(days[i]).tz(timezone)}
+                                  day={days[i]}
                                   gridCellIdx={j}
                                   totalGridCells={numberOfGridStopsPerDay}
                                   selectionLength={endHour - startHour}
                                   startHour={startHour}
+                                  timezone={timezone}
                                 />
                               );
                             })}

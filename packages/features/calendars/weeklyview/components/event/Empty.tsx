@@ -17,20 +17,18 @@ type EmptyCellProps = GridCellToDateProps & {
 };
 
 export function EmptyCell(props: EmptyCellProps) {
-  const { timeFormat, timezone } = useTimePreferences();
-
   const cellToDate = gridCellToDateTime({
     day: props.day,
     gridCellIdx: props.gridCellIdx,
     totalGridCells: props.totalGridCells,
     selectionLength: props.selectionLength,
     startHour: props.startHour,
+    timezone: props.timezone,
   });
 
-  const minuesFromStart =
-    (cellToDate.toDate().getHours() - props.startHour) * 60 + cellToDate.toDate().getMinutes();
+  const minuesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
 
-  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={dayjs(cellToDate).tz(timezone)} />;
+  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
 }
 
 type AvailableCellProps = {
@@ -51,7 +49,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
         topOffsetMinutes:
           (dayjs(slot.start).tz(timezone).hour() - startHour) * 60 + dayjs(slot.start).tz(timezone).minute(),
       })),
-    [slotsForToday, startHour]
+    [slotsForToday, startHour, timezone]
   );
 
   if (!availableSlots) return null;
@@ -62,7 +60,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
         return (
           <Cell
             key={slot.slot?.start}
-            timeSlot={dayjs(slot.slot.start)}
+            timeSlot={dayjs(slot.slot.start).tz(timezone)}
             topOffsetMinutes={slot.topOffsetMinutes}
           />
         );
@@ -78,7 +76,7 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  const { timeFormat, timezone } = useTimePreferences();
+  const { timeFormat } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
@@ -87,10 +85,6 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
     }),
     shallow
   );
-
-  const dayjsObj = dayjs(timeSlot);
-  const timezoneOffset = dayjsObj.tz(timezone).utcOffset();
-  const jsDateObj = dayjsObj.utcOffset(timezoneOffset).toDate();
 
   return (
     <div
@@ -108,7 +102,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
       }}
       onClick={() => {
-        onEmptyCellClick && onEmptyCellClick(jsDateObj);
+        onEmptyCellClick && onEmptyCellClick(timeSlot.toDate());
       }}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
@@ -124,7 +118,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
           }}>
-          <div className="overflow-ellipsis leading-[0]">{timeSlot.tz(timezone).format(timeFormat)}</div>
+          <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
     </div>

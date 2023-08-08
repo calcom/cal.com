@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 
-import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
@@ -21,7 +20,6 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
   });
-  const { timezone } = useTimePreferences();
 
   const event = useEvent();
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
@@ -41,9 +39,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     return availableTimeslots;
   }, [schedule, eventDuration]);
 
-  const startDate = selectedDate ? dayjs(selectedDate).tz(timezone).toDate() : dayjs().toDate();
+  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
   const endDate = dayjs(startDate)
-    .tz(timezone)
     .add(extraDays - 1, "day")
     .toDate();
 

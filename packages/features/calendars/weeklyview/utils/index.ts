@@ -13,11 +13,12 @@ export function weekdayDates(weekStart = 0, startDate: Date, length = 6) {
   };
 }
 export type GridCellToDateProps = {
-  day: Date;
+  day: dayjs.Dayjs;
   gridCellIdx: number;
   totalGridCells: number;
   selectionLength: number;
   startHour: number;
+  timezone: string;
 };
 
 export function gridCellToDateTime({
@@ -26,6 +27,7 @@ export function gridCellToDateTime({
   totalGridCells,
   selectionLength,
   startHour,
+  timezone,
 }: GridCellToDateProps) {
   // endHour - startHour = selectionLength
   const minutesInSelection = (selectionLength + 1) * 60;
@@ -35,25 +37,25 @@ export function gridCellToDateTime({
   // Add startHour since we use StartOfDay for day props. This could be improved by changing the getDaysBetweenDates function
   // To handle the startHour+endHour
   const cellDateTime = dayjs(day)
-    .tz("Asia/Kolkata")
+    .tz(timezone)
     .startOf("day")
     .add(minutesIntoSelection, "minutes")
     .add(startHour, "hours");
   return cellDateTime;
 }
 
-export function getDaysBetweenDates(dateFrom: Date, dateTo: Date, timezone?: string) {
+export function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
   const dates = []; // this is as dayjs date
-
-  let startDate = dayjs(dateFrom).tz(timezone).hour(0).minute(0).second(0).millisecond(0);
+  let startDate = dayjs(dateFrom).hour(0).minute(0).second(0).millisecond(0);
 
   dates.push(startDate);
-  const endDate = dayjs(dateTo).tz(timezone).hour(0).minute(0).second(0).millisecond(0);
+  const endDate = dayjs(dateTo).hour(0).minute(0).second(0).millisecond(0);
 
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "day"));
     startDate = startDate.add(1, "day");
   }
+
   return dates.slice(0, 7);
 }
 
@@ -72,7 +74,7 @@ export function getHoursToDisplay(startHour: number, endHour: number, timezone?:
 export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
   //Sort the date ranges by start date
   dateRanges.sort((a, b) => {
-    return a.start.getTime() - b.start.getTime();
+    return dayjs(a.start).valueOf() - dayjs(b.start).valueOf();
   });
   //Create a new array to hold the merged date ranges
   const mergedDateRanges = [];
@@ -87,7 +89,7 @@ export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
       //Get the current date range
       const currentDateRange = dateRanges[i];
       //If the last merged date range overlaps with the current date range, merge them
-      if (lastMergedDateRange.end.getTime() >= currentDateRange.start.getTime()) {
+      if (dayjs(lastMergedDateRange.end).valueOf() >= dayjs(currentDateRange.start).valueOf()) {
         lastMergedDateRange.end = currentDateRange.end;
       } else {
         //Otherwise, add the current date range to the merged date ranges array
