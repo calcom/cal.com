@@ -74,7 +74,7 @@ export function getHoursToDisplay(startHour: number, endHour: number, timezone?:
 export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
   //Sort the date ranges by start date
   dateRanges.sort((a, b) => {
-    return dayjs(a.start).valueOf() - dayjs(b.start).valueOf();
+    return a.start.getTime() - b.start.getTime();
   });
   //Create a new array to hold the merged date ranges
   const mergedDateRanges = [];
@@ -89,7 +89,7 @@ export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
       //Get the current date range
       const currentDateRange = dateRanges[i];
       //If the last merged date range overlaps with the current date range, merge them
-      if (dayjs(lastMergedDateRange.end).valueOf() >= dayjs(currentDateRange.start).valueOf()) {
+      if (lastMergedDateRange.end.getTime() >= currentDateRange.start.getTime()) {
         lastMergedDateRange.end = currentDateRange.end;
       } else {
         //Otherwise, add the current date range to the merged date ranges array
