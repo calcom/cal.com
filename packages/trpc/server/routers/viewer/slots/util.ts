@@ -70,9 +70,31 @@ export const checkIfIsAvailable = ({
 };
 
 export async function getEventType(input: TGetScheduleInputSchema) {
+  let eventTypeId = input.eventTypeId;
+  // If we only have the slug and usernameList, we need to get the id first
+  if (input.eventTypeId === undefined && input.eventTypeSlug && input.usernameList) {
+    const eventType = await prisma.eventType.findFirst({
+      where: {
+        slug: input.eventTypeSlug,
+        users: {
+          some: {
+            username: input.usernameList && input.usernameList[0],
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!eventType) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+    eventTypeId = eventType.id;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -175,7 +197,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
 }
 
 export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
@@ -237,7 +259,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
