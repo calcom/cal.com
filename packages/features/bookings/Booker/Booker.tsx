@@ -166,7 +166,7 @@ const BookerComponent = ({
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
   return (
-    <>
+    <div className={bookerState === "loading" ? "invisible" : "visible"}>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
@@ -301,7 +301,7 @@ const BookerComponent = ({
         visible={bookerState === "booking" && shouldShowFormInDialog}
         onCancel={() => setSelectedTimeslot(null)}
       />
-    </>
+    </div>
   );
 };
 

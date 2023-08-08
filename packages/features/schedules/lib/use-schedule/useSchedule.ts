@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import dayjs from "@calcom/dayjs";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
@@ -5,14 +7,16 @@ import { trpc } from "@calcom/trpc/react";
 type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
-  eventId?: number;
   month?: string | null;
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
-  org?: string | null;
   isTeamEvent: boolean;
+  eventId?: number;
+  org?: string | null;
 };
+
+const stringOrNullSchema = z.union([z.string(), z.null()]);
 
 export const useSchedule = ({
   month,
@@ -31,6 +35,16 @@ export const useSchedule = ({
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typscript.
 
+  const isValidOrgPropPassed = stringOrNullSchema.safeParse(org);
+
+  // we either have eventId or org, username, eventSlug, isTeamEvent to fetch eventId on the server
+  const isEnabled =
+    Boolean(username) &&
+    Boolean(eventSlug) &&
+    Boolean(month) &&
+    Boolean(timezone) &&
+    (Boolean(eventId) || eventId === 0 || isValidOrgPropPassed.success);
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       usernameList: getUsernameList(username ?? ""),
@@ -48,7 +62,7 @@ export const useSchedule = ({
     },
     {
       refetchOnWindowFocus: false,
-      enabled: Boolean(username) && Boolean(eventSlug) && Boolean(month) && Boolean(timezone),
+      enabled: isEnabled,
     }
   );
 };
