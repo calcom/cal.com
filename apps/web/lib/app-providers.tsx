@@ -17,7 +17,7 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
-import usePublicPage from "@lib/hooks/usePublicPage";
+import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
@@ -249,7 +249,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     },
   }).data;
   // No need to have intercom on public pages - Good for Page Performance
-  const isPublicPage = usePublicPage();
+  const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
   const { _nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
@@ -269,7 +269,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
               themeBasis={props.pageProps.themeBasis}
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage}
+              isBookingPage={props.Component.isBookingPage || isBookingPage}
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
@@ -283,7 +283,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     </EventCollectionProvider>
   );
 
-  if (isPublicPage) {
+  if (isBookingPage) {
     return RemainingProviders;
   }
 
