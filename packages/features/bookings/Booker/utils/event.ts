@@ -1,11 +1,9 @@
 import { shallow } from "zustand/shallow";
 
-import dayjs from "@calcom/dayjs";
 import { useSchedule } from "@calcom/features/schedules";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-import { timezoneLocalStorageKey, useTimePreferences } from "../../lib/timePreferences";
+import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 
 /**
@@ -54,9 +52,7 @@ export const useScheduleForEvent = ({
   month?: string | null;
   duration?: number | null;
 } = {}) => {
-  useTimePreferences();
-
-  const timezone = localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess();
+  const { timezone } = useTimePreferences();
   const event = useEvent();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
