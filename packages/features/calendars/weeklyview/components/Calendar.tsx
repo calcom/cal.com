@@ -34,10 +34,13 @@ export function Calendar(props: CalendarComponentProps) {
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
 
-  const days = useMemo(() => getDaysBetweenDates(startDate, endDate, timezone), [startDate, endDate]);
+  const days = useMemo(
+    () => getDaysBetweenDates(startDate, endDate, timezone),
+    [startDate, endDate, timezone]
+  );
   const hours = useMemo(
     () => getHoursToDisplay(startHour || 0, endHour || 23, timezone),
-    [startHour, endHour]
+    [startHour, endHour, timezone]
   );
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
