@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter } from "@calcom/ui";
 import { Check, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
@@ -176,7 +176,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               </div>
             </div>
           </div>
-          <div className="ml-4 mt-4 flex flex-row-reverse gap-x-2">
+
+          <DialogFooter className="mt-4">
             <Button
               type="button"
               loading={updateUsernameMutation.isLoading}
@@ -188,7 +189,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
               {t("cancel")}
             </DialogClose>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
