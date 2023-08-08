@@ -1,4 +1,3 @@
-import formbricks from "@formbricks/js";
 import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -23,7 +22,13 @@ import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBann
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { initFormbricks } from "@calcom/lib/formbricks";
+import {
+  logoutFormbricks,
+  initFormbricks,
+  setFormbricksAttribute,
+  setFormbricksEmail,
+  setFormbricksUserId,
+} from "@calcom/lib/formbricks";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -173,16 +178,16 @@ function useFormbricks() {
   useEffect(() => {
     if (!isLoading && user) {
       initFormbricks();
-      formbricks.setUserId(user.id.toString());
-      formbricks.setEmail(user.email);
+      setFormbricksUserId(user.id.toString());
+      setFormbricksEmail(user.email);
       if (user?.name) {
-        formbricks.setAttribute("name", user.name);
+        setFormbricksAttribute("name", user.name);
       }
       if (user?.username) {
-        formbricks.setAttribute("username", user?.username);
+        setFormbricksAttribute("username", user.username);
       }
-      if (user?.organization?.isOrgAdmin) {
-        formbricks.setAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
+      if (typeof user?.organization?.isOrgAdmin !== "undefined") {
+        setFormbricksAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
       }
     }
   }, [isLoading, user]);
@@ -503,7 +508,10 @@ function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+                    onClick={() => {
+                      logoutFormbricks();
+                      signOut({ callbackUrl: "/auth/logout" });
+                    }}>
                     {t("sign_out")}
                   </DropdownItem>
                 </DropdownMenuItem>

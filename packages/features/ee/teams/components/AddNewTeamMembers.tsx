@@ -7,6 +7,7 @@ import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/Invite
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -168,6 +169,7 @@ export const AddNewTeamMembersForm = ({
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
+          trackFormbricksAction("team_publish", { teamId: teamId.toString() });
         }}>
         {t("team_publish")}
       </Button>

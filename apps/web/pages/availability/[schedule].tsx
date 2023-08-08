@@ -7,6 +7,7 @@ import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/sche
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -291,6 +292,7 @@ export default function Availability() {
                 dateOverrides: dateOverrides.flatMap((override) => override.ranges),
                 ...values,
               });
+            trackFormbricksAction("availability_updated");
           }}
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
           <div className="flex-1 flex-row xl:mr-0">

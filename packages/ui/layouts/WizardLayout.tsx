@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { initFormbricks } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, SkeletonText, StepCard, Steps } from "@calcom/ui";
 
@@ -26,6 +27,10 @@ export function WizardLayout({
       subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
     });
   }, [pathname]);
+
+  useEffect(() => {
+    initFormbricks();
+  }, []);
 
   return (
     <div
