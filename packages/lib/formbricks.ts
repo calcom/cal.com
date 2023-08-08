@@ -29,7 +29,7 @@ export const setFormbricksAttribute = (key: string, value: string | number | boo
   }
 };
 
-export const trackFormbricksAction = (eventName: string, properties: Record<string, string>) => {
+export const trackFormbricksAction = (eventName: string, properties: Record<string, string> = {}) => {
   if (process.env.NEXT_PUBLIC_FORMBRICKS) {
     formbricks.track(eventName, properties);
   }

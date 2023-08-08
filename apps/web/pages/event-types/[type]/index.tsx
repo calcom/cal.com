@@ -13,6 +13,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -505,6 +506,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               metadata,
               customInputs,
             });
+            trackFormbricksAction("event-type_updated");
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>

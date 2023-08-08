@@ -174,10 +174,12 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
 
 function useFormbricks() {
   const { data: user, isLoading } = useMeQuery();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isLoading && user && session) {
       initFormbricks();
+      // set Formbricks attributes for targeted surveys
       setFormbricksUserId(user.id.toString());
       setFormbricksEmail(user.email);
       if (user?.name) {
@@ -186,11 +188,14 @@ function useFormbricks() {
       if (user?.username) {
         setFormbricksAttribute("username", user.username);
       }
+      if (typeof session?.user?.belongsToActiveTeam !== "undefined") {
+        setFormbricksAttribute("belongsToActiveTeam", session.user.belongsToActiveTeam?.toString());
+      }
       if (typeof user?.organization?.isOrgAdmin !== "undefined") {
-        setFormbricksAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
+        setFormbricksAttribute("isOrganizationAdmin", user.organization?.isOrgAdmin.toString());
       }
     }
-  }, [isLoading, user]);
+  }, [isLoading, user, status]);
 }
 
 function useRedirectToOnboardingIfNeeded() {

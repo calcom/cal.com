@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import { setFormbricksAttribute } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -108,6 +109,13 @@ const MembersView = () => {
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+
+  useEffect(() => {
+    // set Formbricks attribute for targeted surveys
+    if (!isTeamsLoading && isAdmin && team?.members.length >= 10) {
+      setFormbricksAttribute("hasBigTeam", "true");
+    }
+  }, [team, isTeamsLoading, isAdmin]);
 
   return (
     <>
