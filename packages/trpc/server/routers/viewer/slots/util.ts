@@ -261,19 +261,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     })
   );
 
-  // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
-  );
-  const getAggregateWorkingHoursSpan = tracer.startSpan(
-    "getAggregateWorkingHours",
-    undefined,
-    context.active()
-  );
-
-  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
-  getAggregateWorkingHoursSpan.end();
-
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
