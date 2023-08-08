@@ -63,7 +63,7 @@ function WorkflowsPage() {
             }}
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
-            showOnlyWithNoTeams={true}
+            onlyShowWithNoTeams={true}
           />
         ) : null
       }>
@@ -78,7 +78,7 @@ function WorkflowsPage() {
                   createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                   isLoading={createMutation.isLoading}
                   disableMobileButton={true}
-                  showOnlyWithTeams={true}
+                  onlyShowWithTeams={true}
                 />
               </div>
             </div>

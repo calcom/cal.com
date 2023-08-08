@@ -21,7 +21,7 @@ const runtimeMock = async (data: Array<any>) => {
   mockedLib.trpc = updatedTrcp;
 };
 const renderCreateButton = (
-  props: Omit<CreateBtnProps, "options"> & { showOnlyWithTeams?: boolean; showOnlyWithNoTeams?: boolean }
+  props: Omit<CreateBtnProps, "options"> & { onlyShowWithTeams?: boolean; onlyShowWithNoTeams?: boolean }
 ) => {
   return render(<CreateButtonWithTeamsList {...props} />);
 };
@@ -72,8 +72,8 @@ describe("Create Button Tests", () => {
       expect(createFunction).toBeCalled();
     });
 
-    test("Should render nothing when teamsAndUserProfiles is less than 2 and showOnlyWithTeams is true", () => {
-      renderCreateButton({ showOnlyWithTeams: true });
+    test("Should render nothing when teamsAndUserProfiles is less than 2 and onlyShowWithTeams is true", () => {
+      renderCreateButton({ onlyShowWithTeams: true });
 
       expect(screen.queryByTestId("create-button")).not.toBeInTheDocument();
       expect(screen.queryByTestId("create-button-dropdown")).not.toBeInTheDocument();
@@ -111,8 +111,8 @@ describe("Create Button Tests", () => {
         expect(createFunction).toBeCalled();
       });
 
-      test("Should render nothing when teamsAndUserProfiles is greater than 1 and showOnlyWithNoTeams is true", () => {
-        renderCreateButton({ showOnlyWithNoTeams: true });
+      test("Should render nothing when teamsAndUserProfiles is greater than 1 and onlyShowWithNoTeams is true", () => {
+        renderCreateButton({ onlyShowWithNoTeams: true });
 
         expect(screen.queryByTestId("create-button")).not.toBeInTheDocument();
         expect(screen.queryByTestId("create-button-dropdown")).not.toBeInTheDocument();
