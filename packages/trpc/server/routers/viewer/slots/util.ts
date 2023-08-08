@@ -1,7 +1,6 @@
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
-import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -150,7 +149,11 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   const users = await prisma.user.findMany({
     where: {
       username: {
-        in: input.usernameList,
+        in: Array.isArray(input.usernameList)
+          ? input.usernameList
+          : input.usernameList
+          ? [input.usernameList]
+          : [],
       },
     },
     select: {
@@ -226,8 +229,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
       );
       const {
         busy,
-        workingHours,
-        dateOverrides,
         dateRanges,
         currentSeats: _currentSeats,
         timeZone,
@@ -253,8 +254,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
       userAvailabilitySpan.end();
       return {
         timeZone,
-        workingHours,
-        dateOverrides,
         dateRanges,
         busy,
         user: currentUser,
@@ -298,8 +297,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
-    workingHours,
-    dateOverrides,
     offsetStart: eventType.offsetStart,
     dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
