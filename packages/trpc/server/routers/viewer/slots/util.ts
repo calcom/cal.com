@@ -191,7 +191,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
 
   if (!input.eventTypeId) {
     const eventTypeId = await getPublicEventId(
-      username,
+      input.usernameList,
       input.eventTypeSlug,
       input.isTeamEvent,
       input?.org ?? null,
