@@ -1,3 +1,4 @@
+import formbricks from "@formbricks/js";
 import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -22,6 +23,7 @@ import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBann
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { initFormbricks } from "@calcom/lib/formbricks";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -165,6 +167,21 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
   );
 }
 
+function useFormbricks() {
+  const { data: user, isLoading } = useMeQuery();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      initFormbricks();
+      formbricks.setUserId(user.id.toString());
+      formbricks.setEmail(user.email);
+      formbricks.setAttribute("name", user?.name);
+      formbricks.setAttribute("username", user?.username);
+      formbricks.setAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
+    }
+  }, [isLoading, user]);
+}
+
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
@@ -192,6 +209,8 @@ function useRedirectToOnboardingIfNeeded() {
 const Layout = (props: LayoutProps) => {
   const [bannersHeight, setBannersHeight] = useState<number>(0);
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  useFormbricks();
 
   return (
     <>
