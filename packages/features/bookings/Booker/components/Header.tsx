@@ -57,7 +57,7 @@ export function Header({
     return <LayoutToggleWithData />;
   }
 
-  const endDate = selectedDate.add(extraDays, "days");
+  const endDate = selectedDate.add(extraDays - 1, "days");
 
   const isSameMonth = () => {
     return selectedDate.format("MMM") === endDate.format("MMM");

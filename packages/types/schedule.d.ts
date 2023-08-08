@@ -1,7 +1,7 @@
 export type TimeRange = {
   userId?: number | null;
-  start: string;
-  end: string;
+  start: Date;
+  end: Date;
 };
 
 export type Schedule = TimeRange[][];

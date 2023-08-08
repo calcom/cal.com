@@ -56,10 +56,10 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
 
   return (
     <>
-      {slots?.map((slot) => {
+      {slots?.map((slot, index) => {
         return (
           <Cell
-            key={slot.slot?.start}
+            key={index}
             timeSlot={dayjs(slot.slot.start).tz(timezone)}
             topOffsetMinutes={slot.topOffsetMinutes}
           />

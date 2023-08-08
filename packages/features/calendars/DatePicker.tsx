@@ -169,10 +169,7 @@ const Days = ({
   return (
     <>
       {days.map((day, idx) => (
-        <div
-          data-test={day?.format()}
-          key={day === null ? `e-${idx}` : `day-${day.format()}`}
-          className="relative w-full pt-[100%]">
+        <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (

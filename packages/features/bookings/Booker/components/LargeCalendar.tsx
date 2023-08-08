@@ -2,15 +2,10 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
-
-export type availableTimeslotsType = {
-  // Key is the date in YYYY-MM-DD format
-  // start and end are ISOstring
-  [key: string]: { start: string; end: string }[];
-};
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -25,14 +20,14 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useMemo(() => {
-    const availableTimeslots: availableTimeslotsType = {};
+    const availableTimeslots: CalendarAvailableTimeslots = {};
     if (!schedule.data) return availableTimeslots;
     if (!schedule.data.slots) return availableTimeslots;
 
     for (const day in schedule.data.slots) {
       availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
-        start: dayjs(slot.time).toISOString(),
-        end: dayjs(slot.time).add(eventDuration, "minutes").toISOString(),
+        start: dayjs(slot.time).toDate(),
+        end: dayjs(slot.time).add(eventDuration, "minutes").toDate(),
       }));
     }
 
