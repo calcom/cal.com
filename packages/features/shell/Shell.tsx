@@ -175,9 +175,15 @@ function useFormbricks() {
       initFormbricks();
       formbricks.setUserId(user.id.toString());
       formbricks.setEmail(user.email);
-      formbricks.setAttribute("name", user?.name);
-      formbricks.setAttribute("username", user?.username);
-      formbricks.setAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
+      if (user?.name) {
+        formbricks.setAttribute("name", user.name);
+      }
+      if (user?.username) {
+        formbricks.setAttribute("username", user?.username);
+      }
+      if (user?.organization?.isOrgAdmin) {
+        formbricks.setAttribute("isOrganizationAdmin", user?.organization?.isOrgAdmin?.toString());
+      }
     }
   }, [isLoading, user]);
 }
