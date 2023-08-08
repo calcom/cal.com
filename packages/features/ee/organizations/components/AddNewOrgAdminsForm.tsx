@@ -1,12 +1,13 @@
 import { ArrowRight } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextAreaField, Form } from "@calcom/ui";
+import { Button, Form, showToast, TextAreaField } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -15,7 +16,8 @@ const querySchema = z.object({
 export const AddNewOrgAdminsForm = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { id: orgId } = querySchema.parse(router.query);
+  const routerQuery = useRouterQuery();
+  const { id: orgId } = querySchema.parse(routerQuery);
   const newAdminsFormMethods = useForm<{
     emails: string[];
   }>();

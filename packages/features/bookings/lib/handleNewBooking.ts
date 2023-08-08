@@ -11,9 +11,11 @@ import z from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { getLocationValueForDB } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import {
+  getLocationValueForDB,
+  MeetLocationType,
+  OrganizerDefaultConferencingAppType,
+} from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -21,14 +23,13 @@ import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
-import type { ConfigType, Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
-  sendScheduledEmails,
   sendRescheduledSeatEmail,
+  sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -38,17 +39,17 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import {
+  cancelWorkflowReminders,
+  scheduleWorkflowReminders,
+} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -65,10 +66,10 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
-import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
   bookingCreateBodySchemaForApi,
+  bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
@@ -83,7 +84,6 @@ import type {
   Person,
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
@@ -190,63 +190,6 @@ const getAllCredentials = async (
   return allCredentials;
 };
 
-const isWithinAvailableHours = (
-  timeSlot: { start: ConfigType; end: ConfigType },
-  {
-    workingHours,
-    dateOverrides,
-    organizerTimeZone,
-    inviteeTimeZone,
-  }: {
-    workingHours: WorkingHours[];
-    dateOverrides: DateOverride[];
-    organizerTimeZone: string;
-    inviteeTimeZone: string;
-  }
-) => {
-  const timeSlotStart = dayjs(timeSlot.start).utc();
-  const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const organizerDSTDiff =
-    dayjs().tz(organizerTimeZone).utcOffset() - timeSlotStart.tz(organizerTimeZone).utcOffset();
-  const getTime = (slotTime: Dayjs, minutes: number) =>
-    slotTime.startOf("day").add(minutes + organizerDSTDiff, "minutes");
-
-  for (const workingHour of workingHours) {
-    const startTime = getTime(timeSlotStart, workingHour.startTime);
-    // workingHours function logic set 1439 minutes when user select the end of the day (11:59) in his schedule
-    // so, we need to add a minute, to avoid, "No available user" error when the last available slot is selected.
-    const endTime = getTime(timeSlotEnd, workingHour.endTime === 1439 ? 1440 : workingHour.endTime);
-    if (
-      workingHour.days.includes(timeSlotStart.day()) &&
-      // UTC mode, should be performant.
-      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
-      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
-    ) {
-      return true;
-    }
-  }
-
-  // check if it is a date override
-  for (const dateOverride of dateOverrides) {
-    const utcOffSet = dayjs(dateOverride.start).tz(inviteeTimeZone).utcOffset();
-
-    const slotStart = dayjs(timeSlotStart).add(utcOffSet, "minute");
-    const slotEnd = dayjs(timeSlotEnd).add(utcOffSet, "minute");
-
-    if (
-      slotStart.isBetween(dateOverride.start, dateOverride.end) &&
-      slotEnd.isBetween(dateOverride.start, dateOverride.end)
-    ) {
-      return true;
-    }
-  }
-
-  log.error(
-    `NAUF: isWithinAvailableHours ${JSON.stringify({ ...timeSlot, organizerTimeZone, workingHours })}`
-  );
-  return false;
-};
-
 // if true, there are conflicts.
 function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
   // Early return
@@ -319,6 +262,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodDays: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      requiresBookerEmailVerification: true,
       userId: true,
       price: true,
       currency: true,
@@ -725,9 +669,7 @@ async function handler(
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
-  const dynamicUserList = Array.isArray(reqBody.user)
-    ? getGroupName(reqBody.user)
-    : getUsernameList(reqBody.user);
+  const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const isTeamEventType =
@@ -967,6 +909,8 @@ async function handler(
     {
       email: bookerEmail,
       name: fullName,
+      firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
+      lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -980,6 +924,8 @@ async function handler(
     guestArray.push({
       email: guest,
       name: "",
+      firstName: "",
+      lastName: "",
       timeZone: reqBody.timeZone,
       language: { translate: tGuests, locale: "en" },
     });
@@ -991,8 +937,11 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  const bookingLocation = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
-    ? organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+  const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    ? {
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
@@ -1065,6 +1014,7 @@ async function handler(
     userFieldsResponses: calEventUserFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
+    conferenceCredentialId,
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1737,6 +1687,7 @@ async function handler(
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
+        seatReferenceUid: evt.attendeeSeatId,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
@@ -2032,15 +1983,7 @@ async function handler(
   if (originalRescheduledBooking?.uid) {
     try {
       // cancel workflow reminders from previous rescheduled booking
-      originalRescheduledBooking.workflowReminders.forEach((reminder) => {
-        if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-        } else if (reminder.method === WorkflowMethods.SMS) {
-          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-        } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-          deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
-        }
-      });
+      await cancelWorkflowReminders(originalRescheduledBooking.workflowReminders);
     } catch (error) {
       log.error("Error while canceling scheduled workflow reminders", error);
     }
@@ -2387,6 +2330,7 @@ async function handler(
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
@@ -2466,6 +2410,7 @@ const findBookingQuery = async (bookingId: number) => {
           currency: true,
           length: true,
           requiresConfirmation: true,
+          requiresBookerEmailVerification: true,
           price: true,
         },
       },

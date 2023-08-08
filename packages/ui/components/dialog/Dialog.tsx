@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
 
@@ -14,44 +14,56 @@ export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]>
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
+
+const enum DIALOG_STATE {
+  // Dialog is there in the DOM but not visible.
+  CLOSED = "CLOSED",
+  // State from the time b/w the Dialog is dismissed and the time the "dialog" query param is removed from the URL.
+  CLOSING = "CLOSING",
+  // Dialog is visible.
+  OPEN = "OPEN",
+}
+
 export function Dialog(props: DialogProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const newSearchParams = new URLSearchParams(searchParams);
   const { children, name, ...dialogProps } = props;
-  // only used if name is set
-  const [open, setOpen] = useState(!!dialogProps.open);
 
+  // only used if name is set
+  const [dialogState, setDialogState] = useState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
+  const shouldOpenDialog = newSearchParams.get("dialog") === name;
   if (name) {
     const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
     dialogProps.onOpenChange = (open) => {
       if (props.onOpenChange) {
         props.onOpenChange(open);
       }
+
       // toggles "dialog" query param
       if (open) {
-        router.query["dialog"] = name;
+        newSearchParams.set("dialog", name);
       } else {
-        const query = router.query;
         clearQueryParamsOnClose.forEach((queryParam) => {
-          delete query[queryParam];
+          newSearchParams.delete(queryParam);
         });
-        router.push(
-          {
-            pathname: router.pathname,
-            query,
-          },
-          undefined,
-          { shallow: true }
-        );
+        router.push(`${pathname}?${newSearchParams.toString()}`);
       }
-      setOpen(open);
+      setDialogState(open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSING);
     };
-    // handles initial state
-    if (!open && router.query["dialog"] === name) {
-      setOpen(true);
+
+    if (dialogState === DIALOG_STATE.CLOSED && shouldOpenDialog) {
+      setDialogState(DIALOG_STATE.OPEN);
     }
+
+    if (dialogState === DIALOG_STATE.CLOSING && !shouldOpenDialog) {
+      setDialogState(DIALOG_STATE.CLOSED);
+    }
+
     // allow overriding
     if (!("open" in dialogProps)) {
-      dialogProps.open = open;
+      dialogProps.open = dialogState === DIALOG_STATE.OPEN ? true : false;
     }
   }
 
@@ -107,9 +119,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               )}
               <div className="w-full">
                 <DialogHeader title={title} subtitle={props.description} />
-                <div data-testid="dialog-confirmation" className="flex  space-y-6">
-                  {children}
-                </div>
+                <div data-testid="dialog-confirmation">{children}</div>
               </div>
             </div>
           )}
