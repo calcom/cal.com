@@ -260,10 +260,15 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             </WithStep>
             <WithStep step={SetupStep.DisplayBackupCodes} current={step}>
               <>
-                <a download="cal-backup-codes.txt" href={backupCodesUrl}>
-                  <Button color="secondary">{t("download")}</Button>
-                </a>
-
+                <Button
+                  color="secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    resetState();
+                    onEnable();
+                  }}>
+                  {t("close")}
+                </Button>
                 <Button
                   color="secondary"
                   onClick={(e) => {
@@ -273,18 +278,9 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                   }}>
                   {t("copy")}
                 </Button>
-                <Button
-                  type="submit"
-                  className="me-2 ms-2"
-                  data-testid="enable-2fa"
-                  disabled={isSubmitting}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    resetState();
-                    onEnable();
-                  }}>
-                  {t("close")}
-                </Button>
+                <a download="cal-backup-codes.txt" href={backupCodesUrl}>
+                  <Button color="primary">{t("download")}</Button>
+                </a>
               </>
             </WithStep>
           </DialogFooter>
