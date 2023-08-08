@@ -68,6 +68,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           slug: true,
           owner: {
             select: {
+              id: true,
               hideBranding: true,
               metadata: true,
               teams: {
