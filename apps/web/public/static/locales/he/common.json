@@ -1938,7 +1938,7 @@
   "insights_all_org_filter": "כל האפליקציות",
   "insights_team_filter": "צוות: {{teamName}}",
   "insights_user_filter": "משתמש: {{userName}}",
-  "insights_subtitle": "הצגת תובנות הזמנה מתוך האירועים שלך",
+  "insights_subtitle": "הצגת insights לגבי הזמנות מתוך האירועים שלך",
   "custom_plan": "חבילה בהתאמה אישית",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

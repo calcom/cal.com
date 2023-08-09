@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 import { Copy } from "@calcom/ui/components/icon";
@@ -21,14 +21,11 @@ export default function Error500() {
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
         <h1 className="font-cal text-emphasis text-6xl">500</h1>
         <h2 className="text-emphasis mt-6 text-2xl font-medium">It&apos;s not you, it&apos;s us.</h2>
-        <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
-          Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
-          away for you.
-        </p>
+        <p className="text-default mb-6 mt-4 max-w-2xl text-sm">{t("something_went_wrong_on_our_end")}</p>
         {searchParams?.get("error") && (
           <div className="mb-8 flex flex-col">
             <p className="text-default mb-4 max-w-2xl text-sm">
-              Please provide the following text when contacting support to better help you:
+              {t("please_provide_following_text_to_suppport")}:
             </p>
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
               {searchParams?.get("error")}
@@ -46,9 +43,9 @@ export default function Error500() {
             </pre>
           </div>
         )}
-        <Button href={`${WEBSITE_URL}/support`}>{t("contact_support")}</Button>
+        <Button href="mailto:support@cal.com">{t("contact_support")}</Button>
         <Button color="secondary" href="javascript:history.back()" className="ml-2">
-          Go back
+          {t("go_back")}
         </Button>
       </div>
     </div>
