@@ -19,7 +19,7 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
       },
       secure: port === 465,
       tls: {
-        rejectUnauthorized: isENVDev ? false : true,
+        rejectUnauthorized: !isENVDev,
       },
     };
 
