@@ -21,7 +21,7 @@ const NewWebhookView = () => {
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
 
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
-    { variant: "other", onlyInstalled: true },
+    { categories: ["other"], onlyInstalled: true },
     {
       suspense: true,
       enabled: session.status === "authenticated",

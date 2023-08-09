@@ -25,7 +25,7 @@ function Component({ webhookId }: { webhookId: string }) {
   const utils = trpc.useContext();
   const router = useRouter();
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
-    { variant: "other", onlyInstalled: true },
+    { categories: ["other"], onlyInstalled: true },
     {
       suspense: true,
       enabled: !!webhookId,

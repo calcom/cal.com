@@ -42,6 +42,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     extendsFeature,
     teamId,
     sortByMostPopular,
+    categories,
   } = input;
   let { credentials } = user;
   let userTeams: TeamQuery[] = [];
@@ -149,11 +150,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     }
   );
 
-  if (variant) {
-    // `flatMap()` these work like `.filter()` but infers the types correctly
-    apps = apps
-      // variant check
-      .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+  if (categories) {
+    apps = apps.flatMap((item) =>
+      item.categories.some((category) => categories.includes(category)) ? [item] : []
+    );
   }
 
   if (exclude) {

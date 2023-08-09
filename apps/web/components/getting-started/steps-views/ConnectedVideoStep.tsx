@@ -14,7 +14,7 @@ interface ConnectedAppStepProps {
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { nextStep } = props;
   const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
-    variant: "conferencing",
+    categories: ["conferencing"],
     onlyInstalled: false,
     sortByMostPopular: true,
   });

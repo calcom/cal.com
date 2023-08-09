@@ -52,6 +52,8 @@ import PageWrapper from "@components/PageWrapper";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
+const defaultVideoAppCategories = ["conferencing", "messaging"];
+
 function ConnectOrDisconnectIntegrationMenuItem(props: {
   credentialId: number;
   type: App["type"];
@@ -105,18 +107,18 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: AppCategories;
+  category: AppCategories;
   exclude?: AppCategories[];
   handleDisconnect: (credentialId: number) => void;
 }
 
 interface IntegrationsListProps {
-  variant?: IntegrationsContainerProps["variant"];
+  category?: IntegrationsContainerProps["category"];
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
 }
 
-const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
+const IntegrationsList = ({ data, handleDisconnect }: IntegrationsListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
@@ -150,6 +152,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
       (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+
     return (
       <AppListCard
         key={item.name}
@@ -169,27 +172,31 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        color="secondary"
-                        StartIcon={Video}
-                        onClick={() => {
-                          const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
-                          if (locationType?.linkType === "static") {
-                            setLocationType({ ...locationType, slug: appSlug });
-                          } else {
-                            updateDefaultAppMutation.mutate({
-                              appSlug,
-                            });
-                            setBulkUpdateModal(true);
-                          }
-                        }}>
-                        {t("set_as_default")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
+                  {!appIsDefault &&
+                    item.categories.some((category) => defaultVideoAppCategories.includes(category)) &&
+                    !item.credentialOwner?.teamId && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          color="secondary"
+                          StartIcon={Video}
+                          onClick={() => {
+                            const locationType = getEventLocationTypeFromApp(
+                              item?.locationOption?.value ?? ""
+                            );
+                            if (locationType?.linkType === "static") {
+                              setLocationType({ ...locationType, slug: appSlug });
+                            } else {
+                              updateDefaultAppMutation.mutate({
+                                appSlug,
+                              });
+                              setBulkUpdateModal(true);
+                            }
+                          }}>
+                          {t("set_as_default")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                   <ConnectOrDisconnectIntegrationMenuItem
                     credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                     type={item.type}
@@ -264,16 +271,16 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
 };
 
 const IntegrationsContainer = ({
-  variant,
+  category,
   exclude,
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({
-    variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
+    categories: [category],
   });
 
   // TODO: Refactor and reuse getAppCategories?
@@ -298,17 +305,17 @@ const IntegrationsContainer = ({
         if (!data.items.length) {
           return (
             <EmptyScreen
-              Icon={emptyIcon[variant || "other"]}
+              Icon={emptyIcon[category || "other"]}
               headline={t("no_category_apps", {
-                category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
+                category: (category && t(category).toLowerCase()) || t("other").toLowerCase(),
               })}
-              description={t(`no_category_apps_description_${variant || "other"}`)}
+              description={t(`no_category_apps_description_${category || "other"}`)}
               buttonRaw={
                 <Button
                   color="secondary"
-                  data-testid={`connect-${variant || "other"}-apps`}
-                  href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
-                  {t(`connect_${variant || "other"}_apps`)}
+                  data-testid={`connect-${category || "other"}-apps`}
+                  href={category ? `/apps/categories/${category}` : "/apps/categories/other"}>
+                  {t(`connect_${category || "other"}_apps`)}
                 </Button>
               }
             />
@@ -317,19 +324,19 @@ const IntegrationsContainer = ({
         return (
           <div className="border-subtle rounded-md border p-7">
             <ShellSubHeading
-              title={t(variant || "other")}
-              subtitle={t(`installed_app_${variant || "other"}_description`)}
+              title={t(category || "other")}
+              subtitle={t(`installed_app_${category || "other"}_description`)}
               className="mb-6"
               actions={
                 <Button
-                  href={variant ? `/apps/categories/${variant}` : "/apps"}
+                  href={category ? `/apps/categories/${category}` : "/apps"}
                   color="secondary"
                   StartIcon={Plus}>
                   {t("add")}
                 </Button>
               }
             />
-            <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
+            <IntegrationsList handleDisconnect={handleDisconnect} data={data} category={category} />
           </div>
         );
       }}
@@ -378,13 +385,13 @@ export default function InstalledApps() {
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
         {categoryList.includes(category) && (
-          <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
+          <IntegrationsContainer handleDisconnect={handleDisconnect} category={category} />
         )}
         {category === "calendar" && <CalendarListContainer />}
         {category === "other" && (
           <IntegrationsContainer
             handleDisconnect={handleDisconnect}
-            variant={category}
+            category={category}
             exclude={[...categoryList, "calendar"]}
           />
         )}

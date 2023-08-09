@@ -21,7 +21,7 @@ interface AdditionalCalendarSelectorProps {
 
 const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
+  const query = trpc.viewer.integrations.useQuery({ categories: ["calendar"], onlyInstalled: true });
 
   return (
     <QueryCell
