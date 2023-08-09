@@ -26,7 +26,6 @@ export default function Type({
   isEmbed,
   isBrandingHidden,
   entity,
-  org,
   eventId,
 }: PageProps) {
   return (
@@ -47,7 +46,6 @@ export default function Type({
         hideBranding={isBrandingHidden}
         isTeamEvent
         entity={entity}
-        org={org}
         eventId={eventId}
       />
     </main>
@@ -124,7 +122,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
       themeBasis: null,
-      org,
       eventId: eventData.id,
     },
   };
