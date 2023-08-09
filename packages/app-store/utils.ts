@@ -132,6 +132,8 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
+export const defaultVideoAppCategories = ["conferencing", "messaging"];
+
 /**
  *
  * @param appCategories - from app metadata
@@ -144,7 +146,7 @@ export function doesAppSupportTeamInstall(
 ) {
   return !appCategories.some(
     (category) =>
-      category === "calendar" || ((category === "conferencing" || "messaging") && !concurrentMeetings)
+      category === "calendar" || (defaultVideoAppCategories.includes(category) && !concurrentMeetings)
   );
 }
 

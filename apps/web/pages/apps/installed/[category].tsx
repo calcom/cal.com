@@ -7,6 +7,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
+import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
@@ -51,8 +52,6 @@ import AppListCard from "@components/AppListCard";
 import PageWrapper from "@components/PageWrapper";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
-
-const defaultVideoAppCategories = ["conferencing", "messaging"];
 
 function ConnectOrDisconnectIntegrationMenuItem(props: {
   credentialId: number;

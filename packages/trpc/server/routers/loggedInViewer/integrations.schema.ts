@@ -3,7 +3,6 @@ import { z } from "zod";
 import { AppCategories } from "@calcom/prisma/enums";
 
 export const ZIntegrationsInputSchema = z.object({
-  // variant: z.string().optional(),
   exclude: z.array(z.string()).optional(),
   onlyInstalled: z.boolean().optional(),
   includeTeamInstalledApps: z.boolean().optional(),
