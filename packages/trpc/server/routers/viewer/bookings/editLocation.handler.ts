@@ -86,10 +86,28 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
+    const credentials = await prisma.credential.findMany({
+      where: {
+        userId: ctx.user.id,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        userId: true,
+        appId: true,
+        invalid: true,
+        teamId: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+
     const eventManager = new EventManager({
       ...ctx.user,
       credentials: [
-        ...(ctx.user.credentials ? ctx.user.credentials : []),
+        ...(credentials ? credentials : []),
         ...(conferenceCredential ? [conferenceCredential] : []),
       ],
     });

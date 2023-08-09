@@ -21,7 +21,23 @@ export const updateUserDefaultConferencingAppHandler = async ({
   input,
 }: UpdateUserDefaultConferencingAppOptions) => {
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
-  const credentials = ctx.user.credentials;
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: ctx.user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      appId: true,
+      invalid: true,
+      teamId: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
   const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 
