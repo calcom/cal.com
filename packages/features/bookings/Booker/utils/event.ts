@@ -52,7 +52,7 @@ export const useScheduleForEvent = ({
   eventId,
 }: {
   prefetchNextMonth?: boolean;
-  eventId: number;
+  eventId?: number;
 }) => {
   const { timezone } = useTimePreferences();
   const [username, eventSlug, month, duration] = useBookerStore(
