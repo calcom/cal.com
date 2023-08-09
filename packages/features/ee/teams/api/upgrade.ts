@@ -36,12 +36,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!team) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
-    const metadata = teamMetadataSchema.parse(prevTeam.metadata);
+
+    const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+    if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
+
+    if (!metadata.data?.requestedSlug) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Can't publish team/org without `requestedSlug`",
+      });
+    }
+
+    const { requestedSlug, ...newMetadata } = metadata.data;
     /** We save the metadata first to prevent duplicate payments */
     team = await prisma.team.update({
       where: { id },
       data: {
         metadata: {
+          ...newMetadata,
           paymentId: checkoutSession.id,
           subscriptionId: subscription.id || null,
           subscriptionItemId: subscription.items.data[0].id || null,
@@ -49,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
     /** Legacy teams already have a slug, this will allow them to upgrade as well */
-    const slug = prevTeam.slug || metadata?.requestedSlug;
+    const slug = prevTeam.slug || requestedSlug;
     if (slug) {
       try {
         /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
