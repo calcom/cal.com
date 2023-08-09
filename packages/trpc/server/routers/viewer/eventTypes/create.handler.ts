@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -41,23 +42,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await ctx.prisma.credential.findMany({
-      where: {
-        userId: ctx.user.id,
-      },
-      select: {
-        id: true,
-        type: true,
-        key: true,
-        userId: true,
-        appId: true,
-        invalid: true,
-        teamId: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
+    const credentials = await getUsersCredentials(ctx.user.id);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
