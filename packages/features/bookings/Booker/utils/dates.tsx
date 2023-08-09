@@ -42,7 +42,7 @@ export const FromToTime = (props: EventFromToTime) => {
     <>
       {formatted.date}
       <br />
-      {formatted.time}
+      {formatted.time.replace(/24(?=:)/g, "00")}
     </>
   );
 };

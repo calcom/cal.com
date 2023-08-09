@@ -63,7 +63,7 @@ export function ScheduleListItem({
                     {availabilityAsString(availability, {
                       locale: i18n.language,
                       hour12: displayOptions?.hour12,
-                    })}
+                    }).replace(/24(?=:)/g, "00")}
                     <br />
                   </Fragment>
                 ))}

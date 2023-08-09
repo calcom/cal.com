@@ -171,7 +171,10 @@ export default function Availability() {
             .filter((availability) => !!availability.days.length)
             .map((availability) => (
               <span key={availability.id}>
-                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+                {availabilityAsString(availability, {
+                  locale: i18n.language,
+                  hour12: timeFormat === 12,
+                }).replace(/24(?=:)/g, "00")}
                 <br />
               </span>
             ))
