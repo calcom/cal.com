@@ -41,24 +41,15 @@ const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterO
     select: { slug: true, enabled: true },
   });
   const apps = getApps(credentials, filterOnCredentials);
-
-  const filteredApps = enabledApps.reduce((reducedArray, app) => {
-    const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
-    if (appMetadata) {
-      reducedArray.push({ ...appMetadata, enabled: app.enabled });
-    }
-    return reducedArray;
-  }, [] as EnabledApp[]);
-
-  const defaultApps = apps.reduce((reducedArray, app) => {
-    //TODO: should write a more robust logic,for apps which are default
-    if (app.isGlobal && app.publisher.toLowerCase().includes("cal")) {
+  const filteredApps = apps.reduce((reducedArray, app) => {
+    const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
+    if (appDbQuery?.enabled || app.isGlobal) {
       reducedArray.push({ ...app, enabled: true });
     }
     return reducedArray;
   }, [] as EnabledApp[]);
-  //this combined of user credential apps + default apps
-  return [...filteredApps, ...defaultApps];
+
+  return filteredApps;
 };
 
 export default getEnabledApps;
