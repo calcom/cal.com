@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable playwright/missing-playwright-await */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useState } from "react";
