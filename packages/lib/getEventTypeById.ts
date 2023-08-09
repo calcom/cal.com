@@ -18,11 +18,7 @@ import { TRPCError } from "@trpc/server";
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
-  prisma: PrismaClient<
-    Prisma.PrismaClientOptions,
-    never,
-    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-  >;
+  prisma: PrismaClient;
   isTrpcCall?: boolean;
 }
 
