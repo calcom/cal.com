@@ -56,7 +56,7 @@ export async function getLocationGroupedOptions(
       ...idToSearchObject,
       app: {
         categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video],
+          hasSome: [AppCategories.conferencing, AppCategories.video, AppCategories.messaging],
         },
       },
     },
@@ -85,9 +85,11 @@ export async function getLocationGroupedOptions(
         app.categories.length >= 2
           ? app.categories.find(
               (category) =>
-                !([AppCategories.video, AppCategories.conferencing] as string[]).includes(category)
+                !(
+                  [AppCategories.video, AppCategories.conferencing, AppCategories.messaging] as string[]
+                ).includes(category)
             )
-          : app.category;
+          : app.categories[0];
       if (!category) category = AppCategories.conferencing;
 
       for (const credential of app.credentials) {
