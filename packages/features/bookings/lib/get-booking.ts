@@ -109,18 +109,9 @@ export const getBookingWithResponses = <
 export default getBooking;
 
 export const getBookingForReschedule = async (uid: string) => {
-  const bookingFound = await prisma.booking.findFirst({
-    where: {
-      uid,
-    },
-    select: {
-      eventTypeId: true,
-    },
-  });
-
-  if (!bookingFound) return null;
-
   const booking = getBooking(prisma, uid);
+
+  if (!booking) return null;
 
   return booking;
 };
