@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 
-import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
@@ -16,7 +15,6 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
   });
-  const { timezone } = useTimePreferences();
 
   const event = useEvent();
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
@@ -28,15 +26,18 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
 
     for (const day in schedule.data.slots) {
       availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
-        // First formatting to LLL and then passing it to date prevents toDate()
-        // from changing the timezone to users local machine (instead of itmezone selected in UI dropdown)
-        start: new Date(dayjs(slot.time).utc().tz(timezone).format("LLL")),
-        end: new Date(dayjs(slot.time).utc().tz(timezone).add(eventDuration, "minutes").format("LLL")),
+        start: dayjs(slot.time).toDate(),
+        end: dayjs(slot.time).add(eventDuration, "minutes").toDate(),
       }));
     }
 
     return availableTimeslots;
-  }, [schedule, timezone, eventDuration]);
+  }, [schedule, eventDuration]);
+
+  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
+  const endDate = dayjs(startDate)
+    .add(extraDays - 1, "day")
+    .toDate();
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
@@ -46,9 +47,9 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         startHour={0}
         endHour={23}
         events={[]}
-        startDate={selectedDate ? new Date(selectedDate) : new Date()}
-        endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
+        startDate={startDate}
+        endDate={endDate}
+        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
