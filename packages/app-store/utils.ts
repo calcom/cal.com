@@ -143,7 +143,8 @@ export function doesAppSupportTeamInstall(
   concurrentMeetings: boolean | undefined = undefined
 ) {
   return !appCategories.some(
-    (category) => category === "calendar" || (category === "conferencing" && !concurrentMeetings)
+    (category) =>
+      category === "calendar" || ((category === "conferencing" || "messaging") && !concurrentMeetings)
   );
 }
 
