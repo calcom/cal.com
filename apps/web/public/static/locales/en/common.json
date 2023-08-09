@@ -1850,6 +1850,8 @@
   "insights_no_data_found_for_filter": "No data found for the selected filter or selected dates.",
   "acknowledge_booking_no_show_fee": "I acknowledge that if I do not attend this event that a {{amount, currency}} no show fee will be applied to my card.",
   "card_details": "Card details",
+  "something_went_wrong_on_our_end":"Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right away for you.",
+  "please_provide_following_text_to_suppport":"Please provide the following text when contacting support to better help you",
   "seats_and_no_show_fee_error": "Currently cannot enable seats and charge a no-show fee",
   "complete_your_booking": "Complete your booking",
   "complete_your_booking_subject": "Complete your booking: {{title}} on {{date}}",

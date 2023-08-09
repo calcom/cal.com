@@ -70,9 +70,46 @@ export const checkIfIsAvailable = ({
 };
 
 export async function getEventType(input: TGetScheduleInputSchema) {
+  const { eventTypeSlug, usernameList } = input;
+  let eventTypeId = input.eventTypeId;
+
+  if (eventTypeId === undefined && eventTypeSlug && usernameList && usernameList.length === 1) {
+    // If we only have the slug and usernameList, we need to get the id first
+    const username = usernameList[0];
+    const userId = await getUserIdFromUsername(username);
+    let teamId;
+
+    if (!userId) {
+      teamId = await getTeamIdFromSlug(username);
+      if (!teamId) {
+        throw new TRPCError({
+          message: "User or team not found",
+          code: "NOT_FOUND",
+        });
+      }
+    }
+
+    const eventType = await prisma.eventType.findFirst({
+      where: {
+        slug: eventTypeSlug,
+        ...(teamId ? { teamId } : {}),
+        ...(userId ? { userId } : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!eventType) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    eventTypeId = eventType.id;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -175,7 +212,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
 }
 
 export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
@@ -237,7 +274,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
@@ -445,4 +482,28 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   return {
     slots: computedAvailableSlots,
   };
+}
+
+async function getUserIdFromUsername(username: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return user?.id;
+}
+
+async function getTeamIdFromSlug(slug: string) {
+  const team = await prisma.team.findFirst({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return team?.id;
 }
