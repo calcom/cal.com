@@ -27,6 +27,7 @@ export default function Type({
   isBrandingHidden,
   entity,
   org,
+  eventId,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -47,6 +48,7 @@ export default function Type({
         isTeamEvent
         entity={entity}
         org={org}
+        eventId={eventId}
       />
     </main>
   );
@@ -123,6 +125,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isBrandingHidden: team?.hideBranding,
       themeBasis: null,
       org,
+      eventId: eventData.id,
     },
   };
 };

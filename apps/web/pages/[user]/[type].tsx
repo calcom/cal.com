@@ -28,6 +28,7 @@ export default function Type({
   isBrandingHidden,
   rescheduleUid,
   entity,
+  eventId,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -45,6 +46,7 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         entity={entity}
+        eventId={eventId}
       />
     </main>
   );
@@ -100,6 +102,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     username: usernames.join("+"),
     eventSlug: slug,
     org,
+    isTeamEvent: false,
   });
 
   if (!eventData) {
@@ -120,6 +123,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
       entity: eventData.entity,
+      eventId: 0,
     },
   };
 }
@@ -166,6 +170,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     username,
     eventSlug: slug,
     org,
+    isTeamEvent: false,
   });
 
   if (!eventData) {
@@ -186,6 +191,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      eventId: eventData.id,
     },
   };
 }

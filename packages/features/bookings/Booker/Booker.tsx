@@ -38,8 +38,9 @@ const BookerComponent = ({
   month,
   bookingData,
   hideBranding = false,
-  isTeamEvent,
+  isTeamEvent = false,
   entity,
+  eventId,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -49,7 +50,12 @@ const BookerComponent = ({
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-  const event = useEvent();
+  const event = useEvent({
+    username,
+    eventSlug,
+    isTeamEvent,
+    org: entity.orgSlug,
+  });
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
   const isEmbed = useIsEmbed();
@@ -93,7 +99,7 @@ const BookerComponent = ({
     username,
     eventSlug,
     month,
-    eventId: event?.data?.id,
+    eventId: eventId ?? event?.data?.id,
     rescheduleUid,
     bookingUid,
     bookingData,
@@ -215,7 +221,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker org={entity.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
+                      <DatePicker eventId={eventId} />
                     </div>
                   )}
               </BookerSection>
@@ -244,7 +250,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker org={entity.orgSlug ?? null} isTeamEvent={isTeamEvent ?? false} />
+              <DatePicker eventId={eventId} />
             </BookerSection>
 
             <BookerSection
@@ -279,8 +285,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                org={entity.orgSlug ?? null}
-                isTeamEvent={isTeamEvent}
+                eventId={eventId}
               />
             </BookerSection>
           </AnimatePresence>

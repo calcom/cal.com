@@ -14,15 +14,26 @@ import { useBookerStore } from "../store";
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
+export const useEvent = (initialValues?: {
+  username: string;
+  eventSlug: string;
+  isTeamEvent: boolean;
+  org: string | null | undefined;
+}) => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
+  const params = {
+    username: username ?? initialValues?.username ?? "",
+    eventSlug: eventSlug ?? initialValues?.eventSlug ?? "",
+    isTeamEvent: isTeamEvent ?? initialValues?.isTeamEvent ?? false,
+    org: org ?? initialValues?.org ?? null,
+  };
 
-  return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
-  );
+  return trpc.viewer.public.event.useQuery(params, {
+    refetchOnWindowFocus: false,
+    enabled: Boolean(params.username) && Boolean(params.eventSlug),
+  });
 };
 
 /**
@@ -38,14 +49,10 @@ export const useEvent = () => {
  */
 export const useScheduleForEvent = ({
   prefetchNextMonth,
-  org,
-  isTeamEvent,
   eventId,
 }: {
   prefetchNextMonth?: boolean;
-  org?: string | null;
-  isTeamEvent?: boolean;
-  eventId?: number;
+  eventId: number;
 }) => {
   const { timezone } = useTimePreferences();
   const [username, eventSlug, month, duration] = useBookerStore(
@@ -61,7 +68,5 @@ export const useScheduleForEvent = ({
     prefetchNextMonth,
     duration,
     eventId,
-    org,
-    isTeamEvent: isTeamEvent ?? false,
   });
 };

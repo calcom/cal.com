@@ -6,7 +6,6 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getPublicEventId } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -188,16 +187,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-
-  const eventTypeId = await getPublicEventId(
-    input.usernameList,
-    input.eventTypeSlug,
-    input.isTeamEvent,
-    input?.org ?? null,
-    prisma,
-    input.eventTypeId
-  );
-  if (eventTypeId) input.eventTypeId = eventTypeId;
 
   const eventType = await getRegularOrDynamicEventType(input);
   const endPrismaEventTypeGet = performance.now();

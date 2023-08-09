@@ -59,7 +59,7 @@ export interface BookerProps {
    */
   isTeamEvent?: boolean;
 
-  org?: string | null;
+  eventId: number;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

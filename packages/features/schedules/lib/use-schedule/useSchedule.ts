@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
@@ -11,12 +9,8 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
-  isTeamEvent: boolean;
-  eventId?: number;
-  org?: string | null;
+  eventId: number;
 };
-
-const stringOrNullSchema = z.union([z.string(), z.null()]);
 
 export const useSchedule = ({
   month,
@@ -25,8 +19,6 @@ export const useSchedule = ({
   eventSlug,
   prefetchNextMonth,
   duration,
-  org,
-  isTeamEvent,
   eventId,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
@@ -35,8 +27,6 @@ export const useSchedule = ({
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typscript.
 
-  const isValidOrgPropPassed = stringOrNullSchema.safeParse(org);
-
   // we can get eventId on the server with org, username, eventSlug and isTeamEvent as input to getPublicEventId
   // we can also pass eventId after fetching it from useEvent() hook
   const isEnabled =
@@ -44,7 +34,7 @@ export const useSchedule = ({
     Boolean(eventSlug) &&
     Boolean(month) &&
     Boolean(timezone) &&
-    (Boolean(eventId) || eventId === 0 || isValidOrgPropPassed.success);
+    (Boolean(eventId) || eventId === 0);
 
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -58,8 +48,6 @@ export const useSchedule = ({
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       eventTypeId: eventId,
-      org,
-      isTeamEvent,
     },
     {
       refetchOnWindowFocus: false,
