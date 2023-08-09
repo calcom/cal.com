@@ -21,7 +21,7 @@ import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useEvent } from "./utils/event";
+import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
@@ -41,6 +41,17 @@ const BookerComponent = ({
   isTeamEvent,
   entity,
 }: BookerProps) => {
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
+  useScheduleForEvent({
+    prefetchNextMonth: false,
+    username,
+    eventSlug,
+    month,
+    duration: undefined,
+  });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
