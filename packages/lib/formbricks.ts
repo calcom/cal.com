@@ -6,7 +6,6 @@ export const initFormbricks = () => {
     formbricks.init({
       environmentId,
       apiHost,
-      debug: true,
     });
   }
 };
