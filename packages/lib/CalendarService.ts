@@ -60,6 +60,7 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
+// for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) => {
   const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
   if (!travelDuration) return 0;
@@ -78,8 +79,8 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) 
 
 const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
   if (seconds <= 0) return event;
+  // move event start date back by the specified travel time
   event.startDate.second -= seconds;
-  event.endDate.second += seconds;
   return event;
 };
 
@@ -410,7 +411,7 @@ export default abstract class BaseCalendarService implements Calendar {
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
-        // mutate event to add travel time either side
+        // mutate event to consider travel time
         applyTravelDuration(event, getTravelDurationInSeconds(vevent, this.log));
 
         if (event.isRecurring()) {
