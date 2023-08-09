@@ -44,20 +44,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       brandColor: true,
       darkBrandColor: true,
       away: true,
-      credentials: {
-        select: {
-          id: true,
-          type: true,
-          key: true,
-          userId: true,
-          appId: true,
-          invalid: true,
-          teamId: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
       selectedCalendars: {
         select: {
           externalId: true,
@@ -122,7 +108,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       metadata: orgMetadata,
     },
     id,
-    rawAvatar,
     email,
     username,
     locale,
