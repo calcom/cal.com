@@ -72,7 +72,7 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) 
     if (!Number.isInteger(travelSeconds)) return 0;
     return travelSeconds;
   } catch (e) {
-    log.error("[ERROR] invalid travelDuration?", e);
+    log.error("invalid travelDuration?", e);
     return 0;
   }
 };
