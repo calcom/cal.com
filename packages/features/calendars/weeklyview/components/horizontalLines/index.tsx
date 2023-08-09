@@ -16,6 +16,7 @@ export const HorizontalLines = ({
   // We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00)
   const finalHour = hours[hours.length - 1].add(1, "hour").minute(0).format(timeFormat);
   const id = useId();
+
   return (
     <div
       className=" divide-default pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid divide-y"
