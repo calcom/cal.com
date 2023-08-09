@@ -462,7 +462,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           type="number"
           {...offsetStartLockedProps}
           label={t("offset_start")}
-          defaultValue={eventType.offsetStart}
           {...formMethods.register("offsetStart")}
           addOnSuffix={<>{t("minutes")}</>}
           hint={t("offset_start_description", {

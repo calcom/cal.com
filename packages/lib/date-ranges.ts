@@ -93,7 +93,7 @@ export function buildDateRanges({
     ...groupedDateOverrides,
   }).map(
     // remove 0-length overrides that were kept to cancel out working dates until now.
-    (ranges) => ranges.filter((range) => !range.start.isSame(range.end))
+    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
   return dateRanges.flat();

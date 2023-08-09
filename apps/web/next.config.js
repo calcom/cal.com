@@ -127,7 +127,10 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: {
+    ...i18n,
+    localeDetection: false,
+  },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
@@ -375,6 +378,11 @@ const nextConfig = {
         source: "/auth/signup",
         destination: "/signup",
         permanent: true,
+      },
+      {
+        source: "/auth",
+        destination: "/auth/login",
+        permanent: false,
       },
       {
         source: "/settings",
