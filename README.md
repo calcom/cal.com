@@ -98,7 +98,7 @@ Meet our sales team for any commercial inquiries.
 
 ## Stay Up-to-Date
 
-Cal.com officially launched as v.1.0 on the15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
+Cal.com officially launched as v.1.0 on the 15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
