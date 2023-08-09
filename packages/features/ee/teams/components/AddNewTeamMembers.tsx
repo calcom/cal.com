@@ -169,7 +169,7 @@ export const AddNewTeamMembersForm = ({
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
-          trackFormbricksAction("team_publish", { teamId: teamId.toString() });
+          trackFormbricksAction("team_published");
         }}>
         {t("team_publish")}
       </Button>
