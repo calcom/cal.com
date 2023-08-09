@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
+import type { AppCategories } from "@calcom/prisma/enums";
 
 type CommonProperties = {
   default?: false;
@@ -88,7 +89,7 @@ export interface App {
   category?: string;
 
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
-  categories: string[];
+  categories: AppCategories[];
   /**
    * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.
    * See https://app.gitbook.com/o/6snd8PyPYMhg0wUw6CeQ/s/VXRprBTuMlihk37NQgUU/~/changes/6xkqZ4qvJ3Xh9k8UaWaZ/engineering/product-specs/app-store#user-apps for more details
