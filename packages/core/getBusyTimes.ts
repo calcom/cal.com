@@ -14,7 +14,6 @@ export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
   username: string;
-  organizationSlug?: string | null | undefined;
   eventTypeId?: number;
   startTime: string;
   beforeEventBuffer?: number;
@@ -30,7 +29,6 @@ export async function getBusyTimes(params: {
     eventTypeId,
     startTime,
     endTime,
-    organizationSlug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars,
@@ -165,8 +163,7 @@ export async function getBusyTimes(params: {
       credentials,
       startTime,
       endTime,
-      selectedCalendars,
-      organizationSlug
+      selectedCalendars
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(

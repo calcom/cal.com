@@ -235,7 +235,7 @@ const InstallAppButtonChild = ({
             if (mutation.isLoading) event.preventDefault();
           }}>
           {mutation.isLoading && (
-            <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="z-1 fixed inset-0 flex items-center justify-center">
               <Spinner />
             </div>
           )}
