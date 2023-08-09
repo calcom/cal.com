@@ -372,7 +372,7 @@ async function ensureAvailableUsers(
       {
         user,
         eventType,
-        rescheduleUid: input.originalRescheduledBooking ? input.originalRescheduledBooking.uid : null,
+        rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       }
     );
 
