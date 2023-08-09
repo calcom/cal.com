@@ -26,6 +26,7 @@ export default function Type({
   isBrandingHidden,
   isTeamEvent,
   entity,
+  eventId,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -44,6 +45,7 @@ export default function Type({
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
         entity={entity}
+        eventId={eventId}
       />
     </main>
   );
@@ -142,6 +144,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
+      eventId: eventData.id,
     },
   };
 }
