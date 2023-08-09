@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { addServerTimingHeaderIfRes } from "@calcom/lib/server/addServerTimingHeader";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
 
@@ -15,7 +16,20 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
      * @link https://trpc.io/docs/context
      */
     createContext: ({ req, res }) => {
-      return createTrpcContext({ req, res });
+      const start = performance.now();
+
+      const context = createTrpcContext({ req, res });
+      const end = performance.now();
+      addServerTimingHeaderIfRes({
+        res,
+        timings: [
+          {
+            label: "createContext",
+            duration: end - start,
+          },
+        ],
+      });
+      return context;
     },
     /**
      * @link https://trpc.io/docs/error-handling

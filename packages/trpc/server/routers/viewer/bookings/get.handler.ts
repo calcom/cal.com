@@ -1,4 +1,7 @@
+import type { NextApiResponse } from "next";
+
 import { parseRecurringEvent } from "@calcom/lib";
+import { addServerTimingHeaderIfRes } from "@calcom/lib/server/addServerTimingHeader";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -9,6 +12,7 @@ import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
   ctx: {
+    res?: NextApiResponse;
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
@@ -20,6 +24,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   // for orderBy, but we don't use a unique column in our orderBy
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
+  const start = performance.now();
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.status;
   const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
@@ -121,137 +126,386 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
   const orderBy = bookingListingOrderby[bookingListingByStatus];
-
-  const [bookingsQuery, recurringInfoBasic, recurringInfoExtended] = await Promise.all([
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            userId: user.id,
-          },
-          {
-            attendees: {
-              some: {
-                email: user.email,
+  const queriesStartTime = performance.now();
+  let query1_1End, query1_2End, query1_3End, query1_4End, query2End, query3End;
+  const [
+    bookingsQuery,
+    bookingsQuery2,
+    bookingsQuery3,
+    bookingsQuery4,
+    recurringInfoBasic,
+    recurringInfoExtended,
+  ] = await Promise.all([
+    prisma.booking
+      .findMany({
+        where: {
+          OR: [
+            {
+              userId: user.id,
+            },
+          ],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+        },
+        select: {
+          ...bookingMinimalSelect,
+          uid: true,
+          recurringEventId: true,
+          location: true,
+          eventType: {
+            select: {
+              slug: true,
+              id: true,
+              eventName: true,
+              price: true,
+              recurringEvent: true,
+              currency: true,
+              metadata: true,
+              seatsShowAttendees: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
-          {
-            eventType: {
+          status: true,
+          paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rescheduled: true,
+          references: true,
+          isRecorded: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy,
+        take: take + 1,
+        skip,
+      })
+      .then((res) => {
+        query1_1End = performance.now();
+
+        return res;
+      }),
+    prisma.booking
+      .findMany({
+        where: {
+          OR: [
+            {
+              attendees: {
+                some: {
+                  email: user.email,
+                },
+              },
+            },
+          ],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+        },
+        select: {
+          ...bookingMinimalSelect,
+          uid: true,
+          recurringEventId: true,
+          location: true,
+          eventType: {
+            select: {
+              slug: true,
+              id: true,
+              eventName: true,
+              price: true,
+              recurringEvent: true,
+              currency: true,
+              metadata: true,
+              seatsShowAttendees: true,
               team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          status: true,
+          paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rescheduled: true,
+          references: true,
+          isRecorded: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy,
+        take: take + 1,
+        skip,
+      })
+      .then((res) => {
+        query1_2End = performance.now();
+
+        return res;
+      }),
+    prisma.booking
+      .findMany({
+        where: {
+          OR: [
+            {
+              eventType: {
+                team: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },
               },
             },
-          },
-          {
-            seatsReferences: {
-              some: {
-                attendee: {
-                  email: user.email,
+          ],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+        },
+        select: {
+          ...bookingMinimalSelect,
+          uid: true,
+          recurringEventId: true,
+          location: true,
+          eventType: {
+            select: {
+              slug: true,
+              id: true,
+              eventName: true,
+              price: true,
+              recurringEvent: true,
+              currency: true,
+              metadata: true,
+              seatsShowAttendees: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
           },
-        ],
-        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-      },
-      select: {
-        ...bookingMinimalSelect,
-        uid: true,
-        recurringEventId: true,
-        location: true,
-        eventType: {
-          select: {
-            slug: true,
-            id: true,
-            eventName: true,
-            price: true,
-            recurringEvent: true,
-            currency: true,
-            metadata: true,
-            seatsShowAttendees: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
+          status: true,
+          paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rescheduled: true,
+          references: true,
+          isRecorded: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
               },
             },
           },
         },
-        status: true,
-        paid: true,
-        payment: {
-          select: {
-            paymentOption: true,
-            amount: true,
-            currency: true,
-            success: true,
-          },
+        orderBy,
+        take: take + 1,
+        skip,
+      })
+      .then((res) => {
+        query1_3End = performance.now();
+
+        return res;
+      }),
+    prisma.booking
+      .findMany({
+        where: {
+          OR: [
+            {
+              seatsReferences: {
+                some: {
+                  attendee: {
+                    email: user.email,
+                  },
+                },
+              },
+            },
+          ],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        rescheduled: true,
-        references: true,
-        isRecorded: true,
-        seatsReferences: {
-          where: {
-            attendee: {
-              email: user.email,
+        select: {
+          ...bookingMinimalSelect,
+          uid: true,
+          recurringEventId: true,
+          location: true,
+          eventType: {
+            select: {
+              slug: true,
+              id: true,
+              eventName: true,
+              price: true,
+              recurringEvent: true,
+              currency: true,
+              metadata: true,
+              seatsShowAttendees: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
-          select: {
-            referenceUid: true,
-            attendee: {
-              select: {
-                email: true,
+          status: true,
+          paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rescheduled: true,
+          references: true,
+          isRecorded: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.groupBy({
-      by: ["recurringEventId"],
-      _min: {
-        startTime: true,
-      },
-      _count: {
-        recurringEventId: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
+        orderBy,
+        take: take + 1,
+        skip,
+      })
+      .then((res) => {
+        query1_4End = performance.now();
+
+        return res;
+      }),
+    prisma.booking
+      .groupBy({
+        by: ["recurringEventId"],
+        _min: {
+          startTime: true,
         },
-        userId: user.id,
-      },
-    }),
-    prisma.booking.groupBy({
-      by: ["recurringEventId", "status", "startTime"],
-      _min: {
-        startTime: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
+        _count: {
+          recurringEventId: true,
         },
-        userId: user.id,
-      },
-    }),
+        where: {
+          recurringEventId: {
+            not: { equals: null },
+          },
+          userId: user.id,
+        },
+      })
+      .then((res) => {
+        query2End = performance.now();
+        return res;
+      }),
+    prisma.booking
+      .groupBy({
+        by: ["recurringEventId", "status", "startTime"],
+        _min: {
+          startTime: true,
+        },
+        where: {
+          recurringEventId: {
+            not: { equals: null },
+          },
+          userId: user.id,
+        },
+      })
+      .then((res) => {
+        query3End = performance.now();
+        return res;
+      }),
   ]);
 
   const recurringInfo = recurringInfoBasic.map(
@@ -311,7 +565,40 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   } else {
     nextCursor = null;
   }
-
+  const end = performance.now();
+  addServerTimingHeaderIfRes({
+    res: ctx.res,
+    timings: [
+      {
+        label: "t.hdlr.q1_1",
+        duration: query1_1End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr.q1_2",
+        duration: query1_2End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr.q1_3",
+        duration: query1_3End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr.q1_4",
+        duration: query1_4End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr.q2",
+        duration: query2End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr.q3",
+        duration: query3End! - queriesStartTime,
+      },
+      {
+        label: "t.hdlr",
+        duration: end - start,
+      },
+    ],
+  });
   return {
     bookings,
     recurringInfo,

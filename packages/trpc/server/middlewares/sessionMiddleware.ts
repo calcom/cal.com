@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { addServerTimingHeaderIfRes } from "@calcom/lib/server/addServerTimingHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -148,16 +149,30 @@ const getUserSession = async (ctx: TRPCContextInner) => {
 
   return { user, session };
 };
-const sessionMiddleware = middleware(async ({ ctx, next }) => {
-  const { user, session } = await getUserSession(ctx);
 
+const sessionMiddleware = middleware(async ({ ctx, next }) => {
+  const middlewareStart = performance.now();
+  const { user, session } = await getUserSession(ctx);
+  const middlewareEnd = performance.now();
+  addServerTimingHeaderIfRes({
+    res: ctx.res,
+    timings: [{ duration: middlewareEnd - middlewareStart, label: "t.sessionMiddleware" }],
+  });
   return next({
     ctx: { user, session },
   });
 });
 
 export const isAuthed = middleware(async ({ ctx, next }) => {
+  const middlewareStart = performance.now();
+
   const { user, session } = await getUserSession(ctx);
+
+  const middlewareEnd = performance.now();
+  addServerTimingHeaderIfRes({
+    res: ctx.res,
+    timings: [{ duration: middlewareEnd - middlewareStart, label: "t.isAuthed" }],
+  });
 
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
