@@ -187,7 +187,6 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-
   const eventType = await getRegularOrDynamicEventType(input);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
