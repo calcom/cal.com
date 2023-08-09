@@ -69,7 +69,6 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
@@ -77,7 +76,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
@@ -241,10 +240,10 @@ const RemoveTimeButton = ({
   );
 };
 
-const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
+const TimeRangeField = ({ value, onChange }: ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={className}>
+    <div className="flex flex-row gap-1">
       <LazySelect
         className="inline-block w-[100px]"
         value={value.start}
