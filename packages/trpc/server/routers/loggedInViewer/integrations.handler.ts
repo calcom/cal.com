@@ -35,7 +35,6 @@ type TeamQuery = Prisma.TeamGetPayload<{
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const {
-    variant,
     exclude,
     onlyInstalled,
     includeTeamInstalledApps,
