@@ -4,8 +4,10 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 import { noop } from "lodash";
 
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
 
 export function todo(title: string) {
