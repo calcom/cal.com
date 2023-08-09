@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
@@ -13,6 +14,29 @@ import {
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
+
+async function createWebhookReceiver(page: Page) {
+  const webhookReceiver = createHttpServer();
+
+  await page.goto(`/settings/developer/webhooks`);
+
+  // --- add webhook
+  await page.click('[data-testid="new_webhook"]');
+
+  await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+  await page.fill('[name="secret"]', "secret");
+
+  await Promise.all([
+    page.click("[type=submit]"),
+    page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+  ]);
+
+  // page contains the url
+  expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+  return webhookReceiver;
+}
 
 test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
@@ -394,31 +418,12 @@ test.describe("BOOKING_REQUESTED", async () => {
 
 test.describe("BOOKING_RESCHEDULED", async () => {
   test("can reschedule a booking and get a booking rescheduled event", async ({ page, users, bookings }) => {
-    const webhookReceiver = createHttpServer();
-
-    // --- create a user
     const user = await users.create();
     const [eventType] = user.eventTypes;
 
-    // --- login as that user
     await user.apiLogin();
 
-    await page.goto(`/settings/developer/webhooks`);
-
-    // --- add webhook
-    await page.click('[data-testid="new_webhook"]');
-
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-    await page.fill('[name="secret"]', "secret");
-
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+    const webhookReceiver = await createWebhookReceiver(page);
 
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
