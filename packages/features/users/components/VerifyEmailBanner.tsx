@@ -17,6 +17,8 @@ function VerifyEmailBanner() {
   const session = useSession();
   const isLoggedIn = session?.data?.user;
 
+  console.log("isLoggedIn", !isLoggedIn);
+
   if (!isLoggedIn || isLoading || data?.isVerified || !flags["email-verification"]) return null;
 
   return (
