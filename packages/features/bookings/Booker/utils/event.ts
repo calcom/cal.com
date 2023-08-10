@@ -59,7 +59,8 @@ export const useScheduleForEvent = ({
     shallow
   );
 
-  const rescheduleUid = new URLSearchParams(window.location.search).get("rescheduleUid");
+  const rescheduleUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
 
   return useSchedule({
     username: usernameFromStore ?? username,
