@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { addServerTimingHeaderIfRes } from "@calcom/lib/server/addServerTimingHeader";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
 
