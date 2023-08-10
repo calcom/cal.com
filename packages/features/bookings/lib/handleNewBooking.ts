@@ -643,6 +643,7 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
+    bookingAttendees,
     ...reqBody
   } = getBookingData({
     req,
@@ -652,7 +653,10 @@ async function handler(
 
   const fullName = getFullName(bookerName);
 
-  const tAttendees = await getTranslation(language ?? "en", "common");
+  const tAttendees = await getTranslation(
+    bookingAttendees?.[bookerEmail]?.language ?? language ?? "en",
+    "common"
+  );
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
@@ -868,8 +872,11 @@ async function handler(
       name: fullName,
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
-      timeZone: reqBody.timeZone,
-      language: { translate: tAttendees, locale: language ?? "en" },
+      timeZone: bookingAttendees?.[bookerEmail]?.timeZone ?? reqBody.timeZone,
+      language: {
+        translate: tAttendees,
+        locale: bookingAttendees?.[bookerEmail]?.locale ?? language ?? "en",
+      },
     },
   ];
 
@@ -883,7 +890,7 @@ async function handler(
       name: "",
       firstName: "",
       lastName: "",
-      timeZone: reqBody.timeZone,
+      timeZone: bookingAttendees?.[bookerEmail]?.timeZone ?? reqBody.timeZone,
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
