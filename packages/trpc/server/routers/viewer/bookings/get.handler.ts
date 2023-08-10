@@ -1,8 +1,7 @@
-import type { NextApiResponse } from "next";
-
 import { parseRecurringEvent } from "@calcom/lib";
+import type { PrismaType } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -11,9 +10,8 @@ import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
   ctx: {
-    res?: NextApiResponse;
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaClient;
+    prisma: PrismaType;
   };
   input: TGetInputSchema;
 };
@@ -114,7 +112,7 @@ async function getBookings({
 }: {
   user: { id: number; email: string };
   filters: TGetInputSchema["filters"];
-  prisma: PrismaClient;
+  prisma: PrismaType;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
   orderBy: Prisma.BookingOrderByWithAggregationInput;
   take: number;

@@ -1,6 +1,7 @@
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import type { PrismaType } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -9,7 +10,7 @@ import type { TFilteredListInputSchema } from "./filteredList.schema";
 type FilteredListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaClient;
+    prisma: PrismaType;
   };
   input: TFilteredListInputSchema;
 };

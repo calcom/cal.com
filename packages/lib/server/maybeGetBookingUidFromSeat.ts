@@ -1,6 +1,6 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaType } from "@calcom/prisma";
 
-export async function maybeGetBookingUidFromSeat(prisma: PrismaClient, uid: string) {
+export async function maybeGetBookingUidFromSeat(prisma: PrismaType, uid: string) {
   // Look bookingUid in bookingSeat
   const bookingSeat = await prisma.bookingSeat.findUnique({
     where: {

@@ -8,7 +8,7 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import type PrismaType from "@calcom/prisma";
+import type { PrismaType } from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -20,7 +20,7 @@ export function getSender(
 
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
-  prisma: typeof PrismaType,
+  prisma: PrismaType,
   currentUserId: number,
   readOnly?: boolean
 ) {

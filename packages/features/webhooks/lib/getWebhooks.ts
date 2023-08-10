@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
 import defaultPrisma from "@calcom/prisma";
+import type { PrismaType } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export type GetSubscriberOptions = {
@@ -10,7 +9,7 @@ export type GetSubscriberOptions = {
   teamId?: number | null;
 };
 
-const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
+const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaType = defaultPrisma) => {
   const userId = options.teamId ? 0 : options.userId ?? 0;
   const eventTypeId = options.eventTypeId ?? 0;
   const teamId = options.teamId ?? 0;

@@ -1,9 +1,9 @@
 import type { Availability as AvailabilityModel, Schedule as ScheduleModel, User } from "@prisma/client";
 
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaType } from "@calcom/prisma";
 import type { Schedule } from "@calcom/types/schedule";
 
-export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
+export const getDefaultScheduleId = async (userId: number, prisma: PrismaType) => {
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -35,7 +35,7 @@ export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient)
   return defaultSchedule.id;
 };
 
-export const hasDefaultSchedule = async (user: Partial<User>, prisma: PrismaClient) => {
+export const hasDefaultSchedule = async (user: Partial<User>, prisma: PrismaType) => {
   const defaultSchedule = await prisma.schedule.findFirst({
     where: {
       userId: user.id,
@@ -77,7 +77,7 @@ export const convertScheduleToAvailability = (
   );
 };
 
-export const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaClient) => {
+export const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaType) => {
   return prisma.user.update({
     where: {
       id: userId,

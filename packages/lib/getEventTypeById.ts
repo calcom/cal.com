@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
@@ -10,6 +9,7 @@ import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@cal
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { PrismaType } from "@calcom/prisma";
 import { SchedulingType, MembershipRole, AppCategories } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -18,7 +18,7 @@ import { TRPCError } from "@trpc/server";
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
-  prisma: PrismaClient;
+  prisma: PrismaType;
   isTrpcCall?: boolean;
 }
 

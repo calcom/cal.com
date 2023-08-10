@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import type { PrismaType } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -10,7 +9,7 @@ import type { TDeleteFormInputSchema } from "./deleteForm.schema";
 
 interface DeleteFormHandlerOptions {
   ctx: {
-    prisma: PrismaClient;
+    prisma: PrismaType;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TDeleteFormInputSchema;

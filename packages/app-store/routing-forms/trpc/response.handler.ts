@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import type { PrismaType } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -11,7 +11,7 @@ import { onFormSubmission } from "./utils";
 
 interface ResponseHandlerOptions {
   ctx: {
-    prisma: PrismaClient;
+    prisma: PrismaType;
   };
   input: TResponseInputSchema;
 }
