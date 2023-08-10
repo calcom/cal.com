@@ -28,6 +28,7 @@ export default function Type({
   isBrandingHidden,
   rescheduleUid,
   entity,
+  duration,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -45,6 +46,7 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         entity={entity}
+        duration={duration}
       />
     </main>
   );
@@ -53,9 +55,21 @@ export default function Type({
 Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
+function getMultipleDurationValue(
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | undefined,
+  defaultValue: number
+) {
+  return multipleDurationConfig
+    ? multipleDurationConfig.includes(Number(queryDuration))
+      ? Number(queryDuration)
+      : defaultValue
+    : null;
+}
+
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid, bookingUid } = context.query;
+  const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -111,6 +125,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       entity: eventData.entity,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       booking,
       user: usernames.join("+"),
       slug,
@@ -127,7 +146,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
-  const { rescheduleUid, bookingUid } = context.query;
+  const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
     context.params?.orgSlug
@@ -177,6 +196,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       booking,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       away: user?.away,
       user: username,
       slug,
