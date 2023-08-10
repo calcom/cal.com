@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, TextField, showToast } from "@calcom/ui";
+import { Button, showToast, TextField } from "@calcom/ui";
 
 export interface PayPalSetupProps {
   public_key: string;
@@ -50,12 +50,8 @@ export default function PayPalSetup(props: PayPalSetupProps) {
   const { t } = useLocale();
 
   const integrations = trpc.viewer.integrations.useQuery({ variant: "payment" });
-
-  const paypalPaymentAppCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "paypal_payment"
-  );
-
-  const [credentialId] = paypalPaymentAppCredentials?.credentialIds || [false];
+  const paypalPaymentAppCredentials = integrations.data?.items.find((item) => item.type === "paypal_payment");
+  const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [false];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -68,6 +64,7 @@ export default function PayPalSetup(props: PayPalSetupProps) {
   });
 
   const saveKeys = async (key: { clientId: string; secretKey: string }) => {
+    console.log("key", key);
     if (!key.clientId || !key.secretKey || key.clientId === key.secretKey) {
       return false;
     }
@@ -167,7 +164,7 @@ export default function PayPalSetup(props: PayPalSetupProps) {
                   Log into your Paypal Developer account and create a new app{" "}
                   <a
                     target="_blank"
-                    href="https://developer.paypal.com"
+                    href="https://developer.paypal.com/dashboard/applications/"
                     className="text-orange-600 underline">
                     {t("here")}
                   </a>

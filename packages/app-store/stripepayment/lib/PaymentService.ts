@@ -354,6 +354,9 @@ export class PaymentService implements IAbstractPaymentService {
       if (!payment) {
         throw new Error("Payment not found");
       }
+      if (!payment.externalId) {
+        throw new Error("Payment externalId not found");
+      }
       const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
 
       if (!stripeAccount) {
