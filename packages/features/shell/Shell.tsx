@@ -193,14 +193,14 @@ function useRedirectToOnboardingIfNeeded() {
 
 function useRedirectTo2FAIfNeeded() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const query = useMeQuery();
+  const user = query.data;
 
-  const user = session?.user;
-  const isRedirectingTo2Fa = user && user.organizationId && !user.twoFactorEnabled;
+  const isRedirectingTo2Fa = user && user?.organizationId && !user.twoFactorEnabled;
 
   useEffect(() => {
     if (user) {
-      const { organizationId = false, twoFactorEnabled = false } = user;
+      const { organizationId = null, twoFactorEnabled = false } = user;
       if (organizationId && !twoFactorEnabled) {
         router.replace("/settings/security/two-factor-auth");
       }

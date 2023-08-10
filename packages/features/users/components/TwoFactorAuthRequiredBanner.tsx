@@ -1,16 +1,15 @@
-import { useSession } from "next-auth/react";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TopBanner } from "@calcom/ui";
 import { Key } from "@calcom/ui/components/icon";
 
 function TwoFactorAuthRequiredBanner() {
   const { t } = useLocale();
-  const session = useSession();
+  const query = useMeQuery();
+  const user = query.data;
 
-  const user = session?.data?.user;
-  const requiresMFA = user && user.organizationId && !user.twoFactorEnabled;
+  const requiresMFA = user && user?.organizationId && !user.twoFactorEnabled;
 
   if (!requiresMFA) return null;
 
