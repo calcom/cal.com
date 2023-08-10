@@ -4,6 +4,8 @@ import { prisma } from "@calcom/prisma";
 
 import type { Prisma } from ".prisma/client";
 
+type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+
 /**
  *
  * @param credentials - Can be user or team credentials
@@ -39,14 +41,13 @@ const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterO
     select: { slug: true, enabled: true },
   });
   const apps = getApps(credentials, filterOnCredentials);
-
-  const filteredApps = enabledApps.reduce((reducedArray, app) => {
-    const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
-    if (appMetadata) {
-      reducedArray.push({ ...appMetadata, enabled: app.enabled });
+  const filteredApps = apps.reduce((reducedArray, app) => {
+    const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
+    if (appDbQuery?.enabled || app.isGlobal) {
+      reducedArray.push({ ...app, enabled: true });
     }
     return reducedArray;
-  }, [] as (ReturnType<typeof getApps>[number] & { enabled: boolean })[]);
+  }, [] as EnabledApp[]);
 
   return filteredApps;
 };

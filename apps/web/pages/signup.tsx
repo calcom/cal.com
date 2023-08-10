@@ -272,6 +272,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     username = available ? username : suggestion || username;
   }
 
+  // Transform all + to - in username
+  username = username.replace(/\+/g, "-");
+
   return {
     props: {
       ...props,
