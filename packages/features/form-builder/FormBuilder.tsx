@@ -1,30 +1,30 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-form";
+import type { UseFormReturn, SubmitHandler } from "react-hook-form";
 import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
+  Label,
   Badge,
-  BooleanToggleGroupField,
   Button,
   Dialog,
   DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
+  DialogFooter,
   Form,
-  Input,
-  InputField,
-  Label,
+  BooleanToggleGroupField,
   SelectField,
-  showToast,
+  InputField,
+  Input,
   Switch,
+  showToast,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, Plus, Trash2, X } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
