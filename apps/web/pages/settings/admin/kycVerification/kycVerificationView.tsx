@@ -7,7 +7,7 @@ type FormValues = {
   name?: string | null;
 };
 
-export const KYCVerificationView = () => {
+export default function KYCVerificationView() {
   const teamForm = useForm<FormValues>();
   const userForm = useForm<FormValues>();
 
@@ -77,4 +77,4 @@ export const KYCVerificationView = () => {
       </div>
     </div>
   );
-};
+}

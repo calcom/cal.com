@@ -1,7 +1,7 @@
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 
-import { KYCVerificationView } from "./kycVerificationView";
+import KYCVerificationView from "./kycVerificationView";
 
 const KYCVerificationPage = () => <KYCVerificationView />;
 
