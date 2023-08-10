@@ -1,5 +1,6 @@
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -43,7 +44,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     teamId,
     sortByMostPopular,
   } = input;
-  let { credentials } = user;
+  let credentials = await getUsersCredentials(user.id);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
