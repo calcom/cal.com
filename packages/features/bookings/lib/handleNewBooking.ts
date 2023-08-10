@@ -890,34 +890,6 @@ async function handler(
 
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-  let originalRescheduledBooking: BookingType = null;
-
-  if (rescheduleUid) {
-    // rescheduleUid can be bookingUid and bookingSeatUid
-    bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: rescheduleUid,
-      },
-      include: {
-        booking: true,
-        attendee: true,
-      },
-    });
-    if (bookingSeat) {
-      rescheduleUid = bookingSeat.booking.uid;
-    }
-    originalRescheduledBooking = await getOriginalRescheduledBooking(
-      rescheduleUid,
-      !!eventType.seatsPerTimeSlot
-    );
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
-    }
-  }
-
   const isOrganizerRescheduling = organizerUser.id === userId;
 
   const attendeeInfoOnReschedule =
