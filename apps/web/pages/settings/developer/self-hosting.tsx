@@ -1,3 +1,5 @@
+// TODO: this page is a duplicate of API keys and should, of course,
+// use the correct License Key generation setup page, not the API key setup page
 import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
@@ -5,7 +7,6 @@ import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,11 +17,11 @@ import {
   Meta,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
-import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
+import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-const ApiKeysView = () => {
+const SelfHostingView = () => {
   const { t } = useLocale();
 
   const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
@@ -30,26 +31,22 @@ const ApiKeysView = () => {
     undefined
   );
 
-  const NewApiKeyButton = () => {
+  const ContinueButton = () => {
     return (
       <Button
-        color="secondary"
-        StartIcon={Plus}
+        color="primary"
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
         }}>
-        {t("new_api_key")}
+        {t("continue")}
       </Button>
     );
   };
 
   return (
     <>
-      <Meta
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-      />
+      <Meta title={t("self_hosting")} description={t("self_hosting_description")} />
 
       <LicenseRequired>
         <>
@@ -70,14 +67,21 @@ const ApiKeysView = () => {
                     />
                   ))}
                 </div>
-                <NewApiKeyButton />
+                <ContinueButton />
               </>
             ) : (
               <EmptyScreen
                 Icon={LinkIcon}
-                headline={t("create_first_api_key")}
-                description={t("create_first_api_key_description", { appName: APP_NAME })}
-                buttonRaw={<NewApiKeyButton />}
+                headline={t("host_calcom_title")}
+                description={t("host_calcom_description")}
+                buttonRaw={
+                  <div className="flex space-x-2">
+                    <ContinueButton />
+                    <Button href="https://cal.com/sales" color="secondary">
+                      {t("contact_sales")}
+                    </Button>
+                  </div>
+                }
               />
             )}
           </div>
@@ -93,7 +97,7 @@ const ApiKeysView = () => {
   );
 };
 
-ApiKeysView.getLayout = getLayout;
-ApiKeysView.PageWrapper = PageWrapper;
+SelfHostingView.getLayout = getLayout;
+SelfHostingView.PageWrapper = PageWrapper;
 
-export default ApiKeysView;
+export default SelfHostingView;
