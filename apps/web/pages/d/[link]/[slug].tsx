@@ -56,7 +56,7 @@ Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
