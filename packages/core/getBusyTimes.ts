@@ -207,4 +207,63 @@ export async function getBusyTimes(params: {
   return busyTimes;
 }
 
+export async function getBusyTimesForLimitChecks(params: {
+  userId: number;
+  eventTypeId: number;
+  startDate: Date;
+  endDate: Date;
+}) {
+  const { userId, eventTypeId, startDate, endDate } = params;
+  logger.silly(
+    `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+    })}`
+  );
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      // FIXME: bookings that overlap on one side will never be counted
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+    },
+    select: {
+      id: true,
+      startTime: true,
+      endTime: true,
+      eventType: {
+        select: {
+          id: true,
+        },
+      },
+      title: true,
+    },
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventType?.id}-booking-${id}`,
+  }));
+
+  logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
+  performance.mark("getBusyTimesForLimitChecksEnd");
+  performance.measure(
+    `prisma booking get for limits took $1'`,
+    "getBusyTimesForLimitChecksStart",
+    "getBusyTimesForLimitChecksEnd"
+  );
+  return busyTimes;
+}
+
 export default getBusyTimes;
