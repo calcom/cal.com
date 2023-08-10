@@ -55,7 +55,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   return (
     <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
       {/* Label & switch container */}
-      <div className="flex h-[36px] items-center justify-between sm:w-32">
+      <div className="mb-2 flex h-[36px] items-center justify-between sm:mb-0 sm:w-32">
         <div>
           <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
@@ -69,15 +69,17 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
       <>
         {watchDayRange ? (
-          <div className="flex sm:ml-2">
-            <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
+          <div className="flex ">
+            <DayRanges
+              control={control}
+              name={name}
+              copyButton={!!watchDayRange.length && <div>{CopyButton}</div>}
+            />
           </div>
         ) : (
           <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
@@ -165,9 +167,11 @@ const Schedule = <
 export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   control,
+  copyButton,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
+  copyButton?: ReactNode;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -184,29 +188,32 @@ export const DayRanges = <TFieldValues extends FieldValues>({
           <div className="mb-2 flex last:mb-0">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
-              <Button
-                tooltip={t("add_time_availability")}
-                className="text-default mx-2 "
-                type="button"
-                color="minimal"
-                variant="icon"
-                StartIcon={Plus}
-                onClick={() => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const slotRange: any = getDateSlotRange(
-                    getValues(`${name}.${fields.length - 1}`),
-                    getValues(`${name}.0`)
-                  );
+              <div className="flex">
+                <Button
+                  tooltip={t("add_time_availability")}
+                  className="text-default mx-2 "
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  StartIcon={Plus}
+                  onClick={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const slotRange: any = getDateSlotRange(
+                      getValues(`${name}.${fields.length - 1}`),
+                      getValues(`${name}.0`)
+                    );
 
-                  if (slotRange?.append) {
-                    append(slotRange.append);
-                  }
+                    if (slotRange?.append) {
+                      append(slotRange.append);
+                    }
 
-                  if (slotRange?.prepend) {
-                    prepend(slotRange.prepend);
-                  }
-                }}
-              />
+                    if (slotRange?.prepend) {
+                      prepend(slotRange.prepend);
+                    }
+                  }}
+                />
+                {copyButton && <>{copyButton}</>}
+              </div>
             )}
             {index !== 0 && (
               <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />
@@ -246,7 +253,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
   return (
     <div className={className}>
       <LazySelect
-        className="inline-block w-[100px]"
+        className="inline-block w-[9ch]"
         value={value.start}
         max={value.end}
         onChange={(option) => {
@@ -255,7 +262,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
       />
       <span className="text-default mx-2 w-2 self-center"> - </span>
       <LazySelect
-        className="inline-block w-[100px] rounded-md"
+        className="inline-block w-[9ch] rounded-md"
         value={value.end}
         min={value.start}
         onChange={(option) => {
