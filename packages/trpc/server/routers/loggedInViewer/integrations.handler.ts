@@ -1,3 +1,4 @@
+import type { CredentialOwner } from "@calcom/app-store/types";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -139,9 +140,17 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
               team.members[0].role === MembershipRole.ADMIN || team.members[0].role === MembershipRole.OWNER,
           };
         });
+      // type infer as CredentialOwner
+      const credentialOwner: CredentialOwner = {
+        name: user.name,
+        avatar: user.avatar,
+      };
+
       return {
         ...app,
-        ...(teams.length && { credentialOwner: { name: user.name, avatar: user.avatar } }),
+        ...(teams.length && {
+          credentialOwner,
+        }),
         userCredentialIds,
         invalidCredentialIds,
         teams,
