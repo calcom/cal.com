@@ -72,11 +72,15 @@ export const checkIfIsAvailable = ({
 export async function getEventType(input: TGetScheduleInputSchema) {
   const { eventTypeSlug, usernameList } = input;
   let eventTypeId = input.eventTypeId;
+  let eventType;
 
   if (eventTypeId === undefined && eventTypeSlug && usernameList && usernameList.length === 1) {
     // If we only have the slug and usernameList, we need to get the id first
     const username = usernameList[0];
+    const startPrismaEventTypeGet = performance.now();
     const userId = await getUserIdFromUsername(username);
+    const endPrismaEventTypeGet = performance.now();
+    console.log("getUserIdFromUsername", endPrismaEventTypeGet - startPrismaEventTypeGet);
     let teamId;
 
     if (!userId) {
@@ -89,7 +93,8 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       }
     }
 
-    const eventType = await prisma.eventType.findFirst({
+    const startFirstPrismaEventTypeGet = performance.now();
+    eventType = await prisma.eventType.findFirst({
       where: {
         slug: eventTypeSlug,
         ...(teamId ? { teamId } : {}),
@@ -97,9 +102,35 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       },
       select: {
         id: true,
+        slug: true,
+        minimumBookingNotice: true,
+        length: true,
+        offsetStart: true,
+        seatsPerTimeSlot: true,
+        timeZone: true,
+        slotInterval: true,
+        beforeEventBuffer: true,
+        afterEventBuffer: true,
+        bookingLimits: true,
+        durationLimits: true,
+        schedulingType: true,
+        periodType: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
+        periodDays: true,
+        metadata: true,
+        // users: {
+        //   select: {
+        //     credentials: true,
+        //     ...availabilityUserSelect,
+        //   },
+        // }
       },
     });
 
+    const endFirstPrismaEventTypeGet = performance.now();
+    console.log("firstGetEventType", endFirstPrismaEventTypeGet - startFirstPrismaEventTypeGet);
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -107,45 +138,85 @@ export async function getEventType(input: TGetScheduleInputSchema) {
     eventTypeId = eventType.id;
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      minimumBookingNotice: true,
-      length: true,
-      offsetStart: true,
-      seatsPerTimeSlot: true,
-      timeZone: true,
-      slotInterval: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      bookingLimits: true,
-      durationLimits: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      periodDays: true,
-      metadata: true,
-      schedule: {
-        select: {
-          availability: true,
-          timeZone: true,
+  console.log("eventTypeId", eventTypeId);
+
+  const startSecondPrismaEventTypeGet = performance.now();
+  const queries = [];
+
+  if (!eventType) {
+    eventType = await prisma.eventType.findUnique({
+      where: {
+        id: eventTypeId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        minimumBookingNotice: true,
+        length: true,
+        offsetStart: true,
+        seatsPerTimeSlot: true,
+        timeZone: true,
+        slotInterval: true,
+        beforeEventBuffer: true,
+        afterEventBuffer: true,
+        bookingLimits: true,
+        durationLimits: true,
+        schedulingType: true,
+        periodType: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
+        periodDays: true,
+        metadata: true,
+        users: {
+          select: {
+            credentials: true,
+            ...availabilityUserSelect,
+          },
         },
       },
-      availability: {
+    });
+  }
+
+  let schedule;
+  let availability;
+  let hosts;
+  let users;
+
+  queries.push(
+    async () =>
+      (availability = await prisma.availability.findFirst({
+        where: {
+          eventTypeId,
+        },
         select: {
           date: true,
           startTime: true,
           endTime: true,
           days: true,
         },
-      },
-      hosts: {
+      }))
+  );
+
+  queries.push(
+    async () =>
+      (schedule = await prisma.schedule.findFirst({
+        where: {
+          id: eventType.scheduleId,
+        },
+        select: {
+          availability: true,
+          timeZone: true,
+        },
+      }))
+  );
+
+  queries.push(
+    async () =>
+      (hosts = await prisma.host.findMany({
+        where: {
+          eventTypeId,
+        },
         select: {
           isFixed: true,
           user: {
@@ -155,15 +226,42 @@ export async function getEventType(input: TGetScheduleInputSchema) {
             },
           },
         },
-      },
-      users: {
-        select: {
-          credentials: true,
-          ...availabilityUserSelect,
-        },
-      },
-    },
-  });
+      }))
+  );
+
+  // queries.push(async() => users =  await prisma.$queryRaw`
+  //   SELECT credentials
+  //   FROM "_user_eventtype" uet
+  //   INNER JOIN "users" u ON uet."B" = u.id
+  //   WHERE uet."A" = ${eventTypeId}
+  // `);
+  // queries.push(async() => users = await prisma._user_eventtype.findMany({
+  //   where: {
+  //     A: eventTypeId,
+  //   },
+  //   select: {
+  //     credentials: true,
+  //     ...availabilityUserSelect,
+  //   },
+  // }));
+
+  const endSecondPrismaEventTypeGet = performance.now();
+  console.log("secondGetEventType", endSecondPrismaEventTypeGet - startSecondPrismaEventTypeGet);
+
+  const queriesStart = performance.now();
+  await Promise.all(queries.map(async (q) => await q()));
+  const queriesEnd = performance.now();
+  console.log("queries", queriesEnd - queriesStart);
+
+  eventType.hosts = hosts;
+  eventType.availability = availability;
+  eventType.schedule = schedule;
+
+  console.log("users", eventType.users);
+  console.log("hosts", eventType.hosts);
+  console.log("availability", eventType.availability);
+  console.log("schedule", eventType.schedule);
+
   if (!eventType) {
     return eventType;
   }
@@ -226,7 +324,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input);
   const endPrismaEventTypeGet = performance.now();
-  logger.debug(
+  console.log(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
       input.eventTypeId
     }`
@@ -321,7 +419,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+    organizerTimeZone: eventType.timeZone || eventType.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
