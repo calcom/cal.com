@@ -43,14 +43,6 @@ type BookEventFormProps = {
   onCancel?: () => void;
 };
 
-const mapByEmail = (attendees) => {
-  const finalObj = {};
-  attendees.forEach((attendee) => {
-    finalObj[attendee.email] = attendee;
-  });
-  return finalObj;
-};
-
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const searchParams = useSearchParams();
   const routerQuery = useRouterQuery();
@@ -366,7 +358,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           }),
           {}
         ),
-      bookingAttendees: mapByEmail(bookingData.attendees),
     };
 
     if (event.data?.recurringEvent?.freq && recurringEventCount) {

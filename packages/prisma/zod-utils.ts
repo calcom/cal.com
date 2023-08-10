@@ -214,7 +214,6 @@ export const bookingCreateBodySchema = z.object({
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
-  bookingAttendees: z.unknown().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
   timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),

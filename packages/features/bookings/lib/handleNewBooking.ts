@@ -643,7 +643,6 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
-    bookingAttendees,
     ...reqBody
   } = getBookingData({
     req,
@@ -651,10 +650,43 @@ async function handler(
     eventType,
   });
 
+  let rescheduleUid = reqBody.rescheduleUid;
+  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
+  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+  let originalRescheduledBooking: BookingType = null;
+  let bookerFromOriginalRescheduledBooking: BookingType["attendees"][number] | null = null;
+
+  if (rescheduleUid) {
+    // rescheduleUid can be bookingUid and bookingSeatUid
+    bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: rescheduleUid,
+      },
+      include: {
+        booking: true,
+        attendee: true,
+      },
+    });
+    if (bookingSeat) {
+      rescheduleUid = bookingSeat.booking.uid;
+    }
+    originalRescheduledBooking = await getOriginalRescheduledBooking(
+      rescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+    if (!originalRescheduledBooking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+    }
+
+    bookerFromOriginalRescheduledBooking = originalRescheduledBooking.attendees.find(
+      (attendee) => attendee.email === bookerEmail
+    );
+  }
+
   const fullName = getFullName(bookerName);
 
   const tAttendees = await getTranslation(
-    bookingAttendees?.[bookerEmail]?.language ?? language ?? "en",
+    bookerFromOriginalRescheduledBooking?.locale ?? language ?? "en",
     "common"
   );
   const tGuests = await getTranslation("en", "common");
@@ -872,10 +904,10 @@ async function handler(
       name: fullName,
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
-      timeZone: bookingAttendees?.[bookerEmail]?.timeZone ?? reqBody.timeZone,
+      timeZone: bookerFromOriginalRescheduledBooking?.timeZone ?? reqBody.timeZone,
       language: {
         translate: tAttendees,
-        locale: bookingAttendees?.[bookerEmail]?.locale ?? language ?? "en",
+        locale: bookerFromOriginalRescheduledBooking?.locale ?? language ?? "en",
       },
     },
   ];
@@ -890,7 +922,7 @@ async function handler(
       name: "",
       firstName: "",
       lastName: "",
-      timeZone: bookingAttendees?.[bookerEmail]?.timeZone ?? reqBody.timeZone,
+      timeZone: bookerFromOriginalRescheduledBooking?.timeZone ?? reqBody.timeZone,
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
@@ -988,34 +1020,6 @@ async function handler(
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
-
-  let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-  let originalRescheduledBooking: BookingType = null;
-
-  if (rescheduleUid) {
-    // rescheduleUid can be bookingUid and bookingSeatUid
-    bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: rescheduleUid,
-      },
-      include: {
-        booking: true,
-        attendee: true,
-      },
-    });
-    if (bookingSeat) {
-      rescheduleUid = bookingSeat.booking.uid;
-    }
-    originalRescheduledBooking = await getOriginalRescheduledBooking(
-      rescheduleUid,
-      !!eventType.seatsPerTimeSlot
-    );
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
-    }
-  }
 
   /* Used for seats bookings to update evt object with video data */
   const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
@@ -1404,7 +1408,10 @@ async function handler(
           const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
             const evtAttendee = {
               ...attendee,
-              language: { translate: tAttendees, locale: language ?? "en" },
+              language: {
+                translate: tAttendees,
+                locale: bookerFromOriginalRescheduledBooking?.locale ?? language ?? "en",
+              },
             };
             return evtAttendee;
           });
