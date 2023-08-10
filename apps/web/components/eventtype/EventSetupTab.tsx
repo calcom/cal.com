@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -383,7 +384,7 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
-
+  const orgBranding = useOrgBranding();
   return (
     <div>
       <div className="space-y-8">
@@ -411,6 +412,7 @@ export const EventSetupTab = (
           defaultValue={eventType.slug}
           addOnLeading={
             <>
+              {orgBranding && `${orgBranding.slug}.`}
               {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
               {!isManagedEventType
                 ? team
