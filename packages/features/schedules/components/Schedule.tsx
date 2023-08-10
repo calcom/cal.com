@@ -240,10 +240,10 @@ const RemoveTimeButton = ({
   );
 };
 
-const TimeRangeField = ({ value, onChange }: ControllerRenderProps) => {
+const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className="flex flex-row gap-1">
+    <div className={classNames("flex flex-row gap-1",className)}>
       <LazySelect
         className="inline-block w-[100px]"
         value={value.start}
