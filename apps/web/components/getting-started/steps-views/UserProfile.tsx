@@ -24,7 +24,7 @@ const UserProfile = () => {
   });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
+  const [imageSrc, setImageSrc] = useState<string>("");
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
@@ -102,8 +102,8 @@ const UserProfile = () => {
           <Avatar
             alt={user.username || ""}
             size="lg"
-            imageSrc={imageSrc}
             fallback={<Plus className="text-subtle h-6 w-6" />}
+            imageSrc={imageSrc}
           />
         )}
         <input
