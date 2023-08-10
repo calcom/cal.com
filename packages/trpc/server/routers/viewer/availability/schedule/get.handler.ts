@@ -39,7 +39,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       },
     },
   });
-  if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
+  if (!schedule) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
@@ -100,5 +100,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     }, [] as { ranges: TimeRange[] }[]),
     isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
     isLastSchedule: schedulesCount <= 1,
+    readOnly: schedule.userId !== user.id && !input.isManagedEventType,
   };
 };

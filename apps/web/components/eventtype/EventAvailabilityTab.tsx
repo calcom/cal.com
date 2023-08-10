@@ -138,7 +138,7 @@ const EventTypeScheduleDetails = memo(
             <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
-          {!!schedule?.id && !schedule.isManaged && (
+          {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
             <Button
               href={`/availability/${schedule.id}`}
               disabled={isLoading}
