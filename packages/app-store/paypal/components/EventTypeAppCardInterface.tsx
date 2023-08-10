@@ -53,8 +53,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <>
               <div className="mt-2 block items-center sm:flex">
                 <TextField
-                  label="Price",
-                  labelSrOnly,
+                  label="Price"
+                  labelSrOnly
                   addOnLeading="$"
                   addOnSuffix={currency || "No selected currency"}
                   step="0.01"
