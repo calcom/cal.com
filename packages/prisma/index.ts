@@ -23,6 +23,21 @@ if (process.env.NODE_ENV !== "production") {
 // If any changed on middleware server restart is required
 bookingReferenceMiddleware(prisma);
 
-export default prisma;
+const prismaWithClientExtensions = prisma.$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, operation, args, query }) {
+        const start = performance.now();
+        /* your custom logic here */
+        const res = await query(args);
+        const end = performance.now();
+        console.log("Perf: ", `${model}.${operation} took ${(end - start).toFixed(2)}ms\n`);
+        return res;
+      },
+    },
+  },
+});
+
+export default prismaWithClientExtensions;
 
 export * from "./selects";

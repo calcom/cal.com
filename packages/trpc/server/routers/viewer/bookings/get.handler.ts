@@ -1,7 +1,6 @@
 import type { NextApiResponse } from "next";
 
 import { parseRecurringEvent } from "@calcom/lib";
-import { addServerTimingHeaderIfRes } from "@calcom/lib/server/addServerTimingHeader";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -24,7 +23,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   // for orderBy, but we don't use a unique column in our orderBy
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
-  const start = performance.now();
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.status;
   const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
@@ -126,8 +124,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
   const orderBy = bookingListingOrderby[bookingListingByStatus];
-  const queriesStartTime = performance.now();
-  let query1_1End, query1_2End, query1_3End, query1_4End, query2End, query3End;
 
   const bookingSelect = {
     ...bookingMinimalSelect,
@@ -197,144 +193,106 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     recurringInfoBasic,
     recurringInfoExtended,
   ] = await Promise.all([
-    prisma.booking
-      .findMany({
-        where: {
-          OR: [
-            {
-              userId: user.id,
-            },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: bookingSelect,
-        orderBy,
-        take: take + 1,
-        skip,
-      })
-      .then((res) => {
-        query1_1End = performance.now();
-
-        return res;
-      }),
-    prisma.booking
-      .findMany({
-        where: {
-          OR: [
-            {
-              attendees: {
-                some: {
-                  email: user.email,
-                },
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            userId: user.id,
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            attendees: {
+              some: {
+                email: user.email,
               },
             },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: bookingSelect,
-        orderBy,
-        take: take + 1,
-        skip,
-      })
-      .then((res) => {
-        query1_2End = performance.now();
-
-        return res;
-      }),
-    prisma.booking
-      .findMany({
-        where: {
-          OR: [
-            {
-              eventType: {
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      role: {
-                        in: ["ADMIN", "OWNER"],
-                      },
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            eventType: {
+              team: {
+                members: {
+                  some: {
+                    userId: user.id,
+                    role: {
+                      in: ["ADMIN", "OWNER"],
                     },
                   },
                 },
               },
             },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: bookingSelect,
-        orderBy,
-        take: take + 1,
-        skip,
-      })
-      .then((res) => {
-        query1_3End = performance.now();
-
-        return res;
-      }),
-    prisma.booking
-      .findMany({
-        where: {
-          OR: [
-            {
-              seatsReferences: {
-                some: {
-                  attendee: {
-                    email: user.email,
-                  },
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            seatsReferences: {
+              some: {
+                attendee: {
+                  email: user.email,
                 },
               },
             },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: bookingSelect,
-        orderBy,
-        take: take + 1,
-        skip,
-      })
-      .then((res) => {
-        query1_4End = performance.now();
-
-        return res;
-      }),
-    prisma.booking
-      .groupBy({
-        by: ["recurringEventId"],
-        _min: {
-          startTime: true,
-        },
-        _count: {
-          recurringEventId: true,
-        },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
           },
-          userId: user.id,
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.groupBy({
+      by: ["recurringEventId"],
+      _min: {
+        startTime: true,
+      },
+      _count: {
+        recurringEventId: true,
+      },
+      where: {
+        recurringEventId: {
+          not: { equals: null },
         },
-      })
-      .then((res) => {
-        query2End = performance.now();
-        return res;
-      }),
-    prisma.booking
-      .groupBy({
-        by: ["recurringEventId", "status", "startTime"],
-        _min: {
-          startTime: true,
+        userId: user.id,
+      },
+    }),
+    prisma.booking.groupBy({
+      by: ["recurringEventId", "status", "startTime"],
+      _min: {
+        startTime: true,
+      },
+      where: {
+        recurringEventId: {
+          not: { equals: null },
         },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
-          },
-          userId: user.id,
-        },
-      })
-      .then((res) => {
-        query3End = performance.now();
-        return res;
-      }),
+        userId: user.id,
+      },
+    }),
   ]);
 
   const recurringInfo = recurringInfoBasic.map(
@@ -368,7 +326,20 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     }
   );
 
-  const bookings = bookingsQuery.map((booking) => {
+  const plainBookings = getUniqueBookings(
+    bookingsQuery.concat(bookingsQuery2).concat(bookingsQuery3).concat(bookingsQuery4)
+  );
+
+  const bookings = (
+    await prisma.booking.findMany({
+      where: {
+        id: {
+          in: plainBookings.map((booking) => booking.id),
+        },
+      },
+      select: bookingSelect,
+    })
+  ).map((booking) => {
     // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
@@ -394,43 +365,21 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   } else {
     nextCursor = null;
   }
-  const end = performance.now();
-  addServerTimingHeaderIfRes({
-    res: ctx.res,
-    timings: [
-      {
-        label: "t.hdlr.q1_1",
-        duration: query1_1End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr.q1_2",
-        duration: query1_2End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr.q1_3",
-        duration: query1_3End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr.q1_4",
-        duration: query1_4End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr.q2",
-        duration: query2End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr.q3",
-        duration: query3End! - queriesStartTime,
-      },
-      {
-        label: "t.hdlr",
-        duration: end - start,
-      },
-    ],
-  });
+
   return {
     bookings,
     recurringInfo,
     nextCursor,
   };
+};
+
+const set = new Set();
+const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
+  const unique = arr.filter((booking) => {
+    const duplicate = set.has(booking.uid);
+    set.add(booking.uid);
+    return !duplicate;
+  });
+  set.clear();
+  return unique;
 };
