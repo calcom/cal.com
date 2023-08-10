@@ -3,7 +3,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { defaultAvatarSrc, getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
@@ -21,6 +21,8 @@ export type AvatarProps = {
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
+  organizationName?: string;
+  organizationLogo?: string;
 };
 
 const sizesPropsBySize = {
@@ -69,6 +71,20 @@ export function Avatar(props: AvatarProps) {
             </div>
           </div>
         )}
+        {props.organizationLogo ||
+          (props.organizationName && (
+            <div
+              className={classNames(
+                "absolute bottom-0 right-0 z-10",
+                size === "lg" ? "h-5 w-5" : "h-10 w-10"
+              )}>
+              <AvatarPrimitive.Image
+                src={getPlaceholderAvatar(props.organizationLogo, props.organizationName as string)}
+                alt={alt}
+                className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
+              />
+            </div>
+          ))}
       </>
     </AvatarPrimitive.Root>
   );
