@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
+
 import { bookingReferenceMiddleware } from "./middleware";
 
 declare global {
@@ -31,7 +33,7 @@ const prismaWithClientExtensions = prisma.$extends({
         /* your custom logic here */
         const res = await query(args);
         const end = performance.now();
-        console.log("Perf: ", `${model}.${operation} took ${(end - start).toFixed(2)}ms\n`);
+        logger.debug("Query Perf: ", `${model}.${operation} took ${(end - start).toFixed(2)}ms\n`);
         return res;
       },
     },

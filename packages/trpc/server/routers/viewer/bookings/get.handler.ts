@@ -75,6 +75,51 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     unconfirmed: { startTime: "asc" },
   };
 
+  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
+  const orderBy = bookingListingOrderby[bookingListingByStatus];
+
+  const { bookings, recurringInfo } = await getBookings({
+    user,
+    prisma,
+    passedBookingsStatusFilter,
+    filters: input.filters,
+    orderBy,
+    take,
+    skip,
+  });
+
+  const bookingsFetched = bookings.length;
+  let nextCursor: typeof skip | null = skip;
+  if (bookingsFetched > take) {
+    nextCursor += bookingsFetched;
+  } else {
+    nextCursor = null;
+  }
+
+  return {
+    bookings,
+    recurringInfo,
+    nextCursor,
+  };
+};
+
+async function getBookings({
+  user,
+  prisma,
+  passedBookingsStatusFilter,
+  filters,
+  orderBy,
+  take,
+  skip,
+}: {
+  user: { id: number; email: string };
+  filters: TGetInputSchema["filters"];
+  prisma: PrismaClient;
+  passedBookingsStatusFilter: Prisma.BookingWhereInput;
+  orderBy: Prisma.BookingOrderByWithAggregationInput;
+  take: number;
+  skip: number;
+}) {
   // TODO: Fix record typing
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
     teamIds: {
@@ -83,7 +128,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           eventType: {
             team: {
               id: {
-                in: input.filters?.teamIds,
+                in: filters?.teamIds,
               },
             },
           },
@@ -97,7 +142,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
             users: {
               some: {
                 id: {
-                  in: input.filters?.userIds,
+                  in: filters?.userIds,
                 },
               },
             },
@@ -109,7 +154,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       AND: [
         {
           eventTypeId: {
-            in: input.filters?.eventTypeIds,
+            in: filters?.eventTypeIds,
           },
         },
       ],
@@ -117,13 +162,10 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 
   const filtersCombined: Prisma.BookingWhereInput[] =
-    input.filters &&
-    Object.keys(input.filters).map((key) => {
+    filters &&
+    Object.keys(filters).map((key) => {
       return bookingWhereInputFilters[key];
     });
-
-  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
-  const orderBy = bookingListingOrderby[bookingListingByStatus];
 
   const bookingSelect = {
     ...bookingMinimalSelect,
@@ -186,10 +228,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 
   const [
-    bookingsQuery,
-    bookingsQuery2,
-    bookingsQuery3,
-    bookingsQuery4,
+    // Quering these in parallel to save time.
+    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
+    bookingsQueryUserId,
+    bookingsQueryAttendees,
+    bookingsQueryTeamMember,
+    bookingsQuerySeatReference,
+    //////////////////////////
+
     recurringInfoBasic,
     recurringInfoExtended,
   ] = await Promise.all([
@@ -327,9 +373,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   );
 
   const plainBookings = getUniqueBookings(
-    bookingsQuery.concat(bookingsQuery2).concat(bookingsQuery3).concat(bookingsQuery4)
+    bookingsQueryUserId
+      .concat(bookingsQueryAttendees)
+      .concat(bookingsQueryTeamMember)
+      .concat(bookingsQuerySeatReference)
   );
 
+  // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
+  // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
   const bookings = (
     await prisma.booking.findMany({
       where: {
@@ -357,21 +408,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       endTime: booking.endTime.toISOString(),
     };
   });
-
-  const bookingsFetched = bookings.length;
-  let nextCursor: typeof skip | null = skip;
-  if (bookingsFetched > take) {
-    nextCursor += bookingsFetched;
-  } else {
-    nextCursor = null;
-  }
-
-  return {
-    bookings,
-    recurringInfo,
-    nextCursor,
-  };
-};
+  return { bookings, recurringInfo };
+}
 
 const set = new Set();
 const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
