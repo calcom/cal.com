@@ -225,7 +225,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           )}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
+      <Button
+        loading={mutation.isLoading}
+        disabled={isDisabled}
+        color="primary"
+        type="submit"
+        className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
