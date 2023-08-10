@@ -23,12 +23,21 @@ export function processWorkingHours({
 }) {
   const results = [];
   for (let date = dateFrom.tz(timeZone).startOf("day"); dateTo.isAfter(date); date = date.add(1, "day")) {
-    if (!item.days.includes(date.day())) {
+    const dateInTz = date.tz(timeZone);
+
+    if (!item.days.includes(dateInTz.day())) {
       continue;
     }
 
-    const start = date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
-    const end = date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
+    let start = dateInTz.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
+
+    let end = dateInTz.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
+
+    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
+    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+
+    start = start.add(offsetDiff, "minute");
+    end = end.add(offsetDiff, "minute");
 
     const startResult = dayjs.max(start, dateFrom.tz(timeZone));
     const endResult = dayjs.min(end, dateTo.tz(timeZone));
