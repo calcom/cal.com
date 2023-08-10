@@ -42,6 +42,7 @@ const PaymentForm = (props: Props) => {
   const paymentOption = props.payment.paymentOption;
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const exchangeRates = { usd: 1, eur: 0.85, mxn: 20.5 } ;
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
@@ -106,7 +107,7 @@ const PaymentForm = (props: Props) => {
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
               formatParams: { amount: { currency: props.payment.currency } },
-            })}
+           })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
             descriptionClassName="text-blue-900 font-semibold"
           />
@@ -165,6 +166,7 @@ export default function PaymentComponent(props: Props) {
   const stripePromise = getStripe((props.payment.data as StripePaymentData).stripe_publishable_key);
   const paymentOption = props.payment.paymentOption;
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const convertedAmount = amount * exchangeRates[description];
   let clientSecret: string | null;
 
   useEffect(() => {
