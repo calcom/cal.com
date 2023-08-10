@@ -64,7 +64,6 @@ export default function PayPalSetup(props: PayPalSetupProps) {
   });
 
   const saveKeys = async (key: { clientId: string; secretKey: string }) => {
-    console.log("key", key);
     if (!key.clientId || !key.secretKey || key.clientId === key.secretKey) {
       return false;
     }
