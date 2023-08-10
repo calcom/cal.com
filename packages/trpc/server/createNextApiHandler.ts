@@ -16,20 +16,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
      * @link https://trpc.io/docs/context
      */
     createContext: ({ req, res }) => {
-      const start = performance.now();
-
-      const context = createTrpcContext({ req, res });
-      const end = performance.now();
-      addServerTimingHeaderIfRes({
-        res,
-        timings: [
-          {
-            label: "createContext",
-            duration: end - start,
-          },
-        ],
-      });
-      return context;
+      return createTrpcContext({ req, res });
     },
     /**
      * @link https://trpc.io/docs/error-handling
