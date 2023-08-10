@@ -3,7 +3,6 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
@@ -20,7 +19,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const [error, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
-  const router = useRouter();
 
   const handleChange = (e: SyntheticEvent) => {
     const target = e.target as typeof e.target & { value: string };
@@ -40,8 +38,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       const json = await res.json();
       if (!res.ok) {
         setError(json);
-      } else if ("resetLink" in json) {
-        router.push(json.resetLink);
       } else {
         setSuccess(true);
       }

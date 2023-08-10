@@ -5,7 +5,7 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ToggleGroup } from "@calcom/ui";
+import { Button, ButtonGroup, ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -56,15 +56,37 @@ export function Header({
   if (isMonthView) {
     return <LayoutToggleWithData />;
   }
-  const month = new Intl.DateTimeFormat(i18n.language, { month: "short" }).format(selectedDate.toDate());
+
+  const endDate = selectedDate.add(extraDays - 1, "days");
+
+  const isSameMonth = () => {
+    return selectedDate.format("MMM") === endDate.format("MMM");
+  };
+
+  const isSameYear = () => {
+    return selectedDate.format("YYYY") === endDate.format("YYYY");
+  };
+  const formattedMonth = new Intl.DateTimeFormat(i18n.language, { month: "short" }).format(
+    selectedDate.toDate()
+  );
+  const FormattedSelectedDateRange = () => {
+    return (
+      <h3 className="min-w-[150px] text-base font-semibold leading-4">
+        {formattedMonth} {selectedDate.format("D")}
+        {!isSameYear() && <span className="text-subtle">, {selectedDate.format("YYYY")} </span>}-{" "}
+        {isSameMonth() ? endDate.format("D") : endDate.format("D")},{" "}
+        <span className="text-subtle">
+          {isSameYear() ? selectedDate.format("YYYY") : endDate.format("YYYY")}
+        </span>
+      </h3>
+    );
+  };
+
   return (
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">
-        <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {month} {selectedDate.format("D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
-          <span className="text-subtle">{selectedDate.format("YYYY")}</span>
-        </h3>
-        <div className="flex">
+        <FormattedSelectedDateRange />
+        <ButtonGroup>
           <Button
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
@@ -89,7 +111,7 @@ export function Header({
               {t("today")}
             </Button>
           )}
-        </div>
+        </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
         <TimeFormatToggle />
@@ -97,12 +119,12 @@ export function Header({
           <LayoutToggleWithData />
         </div>
         {/*
-      This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
-      for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
-      would be really weird, because the element is positioned fixed in the month view, and then
-      when switching layouts wouldn't anymore, causing it to animate from the center to the top right,
-      while it actually already was on place. That's why we have this element twice.
-    */}
+          This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
+          for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
+          would be really weird, because the element is positioned fixed in the month view, and then
+          when switching layouts wouldn't anymore, causing it to animate from the center to the top right,
+          while it actually already was on place. That's why we have this element twice.
+        */}
         <div className="pointer-events-none opacity-0" aria-hidden>
           <LayoutToggleWithData />
         </div>

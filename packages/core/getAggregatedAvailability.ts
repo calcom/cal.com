@@ -3,10 +3,7 @@ import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 export const getAggregatedAvailability = (
-  userAvailability: (Omit<
-    Awaited<ReturnType<Awaited<typeof import("./getUserAvailability")>["getUserAvailability"]>>,
-    "currentSeats"
-  > & { user?: { isFixed?: boolean } })[],
+  userAvailability: { dateRanges: DateRange[]; user?: { isFixed?: boolean } }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
   const fixedHosts = userAvailability.filter(
