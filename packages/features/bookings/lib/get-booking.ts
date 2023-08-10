@@ -224,3 +224,15 @@ export const getBookingForSeatedEvent = async (uid: string) => {
   };
   return result;
 };
+
+export const getMultipleDurationValue = (
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | undefined,
+  defaultValue: number
+) => {
+  return multipleDurationConfig
+    ? multipleDurationConfig.includes(Number(queryDuration))
+      ? Number(queryDuration)
+      : defaultValue
+    : null;
+};

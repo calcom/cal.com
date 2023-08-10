@@ -4,7 +4,11 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
+import {
+  getBookingForReschedule,
+  getBookingForSeatedEvent,
+  getMultipleDurationValue,
+} from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -54,18 +58,6 @@ export default function Type({
 
 Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
-
-function getMultipleDurationValue(
-  multipleDurationConfig: number[] | undefined,
-  queryDuration: string | string[] | undefined,
-  defaultValue: number
-) {
-  return multipleDurationConfig
-    ? multipleDurationConfig.includes(Number(queryDuration))
-      ? Number(queryDuration)
-      : defaultValue
-    : null;
-}
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
