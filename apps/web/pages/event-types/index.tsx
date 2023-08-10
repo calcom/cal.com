@@ -716,10 +716,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
-          undefined
-        }
+        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
