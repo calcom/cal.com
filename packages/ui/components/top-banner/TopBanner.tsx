@@ -30,9 +30,9 @@ export function TopBanner(props: TopBannerProps) {
   const renderDefaultIconByVariant = () => {
     switch (variant) {
       case "error":
-        return <AlertTriangle {...defaultIconProps} />;
+        return <AlertTriangle {...defaultIconProps} data-testid="variant-error" />;
       case "warning":
-        return <Info {...defaultIconProps} />;
+        return <Info {...defaultIconProps} data-testid="variant-warning" />;
       default:
         return null;
     }
@@ -48,7 +48,7 @@ export function TopBanner(props: TopBannerProps) {
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
         <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
-          {Icon ? <Icon {...defaultIconProps} /> : defaultIcon}
+          {Icon ? <Icon data-testid="variant-default" {...defaultIconProps} /> : defaultIcon}
           {text}
         </p>
         {actions && <div className="text-sm font-medium">{actions}</div>}
