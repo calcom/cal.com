@@ -40,6 +40,7 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
   entity,
+  duration,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -50,7 +51,7 @@ const BookerComponent = ({
     username,
     eventSlug,
     month,
-    duration: undefined,
+    duration,
   });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
