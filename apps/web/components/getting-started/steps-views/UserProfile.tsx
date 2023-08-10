@@ -104,6 +104,8 @@ const UserProfile = () => {
             gravatarFallbackMd5={user.emailMd5}
             size="lg"
             imageSrc={imageSrc}
+            organizationName={user.organization?.name}
+            organizationLogo={user.organization?.logo}
           />
         )}
         <input

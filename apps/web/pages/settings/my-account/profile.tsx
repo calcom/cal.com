@@ -225,6 +225,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
+        userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -363,11 +364,13 @@ const ProfileForm = ({
   onSubmit,
   extraField,
   isLoading = false,
+  userOrganization,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
+  userOrganization: RouterOutputs["viewer"]["me"]["user"]["organization"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -405,7 +408,14 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <Avatar
+                alt=""
+                imageSrc={value}
+                gravatarFallbackMd5="fallback"
+                size="lg"
+                organizationLogo={userOrganization.logo}
+                organizationName={userOrganization.name}
+              />
               <div className="ms-4">
                 <ImageUploader
                   target="avatar"
