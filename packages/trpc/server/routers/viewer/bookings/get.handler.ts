@@ -128,6 +128,67 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const orderBy = bookingListingOrderby[bookingListingByStatus];
   const queriesStartTime = performance.now();
   let query1_1End, query1_2End, query1_3End, query1_4End, query2End, query3End;
+
+  const bookingSelect = {
+    ...bookingMinimalSelect,
+    uid: true,
+    recurringEventId: true,
+    location: true,
+    eventType: {
+      select: {
+        slug: true,
+        id: true,
+        eventName: true,
+        price: true,
+        recurringEvent: true,
+        currency: true,
+        metadata: true,
+        seatsShowAttendees: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+    status: true,
+    paid: true,
+    payment: {
+      select: {
+        paymentOption: true,
+        amount: true,
+        currency: true,
+        success: true,
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+    rescheduled: true,
+    references: true,
+    isRecorded: true,
+    seatsReferences: {
+      where: {
+        attendee: {
+          email: user.email,
+        },
+      },
+      select: {
+        referenceUid: true,
+        attendee: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    },
+  };
+
   const [
     bookingsQuery,
     bookingsQuery2,
@@ -146,65 +207,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              currency: true,
-              metadata: true,
-              seatsShowAttendees: true,
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          status: true,
-          paid: true,
-          payment: {
-            select: {
-              paymentOption: true,
-              amount: true,
-              currency: true,
-              success: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          rescheduled: true,
-          references: true,
-          isRecorded: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
-            },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-        },
+        select: bookingSelect,
         orderBy,
         take: take + 1,
         skip,
@@ -228,65 +231,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              currency: true,
-              metadata: true,
-              seatsShowAttendees: true,
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          status: true,
-          paid: true,
-          payment: {
-            select: {
-              paymentOption: true,
-              amount: true,
-              currency: true,
-              success: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          rescheduled: true,
-          references: true,
-          isRecorded: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
-            },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-        },
+        select: bookingSelect,
         orderBy,
         take: take + 1,
         skip,
@@ -317,65 +262,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              currency: true,
-              metadata: true,
-              seatsShowAttendees: true,
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          status: true,
-          paid: true,
-          payment: {
-            select: {
-              paymentOption: true,
-              amount: true,
-              currency: true,
-              success: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          rescheduled: true,
-          references: true,
-          isRecorded: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
-            },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-        },
+        select: bookingSelect,
         orderBy,
         take: take + 1,
         skip,
@@ -401,65 +288,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              currency: true,
-              metadata: true,
-              seatsShowAttendees: true,
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          status: true,
-          paid: true,
-          payment: {
-            select: {
-              paymentOption: true,
-              amount: true,
-              currency: true,
-              success: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          rescheduled: true,
-          references: true,
-          isRecorded: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
-            },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-        },
+        select: bookingSelect,
         orderBy,
         take: take + 1,
         skip,

@@ -9,11 +9,13 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { createUserAndEventType } from "./seed-utils";
 
 (async function createManyDifferentUsersWithDifferentEventTypesAndBookings({
-  numUsers,
+  tillUser,
+  startFrom = 0,
 }: {
-  numUsers: number;
+  tillUser: number;
+  startFrom?: number;
 }) {
-  for (let i = 0; i < numUsers; i++) {
+  for (let i = startFrom; i < tillUser; i++) {
     await createUserAndEventType({
       user: {
         email: `pro${i}@example.com`,
@@ -230,4 +232,7 @@ import { createUserAndEventType } from "./seed-utils";
       ],
     });
   }
-})();
+})({
+  tillUser: 20000,
+  startFrom: 10000,
+});
