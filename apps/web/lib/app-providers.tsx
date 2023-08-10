@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -33,6 +34,7 @@ export type AppProps = Omit<
   NextAppProps<
     WithNonceProps & {
       themeBasis?: string;
+      session: Session;
     } & Record<string, unknown>
   >,
   "Component"
@@ -81,6 +83,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
     },
     router: locale ? { locale } : props.router,
   } as unknown as ComponentProps<typeof I18nextAdapter>;
+
   return <I18nextAdapter {...passedProps} />;
 };
 
@@ -243,7 +246,6 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const { pageProps, ...rest } = props;
@@ -257,7 +259,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={session || undefined}>
+      <SessionProvider session={pageProps.session ?? undefined}>
         <CustomI18nextProvider {...propsWithoutNonce}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
