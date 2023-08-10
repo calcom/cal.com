@@ -419,7 +419,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone: eventType.timeZone || eventType.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+    organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
