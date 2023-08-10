@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, TextField, showToast } from "@calcom/ui";
 
-export interface IMercadoPagoSetupProps {
+export interface PayPalSetupProps {
   public_key: string;
   access_token: string;
   currency: string;
@@ -42,7 +42,7 @@ export const currencyOptions = [
   { label: "Thai baht", value: "THB" },
 ];
 
-export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
+export default function PayPalSetup(props: PayPalSetupProps) {
   const [newClientId, setNewClientId] = useState("");
   const [newSecretKey, setNewSecretKey] = useState("");
 
@@ -186,7 +186,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
           </div>
         </div>
       ) : (
-        <div className="mt-5 ml-5">
+        <div className="ml-5 mt-5">
           <div>Paypal</div>
           <div className="mt-3">
             <Link href="/apps/paypal" passHref={true} legacyBehavior>
