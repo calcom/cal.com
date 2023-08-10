@@ -120,6 +120,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         periodCountCalendarDays: true,
         periodDays: true,
         metadata: true,
+        // THIS IS SUPER SLOW - Adds around 600ms on QA database
         users: {
           select: {
             credentials: true,
@@ -170,8 +171,9 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         metadata: true,
         users: {
           select: {
+            id: true,
             credentials: true,
-            ...availabilityUserSelect,
+            //...availabilityUserSelect,
           },
         },
       },
@@ -229,21 +231,20 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       }))
   );
 
-  // queries.push(async() => users =  await prisma.$queryRaw`
-  //   SELECT credentials
-  //   FROM "_user_eventtype" uet
-  //   INNER JOIN "users" u ON uet."B" = u.id
-  //   WHERE uet."A" = ${eventTypeId}
-  // `);
-  // queries.push(async() => users = await prisma._user_eventtype.findMany({
-  //   where: {
-  //     A: eventTypeId,
-  //   },
-  //   select: {
-  //     credentials: true,
-  //     ...availabilityUserSelect,
-  //   },
-  // }));
+  // queries.push(
+  //   async () =>
+  //     (users = await prisma.user.findMany({
+  //       where: {
+  //         id: {
+  //           in: eventType.users.map(u => u.id),
+  //         },
+  //       },
+  //       select: {
+  //         credentials: true,
+  //         ...availabilityUserSelect,
+  //       },
+  //     }))
+  // );
 
   const endSecondPrismaEventTypeGet = performance.now();
   console.log("secondGetEventType", endSecondPrismaEventTypeGet - startSecondPrismaEventTypeGet);
@@ -253,6 +254,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
   const queriesEnd = performance.now();
   console.log("queries", queriesEnd - queriesStart);
 
+  //eventType.users = users;
   eventType.hosts = hosts;
   eventType.availability = availability;
   eventType.schedule = schedule;
