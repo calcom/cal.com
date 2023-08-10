@@ -8,7 +8,7 @@ export const AttendeeWasRequestedToRescheduleEmail = (
   return (
     <OrganizerScheduledEmail
       t={t}
-      title="request_reschedule_title_attendee"
+      title="request_reschedule_booking"
       subtitle={
         <>
           {t("request_reschedule_subtitle", {

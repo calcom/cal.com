@@ -86,7 +86,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
 
   protected getTextBody(): string {
     return `
-${this.t("request_reschedule_title_attendee")}
+${this.t("request_reschedule_booking")}
 ${this.t("request_reschedule_subtitle", {
   organizer: this.calEvent.organizer.name,
 })},

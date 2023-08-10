@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
@@ -16,16 +17,19 @@ import { useBookerStore } from "../store";
  */
 export const useEvent = () => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
+  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
+  const org = useBookerStore((state) => state.org);
 
   return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "" },
+    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
 };
 
 /**
  * Gets schedule for the current event and current month.
- * Gets all values from the booker store.
+ * Gets all values right away and not the store because it increases network timing, only for the first render.
+ * We can read from the store if we want to get the latest values.
  *
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
@@ -34,20 +38,38 @@ export const useEvent = () => {
  * useful when the user is viewing dates near the end of the month,
  * this way the multi day view will show data of both months.
  */
-export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
+export const useScheduleForEvent = ({
+  prefetchNextMonth,
+  username,
+  eventSlug,
+  eventId,
+  month,
+  duration,
+}: {
+  prefetchNextMonth?: boolean;
+  username?: string | null;
+  eventSlug?: string | null;
+  eventId?: number | null;
+  month?: string | null;
+  duration?: number | null;
+} = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [username, eventSlug, month] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
+  const serachParams = useSearchParams();
+  const rescheduleUid = serachParams.get("rescheduleUid");
 
   return useSchedule({
-    username,
-    eventSlug,
-    eventId: event.data?.id,
-    month,
+    username: usernameFromStore ?? username,
+    eventSlug: eventSlugFromStore ?? eventSlug,
+    eventId: event.data?.id ?? eventId,
     timezone,
     prefetchNextMonth,
+    rescheduleUid,
+    month: monthFromStore ?? month,
+    duration: durationFromStore ?? duration,
   });
 };

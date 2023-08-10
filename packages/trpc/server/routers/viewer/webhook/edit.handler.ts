@@ -10,7 +10,7 @@ type EditOptions = {
   input: TEditInputSchema;
 };
 
-export const editHandler = async ({ ctx, input }: EditOptions) => {
+export const editHandler = async ({ input }: EditOptions) => {
   const { id, ...data } = input;
 
   const webhook = await prisma.webhook.findFirst({

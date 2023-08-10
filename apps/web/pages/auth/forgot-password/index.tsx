@@ -3,7 +3,6 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
@@ -15,12 +14,11 @@ import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
-  const router = useRouter();
 
   const handleChange = (e: SyntheticEvent) => {
     const target = e.target as typeof e.target & { value: string };
@@ -31,7 +29,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        body: JSON.stringify({ email: email, language: i18n.language }),
+        body: JSON.stringify({ email }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -40,8 +38,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       const json = await res.json();
       if (!res.ok) {
         setError(json);
-      } else if ("resetLink" in json) {
-        router.push(json.resetLink);
       } else {
         setSuccess(true);
       }

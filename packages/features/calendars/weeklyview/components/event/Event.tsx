@@ -26,7 +26,7 @@ export function Event({
     <Component
       onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
       className={classNames(
-        "group  flex h-full w-full flex-col overflow-y-auto rounded-[4px]  py-1 px-[6px] text-xs font-semibold  leading-5 ",
+        "group  flex h-full w-full flex-col overflow-y-auto rounded-[4px]  px-[6px] py-1 text-xs font-semibold  leading-5 ",
         event.status === "ACCEPTED" &&
           !selected &&
           "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-gray-900",

@@ -1,33 +1,36 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
+import { getLayout } from "@calcom/features/MainLayout";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
+import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
 
+import { FilterResults } from "../../../filters/components/FilterResults";
+import { TeamsFilter } from "../../../filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "../../../filters/lib/getTeamsFiltersFromQuery";
 import LicenseRequired from "../../common/components/LicenseRequired";
+import EmptyScreen from "../components/EmptyScreen";
 import SkeletonLoader from "../components/SkeletonLoaderList";
-import type { WorkflowType } from "../components/WorkflowListPage";
 import WorkflowList from "../components/WorkflowListPage";
 
 function WorkflowsPage() {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const [checkedFilterItems, setCheckedFilterItems] = useState<{ userId: number | null; teamIds: number[] }>({
-    userId: session.data?.user.id || null,
-    teamIds: [],
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
+
+  const queryRes = trpc.viewer.workflows.filteredList.useQuery({
+    filters,
   });
-
-  const { data: allWorkflowsData, isLoading } = trpc.viewer.workflows.list.useQuery();
-
-  const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowType[]>([]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -40,117 +43,57 @@ function WorkflowsPage() {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this workflow`;
+        const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
         showToast(message, "error");
       }
     },
   });
 
-  const query = trpc.viewer.workflows.getByViewer.useQuery();
-
-  useEffect(() => {
-    const allWorkflows = allWorkflowsData?.workflows;
-    if (allWorkflows && allWorkflows.length > 0) {
-      const filtered = allWorkflows.filter((workflow) => {
-        if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
-        if (!workflow.teamId) {
-          if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
-        }
-      });
-      setFilteredWorkflows(filtered);
-    } else {
-      setFilteredWorkflows([]);
-    }
-  }, [checkedFilterItems, allWorkflowsData]);
-
-  useEffect(() => {
-    if (session.status !== "loading" && !query.isLoading) {
-      if (!query.data) return;
-      setCheckedFilterItems({
-        userId: session.data?.user.id || null,
-        teamIds: query.data.profiles
-          .map((profile) => {
-            if (!!profile.teamId) {
-              return profile.teamId;
-            }
-          })
-          .filter((teamId): teamId is number => !!teamId),
-      });
-    }
-  }, [session.status, query.isLoading, allWorkflowsData]);
-
-  const profileOptions = query?.data?.profiles
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        slug: profile.slug,
-      };
-    });
-
   return (
-    <Shell
+    <ShellMain
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       hideHeadingOnMobile
       CTA={
-        query?.data?.profiles.length === 1 &&
-        session.data?.hasValidLicense &&
-        allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length &&
-        profileOptions ? (
-          <CreateButton
+        session.data?.hasValidLicense ? (
+          <CreateButtonWithTeamsList
             subtitle={t("new_workflow_subtitle").toUpperCase()}
-            options={profileOptions}
             createFunction={(teamId?: number) => {
               createMutation.mutate({ teamId });
             }}
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
+            onlyShowWithNoTeams={true}
           />
         ) : null
       }>
       <LicenseRequired>
-        {isLoading ? (
-          <SkeletonLoader />
-        ) : (
-          <>
-            {query?.data?.profiles &&
-            query?.data?.profiles.length > 1 &&
-            allWorkflowsData?.workflows &&
-            allWorkflowsData.workflows.length &&
-            profileOptions ? (
-              <div className="mb-4 flex">
-                <Filter
-                  profiles={query.data.profiles}
-                  checked={checkedFilterItems}
-                  setChecked={setCheckedFilterItems}
+        <>
+          {queryRes.data?.totalCount ? (
+            <div className="flex">
+              <TeamsFilter />
+              <div className="ml-auto">
+                <CreateButtonWithTeamsList
+                  subtitle={t("new_workflow_subtitle").toUpperCase()}
+                  createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                  isLoading={createMutation.isLoading}
+                  disableMobileButton={true}
+                  onlyShowWithTeams={true}
                 />
-                <div className="ml-auto">
-                  <CreateButton
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    options={profileOptions}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isLoading={createMutation.isLoading}
-                    disableMobileButton={true}
-                  />
-                </div>
               </div>
-            ) : null}
-            {profileOptions && profileOptions?.length ? (
-              <WorkflowList
-                workflows={filteredWorkflows}
-                profileOptions={profileOptions}
-                hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
-              />
-            ) : null}
-          </>
-        )}
+            </div>
+          ) : null}
+          <FilterResults
+            queryRes={queryRes}
+            emptyScreen={<EmptyScreen isFilteredView={false} />}
+            noResultsScreen={<EmptyScreen isFilteredView={true} />}
+            SkeletonLoader={SkeletonLoader}>
+            <WorkflowList workflows={queryRes.data?.filtered} />
+          </FilterResults>
+        </>
       </LicenseRequired>
-    </Shell>
+    </ShellMain>
   );
 }
 
@@ -278,5 +221,7 @@ const Filter = (props: {
     </div>
   );
 };
+
+WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

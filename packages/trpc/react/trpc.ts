@@ -17,6 +17,7 @@ import type { AppRouter } from "../server/routers/_app";
  * TODO: Make this dynamic based on folders in trpc server?
  */
 const ENDPOINTS = [
+  "admin",
   "apiKeys",
   "appRoutingForms",
   "apps",
@@ -24,7 +25,6 @@ const ENDPOINTS = [
   "availability",
   "bookings",
   "deploymentSetup",
-  "eth",
   "eventTypes",
   "features",
   "insights",
@@ -33,12 +33,14 @@ const ENDPOINTS = [
   "saml",
   "slots",
   "teams",
+  "organizations",
   "users",
   "viewer",
   "webhook",
   "workflows",
   "appsRouter",
   "googleWorkspace",
+  "kycVerification",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 

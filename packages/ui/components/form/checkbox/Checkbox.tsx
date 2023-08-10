@@ -1,4 +1,6 @@
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useId } from "@radix-ui/react-id";
+import { Check } from "lucide-react";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
@@ -12,10 +14,32 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   error?: boolean;
   className?: string;
   descriptionClassName?: string;
+  /**
+   * Accepts this special property instead of allowing description itself to be accidentally used in dangerous way.
+   */
+  descriptionAsSafeHtml?: string;
 };
 
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={classNames(
+      "border-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      className
+    )}
+    {...props}>
+    <CheckboxPrimitive.Indicator className={classNames("flex items-center justify-center text-current")}>
+      <Check className="h-4 w-4" />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+));
+Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, error, disabled, ...rest }, ref) => {
+  ({ label, description, error, disabled, descriptionAsSafeHtml, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
     const id = useId();
     return (
@@ -44,7 +68,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 className: classNames(
                   "relative flex items-start",
                   !error && descriptionAsLabel ? "text-emphasis" : "text-emphasis",
-                  error && "text-red-800"
+                  error && "text-error"
                 ),
               },
               <>
@@ -56,16 +80,26 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     disabled={disabled}
                     id={rest.id ? rest.id : id}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2",
+                      "text-primary-600 focus:ring-primary-500 border-default bg-default focus:bg-default active:bg-default h-4 w-4 rounded checked:hover:bg-gray-600 focus:outline-none focus:ring-0 ltr:mr-2 rtl:ml-2",
                       !error && disabled
                         ? "cursor-not-allowed bg-gray-300 checked:bg-gray-300 hover:bg-gray-300 hover:checked:bg-gray-300"
-                        : "hover:bg-subtle checked:bg-gray-800",
-                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400",
+                        : "hover:bg-subtle hover:border-emphasis checked:bg-gray-800",
+                      error &&
+                        "border-error hover:bg-error hover:border-error checked:bg-darkerror checked:hover:border-error checked:hover:bg-darkerror",
                       rest.className
                     )}
                   />
                 </div>
-                <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                {descriptionAsSafeHtml ? (
+                  <span
+                    className={classNames("text-sm", rest.descriptionClassName)}
+                    dangerouslySetInnerHTML={{
+                      __html: descriptionAsSafeHtml,
+                    }}
+                  />
+                ) : (
+                  <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                )}
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}
@@ -78,4 +112,4 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
 
 CheckboxField.displayName = "CheckboxField";
 
-export default CheckboxField;
+export { Checkbox, CheckboxField };

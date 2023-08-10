@@ -18,7 +18,7 @@ function SkeletonItem() {
         <div className="flex">
           <SkeletonAvatar className="h-10 w-10" />
 
-          <div className="mt-1 ml-4 flex flex-col space-y-1">
+          <div className="ml-4 mt-1 flex flex-col space-y-1">
             <SkeletonText className="h-5 w-20 sm:w-24" />
             <div className="flex">
               <SkeletonText className="h-4 w-16 ltr:mr-2 rtl:ml-2 sm:w-28" />

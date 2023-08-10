@@ -1,7 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useRouter } from "next/navigation";
 
+import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
-import Shell from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -19,6 +21,8 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const utils = trpc.useContext();
 
   const meQuery = trpc.viewer.me.useQuery();
+
+  const router = useRouter();
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {
@@ -67,6 +71,19 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
     },
   });
 
+  const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
+    onSuccess: async ({ schedule }) => {
+      await router.push(`/availability/${schedule.id}`);
+      showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
   // Adds smooth delete button - item fades and old item slides into place
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
@@ -79,6 +96,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
             Icon={Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
+            className="w-full"
             buttonRaw={<NewScheduleButton />}
           />
         </div>
@@ -96,6 +114,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 isDeletable={schedules.length !== 1}
                 updateDefault={updateMutation.mutate}
                 deleteFunction={deleteMutation.mutate}
+                duplicateFunction={duplicateMutation.mutate}
               />
             ))}
           </ul>
@@ -105,21 +124,24 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   );
 }
 
-const WithQuery = withQuery(trpc.viewer.availability.list);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.availability.list as any);
 
 export default function AvailabilityPage() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell
+      <ShellMain
         heading={t("availability")}
         hideHeadingOnMobile
         subtitle={t("configure_availability")}
         CTA={<NewScheduleButton />}>
         <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
-      </Shell>
+      </ShellMain>
     </div>
   );
 }
+
+AvailabilityPage.getLayout = getLayout;
 
 AvailabilityPage.PageWrapper = PageWrapper;

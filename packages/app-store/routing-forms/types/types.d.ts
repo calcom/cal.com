@@ -14,7 +14,7 @@ export type Response = Record<
   // Field ID
   string,
   {
-    value: string | string[];
+    value: number | string | string[];
     label: string;
   }
 >;
