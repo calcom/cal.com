@@ -21,8 +21,8 @@ export type AvatarProps = {
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
-  organizationName?: string;
-  organizationLogo?: string;
+  organizationName?: string | null;
+  organizationLogo?: string | null;
 };
 
 const sizesPropsBySize = {
@@ -38,6 +38,7 @@ const sizesPropsBySize = {
 
 export function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  console.log("🚀 ~ file: Avatar.tsx:41 ~ Avatar ~ imageSrc:", imageSrc);
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
@@ -72,20 +73,16 @@ export function Avatar(props: AvatarProps) {
             </div>
           </div>
         )}
-        {props.organizationLogo ||
-          (props.organizationName && (
-            <div
-              className={classNames(
-                "absolute bottom-0 right-0 z-10",
-                size === "lg" ? "h-5 w-5" : "h-10 w-10"
-              )}>
-              <AvatarPrimitive.Image
-                src={getPlaceholderAvatar(props.organizationLogo, props.organizationName as string)}
-                alt={alt}
-                className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
-              />
-            </div>
-          ))}
+        {(props.organizationLogo || props.organizationName) && (
+          <div
+            className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-5 w-5" : "h-10 w-10")}>
+            <AvatarPrimitive.Image
+              src={getPlaceholderAvatar(props.organizationLogo, props.organizationName)}
+              alt={alt}
+              className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
+            />
+          </div>
+        )}
       </>
     </AvatarPrimitive.Root>
   );

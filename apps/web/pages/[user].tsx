@@ -220,8 +220,8 @@ export type UserPageProps = {
     theme: string | null;
     brandColor: string;
     darkBrandColor: string;
-    organizationName?: string;
-    organizationLogo?: string;
+    organizationName?: string | null;
+    organizationLogo?: string | null;
   };
   users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
   themeBasis: string | null;
