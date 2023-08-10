@@ -230,9 +230,7 @@ export const getMultipleDurationValue = (
   queryDuration: string | string[] | undefined,
   defaultValue: number
 ) => {
-  return multipleDurationConfig
-    ? multipleDurationConfig.includes(Number(queryDuration))
-      ? Number(queryDuration)
-      : defaultValue
-    : null;
+  if (!multipleDurationConfig) return null;
+  if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
+  return defaultValue;
 };
