@@ -120,12 +120,12 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         periodCountCalendarDays: true,
         periodDays: true,
         metadata: true,
-        // users: {
-        //   select: {
-        //     credentials: true,
-        //     ...availabilityUserSelect,
-        //   },
-        // }
+        users: {
+          select: {
+            credentials: true,
+            ...availabilityUserSelect,
+          },
+        },
       },
     });
 
