@@ -17,7 +17,7 @@ import {
   Meta,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
-import { Link as LinkIcon } from "@calcom/ui/components/icon";
+import { Server as ServerIcon } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -71,7 +71,7 @@ const SelfHostingView = () => {
               </>
             ) : (
               <EmptyScreen
-                Icon={LinkIcon}
+                Icon={ServerIcon}
                 headline={t("host_calcom_title")}
                 description={t("host_calcom_description")}
                 buttonRaw={
