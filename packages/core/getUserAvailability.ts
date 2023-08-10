@@ -7,6 +7,7 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
 import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -14,9 +15,14 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
+import type {
+  EventBusyDate,
+  EventBusyDetails,
+  IntervalLimit,
+  IntervalLimitUnit,
+} from "@calcom/types/Calendar";
 
-import { getBusyTimes } from "./getBusyTimes";
+import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 
 const availabilitySchema = z
   .object({
@@ -105,7 +111,7 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
-export async function getUserAvailability(
+export const getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: {
     withSource?: boolean;
     username?: string;
@@ -141,17 +147,36 @@ export async function getUserAvailability(
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
 
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
-  current bookings with a seats event type and display them on the calendar, even if they are full */
+    current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
   }
 
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
+  const busyTimesFromLimits =
+    eventType && (bookingLimits || durationLimits)
+      ? await getBusyTimesFromLimits(
+          bookingLimits,
+          durationLimits,
+          dateFrom,
+          dateTo,
+          duration,
+          eventType,
+          user.id
+        )
+      : [];
+
+  // TODO: only query what we need after applying limits (shrink date range)
+  const getBusyTimesStart = dateFrom.toISOString();
+  const getBusyTimesEnd = dateTo.toISOString();
+
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
-    // needed to correctly apply limits (weeks can be part of two months)
-    startTime: dateFrom.startOf("week").toISOString(),
-    endTime: dateTo.endOf("week").toISOString(),
+    startTime: getBusyTimesStart,
+    endTime: getBusyTimesEnd,
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
@@ -161,40 +186,16 @@ export async function getUserAvailability(
     seatedEvent: !!eventType?.seatsPerTimeSlot,
   });
 
-  let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
-    ...a,
-    start: dayjs(a.start).toISOString(),
-    end: dayjs(a.end).toISOString(),
-    title: a.title,
-    source: query.withSource ? a.source : undefined,
-  }));
-
-  const bookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-${eventType?.id}`));
-
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  if (bookingLimits) {
-    const bookingBusyTimes = await getBusyTimesFromBookingLimits(
-      bookings,
-      bookingLimits,
-      dateFrom,
-      dateTo,
-      eventType
-    );
-    bufferedBusyTimes = bufferedBusyTimes.concat(bookingBusyTimes);
-  }
-
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
-  if (durationLimits) {
-    const durationBusyTimes = await getBusyTimesFromDurationLimits(
-      bookings,
-      durationLimits,
-      dateFrom,
-      dateTo,
-      duration,
-      eventType
-    );
-    bufferedBusyTimes = bufferedBusyTimes.concat(durationBusyTimes);
-  }
+  const detailedBusyTimes: EventBusyDetails[] = [
+    ...busyTimes.map((a) => ({
+      ...a,
+      start: dayjs(a.start).toISOString(),
+      end: dayjs(a.end).toISOString(),
+      title: a.title,
+      source: query.withSource ? a.source : undefined,
+    })),
+    ...busyTimesFromLimits,
+  ];
 
   const userSchedule = user.schedules.filter(
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
@@ -239,22 +240,22 @@ export async function getUserAvailability(
     timeZone,
   });
 
-  const formattedBusyTimes = bufferedBusyTimes.map((busy) => ({
+  const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),
     end: dayjs(busy.end),
   }));
 
   return {
-    busy: bufferedBusyTimes,
+    busy: detailedBusyTimes,
     timeZone,
     dateRanges: subtract(dateRanges, formattedBusyTimes),
     workingHours,
     dateOverrides,
     currentSeats,
   };
-}
+};
 
-const getDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: "day" | "week" | "month" | "year") => {
+const getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
   const dates = [];
   let startDate = dayjs(dateFrom).startOf(period);
   const endDate = dayjs(dateTo).endOf(period);
@@ -265,65 +266,191 @@ const getDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: "day" | "week" 
   return dates;
 };
 
+type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
+
+/**
+ * Helps create, check, and return busy times from limits (with parallel support)
+ */
+class LimitManager {
+  private busyMap: Map<BusyMapKey, EventBusyDate> = new Map();
+
+  /**
+   * Creates a busy map key
+   */
+  private static createKey(start: Dayjs, unit: IntervalLimitUnit): BusyMapKey {
+    return `${unit}-${start.startOf(unit).toISOString()}`;
+  }
+
+  /**
+   * Checks if already marked busy by ancestors or siblings
+   */
+  isAlreadyBusy(start: Dayjs, unit: IntervalLimitUnit) {
+    if (this.busyMap.has(LimitManager.createKey(start, "year"))) return true;
+
+    if (unit === "month" && this.busyMap.has(LimitManager.createKey(start, "month"))) {
+      return true;
+    } else if (
+      unit === "week" &&
+      // weeks can be part of two months
+      ((this.busyMap.has(LimitManager.createKey(start, "month")) &&
+        this.busyMap.has(LimitManager.createKey(start.endOf("week"), "month"))) ||
+        this.busyMap.has(LimitManager.createKey(start, "week")))
+    ) {
+      return true;
+    } else if (
+      unit === "day" &&
+      (this.busyMap.has(LimitManager.createKey(start, "month")) ||
+        this.busyMap.has(LimitManager.createKey(start, "week")) ||
+        this.busyMap.has(LimitManager.createKey(start, "day")))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Adds a new busy time
+   */
+  addBusyTime(start: Dayjs, unit: IntervalLimitUnit) {
+    this.busyMap.set(`${unit}-${start.toISOString()}`, {
+      start: start.toISOString(),
+      end: start.endOf(unit).toISOString(),
+    });
+  }
+
+  /**
+   * Returns all busy times
+   */
+  getBusyTimes() {
+    return Array.from(this.busyMap.values());
+  }
+}
+
+const getBusyTimesFromLimits = async (
+  bookingLimits: IntervalLimit | null,
+  durationLimits: IntervalLimit | null,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  duration: number | undefined,
+  eventType: NonNullable<EventType>,
+  userId: number
+) => {
+  performance.mark("limitsStart");
+
+  // shared amongst limiters to prevent processing known busy periods
+  const limitManager = new LimitManager();
+
+  let limitDateFrom = dayjs(dateFrom);
+  let limitDateTo = dayjs(dateTo);
+
+  // expand date ranges by absolute minimum required to apply limits
+  // (yearly limits are handled separately for performance)
+  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
+    if (bookingLimits?.[key] || durationLimits?.[key]) {
+      const unit = intervalLimitKeyToUnit(key);
+      limitDateFrom = dayjs.min(limitDateFrom, dateFrom.startOf(unit));
+      limitDateTo = dayjs.max(limitDateTo, dateTo.endOf(unit));
+    }
+  }
+
+  // fetch only the data we need to check limits
+  const bookings = await getBusyTimesForLimitChecks({
+    userId,
+    eventTypeId: eventType.id,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
+  });
+
+  // run this first, as counting bookings should always run faster..
+  if (bookingLimits) {
+    performance.mark("bookingLimitsStart");
+    await getBusyTimesFromBookingLimits(
+      bookings,
+      bookingLimits,
+      dateFrom,
+      dateTo,
+      eventType.id,
+      limitManager
+    );
+    performance.mark("bookingLimitsEnd");
+    performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
+  }
+
+  // ..than adding up durations (especially for the whole year)
+  if (durationLimits) {
+    performance.mark("durationLimitsStart");
+    await getBusyTimesFromDurationLimits(
+      bookings,
+      durationLimits,
+      dateFrom,
+      dateTo,
+      duration,
+      eventType,
+      limitManager
+    );
+    performance.mark("durationLimitsEnd");
+    performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
+  }
+
+  performance.mark("limitsEnd");
+  performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
+
+  return limitManager.getBusyTimes();
+};
+
 const getBusyTimesFromBookingLimits = async (
   bookings: EventBusyDetails[],
   bookingLimits: IntervalLimit,
   dateFrom: Dayjs,
   dateTo: Dayjs,
-  eventType: EventType | undefined
+  eventTypeId: number,
+  limitManager: LimitManager
 ) => {
-  const busyTimes: EventBusyDetails[] = [];
+  for (const key of descendingLimitKeys) {
+    const limit = bookingLimits?.[key];
+    if (!limit) continue;
 
-  // Apply booking limit filter against our bookings
-  for (const [key, limit] of Object.entries(bookingLimits)) {
-    const limitKey = key as keyof IntervalLimit;
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
-    if (limitKey === "PER_YEAR") {
-      const yearlyBusyTime = await checkBookingLimit({
-        eventStartDate: dateFrom.toDate(),
-        limitingNumber: limit,
-        eventId: eventType?.id as number,
-        key: "PER_YEAR",
-        returnBusyTimes: true,
-      });
-      if (!yearlyBusyTime) break;
-      busyTimes.push({
-        start: yearlyBusyTime.start.toISOString(),
-        end: yearlyBusyTime.end.toISOString(),
-      });
-      break;
-    }
+    for (const periodStart of periodStartDates) {
+      if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
 
-    // Take PER_DAY and turn it into day and PER_WEEK into week etc.
-    const filter = key.split("_")[1].toLowerCase() as "day" | "week" | "month" | "year";
-    const dates = getDatesBetween(dateFrom, dateTo, filter);
+      // special handling of yearly limits to improve performance
+      if (unit === "year") {
+        try {
+          await checkBookingLimit({
+            eventStartDate: periodStart.toDate(),
+            limitingNumber: limit,
+            eventId: eventTypeId,
+            key,
+          });
+        } catch (_) {
+          limitManager.addBusyTime(periodStart, unit);
+          if (periodStartDates.every((start) => limitManager.isAlreadyBusy(start, unit))) {
+            return;
+          }
+        }
+        continue;
+      }
 
-    // loop through all dates and check if we have reached the limit
-    for (const date of dates) {
-      let total = 0;
-      const startDate = date.startOf(filter);
-      // this is parsed above with parseBookingLimit so we know it's safe.
-      const endDate = date.endOf(filter);
+      const periodEnd = periodStart.endOf(unit);
+      let totalBookings = 0;
+
       for (const booking of bookings) {
-        const bookingEventTypeId = parseInt(booking.source?.split("-")[1] as string, 10);
-        if (
-          // Only check OUR booking that matches the current eventTypeId
-          // we don't care about another event type in this case as we dont need to know their booking limits
-          !(bookingEventTypeId == eventType?.id && dayjs(booking.start).isBetween(startDate, endDate))
-        ) {
+        // consider booking part of period independent of end date
+        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
           continue;
         }
-        // increment total and check against the limit, adding a busy time if condition is met.
-        total++;
-        if (total >= limit) {
-          busyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        totalBookings++;
+        if (totalBookings >= limit) {
+          limitManager.addBusyTime(periodStart, unit);
           break;
         }
       }
     }
   }
-
-  return busyTimes;
 };
 
 const getBusyTimesFromDurationLimits = async (
@@ -332,60 +459,56 @@ const getBusyTimesFromDurationLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   duration: number | undefined,
-  eventType: EventType | undefined
+  eventType: NonNullable<EventType>,
+  limitManager: LimitManager
 ) => {
-  const busyTimes: EventBusyDetails[] = [];
-  // Start check from larger time periods to smaller time periods, to skip unnecessary checks
-  for (const [key, limit] of Object.entries(durationLimits).reverse()) {
-    // Use aggregate sql query if we are checking PER_YEAR
-    if (key === "PER_YEAR") {
-      const totalBookingDuration = await getTotalBookingDuration({
-        eventId: eventType?.id as number,
-        startDate: dateFrom.startOf("year").toDate(),
-        endDate: dateFrom.endOf("year").toDate(),
-      });
-      if (totalBookingDuration + (duration ?? 0) > limit) {
-        busyTimes.push({
-          start: dateFrom.startOf("year").toISOString(),
-          end: dateFrom.endOf("year").toISOString(),
-        });
-      }
-      continue;
-    }
+  for (const key of descendingLimitKeys) {
+    const limit = durationLimits?.[key];
+    if (!limit) continue;
 
-    const filter = key.split("_")[1].toLowerCase() as "day" | "week" | "month" | "year";
-    const dates = getDatesBetween(dateFrom, dateTo, filter);
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
-    // loop through all dates and check if we have reached the limit
-    for (const date of dates) {
-      let total = (duration || eventType?.length) ?? 0;
-      const startDate = date.startOf(filter);
-      const endDate = date.endOf(filter);
+    for (const periodStart of periodStartDates) {
+      if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
 
-      // add busy time if we have already reached the limit with just the selected duration
-      if (total > limit) {
-        busyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+      const selectedDuration = (duration || eventType.length) ?? 0;
+
+      if (selectedDuration > limit) {
+        limitManager.addBusyTime(periodStart, unit);
         continue;
       }
 
+      // special handling of yearly limits to improve performance
+      if (unit === "year") {
+        const totalYearlyDuration = await getTotalBookingDuration({
+          eventId: eventType.id,
+          startDate: periodStart.toDate(),
+          endDate: periodStart.endOf(unit).toDate(),
+        });
+        if (totalYearlyDuration + selectedDuration > limit) {
+          limitManager.addBusyTime(periodStart, unit);
+          if (periodStartDates.every((start) => limitManager.isAlreadyBusy(start, unit))) {
+            return;
+          }
+        }
+        continue;
+      }
+
+      const periodEnd = periodStart.endOf(unit);
+      let totalDuration = selectedDuration;
+
       for (const booking of bookings) {
-        const bookingEventTypeId = parseInt(booking.source?.split("-")[1] as string, 10);
-        if (
-          // Only check OUR booking that matches the current eventTypeId
-          // we don't care about another event type in this case as we dont need to know their booking limits
-          !(bookingEventTypeId == eventType?.id && dayjs(booking.start).isBetween(startDate, endDate))
-        ) {
+        // consider booking part of period independent of end date
+        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
           continue;
         }
-        // Add current booking duration to total and check against the limit, adding a busy time if condition is met.
-        total += dayjs(booking.end).diff(dayjs(booking.start), "minute");
-        if (total > limit) {
-          busyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+        if (totalDuration > limit) {
+          limitManager.addBusyTime(periodStart, unit);
           break;
         }
       }
     }
   }
-
-  return busyTimes;
 };
