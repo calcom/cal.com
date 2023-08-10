@@ -1,6 +1,7 @@
 import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
+import axios from "axios";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
@@ -1733,6 +1734,29 @@ async function handler(
       evt.description = originalRescheduledBooking?.description || evt.description;
       evt.location = originalRescheduledBooking?.location || evt.location;
     }
+
+    // this is just for testing slack will be removed later
+    try {
+      const slackKey = await prisma.credential.findFirst({
+        where: {
+          userId: 8,
+        },
+        select: {
+          key: true,
+        },
+      });
+
+      const {
+        incoming_webhook: { url },
+      } = slackKey?.key;
+      axios({
+        method: "POST",
+        url,
+        data: {
+          text: JSON.stringify(evt),
+        },
+      });
+    } catch (err) {}
 
     const eventTypeRel = !eventTypeId
       ? {}
