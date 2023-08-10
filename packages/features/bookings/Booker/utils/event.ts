@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
@@ -58,9 +59,8 @@ export const useScheduleForEvent = ({
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
-
-  const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const serachParams = useSearchParams();
+  const rescheduleUid = serachParams.get("rescheduleUid");
 
   return useSchedule({
     username: usernameFromStore ?? username,
