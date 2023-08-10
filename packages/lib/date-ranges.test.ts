@@ -29,6 +29,36 @@ describe("processWorkingHours", () => {
       end: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
     });
   });
+  it("should return the correct working hours in the month were DST ends", () => {
+    const item = {
+      days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+    };
+
+    // in America/New_York DST ends on first Sunday of November
+    const timeZone = "America/New_York";
+
+    let firstSundayOfNovember = dayjs().startOf("day").month(10).date(1);
+    while (firstSundayOfNovember.day() !== 0) {
+      firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
+    }
+
+    const dateFrom = dayjs().month(10).date(1).startOf("day");
+    const dateTo = dayjs().month(10).endOf("month");
+
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+
+    const allDSTStartAt12 = results
+      .filter((res) => res.start.isBefore(firstSundayOfNovember))
+      .every((result) => result.start.utc().hour() === 12);
+    const allNotDSTStartAt13 = results
+      .filter((res) => res.start.isAfter(firstSundayOfNovember))
+      .every((result) => result.start.utc().hour() === 13);
+
+    expect(allDSTStartAt12).toBeTruthy();
+    expect(allNotDSTStartAt13).toBeTruthy();
+  });
 });
 
 describe("processDateOverrides", () => {
