@@ -12,6 +12,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -28,7 +29,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
@@ -307,7 +307,6 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const { data: avatar } = useAvatarQuery();
   const utils = trpc.useContext();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -372,7 +371,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+              imageSrc={WEBAPP_URL + "/" + user.username + "/avatar.png"}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -655,9 +654,10 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+            "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+            item.child ? `[&[aria-current='page']]:bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
             isChild
-              ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+              ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
@@ -787,9 +787,6 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-const getOrganizationUrl = (slug: string) =>
-  `${slug}.${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace?.(/http(s*):\/\//, "")}`;
-
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
@@ -797,7 +794,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const publicPageUrl = useMemo(() => {
     if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.organizationId, user?.username]);
 

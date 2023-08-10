@@ -259,86 +259,6 @@ async function handler(req: CustomRequest) {
       },
     });
 
-    /* If there are references then we should update them as well */
-    const lastAttendee =
-      bookingToDelete.attendees.filter((bookingAttendee) => attendee.email !== bookingAttendee.email).length <
-      0;
-
-    const integrationsToDelete = [];
-
-    for (const reference of bookingToDelete.references) {
-      if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
-          },
-        });
-
-        if (credential) {
-          if (lastAttendee) {
-            if (reference.type.includes("_video")) {
-              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
-            }
-            if (reference.type.includes("_calendar")) {
-              const calendar = await getCalendar(credential);
-              if (calendar) {
-                integrationsToDelete.push(
-                  calendar?.deleteEvent(reference.uid, evt, reference.externalCalendarId)
-                );
-              }
-            }
-          } else {
-            const updatedEvt = {
-              ...evt,
-              attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
-            };
-            if (reference.type.includes("_video")) {
-              integrationsToDelete.push(
-                updateMeeting(
-                  { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
-                  updatedEvt,
-                  reference
-                )
-              );
-            }
-            if (reference.type.includes("_calendar")) {
-              const calendar = await getCalendar(credential);
-              if (calendar) {
-                integrationsToDelete.push(
-                  calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-
-    try {
-      await Promise.all(integrationsToDelete).then(async () => {
-        if (lastAttendee) {
-          await prisma.booking.update({
-            where: {
-              id: bookingToDelete.id,
-            },
-            data: {
-              status: BookingStatus.CANCELLED,
-            },
-          });
-        }
-      });
-    } catch (error) {
-      // Shouldn't stop code execution if integrations fail
-      // as integrations was already deleted
-    }
-
-    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
-
-    await sendCancelledSeatEmails(evt, {
-      ...attendee,
-      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-    });
-
     req.statusCode = 200;
     return { message: "No longer attending event" };
   }
@@ -738,6 +658,60 @@ async function handleSeatedEventCancellation(
   req.statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+
+  if (attendee) {
+    /* If there are references then we should update them as well */
+
+    const integrationsToUpdate = [];
+
+    for (const reference of bookingToDelete.references) {
+      if (reference.credentialId) {
+        const credential = await prisma.credential.findUnique({
+          where: {
+            id: reference.credentialId,
+          },
+        });
+
+        if (credential) {
+          const updatedEvt = {
+            ...evt,
+            attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+          };
+          if (reference.type.includes("_video")) {
+            integrationsToUpdate.push(
+              updateMeeting(
+                { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
+                updatedEvt,
+                reference
+              )
+            );
+          }
+          if (reference.type.includes("_calendar")) {
+            const calendar = await getCalendar(credential);
+            if (calendar) {
+              integrationsToUpdate.push(
+                calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
+              );
+            }
+          }
+        }
+      }
+    }
+
+    try {
+      await Promise.all(integrationsToUpdate);
+    } catch (error) {
+      // Shouldn't stop code execution if integrations fail
+      // as integrations was already updated
+    }
+
+    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
+
+    await sendCancelledSeatEmails(evt, {
+      ...attendee,
+      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+    });
+  }
 
   evt.attendees = attendee
     ? [
