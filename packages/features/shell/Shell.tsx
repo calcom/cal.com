@@ -12,6 +12,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -788,9 +789,6 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-const getOrganizationUrl = (slug: string) =>
-  `${slug}.${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace?.(/http(s*):\/\//, "")}`;
-
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
@@ -798,7 +796,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const publicPageUrl = useMemo(() => {
     if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.organizationId, user?.username]);
 
