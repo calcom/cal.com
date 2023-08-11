@@ -34,10 +34,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
   });
 
+  let metadata;
+
   if (!team) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
-    const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+    metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
     if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
 
     if (!metadata.data?.requestedSlug) {
@@ -76,12 +78,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     closeComUpdateTeam(prevTeam, team);
   }
 
+  if (!metadata) {
+    metadata = teamMetadataSchema.safeParse(team.metadata);
+    if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
+  }
+
   const session = await getServerSession({ req, res });
 
   if (!session) return { message: "Team upgraded successfully" };
 
+  const redirectUrl = metadata?.data?.isOrganization
+    ? `${WEBAPP_URL}/settings/organizations/profile?upgraded=true`
+    : `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`;
+
   // redirect to team screen
-  res.redirect(302, `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`);
+  res.redirect(302, redirectUrl);
 }
 
 export default defaultHandler({
