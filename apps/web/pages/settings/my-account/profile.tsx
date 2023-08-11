@@ -77,7 +77,7 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: _session, update } = useSession();
+  const { update } = useSession();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({

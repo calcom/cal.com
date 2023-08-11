@@ -1,10 +1,8 @@
 import { render } from "@testing-library/react";
-import { vi } from "vitest";
 
 import { ScrollableArea } from "./ScrollableArea";
 
 describe("Tests for ScrollableArea Component", () => {
-  const toJSONMock = vi.fn();
   test("Should render children inside the scrollable area", () => {
     const { getByText } = render(
       <ScrollableArea>
