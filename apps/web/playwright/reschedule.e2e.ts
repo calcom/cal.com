@@ -252,7 +252,7 @@ test.describe("Reschedule Tests", async () => {
     let firstOfNextMonth = dayjs().add(1, "month").startOf("month");
 
     // find first available slot of next month (available monday-friday)
-    while (!(firstOfNextMonth.day() >= 1 && firstOfNextMonth.day() <= 5)) {
+    while (firstOfNextMonth.day() < 1 || firstOfNextMonth.day() > 5) {
       firstOfNextMonth = firstOfNextMonth.add(1, "day");
     }
 
