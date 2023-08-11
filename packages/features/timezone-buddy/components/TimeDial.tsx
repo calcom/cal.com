@@ -20,14 +20,27 @@ function isMidnight(h: number) {
   return h <= 5 || h >= 22;
 }
 
-function isCurrentHourInRange(dayTime: Availability[], hourSetDate: Dayjs): boolean {
+function isCurrentHourInRange({
+  dayTime,
+  hourSetDate,
+}: {
+  dayTime?: Availability[];
+  hourSetDate: Dayjs;
+}): boolean {
+  if (!dayTime) return false;
+
   const currentHour = hourSetDate.hour();
   const currentMinute = hourSetDate.minute();
   const currentDay = hourSetDate.day(); // Retrieve the current day of week (0-6, where 0 is Sunday)
 
-  return dayTime.some((time: Availability) => {
+  const foundAvailabilityForDay = dayTime.filter((d) => d.days.includes(currentDay));
+
+  console.log("foundAvailabilityForDay", foundAvailabilityForDay);
+  console.log(dayTime);
+
+  return foundAvailabilityForDay.some((time: Availability) => {
     return time.days.some((day: number) => {
-      if (currentDay !== day) return false;
+      if (currentDay !== day) return null;
       const startHour = dayjs(time.startTime).hour();
       const startMinute = dayjs(time.startTime).minute();
       const endHour = dayjs(time.endTime).hour();
@@ -45,7 +58,7 @@ function isCurrentHourInRange(dayTime: Availability[], hourSetDate: Dayjs): bool
   });
 }
 
-export function TimeDial({ timezone }: TimeDialProps) {
+export function TimeDial({ timezone, avaibility }: TimeDialProps) {
   const store = useContext(TBContext);
   if (!store) throw new Error("Missing BearContext.Provider in the tree");
   const getTzInfo = useStore(store, (s) => s.getTimezone);
@@ -75,16 +88,7 @@ export function TimeDial({ timezone }: TimeDialProps) {
             <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
               {day.map((h) => {
                 const hourSet = dateWithDaySet.set("hour", h).set("minute", 0);
-                const isInRange = isCurrentHourInRange(
-                  [
-                    {
-                      days: [0, 1, 2],
-                      startTime: dayjs(hourSet).set("hour", 9).set("minute", 0).toDate(),
-                      endTime: dayjs(hourSet).set("hour", 18).set("minute", 0).toDate(),
-                    },
-                  ],
-                  hourSet
-                );
+                const isInRange = isCurrentHourInRange({ dayTime: avaibility, hourSetDate: hourSet });
                 return (
                   <div
                     key={h}

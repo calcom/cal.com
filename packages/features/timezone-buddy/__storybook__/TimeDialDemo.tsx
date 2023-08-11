@@ -11,6 +11,16 @@ const WorkingHours = [
     startTime: dayjs().set("hour", 9).set("minute", 0).toDate(),
     endTime: dayjs().set("hour", 18).set("minute", 0).toDate(),
   },
+  {
+    days: [4],
+    startTime: dayjs().set("hour", 3).set("minute", 0).toDate(),
+    endTime: dayjs().set("hour", 5).set("minute", 0).toDate(),
+  },
+  {
+    days: [4],
+    startTime: dayjs().set("hour", 15).set("minute", 0).toDate(),
+    endTime: dayjs().set("hour", 18).set("minute", 0).toDate(),
+  },
 ];
 const WorkingHoursTwo = [
   {
@@ -71,13 +81,14 @@ export function TimeDialDemo() {
           ],
         })}>
         <div className="flex flex-col space-y-2">
-          User One(London): Sunday Monday Tuesday 9am-6pm
+          User One(London): <span>Sunday Monday Tuesday 9am-6pm</span>
+          <span>Thursday 2am-5am and 3pm-6pm</span>
           <TimeDial timezone="Europe/London" avaibility={WorkingHours} />
         </div>
-        <div className="flex flex-col space-y-2">
+        {/* <div className="flex flex-col space-y-2">
           User Two (Asia/Tokyo): Sunday 2am - 9am
           <TimeDial timezone="Asia/Tokyo" avaibility={WorkingHoursTwo} />
-        </div>
+        </div> */}
       </TBContext.Provider>
     </div>
   );
