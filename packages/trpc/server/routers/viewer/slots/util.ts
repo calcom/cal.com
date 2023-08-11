@@ -70,45 +70,62 @@ export const checkIfIsAvailable = ({
   });
 };
 
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+  organizationDetails,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+  organizationDetails?: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+}) {
+  if (!eventTypeSlug || !slug) return null;
+
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(slug);
+  } else {
+    userId = await getUserIdFromUsername(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
+
 export async function getEventType(
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
-  const { eventTypeSlug, usernameList } = input;
-  let eventTypeId = input.eventTypeId;
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+      organizationDetails,
+    }));
 
-  if (eventTypeId === undefined && eventTypeSlug && usernameList && usernameList.length === 1) {
-    // If we only have the slug and usernameList, we need to get the id first
-    const username = usernameList[0];
-    const userId = await getUserIdFromUsername(username, organizationDetails);
-    let teamId;
-
-    if (!userId) {
-      teamId = await getTeamIdFromSlug(username);
-      if (!teamId) {
-        throw new TRPCError({
-          message: "User or team not found",
-          code: "NOT_FOUND",
-        });
-      }
-    }
-
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        slug: eventTypeSlug,
-        ...(teamId ? { teamId } : {}),
-        ...(userId ? { userId } : {}),
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!eventType) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    eventTypeId = eventType.id;
+  if (!eventTypeId) {
+    return null;
   }
 
   const eventType = await prisma.eventType.findUnique({
@@ -169,7 +186,7 @@ export async function getEventType(
     },
   });
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
