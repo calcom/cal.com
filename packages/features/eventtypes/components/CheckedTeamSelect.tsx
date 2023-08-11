@@ -39,7 +39,7 @@ export const CheckedTeamSelect = ({
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
-        className={classNames("mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
+        className={classNames("mb-1 mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
         ref={animationRef}>
         {value.map((option, index) => (
           <li

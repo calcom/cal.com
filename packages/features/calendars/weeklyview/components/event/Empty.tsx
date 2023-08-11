@@ -23,12 +23,12 @@ export function EmptyCell(props: EmptyCellProps) {
     totalGridCells: props.totalGridCells,
     selectionLength: props.selectionLength,
     startHour: props.startHour,
+    timezone: props.timezone,
   });
 
-  const minuesFromStart =
-    (cellToDate.toDate().getHours() - props.startHour) * 60 + cellToDate.toDate().getMinutes();
+  const minuesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
 
-  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={cellToDate} />;
+  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
 }
 
 type AvailableCellProps = {
@@ -38,26 +38,29 @@ type AvailableCellProps = {
 };
 
 export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
+  const { timezone } = useTimePreferences();
+
   const slotsForToday = availableSlots && availableSlots[dayjs(day).format("YYYY-MM-DD")];
 
   const slots = useMemo(
     () =>
       slotsForToday?.map((slot) => ({
         slot,
-        topOffsetMinutes: (slot.start.getHours() - startHour) * 60 + slot.start.getMinutes(),
+        topOffsetMinutes:
+          (dayjs(slot.start).tz(timezone).hour() - startHour) * 60 + dayjs(slot.start).tz(timezone).minute(),
       })),
-    [slotsForToday, startHour]
+    [slotsForToday, startHour, timezone]
   );
 
   if (!availableSlots) return null;
 
   return (
     <>
-      {slots?.map((slot) => {
+      {slots?.map((slot, index) => {
         return (
           <Cell
-            key={slot.slot.start.toISOString()}
-            timeSlot={dayjs(slot.slot.start)}
+            key={index}
+            timeSlot={dayjs(slot.slot.start).tz(timezone)}
             topOffsetMinutes={slot.topOffsetMinutes}
           />
         );
@@ -73,7 +76,8 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  const timeFormat = useTimePreferences((state) => state.timeFormat);
+  const { timeFormat } = useTimePreferences();
+
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
       onEmptyCellClick: state.onEmptyCellClick,
@@ -97,7 +101,9 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
         overflow: "visible",
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
       }}
-      onClick={() => onEmptyCellClick && onEmptyCellClick(timeSlot.toDate())}>
+      onClick={() => {
+        onEmptyCellClick && onEmptyCellClick(timeSlot.toDate());
+      }}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
           className={classNames(
