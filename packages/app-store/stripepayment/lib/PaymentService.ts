@@ -1,4 +1,4 @@
-import type { Booking, Payment, Prisma, PaymentOption } from "@prisma/client";
+import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -12,7 +12,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
-import type { StripeSetupIntentData, StripePaymentData } from "./server";
+import type { StripePaymentData, StripeSetupIntentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -36,6 +36,13 @@ export class PaymentService implements IAbstractPaymentService {
     this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
       apiVersion: "2020-08-27",
     });
+  }
+
+  async getPayment(where: Prisma.PaymentWhereInput) {
+    const payment = await prisma.payment.findFirst({ where });
+    if (!payment) throw new Error("Payment not found");
+    if (!payment.externalId) throw new Error("Payment externalId not found");
+    return { ...payment, externalId: payment.externalId };
   }
 
   /* This method is for creating charges at the time of booking */
@@ -280,17 +287,11 @@ export class PaymentService implements IAbstractPaymentService {
 
   async refund(paymentId: Payment["id"]): Promise<Payment> {
     try {
-      const payment = await prisma.payment.findFirst({
-        where: {
-          id: paymentId,
-          success: true,
-          refunded: false,
-        },
+      const payment = await this.getPayment({
+        id: paymentId,
+        success: true,
+        refunded: false,
       });
-      if (!payment) {
-        throw new Error("Payment not found");
-      }
-
       const refund = await this.stripe.refunds.create(
         {
           payment_intent: payment.externalId,
@@ -345,18 +346,9 @@ export class PaymentService implements IAbstractPaymentService {
 
   async deletePayment(paymentId: Payment["id"]): Promise<boolean> {
     try {
-      const payment = await prisma.payment.findFirst({
-        where: {
-          id: paymentId,
-        },
+      const payment = await this.getPayment({
+        id: paymentId,
       });
-
-      if (!payment) {
-        throw new Error("Payment not found");
-      }
-      if (!payment.externalId) {
-        throw new Error("Payment externalId not found");
-      }
       const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
 
       if (!stripeAccount) {
