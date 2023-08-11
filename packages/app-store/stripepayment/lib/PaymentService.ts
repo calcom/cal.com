@@ -104,7 +104,6 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           currency: payment.currency,
           externalId: paymentIntent.id,
-
           data: Object.assign({}, paymentIntent, {
             stripe_publishable_key: this.credentials.stripe_publishable_key,
             stripeAccount: this.credentials.stripe_user_id,
@@ -184,7 +183,6 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           currency: payment.currency,
           externalId: setupIntent.id,
-
           data: Object.assign(
             {},
             {

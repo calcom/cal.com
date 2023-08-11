@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
 class Paypal {
   url: string;
@@ -131,7 +132,7 @@ class Paypal {
         if (result.body.status === "COMPLETED") {
           // Get payment reference id
 
-          const payment = await prisma?.payment.findFirst({
+          const payment = await prisma.payment.findFirst({
             where: {
               externalId: orderId,
             },
@@ -146,7 +147,7 @@ class Paypal {
             throw new Error("Payment not found");
           }
 
-          await prisma?.payment.update({
+          await prisma.payment.update({
             where: {
               id: payment?.id,
             },
@@ -160,7 +161,7 @@ class Paypal {
           });
 
           // Update booking as paid
-          await prisma?.booking.update({
+          await prisma.booking.update({
             where: {
               id: payment.bookingId,
             },

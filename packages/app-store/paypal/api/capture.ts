@@ -5,6 +5,7 @@ import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { findPaymentCredentials } from "@calcom/features/ee/payments/api/paypal-webhook";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { bookingUid, token } = parseRequest.data;
 
     // Get booking credentials
-    const booking = await prisma?.booking.findUnique({
+    const booking = await prisma.booking.findUnique({
       where: {
         uid: bookingUid,
       },
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
     } else {
       // For cal.dev, paypal sandbox doesn't send webhooks
-      const updateBooking = prisma?.booking.update({
+      const updateBooking = prisma.booking.update({
         where: {
           uid: bookingUid,
         },
@@ -64,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           paid: true,
         },
       });
-      const updatePayment = prisma?.payment.update({
+      const updatePayment = prisma.payment.update({
         where: {
           id: booking?.id,
         },

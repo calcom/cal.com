@@ -28,7 +28,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookingId: Booking["id"]
   ) {
     try {
-      const booking = await prisma?.booking.findFirst({
+      const booking = await prisma.booking.findFirst({
         select: {
           uid: true,
           title: true,
@@ -41,9 +41,11 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error();
       }
 
-      const paymentData = await prisma?.payment.create({
+      const uid = uuidv4();
+
+      const paymentData = await prisma.payment.create({
         data: {
-          uid: uuidv4(),
+          uid,
           app: {
             connect: {
               slug: "paypal",
@@ -68,14 +70,14 @@ export class PaymentService implements IAbstractPaymentService {
         secretKey: this.credentials.secret_key,
       });
       const orderResult = await paypalClient.createOrder({
-        referenceId: paymentData.uid,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
+        referenceId: uid,
+        amount: payment.amount,
+        currency: payment.currency,
         returnUrl: `${WEBAPP_URL}/api/integrations/paypal/capture?bookingUid=${booking.uid}`,
-        cancelUrl: `${WEBAPP_URL}/payment/${paymentData.uid}`,
+        cancelUrl: `${WEBAPP_URL}/payment/${uid}`,
       });
 
-      await prisma?.payment.update({
+      await prisma.payment.update({
         where: {
           id: paymentData.id,
         },
@@ -112,7 +114,7 @@ export class PaymentService implements IAbstractPaymentService {
       throw new Error("Payment option is not compatible with create method");
     }
     try {
-      const booking = await prisma?.booking.findFirst({
+      const booking = await prisma.booking.findFirst({
         select: {
           uid: true,
           title: true,
@@ -125,7 +127,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error();
       }
 
-      const paymentData = await prisma?.payment.create({
+      const paymentData = await prisma.payment.create({
         data: {
           uid: uuidv4(),
           app: {
@@ -161,7 +163,7 @@ export class PaymentService implements IAbstractPaymentService {
         intent: "AUTHORIZE",
       });
 
-      await prisma?.payment.update({
+      await prisma.payment.update({
         where: {
           id: paymentData.id,
         },
