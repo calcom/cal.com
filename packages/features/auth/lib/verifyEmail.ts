@@ -1,6 +1,7 @@
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
+import { totp } from "otplib";
 
-import { sendEmailVerificationLink } from "@calcom/emails/email-manager";
+import { sendEmailVerificationCode, sendEmailVerificationLink } from "@calcom/emails/email-manager";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -46,6 +47,27 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
   await sendEmailVerificationLink({
     language: translation,
     verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`,
+    user: {
+      email,
+      name: username,
+    },
+  });
+
+  return { ok: true, skipped: false };
+};
+
+export const sendEmailVerificationByCode = async ({ email, language, username }: VerifyEmailType) => {
+  const translation = await getTranslation(language ?? "en", "common");
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
+
+  totp.options = { step: 900 };
+  const code = totp.generate(secret);
+
+  await sendEmailVerificationCode({
+    language: translation,
+    verificationEmailCode: code,
     user: {
       email,
       name: username,

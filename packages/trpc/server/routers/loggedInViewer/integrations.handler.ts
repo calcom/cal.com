@@ -1,5 +1,7 @@
+import type { CredentialOwner } from "@calcom/app-store/types";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -43,7 +45,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     teamId,
     sortByMostPopular,
   } = input;
-  let { credentials } = user;
+  let credentials = await getUsersCredentials(user.id);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
@@ -114,7 +116,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     }
   }
 
-  const enabledApps = await getEnabledApps(credentials);
+  const enabledApps = await getEnabledApps(credentials, onlyInstalled);
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
@@ -138,9 +140,17 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
               team.members[0].role === MembershipRole.ADMIN || team.members[0].role === MembershipRole.OWNER,
           };
         });
+      // type infer as CredentialOwner
+      const credentialOwner: CredentialOwner = {
+        name: user.name,
+        avatar: user.avatar,
+      };
+
       return {
         ...app,
-        ...(teams.length && { credentialOwner: { name: user.name, avatar: user.avatar } }),
+        ...(teams.length && {
+          credentialOwner,
+        }),
         userCredentialIds,
         invalidCredentialIds,
         teams,

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
@@ -25,7 +25,8 @@ export default function Type({
   away,
   isBrandingHidden,
   isTeamEvent,
-  org,
+  entity,
+  duration,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -34,7 +35,7 @@ export default function Type({
         eventSlug={slug}
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
-        org={org}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -43,7 +44,8 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
-        org={org}
+        entity={entity}
+        duration={duration}
       />
     </main>
   );
@@ -54,7 +56,7 @@ Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
@@ -132,7 +134,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      org,
+      entity: eventData.entity,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       booking,
       away: user?.away,
       user: username,

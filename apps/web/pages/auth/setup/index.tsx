@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
@@ -19,15 +19,25 @@ import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
 import { ssrInit } from "@server/lib/ssr";
 
+function useSetStep() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const setStep = (newStep = 1) => {
+    const _searchParams = new URLSearchParams(searchParams);
+    _searchParams.set("step", newStep.toString());
+    router.replace(`${pathname}?${_searchParams.toString()}`);
+  };
+  return setStep;
+}
+
 export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
   const isFreeLicense = value === "FREE";
   const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
-  const setStep = (newStep: number) => {
-    router.replace(`/auth/setup?step=${newStep || 1}`, undefined, { shallow: true });
-  };
+  const setStep = useSetStep();
 
   const steps: React.ComponentProps<typeof WizardForm>["steps"] = [
     {

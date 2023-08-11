@@ -1938,7 +1938,7 @@
   "insights_all_org_filter": "Tümü",
   "insights_team_filter": "Ekip: {{teamName}}",
   "insights_user_filter": "Kullanıcı: {{userName}}",
-  "insights_subtitle": "Etkinlikleriniz için rezervasyon analizlerini görüntüleyin",
+  "insights_subtitle": "Etkinlikleriniz için rezervasyon Insights'lerini görüntüleyin",
   "custom_plan": "Özel Plan",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

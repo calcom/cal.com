@@ -95,7 +95,7 @@ const WebhookForm = (props: {
     if (changeSecret) {
       formMethods.unregister("secret", { keepDefaultValue: false });
     }
-  }, [changeSecret]);
+  }, [changeSecret, formMethods]);
 
   return (
     <>
@@ -277,7 +277,9 @@ const WebhookForm = (props: {
             {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
             {t("cancel")}
           </Button>
-          <Button type="submit" loading={formMethods.formState.isSubmitting}>
+          <Button
+            type="submit"
+            loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
             {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>
         </DialogFooter>

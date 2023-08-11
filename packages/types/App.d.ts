@@ -111,7 +111,7 @@ export interface App {
   /** Number of reviews, harcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
-   *  Wheter if the app is installed globally or needs user intervention.
+   *  Whether if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
@@ -144,6 +144,8 @@ export interface App {
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */
   dependencies?: string[];
+  /** Enables video apps to be used for team events. Non Video/Conferencing apps don't honor this as they support team installation always. */
+  concurrentMeetings?: boolean;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

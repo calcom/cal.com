@@ -62,7 +62,7 @@ export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast
     <span>
       <Check className="h-4 w-4" />
     </span>
-    <p>{message}</p>
+    <p data-testid="toast-default">{message}</p>
   </button>
 );
 
