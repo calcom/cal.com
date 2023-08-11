@@ -127,6 +127,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     user?: User;
     eventType?: EventType;
     currentSeats?: CurrentSeats;
+    rescheduleUid?: string | null;
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -184,6 +185,8 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
     seatedEvent: !!eventType?.seatsPerTimeSlot,
+    rescheduleUid: initialData?.rescheduleUid || null,
+    duration,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
