@@ -64,7 +64,7 @@ const VerticalTabItem = ({
             {props.icon && (
               <props.icon
                 className={classNames(
-                  "h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
+                  "mr-2 h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
                   props.iconClassName
                 )}
               />
