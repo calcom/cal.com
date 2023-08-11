@@ -8,6 +8,7 @@ import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, DataTable } from "@calcom/ui";
 
 import { TBContext, createTimezoneBuddyStore } from "../store";
+import { HoverOverview } from "./HoverOverview";
 import { TimeDial } from "./TimeDial";
 
 export interface User {
@@ -135,13 +136,16 @@ export function AvailabilitySliderTable() {
           "Asia/Shanghai",
         ],
       })}>
-      <DataTable
-        tableContainerRef={tableContainerRef}
-        columns={memorisedColumns}
-        data={flatData}
-        isLoading={isLoading}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-      />
+      <div className="relative">
+        <DataTable
+          tableContainerRef={tableContainerRef}
+          columns={memorisedColumns}
+          data={flatData}
+          isLoading={isLoading}
+          tableOverlay={<HoverOverview />}
+          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+        />
+      </div>
     </TBContext.Provider>
   );
 }
