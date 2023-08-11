@@ -1,8 +1,8 @@
-import create from "zustand";
+import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
 
-import {
+import type {
   CalendarComponentProps,
   CalendarPublicActions,
   CalendarState,

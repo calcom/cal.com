@@ -6,9 +6,9 @@ import { Toaster } from "react-hot-toast";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, TextField, showToast } from "@calcom/ui";
+import { Button, showToast, TextField } from "@calcom/ui";
 
-export interface IMercadoPagoSetupProps {
+export interface PayPalSetupProps {
   public_key: string;
   access_token: string;
   currency: string;
@@ -42,7 +42,7 @@ export const currencyOptions = [
   { label: "Thai baht", value: "THB" },
 ];
 
-export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
+export default function PayPalSetup(props: PayPalSetupProps) {
   const [newClientId, setNewClientId] = useState("");
   const [newSecretKey, setNewSecretKey] = useState("");
 
@@ -50,12 +50,8 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
   const { t } = useLocale();
 
   const integrations = trpc.viewer.integrations.useQuery({ variant: "payment" });
-
-  const paypalPaymentAppCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "paypal_payment"
-  );
-
-  const [credentialId] = paypalPaymentAppCredentials?.credentialIds || [false];
+  const paypalPaymentAppCredentials = integrations.data?.items.find((item) => item.type === "paypal_payment");
+  const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [false];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -167,7 +163,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                   Log into your Paypal Developer account and create a new app{" "}
                   <a
                     target="_blank"
-                    href="https://developer.paypal.com"
+                    href="https://developer.paypal.com/dashboard/applications/"
                     className="text-orange-600 underline">
                     {t("here")}
                   </a>
@@ -186,7 +182,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
           </div>
         </div>
       ) : (
-        <div className="mt-5 ml-5">
+        <div className="ml-5 mt-5">
           <div>Paypal</div>
           <div className="mt-3">
             <Link href="/apps/paypal" passHref={true} legacyBehavior>

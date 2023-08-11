@@ -12,6 +12,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
+import element_call_config_json from "./element-call/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -36,7 +37,6 @@ import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
-import rainbow_config_json from "./rainbow/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
@@ -44,6 +44,7 @@ import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
+import skiff_config_json from "./skiff/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
@@ -79,6 +80,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
+  "element-call": element_call_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -103,7 +105,6 @@ export const appStoreMetadata = {
   pipedream: pipedream_config_json,
   plausible: plausible_config_json,
   qr_code: qr_code_config_json,
-  rainbow: rainbow_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
   "routing-forms": routing_forms_config_json,
@@ -111,6 +112,7 @@ export const appStoreMetadata = {
   sendgrid: sendgrid_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
+  skiff: skiff_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,

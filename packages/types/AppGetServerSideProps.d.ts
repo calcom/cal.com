@@ -1,7 +1,7 @@
-import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import { CalendsoSessionUser } from "next-auth";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import type { CalendsoSessionUser } from "next-auth";
 
-import prisma from "@calcom/prisma";
+import type prisma from "@calcom/prisma";
 
 import type { ssrInit } from "@server/lib/ssr";
 

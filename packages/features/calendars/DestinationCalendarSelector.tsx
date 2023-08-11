@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui";
+import { Check } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -37,7 +38,10 @@ const OptionComponent = ({ ...props }: OptionProps<Option>) => {
   const { label } = props.data;
   return (
     <components.Option {...props}>
-      <span>{label}</span>
+      <div className="flex">
+        <span className="mr-auto">{label}</span>
+        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
+      </div>
     </components.Option>
   );
 };
@@ -66,7 +70,7 @@ const DestinationCalendarSelector = ({
         width: "100%",
         display: "flex",
         ":before": {
-          content: `'${t("select_destination_calendar")}:'`,
+          content: `'${t("create_events_on")}:'`,
           display: "block",
           marginRight: 8,
         },
@@ -121,12 +125,12 @@ const DestinationCalendarSelector = ({
   const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
-    <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
+    <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
         placeholder={
           !hidePlaceholder ? (
-            `${t("select_destination_calendar")}`
+            `${t("create_events_on")}`
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               {t("default_calendar_selected")}{" "}
@@ -151,7 +155,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "border-default mb-2 mt-1 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);

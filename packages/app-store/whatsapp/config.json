@@ -6,7 +6,7 @@
   "logo": "icon.svg",
   "url": "https://cal.com/",
   "variant": "conferencing",
-  "categories": ["video"],
+  "categories": ["messaging"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Schedule a chat with your guests or have a WhatsApp Video call.",

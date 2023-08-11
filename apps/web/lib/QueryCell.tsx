@@ -66,6 +66,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
       return opts.empty(query);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return opts.success(query as any);
   }
 
@@ -88,9 +89,10 @@ const withQuery = <
   TInput = inferProcedureInput<TQuery>,
   TOutput = inferProcedureOutput<TQuery>
 >(
-  queryProcedure: DecorateProcedure<TQuery, any, any>,
+  queryProcedure: DecorateProcedure<TQuery, inferProcedureInput<TQuery>, inferProcedureOutput<TQuery>>,
+
   input?: TInput,
-  params?: UseTRPCQueryOptions<any, TInput, TOutput, TOutput, TError>
+  params?: UseTRPCQueryOptions<TQuery, TInput, TOutput, TOutput, TError>
 ) => {
   return function WithQuery(
     opts: Omit<

@@ -75,34 +75,36 @@ class EventsInsights {
     return result;
   };
 
-  static getBaseBookingForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const baseBookings = await prisma.bookingTimeStatus.findMany({
+  static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const baseBookings = await prisma.bookingTimeStatus.count({
       where,
-      select: {
-        id: true,
-      },
     });
 
     return baseBookings;
   };
 
-  static getTotalRescheduledEvents = async (bookingIds: number[]) => {
+  static getTotalCompletedEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
-        id: {
-          in: bookingIds,
-        },
+        ...whereConditional,
+        timeStatus: "completed",
+      },
+    });
+  };
+
+  static getTotalRescheduledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.count({
+      where: {
+        ...whereConditional,
         timeStatus: "rescheduled",
       },
     });
   };
 
-  static getTotalCancelledEvents = async (bookingIds: number[]) => {
+  static getTotalCancelledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
-        id: {
-          in: bookingIds,
-        },
+        ...whereConditional,
         timeStatus: "cancelled",
       },
     });
@@ -113,6 +115,9 @@ class EventsInsights {
 
     if (timeView) {
       switch (timeView) {
+        case "day":
+          resultTimeLine = this.getDailyTimeline(startDate, endDate);
+          break;
         case "week":
           resultTimeLine = this.getWeekTimeline(startDate, endDate);
           break;
@@ -143,16 +148,36 @@ class EventsInsights {
     return resultTimeView;
   };
 
+  static getDailyTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
+    const now = dayjs();
+    const endOfDay = now.endOf("day");
+    let pivotDate = dayjs(startDate);
+    const dates: string[] = [];
+    while ((pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) && pivotDate.isBefore(endOfDay)) {
+      dates.push(pivotDate.format("YYYY-MM-DD"));
+      pivotDate = pivotDate.add(1, "day");
+    }
+    return dates;
+  }
+
   static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
     const now = dayjs();
     const endOfDay = now.endOf("day");
     let pivotDate = dayjs(startDate);
     const dates: string[] = [];
-    while (pivotDate.isBefore(endDate) && pivotDate.isBefore(endOfDay)) {
-      const weekEndDate = pivotDate.add(7, "day").isBefore(endOfDay) ? pivotDate.add(7, "day") : endOfDay;
+
+    while (pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) {
+      const pivotAdded = pivotDate.add(6, "day");
+      const weekEndDate = pivotAdded.isBefore(endOfDay) ? pivotAdded : endOfDay;
       dates.push(pivotDate.format("YYYY-MM-DD"));
+
+      if (pivotDate.isSame(endDate)) {
+        break;
+      }
+
       pivotDate = weekEndDate.add(1, "day");
     }
+
     return dates;
   }
 

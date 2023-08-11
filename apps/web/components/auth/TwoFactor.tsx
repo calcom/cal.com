@@ -26,24 +26,24 @@ export default function TwoFactor({ center = true }) {
 
   return (
     <div className={center ? "mx-auto !mt-0 max-w-sm" : "!mt-0 max-w-sm"}>
-      <Label className="mt-4"> {t("2fa_code")}</Label>
+      <Label className="mt-4">{t("2fa_code")}</Label>
 
       <p className="text-subtle mb-4 text-sm">{t("2fa_enabled_instructions")}</p>
-      <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
+
+      <input type="hidden" value={value} {...methods.register("totpCode")} />
+
       <div className="flex flex-row justify-between">
-        <Input
-          className={className}
-          name="2fa1"
-          inputMode="decimal"
-          {...digits[0]}
-          autoFocus
-          autoComplete="one-time-code"
-        />
-        <Input className={className} name="2fa2" inputMode="decimal" {...digits[1]} />
-        <Input className={className} name="2fa3" inputMode="decimal" {...digits[2]} />
-        <Input className={className} name="2fa4" inputMode="decimal" {...digits[3]} />
-        <Input className={className} name="2fa5" inputMode="decimal" {...digits[4]} />
-        <Input className={className} name="2fa6" inputMode="decimal" {...digits[5]} />
+        {digits.map((digit, index) => (
+          <Input
+            key={`2fa${index}`}
+            className={className}
+            name={`2fa${index + 1}`}
+            inputMode="decimal"
+            {...digit}
+            autoFocus={index === 0}
+            autoComplete="one-time-code"
+          />
+        ))}
       </div>
     </div>
   );

@@ -7,11 +7,14 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -70,6 +73,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             },
           },
           customInputs: true,
+          parentId: true,
         },
       },
       location: true,
@@ -162,6 +166,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       name: user.name || "Unnamed",
       username: user.username || undefined,
       timeZone: user.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -208,7 +213,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    await handleConfirmation({ user, evt, recurringEventId, prisma, bookingId, booking });
+    const credentials = await getUsersCredentials(user.id);
+    const userWithCredentials = {
+      ...user,
+      credentials,
+    };
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      recurringEventId,
+      prisma,
+      bookingId,
+      booking,
+    });
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {
@@ -277,8 +294,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           }
 
           // Posible to refactor TODO:
-          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
-          if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+          const paymentApp = (await appStore[
+            paymentAppCredential?.app?.dirName as keyof typeof appStore
+          ]()) as PaymentApp;
+          if (!paymentApp?.lib?.PaymentService) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
           }
@@ -306,12 +325,20 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
 
     await sendDeclinedEmails(evt);
+
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+
     // send BOOKING_REJECTED webhooks
     const subscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
-      teamId: booking.eventType?.teamId,
+      teamId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {

@@ -1,4 +1,5 @@
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { MapPin } from "@calcom/ui/components/icon";
@@ -9,25 +10,51 @@ import { EventMetaBlock } from "./Details";
 export const EventLocations = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
   const locations = event.locations;
+
   if (!locations?.length) return null;
 
+  const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
+    const eventLocationType = getEventLocationType(location.type);
+    const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
+
+    return translatedLocation;
+  };
+  const eventLocationType = getEventLocationType(locations[0].type);
+  const icon = locations.length > 1 || !eventLocationType?.iconUrl ? MapPin : eventLocationType.iconUrl;
+
   return (
-    <EventMetaBlock icon={MapPin}>
+    <EventMetaBlock icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
       {locations.length === 1 && (
-        <div key={locations[0].type}>{t(getEventLocationType(locations[0].type)?.label ?? "")}</div>
+        <Tooltip content={getLocationToDisplay(locations[0])}>
+          <div className="" key={locations[0].type}>
+            {getLocationToDisplay(locations[0])}
+          </div>
+        </Tooltip>
       )}
       {locations.length > 1 && (
         <div
           key={locations[0].type}
-          className="before:bg-subtle relative before:pointer-events-none before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity hover:before:opacity-100">
+          className="before:bg-subtle relative before:pointer-events-none before:absolute before:inset-0 before:bottom-[-5px] before:left-[-30px] before:top-[-5px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity hover:before:opacity-100">
           <Tooltip
             content={
               <>
                 <p className="mb-2">{t("select_on_next_step")}</p>
-                <ul className="list-disc pl-3">
-                  {locations.map((location) => (
-                    <li key={location.type}>
-                      <span>{t(getEventLocationType(location.type)?.label ?? "")}</span>
+                <ul className="pl-1">
+                  {locations.map((location, index) => (
+                    <li key={`${location.type}-${index}`} className="mt-1">
+                      <div className="flex flex-row items-center">
+                        <img
+                          src={getEventLocationType(location.type)?.iconUrl}
+                          className={classNames(
+                            "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
+                            !getEventLocationType(location.type)?.iconUrl?.startsWith("/app-store")
+                              ? "dark:invert-[.65]"
+                              : ""
+                          )}
+                          alt={`${getEventLocationType(location.type)?.label} icon`}
+                        />
+                        <span>{getLocationToDisplay(location)}</span>
+                      </div>
                     </li>
                   ))}
                 </ul>

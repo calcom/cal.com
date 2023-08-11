@@ -2,6 +2,9 @@ const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.N
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
+export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
+export const IS_PRODUCTION = CALCOM_ENV === "production";
+
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
   VERCEL_URL ||
@@ -9,6 +12,11 @@ export const WEBAPP_URL =
   HEROKU_URL ||
   RENDER_URL ||
   "http://localhost:3000";
+
+// OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
+// So for development purpose, we would stick to localhost only
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localhost:3000";
+
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
@@ -23,15 +31,24 @@ export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.
 // As website isn't setup for preview environments, use the webapp url instead
 export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
 
+export const IS_CALCOM =
+  WEBAPP_URL &&
+  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+
 export const CONSOLE_URL =
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || process.env.NODE_ENV !== "production"
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.qa") ||
+  new URL(WEBAPP_URL).hostname.endsWith(".cal-staging.com") ||
+  process.env.NODE_ENV !== "production"
     ? `https://console.cal.dev`
     : `https://console.cal.com`;
 export const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
 );
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const TRIAL_LIMIT_DAYS = 14;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
@@ -48,7 +65,7 @@ export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
-export const JOIN_SLACK = "https://cal.com/slack";
+export const JOIN_DISCORD = "https://go.cal.com/discord";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
@@ -70,3 +87,9 @@ export const IS_STRIPE_ENABLED = !!(
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
+
+// Needed for orgs
+export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
+export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
+
+export const ORGANIZATION_MIN_SEATS = 30;

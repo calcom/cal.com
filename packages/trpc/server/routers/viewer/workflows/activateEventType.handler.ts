@@ -6,7 +6,12 @@ import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import {
+  deleteScheduledWhatsappReminder,
+  scheduleWhatsappReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
@@ -65,7 +70,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           userId: ctx.user.id,
         },
         {
-          teamId: userEventType.teamId,
+          teamId: userEventType.teamId || undefined,
         },
       ],
     },
@@ -87,7 +92,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     },
   });
-
   if (isActive) {
     // disable workflow for this event type & delete all reminders
     const remindersToDelete = await prisma.workflowReminder.findMany({
@@ -115,6 +119,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });
 
@@ -150,6 +156,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     });
 
     for (const booking of bookingsForReminders) {
+      const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,
         attendees: booking.attendees.map((attendee) => {
@@ -157,7 +164,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             name: attendee.name,
             email: attendee.email,
             timeZone: attendee.timeZone,
-            language: { locale: attendee.locale || "" },
+            language: { locale: attendee.locale || defaultLocale },
           };
         }),
         organizer: booking.user
@@ -165,13 +172,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               name: booking.user.name || "",
               email: booking.user.email,
               timeZone: booking.user.timeZone,
-              language: { locale: booking.user.locale || "" },
+              timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
+              language: { locale: booking.user.locale || defaultLocale },
             }
           : { name: "", email: "", timeZone: "", language: { locale: "" } },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         title: booking.title,
-        language: { locale: booking?.user?.locale || "" },
+        language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
           slug: booking.eventType?.slug,
         },
@@ -221,6 +229,22 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             booking.userId,
             eventTypeWorkflow.teamId
           );
+        } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
+          await scheduleWhatsappReminder(
+            bookingInfo,
+            step.sendTo,
+            eventTypeWorkflow.trigger,
+            step.action,
+            {
+              time: eventTypeWorkflow.time,
+              timeUnit: eventTypeWorkflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            booking.userId,
+            eventTypeWorkflow.teamId
+          );
         }
       }
     }
@@ -233,14 +257,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
     });
+    const requiresAttendeeNumber = (action: WorkflowActions) =>
+      action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
 
-    if (
-      eventTypeWorkflow.steps.some((step) => {
-        return step.action === WorkflowActions.SMS_ATTENDEE;
-      })
-    ) {
+    if (eventTypeWorkflow.steps.some((step) => requiresAttendeeNumber(step.action))) {
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
-        return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
+        return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
       [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (evTyId) => {
         await upsertSmsReminderFieldForBooking({

@@ -1,23 +1,45 @@
-import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
-import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "@calcom/ui/components/icon";
+import { Alert, Button, ButtonGroup, EmptyScreen, Label, showToast } from "@calcom/ui";
+import { EyeOff, Mail, RefreshCcw, UserPlus, Users, Video } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
 
 export function TeamsListing() {
+  const searchParams = useSearchParams();
+  const token = searchParams?.get("token");
   const { t } = useLocale();
+  const trpcContext = trpc.useContext();
+  const router = useRouter();
+
+  const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
+    enabled: inviteTokenChecked,
     onError: (e) => {
       setErrorMessage(e.message);
+    },
+  });
+
+  const { data: user } = trpc.viewer.me.useQuery();
+
+  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
+    onSuccess: (teamName) => {
+      trpcContext.viewer.teams.list.invalidate();
+      showToast(t("team_invite_received", { teamName }), "success");
+    },
+    onError: (e) => {
+      showToast(e.message, "error");
+    },
+    onSettled: () => {
+      setInviteTokenChecked(true);
     },
   });
 
@@ -57,7 +79,13 @@ export function TeamsListing() {
     },
   ];
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!router) return;
+    if (token) inviteMemberByToken({ token });
+    else setInviteTokenChecked(true);
+  }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
+
+  if (isLoading || !inviteTokenChecked) {
     return <SkeletonLoaderTeamList />;
   }
 
@@ -73,23 +101,42 @@ export function TeamsListing() {
       )}
 
       <UpgradeTip
-        title="calcom_is_better_with_team"
+        title={t("calcom_is_better_with_team", { appName: APP_NAME })}
         description="add_your_team_members"
         features={features}
         background="/tips/teams"
         buttons={
-          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-            <ButtonGroup>
-              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                {t("create_team")}
-              </Button>
-              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                {t("learn_more")}
-              </Button>
-            </ButtonGroup>
-          </div>
+          !user?.organizationId || user?.organization.isOrgAdmin ? (
+            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <ButtonGroup>
+                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("create_team")}
+                </Button>
+                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                  {t("learn_more")}
+                </Button>
+              </ButtonGroup>
+            </div>
+          ) : (
+            <p>{t("org_admins_can_create_new_teams")}</p>
+          )
         }>
-        {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
+        {teams.length > 0 ? (
+          <TeamList teams={teams} />
+        ) : (
+          <EmptyScreen
+            Icon={Users}
+            headline={t("create_team_to_get_started")}
+            description={t("create_first_team_and_invite_others")}
+            buttonRaw={
+              <Button
+                color="secondary"
+                href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+                {t(`create_new_team`)}
+              </Button>
+            }
+          />
+        )}
       </UpgradeTip>
     </>
   );

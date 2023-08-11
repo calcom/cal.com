@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button, Select, showToast } from "@calcom/ui";
@@ -37,16 +37,14 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
   const { t } = useTranslation();
   const [credentialId] = props.credentialIds;
 
-  const options = [
-    {
-      label: t("vital_app_total_label", { ns: "vital" }),
-      value: "total",
-    },
-    {
-      label: t("vital_app_duration_label", { ns: "vital" }),
-      value: "duration",
-    },
-  ];
+  const options = useMemo(
+    () => [
+      { label: t("vital_app_total_label", { ns: "vital" }), value: "total" },
+      { label: t("vital_app_duration_label", { ns: "vital" }), value: "duration" },
+    ],
+    [t]
+  );
+
   const [selectedParam, setSelectedParam] = useState<{ label: string; value: string }>(options[0]);
   const [touchedForm, setTouchedForm] = useState(false);
   const defaultSleepValue = 0;
@@ -72,7 +70,9 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
           setConnected(vitalSettings.connected);
         }
         if (vitalSettings.sleepValue && vitalSettings.parameter) {
-          const selectedParam = options.find((item) => item.value === vitalSettings.parameter);
+          const selectedParam = options.find(
+            (item: { value: string }) => item.value === vitalSettings.parameter
+          );
           if (selectedParam) {
             setSelectedParam(selectedParam);
           }
@@ -81,6 +81,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
       }
     }
     getVitalsConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!credentialId) {

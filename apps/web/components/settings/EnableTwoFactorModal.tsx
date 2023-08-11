@@ -1,10 +1,11 @@
 import type { BaseSyntheticEvent } from "react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, TextField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -129,6 +130,17 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
     }
   }
 
+  const handleEnableRef = useCallbackRef(handleEnable);
+
+  const totpCode = form.watch("totpCode");
+
+  // auto submit 2FA if all inputs have a value
+  useEffect(() => {
+    if (totpCode?.trim().length === 6) {
+      form.handleSubmit(handleEnableRef.current)();
+    }
+  }, [form, handleEnableRef, totpCode]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={t("enable_2fa")} description={setupDescriptions[step]} type="creation">
@@ -150,20 +162,20 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         </WithStep>
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
           <>
-            <div className="flex justify-center">
+            <div className="-mt-3 flex justify-center">
               {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={dataUri} alt="" />
               }
             </div>
-            <p data-testid="two-factor-secret" className="text-center font-mono text-xs">
+            <p data-testid="two-factor-secret" className="mb-4 text-center font-mono text-xs">
               {secret}
             </p>
           </>
         </WithStep>
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
-            <div className="mb-4">
+            <div className="-mt-4 pb-2">
               <TwoFactor center />
 
               {errorMessage && (
@@ -173,12 +185,16 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogFooter className="mt-8" showDivider>
+            <Button color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
               <Button
                 type="submit"
-                className="ms-2 me-2"
+                className="me-2 ms-2"
                 onClick={handleSetup}
+                loading={isSubmitting}
                 disabled={password.length === 0 || isSubmitting}>
                 {t("continue")}
               </Button>
@@ -187,20 +203,22 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               <Button
                 type="submit"
                 data-testid="goto-otp-screen"
-                className="ms-2 me-2"
+                className="me-2 ms-2"
                 onClick={() => setStep(SetupStep.EnterTotpCode)}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button type="submit" className="ms-2 me-2" data-testid="enable-2fa" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="me-2 ms-2"
+                data-testid="enable-2fa"
+                loading={isSubmitting}
+                disabled={isSubmitting}>
                 {t("enable")}
               </Button>
             </WithStep>
-            <Button color="secondary" onClick={onCancel}>
-              {t("cancel")}
-            </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

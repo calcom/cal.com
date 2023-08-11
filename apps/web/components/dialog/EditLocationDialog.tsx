@@ -13,6 +13,7 @@ import {
   getHumanReadableLocationValue,
   getMessageForOrganizer,
   LocationType,
+  OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -33,12 +34,12 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
-  isTeamEvent?: boolean;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: LocationOption | undefined) => void;
   setEditingLocationType?: (param: string) => void;
+  teamId?: number;
 }
 
 const LocationInput = (props: {
@@ -57,12 +58,15 @@ const LocationInput = (props: {
       <Input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
+    const { defaultValue, ...rest } = remainingProps;
+
     return (
       <Controller
         name={eventLocationType.variable}
         control={control}
+        defaultValue={defaultValue}
         render={({ field: { onChange, value } }) => {
-          return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
+          return <PhoneInput onChange={onChange} value={value} {...rest} />;
         }}
       />
     );
@@ -75,19 +79,22 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     saveLocation,
     selection,
     booking,
-    isTeamEvent,
     setShowLocationModal,
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
     setEditingLocationType,
+    teamId,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.locationOptions.useQuery();
+  const locationsQuery = trpc.viewer.locationOptions.useQuery({ teamId });
 
   useEffect(() => {
     if (selection) {
       locationFormMethods.setValue("locationType", selection?.value);
+      if (selection?.address) {
+        locationFormMethods.setValue("locationAddress", selection?.address);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
@@ -96,6 +103,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     locationType: z.string(),
     phone: z.string().optional().nullable(),
     locationAddress: z.string().optional(),
+    credentialId: z.number().optional(),
+    teamName: z.string().optional(),
     locationLink: z
       .string()
       .optional()
@@ -149,10 +158,21 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationType",
   });
 
+  const selectedAddrValue = useWatch({
+    control: locationFormMethods.control,
+    name: "locationAddress",
+  });
+
   const eventLocationType = getEventLocationType(selectedLocation);
 
   const defaultLocation = defaultValues?.find(
-    (location: { type: EventLocationType["type"] }) => location.type === eventLocationType?.type
+    (location: { type: EventLocationType["type"]; address?: string }) => {
+      if (location.type === LocationType.InPerson) {
+        return location.type === eventLocationType?.type && location.address === selectedAddrValue;
+      } else {
+        return location.type === eventLocationType?.type;
+      }
+    }
   );
 
   const LocationOptions = (() => {
@@ -240,7 +260,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
             {booking && (
               <>
-                <p className="text-emphasis mt-6 mb-2 ml-1 text-sm font-bold">{t("current_location")}:</p>
+                <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
                 <p className="text-emphasis mb-2 ml-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
@@ -278,6 +298,20 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   };
                 }
 
+                if (values.credentialId) {
+                  details = {
+                    ...details,
+                    credentialId: values.credentialId,
+                  };
+                }
+
+                if (values.teamName) {
+                  details = {
+                    ...details,
+                    teamName: values.teamName,
+                  };
+                }
+
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
@@ -292,8 +326,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 query={locationsQuery}
                 success={({ data }) => {
                   if (!data.length) return null;
-                  const locationOptions = [...data].filter((option) => {
-                    return !isTeamEvent ? option.label !== "Conferencing" : true;
+                  const locationOptions = [...data].map((option) => {
+                    if (teamId) {
+                      // Let host's Default conferencing App option show for Team Event
+                      return option;
+                    }
+                    return {
+                      ...option,
+                      options: option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType),
+                    };
                   });
                   if (booking) {
                     locationOptions.map((location) =>
@@ -315,6 +356,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             onChange={(val) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
+                                if (val.credential) {
+                                  locationFormMethods.setValue("credentialId", val.credential.id);
+                                  locationFormMethods.setValue("teamName", val.credential.team?.name);
+                                }
+
                                 locationFormMethods.unregister([
                                   "locationLink",
                                   "locationAddress",

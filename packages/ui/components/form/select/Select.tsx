@@ -44,6 +44,7 @@ export const Select = <
           cx(
             "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
+            state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
             props.classNames?.option
           ),
