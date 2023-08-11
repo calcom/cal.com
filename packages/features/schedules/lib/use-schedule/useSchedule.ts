@@ -11,6 +11,7 @@ type UseScheduleWithCacheArgs = {
   prefetchNextMonth?: boolean;
   duration?: number | null;
   rescheduleUid?: string | null;
+  isTeamEvent?: boolean;
 };
 
 export const useSchedule = ({
@@ -22,6 +23,7 @@ export const useSchedule = ({
   prefetchNextMonth,
   duration,
   rescheduleUid,
+  isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(1, "month");
@@ -30,6 +32,7 @@ export const useSchedule = ({
   // no satisfy typscript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
+      isTeamEvent,
       usernameList: getUsernameList(username ?? ""),
       // Prioritize slug over id, since slug is the first value we get available.
       // If we have a slug, we don't need to fetch the id.
