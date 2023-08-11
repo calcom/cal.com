@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* eslint-disable playwright/missing-playwright-await */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useState } from "react";
@@ -18,6 +16,7 @@ window.ResizeObserver = vi.fn().mockImplementation(() => ({
 }));
 
 vi.mock("../tooltip", async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = (await vi.importActual("../tooltip")) as any;
   const TooltipMock = (props: object) => {
     const [open, setOpen] = useState(false);
