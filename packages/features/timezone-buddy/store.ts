@@ -39,7 +39,13 @@ function getTimezoneOffset(timezoneName: string) {
   const date = new Date();
 
   const options = { timeZone: timezoneName, hour12: false };
-  const timeString = date.toLocaleString("en-US", options);
+  let timeString: string;
+  try {
+    timeString = date.toLocaleString("en-US", options);
+  } catch {
+    console.log("error", timezoneName);
+    return;
+  }
   const timezoneOffset = new Date(
     date.toLocaleString("en-US", { timeZone: timezoneName })
   ).getTimezoneOffset();

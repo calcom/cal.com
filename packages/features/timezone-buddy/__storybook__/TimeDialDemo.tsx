@@ -24,9 +24,9 @@ const WorkingHours = [
 ];
 const WorkingHoursTwo = [
   {
-    days: [0],
-    startTime: dayjs().set("hour", 2).set("minute", 0).toDate(),
-    endTime: dayjs().set("hour", 9).set("minute", 0).toDate(),
+    days: [1, 2, 3, 4],
+    startTime: dayjs().set("hour", 9).set("minute", 0).toDate(),
+    endTime: dayjs().set("hour", 17).set("minute", 0).toDate(),
   },
 ];
 
@@ -62,7 +62,6 @@ export function TimeDialDemo() {
       <TBContext.Provider
         value={createTimezoneBuddyStore({
           browsingDate,
-          offsetTimezone: "America/New_York",
           uniquedTimezones: [
             "America/New_York",
             "America/Los_Angeles",
@@ -81,13 +80,20 @@ export function TimeDialDemo() {
           ],
         })}>
         <div className="flex flex-col space-y-2">
+          London
           <span>Sunday Monday Tuesday 9am-6pm</span>
           <span>Thursday 2am-5am and 3pm-6pm</span>
           <TimeDial timezone="Europe/London" avaibility={WorkingHours} />
         </div>
         <div className="flex flex-col space-y-2">
           User Two (Asia/Tokyo): Sunday 2am - 9am
+          <span>Sunday Monday Tuesday 9am-6pm</span>
+          <span>Thursday 2am-5am and 3pm-6pm</span>
           <TimeDial timezone="Asia/Tokyo" avaibility={WorkingHours} />
+        </div>
+        <div className="flex flex-col space-y-2">
+          User Three (Asia/Dubai): mon-friday 9am-5pm
+          <TimeDial timezone="Asia/Dubai" avaibility={WorkingHoursTwo} />
         </div>
       </TBContext.Provider>
     </div>
