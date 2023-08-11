@@ -2,7 +2,6 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -120,10 +119,8 @@ const availabilitySchema = z
 async function handler(req: NextApiRequest) {
   const { prisma, isAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
   if (!teamId)
     return getUserAvailability({
-      orgSlug: isValidOrgDomain ? currentOrgDomain || undefined : undefined,
       username,
       dateFrom,
       dateTo,

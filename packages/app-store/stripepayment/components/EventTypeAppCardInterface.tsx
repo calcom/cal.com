@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -6,7 +6,7 @@ import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, TextField, Select } from "@calcom/ui";
+import { Alert, Select, TextField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
 import type { appDataSchema } from "../zod";
@@ -14,7 +14,7 @@ import type { appDataSchema } from "../zod";
 type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const { asPath } = useRouter();
+  const pathname = usePathname();
   const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
@@ -37,7 +37,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
   return (
     <AppCard
-      returnTo={WEBAPP_URL + asPath}
+      returnTo={WEBAPP_URL + pathname}
       setAppData={setAppData}
       app={app}
       disableSwitch={disabled}

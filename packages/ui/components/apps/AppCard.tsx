@@ -1,8 +1,10 @@
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
@@ -34,14 +36,12 @@ interface AppCardProps {
 
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
-
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-  const enabledOnTeams = !app.categories.some(
-    (category) => category === "calendar" || category === "conferencing"
-  );
 
-  const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length === appAdded : appAdded > 0;
+  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
+
+  const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
@@ -78,9 +78,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-default">
-          <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
-          <span className="pl-1 text-subtle">{props.reviews} reviews</span>
-        </div> */}
+            <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
+            <span className="pl-1 text-subtle">{props.reviews} reviews</span>
+          </div> */}
       <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
@@ -119,6 +119,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       {...props}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
+                      concurrentMeetings={app.concurrentMeetings}
                     />
                   );
                 }}
@@ -144,6 +145,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       credentials={credentials}
+                      concurrentMeetings={app.concurrentMeetings}
                       {...props}
                     />
                   );
@@ -176,20 +178,23 @@ const InstallAppButtonChild = ({
   addAppMutationInput,
   appCategories,
   credentials,
+  concurrentMeetings,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   credentials?: Credential[];
+  concurrentMeetings?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(router.asPath);
+      router.replace(pathname);
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
@@ -198,10 +203,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (
-    !userAdminTeams?.length ||
-    appCategories.some((category) => category === "calendar" || category === "conferencing")
-  ) {
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return (
       <Button
         color="secondary"
@@ -228,11 +230,12 @@ const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
+          className="w-56"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>
           {mutation.isLoading && (
-            <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="z-1 fixed inset-0 flex items-center justify-center">
               <Spinner />
             </div>
           )}
@@ -261,7 +264,7 @@ const InstallAppButtonChild = ({
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                   );
                 }}>
-                <p>
+                <p className="text-left">
                   {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
                 </p>
               </DropdownItem>
