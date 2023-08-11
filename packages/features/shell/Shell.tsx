@@ -828,7 +828,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
             {!isOrgBrandingDataFetched ? null : orgBranding ? (
-              <Link href="/event-types" className="px-1.5">
+              <Link href="/settings/organizations/profile" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
