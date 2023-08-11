@@ -22,6 +22,7 @@ export interface TimezoneBuddyProps {
    * instead of computing this for mulitple users if they are in the same timezone
    */
   uniquedTimezones: string[];
+  browsingDate: Date;
   timeMode?: "12h" | "24h";
 }
 
@@ -66,6 +67,8 @@ export const createTimezoneBuddyStore = (initProps?: Partial<TimezoneBuddyProps>
   const DEFAULT_PROPS: TimezoneBuddyProps = {
     offsetTimezone: null,
     uniquedTimezones: [],
+    timeMode: "24h",
+    browsingDate: new Date(),
   };
   const timezones = new Map<string, Timezone>();
 
