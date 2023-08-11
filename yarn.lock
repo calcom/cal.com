@@ -4406,6 +4406,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/slack@workspace:packages/app-store/slack":
+  version: 0.0.0-use.local
+  resolution: "@calcom/slack@workspace:packages/app-store/slack"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
