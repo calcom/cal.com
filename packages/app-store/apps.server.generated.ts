@@ -12,6 +12,7 @@ export const apiHandlers = {
   cron: import("./cron/api"),
   discord: import("./discord/api"),
   eightxeight: import("./eightxeight/api"),
+  "element-call": import("./element-call/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
   exchangecalendar: import("./exchangecalendar/api"),

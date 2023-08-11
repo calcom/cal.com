@@ -248,17 +248,23 @@ test.describe("Reschedule Tests", async () => {
   }) => {
     const user = await users.create();
     const eventType = user.eventTypes[0];
-    const startTime = dayjs().add(1, "day").set("hour", 10).set("minute", 0).toDate();
-    const endTime = dayjs().add(1, "day").set("hour", 10).set("minute", 30).toDate();
+
+    let firstOfNextMonth = dayjs().add(1, "month").startOf("month");
+
+    // find first available slot of next month (available monday-friday)
+    while (firstOfNextMonth.day() < 1 || firstOfNextMonth.day() > 5) {
+      firstOfNextMonth = firstOfNextMonth.add(1, "day");
+    }
+
+    // set startTime to first available slot
+    const startTime = firstOfNextMonth.set("hour", 9).set("minute", 0).toDate();
+    const endTime = firstOfNextMonth.set("hour", 9).set("minute", 30).toDate();
 
     const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
 
     await page.goto(`/reschedule/${booking.uid}`);
 
-    //book same slot again
-    page.getByRole("button", { name: dayjs(startTime).format("D"), exact: true }).click();
-
-    page.getByRole("button", { name: dayjs(startTime).format("h:mmA") }).click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await expect(page).toHaveURL(/.*booking/);
