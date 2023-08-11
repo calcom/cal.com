@@ -77,10 +77,9 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: session, update } = useSession();
+  const { data: _session, update } = useSession();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       showToast(t("settings_updated_successfully"), "success");
@@ -205,14 +204,14 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || isLoadingAvatar || !avatar)
+  if (isLoading || !user)
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
 
   const defaultValues = {
     username: user.username || "",
-    avatar: avatar.avatar || "",
+    avatar: user.avatar || "",
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",

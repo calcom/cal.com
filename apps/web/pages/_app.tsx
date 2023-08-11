@@ -1,3 +1,5 @@
+import React from "react";
+
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";

@@ -99,7 +99,7 @@ export async function getTeamWithMembers(args: {
   const where: Prisma.TeamFindFirstArgs["where"] = {};
 
   if (userId) where.members = { some: { userId } };
-  if (orgSlug) {
+  if (orgSlug && orgSlug !== slug) {
     where.parent = getSlugOrRequestedSlug(orgSlug);
   }
   if (id) where.id = id;

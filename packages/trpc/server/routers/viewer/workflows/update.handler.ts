@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isSMSOrWhatsappAction,
+  isTextMessageToAttendeeAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -22,6 +25,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
@@ -79,6 +83,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isTeamsPlan = !!hasTeamPlan;
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
+
+  const kycVerified = await isVerifiedHandler({ ctx });
+  const isKYCVerified = kycVerified.isKYCVerified;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
@@ -421,6 +428,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      if (!isKYCVerified && isTextMessageToAttendeeAction(newStep.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      }
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
       await ctx.prisma.workflowStep.update({
@@ -592,6 +602,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (s.id <= 0) {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+      if (isTextMessageToAttendeeAction(s.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;
