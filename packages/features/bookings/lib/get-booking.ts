@@ -109,11 +109,59 @@ export const getBookingWithResponses = <
 export default getBooking;
 
 export const getBookingForReschedule = async (uid: string) => {
-  const booking = getBooking(prisma, uid);
+  let rescheduleUid: string | null = null;
+  const theBooking = await prisma.booking.findFirst({
+    where: {
+      uid,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  // If no booking is found via the uid, it's probably a booking seat
+  // that its being rescheduled, which we query next.
+  let attendeeEmail: string | null = null;
+  if (!theBooking) {
+    const bookingSeat = await prisma.bookingSeat.findFirst({
+      where: {
+        referenceUid: uid,
+      },
+      select: {
+        id: true,
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        booking: {
+          select: {
+            uid: true,
+          },
+        },
+      },
+    });
+    if (bookingSeat) {
+      rescheduleUid = bookingSeat.booking.uid;
+      attendeeEmail = bookingSeat.attendee.email;
+    }
+  }
+
+  // If we don't have a booking and no rescheduleUid, the ID is invalid,
+  // and we return null here.
+  if (!theBooking && !rescheduleUid) return null;
+
+  const booking = await getBooking(prisma, rescheduleUid || uid);
 
   if (!booking) return null;
 
-  return booking;
+  return {
+    ...booking,
+    attendees: rescheduleUid
+      ? booking.attendees.filter((attendee) => attendee.email === attendeeEmail)
+      : booking.attendees,
+  };
 };
 
 /**
