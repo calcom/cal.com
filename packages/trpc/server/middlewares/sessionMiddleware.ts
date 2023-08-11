@@ -1,7 +1,6 @@
 import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -37,27 +36,12 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       theme: true,
       createdDate: true,
       hideBranding: true,
-      avatar: true,
       twoFactorEnabled: true,
       disableImpersonation: true,
       identityProvider: true,
       brandColor: true,
       darkBrandColor: true,
       away: true,
-      credentials: {
-        select: {
-          id: true,
-          type: true,
-          key: true,
-          userId: true,
-          appId: true,
-          invalid: true,
-          teamId: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
       selectedCalendars: {
         select: {
           externalId: true,
@@ -102,9 +86,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const userMetaData = userMetadata.parse(user.metadata || {});
   const orgMetadata = teamMetadataSchema.parse(user.organization?.metadata || {});
-  const rawAvatar = user.avatar;
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
-  user.avatar = rawAvatar ? `${WEBAPP_URL}/${user.username}/avatar.png` : defaultAvatarSrc({ email });
+
   const locale = user?.locale || ctx.locale;
 
   const isOrgAdmin = !!user.organization?.members.length;
@@ -114,13 +97,14 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   }
   return {
     ...user,
+    avatar:
+      `${WEBAPP_URL}/${user.username}/avatar.png?` + user.organizationId && `orgId=${user.organizationId}`,
     organization: {
       ...user.organization,
       isOrgAdmin,
       metadata: orgMetadata,
     },
     id,
-    rawAvatar,
     email,
     username,
     locale,
@@ -169,6 +153,15 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
 export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   const { user } = ctx;
   if (user?.role !== "ADMIN") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx: { ...ctx, user: user } });
+});
+
+// Org admins can be admins or owners
+export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
+  const { user } = ctx;
+  if (!user?.organization?.isOrgAdmin) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({ ctx: { ...ctx, user: user } });

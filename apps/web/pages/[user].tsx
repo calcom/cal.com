@@ -2,7 +2,6 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -12,11 +11,13 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
@@ -24,7 +25,7 @@ import prisma from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, HeadSeo } from "@calcom/ui";
+import { Avatar, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -34,11 +35,10 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { users, profile, eventTypes, markdownStrippedBio } = props;
+  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
-  const router = useRouter();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -46,9 +46,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const query = { ...router.query };
-  delete query.user; // So it doesn't display in the Link (and make tests fail)
-  delete query.orgSlug;
+  const {
+    // So it doesn't display in the Link (and make tests fail)
+    user: _user,
+    orgSlug: _orgSlug,
+    ...query
+  } = useRouterQuery();
+  const nameOrUsername = user.name || user.username || "";
 
   /*
    const telemetry = useTelemetry();
@@ -58,6 +62,15 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]); */
+
+  if (entity?.isUnpublished) {
+    return (
+      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+        <UnpublishedEntity {...entity} />
+      </div>
+    );
+  }
+
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
@@ -206,6 +219,11 @@ export type UserPageProps = {
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
+  entity: {
+    isUnpublished?: boolean;
+    orgSlug?: string | null;
+    name?: string | null;
+  };
   eventTypes: ({
     descriptionAsSafeHTML: string;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
@@ -217,6 +235,7 @@ export type UserPageProps = {
     | "length"
     | "hidden"
     | "requiresConfirmation"
+    | "requiresBookerEmailVerification"
     | "price"
     | "currency"
     | "recurringEvent"
@@ -225,8 +244,10 @@ export type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
-
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.params?.orgSlug
+  );
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({
@@ -234,11 +255,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       username: {
         in: usernameList,
       },
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
@@ -249,6 +266,12 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       brandColor: true,
       darkBrandColor: true,
       organizationId: true,
+      organization: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
       theme: true,
       away: true,
       verified: true,
@@ -310,6 +333,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
+  const org = usersWithoutAvatar[0].organization;
 
   return {
     props: {
@@ -320,6 +344,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         away: user.away,
         verified: user.verified,
       })),
+      entity: {
+        isUnpublished: org?.slug === null,
+        orgSlug: currentOrgDomain,
+        name: org?.name ?? null,
+      },
       eventTypes,
       safeBio,
       profile,
