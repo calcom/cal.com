@@ -90,12 +90,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         userName
       );
 
-      if (
-        message?.length &&
-        message?.length > 0 &&
-        sendTo &&
-        reminder.workflowStep.action !== WorkflowActions.WHATSAPP_ATTENDEE
-      ) {
+      if (message?.length && message?.length > 0 && sendTo) {
         const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, "", true);
 
         await prisma.workflowReminder.update({

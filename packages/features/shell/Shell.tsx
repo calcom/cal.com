@@ -132,7 +132,6 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
 }
 
 function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
-  const router = useRouter();
   const bannerRef = useRef<HTMLDivElement | null>(null);
 
   useIsomorphicLayoutEffect(() => {
