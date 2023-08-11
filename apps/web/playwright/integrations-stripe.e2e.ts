@@ -11,8 +11,8 @@ const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_CLIENT_ID &&
   process.env.STRIPE_PRIVATE_KEY &&
-  process.env.PAYMENT_FEE_FIXED &&
-  process.env.PAYMENT_FEE_PERCENTAGE
+  process.env.NEXT_PUBLIC_PAYMENT_FEE_FIXED &&
+  process.env.NEXT_PUBLIC_PAYMENT_FEE_PERCENTAGE
 );
 
 test.describe("Stripe integration", () => {
