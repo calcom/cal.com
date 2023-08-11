@@ -38,7 +38,7 @@ export class PaymentService implements IAbstractPaymentService {
     });
   }
 
-  async getPayment(where: Prisma.PaymentWhereInput) {
+  private async getPayment(where: Prisma.PaymentWhereInput) {
     const payment = await prisma.payment.findFirst({ where });
     if (!payment) throw new Error("Payment not found");
     if (!payment.externalId) throw new Error("Payment externalId not found");
@@ -59,7 +59,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       // Load stripe keys
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
@@ -88,7 +88,7 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      const paymentData = await prisma?.payment.create({
+      const paymentData = await prisma.payment.create({
         data: {
           uid: uuidv4(),
           app: {
@@ -138,7 +138,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       // Load stripe keys
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
@@ -168,7 +168,7 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      const paymentData = await prisma?.payment.create({
+      const paymentData = await prisma.payment.create({
         data: {
           uid: uuidv4(),
           app: {
@@ -209,7 +209,7 @@ export class PaymentService implements IAbstractPaymentService {
 
   async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
     try {
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
