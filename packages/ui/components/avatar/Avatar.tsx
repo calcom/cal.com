@@ -52,9 +52,14 @@ export function Avatar(props: AvatarProps) {
         />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback && !gravatarFallbackMd5 && props.fallback}
-            {gravatarFallbackMd5 && (
-              <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
+            {props.fallback ? (
+              props.fallback
+            ) : (
+              <img
+                src={defaultAvatarSrc({ md5: gravatarFallbackMd5 ?? "fallback" })}
+                alt={alt}
+                className={rootClass}
+              />
             )}
           </>
         </AvatarPrimitive.Fallback>
