@@ -2,7 +2,11 @@ import type { TFunction } from "next-i18next";
 
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-import { isSMSOrWhatsappAction, isWhatsappAction } from "./actionHelperFunctions";
+import {
+  isTextMessageToAttendeeAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+} from "./actionHelperFunctions";
 import {
   TIME_UNIT,
   WHATSAPP_WORKFLOW_TEMPLATES,
@@ -11,7 +15,7 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "./constants";
 
-export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
+export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isKYCVerified?: boolean) {
   return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode
     .map((action) => {
       const actionString = t(`${action.toLowerCase()}_action`);
@@ -20,6 +24,7 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
         needsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
+        needsVerification: isTextMessageToAttendeeAction(action) && !isKYCVerified,
       };
     });
 }
