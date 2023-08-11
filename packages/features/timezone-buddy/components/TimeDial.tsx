@@ -3,16 +3,14 @@ import { useStore } from "zustand";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
-import type { WorkingHours } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/lib/date-ranges";
 
 import { DAY_CELL_WIDTH } from "../constants";
 import { TBContext } from "../store";
 
-type Availability = Omit<WorkingHours, "userId">;
-
 interface TimeDialProps {
   timezone: string;
-  avaibility?: Availability[];
+  dateRanges?: DateRange[];
 }
 
 function isMidnight(h: number) {
@@ -20,52 +18,51 @@ function isMidnight(h: number) {
 }
 
 function isCurrentHourInRange({
-  dayTime,
+  dateRanges,
   dateInfo,
 }: {
-  dayTime?: Availability[];
+  dateRanges?: DateRange[];
   dateInfo: {
     currentHour: number;
-    currentMinute: number;
-    currentDay: number;
   };
-}): boolean {
-  if (!dayTime) return false;
-  const { currentDay, currentHour, currentMinute } = dateInfo;
+}) {
+  if (!dateRanges) return false;
+  const { currentHour } = dateInfo;
+  console.log({
+    dateRanges,
+  });
 
-  return dayTime.some((time: Availability) => {
-    return time.days.some((day: number) => {
-      if (currentDay !== day) return null;
-      const startHour = dayjs(time.startTime).hour();
-      const startMinute = dayjs(time.startTime).minute();
-      const endHour = dayjs(time.endTime).hour();
-      const endMinute = dayjs(time.endTime).minute();
+  return dateRanges.some((time) => {
+    if (!time) null;
 
-      // Check if the current hour and minute are within the start and end time
-      if (
-        (currentHour === startHour && currentMinute >= startMinute) ||
-        (currentHour === endHour && currentMinute <= endMinute) ||
-        (currentHour > startHour && currentHour < endHour)
-      ) {
-        return true;
-      }
-    });
+    const startHour = dayjs(time.start);
+    const endHour = dayjs(time.end);
+
+    // this is a weird way of doing this
+    const newDate = dayjs(time.start).set("hour", currentHour);
+
+    return newDate.isBetween(startHour, endHour, undefined, "[)"); // smiley faces or something
   });
 }
 
-export function TimeDial({ timezone, avaibility }: TimeDialProps) {
+export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
   const store = useContext(TBContext);
-  if (!store) throw new Error("Missing BearContext.Provider in the tree");
+  if (!store) throw new Error("Missing TBContext.Provider in the tree");
   const getTzInfo = useStore(store, (s) => s.getTimezone);
   const browsingDate = useStore(store, (s) => s.browsingDate);
   const tz = getTzInfo(timezone);
 
   if (!tz) return null;
 
-  const { name, offset, abbr } = tz;
+  const { name, abbr } = tz; // TZ of the USER
 
-  const now = dayjs.utc(browsingDate).tz(name);
-  const hours = Array.from({ length: 24 }, (_, i) => i + offset + 1);
+  const usersTimezoneDate = dayjs(browsingDate).tz(name);
+
+  const nowDate = dayjs(browsingDate);
+
+  const offset = (nowDate.utcOffset() - usersTimezoneDate.utcOffset()) / 60;
+
+  const hours = Array.from({ length: 24 }, (_, i) => i - offset + 1);
 
   const days = [
     hours.filter((i) => i < 0).map((i) => (i + 24) % 24),
@@ -78,22 +75,18 @@ export function TimeDial({ timezone, avaibility }: TimeDialProps) {
       <div className="flex items-end overflow-auto text-sm">
         {days.map((day, i) => {
           if (!day.length) return null;
-          const dateWithDaySet = now.add(i - 1, "day");
+          const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
           return (
             <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
               {day.map((h) => {
                 const hourSet = dateWithDaySet.set("hour", h).set("minute", 0);
                 const currentHour = hourSet.hour();
-                const currentMinute = hourSet.minute();
-                const currentDay = hourSet.day(); // Retrieve the current day of week (0-6, where 0 is Sunday)
 
-                const foundAvailabilityForDay = avaibility?.filter((d) => d.days.includes(currentDay));
+                // const isInRange = false;
                 const isInRange = isCurrentHourInRange({
-                  dayTime: foundAvailabilityForDay,
+                  dateRanges,
                   dateInfo: {
                     currentHour,
-                    currentMinute,
-                    currentDay,
                   },
                 });
 

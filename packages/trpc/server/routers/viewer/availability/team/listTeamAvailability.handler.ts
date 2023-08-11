@@ -1,3 +1,6 @@
+import dayjs from "@calcom/dayjs";
+import type { DateRange } from "@calcom/lib/date-ranges";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -12,7 +15,7 @@ type GetOptions = {
   input: TListTeamAvailaiblityScheme;
 };
 
-export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
+export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
 
   if (!organizationId) {
@@ -42,6 +45,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           username: true,
           email: true,
           timeZone: true,
+          defaultScheduleId: true,
         },
       },
     },
@@ -58,15 +62,45 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     nextCursor = nextItem!.id;
   }
 
-  const members = teamMembers?.map((member) => {
+  const dateFrom = dayjs(input.startDate).tz(input.loggedInUsersTz);
+  const dateTo = dayjs(input.endDate).tz(input.loggedInUsersTz);
+
+  const buildMembers = teamMembers?.map(async (member) => {
+    if (!member.user.defaultScheduleId) {
+      return {
+        id: member.user.id,
+        username: member.user.username,
+        email: member.user.email,
+        timeZone: member.user.timeZone,
+        role: member.role,
+        dateRanges: [] as DateRange[],
+      };
+    }
+
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: member.user.defaultScheduleId },
+      select: { availability: true, timeZone: true },
+    });
+    const timeZone = schedule?.timeZone || member.user.timeZone;
+
+    const dateRanges = buildDateRanges({
+      dateFrom,
+      dateTo,
+      timeZone,
+      availability: schedule?.availability ?? [],
+    });
+
     return {
       id: member.user.id,
       username: member.user.username,
       email: member.user.email,
-      timeZone: member.user.timeZone,
+      timeZone,
       role: member.role,
+      dateRanges,
     };
   });
+
+  const members = await Promise.all(buildMembers);
 
   return {
     rows: members || [],

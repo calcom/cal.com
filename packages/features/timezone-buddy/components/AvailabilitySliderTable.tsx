@@ -3,7 +3,9 @@ import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, DataTable } from "@calcom/ui";
 
@@ -11,11 +13,13 @@ import { TBContext, createTimezoneBuddyStore } from "../store";
 import { HoverOverview } from "./HoverOverview";
 import { TimeDial } from "./TimeDial";
 
-export interface User {
+export interface SliderUser {
   id: number;
   username: string | null;
   email: string;
   timeZone: string;
+  role: MembershipRole;
+  dateRanges: DateRange[];
 }
 
 export function AvailabilitySliderTable() {
@@ -24,19 +28,21 @@ export function AvailabilitySliderTable() {
   const { t } = useLocale();
   const [browsingDate, setBrowsingDate] = useState(dayjs());
 
-  const { data, isLoading, fetchNextPage, isFetching } =
-    trpc.viewer.organizations.listMembers.useInfiniteQuery(
-      {
-        limit: 10,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
-      }
-    );
+  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+    {
+      limit: 10,
+      loggedInUsersTz: dayjs.tz.guess(), // fuck this find a better way
+      startDate: browsingDate.startOf("day").toISOString(),
+      endDate: browsingDate.endOf("day").toISOString(),
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      keepPreviousData: true,
+    }
+  );
 
   const memorisedColumns = useMemo(() => {
-    const cols: ColumnDef<User>[] = [
+    const cols: ColumnDef<SliderUser>[] = [
       {
         id: "member",
         accessorFn: (data) => data.email,
@@ -65,7 +71,7 @@ export function AvailabilitySliderTable() {
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
-        cell: ({ row, table }) => {
+        cell: ({ row }) => {
           const { timeZone } = row.original;
           return <Badge>{timeZone}</Badge>;
         },
@@ -73,7 +79,7 @@ export function AvailabilitySliderTable() {
       {
         id: "Time",
         header: "Time",
-        cell: ({ row, table }) => {
+        cell: ({ row }) => {
           const { timeZone } = row.original;
           const time = dayjs().tz(timeZone).format("HH:mm");
           return <Badge>{time}</Badge>;
@@ -82,18 +88,19 @@ export function AvailabilitySliderTable() {
       {
         id: "slider",
         header: `${browsingDate.format("MMM DD, YYYY")}`,
-        cell: ({ row, table }) => {
-          const { timeZone } = row.original;
-          return <TimeDial timezone={timeZone} />;
+        cell: ({ row }) => {
+          const { timeZone, dateRanges } = row.original;
+          // return <pre>{JSON.stringify(dateRanges, null, 2)}</pre>;
+          return <TimeDial timezone={timeZone} dateRanges={dateRanges} />;
         },
       },
     ];
 
     return cols;
-  }, []);
+  }, [browsingDate, data]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as SliderUser[];
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
@@ -127,13 +134,13 @@ export function AvailabilitySliderTable() {
           "Africa/Cairo",
           "Australia/Sydney",
           "Australia/Sydney",
-          "Australia/Sydney",
-          "Australia/Sydney",
           "Pacific/Auckland",
           "Asia/Dubai",
-          "Europe/Paris",
+          "Europe/Amsterdam",
           "America/Chicago",
           "Asia/Shanghai",
+          "Asia/Kolkata",
+          "America/Tijuana",
         ],
       })}>
       <div className="relative">
