@@ -38,7 +38,6 @@ const sizesPropsBySize = {
 
 export function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
-  console.log("🚀 ~ file: Avatar.tsx:41 ~ Avatar ~ imageSrc:", imageSrc);
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
