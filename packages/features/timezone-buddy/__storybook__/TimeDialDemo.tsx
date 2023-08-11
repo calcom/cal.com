@@ -23,7 +23,9 @@ export function TimeDialDemo() {
           "Asia/Shanghai",
         ],
       })}>
-      <TimeDial />
+      <TimeDial timezone="Europe/London" />
+      <TimeDial timezone="America/Los_Angeles" />
+      <TimeDial timezone="Asia/Dubai" />
     </TBContext.Provider>
   );
 }

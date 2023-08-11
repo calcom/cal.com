@@ -22,6 +22,7 @@ export interface TimezoneBuddyProps {
    * instead of computing this for mulitple users if they are in the same timezone
    */
   uniquedTimezones: string[];
+  timeMode?: "12h" | "24h";
 }
 
 interface TimezoneBuddyState extends TimezoneBuddyProps {
