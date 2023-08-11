@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
@@ -99,6 +101,7 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
+  helperText,
   ...rest
 }: {
   labelText: string;
@@ -107,6 +110,7 @@ const CheckedHostField = ({
   value: { isFixed: boolean; userId: number }[];
   onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
   options?: Options<CheckedSelectOption>;
+  helperText?: React.ReactNode | string;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="bg-muted flex flex-col space-y-5 p-4">
@@ -136,10 +140,23 @@ const CheckedHostField = ({
           placeholder={placeholder}
           {...rest}
         />
+        {helperText && <p className="text-subtle text-sm">{helperText}</p>}
       </div>
     </div>
   );
 };
+
+const FixedHostHelper = (
+  <Trans i18nKey="fixed_host_helper">
+    Add anyone who needs to attend the event.
+    <Link
+      className="underline underline-offset-2"
+      target="_blank"
+      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+      Learn more
+    </Link>
+  </Trans>
+);
 
 const RoundRobinHosts = ({
   teamMembers,
@@ -167,6 +184,7 @@ const RoundRobinHosts = ({
         value={value}
         placeholder={t("add_fixed_hosts")}
         labelText={t("fixed_hosts")}
+        helperText={FixedHostHelper}
       />
       <CheckedHostField
         options={teamMembers.sort(sortByLabel)}
@@ -175,6 +193,7 @@ const RoundRobinHosts = ({
         isFixed={false}
         placeholder={t("add_attendees")}
         labelText={t("round_robin_hosts")}
+        helperText={t("round_robin_helper")}
       />
     </>
   );

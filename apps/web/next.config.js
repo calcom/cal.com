@@ -25,8 +25,10 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-
-if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+if (
+  process.env.CSP_POLICY === "strict" &&
+  (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
+) {
   throw new Error(
     "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
   );
@@ -127,7 +129,10 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: {
+    ...i18n,
+    localeDetection: false,
+  },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {

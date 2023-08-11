@@ -141,12 +141,7 @@ export const scheduleWhatsappReminder = async (
 
   // Allows debugging generated whatsapp content without waiting for twilio to send whatsapp messages
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, message);
-  if (
-    message.length > 0 &&
-    reminderPhone &&
-    isNumberVerified &&
-    action !== WorkflowActions.WHATSAPP_ATTENDEE
-  ) {
+  if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send WHATSAPP when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||

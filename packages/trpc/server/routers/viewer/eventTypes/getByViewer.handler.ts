@@ -301,12 +301,12 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
 export function getPrismaWhereUserIdFromFilter(
   userId: number,
-  filters: NonNullable<TEventTypeInputSchema>["filters"]
+  filters: NonNullable<TEventTypeInputSchema>["filters"] | undefined
 ) {
   if (!filters || !hasFilter(filters)) {
     return userId;
   } else if (filters.userIds?.[0] === userId) {
     return userId;
   }
-  return null;
+  return 0;
 }
