@@ -74,11 +74,11 @@ async function getEventTypeId({
   eventTypeSlug,
   isTeamEvent,
 }: {
-  slug: string;
+  slug?: string;
   eventTypeSlug?: string;
   isTeamEvent: boolean;
 }) {
-  if (!eventTypeSlug) return null;
+  if (!eventTypeSlug || !slug) return null;
 
   let teamId;
   let userId;
@@ -109,7 +109,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await getEventTypeId({
-      slug: usernameList[0],
+      slug: usernameList?.[0],
       eventTypeSlug: eventTypeSlug,
       isTeamEvent,
     }));
