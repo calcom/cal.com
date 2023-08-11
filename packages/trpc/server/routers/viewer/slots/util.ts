@@ -6,6 +6,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -69,14 +70,17 @@ export const checkIfIsAvailable = ({
   });
 };
 
-export async function getEventType(input: TGetScheduleInputSchema) {
+export async function getEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
   const { eventTypeSlug, usernameList } = input;
   let eventTypeId = input.eventTypeId;
 
   if (eventTypeId === undefined && eventTypeSlug && usernameList && usernameList.length === 1) {
     // If we only have the slug and usernameList, we need to get the id first
     const username = usernameList[0];
-    const userId = await getUserIdFromUsername(username);
+    const userId = await getUserIdFromUsername(username, organizationDetails);
     let teamId;
 
     if (!userId) {
@@ -211,12 +215,20 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   });
 }
 
-export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
+export function getRegularOrDynamicEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
-  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
+  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
 }
 
-export async function getAvailableSlots(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots(
+  ctx: { req: { headers: { host?: string | null } } },
+  input: TGetScheduleInputSchema
+) {
+  const orgDetails = orgDomainConfig(ctx.req.headers.host ?? "");
+
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -224,7 +236,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await getRegularOrDynamicEventType(input);
+  const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -480,10 +492,15 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   };
 }
 
-async function getUserIdFromUsername(username: string) {
+async function getUserIdFromUsername(
+  username: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   const user = await prisma.user.findFirst({
     where: {
       username,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
