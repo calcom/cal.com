@@ -121,12 +121,12 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         periodDays: true,
         metadata: true,
         // THIS IS SUPER SLOW - Adds around 600ms on QA database
-        users: {
-          select: {
-            credentials: true,
-            ...availabilityUserSelect,
-          },
-        },
+        // users: {
+        //   select: {
+        //     credentials: true,
+        //     ...availabilityUserSelect,
+        //   },
+        // },
       },
     });
 
@@ -169,16 +169,21 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         periodCountCalendarDays: true,
         periodDays: true,
         metadata: true,
-        users: {
-          select: {
-            id: true,
-            credentials: true,
-            //...availabilityUserSelect,
-          },
-        },
+        // THIS IS SUPER SLOW - Adds around 600ms on QA database
+        // users: {
+        //   select: {
+        //     id: true,
+        //     credentials: true,
+        //     //...availabilityUserSelect,
+        //   },
+        // },
       },
     });
   }
+
+  const userIdsRecords =
+    await prisma.$queryRaw`SELECT "_user_eventtype"."B" FROM "_user_eventtype" WHERE "_user_eventtype"."A" = ${eventTypeId}`;
+  const userIds = userIdsRecords.map((r) => r.B);
 
   let schedule;
   let availability;
@@ -223,6 +228,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
+              id: true,
               credentials: true,
               ...availabilityUserSelect,
             },
@@ -231,20 +237,21 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       }))
   );
 
-  // queries.push(
-  //   async () =>
-  //     (users = await prisma.user.findMany({
-  //       where: {
-  //         id: {
-  //           in: eventType.users.map(u => u.id),
-  //         },
-  //       },
-  //       select: {
-  //         credentials: true,
-  //         ...availabilityUserSelect,
-  //       },
-  //     }))
-  // );
+  queries.push(
+    async () =>
+      (users = await prisma.user.findMany({
+        where: {
+          id: {
+            in: userIds,
+          },
+        },
+        select: {
+          id: true,
+          credentials: true,
+          ...availabilityUserSelect,
+        },
+      }))
+  );
 
   const endSecondPrismaEventTypeGet = performance.now();
   console.log("secondGetEventType", endSecondPrismaEventTypeGet - startSecondPrismaEventTypeGet);
@@ -254,7 +261,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
   const queriesEnd = performance.now();
   console.log("queries", queriesEnd - queriesStart);
 
-  //eventType.users = users;
+  eventType.users = users;
   eventType.hosts = hosts;
   eventType.availability = availability;
   eventType.schedule = schedule;

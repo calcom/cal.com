@@ -112,12 +112,23 @@ model EventType {
   bookingLimits                   Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
+  UserEventType                   UserEventType[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+}
+
+model UserEventType {
+  A         Int
+  B         Int
+  eventType EventType? @relation(fields: [A], references: [id])
+  user      User?      @relation(fields: [B], references: [id])
+
+  @@unique([A, B])
+  @@index([B])
 }
 
 model Credential {
@@ -234,6 +245,7 @@ model User {
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
+  UserEventType        UserEventType[]
 
   @@unique([email])
   @@unique([email, username])
