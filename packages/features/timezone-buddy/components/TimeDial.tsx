@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { useStore } from "zustand";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import type { WorkingHours } from "@calcom/lib/date-ranges";
@@ -22,23 +21,19 @@ function isMidnight(h: number) {
 
 function isCurrentHourInRange({
   dayTime,
-  hourSetDate,
+  dateInfo,
 }: {
   dayTime?: Availability[];
-  hourSetDate: Dayjs;
+  dateInfo: {
+    currentHour: number;
+    currentMinute: number;
+    currentDay: number;
+  };
 }): boolean {
   if (!dayTime) return false;
+  const { currentDay, currentHour, currentMinute } = dateInfo;
 
-  const currentHour = hourSetDate.hour();
-  const currentMinute = hourSetDate.minute();
-  const currentDay = hourSetDate.day(); // Retrieve the current day of week (0-6, where 0 is Sunday)
-
-  const foundAvailabilityForDay = dayTime.filter((d) => d.days.includes(currentDay));
-
-  console.log("foundAvailabilityForDay", foundAvailabilityForDay);
-  console.log(dayTime);
-
-  return foundAvailabilityForDay.some((time: Availability) => {
+  return dayTime.some((time: Availability) => {
     return time.days.some((day: number) => {
       if (currentDay !== day) return null;
       const startHour = dayjs(time.startTime).hour();
@@ -88,7 +83,20 @@ export function TimeDial({ timezone, avaibility }: TimeDialProps) {
             <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
               {day.map((h) => {
                 const hourSet = dateWithDaySet.set("hour", h).set("minute", 0);
-                const isInRange = isCurrentHourInRange({ dayTime: avaibility, hourSetDate: hourSet });
+                const currentHour = hourSet.hour();
+                const currentMinute = hourSet.minute();
+                const currentDay = hourSet.day(); // Retrieve the current day of week (0-6, where 0 is Sunday)
+
+                const foundAvailabilityForDay = avaibility?.filter((d) => d.days.includes(currentDay));
+                const isInRange = isCurrentHourInRange({
+                  dayTime: foundAvailabilityForDay,
+                  dateInfo: {
+                    currentHour,
+                    currentMinute,
+                    currentDay,
+                  },
+                });
+
                 return (
                   <div
                     key={h}
