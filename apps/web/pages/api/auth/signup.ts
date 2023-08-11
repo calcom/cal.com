@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { apiSignupSchema as signupSchema } from "pages/signup";
 
 import dayjs from "@calcom/dayjs";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
@@ -11,6 +10,7 @@ import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsernameInOrg } from "@calcom/lib/validateUsernameInOrg";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
