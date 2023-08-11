@@ -79,7 +79,7 @@ const getUserAdminTeams = async ({
     if (user) {
       const userObject = {
         id: user.id,
-        name: user.name || "Me",
+        name: user.name || "me",
         logo: user?.avatar === "" ? null : user?.avatar,
         isUser: true,
         ...(includeCredentials && { credentials: user.credentials }),
