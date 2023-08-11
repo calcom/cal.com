@@ -1,9 +1,11 @@
 import { useMemo, useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
@@ -22,9 +24,11 @@ type AvailableTimeSlotsProps = {
  * in columns next to each other.
  */
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
+  const isEmbed = useIsEmbed();
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -78,10 +82,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
-    if (containerRef.current && !schedule.isLoading) {
+    if (isEmbed) return;
+    if (containerRef.current && !schedule.isLoading && isMobile) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [containerRef, schedule.isLoading]);
+  }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
     <div

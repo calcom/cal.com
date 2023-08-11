@@ -1687,7 +1687,7 @@
   "attendee_no_longer_attending": "一位與會者不再參加您的活動",
   "attendee_no_longer_attending_subtitle": "{{name}} 已取消，這代表此時段空出了一個座位",
   "create_event_on": "活動建立日期",
-  "create_routing_form_on": "建立引導表單於",
+  "create_routing_form_on": "引導表單建立位置",
   "default_app_link_title": "設定預設應用程式連結",
   "default_app_link_description": "設定預設應用程式連結，即可讓所有全新建立的活動類型使用您設定的應用程式連結。",
   "organizer_default_conferencing_app": "主辦者的預設應用程式",

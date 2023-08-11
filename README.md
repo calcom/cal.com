@@ -51,9 +51,9 @@
 # Scheduling infrastructure for absolutely everyone
 
 The open source Calendly alternative. You are in charge
-of your own data, workflow and appearance.
+of your own data, workflow, and appearance.
 
-Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customizations.
+Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes, and even calls with our families. However, most tools are very limited in terms of control and customization.
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
@@ -98,7 +98,7 @@ Meet our sales team for any commercial inquiries.
 
 ## Stay Up-to-Date
 
-Cal.com officially launched as v.1.0 on 15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
+Cal.com officially launched as v.1.0 on the 15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
@@ -128,7 +128,7 @@ Here is what you need to be able to run Cal.com.
    git clone https://github.com/calcom/cal.com.git
    ```
 
-   > If you are on windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
+   > If you are on Windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
    > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
 1. Go to the project folder
@@ -254,7 +254,7 @@ Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If 
 # In a terminal just run:
 yarn test-e2e
 
-# To open last HTML report run:
+# To open the last HTML report run:
 yarn playwright show-report test-results/reports/playwright-html-report
 ```
 

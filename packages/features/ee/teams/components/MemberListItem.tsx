@@ -29,7 +29,6 @@ import {
 } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -54,7 +53,6 @@ const checkIsOrg = (team: Props["team"]) => {
 
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
 
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
@@ -97,11 +95,11 @@ export default function MemberListItem(props: Props) {
     });
 
   const editMode =
-    (props.team.membership.role === MembershipRole.OWNER &&
+    (props.team.membership?.role === MembershipRole.OWNER &&
       (props.member.role !== MembershipRole.OWNER ||
         ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
-    (props.team.membership.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
+    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
   const impersonationMode =
     editMode &&
     !props.member.disableImpersonation &&
@@ -115,7 +113,7 @@ export default function MemberListItem(props: Props) {
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
-        <div className="flex w-full flex-col justify-between sm:flex-row">
+        <div className="flex w-full flex-col justify-between truncate sm:flex-row">
           <div className="flex">
             <Avatar
               size="sm"
@@ -150,7 +148,7 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
         </div>
-        {props.team.membership.accepted && (
+        {props.team.membership?.accepted && (
           <div className="flex items-center justify-center">
             <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
               {/* TODO: bring availability back. right now its ugly and broken

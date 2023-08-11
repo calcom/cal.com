@@ -1,13 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Alert, PasswordField } from "@calcom/ui";
+import { Alert, Button, Form, PasswordField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
@@ -33,7 +34,8 @@ const formSchema = z.object({
 export const SetPasswordForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { id: orgId } = querySchema.parse(router.query);
+  const routerQuery = useRouterQuery();
+  const { id: orgId } = querySchema.parse(routerQuery);
 
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
 

@@ -9,6 +9,8 @@ export type VariablesType = {
   eventName?: string;
   organizerName?: string;
   attendeeName?: string;
+  attendeeFirstName?: string;
+  attendeeLastName?: string;
   attendeeEmail?: string;
   eventDate?: Dayjs;
   eventEndTime?: Dayjs;
@@ -52,6 +54,8 @@ const customTemplate = (
     .replaceAll("{ATTENDEE}", variables.attendeeName || "")
     .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
+    .replaceAll("{ATTENDEE_FIRST_NAME}", variables.attendeeFirstName || "")
+    .replaceAll("{ATTENDEE_LAST_NAME}", variables.attendeeLastName || "")
     .replaceAll("{EVENT_DATE}", translatedDate)
     .replaceAll("{EVENT_TIME}", variables.eventDate?.format(currentTimeFormat) || "")
     .replaceAll("{START_TIME}", variables.eventDate?.format(currentTimeFormat) || "")

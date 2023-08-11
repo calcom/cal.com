@@ -21,12 +21,13 @@ import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useEvent } from "./utils/event";
+import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -38,8 +39,20 @@ const BookerComponent = ({
   bookingData,
   hideBranding = false,
   isTeamEvent,
-  org,
+  entity,
+  duration,
 }: BookerProps) => {
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
+  useScheduleForEvent({
+    prefetchNextMonth: false,
+    username,
+    eventSlug,
+    month,
+    duration,
+  });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -98,7 +111,8 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org,
+    org: entity.orgSlug,
+    durationConfig: event?.data?.metadata?.multipleDuration,
   });
 
   useEffect(() => {
@@ -138,6 +152,10 @@ const BookerComponent = ({
   }, [layout]);
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  if (entity.isUnpublished) {
+    return <UnpublishedEntity {...entity} />;
+  }
 
   if (event.isSuccess && !event.data) {
     return <NotFound />;
@@ -281,7 +299,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
             hasDarkBackground ? "dark" : "",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>

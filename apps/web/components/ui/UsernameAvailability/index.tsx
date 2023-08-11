@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -35,12 +35,12 @@ export const UsernameAvailabilityField = ({
   onSuccessMutation,
   onErrorMutation,
 }: UsernameAvailabilityFieldProps) => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
   const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
-    router.query["username"] && user.username === null
+    searchParams?.get("username") && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({

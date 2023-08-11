@@ -120,12 +120,9 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export interface IntervalLimit {
-  PER_DAY?: number | undefined;
-  PER_WEEK?: number | undefined;
-  PER_MONTH?: number | undefined;
-  PER_YEAR?: number | undefined;
-}
+export type IntervalLimitUnit = "day" | "week" | "month" | "year";
+
+export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
 
 export type AppsStatus = {
   appName: string;
@@ -163,6 +160,7 @@ export interface CalendarEvent {
     members: TeamMember[];
   };
   location?: string | null;
+  conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
