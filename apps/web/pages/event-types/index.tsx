@@ -923,11 +923,14 @@ const EventTypesPage = () => {
     if (searchParams?.get("openIntercom") === "true") {
       open();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     setShowProfileBanner(
       !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [orgBranding, user]);
 
   return (
     <ShellMain

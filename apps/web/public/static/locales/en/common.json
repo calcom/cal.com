@@ -1981,6 +1981,13 @@
   "what_is_this_meeting_about": "What is this meeting about?",
   "requires_booker_email_verification": "Requires booker email verification",
   "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
+  "requires_confirmation_mandatory": "Text messages can only be sent to attendees when event type requires confirmation.",
+  "kyc_verification_information": "To ensure security, you have to verify your {{teamOrAccount}} before sending text messages to attendees. Please contact us at <a>{{supportEmail}}</a> and provide the following information:",
+  "kyc_verification_documents": "<ul><li>Your {{teamOrUser}}</li><li>For businesses: Attach your Business Verification Documentation</li><li>For individuals: Attach a government-issued ID</li></ul>",
+  "verify_team_or_account": "Verify {{teamOrAccount}}",
+  "verify_account": "Verify Account",
+  "kyc_verification": "KYC Verification",
+  "organizations": "Organizations",
   "org_admin_other_teams": "Other teams",
   "org_admin_other_teams_description": "Here you can see teams inside your organization but that you are not part of. You can add yourself to them if needed.",
   "no_other_teams_found": "No other teams found",
@@ -1989,5 +1996,6 @@
   "attendee_last_name_variable": "Attendee last name",
   "attendee_first_name_info": "The person booking's first name",
   "attendee_last_name_info": "The person booking's last name",
+  "verify_team_tooltip": "Verify your team to enable sending messages to attendees",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
