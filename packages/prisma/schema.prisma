@@ -509,7 +509,7 @@ model Payment {
   success       Boolean
   refunded      Boolean
   data          Json
-  externalId    String?        @unique
+  externalId    String         @unique
   paymentOption PaymentOption? @default(ON_BOOKING)
 
   @@index([bookingId])
