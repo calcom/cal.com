@@ -8,10 +8,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
 
-declare let global: {
-  E2E_EMAILS?: Record<string, unknown>[];
-};
-
 export default class BaseEmail {
   name = "";
 
@@ -36,12 +32,6 @@ export default class BaseEmail {
     if (featureFlags.emails) {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
-    }
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      global.E2E_EMAILS = global.E2E_EMAILS || [];
-      global.E2E_EMAILS.push(this.getNodeMailerPayload());
-      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E==1");
-      return new Promise((r) => r("Skipped sendEmail for E2E"));
     }
 
     const payload = this.getNodeMailerPayload();
