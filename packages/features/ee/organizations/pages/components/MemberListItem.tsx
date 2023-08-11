@@ -34,7 +34,7 @@ export default function MemberListItem(props: Props) {
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
-        <div className="flex w-full flex-col justify-between sm:flex-row">
+        <div className="flex w-full flex-col justify-between overflow-hidden sm:flex-row">
           <div className="flex">
             <Avatar
               size="sm"
@@ -43,7 +43,7 @@ export default function MemberListItem(props: Props) {
               className="h-10 w-10 rounded-full"
             />
 
-            <div className="ms-3 inline-block">
+            <div className="ms-3 inline-block overflow-hidden">
               <div className="mb-1 flex">
                 <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
@@ -60,7 +60,7 @@ export default function MemberListItem(props: Props) {
                     <a
                       target="_blank"
                       href={`${bookerUrl}/${user.username}`}
-                      className="text-default block text-sm">
+                      className="text-default block truncate text-sm">
                       {bookingLink}
                     </a>
                   </>
