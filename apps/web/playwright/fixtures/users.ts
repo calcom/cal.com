@@ -400,6 +400,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: { team: { select: { children: true, metadata: true, name: true } } },
       });
     },
+    getFirstEventAsOwner: async () =>
+      prisma.eventType.findFirstOrThrow({
+        where: {
+          userId: user.id,
+        },
+      }),
     getFirstTeamEvent: async (teamId: number) => {
       return prisma.eventType.findFirstOrThrow({
         where: {
