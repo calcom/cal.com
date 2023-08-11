@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -238,5 +239,28 @@ test.describe("Reschedule Tests", async () => {
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  test("Should be able to book slot that overlaps with original rescheduled booking", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().add(1, "day").set("hour", 10).set("minute", 0).toDate();
+    const endTime = dayjs().add(1, "day").set("hour", 10).set("minute", 30).toDate();
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    //book same slot again
+    page.getByRole("button", { name: dayjs(startTime).format("D"), exact: true }).click();
+
+    page.getByRole("button", { name: dayjs(startTime).format("h:mmA") }).click();
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await expect(page).toHaveURL(/.*booking/);
   });
 });
