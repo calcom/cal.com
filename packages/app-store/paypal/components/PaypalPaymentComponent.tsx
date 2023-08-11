@@ -1,10 +1,11 @@
 import Link from "next/link";
 import z from "zod";
 
-import type { Payment } from "@calcom/prisma/client";
-
 interface IPaypalPaymentComponentProps {
-  payment: Payment;
+  payment: {
+    // Will be parsed on render
+    data: unknown;
+  };
 }
 
 // Create zod schema for data
@@ -48,10 +49,10 @@ export const PaypalPaymentComponent = (props: IPaypalPaymentComponentProps) => {
     <div className="mt-4 flex h-full w-full flex-col items-center justify-center">
       <Link
         href={`${paymentUrl}`}
-        className="inline-flex items-center justify-center rounded-md rounded-2xl border border-transparent bg-[#ffc439] px-12 py-2 text-base
+        className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent bg-[#ffc439] px-12 py-2 text-base
         font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
         Pay with
-        <img src="/api/app-store/paypal/paypal-logo.svg" alt="Paypal" className="mx-2 mt-2 mb-1 w-16" />
+        <img src="/api/app-store/paypal/paypal-logo.svg" alt="Paypal" className="mx-2 mb-1 mt-2 w-16" />
         <span />
       </Link>
     </div>

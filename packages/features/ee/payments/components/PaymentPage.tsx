@@ -1,10 +1,10 @@
 import classNames from "classnames";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
-import { PaypalPaymentComponent } from "@calcom/app-store/paypal/components/PaypalPaymentComponent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -16,7 +16,20 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { CreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
-import PaymentComponent from "./Payment";
+
+const StripePaymentComponent = dynamic(() => import("./Payment"), {
+  ssr: false,
+});
+
+const PaypalPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/paypal/components/PaypalPaymentComponent").then(
+      (m) => m.PaypalPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
@@ -120,7 +133,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
-                    <PaymentComponent
+                    <StripePaymentComponent
                       payment={props.payment}
                       eventType={props.eventType}
                       user={props.user}

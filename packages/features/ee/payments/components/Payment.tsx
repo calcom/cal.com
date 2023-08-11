@@ -16,9 +16,7 @@ import { Button, CheckboxField } from "@calcom/ui";
 import type { EventType } from ".prisma/client";
 
 type Props = {
-  payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
-    data: object;
-  };
+  payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data">;
   eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
   user: { username: string | null };
   location?: string | null;
