@@ -134,6 +134,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
                     <StripePaymentComponent
+                      clientSecret={props.clientSecret}
                       payment={props.payment}
                       eventType={props.eventType}
                       user={props.user}
