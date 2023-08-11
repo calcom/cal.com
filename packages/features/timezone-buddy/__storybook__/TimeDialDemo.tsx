@@ -81,14 +81,14 @@ export function TimeDialDemo() {
           ],
         })}>
         <div className="flex flex-col space-y-2">
-          User One(London): <span>Sunday Monday Tuesday 9am-6pm</span>
+          <span>Sunday Monday Tuesday 9am-6pm</span>
           <span>Thursday 2am-5am and 3pm-6pm</span>
           <TimeDial timezone="Europe/London" avaibility={WorkingHours} />
         </div>
-        {/* <div className="flex flex-col space-y-2">
+        <div className="flex flex-col space-y-2">
           User Two (Asia/Tokyo): Sunday 2am - 9am
-          <TimeDial timezone="Asia/Tokyo" avaibility={WorkingHoursTwo} />
-        </div> */}
+          <TimeDial timezone="Asia/Tokyo" avaibility={WorkingHours} />
+        </div>
       </TBContext.Provider>
     </div>
   );
