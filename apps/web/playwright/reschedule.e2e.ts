@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
-import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -247,20 +246,30 @@ test.describe("Reschedule Tests", async () => {
     bookings,
   }) => {
     const user = await users.create();
-    const eventType = user.eventTypes[0];
-    const startTime = dayjs().add(1, "day").set("hour", 10).set("minute", 0).toDate();
-    const endTime = dayjs().add(1, "day").set("hour", 10).set("minute", 30).toDate();
 
-    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+    await page.goto(`/${user.username}/${user.eventTypes[0].slug}`);
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.fill('[name="name"]', "test1234");
+    await page.fill('[name="email"]', "test1234@example.com");
 
-    //book same slot again
-    page.getByRole("button", { name: dayjs(startTime).format("D"), exact: true }).click();
+    await page.locator('[data-testid="confirm-book-button"]').click();
 
-    page.getByRole("button", { name: dayjs(startTime).format("h:mmA") }).click();
+    await page.locator('[data-testid="reschedule-link"]').click();
+
+    const orginalBookingDateTime = await page.getByTestId("former_time_p").innerText();
+
+    const dateAndTime = orginalBookingDateTime.split("\n");
+    const time = dateAndTime[1];
+
+    await page.getByRole("button", { name: time.replace(/\s/g, "") }).click();
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
-    await expect(page).toHaveURL(/.*booking/);
+
+    await page.locator('[data-testid="reschedule-link"]').click();
+
+    const rescheduledBookingDateTime = await page.getByTestId("former_time_p").innerText();
+
+    expect(orginalBookingDateTime).toBe(rescheduledBookingDateTime);
   });
 });
