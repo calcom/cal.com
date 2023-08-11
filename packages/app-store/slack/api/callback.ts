@@ -3,11 +3,11 @@ import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-
-// import type { StripeData } from "../lib/server";
-// import stripe from "../lib/server";
+import { getSlackAppKeys } from "../lib/getSlackAppKeys";
 
 function getReturnToValueFromQueryState(req: NextApiRequest) {
   let returnTo = "";
@@ -20,12 +20,7 @@ function getReturnToValueFromQueryState(req: NextApiRequest) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("===== isnide callback handler========");
   const { code, error, error_description } = req.query;
-
-  const client_secret = "9135186f69e6180dbe0b7e9d30783b8935";
-  const client_id = "5719933161091.572251138641812";
-  const slackOAuthV2AccessURL = "https://slack.com/api/oauth.v2.access";
 
   if (error) {
     const query = stringify({ error, error_description });
@@ -37,20 +32,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  console.log("========oauth callback===========");
-  console.log(code);
+  const { client_id, client_secret } = await getSlackAppKeys();
 
   const slackConnectParams = {
     client_id,
     client_secret,
     code: code as string,
     grant_type: "authorization_code",
-    redirect_uri: encodeURI(
-      "https://69b3-2405-201-c02d-983c-d8bb-586d-f127-fda7.ngrok-free.app" +
-        "/api/integrations/slack/callback"
-    ),
+    // redirect_uri (passed in add.ts) is needed as per slack docs
+    redirect_uri: encodeURI(WEBAPP_URL + "/api/integrations/slack/callback"),
   };
-  console.log(slackConnectParams);
+
   const formBody: string[] = [];
   Object.entries(slackConnectParams).forEach(([key, value]) => {
     const encodedKey = encodeURIComponent(key);
@@ -58,7 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     formBody.push(`${encodedKey}=${encodedValue}`);
   });
   const formData = formBody.join("&");
-  /** stringify is being dumb here */
+
+  const slackOAuthV2AccessURL = "https://slack.com/api/oauth.v2.access";
 
   const { data } = await axios({
     method: "POST",
@@ -67,25 +60,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
 
-  console.log({
-    method: "POST",
-    url: slackOAuthV2AccessURL,
-    data: formData,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-
-  console.log("SLACK DATA", data);
-
   await createOAuthAppCredential(
-    { appId: "slack", type: "slack" },
+    { appId: "slack", type: "slack_messaging" },
     data as unknown as Prisma.InputJsonObject,
     req
   );
 
-  console.log("created credential");
-
-  const returnTo = undefined;
+  const returnTo = getReturnToValueFromQueryState(req);
   res.redirect(returnTo || getInstalledAppPath({ variant: "messaging", slug: "slack" }));
 }
-
-// curl -F code=5719933161091.5725881391556.e6d245dcc7603f2172df4cb1fd7bf047691353859af781ef3b859deaaf0c1176 -F client_id=3336676.569200954261 -F client_secret=ABCDEFGH https://slack.com/api/oauth.v2.access

@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "Slack"
+  "description": "Send notifications to Slack"
 }
