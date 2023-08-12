@@ -168,6 +168,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
+  console.log("WATCH=", watchSchedule);
 
   const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
     onSuccess: ({ schedules }) => {
@@ -202,9 +203,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           isManaged: false,
         });
       }
-
       // We are showing team schedule for admin
-      if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+      else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
         options.push({
           value: eventType.schedule,
           label: eventType.scheduleName ?? t("default_schedule_name"),
