@@ -101,7 +101,7 @@ export function DataTable<TData, TValue>({
         tableCTA={tableCTA}
       />
       <div
-        className="rounded-md border"
+        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={onScroll}
         style={{

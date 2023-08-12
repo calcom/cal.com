@@ -241,7 +241,7 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100",
+                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
                 !browsingDate.isAfter(dayjs()) &&
                   "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
               )}
@@ -253,7 +253,7 @@ const DatePicker = ({
               StartIcon={ChevronLeft}
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100"
+              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"

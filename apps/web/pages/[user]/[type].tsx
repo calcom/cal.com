@@ -4,7 +4,11 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
+import {
+  getBookingForReschedule,
+  getBookingForSeatedEvent,
+  getMultipleDurationValue,
+} from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -29,6 +33,7 @@ export default function Type({
   isSEOIndexable,
   rescheduleUid,
   entity,
+  duration,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -47,6 +52,7 @@ export default function Type({
         isAway={away}
         hideBranding={isBrandingHidden}
         entity={entity}
+        duration={duration}
       />
     </main>
   );
@@ -57,7 +63,7 @@ Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid, bookingUid } = context.query;
+  const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -113,6 +119,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       entity: eventData.entity,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       booking,
       user: usernames.join("+"),
       slug,
@@ -130,7 +141,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
-  const { rescheduleUid, bookingUid } = context.query;
+  const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
     context.params?.orgSlug
@@ -181,6 +192,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       booking,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       away: user?.away,
       user: username,
       slug,
