@@ -19,8 +19,8 @@ export type DatePickerProps = {
   onChange: (date: Dayjs) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
-  /** which date is currently selected (not tracked from here) */
-  selected?: Dayjs | null;
+  /** which date or dates are currently selected (not tracked from here) */
+  selected?: Dayjs | Dayjs[] | null;
   /** defaults to current date. */
   minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -147,11 +147,16 @@ const Days = ({
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
+    // for selecting a range of dates
+    if (Array.isArray(selected)) {
+      return Array.isArray(selected) && selected?.some((e) => yyyymmdd(e) === yyyymmdd(day));
+    }
+
     if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
       return true;
     }
 
-    // for multiple dates select
+    // for selecting multiple dates for an event
     if (
       eventSlug &&
       selectedDatesAndTimes &&
