@@ -118,15 +118,18 @@ describe("buildDateRanges", () => {
     });
   });
   it("should handle day shifts correctly", () => {
-    const item = [{
-      date: new Date(Date.UTC(2023, 7, 15)),
-      startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)), // 9 AM
-      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
-    },{
-      date: new Date(Date.UTC(2023, 7, 15)),
-      startTime: new Date(Date.UTC(2023, 5, 12, 19, 0)), // 7 PM
-      endTime: new Date(Date.UTC(2023, 5, 12, 21, 0)), // 9 PM
-    }];
+    const item = [
+      {
+        date: new Date(Date.UTC(2023, 7, 15)),
+        startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)), // 9 AM
+        endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      },
+      {
+        date: new Date(Date.UTC(2023, 7, 15)),
+        startTime: new Date(Date.UTC(2023, 5, 12, 19, 0)), // 7 PM
+        endTime: new Date(Date.UTC(2023, 5, 12, 21, 0)), // 9 PM
+      },
+    ];
 
     const timeZone = "Pacific/Honolulu";
 
