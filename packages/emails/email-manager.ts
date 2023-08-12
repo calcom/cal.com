@@ -17,6 +17,8 @@ import AttendeeLocationChangeEmail from "./templates/attendee-location-change-em
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import type { EmailVerifyCode } from "./templates/attendee-verify-email";
+import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
@@ -31,6 +33,7 @@ import type { OrganizationEmailVerify } from "./templates/organization-email-ver
 import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
+import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-daily-video-download-recording-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
@@ -274,6 +277,10 @@ export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLi
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
+};
+
 export const sendRequestRescheduleEmail = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string }
@@ -354,6 +361,8 @@ export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarE
 
 export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
   const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
 
   for (const attendee of calEvent.attendees) {
     emailsToSend.push(

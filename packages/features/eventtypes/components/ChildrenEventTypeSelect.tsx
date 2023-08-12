@@ -62,12 +62,12 @@ export const ChildrenEventTypeSelect = ({
                 size="mdLg"
                 className="overflow-visible"
                 imageSrc={`${CAL_URL}/${children.owner.username}/avatar.png`}
-                alt={children.owner.name || ""}
+                alt={children.owner.name || children.owner.email || ""}
               />
               <div className="flex w-full flex-row justify-between">
                 <div className="flex flex-col">
                   <span className="text text-sm font-semibold leading-none">
-                    {children.owner.name}
+                    {children.owner.name || children.owner.email}
                     <div className="flex flex-row gap-1">
                       {children.owner.membership === MembershipRole.OWNER ? (
                         <Badge variant="gray">{t("owner")}</Badge>
@@ -77,9 +77,11 @@ export const ChildrenEventTypeSelect = ({
                       {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                     </div>
                   </span>
-                  <small className="text-subtle font-normal leading-normal">
-                    {`/${children.owner.username}/${children.slug}`}
-                  </small>
+                  {children.owner.username && (
+                    <small className="text-subtle font-normal leading-normal">
+                      {`/${children.owner.username}/${children.slug}`}
+                    </small>
+                  )}
                 </div>
                 <div className="flex flex-row items-center gap-2">
                   <Tooltip content={t("show_eventtype_on_profile")}>
@@ -97,7 +99,7 @@ export const ChildrenEventTypeSelect = ({
                     </div>
                   </Tooltip>
                   <ButtonGroup combined>
-                    {children.created && (
+                    {children.created && children.owner.username && (
                       <Tooltip content={t("preview")}>
                         <Button
                           color="secondary"

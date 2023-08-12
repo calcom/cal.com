@@ -14,6 +14,7 @@ import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
+import { appDataSchema as paypal_zod_ts } from "./paypal/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
@@ -43,6 +44,7 @@ export const appDataSchemas = {
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
+  paypal: paypal_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,

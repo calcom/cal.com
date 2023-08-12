@@ -1,6 +1,9 @@
+import { shallow } from "zustand/shallow";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,8 +19,8 @@ export type DatePickerProps = {
   onChange: (date: Dayjs) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
-  /** which date is currently selected (not tracked from here) */
-  selected?: Dayjs | null;
+  /** which date or dates are currently selected (not tracked from here) */
+  selected?: Dayjs | Dayjs[] | null;
   /** defaults to current date. */
   minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -32,6 +35,8 @@ export type DatePickerProps = {
   className?: string;
   /** Shows a small loading spinner next to the month name */
   isLoading?: boolean;
+  /** used to query the multiple selected dates */
+  eventSlug?: string;
 };
 
 export const Day = ({
@@ -100,6 +105,7 @@ const Days = ({
   selected,
   month,
   nextMonthButton,
+  eventSlug,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -138,6 +144,33 @@ const Days = ({
     days.push(date);
   }
 
+  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
+
+  const isActive = (day: dayjs.Dayjs) => {
+    // for selecting a range of dates
+    if (Array.isArray(selected)) {
+      return Array.isArray(selected) && selected?.some((e) => yyyymmdd(e) === yyyymmdd(day));
+    }
+
+    if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
+      return true;
+    }
+
+    // for selecting multiple dates for an event
+    if (
+      eventSlug &&
+      selectedDatesAndTimes &&
+      selectedDatesAndTimes[eventSlug as string] &&
+      Object.keys(selectedDatesAndTimes[eventSlug as string]).length > 0
+    ) {
+      return Object.keys(selectedDatesAndTimes[eventSlug as string]).some((date) => {
+        return yyyymmdd(dayjs(date)) === yyyymmdd(day);
+      });
+    }
+
+    return false;
+  };
+
   return (
     <>
       {days.map((day, idx) => (
@@ -161,7 +194,7 @@ const Days = ({
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
               }
-              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+              active={isActive(day)}
             />
           )}
         </div>
@@ -213,7 +246,7 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100",
+                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
                 !browsingDate.isAfter(dayjs()) &&
                   "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
               )}
@@ -225,7 +258,7 @@ const DatePicker = ({
               StartIcon={ChevronLeft}
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100"
+              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"

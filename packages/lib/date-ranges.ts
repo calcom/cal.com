@@ -23,12 +23,21 @@ export function processWorkingHours({
 }) {
   const results = [];
   for (let date = dateFrom.tz(timeZone).startOf("day"); dateTo.isAfter(date); date = date.add(1, "day")) {
-    if (!item.days.includes(date.day())) {
+    const dateInTz = date.tz(timeZone);
+
+    if (!item.days.includes(dateInTz.day())) {
       continue;
     }
 
-    const start = date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
-    const end = date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
+    let start = dateInTz.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
+
+    let end = dateInTz.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
+
+    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
+    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+
+    start = start.add(offsetDiff, "minute");
+    end = end.add(offsetDiff, "minute");
 
     const startResult = dayjs.max(start, dateFrom.tz(timeZone));
     const endResult = dayjs.min(end, dateTo.tz(timeZone));
@@ -52,9 +61,11 @@ export function processDateOverride({ item, timeZone }: { item: DateOverride; ti
   const startTime = dayjs(item.startTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
   const endTime = dayjs(item.endTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
 
+  const diffDays = startTime.startOf("day").diff(dayjs.utc(item.startTime).startOf("day"), "day");
+
   return {
-    start: date.hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
-    end: date.hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
+    start: date.add(diffDays, "day").hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
+    end: date.add(diffDays, "day").hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
   };
 }
 
@@ -91,7 +102,7 @@ export function buildDateRanges({
     ...groupedDateOverrides,
   }).map(
     // remove 0-length overrides that were kept to cancel out working dates until now.
-    (ranges) => ranges.filter((range) => !range.start.isSame(range.end))
+    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
   return dateRanges.flat();
@@ -105,7 +116,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs.utc(currentValue.start).format("YYYY-MM-DD");
+      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
 
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
@@ -155,18 +166,21 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
 }
 
 function getIntersection(range1: DateRange, range2: DateRange) {
-  const start = range1.start.isAfter(range2.start) ? range1.start : range2.start;
-  const end = range1.end.isBefore(range2.end) ? range1.end : range2.end;
-  if (start.isBefore(end)) {
+  const start = range1.start.utc().isAfter(range2.start) ? range1.start : range2.start;
+  const end = range1.end.utc().isBefore(range2.end) ? range1.end : range2.end;
+  if (start.utc().isBefore(end)) {
     return { start, end };
   }
   return null;
 }
 
-export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[]) {
+export function subtract(
+  sourceRanges: (DateRange & { [x: string]: unknown })[],
+  excludedRanges: DateRange[]
+) {
   const result: DateRange[] = [];
 
-  for (const { start: sourceStart, end: sourceEnd } of sourceRanges) {
+  for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
 
     const overlappingRanges = excludedRanges.filter(
@@ -183,7 +197,7 @@ export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[])
     }
 
     if (sourceEnd.isAfter(currentStart)) {
-      result.push({ start: currentStart, end: sourceEnd });
+      result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
 

@@ -9,7 +9,6 @@ import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZGetUserAdminTeamsInputSchema } from "./getUserAdminTeams.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
@@ -22,6 +21,7 @@ import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 type TeamsRouterHandlerCache = {
   get?: typeof import("./get.handler").getHandler;
   list?: typeof import("./list.handler").listHandler;
+  listOwnedTeams?: typeof import("./listOwnedTeams.handler").listOwnedTeamsHandler;
   create?: typeof import("./create.handler").createHandler;
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
@@ -37,7 +37,6 @@ type TeamsRouterHandlerCache = {
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   hasTeamPlan?: typeof import("./hasTeamPlan.handler").hasTeamPlanHandler;
   listInvites?: typeof import("./listInvites.handler").listInvitesHandler;
-  getUserAdminTeams?: typeof import("./getUserAdminTeams.handler").getUserAdminTeamsHandler;
   createInvite?: typeof import("./createInvite.handler").createInviteHandler;
   setInviteExpiration?: typeof import("./setInviteExpiration.handler").setInviteExpirationHandler;
   deleteInvite?: typeof import("./deleteInvite.handler").deleteInviteHandler;
@@ -76,6 +75,23 @@ export const viewerTeamsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.list({
+      ctx,
+    });
+  }),
+  // Returns Teams I am a owner/admin of
+  listOwnedTeams: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listOwnedTeams) {
+      UNSTABLE_HANDLER_CACHE.listOwnedTeams = await import("./listOwnedTeams.handler").then(
+        (mod) => mod.listOwnedTeamsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listOwnedTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listOwnedTeams({
       ctx,
     });
   }),
@@ -342,24 +358,6 @@ export const viewerTeamsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.listInvites({
       ctx,
-    });
-  }),
-
-  getUserAdminTeams: authedProcedure.input(ZGetUserAdminTeamsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
-      UNSTABLE_HANDLER_CACHE.getUserAdminTeams = await import("./getUserAdminTeams.handler").then(
-        (mod) => mod.getUserAdminTeamsHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getUserAdminTeams({
-      ctx,
-      input,
     });
   }),
 

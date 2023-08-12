@@ -13,3 +13,11 @@ export function getLocaleFromHeaders(req: IncomingMessage): string {
   }
   return preferredLocale ?? i18n.defaultLocale;
 }
+
+// Workaround for using router.locales from old router
+export const locales = i18n.locales as string[];
+
+export const localeOptions = locales.map((locale) => ({
+  value: locale,
+  label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
+}));
