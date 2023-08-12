@@ -24,6 +24,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
@@ -111,7 +112,6 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-
   useEffect(() => {
     if (isPublic) {
       return;
@@ -307,6 +307,8 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useContext();
+  const bookerUrl = useBookerUrl();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -370,7 +372,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+              imageSrc={bookerUrl + "/" + user.username + "/avatar.png"}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
