@@ -117,9 +117,24 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error();
       }
 
+      const uid = uuidv4();
+
+      const paypalClient = new Paypal({
+        clientId: this.credentials.client_id,
+        secretKey: this.credentials.secret_key,
+      });
+      const preference = await paypalClient.createOrder({
+        referenceId: uid,
+        amount: payment.amount,
+        currency: payment.currency,
+        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
+        cancelUrl: `${WEBAPP_URL}/payment/${uid}`,
+        intent: "AUTHORIZE",
+      });
+
       const paymentData = await prisma.payment.create({
         data: {
-          uid: uuidv4(),
+          uid,
           app: {
             connect: {
               slug: "paypal",
@@ -132,34 +147,12 @@ export class PaymentService implements IAbstractPaymentService {
           },
           amount: payment.amount,
           currency: payment.currency,
-          data: {},
+          data: Object.assign({}, preference) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,
           paymentOption: paymentOption || "ON_BOOKING",
-        },
-      });
-
-      const paypalClient = new Paypal({
-        clientId: this.credentials.client_id,
-        secretKey: this.credentials.secret_key,
-      });
-      const preference = await paypalClient.createOrder({
-        referenceId: paymentData.uid,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
-        cancelUrl: `${WEBAPP_URL}/payment/${paymentData.uid}`,
-        intent: "AUTHORIZE",
-      });
-
-      await prisma.payment.update({
-        where: {
-          id: paymentData.id,
-        },
-        data: {
           externalId: preference?.id,
-          data: Object.assign({}, preference) as unknown as Prisma.InputJsonValue,
         },
       });
 
