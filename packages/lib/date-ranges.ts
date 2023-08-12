@@ -58,17 +58,18 @@ export function processWorkingHours({
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
   const startDate = dayjs
     .utc(item.date)
+    .startOf("day")
     .add(item.startTime.getUTCHours(), "hours")
     .add(item.startTime.getUTCMinutes(), "minutes")
     .second(0)
     .tz(timeZone, true);
   const endDate = dayjs
     .utc(item.date)
+    .startOf("day")
     .add(item.endTime.getUTCHours(), "hours")
     .add(item.endTime.getUTCMinutes(), "minutes")
     .second(0)
     .tz(timeZone, true);
-
   return {
     start: startDate,
     end: endDate,
