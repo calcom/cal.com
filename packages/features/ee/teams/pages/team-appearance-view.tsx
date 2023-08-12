@@ -1,8 +1,9 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -52,6 +53,7 @@ interface TeamAppearanceValues {
 }
 
 const ProfileView = () => {
+  const params = useParamsWithFallback();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -67,7 +69,7 @@ const ProfileView = () => {
   });
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId: Number(params.id) },
     {
       onError: () => {
         router.push("/settings");

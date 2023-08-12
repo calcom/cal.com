@@ -1,3 +1,4 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type MeOptions = {
@@ -23,7 +24,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: user.avatar,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,

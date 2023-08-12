@@ -1,13 +1,14 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { BookOpen, Check, ChevronRight, FileText, Slack, Shield } from "@calcom/ui/components/icon";
+import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
+import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -21,9 +22,8 @@ enum pageType {
 }
 
 export default function Custom404() {
+  const pathname = usePathname();
   const { t } = useLocale();
-
-  const router = useRouter();
   const [username, setUsername] = useState<string>("");
   const [currentPageType, setCurrentPageType] = useState<pageType>(pageType.USER);
 
@@ -51,36 +51,40 @@ export default function Custom404() {
   const [url, setUrl] = useState(`${WEBSITE_URL}/signup`);
   useEffect(() => {
     const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
-    const [routerUsername] = router.asPath.replace("%20", "-").split(/[?#]/);
+    const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/);
     if (!isValidOrgDomain || !currentOrgDomain) {
       const splitPath = routerUsername.split("/");
       if (splitPath[1] === "team" && splitPath.length === 3) {
         // Accessing a non-existent team
         setUsername(splitPath[2]);
         setCurrentPageType(pageType.TEAM);
-        setUrl(`${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${username.replace("/", "")}`);
+        setUrl(
+          `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`
+        );
       } else {
         setUsername(routerUsername);
-        setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
+        setUrl(`${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`);
       }
     } else {
       setUsername(currentOrgDomain);
       setCurrentPageType(pageType.ORG);
       setUrl(
-        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${username.replace("/", "")}`
+        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain.replace(
+          "/",
+          ""
+        )}`
       );
     }
   }, []);
 
-  const isSuccessPage = router.asPath.startsWith("/booking");
-  const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
-  const isSignup = router.asPath.startsWith("/signup");
-  const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
+  const isSuccessPage = pathname?.startsWith("/booking");
+  const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
+  const isSignup = pathname?.startsWith("/signup");
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
    **/
-  const isInsights = router.asPath.startsWith("/insights");
+  const isInsights = pathname?.startsWith("/insights");
   if (isInsights) {
     return (
       <>
@@ -197,18 +201,18 @@ export default function Custom404() {
                   </li>
                   <li className="px-4 py-2">
                     <a
-                      href={JOIN_SLACK}
+                      href={JOIN_DISCORD}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                          <Slack strokeWidth="1.5" fill="currentColor" className="h-6 w-6" />
+                          <Discord className="text-default h-6 w-6" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-emphasis text-base font-medium">
                           <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            Slack
+                            Discord
                           </span>
                         </h3>
                         <p className="text-subtle text-base">{t("join_our_community")}</p>
@@ -242,7 +246,7 @@ export default function Custom404() {
                   <span className="mt-2 inline-block text-lg ">
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
-                ) : isCalcom ? (
+                ) : IS_CALCOM ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
                     <strong className="text-blue-500">
@@ -260,7 +264,7 @@ export default function Custom404() {
                 )}
               </div>
               <div className="mt-12">
-                {((!isSubpage && isCalcom) ||
+                {((!isSubpage && IS_CALCOM) ||
                   currentPageType === pageType.ORG ||
                   currentPageType === pageType.TEAM) && (
                   <ul role="list" className="my-4">
@@ -310,7 +314,7 @@ export default function Custom404() {
                     .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
                     .map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
-                        <Link
+                        <a
                           href={link.href}
                           className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
@@ -330,23 +334,23 @@ export default function Custom404() {
                           <div className="flex-shrink-0 self-center">
                             <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                           </div>
-                        </Link>
+                        </a>
                       </li>
                     ))}
                   <li className="px-4 py-2">
                     <a
-                      href={JOIN_SLACK}
+                      href={JOIN_DISCORD}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                          <Slack strokeWidth="1.5" fill="currentColor" className="h-6 w-6" />
+                          <Discord className="text-default h-6 w-6" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-emphasis text-base font-medium">
                           <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            Slack
+                            Discord
                           </span>
                         </h3>
                         <p className="text-subtle text-base">{t("join_our_community")}</p>

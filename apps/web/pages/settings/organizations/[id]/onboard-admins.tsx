@@ -1,16 +1,16 @@
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import type { AppProps as NextAppProps } from "next/app";
 
 import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
+import { Meta, WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
+export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+
 const OnboardTeamMembersPage = () => {
   const { t } = useLocale();
-  const router = useRouter();
-  if (!router.isReady) return null;
+
   return (
     <>
       <Meta
@@ -22,7 +22,7 @@ const OnboardTeamMembersPage = () => {
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
+OnboardTeamMembersPage.getLayout = (page: React.ReactElement, router: NextAppProps["router"]) => (
   <WizardLayout
     currentStep={4}
     maxSteps={5}

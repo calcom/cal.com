@@ -1,21 +1,20 @@
 name: "Welcome new contributors"
 
-on: 
- issues: 
-  types: opened
- pull_request:
-   types: opened
+on:
+  issues:
+    types: opened
+  pull_request:
+    types: opened
 
 permissions:
   pull-requests: write
   issues: write
 
 jobs:
- welcome-message:
-  name: Welcoming New Users
+  welcome-message:
+    name: Welcoming New Users
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: semantics
     if: github.event.action == 'opened'
     steps:
       - uses: actions/first-interaction@v1
@@ -23,6 +22,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |-
             Thank you for making your first Pull Request and taking the time to improve Cal.com ! ❤️🎉
-            Feel free to join the conversation at [slack](https://calendso.slack.com/)
-          issue-message: | 
+            Feel free to join the conversation at [discord](https://go.cal.com/discord)
+          issue-message: |
             Thank you for opening your first issue, one of our team members will review it as soon as it possible. ❤️🎉

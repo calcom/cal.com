@@ -12,6 +12,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
+import element_call_config_json from "./element-call/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -31,6 +32,7 @@ import mirotalk_config_json from "./mirotalk/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
+import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -42,6 +44,7 @@ import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
+import skiff_config_json from "./skiff/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
@@ -77,6 +80,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
+  "element-call": element_call_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -96,6 +100,7 @@ export const appStoreMetadata = {
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
+  paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
   plausible: plausible_config_json,
@@ -107,6 +112,7 @@ export const appStoreMetadata = {
   sendgrid: sendgrid_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
+  skiff: skiff_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,

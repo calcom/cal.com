@@ -6,6 +6,7 @@ import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { mergeRouters, router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
+import { adminRouter } from "./admin/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
 import { authRouter } from "./auth/_router";
@@ -14,6 +15,7 @@ import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { kycVerificationRouter } from "./kycVerification/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
@@ -48,5 +50,7 @@ export const viewerRouter = mergeRouters(
     appsRouter,
     users: userAdminRouter,
     googleWorkspace: googleWorkspaceRouter,
+    admin: adminRouter,
+    kycVerification: kycVerificationRouter,
   })
 );

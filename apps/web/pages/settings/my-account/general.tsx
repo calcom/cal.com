@@ -1,10 +1,9 @@
-import { useRouter } from "next/router";
-import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import AppThemeLabel from "@calcom/features/settings/AppThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -77,7 +76,6 @@ const GeneralQueryView = () => {
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
-  const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
 
@@ -96,13 +94,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       await utils.viewer.public.i18n.invalidate();
     },
   });
-
-  const localeOptions = useMemo(() => {
-    return (router.locales || []).map((locale) => ({
-      value: locale,
-      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
-    }));
-  }, [router.locales]);
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -277,7 +268,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           )}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
+      <Button
+        loading={mutation.isLoading}
+        disabled={isDisabled}
+        color="primary"
+        type="submit"
+        className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>

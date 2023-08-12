@@ -67,6 +67,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     originalEvent: CalendarEvent;
     success: boolean;
     createdEvent: VideoCallData | undefined;
+    credentialId: number;
   } = {
     appName: credential.appName,
     type: credential.type,
@@ -74,6 +75,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     originalEvent: calEvent,
     success: false,
     createdEvent: undefined,
+    credentialId: credential.id,
   };
   try {
     // Check to see if video app is enabled
@@ -174,6 +176,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },
@@ -197,6 +200,7 @@ const getRecordingsOfCalVideoByRoomName = async (
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },
@@ -218,6 +222,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },

@@ -1,0 +1,27 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { DataTable } from "../";
+import { columns, filterableItems } from "./columns";
+import { dataTableDemousers,dataTableSelectionActions } from "./data";
+
+<Meta title="UI/table/data-table" component={DataTable} />
+
+<Title title="Data-table" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023" />
+
+## Definition
+
+<Canvas>
+  <Story name="Datatable">
+    <DataTable columns={columns} data={dataTableDemousers} filterableItems={filterableItems} searchKey="username" selectionOptions={dataTableSelectionActions} />
+  </Story>
+</Canvas>

@@ -1,23 +1,28 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
+import { KYCVerificationDialog } from "./KYCVerificationDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
+
+type User = RouterOutputs["viewer"]["me"];
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -25,6 +30,7 @@ interface Props {
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
   teamId?: number;
+  user: User;
   isMixedEventType: boolean;
   readOnly: boolean;
 }
@@ -35,10 +41,14 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
+  const [isKYCVerificationDialogOpen, setKYCVerificationDialogOpen] = useState(false);
+
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const isPartOfTeam = useHasTeamPlan();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -98,7 +108,7 @@ export default function WorkflowDetailsPage(props: Props) {
       workflowId: workflowId,
       reminderBody: null,
       emailSubject: null,
-      template: WorkflowTemplates.CUSTOM,
+      template: isWhatsappAction(action) ? WorkflowTemplates.REMINDER : WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
@@ -110,10 +120,11 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="my-8 sm:my-0 md:flex">
+      <div className="z-1 my-8 sm:my-0 md:flex">
         <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
+              data-testid="workflow-name"
               disabled={props.readOnly}
               label={`${t("workflow_name")}:`}
               type="text"
@@ -158,7 +169,13 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} teamId={teamId} readOnly={props.readOnly} />
+              <WorkflowStepContainer
+                form={form}
+                user={props.user}
+                teamId={teamId}
+                readOnly={props.readOnly}
+                setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
+              />
             </div>
           )}
           {form.getValues("steps") && (
@@ -168,11 +185,13 @@ export default function WorkflowDetailsPage(props: Props) {
                   <WorkflowStepContainer
                     key={step.id}
                     form={form}
+                    user={props.user}
                     step={step}
                     reload={reload}
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
                   />
                 );
               })}
@@ -201,11 +220,16 @@ export default function WorkflowDetailsPage(props: Props) {
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
       />
+      <KYCVerificationDialog
+        isOpenDialog={isKYCVerificationDialogOpen}
+        setIsOpenDialog={setKYCVerificationDialogOpen}
+        isPartOfTeam={!!isPartOfTeam.hasTeamPlan}
+      />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}
         setIsOpenDialog={setDeleteDialogOpen}
         workflowId={workflowId}
-        additionalFunction={async () => await router.push("/workflows")}
+        additionalFunction={async () => router.push("/workflows")}
       />
     </>
   );

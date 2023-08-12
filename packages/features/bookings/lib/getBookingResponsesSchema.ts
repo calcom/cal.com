@@ -1,27 +1,17 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
+import { fieldTypesSchemaMap, dbReadResponseSchema } from "@calcom/features/form-builder/schema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { bookingResponses } from "@calcom/prisma/zod-utils";
+import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 
-export const bookingResponse = z.union([
-  z.string(),
-  z.boolean(),
-  z.string().array(),
-  z.object({
-    optionValue: z.string(),
-    value: z.string(),
-  }),
-  // For variantsConfig case
-  z.record(z.string()),
-]);
-
-export const bookingResponsesDbSchema = z.record(bookingResponse);
+export const bookingResponse = dbReadResponseSchema;
+export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
@@ -82,6 +72,16 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
+        const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
+        // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
+        if (fieldTypeSchema) {
+          newResponses[field.name] = fieldTypeSchema.preprocess({
+            response: value,
+            isPartialSchema,
+            field,
+          });
+          return newResponses;
+        }
         if (field.type === "boolean") {
           // Turn a boolean in string to a real boolean
           newResponses[field.name] = value === "true" || value === true;
@@ -114,7 +114,7 @@ function preprocess<T extends z.ZodType>({
       eventType.bookingFields.forEach((bookingField) => {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
-        const emailSchema = isPartialSchema ? z.string() : z.string().email();
+        const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine((val) => isValidPhoneNumber(val));
@@ -146,6 +146,19 @@ function preprocess<T extends z.ZodType>({
               message: m("email_validation_error"),
             });
           }
+          return;
+        }
+
+        const fieldTypeSchema = fieldTypesSchemaMap[bookingField.type as keyof typeof fieldTypesSchemaMap];
+
+        if (fieldTypeSchema) {
+          fieldTypeSchema.superRefine({
+            response: value,
+            ctx,
+            m,
+            field: bookingField,
+            isPartialSchema,
+          });
           return;
         }
 
@@ -217,9 +230,9 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
-        if (
-          ["address", "text", "select", "name", "number", "radio", "textarea"].includes(bookingField.type)
-        ) {
+        // Use fieldTypeConfig.propsType to validate for propsType=="text" or propsType=="select" as in those cases, the response would be a string.
+        // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
+        if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });

@@ -1,27 +1,31 @@
 import dayjs from "@calcom/dayjs";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
 const smsReminderTemplate = (
   isEditingMode: boolean,
   action?: WorkflowActions,
+  timeFormat?: TimeFormat,
   startTime?: string,
   eventName?: string,
   timeZone?: string,
   attendee?: string,
   name?: string
 ) => {
+  const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
+
   let eventDate;
   if (isEditingMode) {
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    startTime = "{EVENT_TIME_h:mmA}";
+    startTime = `{EVENT_TIME_${currentTimeFormat}}`;
 
     eventDate = "{EVENT_DATE_YYYY MMM D}";
     attendee = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
-    startTime = dayjs(startTime).tz(timeZone).format("h:mmA");
+    startTime = dayjs(startTime).tz(timeZone).format(currentTimeFormat);
   }
 
   const templateOne = `Hi${

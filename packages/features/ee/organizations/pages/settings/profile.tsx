@@ -1,14 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon, Trash2 } from "lucide-react";
-import { useRouter } from "next/router";
+import { LinkIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -18,9 +17,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Form,
   ImageUploader,
   Label,
@@ -32,6 +28,7 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
+import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
@@ -44,7 +41,7 @@ const OrgProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBrandingValues();
+  const orgBranding = useOrgBranding();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -71,7 +68,7 @@ const OrgProfileView = () => {
     onSuccess: (org) => {
       if (org) {
         form.setValue("name", org.name || "");
-        form.setValue("slug", org.slug || "");
+        form.setValue("slug", org.slug || org.metadata?.requestedSlug || "");
         form.setValue("logo", org.logo || "");
         form.setValue("bio", org.bio || "");
         if (org.slug === null && (org?.metadata as Prisma.JsonObject)?.requestedSlug) {
@@ -91,22 +88,10 @@ const OrgProfileView = () => {
     !currentOrganisation.bio ||
     !currentOrganisation.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
-    async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
-      showToast(t("your_org_disbanded_successfully"), "success");
-      router.push(`${WEBAPP_URL}/teams`);
-    },
-  });
-
   if (!orgBranding) return null;
 
-  function deleteTeam() {
-    if (currentOrganisation?.id) deleteTeamMutation.mutate({ teamId: currentOrganisation.id });
-  }
-
   return (
-    <>
+    <LicenseRequired>
       <Meta title={t("profile")} description={t("profile_org_description")} />
       {!isLoading && (
         <>
@@ -170,15 +155,21 @@ const OrgProfileView = () => {
                   </div>
                 )}
               />
-              <div className="mt-8">
-                <TextField
-                  name="slug"
-                  label={t("org_url")}
-                  value={currentOrganisation.slug ?? ""}
-                  disabled
-                  addOnSuffix={`.${subdomainSuffix()}`}
-                />
-              </div>
+              <Controller
+                control={form.control}
+                name="slug"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="slug"
+                      label={t("org_url")}
+                      value={value}
+                      disabled
+                      addOnSuffix={`.${subdomainSuffix()}`}
+                    />
+                  </div>
+                )}
+              />
               <div className="mt-8">
                 <Label>{t("about")}</Label>
                 <Editor
@@ -224,29 +215,29 @@ const OrgProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="border-subtle my-8 border" />
-
-          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-          {currentOrganisation?.user.role === "OWNER" ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Trash2}>
-                  {t("disband_org")}
-                </Button>
-              </DialogTrigger>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("disband_org")}
-                confirmBtnText={t("confirm")}
-                onConfirm={deleteTeam}>
-                {t("disband_org_confirmation_message")}
-              </ConfirmationDialogContent>
-            </Dialog>
-          ) : null}
+          {/* Disable Org disbanding */}
+          {/* <hr className="border-subtle my-8 border" />
+             <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
+            {currentOrganisation?.user.role === "OWNER" ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button color="destructive" className="border" StartIcon={Trash2}>
+                    {t("disband_org")}
+                  </Button>
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  variety="danger"
+                  title={t("disband_org")}
+                  confirmBtnText={t("confirm")}
+                  onConfirm={deleteTeam}>
+                  {t("disband_org_confirmation_message")}
+                </ConfirmationDialogContent>
+              </Dialog>
+            ) : null} */}
           {/* LEAVE ORG should go above here ^ */}
         </>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 

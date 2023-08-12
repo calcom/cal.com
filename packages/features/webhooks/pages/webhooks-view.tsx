@@ -1,12 +1,13 @@
-import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Meta, EmptyScreen, CreateButtonWithTeamsList } from "@calcom/ui";
-import { Avatar } from "@calcom/ui";
+import { Avatar, CreateButtonWithTeamsList, EmptyScreen, Meta } from "@calcom/ui";
 import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
@@ -15,10 +16,11 @@ import { WebhookListItem, WebhookListSkeleton } from "../components";
 const WebhooksView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
 
   const { data } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
     suspense: true,
-    enabled: router.isReady,
+    enabled: session.status === "authenticated",
   });
 
   return (
@@ -54,6 +56,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
   const router = useRouter();
 
   const { profiles, webhookGroups } = webhooksByViewer;
+  const bookerUrl = useBookerUrl();
 
   const hasTeams = profiles && profiles.length > 1;
 
@@ -69,7 +72,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                     <div className="items-centers flex ">
                       <Avatar
                         alt={group.profile.image || ""}
-                        imageSrc={group.profile.image || `${WEBAPP_URL}/${group.profile.name}/avatar.png`}
+                        imageSrc={group.profile.image || `${bookerUrl}/${group.profile.name}/avatar.png`}
                         size="md"
                         className="inline-flex justify-center"
                       />
