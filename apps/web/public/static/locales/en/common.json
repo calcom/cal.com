@@ -1997,6 +1997,7 @@
   "attendee_last_name_variable": "Attendee last name",
   "attendee_first_name_info": "The person booking's first name",
   "attendee_last_name_info": "The person booking's last name",
+  "me": "Me",
   "verify_team_tooltip": "Verify your team to enable sending messages to attendees",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
