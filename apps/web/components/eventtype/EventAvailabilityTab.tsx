@@ -203,6 +203,16 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         });
       }
 
+      // We are showing team schedule for admin
+      if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+        options.push({
+          value: eventType.schedule,
+          label: eventType.scheduleName ?? t("default_schedule_name"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
+
       setOptions(options);
 
       const scheduleId = formMethods.getValues("schedule");
