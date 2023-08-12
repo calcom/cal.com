@@ -503,7 +503,7 @@ async function handler(req: CustomRequest) {
     };
 
     const successPayment = bookingToDelete.payment.find((payment) => payment.success);
-    if (!successPayment) {
+    if (!successPayment?.externalId) {
       throw new Error("Cannot reject a booking without a successful payment");
     }
 
