@@ -552,8 +552,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+  let label =
+    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields
+      ?.map((field) => field?.label)
+      ?.join(",") || "";
+
+  if (!label?.trim() || label?.trim() === ",")
+    label =
+      fieldTypeConfig?.variantsConfig?.variants[variant as keyof typeof fieldTypeConfigVariants]?.label || "";
+
   return <span>{t(label)}</span>;
 }
 
