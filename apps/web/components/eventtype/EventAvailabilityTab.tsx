@@ -203,7 +203,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           isManaged: false,
         });
       }
-      // We are showing team schedule for admin
+      // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
       else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
         options.push({
           value: eventType.schedule,
