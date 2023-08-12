@@ -168,7 +168,6 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
-  console.log("WATCH=", watchSchedule);
 
   const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
     onSuccess: ({ schedules }) => {
