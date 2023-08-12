@@ -1903,6 +1903,7 @@
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "install_app_on": "Install app on",
   "create_for": "Create for",
+  "currency": "Currency",
   "setup_organization": "Setup an Organization",
   "organization_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
   "organization_banner_title": "Manage organizations with multiple teams",

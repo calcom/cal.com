@@ -112,7 +112,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       </Tooltip>
     </div>
   ) : filteredLocations.length === 1 ? (
-    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm">
+    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm rtl:mr-2">
       {filteredLocations}
     </div>
   ) : null;
