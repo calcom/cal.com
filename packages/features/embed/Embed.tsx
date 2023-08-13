@@ -545,6 +545,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
   );
 
+  const { data: user } = trpc.viewer.me.useQuery();
+  const defaultBrandColor = user ? user.brandColor : "#000000";
+
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
@@ -961,7 +964,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             <ColorPicker
                               popoverAlign="start"
                               container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
+                              defaultValue={defaultBrandColor}
                               onChange={(color) => {
                                 addToPalette({
                                   [palette.name as keyof (typeof previewState)["palette"]]: color,
