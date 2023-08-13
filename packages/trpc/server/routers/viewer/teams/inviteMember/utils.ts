@@ -66,17 +66,15 @@ export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
 
 export async function getUserToInviteOrThrowIfExists({
   usernameOrEmail,
-  orgId,
   isOrg,
 }: {
   usernameOrEmail: string;
-  orgId: number;
   isOrg?: boolean;
 }) {
   // Check if user exists in ORG or exists all together
   const invitee = await prisma.user.findFirst({
     where: {
-      OR: [{ username: usernameOrEmail, organizationId: orgId }, { email: usernameOrEmail }],
+      OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
     },
   });
 
@@ -295,6 +293,13 @@ export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithP
       message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
     });
   }
+}
+
+export function throwUsernameDoesNotExistError(username: string) {
+  throw new TRPCError({
+    code: "NOT_FOUND",
+    message: `User ${username} does not exist.`,
+  });
 }
 
 export function getIsOrgVerified(
