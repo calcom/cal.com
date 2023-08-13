@@ -76,7 +76,11 @@ export async function getUserToInviteOrThrowIfExists({
   // Check if user exists in ORG or exists all together
   const invitee = await prisma.user.findFirst({
     where: {
-      OR: [{ username: usernameOrEmail, organizationId: orgId }, { email: usernameOrEmail }],
+      OR: [
+        { username: usernameOrEmail, organizationId: orgId },
+        { email: usernameOrEmail },
+        { username: usernameOrEmail },
+      ],
     },
   });
 
@@ -95,7 +99,7 @@ export function checkInputEmailIsValid(email: string) {
   if (!isEmail(email))
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
+      message: `Username ${email} is not registered`,
     });
 }
 
