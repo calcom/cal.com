@@ -107,7 +107,7 @@ export function throwIfNotEmail(email: string) {
   if (!isEmail(email))
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
+      message: `Username ${email} is not registered`,
     });
 }
 
