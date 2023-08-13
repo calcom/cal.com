@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       client_id,
       scope: "incoming-webhook",
       redirect_uri,
+      state: typeof req.query.state === "string" ? req.query.state : undefined,
     };
     /** stringify is being dumb here */
     const params = z.record(z.any()).parse(slackConnectParams);

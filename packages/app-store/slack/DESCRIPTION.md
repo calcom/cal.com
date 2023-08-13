@@ -1,8 +1,7 @@
 ---
 items:
-  - 1.jpeg
-  - 2.jpeg
-  - 3.jpeg
+  - slack1.png
+  - slack2.png
 ---
 
 {DESCRIPTION}
