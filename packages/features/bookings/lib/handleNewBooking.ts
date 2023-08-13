@@ -1,7 +1,6 @@
 import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
-import axios from "axios";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
@@ -89,6 +88,7 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
+import { sendEventScheduledMessages } from "./sendBookingMessages";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -190,6 +190,10 @@ const getAllCredentials = async (
   }
 
   return allCredentials;
+};
+
+const getMessagingCredentials = (credentials: Credential[]) => {
+  return credentials.filter((credential) => credential.appId === "slack") as Credential[];
 };
 
 // if true, there are conflicts.
@@ -1344,14 +1348,16 @@ async function handler(
             }
           }
 
+          const clonedEvent = cloneDeep(evt);
+          const updatedEvent = {
+            ...clonedEvent,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
+          };
           if (noEmail !== true) {
-            const copyEvent = cloneDeep(evt);
-            await sendRescheduledEmails({
-              ...copyEvent,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
-            });
+            await sendRescheduledEmails(updatedEvent);
           }
+          sendEventScheduledMessages(updatedEvent, getMessagingCredentials(credentials));
           const foundBooking = await findBookingQuery(newBooking.id);
 
           resultBooking = { ...foundBooking, appsStatus: newBooking.appsStatus };
@@ -1465,11 +1471,13 @@ async function handler(
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
           // TODO send reschedule emails to attendees of the old booking
-          await sendRescheduledEmails({
+          const updatedEvent = {
             ...copyEvent,
             additionalNotes, // Resets back to the additionalNote input and not the override value
             cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
-          });
+          };
+          await sendRescheduledEmails(updatedEvent);
+          sendEventScheduledMessages(updatedEvent, getMessagingCredentials(credentials));
 
           // Update the old booking with the cancelled status
           await prisma.booking.update({
@@ -1643,6 +1651,7 @@ async function handler(
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(allCredentials);
+      sendEventScheduledMessages(evt, getMessagingCredentials(credentials));
       const eventManager = new EventManager({ ...organizerUser, credentials });
       await eventManager.updateCalendarAttendees(evt, booking);
 
@@ -1776,29 +1785,6 @@ async function handler(
       evt.description = originalRescheduledBooking?.description || evt.description;
       evt.location = originalRescheduledBooking?.location || evt.location;
     }
-
-    // this is just for testing slack will be removed later
-    try {
-      const slackKey = await prisma.credential.findFirst({
-        where: {
-          userId: 8,
-        },
-        select: {
-          key: true,
-        },
-      });
-
-      const {
-        incoming_webhook: { url },
-      } = slackKey?.key;
-      axios({
-        method: "POST",
-        url,
-        data: {
-          text: JSON.stringify(evt),
-        },
-      });
-    } catch (err) {}
 
     const eventTypeRel = !eventTypeId
       ? {}
@@ -2214,6 +2200,7 @@ async function handler(
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled
         );
+        sendEventScheduledMessages(evt, getMessagingCredentials(credentials));
       }
     }
   }
