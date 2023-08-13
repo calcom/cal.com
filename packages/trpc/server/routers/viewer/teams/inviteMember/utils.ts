@@ -99,7 +99,15 @@ export function checkInputEmailIsValid(email: string) {
   if (!isEmail(email))
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Username ${email} is not registered`,
+      message: `Invite failed because ${email} is not a valid email address`,
+    });
+}
+
+export function throwIfNotEmail(email: string) {
+  if (!isEmail(email))
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invite failed because ${email} is not a valid email address`,
     });
 }
 

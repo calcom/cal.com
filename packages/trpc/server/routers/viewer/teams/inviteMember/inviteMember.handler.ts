@@ -14,7 +14,7 @@ import {
   getTeamOrThrow,
   getEmailsToInvite,
   getUserToInviteOrThrowIfExists,
-  checkInputEmailIsValid,
+  throwIfNotEmail,
   getOrgConnectionInfo,
   createNewUserConnectToOrgIfExists,
   throwIfInviteIsToOrgAndUserExists,
@@ -56,7 +56,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     });
 
     if (!invitee) {
-      checkInputEmailIsValid(usernameOrEmail);
+      throwIfNotEmail(usernameOrEmail);
 
       // valid email given, create User and add to team
       await createNewUserConnectToOrgIfExists({
