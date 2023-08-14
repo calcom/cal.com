@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma/client";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -28,11 +29,14 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
   });
 
+  const metadata = teamMetadataSchema.parse(membership?.team.metadata);
+
   return {
     user: {
       role: membership?.role,
       accepted: membership?.accepted,
     },
     ...membership?.team,
+    metadata,
   };
 };
