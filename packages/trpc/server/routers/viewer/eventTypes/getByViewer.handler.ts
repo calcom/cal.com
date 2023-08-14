@@ -170,26 +170,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const userEventTypes = user.eventTypes.map(userMapEventType);
-  // backwards compatibility, TMP:
-  const typesRaw = (
-    await prisma.eventType.findMany({
-      where: {
-        userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        teamId: null,
-      },
-      select: {
-        ...userEventTypeSelect,
-      },
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-    })
-  ).map(userMapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -208,7 +188,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+  const eventTypesHashMap = userEventTypes.reduce((hashMap, newItem) => {
     const oldItem = hashMap[newItem.id];
     hashMap[newItem.id] = { ...oldItem, ...newItem };
     return hashMap;
