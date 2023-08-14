@@ -161,11 +161,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
-    .sort(function (a, b) {
-      if (a.name < b.name) return -1;
-      else if (a.name > b.name) return 1;
-      return 0;
-    });
+    .sort((a, b) => (b.installCount || 0) - (a.installCount || 0));
 
   return (
     <div>
