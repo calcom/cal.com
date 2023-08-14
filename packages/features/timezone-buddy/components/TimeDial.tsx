@@ -39,7 +39,6 @@ function isCurrentHourInRange({
     // If not same day number then we don't care
 
     if (startHour.day() !== cellDate.day()) {
-      console.log("[Skipping]", startHour.day(), cellDate.day());
       return false;
     }
 
@@ -68,11 +67,6 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
     hours.filter((i) => i >= 0 && i < 24),
     hours.filter((i) => i >= 24).map((i) => i % 24),
   ];
-
-  if (dateRanges && dateRanges?.length > 0) {
-    console.log("==================");
-    console.log(dateRanges);
-  }
 
   return (
     <>

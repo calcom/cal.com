@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
+import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -134,6 +135,7 @@ export default function AvailabilityPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const orgBranding = useOrgBranding();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -154,20 +156,23 @@ export default function AvailabilityPage() {
         subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
-            <ToggleGroup
-              defaultValue={searchParams?.get("type") ?? "mine"}
-              onValueChange={(value) => {
-                router.push(`${pathname}?${createQueryString("type", value)}`);
-              }}
-              options={[
-                { value: "mine", label: t("mine") },
-                { value: "team", label: t("team") },
-              ]}
-            />
+            {orgBranding && (
+              <ToggleGroup
+                className="hidden md:block"
+                defaultValue={searchParams?.get("type") ?? "mine"}
+                onValueChange={(value) => {
+                  router.push(`${pathname}?${createQueryString("type", value)}`);
+                }}
+                options={[
+                  { value: "mine", label: t("my_availability") },
+                  { value: "team", label: t("team_availability") },
+                ]}
+              />
+            )}
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? (
+        {searchParams?.get("type") === "team" && orgBranding ? (
           <AvailabilitySliderTable />
         ) : (
           <WithQuery
