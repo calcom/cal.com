@@ -151,7 +151,7 @@ module.exports = {
   plugins: [
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
-    require("tailwind-scrollbar")({ nocompatible: true }),
+    require("tailwind-scrollbar"),
     require("tailwindcss-radix")(),
     require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
@@ -168,6 +168,6 @@ module.exports = {
     }),
   ],
   variants: {
-    scrollbar: ["dark"],
+    scrollbar: ["rounded", "dark"],
   },
 };
