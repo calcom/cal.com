@@ -49,7 +49,7 @@ export default function PayPalSetup(props: PayPalSetupProps) {
   const router = useRouter();
   const { t } = useLocale();
 
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment" });
+  const integrations = trpc.viewer.integrations.useQuery({ categories: ["payment"] });
   const paypalPaymentAppCredentials = integrations.data?.items.find((item) => item.type === "paypal_payment");
   const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [false];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
