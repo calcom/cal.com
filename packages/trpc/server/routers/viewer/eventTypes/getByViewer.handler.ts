@@ -50,6 +50,13 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
+  children: {
+    include: {
+      users: {
+        select: userSelect,
+      },
+    },
+  },
   parentId: true,
   hosts: {
     select: {
@@ -64,13 +71,13 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
 
 const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   ...userEventTypeSelect,
-  children: {
-    include: {
-      users: {
-        select: userSelect,
-      },
-    },
-  },
+  // children: {
+  //   include: {
+  //     users: {
+  //       select: userSelect,
+  //     },
+  //   },
+  // },
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
@@ -166,7 +173,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   const userMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
     ...baseMapEventType(eventType),
-    children: [],
   });
 
   const userEventTypes = user.eventTypes.map(userMapEventType);
@@ -188,13 +194,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const eventTypesHashMap = userEventTypes.reduce((hashMap, newItem) => {
-    const oldItem = hashMap[newItem.id];
-    hashMap[newItem.id] = { ...oldItem, ...newItem };
-    return hashMap;
-  }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-
-  const mergedEventTypes = Object.values(eventTypesHashMap)
+  const nonManagedEventTypes = userEventTypes
     .map((eventType) => eventType)
     .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
 
@@ -208,7 +208,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(nonManagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,
