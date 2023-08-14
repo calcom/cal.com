@@ -139,8 +139,6 @@ export function HoverOverview() {
     [rightEdge, top, bottom]
   );
 
-  // Rest of your component code...
-
   return (
     <div ref={el} className="absoulte inset-0 w-full">
       <div className="bg-default/80 absolute" style={leftWhiteout} />
