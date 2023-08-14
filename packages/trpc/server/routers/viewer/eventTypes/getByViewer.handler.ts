@@ -240,7 +240,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     membershipRole: membership.role,
   }));
 
-  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof teamEventTypeSelect>) => {
+  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof baseMapEventType>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
