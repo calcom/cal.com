@@ -35,15 +35,26 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           _count: true,
           id: true,
           eventName: true,
+          team: {
+            select: { members: { select: { userId: true } } },
+          },
         },
       },
     },
   });
-  if (!schedule) {
+
+  const isCurrentUserPartOfTeam = schedule?.eventType.some((eventType) =>
+    eventType.team?.members.some((teamMember) => teamMember.userId === user.id)
+  );
+
+  const isCurrentUserOwner = schedule?.userId === user.id;
+
+  if (!schedule || (!isCurrentUserOwner && !isCurrentUserPartOfTeam)) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
   }
+
   const timeZone = schedule.timeZone || user.timeZone;
 
   const schedulesCount = await prisma.schedule.count({
