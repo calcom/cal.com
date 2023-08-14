@@ -22,7 +22,7 @@ import {
   getIsOrgVerified,
   sendVerificationEmail,
   createAndAutoJoinIfInOrg,
-  throwUsernameDoesNotExistError,
+  throwUsernameDoesNotExistInOrgError,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -52,14 +52,16 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     });
     const invitee = await getUserToInviteOrThrowIfExists({
       usernameOrEmail,
+      orgId: input.teamId,
       isOrg: input.isOrg,
     });
 
     if (!invitee) {
-      const isInputEmail = isEmail(usernameOrEmail);
-      if (!isInputEmail) {
-        throwUsernameDoesNotExistError(usernameOrEmail);
+      // if input is a username, throw error
+      if (!isEmail(usernameOrEmail)) {
+        throwUsernameDoesNotExistInOrgError(usernameOrEmail);
       }
+
       checkInputEmailIsValid(usernameOrEmail);
 
       // valid email given, create User and add to team

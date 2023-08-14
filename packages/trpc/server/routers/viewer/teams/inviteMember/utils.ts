@@ -66,15 +66,17 @@ export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
 
 export async function getUserToInviteOrThrowIfExists({
   usernameOrEmail,
+  orgId,
   isOrg,
 }: {
   usernameOrEmail: string;
+  orgId: number;
   isOrg?: boolean;
 }) {
   // Check if user exists in ORG or exists all together
   const invitee = await prisma.user.findFirst({
     where: {
-      OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      OR: [{ username: usernameOrEmail, organizationId: orgId }, { email: usernameOrEmail }],
     },
   });
 
@@ -295,10 +297,10 @@ export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithP
   }
 }
 
-export function throwUsernameDoesNotExistError(username: string) {
+export function throwUsernameDoesNotExistInOrgError(username: string) {
   throw new TRPCError({
     code: "NOT_FOUND",
-    message: `User ${username} does not exist.`,
+    message: `User ${username} does not exist in the organization.`,
   });
 }
 
