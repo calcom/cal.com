@@ -331,3 +331,6 @@ export const dbReadResponseSchema = z.union([
   // For variantsConfig case
   z.record(z.string()),
 ]);
+
+export type FieldSchema = z.infer<typeof fieldSchema>;
+export type VariantConfig = NonNullable<FieldSchema["variantsConfig"]>["variants"][string];

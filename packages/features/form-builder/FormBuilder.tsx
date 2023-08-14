@@ -29,7 +29,7 @@ import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon"
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import { getVariantsConfig, getVariantFieldLabel } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -532,6 +532,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const variantsConfig = field.variantsConfig;
   const variantsConfigVariants = variantsConfig?.variants;
   const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
+
   if (!fieldTypeConfigVariants || !variantsConfig) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
@@ -546,27 +547,31 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       return <span>{field.label || t(field.defaultLabel || "")}</span>;
     }
   }
+
   const variant = field.variant || defaultVariant;
+
   if (!variant) {
     throw new Error(
       "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields
-      ?.map((field) => {
-        //if label is empty give it a default value
-        if (field?.label?.trim()?.length == 0) {
-          return t(
-            fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap[field?.name]
-              ?.defaultLabel || ""
-          );
-        }
-        return t(field?.label || "");
-      })
-      ?.join(",") || "";
+  const variantConfig = variantsConfigVariants?.[variant];
 
-  return <span>{label}</span>;
+  if (!variantConfig) {
+    throw new Error(`Field doesn't have variant config for variant: ${variant}`);
+  }
+
+  const labelsSummary = variantConfig?.fields
+    .map((variantField) =>
+      getVariantFieldLabel({
+        variantField,
+        fieldTypeVariantConfig: fieldTypeConfigVariants[variant],
+        t,
+      })
+    )
+    .join(", ");
+
+  return <span>{labelsSummary}</span>;
 }
 
 function VariantSelector() {

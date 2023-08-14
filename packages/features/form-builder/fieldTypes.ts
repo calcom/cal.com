@@ -155,3 +155,7 @@ export const fieldTypesConfigMap = configMap as Record<FieldType, z.infer<typeof
 Object.entries(fieldTypesConfigMap).forEach(([fieldType, config]) => {
   config.propsType = propsTypes[fieldType as keyof typeof fieldTypesConfigMap];
 });
+
+export type FieldTypeVariantConfig = NonNullable<
+  (typeof fieldTypesConfigMap)[keyof typeof fieldTypesConfigMap]["variantsConfig"]
+>["variants"][keyof (typeof fieldTypesConfigMap)[keyof typeof fieldTypesConfigMap]["variantsConfig"]];

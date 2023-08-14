@@ -1,6 +1,9 @@
+import type { TFunction } from "next-i18next";
 import type z from "zod";
 
+import type { FieldTypeVariantConfig } from "./fieldTypes";
 import { fieldTypesConfigMap } from "./fieldTypes";
+import type { VariantConfig } from "./schema";
 import type { fieldSchema } from "./schema";
 
 export const preprocessNameFieldDataWithVariant = (
@@ -67,3 +70,18 @@ export const getVariantsConfig = (field: Pick<z.infer<typeof fieldSchema>, "vari
   }
   return variantsConfig;
 };
+
+export function getVariantFieldLabel({
+  variantField,
+  fieldTypeVariantConfig,
+  t,
+}: {
+  variantField: VariantConfig["fields"][number];
+  fieldTypeVariantConfig: FieldTypeVariantConfig | undefined;
+  t: TFunction;
+}) {
+  if (!variantField.label?.trim()) {
+    return t(fieldTypeVariantConfig?.fieldsMap[variantField?.name]?.defaultLabel || "");
+  }
+  return variantField?.label || "";
+}

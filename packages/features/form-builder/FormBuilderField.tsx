@@ -12,7 +12,7 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import { getVariantsConfig, getVariantFieldLabel } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -184,10 +184,12 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
     Object.entries(field.variantsConfig.variants).forEach(([variantName, variant]) => {
       variant.fields.forEach((variantField) => {
         const fieldTypeVariantsConfig = fieldTypesConfigMap[field.type]?.variantsConfig;
-        const defaultVariantFieldLabel =
-          fieldTypeVariantsConfig?.variants?.[variantName]?.fieldsMap[variantField.name]?.defaultLabel;
-
-        variantField.label = variantField.label || t(defaultVariantFieldLabel || "");
+        const fieldTypeVariantConfig = fieldTypeVariantsConfig?.variants[variantName];
+        variantField.label = getVariantFieldLabel({
+          variantField,
+          fieldTypeVariantConfig,
+          t,
+        });
       });
     });
   }
