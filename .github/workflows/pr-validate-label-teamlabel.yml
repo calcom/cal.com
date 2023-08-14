@@ -1,0 +1,69 @@
+name: "Validate PRs & Assign PR team labels & Pull Request Labeler"
+on:
+  pull_request:
+    branches:
+      - main
+  pull_request_target:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  validate-pr:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'edited' || github.event.action == 'synchronize')
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        id: lint_pr_title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # When the previous steps fails, the workflow would stop. By adding this
+        # condition you can continue the execution with the populated error message.
+        if: always() && (steps.lint_pr_title.outputs.error_message != null)
+        with:
+          header: pr-title-lint-error
+          message: |
+            Hey there and thank you for opening this pull request! 👋🏼
+
+            We require pull request titles to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and it looks like your proposed title needs to be adjusted.
+
+            Details:
+
+            ```
+            ${{ steps.lint_pr_title.outputs.error_message }}
+            ```
+
+      # Delete a previous comment when the issue has been resolved
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          message: |
+            Thank you for following the naming conventions!
+
+  team-labels:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: equitybee/team-label-action@main
+        with:
+          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          organization-name: calcom
+          ignore-labels: "app-store, authentication, automated-testing, billing, bookings, caldav, calendar-apps, ci, console, crm-apps, docs, documentation, emails, embeds, event-types, i18n, impersonation, manual-testing, ui, performance, ops-stack, organizations, public-api, routing-forms, seats, teams, webhooks, workflows, zapier"
+
+  labeler:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target'
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          # https://github.com/actions/labeler/issues/442#issuecomment-1297359481
+          sync-labels: ""
