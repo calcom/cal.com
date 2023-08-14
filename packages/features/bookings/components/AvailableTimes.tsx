@@ -69,7 +69,7 @@ export const AvailableTimes = ({
         </span>
 
         {showTimeFormatToggle && (
-          <div className="ml-auto">
+          <div className="ml-auto rtl:mr-auto">
             <TimeFormatToggle />
           </div>
         )}

@@ -85,6 +85,7 @@
     "jest-diff": "^29.5.0",
     "jsdom": "^22.0.0",
     "lint-staged": "^12.5.0",
+    "mailhog": "^4.16.0",
     "prettier": "^2.8.6",
     "tsc-absolute": "^1.0.0",
     "typescript": "^4.9.4",
