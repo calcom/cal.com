@@ -50,7 +50,6 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
-  children: true,
   parentId: true,
   hosts: {
     select: {
@@ -165,11 +164,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
   });
 
-  const userMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
-    ...baseMapEventType(eventType),
-  });
-
-  const userEventTypes = user.eventTypes.map(userMapEventType);
+  const userEventTypes = user.eventTypes.map(baseMapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
