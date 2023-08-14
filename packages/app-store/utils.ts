@@ -133,13 +133,6 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
-export const defaultVideoAppCategories: AppCategories[] = [
-  "conferencing",
-  "messaging",
-  // Legacy name for conferencing
-  "video",
-];
-
 /**
  *
  * @param appCategories - from app metadata
@@ -147,13 +140,21 @@ export const defaultVideoAppCategories: AppCategories[] = [
  * @returns - true if app supports team install
  */
 export function doesAppSupportTeamInstall(
-  appCategories: AppCategories[],
+  appCategories: string[],
   concurrentMeetings: boolean | undefined = undefined
 ) {
   return !appCategories.some(
     (category) =>
-      category === "calendar" || (defaultVideoAppCategories.includes(category) && !concurrentMeetings)
+      category === "calendar" ||
+      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
   );
 }
+
+export const defaultVideoAppCategories: AppCategories[] = [
+  "conferencing",
+  "messaging",
+  // Legacy name for conferencing
+  "video",
+];
 
 export default getApps;

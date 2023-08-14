@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { AppCategories, Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -86,13 +86,16 @@ export interface App {
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
-  /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
+  /** The category to which this app belongs. Remove all usages of category and then remove the prop  */
   /*
    * @deprecated Use categories
    */
   category?: string;
 
-  /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
+  /** The category to which this app belongs. */
+  /**
+   * Messaging and Conferencing(Earlier called Video) are considered location apps and are fetched when configuring an event-type location.
+   */
   categories: AppCategories[];
   /**
    * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.

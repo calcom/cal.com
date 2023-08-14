@@ -80,14 +80,13 @@ export async function getLocationGroupedOptions(
   const integrations = await getEnabledApps(credentials, true);
 
   integrations.forEach((app) => {
+    // All apps that are labeled as a locationOption are video apps.
     if (app.locationOption) {
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
-
       let groupByCategory =
-        // If there is only one category, use it, otherwise find the one that is not a default video app category
         app.categories.length >= 2
-          ? app.categories.find((category) => !defaultVideoAppCategories.includes(category))
-          : app.categories[0];
+          ? app.categories.find((groupByCategory) => !defaultVideoAppCategories.includes(groupByCategory))
+          : app.categories[0] || app.category;
       if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
       for (const credential of app.credentials) {
