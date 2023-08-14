@@ -1991,6 +1991,7 @@
   "no_other_teams_found_description": "Il n'y a pas d'autres équipes dans cette organisation.",
   "attendee_first_name_variable": "Prénom du participant",
   "attendee_last_name_variable": "Nom du participant",
+  "me": "Moi",
   "verify_team_tooltip": "Vérifiez votre équipe pour activer l'envoi de messages aux participants",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
