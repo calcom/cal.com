@@ -157,19 +157,16 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const userMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+  const baseMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
     ...eventType,
-    children: [],
     safeDescription: markdownToSafeHTML(eventType.description),
     users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
   });
 
-  const teamMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
-    ...eventType,
-    safeDescription: markdownToSafeHTML(eventType.description),
-    users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+  const userMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+    ...baseMapEventType(eventType),
+    children: [],
   });
 
   const userEventTypes = user.eventTypes.map(userMapEventType);
@@ -287,7 +284,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 : MembershipRole.MEMBER),
           },
           eventTypes: membership.team.eventTypes
-            .map(teamMapEventType)
+            .map(baseMapEventType)
             .filter(filterTeamsEventTypesBasedOnInput)
             .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
             .filter((evType) =>
