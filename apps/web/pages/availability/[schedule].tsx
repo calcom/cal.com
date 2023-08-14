@@ -74,7 +74,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={excludedDates}
-          onChange={(ranges) => append({ ranges })}
+          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
               {t("add_an_override")}

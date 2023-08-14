@@ -109,7 +109,7 @@ function UsersTableBare() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div
-        className="rounded-md border"
+        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={() => fetchMoreOnBottomReached()}
         style={{
