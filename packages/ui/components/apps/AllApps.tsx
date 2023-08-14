@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppCategories } from "@calcom/prisma/enums";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
@@ -157,7 +157,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
     .filter((app) =>
       selectedCategory !== null
         ? app.categories
-          ? app.categories.includes(AppCategories[selectedCategory as keyof typeof AppCategories])
+          ? app.categories.includes(selectedCategory as AppCategories)
           : app.category === selectedCategory
         : true
     )
