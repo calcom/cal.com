@@ -77,7 +77,7 @@ export async function getLocationGroupedOptions(
     },
   });
 
-  const integrations = await getEnabledApps(credentials, true);
+  const integrations = await getEnabledApps({ credentials, filterOnCredentials: true });
 
   integrations.forEach((app) => {
     // All apps that are labeled as a locationOption are video apps.
