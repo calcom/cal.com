@@ -150,22 +150,6 @@ export function AvailabilitySliderTable() {
     <TBContext.Provider
       value={createTimezoneBuddyStore({
         browsingDate: browsingDate.toDate(),
-        uniquedTimezones: [
-          "America/New_York",
-          "America/Los_Angeles",
-          "Europe/London",
-          "Asia/Tokyo",
-          "Africa/Cairo",
-          "Australia/Sydney",
-          "Australia/Sydney",
-          "Pacific/Auckland",
-          "Asia/Dubai",
-          "Europe/Amsterdam",
-          "America/Chicago",
-          "Asia/Shanghai",
-          "Asia/Kolkata",
-          "America/Tijuana",
-        ],
       })}>
       <div className="relative">
         <DataTable

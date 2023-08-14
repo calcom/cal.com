@@ -53,15 +53,9 @@ function isCurrentHourInRange({
 export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
   const store = useContext(TBContext);
   if (!store) throw new Error("Missing TBContext.Provider in the tree");
-  const getTzInfo = useStore(store, (s) => s.getTimezone);
   const browsingDate = useStore(store, (s) => s.browsingDate);
-  const tz = getTzInfo(timezone);
 
-  if (!tz) return null;
-
-  const { name } = tz; // TZ of the USER
-
-  const usersTimezoneDate = dayjs(browsingDate).tz(name);
+  const usersTimezoneDate = dayjs(browsingDate).tz(timezone);
 
   const nowDate = dayjs(browsingDate);
 
