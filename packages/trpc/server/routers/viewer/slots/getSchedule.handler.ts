@@ -2,7 +2,7 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { getAvailableSlots } from "./util";
 
 type GetScheduleOptions = {
-  ctx: Record<string, unknown>;
+  ctx: { req: { headers: { host?: string | null } } };
   input: TGetScheduleInputSchema;
 };
 
