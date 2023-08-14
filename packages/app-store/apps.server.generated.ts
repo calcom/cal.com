@@ -21,7 +21,6 @@ export const apiHandlers = {
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
   googlevideo: import("./googlevideo/api"),
-  "greet-meet": import("./greet-meet/api"),
   gtm: import("./gtm/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),

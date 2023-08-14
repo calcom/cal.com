@@ -9,7 +9,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { ArrowRight, Plus } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
@@ -24,7 +24,7 @@ const UserProfile = () => {
   });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const [imageSrc, setImageSrc] = useState<string>("");
+  const [imageSrc, setImageSrc] = useState<string>(user.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
@@ -98,14 +98,7 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && (
-          <Avatar
-            alt={user.username || ""}
-            size="lg"
-            fallback={<Plus className="text-subtle h-6 w-6" />}
-            imageSrc={imageSrc}
-          />
-        )}
+        {user && <Avatar alt={user.username || ""} size="lg" imageSrc={imageSrc} />}
         <input
           ref={avatarRef}
           type="hidden"

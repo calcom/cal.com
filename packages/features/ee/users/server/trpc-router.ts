@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
 import { TRPCError } from "@calcom/trpc";
@@ -39,7 +39,7 @@ export function getAvatarUrlFromUser(user: {
   username: string | null;
   email: string;
 }) {
-  if (!user.avatar || !user.username) return getPlaceholderAvatar(null, null);
+  if (!user.avatar || !user.username) return defaultAvatarSrc({ email: user.email });
   return `${WEBAPP_URL}/${user.username}/avatar.png`;
 }
 

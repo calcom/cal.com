@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -106,7 +106,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
   user.avatar = rawAvatar
     ? `${WEBAPP_URL}/${user.username}/avatar.png?orgId=${user.organizationId}`
-    : getPlaceholderAvatar(null, user.username);
+    : defaultAvatarSrc({ email });
   const locale = user?.locale || ctx.locale;
 
   const isOrgAdmin = !!user.organization?.members.length;

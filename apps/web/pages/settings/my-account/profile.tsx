@@ -8,6 +8,7 @@ import { z } from "zod";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -37,7 +38,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2, Plus } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -406,7 +407,13 @@ const ProfileForm = ({
           render={({ field: { value } }) => (
             <>
               <Avatar
-                fallback={<Plus className="text-subtle h-6 w-6" />}
+                fallback={
+                  <img
+                    src={defaultAvatarSrc({ email: defaultValues.email })}
+                    alt={defaultValues.name}
+                    className="min-w-16 min-h-16 aspect-square h-16 w-16 rounded-full"
+                  />
+                }
                 alt={defaultValues.name || ""}
                 imageSrc={value}
                 size="lg"
