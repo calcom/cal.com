@@ -1,3 +1,4 @@
+import type { AppCategories } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 // If you import this file on any app it should produce circular dependency
@@ -132,7 +133,12 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
-export const defaultVideoAppCategories = ["conferencing", "messaging"];
+export const defaultVideoAppCategories: AppCategories[] = [
+  "conferencing",
+  "messaging",
+  // Legacy name for conferencing
+  "video",
+];
 
 /**
  *
@@ -141,7 +147,7 @@ export const defaultVideoAppCategories = ["conferencing", "messaging"];
  * @returns - true if app supports team install
  */
 export function doesAppSupportTeamInstall(
-  appCategories: string[],
+  appCategories: AppCategories[],
   concurrentMeetings: boolean | undefined = undefined
 ) {
   return !appCategories.some(

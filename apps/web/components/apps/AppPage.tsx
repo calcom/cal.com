@@ -8,6 +8,7 @@ import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIn
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppCategories } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import { Badge, Button, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
@@ -24,7 +25,7 @@ export type AppPageProps = {
   slug: string;
   variant: string;
   body: React.ReactNode;
-  categories: string[];
+  categories: AppCategories[];
   author: string;
   pro?: boolean;
   price?: number;

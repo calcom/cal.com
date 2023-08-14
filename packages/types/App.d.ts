@@ -32,6 +32,10 @@ type DynamicLinkBasedEventLocation = {
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
 type AppData = {
+  /**
+   * TODO: We must assert that if `location` is specified in config.json, then it must have category one of defaultAppCategories.
+   * Missing adding the category would cause the app to not show up in locations dropdown.
+   */
   location?: EventLocationTypeFromAppMeta;
   tag?: Tag;
 } | null;

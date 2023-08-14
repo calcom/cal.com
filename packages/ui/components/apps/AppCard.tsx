@@ -1,3 +1,4 @@
+import type { AppCategories } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -183,7 +184,7 @@ const InstallAppButtonChild = ({
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
-  appCategories: string[];
+  appCategories: AppCategories[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
 } & ButtonProps) => {

@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
+import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -56,7 +57,7 @@ export async function getLocationGroupedOptions(
       ...idToSearchObject,
       app: {
         categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video, AppCategories.messaging],
+          hasSome: defaultVideoAppCategories,
         },
       },
     },
@@ -81,26 +82,23 @@ export async function getLocationGroupedOptions(
   integrations.forEach((app) => {
     if (app.locationOption) {
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
-      let category =
+
+      let groupByCategory =
+        // If there is only one category, use it, otherwise find the one that is not a default video app category
         app.categories.length >= 2
-          ? app.categories.find(
-              (category) =>
-                !(
-                  [AppCategories.video, AppCategories.conferencing, AppCategories.messaging] as string[]
-                ).includes(category)
-            )
+          ? app.categories.find((category) => !defaultVideoAppCategories.includes(category))
           : app.categories[0];
-      if (!category) category = AppCategories.conferencing;
+      if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
       for (const credential of app.credentials) {
         const label = `${app.locationOption.label} ${
           credential.team?.name ? `(${credential.team.name})` : ""
         }`;
         const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug, credential };
-        if (apps[category]) {
-          apps[category] = [...apps[category], option];
+        if (apps[groupByCategory]) {
+          apps[groupByCategory] = [...apps[groupByCategory], option];
         } else {
-          apps[category] = [option];
+          apps[groupByCategory] = [option];
         }
       }
     }

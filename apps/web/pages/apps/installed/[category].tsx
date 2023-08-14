@@ -112,7 +112,6 @@ interface IntegrationsContainerProps {
 }
 
 interface IntegrationsListProps {
-  category?: IntegrationsContainerProps["category"];
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
 }
@@ -335,7 +334,7 @@ const IntegrationsContainer = ({
                 </Button>
               }
             />
-            <IntegrationsList handleDisconnect={handleDisconnect} data={data} category={category} />
+            <IntegrationsList handleDisconnect={handleDisconnect} data={data} />
           </div>
         );
       }}

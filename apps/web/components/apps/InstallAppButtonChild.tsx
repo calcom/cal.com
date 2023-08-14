@@ -4,6 +4,7 @@ import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinne
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
@@ -30,7 +31,7 @@ export const InstallAppButtonChild = ({
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: AppFrontendPayload["type"]; variant: string; slug: string };
-  appCategories: string[];
+  appCategories: AppCategories[];
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
   concurrentMeetings?: boolean;
