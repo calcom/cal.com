@@ -9,7 +9,6 @@ import { trpc } from "@calcom/trpc";
 import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
 
 import { TBContext, createTimezoneBuddyStore } from "../store";
-import { HoverOverview } from "./HoverOverview";
 import { TimeDial } from "./TimeDial";
 
 export interface SliderUser {
@@ -157,7 +156,7 @@ export function AvailabilitySliderTable() {
           columns={memorisedColumns}
           data={flatData}
           isLoading={isLoading}
-          tableOverlay={<HoverOverview />}
+          // tableOverlay={<HoverOverview />}
           onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         />
       </div>

@@ -15,7 +15,11 @@ export interface TimezoneBuddyProps {
   timeMode?: "12h" | "24h";
 }
 
-type TimezoneBuddyState = TimezoneBuddyProps;
+type TimezoneBuddyState = TimezoneBuddyProps & {
+  addToDate: (amount: number) => void;
+  subtractFromDate: (amount: number) => void;
+  setBrowseDate: (date: Date) => void;
+};
 
 export type TimezoneBuddyStore = ReturnType<typeof createTimezoneBuddyStore>;
 
@@ -30,9 +34,22 @@ export const createTimezoneBuddyStore = (initProps?: Partial<TimezoneBuddyProps>
     browsingDate: new Date(),
   };
 
-  return createStore<TimezoneBuddyState>()(() => ({
+  return createStore<TimezoneBuddyState>()((set, get) => ({
     ...DEFAULT_PROPS,
     ...initProps,
+    addToDate: (amount?: number) => {
+      const date = get().browsingDate;
+      date.setDate(date.getDate() + (amount || 1));
+      set({ browsingDate: date });
+    },
+    subtractFromDate: (amount?: number) => {
+      const date = get().browsingDate;
+      date.setDate(date.getDate() - (amount || 1));
+      set({ browsingDate: date });
+    },
+    setBrowseDate: (date: Date) => {
+      set({ browsingDate: date });
+    },
   }));
 };
 
