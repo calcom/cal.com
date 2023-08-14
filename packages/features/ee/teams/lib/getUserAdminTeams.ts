@@ -58,6 +58,9 @@ const getUserAdminTeams = async ({
         },
       }),
     },
+    orderBy: {
+      orgUsers: { _count: "desc" },
+    },
   });
 
   if (teams.length && getUserInfo) {
@@ -76,7 +79,7 @@ const getUserAdminTeams = async ({
     if (user) {
       const userObject = {
         id: user.id,
-        name: user.name || "Nameless",
+        name: user.name || "me",
         logo: user?.avatar === "" ? null : user?.avatar,
         isUser: true,
         ...(includeCredentials && { credentials: user.credentials }),
