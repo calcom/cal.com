@@ -94,7 +94,7 @@ export function AvailabilitySliderTable() {
         header: () => {
           return (
             <div className="space-between flex items-center space-x-4">
-              <span>{browsingDate.format("dddd DD MMM, YYYY")}</span>
+              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
               <ButtonGroup>
                 <Button
                   color="minimal"

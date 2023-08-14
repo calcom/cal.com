@@ -111,7 +111,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                     {hours ? (
                       <div title={hourSet.format("DD/MM HH:mm")}>
                         <div className="flex flex-col text-center text-xs leading-3">
-                          <span>{hours}</span>
+                          <span>{hourSet.format("H")}</span>
                         </div>
                       </div>
                     ) : (
