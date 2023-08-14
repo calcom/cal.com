@@ -1,7 +1,7 @@
 import type { Credential, Prisma } from "@prisma/client";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledApps";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
@@ -119,8 +119,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     }
   }
 
-  const enabledApps = await getEnabledApps({
-    credentials,
+  const enabledApps = await getEnabledAppsFromCredentials(credentials, {
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });

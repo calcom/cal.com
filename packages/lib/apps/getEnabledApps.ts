@@ -12,12 +12,14 @@ type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
  * @param filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
-const getEnabledApps = async (options: {
-  where?: Prisma.AppWhereInput;
-  credentials: CredentialDataWithTeamName[];
-  filterOnCredentials?: boolean;
-}) => {
-  const { where: _where = {}, credentials, filterOnCredentials = false } = options;
+const getEnabledAppsFromCredentials = async (
+  credentials: CredentialDataWithTeamName[],
+  options?: {
+    where?: Prisma.AppWhereInput;
+    filterOnCredentials?: boolean;
+  }
+) => {
+  const { where: _where = {}, filterOnCredentials = false } = options || {};
   const filterOnIds = {
     credentials: {
       some: {
@@ -59,4 +61,4 @@ const getEnabledApps = async (options: {
   return filteredApps;
 };
 
-export default getEnabledApps;
+export default getEnabledAppsFromCredentials;
