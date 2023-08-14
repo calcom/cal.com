@@ -1901,6 +1901,7 @@
   "first_event_type_webhook_description": "Créez votre premier webhook pour ce type d'événement",
   "install_app_on": "Installer l’application sur",
   "create_for": "Créer pour",
+  "currency": "Devise",
   "setup_organization": "Configurer une organisation",
   "organization_banner_description": "Créez un environnement où vos équipes peuvent créer des applications partagées, des workflows et des types d'événements avec une planification round-robin et collective.",
   "organization_banner_title": "Gérer les organisations avec plusieurs équipes",

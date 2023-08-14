@@ -4426,6 +4426,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/paypal@workspace:packages/app-store/paypal":
+  version: 0.0.0-use.local
+  resolution: "@calcom/paypal@workspace:packages/app-store/paypal"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ping@workspace:packages/app-store/ping":
   version: 0.0.0-use.local
   resolution: "@calcom/ping@workspace:packages/app-store/ping"
