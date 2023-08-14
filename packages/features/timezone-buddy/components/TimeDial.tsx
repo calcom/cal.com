@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { useStore } from "zustand";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -19,27 +20,35 @@ function isMidnight(h: number) {
 
 function isCurrentHourInRange({
   dateRanges,
-  dateInfo,
+  cellDate,
+  offset,
 }: {
   dateRanges?: DateRange[];
-  dateInfo: {
-    currentHour: number;
-  };
+  cellDate: Dayjs;
+  offset: number;
 }) {
   if (!dateRanges) return false;
-  const { currentHour } = dateInfo;
-  console.log({
-    dateRanges,
-  });
+  const currentHour = cellDate.hour();
 
   return dateRanges.some((time) => {
     if (!time) null;
 
-    const startHour = dayjs(time.start);
-    const endHour = dayjs(time.end);
+    const startHour = dayjs(time.start).subtract(offset, "hour");
+    const endHour = dayjs(time.end).subtract(offset, "hour");
+
+    // If not same day number then we don't care
+    if (startHour.day() !== cellDate.day()) return false;
 
     // this is a weird way of doing this
     const newDate = dayjs(time.start).set("hour", currentHour);
+
+    console.log({
+      time,
+      newDate: newDate.format("DD/MM HH:mm"),
+      startHour: startHour.format("DD/MM HH:mm"),
+      endHour: endHour.format("DD/MM HH:mm"),
+      isBetween: newDate.isBetween(startHour, endHour, undefined, "[)"),
+    });
 
     return newDate.isBetween(startHour, endHour, undefined, "[)"); // smiley faces or something
   });
@@ -70,6 +79,11 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
     hours.filter((i) => i >= 24).map((i) => i % 24),
   ];
 
+  if (dateRanges && dateRanges?.length > 0) {
+    console.log("==================");
+    console.log(dateRanges);
+  }
+
   return (
     <>
       <div className="flex items-end overflow-auto text-sm">
@@ -80,14 +94,12 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
             <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
               {day.map((h) => {
                 const hourSet = dateWithDaySet.set("hour", h).set("minute", 0);
-                const currentHour = hourSet.hour();
 
                 // const isInRange = false;
                 const isInRange = isCurrentHourInRange({
                   dateRanges,
-                  dateInfo: {
-                    currentHour,
-                  },
+                  offset,
+                  cellDate: hourSet,
                 });
 
                 return (
@@ -102,11 +114,11 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       width: `${DAY_CELL_WIDTH}px`,
                     }}>
                     {h ? (
-                      <div title={dateWithDaySet.format("DD/MM HH:mm")}>{h}</div>
+                      <div title={hourSet.format("DD/MM HH:mm")}>{h}</div>
                     ) : (
                       <div className="flex flex-col text-center text-xs leading-3">
-                        <span>{dateWithDaySet.format("MMM")}</span>
-                        <span>{dateWithDaySet.format("DD")}</span>
+                        <span>{hourSet.format("MMM")}</span>
+                        <span>{hourSet.format("DD")}</span>
                       </div>
                     )}
                   </div>

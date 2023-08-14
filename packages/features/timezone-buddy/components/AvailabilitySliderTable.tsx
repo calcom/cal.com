@@ -1,13 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { useSession } from "next-auth/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, DataTable } from "@calcom/ui";
+import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
 
 import { TBContext, createTimezoneBuddyStore } from "../store";
 import { HoverOverview } from "./HoverOverview";
@@ -23,9 +22,7 @@ export interface SliderUser {
 }
 
 export function AvailabilitySliderTable() {
-  const { data: session } = useSession();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const { t } = useLocale();
   const [browsingDate, setBrowsingDate] = useState(dayjs());
 
   const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
@@ -48,7 +45,7 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email } = row.original;
+          const { username, email, timeZone } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
               <Avatar
@@ -58,10 +55,12 @@ export function AvailabilitySliderTable() {
                 gravatarFallbackMd5="fallback"
               />
               <div className="">
-                <div className="text-emphasis max-w-64 truncate text-sm font-medium leading-none ">
+                <div
+                  className="text-emphasis max-w-64 truncate text-sm font-medium leading-none"
+                  title={email}>
                   {username || "No username"}
                 </div>
-                <div className="text-subtle text-sm leading-none">{email}</div>
+                <div className="text-subtle text-sm leading-none">{timeZone}</div>
               </div>
             </div>
           );
@@ -73,21 +72,46 @@ export function AvailabilitySliderTable() {
         header: "Timezone",
         cell: ({ row }) => {
           const { timeZone } = row.original;
-          return <Badge>{timeZone}</Badge>;
-        },
-      },
-      {
-        id: "Time",
-        header: "Time",
-        cell: ({ row }) => {
-          const { timeZone } = row.original;
-          const time = dayjs().tz(timeZone).format("HH:mm");
-          return <Badge>{time}</Badge>;
+          const timeRaw = dayjs().tz(timeZone);
+          const time = timeRaw.format("HH:mm");
+          const utcOffsetInMinutes = timeRaw.utcOffset();
+          const hours = Math.abs(Math.floor(utcOffsetInMinutes / 60));
+          const minutes = Math.abs(utcOffsetInMinutes % 60);
+          const offsetFormatted = `${utcOffsetInMinutes < 0 ? "-" : "+"}${hours
+            .toString()
+            .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+          return (
+            <div className="flex flex-col gap-2 leading-none">
+              <span className="text-default text-sm font-medium">{time}</span>
+              <span className="text-subtle text-xs ">GMT {offsetFormatted}</span>
+            </div>
+          );
         },
       },
       {
         id: "slider",
-        header: `${browsingDate.format("MMM DD, YYYY")}`,
+        header: () => {
+          return (
+            <div className="space-between flex items-center space-x-4">
+              <span>{browsingDate.format("dddd DD MMM, YYYY")}</span>
+              <ButtonGroup>
+                <Button
+                  color="minimal"
+                  variant="icon"
+                  StartIcon={ChevronLeftIcon}
+                  onClick={() => setBrowsingDate(browsingDate.subtract(1, "day"))}
+                />
+                <Button
+                  onClick={() => setBrowsingDate(browsingDate.add(1, "day"))}
+                  color="minimal"
+                  StartIcon={ChevronRightIcon}
+                  variant="icon"
+                />
+              </ButtonGroup>
+            </div>
+          );
+        },
         cell: ({ row }) => {
           const { timeZone, dateRanges } = row.original;
           // return <pre>{JSON.stringify(dateRanges, null, 2)}</pre>;
@@ -97,7 +121,7 @@ export function AvailabilitySliderTable() {
     ];
 
     return cols;
-  }, [browsingDate, data]);
+  }, [browsingDate]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as SliderUser[];

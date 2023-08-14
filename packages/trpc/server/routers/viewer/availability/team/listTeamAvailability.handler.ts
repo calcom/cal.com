@@ -62,8 +62,8 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     nextCursor = nextItem!.id;
   }
 
-  const dateFrom = dayjs(input.startDate).tz(input.loggedInUsersTz);
-  const dateTo = dayjs(input.endDate).tz(input.loggedInUsersTz);
+  const dateFrom = dayjs(input.startDate).tz(input.loggedInUsersTz).subtract(1, "day");
+  const dateTo = dayjs(input.endDate).tz(input.loggedInUsersTz).add(1, "day");
 
   const buildMembers = teamMembers?.map(async (member) => {
     if (!member.user.defaultScheduleId) {
