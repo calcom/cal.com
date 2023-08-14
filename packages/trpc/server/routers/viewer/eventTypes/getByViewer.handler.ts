@@ -50,13 +50,7 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
-  children: {
-    include: {
-      users: {
-        select: userSelect,
-      },
-    },
-  },
+  children: true,
   parentId: true,
   hosts: {
     select: {
@@ -71,13 +65,13 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
 
 const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   ...userEventTypeSelect,
-  // children: {
-  //   include: {
-  //     users: {
-  //       select: userSelect,
-  //     },
-  //   },
-  // },
+  children: {
+    include: {
+      users: {
+        select: userSelect,
+      },
+    },
+  },
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
