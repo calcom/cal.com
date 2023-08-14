@@ -27,7 +27,7 @@ export function AvailabilitySliderTable() {
   const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
-      loggedInUsersTz: dayjs.tz.guess(), // fuck this find a better way
+      loggedInUsersTz: dayjs.tz.guess(),
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
     },
