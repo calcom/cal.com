@@ -166,7 +166,8 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;
       return 0;
-    });
+    })
+    .sort((a, b) => (b.installCount || 0) - (a.installCount || 0));
 
   return (
     <div>
