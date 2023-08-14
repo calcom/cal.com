@@ -7,7 +7,6 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,13 +16,14 @@ import type { EventType } from ".prisma/client";
 
 type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
-    data: StripePaymentData | StripeSetupIntentData;
+    data: Record<string, unknown>;
   };
   eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
   user: { username: string | null };
   location?: string | null;
   bookingId: number;
   bookingUid: string;
+  clientSecret: string;
 };
 
 type States =
@@ -162,26 +162,18 @@ const ELEMENT_STYLES_DARK: stripejs.Appearance = {
 };
 
 export default function PaymentComponent(props: Props) {
-  const stripePromise = getStripe((props.payment.data as StripePaymentData).stripe_publishable_key);
-  const paymentOption = props.payment.paymentOption;
+  const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  let clientSecret: string | null;
 
   useEffect(() => {
     setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
   }, []);
 
-  if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
-    clientSecret = props.payment.data.setupIntent.client_secret;
-  } else if (!("setupIntent" in props.payment.data)) {
-    clientSecret = props.payment.data.client_secret;
-  }
-
   return (
     <Elements
       stripe={stripePromise}
       options={{
-        clientSecret: clientSecret!,
+        clientSecret: props.clientSecret,
         appearance: darkMode ? ELEMENT_STYLES_DARK : ELEMENT_STYLES,
       }}>
       <PaymentForm {...props} />
