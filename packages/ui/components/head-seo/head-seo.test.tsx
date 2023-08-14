@@ -52,12 +52,19 @@ describe("Tests for HeadSeo component", () => {
       expect(titleEl?.getAttribute("canonical")).toEqual(basicProps.canonical);
       expect(titleEl?.getAttribute("description")).toEqual(basicProps.description);
       expect(titleEl?.getAttribute("site_name")).toEqual(basicProps.siteName);
-      expect(titleEl?.getAttribute("title")).toEqual(`${basicProps.title} | Cal.com`);
       expect(titleEl?.getAttribute("image")).toContain("constructGenericImage");
     });
   });
 
-  test("Should render without brand", async () => {
+  test("Should render title with brand", async () => {
+    const { container } = render(<HeadSeo {...basicProps} />);
+    await waitFor(async () => {
+      const titleEl = container.querySelector("title");
+      expect(titleEl?.getAttribute("title")).toEqual(`${basicProps.title} | Cal.com`);
+    });
+  });
+
+  test("Should render title without brand", async () => {
     const { container } = render(<HeadSeo {...basicProps} isBrandingHidden />);
     await waitFor(async () => {
       const titleEl = container.querySelector("title");
