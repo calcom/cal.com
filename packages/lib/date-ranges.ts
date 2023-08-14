@@ -56,16 +56,23 @@ export function processWorkingHours({
 }
 
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const date = dayjs.utc(item.date);
-
-  const startTime = dayjs(item.startTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
-  const endTime = dayjs(item.endTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
-
-  const diffDays = startTime.startOf("day").diff(dayjs.utc(item.startTime).startOf("day"), "day");
-
+  const startDate = dayjs
+    .utc(item.date)
+    .startOf("day")
+    .add(item.startTime.getUTCHours(), "hours")
+    .add(item.startTime.getUTCMinutes(), "minutes")
+    .second(0)
+    .tz(timeZone, true);
+  const endDate = dayjs
+    .utc(item.date)
+    .startOf("day")
+    .add(item.endTime.getUTCHours(), "hours")
+    .add(item.endTime.getUTCMinutes(), "minutes")
+    .second(0)
+    .tz(timeZone, true);
   return {
-    start: date.add(diffDays, "day").hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
-    end: date.add(diffDays, "day").hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
+    start: startDate,
+    end: endDate,
   };
 }
 
