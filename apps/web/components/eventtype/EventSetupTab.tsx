@@ -412,8 +412,7 @@ export const EventSetupTab = (
           defaultValue={eventType.slug}
           addOnLeading={
             <>
-              {orgBranding && `${orgBranding.slug}.`}
-              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {(orgBranding ? orgBranding?.fullDomain : CAL_URL).replace(/^(https?:|)\/\//, "")}/
               {!isManagedEventType
                 ? team
                   ? "team/" + team.slug
