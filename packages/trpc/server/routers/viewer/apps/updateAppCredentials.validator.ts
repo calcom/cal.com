@@ -13,13 +13,12 @@ export const handleCustomValidations = async ({
 }: UpdateAppCredentialsOptions & { appId: string }) => {
   const { key } = input;
   const validatorGetter = validators[appId as keyof typeof validators];
-  if (validatorGetter) {
-    try {
-      const validator = (await validatorGetter()).default;
-      return await validator({ input, ctx });
-    } catch (error) {
-      throw new TRPCError({ code: "BAD_REQUEST" });
-    }
+  // If no validator is found, return the key as is
+  if (!validatorGetter) return key;
+  try {
+    const validator = (await validatorGetter()).default;
+    return await validator({ input, ctx });
+  } catch (error) {
+    throw new TRPCError({ code: "BAD_REQUEST" });
   }
-  return key;
 };
