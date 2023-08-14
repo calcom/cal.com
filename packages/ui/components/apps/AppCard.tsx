@@ -265,7 +265,7 @@ const InstallAppButtonChild = ({
                   );
                 }}>
                 <p className="text-left">
-                  {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
+                  {t(team.name)} {isInstalledTeamOrUser && `(${t("installed")})`}
                 </p>
               </DropdownItem>
             );

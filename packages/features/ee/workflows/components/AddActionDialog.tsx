@@ -173,7 +173,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         label: string;
                         value: WorkflowActions;
                         needsUpgrade: boolean;
-                      }) => option.needsUpgrade}
+                        needsVerification: boolean;
+                      }) => option.needsUpgrade || option.needsVerification}
                     />
                   );
                 }}
