@@ -1,7 +1,7 @@
 import type { Credential, Prisma } from "@prisma/client";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledApps";
+import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";

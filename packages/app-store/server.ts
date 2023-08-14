@@ -2,7 +2,7 @@ import type { TFunction } from "next-i18next";
 
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledApps";
+import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
