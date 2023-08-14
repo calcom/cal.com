@@ -19,6 +19,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
+import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 
 export const checkIfIsAvailable = ({
@@ -240,11 +241,8 @@ export function getRegularOrDynamicEventType(
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
 }
 
-export async function getAvailableSlots(
-  ctx: { req: { headers: { host?: string | null } } },
-  input: TGetScheduleInputSchema
-) {
-  const orgDetails = orgDomainConfig(ctx.req.headers.host ?? "");
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
 
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
