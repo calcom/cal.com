@@ -2,6 +2,7 @@ import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
+import type { API } from "mailhog";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -116,7 +117,7 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
+export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (
@@ -330,7 +331,19 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       await page.goto("/auth/logout");
     },
     deleteAll: async () => {
+      const emailMessageIds: string[] = [];
       const ids = store.users.map((u) => u.id);
+      for (const user of store.users) {
+        const emailMessages = await emails.search(user.email);
+        if (emailMessages && emailMessages.count > 0) {
+          emailMessages.items.forEach((item) => {
+            emailMessageIds.push(item.ID);
+          });
+        }
+      }
+      for (const id of emailMessageIds) {
+        await emails.deleteMessage(id);
+      }
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
       store.users = [];
     },
@@ -387,6 +400,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: { team: { select: { children: true, metadata: true, name: true } } },
       });
     },
+    getFirstEventAsOwner: async () =>
+      prisma.eventType.findFirstOrThrow({
+        where: {
+          userId: user.id,
+        },
+      }),
     getFirstTeamEvent: async (teamId: number) => {
       return prisma.eventType.findFirstOrThrow({
         where: {

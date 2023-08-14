@@ -112,7 +112,7 @@ export const InstallAppButtonChild = ({
                   );
                 }}>
                 <p>
-                  {team.name} {isInstalled && `(${t("installed")})`}
+                  {t(team.name)} {isInstalled && `(${t("installed")})`}
                 </p>
               </DropdownItem>
             );

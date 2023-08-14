@@ -1720,7 +1720,7 @@
   "identifier": "Identifier",
   "duplicate_email": "Email is duplicate",
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
-  "booking_with_payment_cancelled_already_paid": "A refund for this booking payment it's on the way.",
+  "booking_with_payment_cancelled_already_paid": "A refund for this booking payment is on its way.",
   "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",
   "booking_confirmation_failed": "Booking confirmation failed",
   "not_enough_seats": "Not enough seats",
@@ -1903,6 +1903,7 @@
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "install_app_on": "Install app on",
   "create_for": "Create for",
+  "currency": "Currency",
   "setup_organization": "Setup an Organization",
   "organization_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
   "organization_banner_title": "Manage organizations with multiple teams",
@@ -1996,6 +1997,7 @@
   "attendee_last_name_variable": "Attendee last name",
   "attendee_first_name_info": "The person booking's first name",
   "attendee_last_name_info": "The person booking's last name",
+  "me": "Me",
   "verify_team_tooltip": "Verify your team to enable sending messages to attendees",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
