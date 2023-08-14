@@ -1,44 +1,51 @@
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import type { GetServerSidePropsContext } from "next";
 
+import { getLayout } from "@calcom/features/MainLayout";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
-import Shell from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
+import { ssrInit } from "@server/lib/ssr";
+
 function Teams() {
   const { t } = useLocale();
+  const [user] = trpc.viewer.me.useSuspenseQuery();
+
   return (
-    <Shell
+    <ShellMain
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
-        <Button
-          variant="fab"
-          StartIcon={Plus}
-          type="button"
-          href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-          {t("new")}
-        </Button>
+        (!user.organizationId || user.organization.isOrgAdmin) && (
+          <Button
+            variant="fab"
+            StartIcon={Plus}
+            type="button"
+            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+            {t("new")}
+          </Button>
+        )
       }>
       <TeamsListing />
-    </Shell>
+    </ShellMain>
   );
 }
 
-export const getStaticProps = async () => {
-  return {
-    props: {
-      ...(await serverSideTranslations("en", ["common"])),
-    },
-  };
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+  await ssr.viewer.me.prefetch();
+
+  return { props: { trpcState: ssr.dehydrate() } };
 };
 
 Teams.requiresLicense = false;
 Teams.PageWrapper = PageWrapper;
-
+Teams.getLayout = getLayout;
 export default Teams;

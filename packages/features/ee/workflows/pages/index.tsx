@@ -1,15 +1,17 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
+import { getLayout } from "@calcom/features/MainLayout";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, showToast, CreateButtonWithTeamsList } from "@calcom/ui";
+import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -23,12 +25,8 @@ function WorkflowsPage() {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const [checkedFilterItems, setCheckedFilterItems] = useState<{ userId: number | null; teamIds: number[] }>({
-    userId: session.data?.user.id || null,
-    teamIds: [],
-  });
-
-  const filters = getTeamsFiltersFromQuery(router.query);
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
 
   const queryRes = trpc.viewer.workflows.filteredList.useQuery({
     filters,
@@ -52,7 +50,7 @@ function WorkflowsPage() {
   });
 
   return (
-    <Shell
+    <ShellMain
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
@@ -95,7 +93,7 @@ function WorkflowsPage() {
           </FilterResults>
         </>
       </LicenseRequired>
-    </Shell>
+    </ShellMain>
   );
 }
 
@@ -223,5 +221,7 @@ const Filter = (props: {
     </div>
   );
 };
+
+WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

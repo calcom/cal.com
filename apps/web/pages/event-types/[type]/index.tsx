@@ -87,6 +87,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
+  requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
@@ -101,6 +102,8 @@ export type FormValues = {
     displayLocationPublicly?: boolean;
     phone?: string;
     hostDefault?: string;
+    credentialId?: number;
+    teamName?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -161,8 +164,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     data: { tabName },
   } = useTypedQuery(querySchema);
 
-  const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
+  const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
+    teamId: props.eventType.team?.id || props.eventType.parent?.teamId,
+    onlyInstalled: true,
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
@@ -200,6 +205,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
       if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${t(err.message)}`;
+      }
+
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
       }
 
       showToast(message ? t(message) : t(err.message), "error");
@@ -244,10 +253,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
+      hashedLink: eventType.hashedLink?.link || undefined,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
@@ -306,12 +317,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
-  const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
   if (appsMetadata) {
     numberOfActiveApps = Object.entries(appsMetadata).filter(
-      ([appId, appData]) => eventTypeApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+      ([appId, appData]) =>
+        eventTypeApps?.items.find((app) => app.slug === appId)?.isInstalled && appData.enabled
     ).length;
   }
 
@@ -423,7 +434,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     <>
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
-        installedAppsNumber={numberOfInstalledApps}
+        installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
         team={team}
@@ -500,7 +511,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         </Form>
       </EventTypeSingleLayout>
 
-      {slugExistsChildrenDialogOpen.length && (
+      {slugExistsChildrenDialogOpen.length ? (
         <ManagedEventTypeDialog
           slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
           isLoading={formMethods.formState.isSubmitting}
@@ -515,7 +526,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             setSlugExistsChildrenDialogOpen([]);
           }}
         />
-      )}
+      ) : null}
     </>
   );
 };
@@ -523,6 +534,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
+  if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 

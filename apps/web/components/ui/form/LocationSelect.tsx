@@ -2,6 +2,7 @@ import type { GroupBase, Props, SingleValue } from "react-select";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { Select } from "@calcom/ui";
@@ -12,6 +13,7 @@ export type LocationOption = {
   icon?: string;
   disabled?: boolean;
   address?: string;
+  credential?: CredentialDataWithTeamName;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
@@ -40,11 +42,13 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       name="location"
       id="location-select"
       components={{
-        Option: (props) => (
-          <components.Option {...props}>
-            <OptionWithIcon icon={props.data.icon} label={props.data.label} />
-          </components.Option>
-        ),
+        Option: (props) => {
+          return (
+            <components.Option {...props}>
+              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            </components.Option>
+          );
+        },
         SingleValue: (props) => (
           <components.SingleValue {...props}>
             <OptionWithIcon icon={props.data.icon} label={props.data.label} />

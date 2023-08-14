@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import schedule from "node-schedule";
 import { v4 } from "uuid";
 
@@ -32,9 +33,12 @@ export async function addSubscription({
 
   if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
     //schedule job for already existing bookings
+    const where: Prisma.BookingWhereInput = {};
+    if (appApiKey.teamId) where.eventType = { teamId: appApiKey.teamId };
+    else where.userId = appApiKey.userId;
     const bookings = await prisma.booking.findMany({
       where: {
-        userId: appApiKey.userId,
+        ...where,
         startTime: {
           gte: new Date(),
         },
@@ -63,9 +67,12 @@ export async function deleteSubscription({ appApiKey, webhookId }: { appApiKey: 
   });
 
   if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
+    const where: Prisma.BookingWhereInput = {};
+    if (appApiKey.teamId) where.eventType = { teamId: appApiKey.teamId };
+    else where.userId = appApiKey.userId;
     const bookingsWithScheduledJobs = await prisma.booking.findMany({
       where: {
-        userId: appApiKey.userId,
+        ...where,
         scheduledJobs: {
           isEmpty: false,
         },
@@ -97,6 +104,9 @@ export async function deleteSubscription({ appApiKey, webhookId }: { appApiKey: 
   return deleteWebhook;
 }
 export async function listBookings(appApiKey: ApiKey) {
+  const where: Prisma.BookingWhereInput = {};
+  if (appApiKey.teamId) where.eventType = { teamId: appApiKey.teamId };
+  else where.userId = appApiKey.userId;
   const bookings = await prisma.booking.findMany({
     take: 3,
     where: {
@@ -133,6 +143,7 @@ export async function listBookings(appApiKey: ApiKey) {
           currency: true,
           length: true,
           bookingFields: true,
+          team: true,
         },
       },
       attendees: {
@@ -144,7 +155,9 @@ export async function listBookings(appApiKey: ApiKey) {
       },
     },
   });
-
+  if (bookings.length === 0) {
+    return [];
+  }
   const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
 
   const updatedBookings = bookings.map((booking) => {

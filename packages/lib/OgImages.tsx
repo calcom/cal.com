@@ -62,7 +62,7 @@ export const constructMeetingImage = (
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
     `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(profile.image)}`,
+    profile.image && `&meetingImage=${encodeURIComponent(CAL_URL + profile.image)}`,
     `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.

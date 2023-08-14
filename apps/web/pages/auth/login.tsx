@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -49,6 +49,7 @@ export default function Login({
   samlProductID,
   totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -57,7 +58,7 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .email(`${t("enter_valid_email")}`),
-      password: z.string().min(1, `${t("error_required_field")}`),
+      password: !!totpEmail ? z.literal("") : z.string().min(1, `${t("error_required_field")}`),
     })
     // Passthrough other fields like totpCode
     .passthrough();
@@ -69,7 +70,7 @@ export default function Login({
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
-    [ErrorCode.IncorrectUsernamePassword]: t("incorrect_username_password"),
+    [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
@@ -77,7 +78,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
+  let callbackUrl = searchParams.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -169,7 +170,7 @@ export default function Login({
                 <EmailField
                   id="email"
                   label={t("email_address")}
-                  defaultValue={totpEmail || (router.query.email as string)}
+                  defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
                   {...register("email")}

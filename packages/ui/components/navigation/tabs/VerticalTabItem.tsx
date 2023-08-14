@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
-import type { ComponentProps } from "react";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { ChevronRight, ExternalLink } from "../../icon";
@@ -23,7 +22,8 @@ export type VerticalTabItemProps = {
   disableChevron?: boolean;
   href: string;
   isExternalLink?: boolean;
-  linkProps?: Omit<ComponentProps<typeof Link>, "href">;
+  linkShallow?: boolean;
+  linkScroll?: boolean;
   avatar?: string;
   iconClassName?: string;
 };
@@ -34,12 +34,13 @@ const VerticalTabItem = ({
   info,
   isChild,
   disableChevron,
-  linkProps,
+  linkShallow,
+  linkScroll,
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
-  const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href);
+
   return (
     <Fragment key={name}>
       {!props.hidden && (
@@ -47,7 +48,8 @@ const VerticalTabItem = ({
           <Link
             key={name}
             href={href}
-            {...linkProps}
+            shallow={linkShallow}
+            scroll={linkScroll}
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",
@@ -62,7 +64,7 @@ const VerticalTabItem = ({
             {props.icon && (
               <props.icon
                 className={classNames(
-                  "h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
+                  "mr-2 h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
                   props.iconClassName
                 )}
               />

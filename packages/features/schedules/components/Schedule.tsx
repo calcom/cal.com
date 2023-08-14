@@ -28,7 +28,7 @@ import {
   Select,
   SkeletonText,
   Switch,
-  Checkbox,
+  CheckboxField,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
@@ -69,7 +69,6 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
@@ -77,7 +76,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
@@ -244,7 +243,7 @@ const RemoveTimeButton = ({
 const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={className}>
+    <div className={classNames("flex flex-row gap-1",className)}>
       <LazySelect
         className="inline-block w-[100px]"
         value={value.start}
@@ -447,7 +446,7 @@ const CopyTimes = ({
           <li key="select all">
             <label className="text-default flex w-full items-center justify-between">
               <span className="px-1">{t("select_all")}</span>
-              <Checkbox
+              <CheckboxField
                 description=""
                 value={t("select_all")}
                 checked={selected.length === 7}
@@ -472,7 +471,7 @@ const CopyTimes = ({
               <li key={weekday}>
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
-                  <Checkbox
+                  <CheckboxField
                     description=""
                     value={weekdayIndex}
                     checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}

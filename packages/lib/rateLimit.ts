@@ -7,7 +7,7 @@ import logger from "./logger";
 const log = logger.getChildLogger({ prefix: ["RateLimit"] });
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode";
+  rateLimitingType?: "core" | "forcedSlowMode" | "common";
   identifier: string;
 };
 
@@ -32,11 +32,20 @@ export type RatelimitResponse = {
   pending: Promise<unknown>;
 };
 
+let warningDisplayed = false;
+
+/** Prevent flooding the logs while testing/building */
+function logOnce(message: string) {
+  if (warningDisplayed) return;
+  log.warn(message);
+  warningDisplayed = true;
+}
+
 export function rateLimiter() {
   const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!UPSATCH_ENV_FOUND) {
-    log.warn("Disabled due to not finding UPSTASH env variables");
+    logOnce("Disabled due to not finding UPSTASH env variables");
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
 
@@ -47,6 +56,12 @@ export function rateLimiter() {
       analytics: true,
       prefix: "ratelimit",
       limiter: Ratelimit.fixedWindow(10, "60s"),
+    }),
+    common: new Ratelimit({
+      redis,
+      analytics: true,
+      prefix: "ratelimit",
+      limiter: Ratelimit.fixedWindow(200, "60s"),
     }),
     forcedSlowMode: new Ratelimit({
       redis,

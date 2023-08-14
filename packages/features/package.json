@@ -12,11 +12,13 @@
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
     "@lexical/react": "^0.9.0",
+    "@tanstack/react-table": "^8.9.3",
     "dompurify": "^2.4.1",
     "framer-motion": "^10.12.8",
     "lexical": "^0.9.0",
     "react-select": "^5.7.0",
     "react-sticky-box": "^2.0.4",
+    "react-virtual": "^2.10.4",
     "zustand": "^4.3.2"
   },
   "devDependencies": {

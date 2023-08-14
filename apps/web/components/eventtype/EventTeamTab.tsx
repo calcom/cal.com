@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
@@ -19,16 +21,17 @@ interface IUserToValue {
   email: string;
 }
 
-const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
+const mapUserToValue = ({ id, name, username, email }: IUserToValue, pendingString: string) => ({
   value: `${id || ""}`,
-  label: `${name || ""}`,
+  label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
-  slug: string
+  slug: string,
+  pendingString: string
 ) => {
   return {
     slug,
@@ -43,7 +46,7 @@ export const mapMemberToChildrenOption = (
       eventTypeSlugs: member.eventTypes ?? [],
     },
     value: `${member.id ?? ""}`,
-    label: member.name ?? "",
+    label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,
   };
 };
 
@@ -98,6 +101,7 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
+  helperText,
   ...rest
 }: {
   labelText: string;
@@ -106,6 +110,7 @@ const CheckedHostField = ({
   value: { isFixed: boolean; userId: number }[];
   onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
   options?: Options<CheckedSelectOption>;
+  helperText?: React.ReactNode | string;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="bg-muted flex flex-col space-y-5 p-4">
@@ -135,10 +140,23 @@ const CheckedHostField = ({
           placeholder={placeholder}
           {...rest}
         />
+        {helperText && <p className="text-subtle text-sm">{helperText}</p>}
       </div>
     </div>
   );
 };
+
+const FixedHostHelper = (
+  <Trans i18nKey="fixed_host_helper">
+    Add anyone who needs to attend the event.
+    <Link
+      className="underline underline-offset-2"
+      target="_blank"
+      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+      Learn more
+    </Link>
+  </Trans>
+);
 
 const RoundRobinHosts = ({
   teamMembers,
@@ -166,6 +184,7 @@ const RoundRobinHosts = ({
         value={value}
         placeholder={t("add_fixed_hosts")}
         labelText={t("fixed_hosts")}
+        helperText={FixedHostHelper}
       />
       <CheckedHostField
         options={teamMembers.sort(sortByLabel)}
@@ -174,6 +193,7 @@ const RoundRobinHosts = ({
         isFixed={false}
         placeholder={t("add_attendees")}
         labelText={t("round_robin_hosts")}
+        helperText={t("round_robin_helper")}
       />
     </>
   );
@@ -291,9 +311,13 @@ export const EventTeamTab = ({
       // description: t("round_robin_description"),
     },
   ];
-  const teamMembersOptions = teamMembers.map(mapUserToValue);
-  const childrenEventTypeOptions = teamMembers.map((member) => {
-    return mapMemberToChildrenOption(member, eventType.slug);
+  const pendingMembers = (member: (typeof teamMembers)[number]) =>
+    !!eventType.team?.parentId || !!member.username;
+  const teamMembersOptions = teamMembers
+    .filter(pendingMembers)
+    .map((member) => mapUserToValue(member, t("pending")));
+  const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
+    return mapMemberToChildrenOption(member, eventType.slug, t("pending"));
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
