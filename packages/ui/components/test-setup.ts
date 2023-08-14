@@ -6,6 +6,10 @@ vi.mock("@calcom/lib/OgImages", async () => {
   return {};
 });
 
+vi.mock("@calcom/trpc/react", () => ({
+  trpc: {},
+}));
+
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
