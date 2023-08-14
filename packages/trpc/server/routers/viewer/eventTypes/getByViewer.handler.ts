@@ -63,6 +63,7 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
 });
 
 const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  ...userEventTypeSelect,
   children: {
     include: {
       users: {
@@ -70,7 +71,6 @@ const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       },
     },
   },
-  ...userEventTypeSelect,
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
@@ -138,7 +138,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           teamId: null,
           userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
         },
-        select: userEventTypeSelect,
+        select: {
+          ...userEventTypeSelect,
+        },
         orderBy: [
           {
             position: "desc",
@@ -155,14 +157,22 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+  const userMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+    ...eventType,
+    children: [],
+    safeDescription: markdownToSafeHTML(eventType.description),
+    users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+  });
+
+  const teamMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
     ...eventType,
     safeDescription: markdownToSafeHTML(eventType.description),
     users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
   });
 
-  const userEventTypes = user.eventTypes.map(mapEventType);
+  const userEventTypes = user.eventTypes.map(userMapEventType);
   // backwards compatibility, TMP:
   const typesRaw = (
     await prisma.eventType.findMany({
@@ -170,7 +180,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
         teamId: null,
       },
-      select: userEventTypeSelect,
+      select: {
+        ...userEventTypeSelect,
+      },
       orderBy: [
         {
           position: "desc",
@@ -180,7 +192,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         },
       ],
     })
-  ).map(mapEventType);
+  ).map(userMapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -231,7 +243,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     membershipRole: membership.role,
   }));
 
-  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
+  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof teamEventTypeSelect>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
@@ -275,7 +287,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 : MembershipRole.MEMBER),
           },
           eventTypes: membership.team.eventTypes
-            .map(mapEventType)
+            .map(teamMapEventType)
             .filter(filterTeamsEventTypesBasedOnInput)
             .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
             .filter((evType) =>
