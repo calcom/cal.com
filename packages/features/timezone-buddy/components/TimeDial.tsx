@@ -37,18 +37,14 @@ function isCurrentHourInRange({
     const endHour = dayjs(time.end).subtract(offset, "hour");
 
     // If not same day number then we don't care
-    if (startHour.day() !== cellDate.day()) return false;
+
+    if (startHour.day() !== cellDate.day()) {
+      console.log("[Skipping]", startHour.day(), cellDate.day());
+      return false;
+    }
 
     // this is a weird way of doing this
     const newDate = dayjs(time.start).set("hour", currentHour);
-
-    console.log({
-      time,
-      newDate: newDate.format("DD/MM HH:mm"),
-      startHour: startHour.format("DD/MM HH:mm"),
-      endHour: endHour.format("DD/MM HH:mm"),
-      isBetween: newDate.isBetween(startHour, endHour, undefined, "[)"),
-    });
 
     return newDate.isBetween(startHour, endHour, undefined, "[)"); // smiley faces or something
   });
@@ -63,7 +59,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
 
   if (!tz) return null;
 
-  const { name, abbr } = tz; // TZ of the USER
+  const { name } = tz; // TZ of the USER
 
   const usersTimezoneDate = dayjs(browsingDate).tz(name);
 
@@ -93,7 +89,12 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
           return (
             <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
               {day.map((h) => {
-                const hourSet = dateWithDaySet.set("hour", h).set("minute", 0);
+                const hours = Math.floor(h); // Whole number part
+                const fractionalHours = h - hours; // Decimal part
+
+                // Convert the fractional hours to minutes
+                const minutes = fractionalHours * 60;
+                const hourSet = dateWithDaySet.set("hour", h).set("minute", minutes);
 
                 // const isInRange = false;
                 const isInRange = isCurrentHourInRange({
@@ -108,13 +109,17 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                     className={classNames(
                       "flex h-8 flex-col items-center justify-center",
                       isInRange ? "text-emphasis bg-success" : "",
-                      h ? "" : "bg-subtle font-medium"
+                      hours ? "" : "bg-subtle font-medium"
                     )}
                     style={{
                       width: `${DAY_CELL_WIDTH}px`,
                     }}>
-                    {h ? (
-                      <div title={hourSet.format("DD/MM HH:mm")}>{h}</div>
+                    {hours ? (
+                      <div title={hourSet.format("DD/MM HH:mm")}>
+                        <div className="flex flex-col text-center text-xs leading-3">
+                          <span>{hours}</span>
+                        </div>
+                      </div>
                     ) : (
                       <div className="flex flex-col text-center text-xs leading-3">
                         <span>{hourSet.format("MMM")}</span>
