@@ -86,3 +86,5 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
     invitedTotalUsers: input.userIds.length,
   };
 }
+
+export default addBulkTeamsHandler;

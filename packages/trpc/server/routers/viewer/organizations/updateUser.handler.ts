@@ -65,3 +65,5 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     success: true,
   };
 };
+
+export default updateUserHandler;

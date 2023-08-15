@@ -85,3 +85,5 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   return foundUser;
 }
+
+export default getUserHandler;

@@ -63,3 +63,5 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     usersDeleted: input.userIds.length,
   };
 }
+
+export default bulkDeleteUsersHandler;

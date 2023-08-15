@@ -32,3 +32,5 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
 
   return allOrgTeams;
 }
+
+export default getTeamsHandler;
