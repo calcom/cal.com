@@ -36,6 +36,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
+
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
@@ -81,6 +82,10 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           title: markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
           users: [{ username: `${user.username}`, name: `${user.name}` }],
+        }}
+        nextSeoProps={{
+          noindex: !profile.allowSEOIndexing,
+          nofollow: !profile.allowSEOIndexing,
         }}
       />
 
@@ -222,6 +227,7 @@ export type UserPageProps = {
     darkBrandColor: string;
     organizationName?: string | null;
     organizationLogo?: string | null;
+    allowSEOIndexing: boolean;
   };
   users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
   themeBasis: string | null;
@@ -285,6 +291,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       away: true,
       verified: true,
       allowDynamicBooking: true,
+      allowSEOIndexing: true,
     },
   });
 
@@ -326,6 +333,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     darkBrandColor: user.darkBrandColor,
     organizationName: user.organization?.name,
     organizationLogo: user.organization?.logo,
+    allowSEOIndexing: user.allowSEOIndexing ?? true,
   };
 
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);

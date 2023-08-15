@@ -304,22 +304,26 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
-    const calendar = await getCalendar(credential);
+    try {
+      const calendar = await getCalendar(credential);
 
-    const calendars = await calendar?.listCalendars();
+      const calendars = await calendar?.listCalendars();
 
-    if (calendars && calendars.length > 0) {
-      calendars.map(async (cal) => {
-        await prisma.selectedCalendar.delete({
-          where: {
-            userId_integration_externalId: {
-              userId: user.id,
-              externalId: cal.externalId,
-              integration: cal.integration as string,
+      if (calendars && calendars.length > 0) {
+        calendars.map(async (cal) => {
+          await prisma.selectedCalendar.delete({
+            where: {
+              userId_integration_externalId: {
+                userId: user.id,
+                externalId: cal.externalId,
+                integration: cal.integration as string,
+              },
             },
-          },
+          });
         });
-      });
+      }
+    } catch {
+      console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
     }
   }
 
