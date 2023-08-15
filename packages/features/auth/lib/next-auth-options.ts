@@ -148,7 +148,7 @@ const providers: Provider[] = [
           throw new Error(ErrorCode.InternalServerError);
         }
 
-        const isValidToken = (await import("otplib")).authenticator.check(credentials.totpCode, secret);
+        const isValidToken = (await import("@calcom/lib/totp")).totpCheck(credentials.totpCode, secret);
         if (!isValidToken) {
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
