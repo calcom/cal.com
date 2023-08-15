@@ -1,7 +1,6 @@
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
-import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -70,10 +69,58 @@ export const checkIfIsAvailable = ({
   });
 };
 
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+}) {
+  if (!eventTypeSlug || !slug) return null;
+
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(slug);
+  } else {
+    userId = await getUserIdFromUsername(slug);
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
+
 export async function getEventType(input: TGetScheduleInputSchema) {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+    }));
+
+  if (!eventTypeId) {
+    return null;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -114,32 +161,22 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
-              credentials: true, // Don't leak credentials to the client
+              credentials: true,
               ...availabilityUserSelect,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
       },
       users: {
         select: {
-          credentials: true, // Don't leak credentials to the client
+          credentials: true,
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
   });
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
@@ -160,18 +197,17 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   const users = await prisma.user.findMany({
     where: {
       username: {
-        in: input.usernameList,
+        in: Array.isArray(input.usernameList)
+          ? input.usernameList
+          : input.usernameList
+          ? [input.usernameList]
+          : [],
       },
     },
     select: {
       allowDynamicBooking: true,
-      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
+      credentials: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -187,12 +223,11 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
 }
 
 export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
-/** This should be called getAvailableSlots */
-export async function getSchedule(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -235,13 +270,12 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (eventType.schedulingType && !!eventType.hosts?.length) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
-        workingHours,
-        dateOverrides,
         dateRanges,
         currentSeats: _currentSeats,
         timeZone,
@@ -251,19 +285,16 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
       return {
         timeZone,
-        workingHours,
-        dateOverrides,
         dateRanges,
         busy,
         user: currentUser,
@@ -271,11 +302,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     })
   );
 
-  // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
-  );
-  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
@@ -298,8 +324,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
-    workingHours,
-    dateOverrides,
     offsetStart: eventType.offsetStart,
     dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
@@ -434,8 +458,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         users: (eventType.hosts
           ? eventType.hosts.map((hostUserWithCredentials) => {
               const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
+              return user;
             })
           : eventType.users
         ).map((user) => user.username || ""),
@@ -466,4 +489,28 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   return {
     slots: computedAvailableSlots,
   };
+}
+
+async function getUserIdFromUsername(username: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return user?.id;
+}
+
+async function getTeamIdFromSlug(slug: string) {
+  const team = await prisma.team.findFirst({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return team?.id;
 }

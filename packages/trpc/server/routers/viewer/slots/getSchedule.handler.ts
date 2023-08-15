@@ -1,5 +1,5 @@
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import { getSchedule } from "./util";
+import { getAvailableSlots } from "./util";
 
 type GetScheduleOptions = {
   ctx: Record<string, unknown>;
@@ -7,5 +7,5 @@ type GetScheduleOptions = {
 };
 
 export const getScheduleHandler = async ({ input }: GetScheduleOptions) => {
-  return await getSchedule(input);
+  return await getAvailableSlots(input);
 };
