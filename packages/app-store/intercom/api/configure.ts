@@ -11,7 +11,6 @@ import type {
   TextComponent,
   InputComponent,
 } from "../lib";
-
 import { isValidCalURL } from "../lib/isValidCalURL";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

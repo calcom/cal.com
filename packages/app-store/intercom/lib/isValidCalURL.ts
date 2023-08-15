@@ -1,16 +1,14 @@
-import prisma from "@calcom/prisma";
 import { CAL_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
-import type {
-  TextComponent,
-} from "../lib";
+import type { TextComponent } from "../lib";
 
 /**
  * Check if the url is a valid cal.com url
  * @param url
  * @returns boolean
  */
- export async function isValidCalURL(url: string) {
+export async function isValidCalURL(url: string) {
   const regex = new RegExp(`^${CAL_URL}/`, `i`);
 
   const error: TextComponent = {
