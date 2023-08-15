@@ -69,14 +69,9 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
       ],
     },
     include: includedFields,
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
+    orderBy: {
+      id: "asc",
+    },
   });
 
   if (!filtered) {

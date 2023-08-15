@@ -32,8 +32,6 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import {
-  ArrowDown,
-  ArrowUp,
   BarChart,
   CheckCircle,
   Code,
@@ -85,21 +83,6 @@ export default function RoutingForms({
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
-  const utils = trpc.useContext();
-
-  const mutation = trpc.viewer.routingFormOrder.useMutation({
-    onError: async (err) => {
-      console.error(err.message);
-      await utils.viewer.appRoutingForms.forms.cancel();
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      await utils.viewer.appRoutingForms.invalidate();
-    },
-    onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      utils.viewer.appRoutingForms.invalidate();
-    },
-  });
-
   useEffect(() => {
     hookForm.reset({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,27 +127,6 @@ export default function RoutingForms({
       description: t("download_responses_description"),
     },
   ];
-
-  async function moveRoutingForm(index: number, increment: 1 | -1) {
-    const types = forms?.map((type) => {
-      return type.form;
-    })!;
-
-    const newList = [...types];
-
-    const type = types[index];
-    const tmp = types[index + increment];
-    if (tmp) {
-      newList[index] = tmp;
-      newList[index + increment] = type;
-    }
-
-    await utils.viewer.appRoutingForms.forms.cancel();
-
-    mutation.mutate({
-      ids: newList?.map((type) => type.id),
-    });
-  }
 
   return (
     <LicenseRequired>
@@ -216,7 +178,7 @@ export default function RoutingForms({
                   SkeletonLoader={SkeletonLoaderTeamList}>
                   <div className="bg-default mb-16 overflow-hidden">
                     <List data-testid="routing-forms-list">
-                      {forms?.map(({ form, readOnly }, index) => {
+                      {forms?.map(({ form, readOnly }) => {
                         if (!form) {
                           return null;
                         }
@@ -225,136 +187,116 @@ export default function RoutingForms({
                         form.routes = form.routes || [];
                         const fields = form.fields || [];
                         const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
-                        const firstItem = forms[0].form;
-                        const lastItem = forms[forms.length - 1].form;
-
                         return (
-                          <div className="group flex w-full max-w-full items-center justify-between overflow-hidden">
-                            {!(firstItem && firstItem.id === form.id) && (
-                              <button
-                                className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                                onClick={() => moveRoutingForm(index, -1)}>
-                                <ArrowUp className="h-5 w-5" />
-                              </button>
-                            )}
-
-                            {!(lastItem && lastItem.id === form.id) && (
-                              <button
-                                className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                                onClick={() => moveRoutingForm(index, 1)}>
-                                <ArrowDown className="h-5 w-5" />
-                              </button>
-                            )}
-                            <ListLinkItem
-                              key={form.id}
-                              href={appUrl + "/form-edit/" + form.id}
-                              heading={form.name}
-                              disabled={readOnly}
-                              subHeading={description}
-                              className="space-x-2 rtl:space-x-reverse"
-                              actions={
-                                <>
-                                  {form.team?.name && (
-                                    <div className="border-r-2 border-neutral-300">
-                                      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                                        {form.team.name}
-                                      </Badge>
-                                    </div>
-                                  )}
+                          <ListLinkItem
+                            key={form.id}
+                            href={appUrl + "/form-edit/" + form.id}
+                            heading={form.name}
+                            disabled={readOnly}
+                            subHeading={description}
+                            className="space-x-2 rtl:space-x-reverse"
+                            actions={
+                              <>
+                                {form.team?.name && (
+                                  <div className="border-r-2 border-neutral-300">
+                                    <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                                      {form.team.name}
+                                    </Badge>
+                                  </div>
+                                )}
+                                <FormAction
+                                  disabled={readOnly}
+                                  className="self-center"
+                                  action="toggle"
+                                  routingForm={form}
+                                />
+                                <ButtonGroup combined>
+                                  <Tooltip content={t("preview")}>
+                                    <FormAction
+                                      action="preview"
+                                      routingForm={form}
+                                      target="_blank"
+                                      StartIcon={ExternalLink}
+                                      color="secondary"
+                                      variant="icon"
+                                    />
+                                  </Tooltip>
                                   <FormAction
-                                    disabled={readOnly}
-                                    className="self-center"
-                                    action="toggle"
                                     routingForm={form}
+                                    action="copyLink"
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={LinkIcon}
+                                    tooltip={t("copy_link_to_form")}
                                   />
-                                  <ButtonGroup combined>
-                                    <Tooltip content={t("preview")}>
-                                      <FormAction
-                                        action="preview"
-                                        routingForm={form}
-                                        target="_blank"
-                                        StartIcon={ExternalLink}
-                                        color="secondary"
-                                        variant="icon"
-                                      />
-                                    </Tooltip>
+                                  <FormAction
+                                    routingForm={form}
+                                    action="embed"
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={Code}
+                                    tooltip={t("embed")}
+                                  />
+                                  <FormActionsDropdown disabled={readOnly}>
                                     <FormAction
+                                      action="edit"
                                       routingForm={form}
-                                      action="copyLink"
-                                      color="secondary"
-                                      variant="icon"
-                                      StartIcon={LinkIcon}
-                                      tooltip={t("copy_link_to_form")}
-                                    />
+                                      color="minimal"
+                                      className="!flex"
+                                      StartIcon={Edit}>
+                                      {t("edit")}
+                                    </FormAction>
                                     <FormAction
+                                      action="download"
                                       routingForm={form}
-                                      action="embed"
-                                      color="secondary"
-                                      variant="icon"
-                                      StartIcon={Code}
-                                      tooltip={t("embed")}
-                                    />
-                                    <FormActionsDropdown disabled={readOnly}>
+                                      color="minimal"
+                                      StartIcon={Download}>
+                                      {t("download_responses")}
+                                    </FormAction>
+                                    <FormAction
+                                      action="duplicate"
+                                      routingForm={form}
+                                      color="minimal"
+                                      className="w-full"
+                                      StartIcon={Copy}>
+                                      {t("duplicate")}
+                                    </FormAction>
+                                    {typeformApp?.isInstalled ? (
                                       <FormAction
-                                        action="edit"
+                                        data-testid="copy-redirect-url"
                                         routingForm={form}
+                                        action="copyRedirectUrl"
                                         color="minimal"
-                                        className="!flex"
-                                        StartIcon={Edit}>
-                                        {t("edit")}
+                                        type="button"
+                                        StartIcon={LinkIcon}>
+                                        {t("Copy Typeform Redirect Url")}
                                       </FormAction>
-                                      <FormAction
-                                        action="download"
-                                        routingForm={form}
-                                        color="minimal"
-                                        StartIcon={Download}>
-                                        {t("download_responses")}
-                                      </FormAction>
-                                      <FormAction
-                                        action="duplicate"
-                                        routingForm={form}
-                                        color="minimal"
-                                        className="w-full"
-                                        StartIcon={Copy}>
-                                        {t("duplicate")}
-                                      </FormAction>
-                                      {typeformApp?.isInstalled ? (
-                                        <FormAction
-                                          data-testid="copy-redirect-url"
-                                          routingForm={form}
-                                          action="copyRedirectUrl"
-                                          color="minimal"
-                                          type="button"
-                                          StartIcon={LinkIcon}>
-                                          {t("Copy Typeform Redirect Url")}
-                                        </FormAction>
-                                      ) : null}
-                                      <FormAction
-                                        action="_delete"
-                                        routingForm={form}
-                                        color="destructive"
-                                        className="w-full"
-                                        StartIcon={Trash}>
-                                        {t("delete")}
-                                      </FormAction>
-                                    </FormActionsDropdown>
-                                  </ButtonGroup>
-                                </>
-                              }>
-                              <div className="flex flex-wrap gap-1">
-                                <Badge variant="gray" startIcon={Menu}>
-                                  {fields.length} {fields.length === 1 ? "field" : "fields"}
-                                </Badge>
-                                <Badge variant="gray" startIcon={GitMerge}>
-                                  {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
-                                </Badge>
-                                <Badge variant="gray" startIcon={MessageCircle}>
-                                  {form._count.responses}{" "}
-                                  {form._count.responses === 1 ? "response" : "responses"}
-                                </Badge>
-                              </div>
-                            </ListLinkItem>
-                          </div>
+                                    ) : null}
+                                    <FormAction
+                                      action="_delete"
+                                      routingForm={form}
+                                      color="destructive"
+                                      className="w-full"
+                                      StartIcon={Trash}>
+                                      {t("delete")}
+                                    </FormAction>
+                                  </FormActionsDropdown>
+                                </ButtonGroup>
+                              </>
+                            }>
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="gray" startIcon={Menu}>
+                                {fields.length} {fields.length === 1 ? "field" : "fields"}
+                              </Badge>
+                              <Badge variant="gray" startIcon={GitMerge}>
+                                {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
+                              </Badge>
+                              <Badge variant="gray" startIcon={MessageCircle}>
+                                {form._count.responses}{" "}
+                                {form._count.responses === 1 ? "response" : "responses"}
+                              </Badge>
+                            </div>
+                          </ListLinkItem>
                         );
                       })}
                     </List>
