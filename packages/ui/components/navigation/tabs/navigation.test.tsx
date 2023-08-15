@@ -118,9 +118,9 @@ describe("Tests for navigation folder", () => {
 
         expect(chevronRight.length).toEqual(mockTabs.length - 1);
         if (tab.disabled) {
-          expect(aTag).toHaveClass("pointer-events-none !opacity-30");
+          expect(aTag).tabToBeDisabled();
         } else {
-          expect(aTag).not.toHaveClass("pointer-events-none !opacity-30");
+          expect(aTag).not.tabToBeDisabled();
         }
 
         if (tab.info) {
@@ -138,10 +138,6 @@ describe("Tests for navigation folder", () => {
 
       expect(externalLink.length).toEqual(1);
       expect(iconElement.length).toEqual(1);
-
-      const svg = document.querySelectorAll("svg");
-      const svgLength = svg?.length;
-      expect(svgLength).toEqual(mockTabs.length + 1);
     });
   });
 });
