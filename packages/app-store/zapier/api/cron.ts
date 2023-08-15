@@ -33,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // if job fails, retry again for 5 times.
       if (job.retryCount <= 5) {
-        return await prisma.zapierScheduledTriggers.update({
+        await prisma.zapierScheduledTriggers.update({
           where: {
             id: job.id,
           },
@@ -46,6 +46,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               .toISOString(),
           },
         });
+        return res.json({ ok: false });
       }
     }
 
@@ -69,7 +70,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
     if (!booking) {
       console.log(`Error finding booking in zapier trigger:`, parsedJobPayload);
-      return;
+      return res.json({ ok: false });
     }
 
     //remove scheduled job from bookings once triggered
