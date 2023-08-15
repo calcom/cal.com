@@ -65,7 +65,7 @@ export const UsernameAvailabilityField = ({
             setInputUsernameValue={onChange}
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
-            addOnLeading={usernamePrefix}
+            addOnLeading={`${usernamePrefix}/`}
           />
         );
       }}
