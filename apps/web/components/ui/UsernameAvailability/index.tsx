@@ -14,8 +14,6 @@ import useRouterQuery from "@lib/hooks/useRouterQuery";
 import { PremiumTextfield } from "./PremiumTextfield";
 import { UsernameTextfield } from "./UsernameTextfield";
 
-export const UsernameAvailability = IS_SELF_HOSTED ? UsernameTextfield : PremiumTextfield;
-
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -50,6 +48,7 @@ export const UsernameAvailabilityField = ({
   });
 
   const usernamePrefix = useUserNamePrefix(user.organization);
+  const UsernameAvailability = IS_SELF_HOSTED || user.organization ? UsernameTextfield : PremiumTextfield;
 
   return (
     <Controller
