@@ -40,6 +40,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           description: true,
           title: true,
           startTime: true,
+          endTime: true,
           attendees: {
             select: {
               email: true,
