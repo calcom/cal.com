@@ -12,7 +12,11 @@ import { keyDecoder, keyEncoder } from "@otplib/plugin-thirty-two";
  * @param opts - The AuthenticatorOptions object.
  * @param opts.window - The amount of past and future tokens considered valid. Either a single value or array of `[past, future]`. Default: `[1, 0]`
  */
-export const totpAuthenticatorCheck = (token: string, secret: string, opts: AuthenticatorOptions) => {
+export const totpAuthenticatorCheck = (
+  token: string,
+  secret: string,
+  opts: Partial<AuthenticatorOptions> = {}
+) => {
   const { window = [1, 0], ...rest } = opts;
   const authenticator = new Authenticator({
     createDigest,
@@ -33,7 +37,7 @@ export const totpAuthenticatorCheck = (token: string, secret: string, opts: Auth
  * @param opts - The TOTPOptions object.
  * @param opts.window - The amount of past and future tokens considered valid. Either a single value or array of `[past, future]`. Default: `[1, 0]`
  */
-export const totpRawCheck = (token: string, secret: string, opts: TOTPOptions) => {
+export const totpRawCheck = (token: string, secret: string, opts: Partial<TOTPOptions> = {}) => {
   const { window = [1, 0], ...rest } = opts;
   const authenticator = new TOTP({
     createDigest,
