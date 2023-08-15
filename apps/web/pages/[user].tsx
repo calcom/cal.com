@@ -11,6 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -25,7 +26,7 @@ import prisma from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -97,7 +98,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
-            <Avatar
+            <OrganizationAvatar
               imageSrc={profile.image}
               size="xl"
               alt={profile.name}
