@@ -91,12 +91,13 @@ export async function getUserToInviteOrThrowIfExists({
   return invitee;
 }
 
-export function checkInputEmailIsValid(email: string) {
-  if (!isEmail(email))
+export function checkInputEmailIsValid(input: string) {
+  if (!isEmail(input) || isEmail(input)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
+      message: `Invite failed because ${input} is not a valid email address or username`,
     });
+  }
 }
 
 export function getOrgConnectionInfo({
