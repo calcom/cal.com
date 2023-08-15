@@ -220,6 +220,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     verified: false,
     weekStart: "",
     organizationId: null,
+    allowSEOIndexing: null,
     ...user,
   };
 };

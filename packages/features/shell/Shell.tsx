@@ -984,7 +984,7 @@ export function ShellMain(props: LayoutProps) {
                       : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                   )}>
-                  {props.CTA}
+                  {isLocaleReady && props.CTA}
                 </div>
               )}
               {props.actions && props.actions}
