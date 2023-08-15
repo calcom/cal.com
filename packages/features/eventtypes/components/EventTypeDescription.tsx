@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
@@ -44,6 +44,7 @@ export const EventTypeDescription = ({
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
   const [shortenDesc, setShortenDesc] = useState(shortenDescription || false);
+  const etDescDetailsRef = useRef<HTMLDivElement>(null);
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -65,25 +66,30 @@ export const EventTypeDescription = ({
               dangerouslySetInnerHTML={{
                 __html: eventType.descriptionAsSafeHTML || "",
               }}
+              ref={etDescDetailsRef}
             />
-            <div
-              className="flex items-center text-sm font-semibold focus:outline-none"
-              onClick={(e) => {
-                e.preventDefault();
-                setShortenDesc((prev) => !prev);
-              }}>
-              {shortenDesc ? (
-                <>
-                  Show More <ChevronsDown className="h-5 w-5" />
-                </>
-              ) : (
-                <>
-                  Show Less <ChevronsUp className="h-5 w-5" />
-                </>
-              )}
-            </div>
+            {etDescDetailsRef.current &&
+            etDescDetailsRef.current.clientHeight < etDescDetailsRef.current.scrollHeight ? (
+              <div
+                className="flex items-center text-sm font-semibold focus:outline-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShortenDesc((prev) => !prev);
+                }}>
+                {shortenDesc ? (
+                  <>
+                    Show More <ChevronsDown className="h-5 w-5" />
+                  </>
+                ) : (
+                  <>
+                    Show Less <ChevronsUp className="h-5 w-5" />
+                  </>
+                )}
+              </div>
+            ) : null}
           </>
         )}
+
         <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
