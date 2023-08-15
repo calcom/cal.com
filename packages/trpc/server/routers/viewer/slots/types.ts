@@ -13,7 +13,7 @@ export const getScheduleSchema = z
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
-    usernameList: z.union([z.string(), z.array(z.string())]).optional(),
+    usernameList: z.array(z.string()).min(1).optional(),
     debug: z.boolean().optional(),
     // to handle event types with multiple duration options
     duration: z
@@ -21,6 +21,8 @@ export const getScheduleSchema = z
       .optional()
       .transform((val) => val && parseInt(val)),
     rescheduleUid: z.string().optional().nullable(),
+    // whether to do team event or user event
+    isTeamEvent: z.boolean().optional().default(false),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API

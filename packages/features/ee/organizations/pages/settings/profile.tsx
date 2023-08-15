@@ -8,7 +8,6 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -69,7 +68,7 @@ const OrgProfileView = () => {
     onSuccess: (org) => {
       if (org) {
         form.setValue("name", org.name || "");
-        form.setValue("slug", org.slug || "");
+        form.setValue("slug", org.slug || org.metadata?.requestedSlug || "");
         form.setValue("logo", org.logo || "");
         form.setValue("bio", org.bio || "");
         if (org.slug === null && (org?.metadata as Prisma.JsonObject)?.requestedSlug) {
@@ -89,19 +88,7 @@ const OrgProfileView = () => {
     !currentOrganisation.bio ||
     !currentOrganisation.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
-    async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
-      showToast(t("your_org_disbanded_successfully"), "success");
-      router.push(`${WEBAPP_URL}/teams`);
-    },
-  });
-
   if (!orgBranding) return null;
-
-  function deleteTeam() {
-    if (currentOrganisation?.id) deleteTeamMutation.mutate({ teamId: currentOrganisation.id });
-  }
 
   return (
     <LicenseRequired>
@@ -168,15 +155,21 @@ const OrgProfileView = () => {
                   </div>
                 )}
               />
-              <div className="mt-8">
-                <TextField
-                  name="slug"
-                  label={t("org_url")}
-                  value={currentOrganisation.slug ?? ""}
-                  disabled
-                  addOnSuffix={`.${subdomainSuffix()}`}
-                />
-              </div>
+              <Controller
+                control={form.control}
+                name="slug"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="slug"
+                      label={t("org_url")}
+                      value={value}
+                      disabled
+                      addOnSuffix={`.${subdomainSuffix()}`}
+                    />
+                  </div>
+                )}
+              />
               <div className="mt-8">
                 <Label>{t("about")}</Label>
                 <Editor
