@@ -18,7 +18,7 @@ import {
 } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/scheduleTrigger";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";

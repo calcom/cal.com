@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/scheduleTrigger";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
