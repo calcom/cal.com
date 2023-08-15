@@ -7,11 +7,11 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip, TextField } from "@calcom/ui";
 
-import type { appDataSchema } from "../zod";
+import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   const { t } = useLocale();
-  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
+  const { disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const [additionalParameters, setAdditionalParameters] = useState("");
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
@@ -37,10 +37,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
-      setAppData={setAppData}
       app={app}
-      disableSwitch={disabled}
-      LockedIcon={LockedIcon}
+      appDataSchema={appDataSchema}
       switchOnClick={(e) => {
         updateEnabled(e);
       }}
