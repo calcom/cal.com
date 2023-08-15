@@ -178,7 +178,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const mergedEventTypes = userEventTypes.filter(
+  const unmanagedEventTypes = userEventTypes.filter(
     (evType) => evType.schedulingType !== SchedulingType.MANAGED
   );
 
@@ -192,7 +192,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,
