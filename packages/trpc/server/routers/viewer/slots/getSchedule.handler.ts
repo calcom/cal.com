@@ -4,7 +4,7 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { getAvailableSlots } from "./util";
 
 export type GetScheduleOptions = {
-  ctx: ContextForGetSchedule;
+  ctx?: ContextForGetSchedule;
   input: TGetScheduleInputSchema;
 };
 
