@@ -92,7 +92,7 @@ export async function getUserToInviteOrThrowIfExists({
 }
 
 export function checkInputEmailIsValid(input: string) {
-  if (!isEmail(input) || isEmail(input)) {
+  if (!isEmail(input) && isEmail(input)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Invite failed because ${input} is not a valid email address or username`,
