@@ -5,8 +5,9 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
+import { handleCustomValidations } from "./updateAppCredentials.validator";
 
-type UpdateAppCredentialsOptions = {
+export type UpdateAppCredentialsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
@@ -15,8 +16,6 @@ type UpdateAppCredentialsOptions = {
 
 export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCredentialsOptions) => {
   const { user } = ctx;
-
-  const { key } = input;
 
   // Find user credential
   const credential = await prisma.credential.findFirst({
@@ -33,6 +32,8 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
     });
   }
 
+  const validatedKeys = await handleCustomValidations({ ctx, input, appId: credential.appId || "" });
+
   const updated = await prisma.credential.update({
     where: {
       id: credential.id,
@@ -40,7 +41,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
     data: {
       key: {
         ...(credential.key as Prisma.JsonObject),
-        ...(key as Prisma.JsonObject),
+        ...(validatedKeys as Prisma.JsonObject),
       },
     },
   });
