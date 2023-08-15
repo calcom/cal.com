@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
@@ -43,8 +43,11 @@ export const EventTypeDescription = ({
   isPublic,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
-  const [shortenDesc, setShortenDesc] = useState(shortenDescription || false);
-  const etDescDetailsRef = useRef<HTMLDivElement>(null);
+  const [description, setDescription] = useState({
+    isExpandable: false,
+    shorten: shortenDescription || false,
+  });
+  const descriptionRef = useRef<HTMLDivElement>(null);
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -52,6 +55,12 @@ export const EventTypeDescription = ({
   );
 
   const paymentAppData = getPaymentAppData(eventType);
+
+  useEffect(() => {
+    if (descriptionRef.current && descriptionRef.current.clientHeight < descriptionRef.current.scrollHeight) {
+      setDescription((prev) => ({ ...prev, isExpandable: true }));
+    }
+  }, []);
 
   return (
     <>
@@ -61,22 +70,21 @@ export const EventTypeDescription = ({
             <div
               className={classNames(
                 "text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
-                shortenDesc ? "line-clamp-4" : ""
+                description.shorten ? "line-clamp-4" : ""
               )}
               dangerouslySetInnerHTML={{
                 __html: eventType.descriptionAsSafeHTML || "",
               }}
-              ref={etDescDetailsRef}
+              ref={descriptionRef}
             />
-            {etDescDetailsRef.current &&
-            etDescDetailsRef.current.clientHeight < etDescDetailsRef.current.scrollHeight ? (
+            {description.isExpandable ? (
               <div
                 className="flex items-center text-sm font-semibold focus:outline-none"
                 onClick={(e) => {
                   e.preventDefault();
-                  setShortenDesc((prev) => !prev);
+                  setDescription((prev) => ({ ...prev, shorten: !prev.shorten }));
                 }}>
-                {shortenDesc ? (
+                {description.shorten ? (
                   <>
                     Show More <ChevronsDown className="h-5 w-5" />
                   </>
