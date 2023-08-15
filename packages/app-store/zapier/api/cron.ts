@@ -21,7 +21,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  const finishedJobs: number[] = [];
   // run jobs
   for (const job of jobsToRun) {
     try {
@@ -29,11 +28,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         method: "POST",
         body: job.payload,
       });
-      finishedJobs.push(job.id);
     } catch (error) {
-      // if job fails, retry for 5 times.
+      console.log(`Error running zapier trigger (${job.retryCount} retries): ${error}`);
+
+      // if job fails, retry again for 5 times.
       if (job.retryCount <= 5) {
-        await prisma.zapierScheduledTriggers.update({
+        return await prisma.zapierScheduledTriggers.update({
           where: {
             id: job.id,
           },
@@ -41,36 +41,51 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             retryCount: {
               increment: 1,
             },
+            startAfter: dayjs()
+              .add(5 * (job.retryCount + 1), "minutes")
+              .toISOString(),
           },
         });
-      } else {
-        finishedJobs.push(job.id);
       }
-
-      console.log(`Error running zapier trigger (${job.retryCount} retries): ${error}`);
     }
+
+    const parsedJobPayload = JSON.parse(job.payload) as {
+      id: number; //booking id
+      endTime: string;
+      scheduledJobs: string[];
+      triggerEvent: string;
+    };
+
+    // clean finished job
+    await prisma.zapierScheduledTriggers.delete({
+      where: {
+        id: job.id,
+      },
+    });
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: parsedJobPayload.id },
+      select: { id: true, scheduledJobs: true },
+    });
+    if (!booking) {
+      console.log(`Error finding booking in zapier trigger:`, parsedJobPayload);
+      return;
+    }
+
+    //remove scheduled job from bookings once triggered
+    const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
+      return scheduledJob !== job.jobName;
+    });
+
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        scheduledJobs: updatedScheduledJobs,
+      },
+    });
   }
-
-  // delete finished jobs
-  await prisma.zapierScheduledTriggers.deleteMany({
-    where: {
-      id: { in: finishedJobs },
-    },
-  });
-
-  // //remove scheduled job from bookings once triggered
-  // const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
-  //   return scheduledJob !== jobName;
-  // });
-
-  // await prisma.booking.update({
-  //   where: {
-  //     id: booking.id,
-  //   },
-  //   data: {
-  //     scheduledJobs: updatedScheduledJobs,
-  //   },
-  // });
 }
 
 export default defaultHandler({
