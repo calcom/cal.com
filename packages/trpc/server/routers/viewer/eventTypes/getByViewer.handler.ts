@@ -178,9 +178,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const mergedEventTypes = userEventTypes
-    .map((eventType) => eventType)
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+  const mergedEventTypes = userEventTypes.filter(
+    (evType) => evType.schedulingType !== SchedulingType.MANAGED
+  );
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
