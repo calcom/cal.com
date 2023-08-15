@@ -407,6 +407,8 @@
   "allow_dynamic_booking_tooltip": "Group booking links that can be created dynamically by adding multiple usernames with a '+'. example: '{{appName}}/bailey+peer'",
   "allow_dynamic_booking": "Allow attendees to book you through dynamic group bookings",
   "dynamic_booking": "Dynamic group links",
+  "allow_seo_indexing": "Allow search engines to access your public content",
+  "seo_indexing": "Allow SEO Indexing",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",
