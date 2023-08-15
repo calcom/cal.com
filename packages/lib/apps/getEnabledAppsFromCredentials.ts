@@ -1,18 +1,27 @@
-import getApps from "@calcom/app-store/utils";
-import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
-import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@prisma/client";
 
-import type { Prisma } from ".prisma/client";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
+import getApps from "@calcom/app-store/utils";
+import { prisma } from "@calcom/prisma";
 
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
 /**
  *
  * @param credentials - Can be user or team credentials
- * @param filterOnCredentials - Only include apps where credentials are present
+ * @param options
+ * @param options.where Aditional where conditions to filter out apps
+ * @param options.filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
-const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) => {
+const getEnabledAppsFromCredentials = async (
+  credentials: CredentialDataWithTeamName[],
+  options?: {
+    where?: Prisma.AppWhereInput;
+    filterOnCredentials?: boolean;
+  }
+) => {
+  const { where: _where = {}, filterOnCredentials = false } = options || {};
   const filterOnIds = {
     credentials: {
       some: {
@@ -33,11 +42,13 @@ const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterO
     if (teamIds.length) filterOnIds.credentials.some.OR.push({ teamId: { in: teamIds } });
   }
 
+  const where: Prisma.AppWhereInput = {
+    enabled: true,
+    ..._where,
+    ...(filterOnIds.credentials.some.OR.length && filterOnIds),
+  };
   const enabledApps = await prisma.app.findMany({
-    where: {
-      enabled: true,
-      ...(filterOnIds.credentials.some.OR.length && filterOnIds),
-    },
+    where,
     select: { slug: true, enabled: true },
   });
   const apps = getApps(credentials, filterOnCredentials);
@@ -52,4 +63,4 @@ const getEnabledApps = async (credentials: CredentialDataWithTeamName[], filterO
   return filteredApps;
 };
 
-export default getEnabledApps;
+export default getEnabledAppsFromCredentials;

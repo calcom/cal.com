@@ -1,3 +1,4 @@
+import type { AppCategories } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 // If you import this file on any app it should produce circular dependency
@@ -143,8 +144,17 @@ export function doesAppSupportTeamInstall(
   concurrentMeetings: boolean | undefined = undefined
 ) {
   return !appCategories.some(
-    (category) => category === "calendar" || (category === "conferencing" && !concurrentMeetings)
+    (category) =>
+      category === "calendar" ||
+      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
   );
 }
+
+export const defaultVideoAppCategories: AppCategories[] = [
+  "conferencing",
+  "messaging",
+  // Legacy name for conferencing
+  "video",
+];
 
 export default getApps;
