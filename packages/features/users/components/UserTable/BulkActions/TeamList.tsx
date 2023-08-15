@@ -84,7 +84,6 @@ export function TeamListBulkAction({ table }: Props) {
                       <CommandItem
                         key={option.id}
                         onSelect={() => {
-                          console.log("onSelect", isSelected);
                           if (!isSelected) {
                             addValue(option.id);
                           } else {
