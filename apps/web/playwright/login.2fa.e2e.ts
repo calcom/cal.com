@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import { totpCheck } from "@calcom/lib/totp";
+import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 
 import { test } from "./lib/fixtures";
 
@@ -142,7 +142,7 @@ test.describe("2FA Tests", async () => {
 
 async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
   let token = authenticator.generate(secret);
-  if (!noRetry && !totpCheck(token, secret)) {
+  if (!noRetry && !totpAuthenticatorCheck(token, secret)) {
     console.log("Token expired, Renerating.");
     // Maybe token was just about to expire, try again just once more
     token = authenticator.generate(secret);

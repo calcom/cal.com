@@ -4,7 +4,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import { totpCheck } from "@calcom/lib/totp";
+import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/client";
 
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // If user has 2fa enabled, check if body.code is correct
-    const isValidToken = totpCheck(req.body.code, secret);
+    const isValidToken = totpAuthenticatorCheck(req.body.code, secret);
     if (!isValidToken) {
       return res.status(400).json({ error: ErrorCode.IncorrectTwoFactorCode });
 
