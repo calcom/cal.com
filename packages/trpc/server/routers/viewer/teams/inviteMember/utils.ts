@@ -95,7 +95,7 @@ export function checkInputEmailIsValid(input: string) {
   if (!isEmail(input) && isEmail(input)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invite failed because ${input} is not a valid email address or username`,
+      message: `Invite failed because ${input} is neither a valid email address nor a valid username`,
     });
   }
 }
