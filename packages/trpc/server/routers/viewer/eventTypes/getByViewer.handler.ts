@@ -160,24 +160,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const userEventTypes = user.eventTypes.map(mapEventType);
-  // backwards compatibility, TMP:
-  const typesRaw = (
-    await prisma.eventType.findMany({
-      where: {
-        userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        team: null,
-      },
-      select: eventTypeSelect,
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-    })
-  ).map(mapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -196,15 +178,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-    const oldItem = hashMap[newItem.id];
-    hashMap[newItem.id] = { ...oldItem, ...newItem };
-    return hashMap;
-  }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-
-  const mergedEventTypes = Object.values(eventTypesHashMap)
-    .map((eventType) => eventType)
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+  const unmanagedEventTypes = userEventTypes.filter(
+    (evType) => evType.schedulingType !== SchedulingType.MANAGED
+  );
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
@@ -216,7 +192,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,
