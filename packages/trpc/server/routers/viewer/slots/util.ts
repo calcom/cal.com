@@ -69,10 +69,58 @@ export const checkIfIsAvailable = ({
   });
 };
 
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+}) {
+  if (!eventTypeSlug || !slug) return null;
+
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(slug);
+  } else {
+    userId = await getUserIdFromUsername(slug);
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
+
 export async function getEventType(input: TGetScheduleInputSchema) {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+    }));
+
+  if (!eventTypeId) {
+    return null;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -128,7 +176,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
     },
   });
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
@@ -175,7 +223,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
 }
 
 export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
 }
 
@@ -237,16 +285,12 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        {
-          user: currentUser,
-          eventType,
-          currentSeats,
-        }
+        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
@@ -445,4 +489,28 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   return {
     slots: computedAvailableSlots,
   };
+}
+
+async function getUserIdFromUsername(username: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return user?.id;
+}
+
+async function getTeamIdFromSlug(slug: string) {
+  const team = await prisma.team.findFirst({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return team?.id;
 }

@@ -5,7 +5,12 @@ import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { IS_CALCOM, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import {
+  IS_CALCOM,
+  IS_TEAM_BILLING_ENABLED,
+  RESERVED_SUBDOMAINS,
+  IS_PRODUCTION,
+} from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -131,6 +136,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
+    if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")

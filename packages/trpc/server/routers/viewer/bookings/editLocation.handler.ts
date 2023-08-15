@@ -4,6 +4,7 @@ import { sendLocationChangeEmails } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -86,10 +87,12 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
+    const credentials = await getUsersCredentials(ctx.user.id);
+
     const eventManager = new EventManager({
       ...ctx.user,
       credentials: [
-        ...(ctx.user.credentials ? ctx.user.credentials : []),
+        ...(credentials ? credentials : []),
         ...(conferenceCredential ? [conferenceCredential] : []),
       ],
     });
