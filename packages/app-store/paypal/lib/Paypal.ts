@@ -12,11 +12,24 @@ class Paypal {
   accessToken: string | null = null;
   expiresAt: number | null = null;
 
-  constructor({ clientId, secretKey }: { clientId: string; secretKey: string }) {
+  constructor(opts: { clientId: string; secretKey: string }) {
     this.url = IS_PRODUCTION ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
-    this.clientId = clientId;
-    this.secretKey = secretKey;
+    this.clientId = opts.clientId;
+    this.secretKey = opts.secretKey;
   }
+
+  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+    this.getAccessToken();
+    return fetch(`${this.url}${endpoint}`, {
+      method: "get",
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.accessToken}`,
+        ...init?.headers,
+      },
+    });
+  };
 
   async getAccessToken(): Promise<void> {
     if (this.accessToken && this.expiresAt && this.expiresAt > Date.now()) {
@@ -64,15 +77,6 @@ class Paypal {
     cancelUrl: string;
     intent?: "CAPTURE" | "AUTHORIZE";
   }): Promise<CreateOrderResponse> {
-    // Always get a new access token
-    await this.getAccessToken();
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${this.accessToken}`,
-      "PayPal-Request-Id": uuidv4(),
-    };
-
     const createOrderRequestBody: CreateOrderRequestBody = {
       intent,
       purchase_units: [
@@ -96,9 +100,11 @@ class Paypal {
     };
 
     try {
-      const response = await fetch(`${this.url}/v2/checkout/orders`, {
+      const response = await this.fetcher("/v2/checkout/orders", {
         method: "POST",
-        headers,
+        headers: {
+          "PayPal-Request-Id": uuidv4(),
+        },
         body: JSON.stringify(createOrderRequestBody),
       });
 
@@ -116,16 +122,8 @@ class Paypal {
 
   async captureOrder(orderId: string): Promise<boolean> {
     try {
-      await this.getAccessToken();
-
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.accessToken}`,
-      };
-
-      const captureResult = await fetch(`${this.url}/v2/checkout/orders/${orderId}/capture`, {
+      const captureResult = await this.fetcher(`/v2/checkout/orders/${orderId}/capture`, {
         method: "POST",
-        headers,
       });
       if (captureResult.ok) {
         const result = await captureResult.json();
@@ -181,14 +179,6 @@ class Paypal {
   }
 
   async createWebhook(): Promise<boolean | string> {
-    // Always get a new access token
-    await this.getAccessToken();
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${this.accessToken}`,
-    };
-
     const body = {
       url: `${WEBAPP_URL}/api/integrations/paypal/webhook`,
       event_types: [
@@ -202,9 +192,8 @@ class Paypal {
     };
 
     try {
-      const response = await fetch(`${this.url}/v1/notifications/webhooks`, {
+      const response = await this.fetcher(`/v1/notifications/webhooks`, {
         method: "POST",
-        headers,
         body: JSON.stringify(body),
       });
 
@@ -220,19 +209,8 @@ class Paypal {
   }
 
   async listWebhooks(): Promise<string[]> {
-    // Always get a new access token
-    await this.getAccessToken();
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${this.accessToken}`,
-    };
-
     try {
-      const response = await fetch(`${this.url}/v1/notifications/webhooks`, {
-        method: "GET",
-        headers,
-      });
+      const response = await this.fetcher(`/v1/notifications/webhooks`);
 
       if (response.ok) {
         const { webhooks } = await response.json();
@@ -251,18 +229,9 @@ class Paypal {
   }
 
   async deleteWebhook(webhookId: string): Promise<boolean> {
-    // Always get a new access token
-    await this.getAccessToken();
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${this.accessToken}`,
-    };
-
     try {
-      const response = await fetch(`${this.url}/v1/notifications/webhooks/${webhookId}`, {
+      const response = await this.fetcher(`/v1/notifications/webhooks/${webhookId}`, {
         method: "DELETE",
-        headers,
       });
 
       if (response.ok) {
@@ -286,7 +255,6 @@ class Paypal {
   }
 
   async verifyWebhook(options: WebhookEventVerifyRequest): Promise<void> {
-    const url = `${this.url}/v1/notifications/verify-webhook-signature`;
     const parseRequest = webhookEventVerifyRequestSchema.safeParse(options);
 
     // Webhook event should be parsable
@@ -307,12 +275,8 @@ class Paypal {
     const bodyToString = stringy.slice(0, -1) + `,"webhook_event":${options.body.webhook_event}` + "}";
 
     try {
-      const response = await fetch(url, {
+      const response = await this.fetcher(`/v1/notifications/verify-webhook-signature`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.accessToken}`,
-        },
         body: bodyToString,
       });
 
