@@ -44,7 +44,7 @@ jobs:
           EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
           EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
           EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
-          EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD}} 
+          EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD}}
           GOOGLE_LOGIN_ENABLED: ${{ vars.CI_GOOGLE_LOGIN_ENABLED }}
           NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ secrets.CI_NEXTAUTH_URL }}
