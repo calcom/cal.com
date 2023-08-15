@@ -207,7 +207,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed right-4 top-4 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
@@ -280,7 +280,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-col px-5 py-3 pb-0 md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"

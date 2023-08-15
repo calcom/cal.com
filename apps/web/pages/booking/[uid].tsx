@@ -314,7 +314,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -394,7 +394,7 @@ export default function Success(props: SuccessProps) {
                       </h4>
                     )}
 
-                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left">
+                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
@@ -715,7 +715,7 @@ export default function Success(props: SuccessProps) {
               </div>
               {isGmail && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block text-left sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block ltr:text-right rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>
