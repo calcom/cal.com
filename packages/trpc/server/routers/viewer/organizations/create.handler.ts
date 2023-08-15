@@ -160,3 +160,5 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   return { checked: true };
 };
+
+export default createHandler;
