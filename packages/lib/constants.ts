@@ -3,7 +3,7 @@ const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.e
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
-export const CALCOM_ENV = process.env.CALCOM_ENV || IS_PRODUCTION_BUILD;
+export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 
 export const WEBAPP_URL =
