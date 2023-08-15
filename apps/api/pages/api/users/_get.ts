@@ -40,7 +40,7 @@ export async function getHandler(req: NextApiRequest) {
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
   const [total, data] = await prisma.$transaction([
-    prisma.user.count(),
+    prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),
   ]);
   const users = schemaUsersReadPublic.parse(data);
