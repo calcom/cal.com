@@ -71,7 +71,7 @@ export const EventMeta = () => {
               <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(event.description) }} />
             </EventMetaBlock>
           )}
-          <div className="space-y-4 font-medium">
+          <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>
                 {t("former_time")}
