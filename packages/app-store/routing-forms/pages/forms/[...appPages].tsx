@@ -1,5 +1,5 @@
 // TODO: i18n
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -32,6 +32,8 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import {
+  ArrowDown,
+  ArrowUp,
   BarChart,
   CheckCircle,
   Code,
@@ -95,6 +97,17 @@ export default function RoutingForms({
 
   const { data: typeformApp } = useApp("typeform");
   const forms = queryRes.data?.filtered;
+  const [formsItem, setFormItem] = useState(forms);
+
+  const firstItem = formsItem[0];
+  const lastItem = formsItem[formsItem.length - 1];
+
+  function moveFormItem(index: number, increment: 1 | -1) {
+    const items = Array.from(formsItem);
+    const [reorderedItem] = items.splice(index, 1);
+    items.splice(index + increment, 0, reorderedItem);
+    setFormItem(items);
+  }
   const features = [
     {
       icon: <FileText className="h-5 w-5 text-orange-500" />,
@@ -178,11 +191,10 @@ export default function RoutingForms({
                   SkeletonLoader={SkeletonLoaderTeamList}>
                   <div className="bg-default mb-16 overflow-hidden">
                     <List data-testid="routing-forms-list">
-                      {forms?.map(({ form, readOnly }) => {
+                      {formsItem?.map(({ form, readOnly }, index) => {
                         if (!form) {
                           return null;
                         }
-
                         const description = form.description || "";
                         form.routes = form.routes || [];
                         const fields = form.fields || [];
@@ -197,6 +209,22 @@ export default function RoutingForms({
                             className="space-x-2 rtl:space-x-reverse"
                             actions={
                               <>
+                                <div className="group flex items-center justify-between">
+                                  {!(firstItem && firstItem.form.id === form.id) && (
+                                    <button
+                                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                                      onClick={() => moveFormItem(index, -1)}>
+                                      <ArrowUp className="h-5 w-5" />
+                                    </button>
+                                  )}
+                                  {!(lastItem && lastItem.form.id === form.id) && (
+                                    <button
+                                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                                      onClick={() => moveFormItem(index, 1)}>
+                                      <ArrowDown className="h-5 w-5" />
+                                    </button>
+                                  )}
+                                </div>
                                 {form.team?.name && (
                                   <div className="border-r-2 border-neutral-300">
                                     <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">

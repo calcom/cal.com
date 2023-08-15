@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { createElement } from "react";
 
@@ -13,12 +14,14 @@ export type ListProps = {
 } & JSX.IntrinsicElements["ul"];
 
 export function List(props: ListProps) {
+  const [parent] = useAutoAnimate<HTMLUListElement>();
   return (
     <ul
+      ref={parent}
       data-testid="list"
       {...props}
       className={classNames(
-        "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
+        "!static -mx-4 w-full rounded-sm sm:mx-0 sm:overflow-hidden",
         // Add rounded top and bottome if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
         !props.noBorderTreatment &&

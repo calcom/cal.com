@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ import {
   Badge,
   Avatar,
 } from "@calcom/ui";
+import { ArrowDown, ArrowUp } from "@calcom/ui/components/icon";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
@@ -54,22 +56,46 @@ interface Props {
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [workflowList, setWorkflowList] = useState(workflows);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
+  const [parent] = useAutoAnimate<HTMLUListElement>();
+  const firstItem = workflowList[0];
+  const lastItem = workflowList[workflowList.length - 1];
+
+  function moveWorkflow(index: number, increment: 1 | -1) {
+    const items = Array.from(workflowList);
+    const [reorderedItem] = items.splice(index, 1);
+    items.splice(index + increment, 0, reorderedItem);
+    setWorkflowList(items);
+  }
 
   const orgBranding = useOrgBranding();
   const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
-
   return (
     <>
-      {workflows && workflows.length > 0 ? (
+      {workflowList && workflowList.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <ul className="divide-subtle divide-y" data-testid="workflow-list">
-            {workflows.map((workflow) => (
+          <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="workflow-list">
+            {workflowList.map((workflow, index) => (
               <li key={workflow.id}>
-                <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
-                  <Link href={"/workflows/" + workflow.id} className="flex-grow cursor-pointer">
+                <div className="first-line:group hover:bg-muted group flex w-full items-center justify-between p-4 sm:px-6">
+                  {!(firstItem && firstItem.id === workflow.id) && (
+                    <button
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      onClick={() => moveWorkflow(index, -1)}>
+                      <ArrowUp className="h-5 w-5" />
+                    </button>
+                  )}
+                  {!(lastItem && lastItem.id === workflow.id) && (
+                    <button
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      onClick={() => moveWorkflow(index, 1)}>
+                      <ArrowDown className="h-5 w-5" />
+                    </button>
+                  )}
+                  <Link href={"/workflowList/" + workflow.id} className="flex-grow cursor-pointer">
                     <div className="rtl:space-x-reverse">
                       <div className="flex">
                         <div
@@ -190,7 +216,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             variant="icon"
                             StartIcon={Edit2}
                             disabled={workflow.readOnly}
-                            onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                            onClick={async () => await router.replace("/workflowList/" + workflow.id)}
                           />
                         </Tooltip>
                         <Tooltip content={t("delete") as string}>
@@ -218,7 +244,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               <DropdownItem
                                 type="button"
                                 StartIcon={Edit2}
-                                onClick={async () => await router.replace("/workflows/" + workflow.id)}>
+                                onClick={async () => await router.replace("/workflowList/" + workflow.id)}>
                                 {t("edit")}
                               </DropdownItem>
                             </DropdownMenuItem>
