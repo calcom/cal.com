@@ -48,7 +48,7 @@ export const UsernameAvailabilityField = ({
   });
 
   const usernamePrefix = useUserNamePrefix(user.organization);
-  const UsernameAvailability = IS_SELF_HOSTED || user.organization ? UsernameTextfield : PremiumTextfield;
+  const UsernameAvailability = IS_SELF_HOSTED || user.organization?.id ? UsernameTextfield : PremiumTextfield;
 
   return (
     <Controller
@@ -65,7 +65,7 @@ export const UsernameAvailabilityField = ({
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
             addOnLeading={usernamePrefix}
-            disabled={!!user.organization}
+            disabled={!!user.organization?.id}
           />
         );
       }}
