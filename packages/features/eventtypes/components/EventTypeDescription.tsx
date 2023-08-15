@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
@@ -9,7 +9,18 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
+import {
+  Clock,
+  Users,
+  RefreshCw,
+  CreditCard,
+  Clipboard,
+  Plus,
+  User,
+  Lock,
+  ChevronsDown,
+  ChevronsUp,
+} from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -32,6 +43,7 @@ export const EventTypeDescription = ({
   isPublic,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
+  const [shortenDesc, setShortenDesc] = useState(shortenDescription || false);
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -44,15 +56,33 @@ export const EventTypeDescription = ({
     <>
       <div className={classNames("text-subtle", className)}>
         {eventType.description && (
-          <div
-            className={classNames(
-              "text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
-              shortenDescription ? "line-clamp-4" : ""
-            )}
-            dangerouslySetInnerHTML={{
-              __html: eventType.descriptionAsSafeHTML || "",
-            }}
-          />
+          <>
+            <div
+              className={classNames(
+                "text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+                shortenDesc ? "line-clamp-4" : ""
+              )}
+              dangerouslySetInnerHTML={{
+                __html: eventType.descriptionAsSafeHTML || "",
+              }}
+            />
+            <div
+              className="flex items-center text-sm font-semibold focus:outline-none"
+              onClick={(e) => {
+                e.preventDefault();
+                setShortenDesc((prev) => !prev);
+              }}>
+              {shortenDesc ? (
+                <>
+                  Show More <ChevronsDown className="h-5 w-5" />
+                </>
+              ) : (
+                <>
+                  Show Less <ChevronsUp className="h-5 w-5" />
+                </>
+              )}
+            </div>
+          </>
         )}
         <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
           {eventType.metadata?.multipleDuration ? (
