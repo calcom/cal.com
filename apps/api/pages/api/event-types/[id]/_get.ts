@@ -54,7 +54,7 @@ export async function getHandler(req: NextApiRequest) {
       owner: { select: { username: true, id: true } },
     },
   });
-  checkPermissions(req, eventType);
+  await checkPermissions(req, eventType);
 
   const link = eventType ? getCalLink(eventType) : null;
   // user.defaultScheduleId doesn't work the same for team events.
@@ -80,14 +80,14 @@ type BaseEventTypeCheckPermissions = {
   teamId: number | null;
 };
 
-function checkPermissions<T extends BaseEventTypeCheckPermissions>(
+async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   req: NextApiRequest,
   eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
 ) {
   if (req.isAdmin) return true;
   if (eventType?.teamId) {
     req.query.teamId = String(eventType.teamId);
-    canAccessTeamEventOrThrow(req, "MEMBER");
+    await canAccessTeamEventOrThrow(req, "MEMBER");
   }
   if (eventType?.userId === req.userId) return true; // is owner.
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
