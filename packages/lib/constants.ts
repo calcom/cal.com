@@ -2,7 +2,8 @@ const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.N
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
+export const IS_PRODUCTION = CALCOM_ENV === "production";
 
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
@@ -90,3 +91,5 @@ export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 // Needed for orgs
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
+
+export const ORGANIZATION_MIN_SEATS = 30;

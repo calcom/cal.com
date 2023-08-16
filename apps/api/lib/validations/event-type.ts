@@ -98,6 +98,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   position: true,
   userId: true,
   teamId: true,
+  scheduleId: true,
   eventName: true,
   timeZone: true,
   periodType: true,
