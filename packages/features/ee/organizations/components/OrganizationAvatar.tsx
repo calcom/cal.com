@@ -23,7 +23,7 @@ const OrganizationAvatar = ({
       indicator={
         (organizationLogo || organizationName) && (
           <div
-            className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-5 w-5" : "h-10 w-10")}>
+            className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-3 w-3" : "h-10 w-10")}>
             <img
               src={getPlaceholderAvatar(organizationLogo, organizationName)}
               alt={alt}
