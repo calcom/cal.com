@@ -4925,6 +4925,7 @@ __metadata:
     stripe: ^9.16.0
     superjson: 1.9.1
     tailwindcss: ^3.3.1
+    tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
     ts-node: ^10.9.1
     turndown: ^7.1.1
@@ -5011,7 +5012,6 @@ __metadata:
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
-    playwright: ^1.31.2
     postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
@@ -15758,6 +15758,7 @@ __metadata:
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
     lucide-react: ^0.171.0
+    mailhog: ^4.16.0
     prettier: ^2.8.6
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
@@ -22519,7 +22520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6.2, iconv-lite@npm:^0.6.3":
+"iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6, iconv-lite@npm:^0.6.2, iconv-lite@npm:^0.6.3":
   version: 0.6.3
   resolution: "iconv-lite@npm:0.6.3"
   dependencies:
@@ -25488,6 +25489,18 @@ __metadata:
   dependencies:
     "@jridgewell/sourcemap-codec": ^1.4.13
   checksum: 7bdf22e27334d8a393858a16f5f840af63a7c05848c000fd714da5aa5eefa09a1bc01d8469362f25cc5c4a14ec01b46557b7fff8751365522acddf21e57c488d
+  languageName: node
+  linkType: hard
+
+"mailhog@npm:^4.16.0":
+  version: 4.16.0
+  resolution: "mailhog@npm:4.16.0"
+  dependencies:
+    iconv-lite: ^0.6
+  dependenciesMeta:
+    iconv-lite:
+      optional: true
+  checksum: 3fe666bd0cb4cd6998da77e4b362ad1f34e4b8e8fc06724dba72712fe8f091dbc4e6d15e315c88d83bff6b9d3e682536cab51f376752ae340504265bf0bb3dd8
   languageName: node
   linkType: hard
 
@@ -28913,26 +28926,6 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: bf1257b7d80b9d027c99cbfa7ab9d47a2110ec804422b3e3d623bbb3c43e06df7bec4764ca1d852a6d62c76e35c8776efb19941f42ce738db9bc92e7f1b6281c
-  languageName: node
-  linkType: hard
-
-"playwright-core@npm:1.36.2":
-  version: 1.36.2
-  resolution: "playwright-core@npm:1.36.2"
-  bin:
-    playwright-core: cli.js
-  checksum: 2193ce802ef93c28b9b5e11a0b1d7b60778c686015659978d1cbf0eb9cda2cdc85ec5575b887c1346e9d161cc2805bf27638d76a2f7f857dffeae968e6ceffcd
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.31.2":
-  version: 1.36.2
-  resolution: "playwright@npm:1.36.2"
-  dependencies:
-    playwright-core: 1.36.2
-  bin:
-    playwright: cli.js
-  checksum: 5876b65a0f1303e45f99c7d120706af0ab808efd5d89c514741584ff1060408b62148ae2790c2e6527642f2b8f49db682710b87d3df7b3ba510e8e847e6041ef
   languageName: node
   linkType: hard
 
@@ -34083,6 +34076,15 @@ __metadata:
   peerDependencies:
     tailwindcss: 3.x
   checksum: 8f72ad2d19cffdd53b5deec4fd6a6c4fffa9206c472fd89df803db97c7723a1b0a7fc0b4d5345b69b71f2e0fd7a036eaebc2a533feb4d71caec48dc49bb17ca5
+  languageName: node
+  linkType: hard
+
+"tailwindcss-animate@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "tailwindcss-animate@npm:1.0.6"
+  peerDependencies:
+    tailwindcss: "*"
+  checksum: 01471cb5e64d0936b3dc90bdb1d4b379e8b73b3d285553337d8576e5d458e868ddff99c6db0ae454c1be69ce8f88dc0eed44ea62e4d7bca10d7d2479fc4c8ee0
   languageName: node
   linkType: hard
 
