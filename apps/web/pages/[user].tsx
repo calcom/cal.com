@@ -337,6 +337,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     allowSEOIndexing: user.allowSEOIndexing ?? true,
   };
 
+  if (user.organization) {
+    profile.organizationLogo = `/org/${user.organization.slug}/avatar.png`;
+  }
+
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {

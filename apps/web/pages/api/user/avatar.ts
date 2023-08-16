@@ -12,6 +12,7 @@ const querySchema = z
   .object({
     username: z.string(),
     teamname: z.string(),
+    orgSlug: z.string(),
     /**
      * Allow fetching avatar of a particular organization
      * Avatars being public, we need not worry about others accessing it.
@@ -21,7 +22,7 @@ const querySchema = z
   .partial();
 
 async function getIdentityData(req: NextApiRequest) {
-  const { username, teamname, orgId } = querySchema.parse(req.query);
+  const { username, teamname, orgId, orgSlug } = querySchema.parse(req.query);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
@@ -62,6 +63,28 @@ async function getIdentityData(req: NextApiRequest) {
       name: teamname,
       email: null,
       avatar: team?.logo || getPlaceholderAvatar(null, teamname),
+    };
+  }
+  if (orgSlug) {
+    const org = await prisma.team.findFirst({
+      where: {
+        slug: orgSlug,
+        metadata: {
+          path: ["isOrganization"],
+          equals: true,
+        },
+      },
+      select: {
+        slug: true,
+        logo: true,
+        name: true,
+      },
+    });
+    return {
+      org: org?.slug,
+      name: org?.name,
+      email: null,
+      avatar: org?.logo || getPlaceholderAvatar(null, org?.name),
     };
   }
 }
