@@ -1,17 +1,15 @@
-import { createHash } from "node:crypto";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Person } from "@calcom/types/Calendar";
 import type { VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
 
 import appConfig from "../config.json";
+import { hashAttendee } from "../lib";
 
 const createMeetingUrl = (eventUid: number, attendee: Person) => {
-  const attendeeHash = createHash("sha256").update(`${attendee.name}${attendee.email}`).digest("hex");
-  return `${WEBAPP_URL}/join/${eventUid}/${attendeeHash}`;
+  return `${WEBAPP_URL}/join/${eventUid}/${hashAttendee(attendee)}`;
 };
 
-const BbbApiAdapter: VideoApiAdapterFactory = (credential) => {
+const BbbApiAdapter: VideoApiAdapterFactory = () => {
   return {
     createMeeting: async (event) => {
       const [firstAttendee] = event.attendees;
