@@ -303,7 +303,6 @@ const usePrefilledResponse = (form: Props["form"]) => {
   form.fields?.forEach((field) => {
     const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
     // We only want to keep arrays if the field is a multi-select
-
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 
     prefillResponse[field.id] = {
