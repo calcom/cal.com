@@ -279,6 +279,7 @@ model Team {
   routingForms        App_RoutingForms_Form[]
   apiKeys             ApiKey[]
   credentials         Credential[]
+  requireTwoFactor    Boolean                 @default(false)
 
   @@unique([slug, parentId])
 }

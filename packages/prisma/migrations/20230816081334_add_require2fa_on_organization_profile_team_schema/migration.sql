@@ -1,0 +1,1 @@
+ALTER TABLE "Team" ADD COLUMN     "requireTwoFactor" BOOLEAN NOT NULL DEFAULT false;

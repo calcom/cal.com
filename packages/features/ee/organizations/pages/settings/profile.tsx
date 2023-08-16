@@ -67,6 +67,7 @@ const OrgProfileView = () => {
       router.push("/settings");
     },
     onSuccess: (org) => {
+      console.log("org", org);
       if (org) {
         form.setValue("name", org.name || "");
         form.setValue("slug", org.slug || "");

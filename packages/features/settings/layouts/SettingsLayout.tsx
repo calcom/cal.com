@@ -88,6 +88,10 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/general",
       },
       {
+        name: "security",
+        href: "/settings/organizations/security",
+      },
+      {
         name: "members",
         href: "/settings/organizations/members",
       },
