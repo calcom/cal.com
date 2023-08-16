@@ -162,18 +162,13 @@ const ELEMENT_STYLES_DARK: stripejs.Appearance = {
 
 export default function PaymentComponent(props: Props) {
   const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
-
-  useEffect(() => {
-    setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-  }, []);
 
   return (
     <Elements
       stripe={stripePromise}
       options={{
         clientSecret: props.clientSecret,
-        appearance: darkMode ? ELEMENT_STYLES_DARK : ELEMENT_STYLES,
+        appearance: ELEMENT_STYLES,
       }}>
       <PaymentForm {...props} />
     </Elements>
