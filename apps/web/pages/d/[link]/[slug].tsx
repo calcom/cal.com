@@ -2,28 +2,40 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent, org }: PageProps) {
+export default function Type({
+  slug,
+  isEmbed,
+  user,
+  booking,
+  away,
+  isBrandingHidden,
+  isTeamEvent,
+  entity,
+  duration,
+}: PageProps) {
   return (
-    <main className="flex h-full min-h-[100dvh] items-center justify-center">
+    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
         username={user}
         eventSlug={slug}
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
-        org={org}
+        entity={entity}
       />
       <Booker
         username={user}
@@ -32,7 +44,8 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, isTe
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
-        org={org}
+        entity={entity}
+        duration={duration}
       />
     </main>
   );
@@ -43,7 +56,7 @@ Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
@@ -121,7 +134,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      org,
+      entity: eventData.entity,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       booking,
       away: user?.away,
       user: username,

@@ -21,12 +21,13 @@ import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useEvent } from "./utils/event";
+import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
-import { getQueryParam } from './utils/query-param';
+import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -38,8 +39,20 @@ const BookerComponent = ({
   bookingData,
   hideBranding = false,
   isTeamEvent,
-  org,
+  entity,
+  duration,
 }: BookerProps) => {
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
+  useScheduleForEvent({
+    prefetchNextMonth: false,
+    username,
+    eventSlug,
+    month,
+    duration,
+  });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -98,7 +111,8 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
-    org,
+    org: entity.orgSlug,
+    durationConfig: event?.data?.metadata?.multipleDuration,
   });
 
   useEffect(() => {
@@ -120,9 +134,9 @@ const BookerComponent = ({
       layout !== _layout
     ) {
       const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
-      validLayout && setLayout(validLayout)
+      validLayout && setLayout(validLayout);
     }
-  }, [bookerLayouts, validateLayout, setLayout,_layout]);
+  }, [bookerLayouts, validateLayout, setLayout, _layout]);
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
@@ -138,6 +152,10 @@ const BookerComponent = ({
   }, [layout]);
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  if (entity.isUnpublished) {
+    return <UnpublishedEntity {...entity} />;
+  }
 
   if (event.isSuccess && !event.data) {
     return <NotFound />;
@@ -158,6 +176,11 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
+  if (bookerState === "loading") {
+    return null;
+  }
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -178,15 +201,13 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
-            // We don't want any margins for Embed. Any margin needed should be added by Embed user.
-            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-0"
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed right-4 top-4 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
@@ -209,7 +230,7 @@ const BookerComponent = ({
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className=" mt-auto px-5 py-3">
+                    <div className="mt-auto px-5 py-3 ">
                       <DatePicker />
                     </div>
                   )}
@@ -259,7 +280,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-col px-5 py-3 pb-0 md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -278,7 +299,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
             hasDarkBackground ? "dark" : "",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>

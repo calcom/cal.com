@@ -1,0 +1,47 @@
+name: "Release Docker"
+
+on: # yamllint disable-line rule:truthy
+  release:
+    types:
+      - created
+  # in case manual trigger is needed
+  workflow_dispatch:
+    inputs:
+      RELEASE_TAG:
+        description: "v{Major}.{Minor}.{Patch}"
+
+jobs:
+  release:
+    name: "Remote Release"
+
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: "Determine tag"
+        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+
+      - name: "Run remote release workflow"
+        uses: "actions/github-script@v6"
+        with:
+          # Requires a personal access token with Actions Read and write permissions on calcom/docker.
+          github-token: "${{ secrets.DOCKER_REPO_ACCESS_TOKEN }}"
+          script: |
+            try {
+              const response = await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: 'docker',
+                workflow_id: 'create-release.yaml',
+                ref: 'main',
+                inputs: {
+                  "RELEASE_TAG": process.env.RELEASE_TAG
+                },
+              });
+
+              console.log(response);
+            } catch (error) {
+              console.error(error);
+              core.setFailed(error.message);
+            }

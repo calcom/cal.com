@@ -15,7 +15,9 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
@@ -188,8 +190,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
     // Handling calendar and videos cancellation
     // This can set previous time as available, until virtual calendar is done
+    const credentials = await getUsersCredentials(user.id);
     const credentialsMap = new Map();
-    user.credentials.forEach((credential) => {
+    credentials.forEach((credential) => {
       credentialsMap.set(credential.type, credential);
     });
     const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
@@ -238,12 +241,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
     // Send webhook
     const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: bookingToReschedule.eventType?.teamId ?? null },
+        parentId: bookingToReschedule?.eventType?.parentId ?? null,
+      },
+    });
     // Send Webhook call if hooked to BOOKING.CANCELLED
     const subscriberOptions = {
       userId: bookingToReschedule.userId,
       eventTypeId: bookingToReschedule.eventTypeId as number,
       triggerEvent: eventTrigger,
-      teamId: bookingToReschedule.eventType?.teamId,
+      teamId,
     };
     const webhooks = await getWebhooks(subscriberOptions);
     const promises = webhooks.map((webhook) =>

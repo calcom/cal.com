@@ -23,6 +23,7 @@ const dataAttributes = [
   "data-button-position",
   "data-button-color",
   "data-button-text-color",
+  "data-toggle-off",
 ] as const;
 
 type DataAttributes = (typeof dataAttributes)[number];
@@ -42,7 +43,7 @@ export class FloatingButton extends HTMLElement {
 
   // Button added here triggers the modal on click. So, it has to have the same data attributes as the modal target as well
   dataset!: DOMStringMap & FloatingButtonDataset & ModalTargetDatasetProps;
-
+  buttonWrapperStyleDisplay!: HTMLElement["style"]["display"];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
@@ -74,6 +75,13 @@ export class FloatingButton extends HTMLElement {
       buttonWrapperEl.style.backgroundColor = newValue;
     } else if (name === "data-button-text-color") {
       buttonWrapperEl.style.color = newValue;
+    } else if (name === "data-toggle-off") {
+      const off = newValue == "true";
+      if (off) {
+        // When toggling off, back up the original display value so that it can be restored when toggled back on
+        this.buttonWrapperStyleDisplay = buttonWrapperEl.style.display;
+      }
+      buttonWrapperEl.style.display = off ? "none" : this.buttonWrapperStyleDisplay;
     } else {
       console.log("Unknown attribute changed", name, oldValue, newValue);
     }

@@ -25,8 +25,10 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-
-if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+if (
+  process.env.CSP_POLICY === "strict" &&
+  (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
+) {
   throw new Error(
     "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
   );
@@ -127,7 +129,10 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: {
+    ...i18n,
+    localeDetection: false,
+  },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
@@ -377,6 +382,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/auth",
+        destination: "/auth/login",
+        permanent: false,
+      },
+      {
         source: "/settings",
         destination: "/settings/my-account/profile",
         permanent: true,
@@ -446,6 +456,27 @@ const nextConfig = {
         destination: "/apps/installed/conferencing",
         permanent: true,
       },
+      // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
+      ...(process.env.NODE_ENV === "development" &&
+      // Safer to enable the redirect only when the user is opting to test out organizations
+      process.env.ORGANIZATIONS_ENABLED &&
+      // Prevent infinite redirect by checking that we aren't already on localhost
+      process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
+        ? [
+            {
+              has: [
+                {
+                  type: "header",
+                  key: "host",
+                  value: "localhost:3000",
+                },
+              ],
+              source: "/api/integrations/:args*",
+              destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
+              permanent: false,
+            },
+          ]
+        : []),
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {

@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["views", "jsonProtocol"]
+  previewFeatures = ["views"]
 }
 
 generator zod {
@@ -47,70 +47,71 @@ model Host {
 }
 
 model EventType {
-  id                      Int                     @id @default(autoincrement())
+  id                              Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  title                   String
+  title                           String
   /// @zod.custom(imports.eventTypeSlug)
-  slug                    String
-  description             String?
-  position                Int                     @default(0)
+  slug                            String
+  description                     String?
+  position                        Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations               Json?
-  length                  Int
-  offsetStart             Int                     @default(0)
-  hidden                  Boolean                 @default(false)
-  hosts                   Host[]
-  users                   User[]                  @relation("user_eventtype")
-  owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId                  Int?
-  team                    Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                  Int?
-  hashedLink              HashedLink?
-  bookings                Booking[]
-  availability            Availability[]
-  webhooks                Webhook[]
-  destinationCalendar     DestinationCalendar?
-  eventName               String?
-  customInputs            EventTypeCustomInput[]
-  parentId                Int?
-  parent                  EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                EventType[]             @relation("managed_eventtype")
+  locations                       Json?
+  length                          Int
+  offsetStart                     Int                     @default(0)
+  hidden                          Boolean                 @default(false)
+  hosts                           Host[]
+  users                           User[]                  @relation("user_eventtype")
+  owner                           User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId                          Int?
+  team                            Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                          Int?
+  hashedLink                      HashedLink?
+  bookings                        Booking[]
+  availability                    Availability[]
+  webhooks                        Webhook[]
+  destinationCalendar             DestinationCalendar?
+  eventName                       String?
+  customInputs                    EventTypeCustomInput[]
+  parentId                        Int?
+  parent                          EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                        EventType[]             @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
-  bookingFields           Json?
-  timeZone                String?
-  periodType              PeriodType              @default(UNLIMITED)
-  periodStartDate         DateTime?
-  periodEndDate           DateTime?
-  periodDays              Int?
-  periodCountCalendarDays Boolean?
-  requiresConfirmation    Boolean                 @default(false)
+  bookingFields                   Json?
+  timeZone                        String?
+  periodType                      PeriodType              @default(UNLIMITED)
+  periodStartDate                 DateTime?
+  periodEndDate                   DateTime?
+  periodDays                      Int?
+  periodCountCalendarDays         Boolean?
+  requiresConfirmation            Boolean                 @default(false)
+  requiresBookerEmailVerification Boolean                 @default(false)
   /// @zod.custom(imports.recurringEventType)
-  recurringEvent          Json?
-  disableGuests           Boolean                 @default(false)
-  hideCalendarNotes       Boolean                 @default(false)
+  recurringEvent                  Json?
+  disableGuests                   Boolean                 @default(false)
+  hideCalendarNotes               Boolean                 @default(false)
   /// @zod.min(0)
-  minimumBookingNotice    Int                     @default(120)
-  beforeEventBuffer       Int                     @default(0)
-  afterEventBuffer        Int                     @default(0)
-  seatsPerTimeSlot        Int?
-  seatsShowAttendees      Boolean?                @default(false)
-  schedulingType          SchedulingType?
-  schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
-  scheduleId              Int?
+  minimumBookingNotice            Int                     @default(120)
+  beforeEventBuffer               Int                     @default(0)
+  afterEventBuffer                Int                     @default(0)
+  seatsPerTimeSlot                Int?
+  seatsShowAttendees              Boolean?                @default(false)
+  schedulingType                  SchedulingType?
+  schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
+  scheduleId                      Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                   Int                     @default(0)
+  price                           Int                     @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                String                  @default("usd")
-  slotInterval            Int?
+  currency                        String                  @default("usd")
+  slotInterval                    Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
-  metadata                Json?
+  metadata                        Json?
   /// @zod.custom(imports.successRedirectUrl)
-  successRedirectUrl      String?
-  workflows               WorkflowsOnEventTypes[]
+  successRedirectUrl              String?
+  workflows                       WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits           Json?
+  bookingLimits                   Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits          Json?
+  durationLimits                  Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -167,50 +168,54 @@ enum UserPermissionRole {
 }
 
 model User {
-  id                   Int                     @id @default(autoincrement())
-  username             String?
-  name                 String?
+  id                  Int                  @id @default(autoincrement())
+  username            String?
+  name                String?
   /// @zod.email()
-  email                String
-  emailVerified        DateTime?
-  password             String?
-  bio                  String?
-  avatar               String?
-  timeZone             String                  @default("Europe/London")
-  weekStart            String                  @default("Sunday")
+  email               String
+  emailVerified       DateTime?
+  password            String?
+  bio                 String?
+  avatar              String?
+  timeZone            String               @default("Europe/London")
+  weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
-  startTime            Int                     @default(0)
-  endTime              Int                     @default(1440)
+  startTime           Int                  @default(0)
+  endTime             Int                  @default(1440)
   // </DEPRECATED>
-  bufferTime           Int                     @default(0)
-  hideBranding         Boolean                 @default(false)
-  theme                String?
-  createdDate          DateTime                @default(now()) @map(name: "created")
-  trialEndsAt          DateTime?
-  eventTypes           EventType[]             @relation("user_eventtype")
-  credentials          Credential[]
-  teams                Membership[]
-  bookings             Booking[]
-  schedules            Schedule[]
-  defaultScheduleId    Int?
-  selectedCalendars    SelectedCalendar[]
-  completedOnboarding  Boolean                 @default(false)
-  locale               String?
-  timeFormat           Int?                    @default(12)
-  twoFactorSecret      String?
-  twoFactorEnabled     Boolean                 @default(false)
-  identityProvider     IdentityProvider        @default(CAL)
-  identityProviderId   String?
-  availability         Availability[]
-  invitedTo            Int?
-  webhooks             Webhook[]
-  brandColor           String                  @default("#292929")
-  darkBrandColor       String                  @default("#fafafa")
+  bufferTime          Int                  @default(0)
+  hideBranding        Boolean              @default(false)
+  theme               String?
+  createdDate         DateTime             @default(now()) @map(name: "created")
+  trialEndsAt         DateTime?
+  eventTypes          EventType[]          @relation("user_eventtype")
+  credentials         Credential[]
+  teams               Membership[]
+  bookings            Booking[]
+  schedules           Schedule[]
+  defaultScheduleId   Int?
+  selectedCalendars   SelectedCalendar[]
+  completedOnboarding Boolean              @default(false)
+  locale              String?
+  timeFormat          Int?                 @default(12)
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean              @default(false)
+  identityProvider    IdentityProvider     @default(CAL)
+  identityProviderId  String?
+  availability        Availability[]
+  invitedTo           Int?
+  webhooks            Webhook[]
+  brandColor          String               @default("#292929")
+  darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
-  destinationCalendar  DestinationCalendar?
-  away                 Boolean                 @default(false)
+  destinationCalendar DestinationCalendar?
+  away                Boolean              @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking  Boolean?                @default(true)
+  allowDynamicBooking Boolean?             @default(true)
+
+  // participate in SEO indexing or not
+  allowSEOIndexing Boolean? @default(true)
+
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)
@@ -781,19 +786,21 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id             Int             @id @default(autoincrement())
-  bookingUid     String?
-  booking        Booking?        @relation(fields: [bookingUid], references: [uid])
-  method         WorkflowMethods
-  scheduledDate  DateTime
-  referenceId    String?         @unique
-  scheduled      Boolean
-  workflowStepId Int?
-  workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
-  cancelled      Boolean?
+  id              Int             @id @default(autoincrement())
+  bookingUid      String?
+  booking         Booking?        @relation(fields: [bookingUid], references: [uid])
+  method          WorkflowMethods
+  scheduledDate   DateTime
+  referenceId     String?         @unique
+  scheduled       Boolean
+  workflowStepId  Int?
+  workflowStep    WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  cancelled       Boolean?
+  seatReferenceId String?
 
   @@index([bookingUid])
   @@index([workflowStepId])
+  @@index([seatReferenceId])
 }
 
 enum WorkflowTemplates {
@@ -877,20 +884,21 @@ model SelectedSlots {
 }
 
 view BookingTimeStatus {
-  id          Int            @unique
-  uid         String?
-  eventTypeId Int?
-  title       String?
-  description String?
-  startTime   DateTime?
-  endTime     DateTime?
-  createdAt   DateTime?
-  location    String?
-  paid        Boolean?
-  status      BookingStatus?
-  rescheduled Boolean?
-  userId      Int?
-  teamId      Int?
-  eventLength Int?
-  timeStatus  String?
+  id            Int            @unique
+  uid           String?
+  eventTypeId   Int?
+  title         String?
+  description   String?
+  startTime     DateTime?
+  endTime       DateTime?
+  createdAt     DateTime?
+  location      String?
+  paid          Boolean?
+  status        BookingStatus?
+  rescheduled   Boolean?
+  userId        Int?
+  teamId        Int?
+  eventLength   Int?
+  timeStatus    String?
+  eventParentId Int?
 }

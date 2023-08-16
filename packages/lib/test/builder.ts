@@ -76,6 +76,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     hidden: false,
     userId: null,
     teamId: null,
+    requiresBookerEmailVerification: false,
     eventName: faker.lorem.words(),
     timeZone: null,
     periodType: "UNLIMITED",
@@ -219,6 +220,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     verified: false,
     weekStart: "",
     organizationId: null,
+    allowSEOIndexing: null,
     ...user,
   };
 };

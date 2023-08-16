@@ -1,6 +1,7 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -23,22 +24,28 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-type FormValues = {
-  username: string;
-  email: string;
-  password: string;
-  apiError: string;
-  token?: string;
-};
+const signupSchema = z.object({
+  username: z.string().refine((value) => !value.includes("+"), {
+    message: "String should not contain a plus symbol (+).",
+  }),
+  email: z.string().email(),
+  password: z.string().min(7),
+  language: z.string().optional(),
+  token: z.string().optional(),
+  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+});
+
+type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
-  const { t, i18n } = useLocale();
-  const router = useRouter();
-  const flags = useFlagMap();
+  const searchParams = useSearchParams();
   const telemetry = useTelemetry();
+  const { t, i18n } = useLocale();
+  const flags = useFlagMap();
   const methods = useForm<FormValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -71,9 +78,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: router.query.callbackUrl
-            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-            : `${WEBAPP_URL}/${verifyOrGettingStarted}`,
+          callbackUrl: `${
+            searchParams?.get("callbackUrl")
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
+          }?from=signup`,
         });
       })
       .catch((err) => {
@@ -151,8 +160,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: router.query.callbackUrl
-                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          callbackUrl: searchParams?.get("callbackUrl")
+                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
@@ -262,6 +271,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
     username = available ? username : suggestion || username;
   }
+
+  // Transform all + to - in username
+  username = username.replace(/\+/g, "-");
 
   return {
     props: {

@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isSMSOrWhatsappAction,
+  isTextMessageToAttendeeAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -15,12 +18,14 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
@@ -78,6 +83,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isTeamsPlan = !!hasTeamPlan;
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
+
+  const kycVerified = await isVerifiedHandler({ ctx });
+  const isKYCVerified = kycVerified.isKYCVerified;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
@@ -280,6 +288,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
+                    timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
               startTime: booking.startTime.toISOString(),
@@ -419,6 +428,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      if (!isKYCVerified && isTextMessageToAttendeeAction(newStep.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      }
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
       await ctx.prisma.workflowStep.update({
@@ -503,6 +515,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   name: booking.user.name || "",
                   email: booking.user.email,
                   timeZone: booking.user.timeZone,
+                  timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                 }
               : { name: "", email: "", timeZone: "", language: { locale: "" } },
             startTime: booking.startTime.toISOString(),
@@ -590,6 +603,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      if (isTextMessageToAttendeeAction(s.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;
     }
@@ -649,6 +665,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     name: booking.user.name || "",
                     email: booking.user.email,
                     timeZone: booking.user.timeZone,
+                    timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                     language: { locale: booking.user.locale || defaultLocale },
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
