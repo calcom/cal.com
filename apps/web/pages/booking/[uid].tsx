@@ -96,7 +96,7 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -477,6 +477,21 @@ export default function Success(props: SuccessProps) {
                           ) : (
                             locationToDisplay
                           )}
+                        </div>
+                      </>
+                    )}
+                    {props.paymentStatus && (
+                      <>
+                        <div className="mt-3 font-medium">
+                          {props.paymentStatus.paymentOption === "HOLD"
+                            ? t("complete_your_booking")
+                            : t("payment")}
+                        </div>
+                        <div className="col-span-2 mb-2 mt-3">
+                          {new Intl.NumberFormat(i18n.language, {
+                            style: "currency",
+                            currency: props.paymentStatus.currency,
+                          }).format(props.paymentStatus.amount / 100.0)}
                         </div>
                       </>
                     )}
@@ -1117,6 +1132,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       success: true,
       refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
     },
   });
 
