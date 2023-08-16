@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+
+export const updateUserMetadataAllowedKeys = z.object({
+  sessionTimeout: z.number().optional(), // Minutes
+  defaultBookerLayouts: bookerLayouts.optional(),
+});
 
 export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
