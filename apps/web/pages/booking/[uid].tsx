@@ -23,12 +23,9 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { SystemField } from "@calcom/features/bookings/lib/SystemField";
+import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
-import {
-  getBookingFieldsWithSystemFields,
-  SMS_REMINDER_NUMBER_FIELD,
-} from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
