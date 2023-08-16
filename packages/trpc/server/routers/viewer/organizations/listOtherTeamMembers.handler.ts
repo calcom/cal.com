@@ -79,3 +79,5 @@ export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
 
   return members;
 };
+
+export default listOtherTeamMembers;
