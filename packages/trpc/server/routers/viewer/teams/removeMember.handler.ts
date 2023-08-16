@@ -20,12 +20,15 @@ type RemoveMemberOptions = {
 
 export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
   const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
+  const isOrgAdmin = ctx.user.organizationId
+    ? await isTeamAdmin(ctx.user.id, ctx.user.organizationId)
+    : false;
   if (!isAdmin && ctx.user.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
   // Only a team owner can remove another team owner.
   if ((await isTeamOwner(input.memberId, input.teamId)) && !(await isTeamOwner(ctx.user.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (ctx.user.id === input.memberId && isAdmin)
+  if (ctx.user.id === input.memberId && isAdmin && !isOrgAdmin)
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not remove yourself from a team you own.",

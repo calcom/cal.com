@@ -15,7 +15,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const team = await getTeamWithMembers({ id: input.teamId, userId: ctx.user.id });
+  const team = await getTeamWithMembers({ id: input.teamId, userId: !input.isOrg ? ctx.user.id : undefined });
 
   if (!team) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
