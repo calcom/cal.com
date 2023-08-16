@@ -284,7 +284,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         select: {
           slug: true,
           name: true,
-          logo: true,
         },
       },
       theme: true,
@@ -332,7 +331,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
     organizationName: user.organization?.name,
-    organizationLogo: user.organization?.logo,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
   };
 
