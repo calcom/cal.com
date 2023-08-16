@@ -58,7 +58,7 @@ export const sendResponseEmail = async (
 ) => {
   try {
     if (typeof window === "undefined") {
-      const ResponseEmail = (await import("../emails/templates/response-email")).default;
+      const { default: ResponseEmail } = await import("../emails/templates/response-email");
       const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], response: response });
       await email.sendEmail();
     }
