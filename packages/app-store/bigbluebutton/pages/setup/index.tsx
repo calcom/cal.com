@@ -19,7 +19,7 @@ export default function ExchangeSetup() {
     defaultValues: {
       url: "",
       secret: "",
-      hash: "sha1",
+      hash: "sha512",
     },
     resolver: zodResolver(bbbOptionsSchema),
   });
@@ -91,7 +91,7 @@ export default function ExchangeSetup() {
                           required
                           label={t("hash_algorithm")}
                           options={hashes}
-                          defaultValue={hashes[0]}
+                          defaultValue={hashes.at(-1)}
                           onChange={async (hash) => {
                             if (hash) {
                               onChange(hash.value);
