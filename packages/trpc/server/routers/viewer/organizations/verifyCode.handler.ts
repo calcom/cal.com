@@ -38,3 +38,5 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
 
   return isValidToken;
 };
+
+export default verifyCodeHandler;
