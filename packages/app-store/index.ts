@@ -2,6 +2,7 @@ const appStore = {
   // example: () => import("./example"),
   applecalendar: () => import("./applecalendar"),
   aroundvideo: () => import("./around"),
+  bigbluebuttonvideo: () => import("./bigbluebutton"),
   caldavcalendar: () => import("./caldavcalendar"),
   closecom: () => import("./closecom"),
   dailyvideo: () => import("./dailyvideo"),

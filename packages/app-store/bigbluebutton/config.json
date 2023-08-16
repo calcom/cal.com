@@ -1,0 +1,24 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton™",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://example.com/bbb",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "bbb",
+  "email": "bbb@example.com",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:bigbluebutton_video",
+      "label": "BigBlueButton"
+    }
+  },
+  "description": "This app uses BigBlueButton and is not endorsed or certified by BigBlueButton Inc. BigBlueButton and the BigBlueButton Logo are trademarks of BigBlueButton Inc.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static",
+  "dirName": "bigbluebutton"
+}

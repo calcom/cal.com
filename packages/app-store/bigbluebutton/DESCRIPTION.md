@@ -1,0 +1,6 @@
+---
+items:
+  - main.png
+---
+
+{DESCRIPTION}

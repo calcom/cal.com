@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/bigbluebutton",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "fast-xml-parser": "^4.2.7"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Learning Management System"
+}
