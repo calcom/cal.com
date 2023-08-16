@@ -113,7 +113,8 @@ export default function Success(props: SuccessProps) {
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
   )?.timeZone;
-  const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
+
+  const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
