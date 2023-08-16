@@ -89,7 +89,7 @@ export const getServerSideProps = async function getServerSideProps(
   const { createContext } = await import("@calcom/trpc/server/createContext");
   const ctx = await createContext(context);
 
-  const trpcRouter = (await import("@calcom/app-store/routing-forms/trpc/_router")).default;
+  const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
   const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
   await caller.public.response({
