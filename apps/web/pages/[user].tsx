@@ -331,6 +331,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
     organizationName: user.organization?.name,
+    organizationLogo: "",
     allowSEOIndexing: user.allowSEOIndexing ?? true,
   };
 
