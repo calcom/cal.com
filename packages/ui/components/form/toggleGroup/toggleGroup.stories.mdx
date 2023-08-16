@@ -1,0 +1,43 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import { ArrowRight } from "@calcom/ui/components/icon";
+
+import { ToggleGroup } from "./ToggleGroup";
+
+<Meta title="UI/ToggleGroup" component={ToggleGroup} />
+
+<Title title="ToggleGroup" suffix="Brief" subtitle="Version 1.0 — Last Update: 15 Aug 2023" />
+
+## Definition
+
+The `ToggleGroup` component is used to create a group of toggle items with optional tooltips.
+
+## Structure
+
+<ArgsTable of={ToggleGroup} />
+
+export const options = [
+  { value: "option1", label: "Option 1", tooltip: "Tooltip for Option 1" },
+  { value: "option2", label: "Option 2", iconLeft: <ArrowRight /> },
+  { value: "option3", label: "Option 3", iconLeft: <ArrowRight /> },
+  {
+    value: "option4",
+    label: "Option 4",
+    tooltip: "Tooltip for Option 4",
+    iconLeft: <ArrowRight />,
+  },
+  { value: "option5", label: "Option 5", iconLeft: <ArrowRight />, disabled: true },
+];
+
+## ToggleGroup Story
+
+<Canvas>
+  <Story name="Default">
+    {() => (
+      <TooltipProvider>
+        <ToggleGroup options={options} onValueChange={(value) => console.log("Selected value:", value)} />
+      </TooltipProvider>
+    )}
+  </Story>
+</Canvas>
