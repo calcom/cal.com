@@ -1,6 +1,6 @@
-import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import type { Prisma } from "@prisma/client";
 
-import type { Prisma } from ".prisma/client";
+import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 
 /**
  * return the org slug

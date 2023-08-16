@@ -310,7 +310,7 @@
   "bookerlayout_user_settings_title": "Disposição da reserva",
   "bookerlayout_user_settings_description": "Pode selecionar várias e os clientes podem alternar entre vistas. Isto pode ser sobreposto para cada evento.",
   "bookerlayout_month_view": "Mês",
-  "bookerlayout_week_view": "Semanal",
+  "bookerlayout_week_view": "Semana",
   "bookerlayout_column_view": "Coluna",
   "bookerlayout_error_min_one_enabled": "Tem de estar ativa pelo menos uma disposição.",
   "bookerlayout_error_default_not_enabled": "A disposição selecionada como a vista predefinida não faz parte das disposições ativas.",

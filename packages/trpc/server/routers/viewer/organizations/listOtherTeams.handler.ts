@@ -41,3 +41,5 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
     ...team,
   }));
 };
+
+export default listOtherTeamHandler;
