@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -106,7 +107,7 @@ const UserProfile = () => {
             size="lg"
             imageSrc={imageSrc}
             organizationName={user.organization?.name}
-            organizationLogo={user.organization?.logo}
+            organizationLogo={`${WEBAPP_URL}/org/${user.organization?.slug}/avatar.png`}
           />
         )}
         <input
