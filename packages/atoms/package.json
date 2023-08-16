@@ -10,13 +10,13 @@
     "build": "node build.mjs"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-node-resolve": "^15.1.0",
     "@types/react": "18.0.26",
-    "@types/react-dom": "^18.0.9",
+    "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^2.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
-    "typescript": "^4.9.4",
-    "vite": "^4.1.2"
+    "typescript": "^4.9.5",
+    "vite": "^4.4.9"
   },
   "main": "./index"
 }
