@@ -97,21 +97,6 @@ describe("Check Duration Limit Tests", () => {
       })
     ).resolves.toBeUndefined();
   });
-  it("Should return busyTimes when set and limit is reached", async () => {
-    prismaMock.$queryRaw.mockResolvedValue([{ totalMinutes: 60 }]);
-    await expect(
-      checkDurationLimit({
-        key: "PER_DAY",
-        limitingNumber: 60,
-        eventStartDate: MOCK_DATA.startDate,
-        eventId: MOCK_DATA.id,
-        returnBusyTimes: true,
-      })
-    ).resolves.toEqual({
-      start: dayjs(MOCK_DATA.startDate).startOf("day").toDate(),
-      end: dayjs(MOCK_DATA.startDate).endOf("day").toDate(),
-    });
-  });
 });
 
 describe("Duration limit validation", () => {

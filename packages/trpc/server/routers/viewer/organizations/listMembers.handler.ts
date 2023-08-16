@@ -102,3 +102,5 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   };
 };
+
+export default listMembersHandler;

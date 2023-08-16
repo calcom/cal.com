@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { isTextMessageToAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,7 +11,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
-import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
+import { ExternalLink, Zap, Lock, Info } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -22,6 +23,7 @@ type ItemProps = {
   eventType: {
     id: number;
     title: string;
+    requiresConfirmation: boolean;
   };
   isChildrenManagedEventType: boolean;
 };
@@ -101,71 +103,90 @@ const WorkflowListItem = (props: ItemProps) => {
     }
   });
 
+  const needsRequiresConfirmationWarning =
+    !eventType.requiresConfirmation &&
+    workflow.steps.find((step) => {
+      return isTextMessageToAttendeeAction(step.action);
+    });
+
   return (
-    <div className="border-subtle flex w-full items-center overflow-hidden rounded-md border p-6 px-3 md:p-6">
-      <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
-        {getActionIcon(
-          workflow.steps,
-          isActive ? "h-6 w-6 stroke-[1.5px] text-default" : "h-6 w-6 stroke-[1.5px] text-muted"
-        )}
-      </div>
-      <div className=" grow">
-        <div
-          className={classNames(
-            "text-emphasis mb-1 w-full truncate text-base font-medium leading-4 md:max-w-max",
-            workflow.name && isActive ? "text-emphasis" : "text-subtle"
-          )}>
-          {workflow.name
-            ? workflow.name
-            : "Untitled (" +
-              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.charAt(0).toUpperCase() +
-              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-              ")"}
-        </div>
-        <div
-          className={classNames(
-            " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
-            isActive ? "text-default" : "text-muted"
-          )}>
-          <span className="mr-1">{t("to")}:</span>
-          {Array.from(sendTo).map((sendToPerson, index) => {
-            return <span key={index}>{`${index ? ", " : ""}${sendToPerson}`}</span>;
-          })}
-        </div>
-      </div>
-      {!workflow.readOnly && (
-        <div className="flex-none">
-          <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-            <Button type="button" color="minimal" className="mr-4">
-              <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-              <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
-            </Button>
-          </Link>
-        </div>
-      )}
-      <Tooltip
-        content={
-          t(
-            workflow.readOnly && props.isChildrenManagedEventType
-              ? "locked_by_admin"
-              : isActive
-              ? "turn_off"
-              : "turn_on"
-          ) as string
-        }>
-        <div className="flex items-center ltr:mr-2 rtl:ml-2">
-          {workflow.readOnly && props.isChildrenManagedEventType && (
-            <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+    <div className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6">
+      <div className="flex items-center ">
+        <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
+          {getActionIcon(
+            workflow.steps,
+            isActive ? "h-6 w-6 stroke-[1.5px] text-default" : "h-6 w-6 stroke-[1.5px] text-muted"
           )}
-          <Switch
-            checked={isActive}
-            disabled={workflow.readOnly}
-            onCheckedChange={() => {
-              activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
-            }}
-          />
         </div>
-      </Tooltip>
+        <div className=" grow">
+          <div
+            className={classNames(
+              "text-emphasis mb-1 w-full truncate text-base font-medium leading-4 md:max-w-max",
+              workflow.name && isActive ? "text-emphasis" : "text-subtle"
+            )}>
+            {workflow.name
+              ? workflow.name
+              : "Untitled (" +
+                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.charAt(0).toUpperCase() +
+                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
+                ")"}
+          </div>
+          <>
+            <div
+              className={classNames(
+                " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
+                isActive ? "text-default" : "text-muted"
+              )}>
+              <span className="mr-1">{t("to")}:</span>
+              {Array.from(sendTo).map((sendToPerson, index) => {
+                return <span key={index}>{`${index ? ", " : ""}${sendToPerson}`}</span>;
+              })}
+            </div>
+          </>
+        </div>
+        {!workflow.readOnly && (
+          <div className="flex-none">
+            <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+              <Button type="button" color="minimal" className="mr-4">
+                <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+                <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
+              </Button>
+            </Link>
+          </div>
+        )}
+        <Tooltip
+          content={
+            t(
+              workflow.readOnly && props.isChildrenManagedEventType
+                ? "locked_by_admin"
+                : isActive
+                ? "turn_off"
+                : "turn_on"
+            ) as string
+          }>
+          <div className="flex items-center ltr:mr-2 rtl:ml-2">
+            {workflow.readOnly && props.isChildrenManagedEventType && (
+              <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            )}
+            <Switch
+              checked={isActive}
+              disabled={workflow.readOnly}
+              onCheckedChange={() => {
+                activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
+              }}
+            />
+          </div>
+        </Tooltip>
+      </div>
+
+      {needsRequiresConfirmationWarning ? (
+        <div className="text-attention -mb-2 mt-3 flex">
+          <Info className="mr-1 mt-0.5 h-4 w-4" />
+          <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

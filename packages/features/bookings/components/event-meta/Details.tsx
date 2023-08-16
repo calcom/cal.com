@@ -5,10 +5,10 @@ import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
-import { AvailableEventLocations } from "@calcom/web/components/booking/AvailableEventLocations";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
+import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
 import { EventPrice } from "./Price";
@@ -86,7 +86,7 @@ export const EventMetaBlock = ({
           )}
         />
       ) : (
-        <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />}</>
+        <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2" />}</>
       )}
       <div className={classNames("relative z-10 max-w-full break-words", contentClassName)}>{children}</div>
     </div>
@@ -128,9 +128,9 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length) return null;
             return (
-              <React.Fragment key={block}>
+              <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />
-              </React.Fragment>
+              </EventMetaBlock>
             );
 
           case EventDetailBlocks.REQUIRES_CONFIRMATION:

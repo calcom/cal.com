@@ -24,6 +24,7 @@ export const metadata = {
     },
   },
   dirName: "jitsivideo",
+  concurrentMeetings: true,
 } as AppMeta;
 
 export default metadata;

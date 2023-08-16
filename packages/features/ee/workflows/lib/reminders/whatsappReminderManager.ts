@@ -1,9 +1,14 @@
 import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import {
+  WorkflowTriggerEvents,
+  WorkflowTemplates,
+  WorkflowActions,
+  WorkflowMethods,
+} from "@calcom/prisma/enums";
 
 import * as twilio from "./smsProviders/twilioProvider";
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -31,7 +36,8 @@ export const scheduleWhatsappReminder = async (
   template: WorkflowTemplates,
   userId?: number | null,
   teamId?: number | null,
-  isVerificationPending = false
+  isVerificationPending = false,
+  seatReferenceUid?: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -174,6 +180,7 @@ export const scheduleWhatsappReminder = async (
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledWHATSAPP.sid,
+              seatReferenceId: seatReferenceUid,
             },
           });
         } catch (error) {
@@ -188,6 +195,7 @@ export const scheduleWhatsappReminder = async (
             method: WorkflowMethods.WHATSAPP,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
+            seatReferenceId: seatReferenceUid,
           },
         });
       }

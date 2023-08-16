@@ -1,0 +1,7 @@
+{
+  "name": "@calcom/debugging",
+  "description": "Debugging utilities",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./index.ts"
+}

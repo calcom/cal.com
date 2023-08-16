@@ -1,10 +1,12 @@
 import { useMemo, useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
@@ -28,9 +30,11 @@ type AvailableTimeSlotsProps = {
  */
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, prefetchNextMonth, monthCount}: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
+  const isEmbed = useIsEmbed();
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStore((state) => [state.layout]);
@@ -76,10 +80,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, p
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
-    if (containerRef.current && !schedule.isLoading) {
+    if (isEmbed) return;
+    if (containerRef.current && !schedule.isLoading && isMobile) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [containerRef, schedule.isLoading]);
+  }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
     <div
