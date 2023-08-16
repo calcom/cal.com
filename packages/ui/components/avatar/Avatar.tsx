@@ -3,11 +3,10 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
-import { defaultAvatarSrc, getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
-import { Check } from "../icon";
 import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {
@@ -21,8 +20,7 @@ export type AvatarProps = {
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
-  organizationName?: string | null;
-  organizationLogo?: string | null;
+  indicator?: React.ReactNode;
 };
 
 const sizesPropsBySize = {
@@ -37,13 +35,13 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size = "md", alt, title, href } = props;
+  const { imageSrc, gravatarFallbackMd5, size = "md", alt, title, href, indicator } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
         "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full",
-        props.organizationLogo || props.organizationName ? "overflow-visible" : "overflow-hidden",
+        indicator ? "overflow-visible" : "overflow-hidden",
         props.className,
         sizesPropsBySize[size]
       )}>
@@ -66,27 +64,7 @@ export function Avatar(props: AvatarProps) {
             )}
           </>
         </AvatarPrimitive.Fallback>
-        {props.accepted && (
-          <div
-            className={classNames(
-              "text-inverted absolute bottom-0 right-0 block rounded-full bg-green-400 ring-2 ring-white",
-              size === "lg" ? "h-5 w-5" : "h-2 w-2"
-            )}>
-            <div className="flex h-full items-center justify-center p-[2px]">
-              {size === "lg" && <Check />}
-            </div>
-          </div>
-        )}
-        {(props.organizationLogo || props.organizationName) && (
-          <div
-            className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-5 w-5" : "h-10 w-10")}>
-            <AvatarPrimitive.Image
-              src={getPlaceholderAvatar(props.organizationLogo, props.organizationName)}
-              alt={alt}
-              className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
-            />
-          </div>
-        )}
+        {indicator}
       </>
     </AvatarPrimitive.Root>
   );

@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,7 +18,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
-  Avatar,
   Button,
   Dialog,
   DialogClose,
@@ -407,7 +407,7 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar
+              <OrganizationAvatar
                 alt=""
                 imageSrc={value}
                 gravatarFallbackMd5="fallback"
