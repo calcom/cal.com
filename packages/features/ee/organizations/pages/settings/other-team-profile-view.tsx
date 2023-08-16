@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -310,7 +311,10 @@ const OtherTeamProfileView = () => {
               variety="danger"
               title={t("disband_team")}
               confirmBtnText={t("confirm_disband_team")}
-              onConfirm={deleteTeam}>
+              onConfirm={() => {
+                trackFormbricksAction("team_disbanded");
+                deleteTeam();
+              }}>
               {t("disband_team_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>

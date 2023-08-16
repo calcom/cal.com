@@ -7,6 +7,7 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -318,6 +319,7 @@ export default function TeamListItem(props: Props) {
                             confirmBtnText={t("confirm_disband_team")}
                             isLoading={props.isLoading}
                             onConfirm={() => {
+                              trackFormbricksAction("team_disbanded");
                               props.onActionSelect("disband");
                             }}>
                             {t("disband_team_confirmation_message")}

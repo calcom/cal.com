@@ -1,4 +1,5 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -148,6 +149,7 @@ export default function OtherTeamListItem(props: Props) {
                           confirmBtnText={t("confirm_disband_team")}
                           isLoading={props.isLoading}
                           onConfirm={() => {
+                            trackFormbricksAction("team_disbanded");
                             props.onActionSelect("disband");
                           }}>
                           {t("disband_team_confirmation_message")}
