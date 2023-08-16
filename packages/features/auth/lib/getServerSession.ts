@@ -50,6 +50,9 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
+    include: {
+      organization: true,
+    },
   });
 
   if (!user) {
@@ -74,6 +77,7 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       organizationId: token.organizationId,
       twoFactorEnabled: user.twoFactorEnabled,
+      requireTwoFactor: user?.organization?.requireTwoFactor,
     },
   };
 

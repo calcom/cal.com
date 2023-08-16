@@ -14,8 +14,8 @@ export async function getServerSideProps({ req, res }: GetServerSidePropsContext
   }
 
   if (session.user) {
-    const { organizationId = null, twoFactorEnabled = false } = session.user;
-    if (organizationId && !twoFactorEnabled) {
+    const { organizationId = null, twoFactorEnabled = false, requireTwoFactor } = session.user;
+    if (organizationId && requireTwoFactor && !twoFactorEnabled) {
       return { redirect: { permanent: false, destination: "/settings/security/two-factor-auth" } };
     }
   }

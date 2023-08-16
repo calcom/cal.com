@@ -196,12 +196,12 @@ function useRedirectTo2FAIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const isRedirectingTo2Fa = user && user?.organizationId && !user.twoFactorEnabled;
+  const isRedirectingTo2Fa =
+    user && user?.organizationId && user?.organization.requireTwoFactor && !user.twoFactorEnabled;
 
   useEffect(() => {
     if (user) {
-      const { organizationId = null, twoFactorEnabled = false } = user;
-      if (organizationId && !twoFactorEnabled) {
+      if (isRedirectingTo2Fa) {
         router.replace("/settings/security/two-factor-auth");
       }
     }

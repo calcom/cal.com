@@ -78,6 +78,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
           id: true,
           slug: true,
           metadata: true,
+          requireTwoFactor: true,
           members: {
             select: { userId: true },
             where: {
