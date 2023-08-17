@@ -135,3 +135,5 @@ class NoOrganizationSlugError extends TRPCError {
     super({ code: "BAD_REQUEST", message: "no_organization_slug" });
   }
 }
+
+export default createTeamsHandler;
