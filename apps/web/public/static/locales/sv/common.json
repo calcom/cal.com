@@ -21,7 +21,7 @@
   "verify_email_email_link_text": "Här är länken om du inte gillar att klicka på knappar:",
   "email_sent": "E-postmeddelandet har skickats",
   "event_declined_subject": "Avvisades: {{title}} kl. {{date}}",
-  "event_cancelled_subject": "Avbröts: {{title}} kl. {{date}}",
+  "event_cancelled_subject": "Avbröts: {{title}} {{date}}",
   "event_request_declined": "Din bokningsförfrågan har avbjöts",
   "event_request_declined_recurring": "Din återkommande händelse har avböjts",
   "event_request_cancelled": "Din schemalagda bokning ställdes in",
