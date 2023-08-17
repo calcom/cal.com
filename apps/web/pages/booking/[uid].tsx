@@ -10,6 +10,7 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { applyMeetingUrlTemplate, hashAttendee } from "@calcom/app-store/bigbluebutton/lib";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -115,9 +116,7 @@ export default function Success(props: SuccessProps) {
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
-  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-    props?.bookingInfo?.metadata || {}
-  )?.videoCallUrl;
+  const metadata = bookingMetadataSchema.parse(props?.bookingInfo?.metadata || {});
 
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
@@ -188,6 +187,13 @@ export default function Success(props: SuccessProps) {
     status === "REJECTED" ||
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
+
+  // TODO: check for additional organizer types
+  const locationVideoCallUrl: string | undefined = applyMeetingUrlTemplate(
+    metadata?.videoCallUrl,
+    props.attendeeHash,
+    userIsOwner
+  );
 
   // const telemetry = useTelemetry();
   /*  useEffect(() => {
@@ -1013,7 +1019,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = querySchema.safeParse(context.query);
 
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1136,6 +1142,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
+  let attendeeHash = null;
+  if (bookingInfo.location === "integrations:bigbluebutton_video") {
+    const attendee = bookingInfo?.attendees.find((attendee) => attendee.email === email);
+    attendeeHash = hashAttendee(attendee);
+  }
+
   return {
     props: {
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
@@ -1147,6 +1159,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,
+      attendeeHash,
       ...(tz && { tz }),
     },
   };
