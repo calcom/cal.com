@@ -1,27 +1,29 @@
 import type { GetServerSideProps } from "next";
 import { z } from "zod";
 
-import { BbbApi, hashAttendee } from "@calcom/app-store/bigbluebutton/lib";
+import { BbbApi } from "@calcom/app-store/bigbluebutton/lib";
 import { bbbOptionsSchema } from "@calcom/app-store/bigbluebutton/lib/bbbApi";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export default function AttendeeJoinPage() {}
+export default function OrganizerJoinPage() {}
 
 const paramsSchema = z.object({
   uid: z.string().min(1),
-  // adjust this when changing the hashing algorithm
-  hash: z.string().length(64),
 });
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res, params }) => {
   let destination = "/404";
   let notFound = false;
   try {
-    const { uid, hash } = paramsSchema.parse(params);
+    const session = await getServerSession({ req, res });
+    if (!session?.user.id) throw new Error("No session.");
+
+    const { uid } = paramsSchema.parse(params);
 
     const booking = await prisma.booking.findFirstOrThrow({
       select: {
@@ -46,9 +48,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       },
     });
 
-    const attendee = booking.attendees.find((attendee) => hash === hashAttendee(attendee));
-    if (!attendee) throw new Error("There is no attendee with that hash.");
-
     const credentialId = booking.references.find((ref) => ref.type === "bigbluebutton_video")?.credentialId;
     if (!credentialId) throw new Error("Missing credentialId.");
 
@@ -72,12 +71,20 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       JSON.parse(symmetricDecrypt(credential.key, process.env.CALENDSO_ENCRYPTION_KEY))
     );
 
+    // FIXME: also check for other user types that should be moderators
+    const isHost = booking.eventType?.userId === session.user.id;
+    if (!isHost) throw new Error("User is not a host.");
+
     const bbbApi = new BbbApi(bbbOpts);
 
     const createResponse = await bbbApi.createMeeting(uid, booking.title);
     if (!createResponse.success) throw new Error("Unable to create meeting.");
 
-    destination = bbbApi.getSignedJoinMeetingUrl(uid, attendee.name || attendee.email || "Default", "VIEWER");
+    destination = bbbApi.getSignedJoinMeetingUrl(
+      uid,
+      session.user.name || session.user.email || "Host",
+      "MODERATOR"
+    );
   } catch (error) {
     logger.error(error);
     notFound = true;
