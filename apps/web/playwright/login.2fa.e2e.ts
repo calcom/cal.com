@@ -9,7 +9,7 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-// a test to logout requires both a succesfull login as logout, to prevent
+// a test to logout requires both a successful login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 test.describe("2FA Tests", async () => {
   test.afterAll(async ({ users }) => {
