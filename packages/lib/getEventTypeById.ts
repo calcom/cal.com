@@ -227,7 +227,7 @@ export default async function getEventTypeById({
       app: {
         enabled: true,
         categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video],
+          hasSome: [AppCategories.conferencing, AppCategories.video, AppCategories.payment],
         },
       },
     },
