@@ -227,7 +227,7 @@ const ProfileView = () => {
                       value={value}
                       addOnLeading={
                         team.parent && orgBranding
-                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false })
+                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false }) + "/"
                           : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {

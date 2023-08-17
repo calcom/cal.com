@@ -116,6 +116,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
       allowDynamicBooking: user.allowDynamicBooking ?? true,
+      allowSEOIndexing: user.allowSEOIndexing ?? true,
     },
   });
   const {
@@ -124,6 +125,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
+
   return (
     <Form
       form={formMethods}
@@ -225,7 +227,30 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           )}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
+
+      <div className="mt-8">
+        <Controller
+          name="allowSEOIndexing"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("seo_indexing")}
+              description={t("allow_seo_indexing")}
+              checked={formMethods.getValues("allowSEOIndexing")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
+
+      <Button
+        loading={mutation.isLoading}
+        disabled={isDisabled}
+        color="primary"
+        type="submit"
+        className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
