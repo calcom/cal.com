@@ -34,7 +34,7 @@ const AddNewTeamMembers = () => {
   const session = useSession();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
-    { teamId, isOrg: !!session.data?.user.organizationId },
+    { teamId },
     { enabled: session.status === "authenticated" }
   );
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
@@ -120,6 +120,7 @@ export const AddNewTeamMembersForm = ({
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
+                  isOrg: !!orgBranding,
                 },
                 {
                   onSuccess: async (data) => {
@@ -247,7 +248,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>
             {/* Assume that the first member of the team is the creator */}
-            {index === 0 && <Badge variant="green">{t("you")}</Badge>}
+            {member.id === session.data?.user.id && <Badge variant="green">{t("you")}</Badge>}
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
             {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
