@@ -419,7 +419,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
       bookAndPaidEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
-    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
+    // ths is for development only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
         where: { id: store.user.id },
