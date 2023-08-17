@@ -173,7 +173,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: { licenseKey: true },
   });
 
-  // Check existant CALCOM_LICENSE_KEY env var and acccount for it
+  // Check existant CALCOM_LICENSE_KEY env var and account for it
   if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey?.licenseKey) {
     await prisma.deployment.upsert({
       where: { id: 1 },
