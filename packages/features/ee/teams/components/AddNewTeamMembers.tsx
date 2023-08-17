@@ -9,6 +9,7 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -207,8 +208,11 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const session = useSession();
   const bookerUrl = useBookerUrl();
-  const orgBranding = useOrgBranding();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.organizationId,
+  });
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -219,6 +223,10 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       showToast(err.message, "error");
     },
   });
+
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
   return (
     <li
@@ -251,7 +259,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           )}
         </div>
       </div>
-      {(member.role !== "OWNER" || orgBranding) && (
+      {(member.role !== "OWNER" || isOrgAdminOrOwner) && (
         <Button
           data-testid="remove-member-button"
           StartIcon={Trash2}
