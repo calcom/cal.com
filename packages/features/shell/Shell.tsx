@@ -107,7 +107,13 @@ export const shouldShowOnboarding = (
     dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)
   );
 };
-
+declare global {
+  interface Window {
+    Meticulous?: {
+      isRunningAsTest: boolean;
+    };
+  }
+}
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
@@ -920,7 +926,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               </ButtonOrLink>
             </Tooltip>
           ))}
-          {!window.Meticulous?.isRunningAsTest && <Credits />}
+          {typeof window.Meticulous !== "undefined" && !window.Meticulous.isRunningAsTest && <Credits />}
         </div>
       </aside>
     </div>
