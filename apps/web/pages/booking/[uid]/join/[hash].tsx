@@ -81,7 +81,8 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
 
     if (!isHost && !attendee) throw new Error("Not host or attendee! This should never happen.");
 
-    const userName = attendee ? attendee.name : session?.user.name ?? "Default Username";
+    const userName =
+      (attendee ? attendee.name || attendee.email : session?.user.name || session?.user.email) || "Default";
 
     const bbbApi = new BbbApi(bbbOpts);
 

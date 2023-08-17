@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+
 const xmlParser = new XMLParser({
   ignoreDeclaration: true,
 });
@@ -18,9 +20,26 @@ const errorDescriptions: Record<BbbErrorCode, string> = {
 
 class BbbError extends Error {
   constructor(public code: BbbErrorCode, message?: string) {
-    super(message);
+    super(message ?? errorDescriptions[code]);
   }
 }
+
+const createParamsSchema = z
+  .object({
+    meetingID: z.string().min(1),
+    name: z.string().min(1),
+  })
+  .strict();
+
+const joinParamsSchema = z
+  .object({
+    fullName: z.string().min(1),
+    meetingID: z.string().min(1),
+    redirect: z.union([z.literal("true"), z.literal("false")]),
+    role: z.union([z.literal("MODERATOR"), z.literal("VIEWER")]),
+    allowRequestsWithoutSession: z.union([z.literal("true"), z.literal("false")]).optional(),
+  })
+  .strict();
 
 const responseSchema = z.object({
   response: z.discriminatedUnion("returncode", [
@@ -37,7 +56,7 @@ const responseSchema = z.object({
   ]),
 });
 
-const createSchema = z.object({
+const createResponseSchema = z.object({
   returncode: z.literal("SUCCESS"),
   meetingID: z.string(),
   internalMeetingID: z.string(),
@@ -55,7 +74,7 @@ const createSchema = z.object({
   message: z.string(),
 });
 
-const joinSchema = z.object({
+const joinResponseSchema = z.object({
   returncode: z.literal("SUCCESS"),
   messageKey: z.string(),
   message: z.string(),
@@ -92,8 +111,7 @@ const instance = axios.create({
   ],
 });
 instance.interceptors.request.use((config) => {
-  // TODO: enable during debug
-  // console.log(`[${config.method?.toUpperCase()}] ${config.url}`);
+  logger.debug(`[${config.method?.toUpperCase()}] ${config.url}`);
   return config;
 });
 
@@ -103,12 +121,12 @@ const handleAxiosErrors = (error: unknown) => {
 
   const { response, request } = error;
   if (response) {
-    console.error(response);
+    logger.error(response);
   } else if (request) {
-    console.error(request);
+    logger.error(request);
   } else {
     // pre-request error
-    console.error("Unexpected error", error);
+    logger.error("Unexpected error", error);
   }
 };
 
@@ -144,7 +162,7 @@ export class BbbApi {
   }
 
   private handleErrors(error: unknown) {
-    console.error(error);
+    logger.error(error);
     if (error instanceof BbbError) {
       return {
         success: false,
@@ -169,48 +187,40 @@ export class BbbApi {
   }
 
   async createMeeting(meetingId: string, meetingName: string) {
-    const url = this.buildUrl(
-      "create",
-      new URLSearchParams({
+    try {
+      const params = createParamsSchema.parse({
         meetingID: meetingId,
         name: meetingName,
-      })
-    );
-    try {
-      const { data } = await instance.get(url);
-      return { success: true, data: createSchema.parse(data) } as const;
+      });
+      const { data } = await instance.get(this.buildUrl("create", new URLSearchParams(params)));
+      return { success: true, data: createResponseSchema.parse(data) } as const;
     } catch (error) {
       return this.handleErrors(error);
     }
   }
 
   getSignedJoinMeetingUrl(meetingId: string, fullName: string, role: MeetingRole, redirect = true) {
-    return this.buildUrl(
-      "join",
-      new URLSearchParams({
-        fullName,
-        meetingID: meetingId,
-        redirect: redirect ? "true" : "false",
-        role,
-      })
-    );
+    const params = joinParamsSchema.parse({
+      fullName: fullName,
+      meetingID: meetingId,
+      redirect: String(redirect),
+      role,
+    });
+    return this.buildUrl("join", new URLSearchParams(params));
   }
 
   async joinMeeting(meetingId: string, fullName: string, role: MeetingRole, redirect = false) {
-    const url = this.buildUrl(
-      "join",
-      new URLSearchParams({
-        fullName,
+    try {
+      const params = joinParamsSchema.parse({
+        fullName: fullName,
         meetingID: meetingId,
-        redirect: redirect ? "true" : "false",
+        redirect: String(redirect),
         role,
         // disables cookie requirement - anyone can join with just the url we get in the reponse
         allowRequestsWithoutSession: "true",
-      })
-    );
-    try {
-      const { data } = await instance.get(url);
-      return { success: true, data: joinSchema.parse(data) } as const;
+      });
+      const { data } = await instance.get(this.buildUrl("join", new URLSearchParams(params)));
+      return { success: true, data: joinResponseSchema.parse(data) } as const;
     } catch (error) {
       return this.handleErrors(error);
     }
