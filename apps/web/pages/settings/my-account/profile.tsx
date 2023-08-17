@@ -82,21 +82,19 @@ const ProfileView = () => {
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
+      await update(res);
       showToast(t("settings_updated_successfully"), "success");
-      if (res.signOutUser && tempFormValues) {
-        if (res.passwordReset) {
-          showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?passReset=true" });
-        } else {
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?emailChange=true" });
-        }
+
+      // signout user only in case of password reset
+      if (res.signOutUser && tempFormValues && res.passwordReset) {
+        showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+        await signOut({ callbackUrl: "/auth/logout?passReset=true" });
+      } else {
+        utils.viewer.me.invalidate();
+        utils.viewer.avatar.invalidate();
       }
-      utils.viewer.me.invalidate();
-      utils.viewer.avatar.invalidate();
+
       setConfirmAuthEmailChangeWarningDialogOpen(false);
-      update(res);
       setTempFormValues(null);
     },
     onError: () => {
@@ -345,7 +343,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              disabled={updateProfileMutation.isLoading}
+              loading={updateProfileMutation.isLoading}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
