@@ -370,7 +370,7 @@ const ProfileForm = ({
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
-  userOrganization: RouterOutputs["viewer"]["me"]["user"]["organization"];
+  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
