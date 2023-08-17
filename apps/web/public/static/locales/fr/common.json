@@ -1854,7 +1854,7 @@
   "acknowledge_booking_no_show_fee": "Je reconnais que si je ne participe pas à cet événement, des frais d'absence de {{amount, currency}} seront appliqués à ma carte.",
   "card_details": "Détails de la carte",
   "something_went_wrong_on_our_end": "Quelque chose s'est mal passé de notre côté. Contactez notre équipe de support, et nous le réparerons immédiatement.",
-  "please_provide_following_text_to_suppport": "Veuillez fournir le texte suivant lorsque vous contactez le support pour mieux vous aider",
+  "please_provide_following_text_to_support": "Veuillez fournir le texte suivant lorsque vous contactez le support pour mieux vous aider",
   "seats_and_no_show_fee_error": "Il n'est pas possible d'activer les places et de facturer des frais d'absence pour le moment",
   "complete_your_booking": "Terminez votre réservation",
   "complete_your_booking_subject": "Terminez votre réservation : {{title}} le {{date}}",

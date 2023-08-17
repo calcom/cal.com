@@ -25,7 +25,7 @@ export default function Error500() {
         {searchParams?.get("error") && (
           <div className="mb-8 flex flex-col">
             <p className="text-default mb-4 max-w-2xl text-sm">
-              {t("please_provide_following_text_to_suppport")}:
+              {t("please_provide_following_text_to_support")}:
             </p>
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
               {searchParams?.get("error")}
