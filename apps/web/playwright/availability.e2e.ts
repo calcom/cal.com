@@ -6,7 +6,7 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Availablity tests", () => {
+test.describe("Availability tests", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -48,7 +48,7 @@ test.describe("Availablity tests", () => {
       await page.locator('[data-testid="new-schedule"]').click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
-      await expect(page.locator("[data-testid=availablity-title]")).toHaveValue("More working hours");
+      await expect(page.locator("[data-testid=availability-title]")).toHaveValue("More working hours");
     });
     await test.step("Can delete a schedule", async () => {
       await page.getByRole("button", { name: /Go Back/i }).click();

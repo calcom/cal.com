@@ -161,7 +161,7 @@ export default function Availability() {
           control={form.control}
           name="name"
           render={({ field }) => (
-            <EditableHeading isReady={!isLoading} {...field} data-testid="availablity-title" />
+            <EditableHeading isReady={!isLoading} {...field} data-testid="availability-title" />
           )}
         />
       }
