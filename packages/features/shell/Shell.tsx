@@ -926,7 +926,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               </ButtonOrLink>
             </Tooltip>
           ))}
-          {typeof window.Meticulous !== "undefined" && !window.Meticulous.isRunningAsTest && <Credits />}
+          {globalThis.window?.Meticulous?.isRunningAsTest ?? <Credits />}
         </div>
       </aside>
     </div>
