@@ -90,9 +90,8 @@ export function AvailabilitySliderTable() {
         id: "slider",
         header: () => {
           return (
-            <div className="space-between flex items-center space-x-4">
-              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
-              <ButtonGroup>
+            <div className="flex items-center">
+              <ButtonGroup containerProps={{ className: "space-x-0" }}>
                 <Button
                   color="minimal"
                   variant="icon"
@@ -106,6 +105,7 @@ export function AvailabilitySliderTable() {
                   variant="icon"
                 />
               </ButtonGroup>
+              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
             </div>
           );
         },
