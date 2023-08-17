@@ -20,6 +20,7 @@ const paramsSchema = z.object({
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res, params }) => {
   let destination = "/404";
+  let notFound = false;
   try {
     const { uid, hash } = paramsSchema.parse(params);
 
@@ -90,9 +91,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
     destination = bbbApi.getSignedJoinMeetingUrl(uid, userName, role);
   } catch (error) {
     logger.error(error);
-    destination = "/404";
+    notFound = true;
   } finally {
     return {
+      notFound,
       redirect: {
         destination,
         permanent: false,
