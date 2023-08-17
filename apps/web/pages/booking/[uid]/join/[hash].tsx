@@ -13,7 +13,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 export default function JoinPage() {}
 
 const paramsSchema = z.object({
-  bookingUid: z.string().min(1),
+  uid: z.string().min(1),
   // adjust this when changing the hashing algorithm
   hash: z.string().length(64),
 });
@@ -21,7 +21,7 @@ const paramsSchema = z.object({
 export const getServerSideProps: GetServerSideProps = async ({ req, res, params }) => {
   let destination = "/404";
   try {
-    const { bookingUid, hash } = paramsSchema.parse(params);
+    const { uid, hash } = paramsSchema.parse(params);
 
     const booking = await prisma.booking.findFirstOrThrow({
       select: {
@@ -36,7 +36,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
         },
       },
       where: {
-        uid: bookingUid,
+        uid,
         status: BookingStatus.ACCEPTED,
         references: {
           some: {
@@ -84,10 +84,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
 
     const bbbApi = new BbbApi(bbbOpts);
 
-    const createResponse = await bbbApi.createMeeting(bookingUid, booking.title);
+    const createResponse = await bbbApi.createMeeting(uid, booking.title);
     if (!createResponse.success) throw new Error("Unable to create meeting.");
 
-    destination = bbbApi.getSignedJoinMeetingUrl(bookingUid, userName, role);
+    destination = bbbApi.getSignedJoinMeetingUrl(uid, userName, role);
   } catch (error) {
     logger.error(error);
     destination = "/404";

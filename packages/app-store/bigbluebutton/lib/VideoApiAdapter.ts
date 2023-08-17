@@ -5,8 +5,8 @@ import type { VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
 import appConfig from "../config.json";
 import { hashAttendee } from "../lib";
 
-const createMeetingUrl = (eventUid: number, attendee: Person) => {
-  return `${WEBAPP_URL}/join/${eventUid}/${hashAttendee(attendee)}`;
+const createMeetingUrl = (uid: number, attendee: Person) => {
+  return `${WEBAPP_URL}/booking/${uid}/join/${hashAttendee(attendee)}`;
 };
 
 const BbbApiAdapter: VideoApiAdapterFactory = () => {
