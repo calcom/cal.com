@@ -439,7 +439,7 @@ test.describe("Reschedule for booking with seats", () => {
     expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
   });
 
-  test("Should cancel with seats but event should be still accesible and with one less attendee/seat", async ({
+  test("Should cancel with seats but event should be still accessible and with one less attendee/seat", async ({
     page,
     users,
     bookings,
