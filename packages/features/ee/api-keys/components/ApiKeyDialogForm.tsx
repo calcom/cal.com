@@ -209,7 +209,7 @@ export default function ApiKeyDialogForm({
             </div>
           )}
 
-          <DialogFooter showDivider className="!mt-12">
+          <DialogFooter showDivider className="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("cancel")}
             </Button>
