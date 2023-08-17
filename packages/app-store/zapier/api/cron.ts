@@ -12,7 +12,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  // get jobs that should be ran
+  // get jobs that should be run
   const jobsToRun = await prisma.zapierScheduledTriggers.findMany({
     where: {
       startAfter: {
@@ -29,10 +29,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         body: job.payload,
       });
     } catch (error) {
-      console.log(`Error running zapier trigger (${job.retryCount} retries): ${error}`);
+      console.log(`Error running zapier trigger (retry count: ${job.retryCount}): ${error}`);
 
       // if job fails, retry again for 5 times.
-      if (job.retryCount <= 5) {
+      if (job.retryCount < 5) {
         await prisma.zapierScheduledTriggers.update({
           where: {
             id: job.id,
@@ -69,7 +69,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       select: { id: true, scheduledJobs: true },
     });
     if (!booking) {
-      console.log(`Error finding booking in zapier trigger:`, parsedJobPayload);
+      console.log("Error finding booking in zapier trigger:", parsedJobPayload);
       return res.json({ ok: false });
     }
 
