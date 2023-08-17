@@ -17,7 +17,7 @@
   "verify_email_banner_body": "Verifiera din e-postadress för att garantera bästa e-post- och kalenderleverans",
   "verify_email_email_header": "Verifiera din e-postadress",
   "verify_email_email_button": "Verifiera e-post",
-  "verify_email_email_body": "Vänligen verifiera din e-postadress genom att klicka på knappen nedan.",
+  "verify_email_email_body": "Verifiera din e-postadress genom att klicka på knappen nedan.",
   "verify_email_email_link_text": "Här är länken om du inte gillar att klicka på knappar:",
   "email_sent": "E-postmeddelandet har skickats",
   "event_declined_subject": "Avvisades: {{title}} kl. {{date}}",
