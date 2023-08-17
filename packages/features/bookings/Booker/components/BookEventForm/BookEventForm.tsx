@@ -20,7 +20,6 @@ import {
   mapRecurringBookingToMutationInput,
   useTimePreferences,
 } from "@calcom/features/bookings/lib";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -179,14 +178,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     return defaults;
   }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
-  const disableBookingTitle = !!event.data?.isDynamic;
   const bookingFormSchema = z
     .object({
       responses: event?.data
         ? getBookingResponsesSchema({
-            eventType: {
-              bookingFields: getBookingFieldsWithSystemFields({ ...event.data, disableBookingTitle }),
-            },
+            eventType: event?.data,
             view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
