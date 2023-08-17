@@ -5,6 +5,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -18,7 +19,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TUpdateProfileInputSchema } from "./updateProfile.schema";
+import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 type UpdateProfileOptions = {
   ctx: {
@@ -30,9 +31,11 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
+  const { metadata: metadataFromInput } = input;
+  const cleanMetadata = cleanMetadataAllowedUpdateKeys(metadataFromInput);
   const data: Prisma.UserUpdateInput = {
     ...input,
-    metadata: input.metadata as Prisma.InputJsonValue,
+    metadata: cleanMetadata,
   };
 
   // some actions can invalidate a user session.
@@ -61,7 +64,23 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
   }
-  const metadata = userMetadata.parse(user.metadata);
+
+  const fetchUserCurrentMetadata = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      metadata: true,
+    },
+  });
+
+  const metadata = userMetadata.parse(fetchUserCurrentMetadata?.metadata);
+
+  // Required so we don't override and delete saved values
+  data.metadata = {
+    ...metadata,
+    cleanMetadata,
+  };
 
   const isPremium = metadata?.isPremium;
   if (isPremiumUsername) {
@@ -176,4 +195,16 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .catch((e) => console.error(e));
   }*/
   return { ...input, signOutUser, passwordReset };
+};
+
+const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {
+  if (!metadata) {
+    return {} as Prisma.InputJsonValue;
+  }
+  const cleanedMetadata = updateUserMetadataAllowedKeys.safeParse(metadata);
+  if (!cleanedMetadata.success) {
+    logger.error("Error cleaning metadata", cleanedMetadata.error);
+  }
+
+  return cleanedMetadata as Prisma.InputJsonValue;
 };
