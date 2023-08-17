@@ -1,8 +1,8 @@
 import { createHash } from "crypto";
-import { totp } from "otplib";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -31,8 +31,7 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
     .digest("hex");
 
-  totp.options = { step: 900 };
-  const isValidToken = totp.check(code, secret);
+  const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
   if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 
