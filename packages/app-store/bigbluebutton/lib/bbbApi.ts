@@ -115,21 +115,6 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
-// TODO: decide if this is needed
-const handleAxiosErrors = (error: unknown) => {
-  if (!axios.isAxiosError(error)) throw error;
-
-  const { response, request } = error;
-  if (response) {
-    logger.error(response);
-  } else if (request) {
-    logger.error(request);
-  } else {
-    // pre-request error
-    logger.error("Unexpected error", error);
-  }
-};
-
 type MeetingRole = "MODERATOR" | "VIEWER";
 
 export const bbbOptionsSchema = z
