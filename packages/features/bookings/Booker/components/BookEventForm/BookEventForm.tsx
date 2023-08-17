@@ -57,8 +57,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const duration = useBookerStore((state) => state.selectedDuration);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const isRescheduling = !!rescheduleUid && !!bookingData;
-  const event = useEvent();
-  const eventType = event.data;
+  const eventQuery = useEvent();
+  const eventType = eventQuery.data;
 
   const reserveSlot = () => {
     if (eventType?.id && timeslot && (duration || eventType?.length)) {
@@ -103,7 +103,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       onCancel={onCancel}
       initialValues={initialValues}
       isRescheduling={isRescheduling}
-      eventQuery={event}
+      eventQuery={eventQuery}
       rescheduleUid={rescheduleUid}
     />
   );
@@ -162,13 +162,14 @@ export const BookEventFormChild = ({
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: initialValues,
     resolver: zodResolver(
+      // Since this isn't set to strict we only validate the fields in the schema
       bookingFormSchema,
       {},
       {
         // bookingFormSchema is an async schema, so inform RHF to do async validation.
         mode: "async",
       }
-    ), // Since this isn't set to strict we only validate the fields in the schema
+    ),
   });
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: (responseData) => {
@@ -526,7 +527,7 @@ function useInitialFormValues({
     })();
   }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
-  // When defaultValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the defaultValues
+  // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
   const key = `${Object.keys(initialValues).length}_${session ? 1 : 0}`;
 
   return { initialValues, key };
