@@ -189,7 +189,7 @@ export default function Success(props: SuccessProps) {
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
   // TODO: check for additional organizer types
-  const locationVideoCallUrl: string | undefined = applyMeetingUrlTemplate(
+  const locationVideoCallUrl = applyMeetingUrlTemplate(
     metadata?.videoCallUrl,
     props.attendeeHash,
     userIsOwner
@@ -1142,10 +1142,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  let attendeeHash = null;
+  let attendeeHash;
   if (bookingInfo.location === "integrations:bigbluebutton_video") {
     const attendee = bookingInfo?.attendees.find((attendee) => attendee.email === email);
-    attendeeHash = hashAttendee(attendee);
+    if (attendee) attendeeHash = hashAttendee(attendee);
   }
 
   return {
