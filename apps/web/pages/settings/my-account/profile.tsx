@@ -92,6 +92,7 @@ const ProfileView = () => {
       } else {
         utils.viewer.me.invalidate();
         utils.viewer.avatar.invalidate();
+        utils.viewer.shouldVerifyEmail.invalidate();
       }
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
@@ -323,7 +324,10 @@ const ProfileView = () => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter showDivider>
-            <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+            <Button
+              color="primary"
+              loading={confirmPasswordMutation.isLoading}
+              onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
             <DialogClose />
