@@ -97,7 +97,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
-            <Avatar imageSrc={profile.image} size="xl" alt={profile.name || ""} />
+            <Avatar imageSrc={profile.image} fallbackTo="gravatar" size="xl" alt={profile.name || ""} />
             <h1 className="font-cal text-emphasis mb-1 text-3xl">
               {profile.name}
               {user.verified && (
