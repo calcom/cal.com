@@ -28,7 +28,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
     const booking = await prisma.booking.findFirstOrThrow({
       select: {
         uid: true,
-        attendees: true,
         references: true,
         title: true,
         eventType: {

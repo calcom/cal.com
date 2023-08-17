@@ -29,11 +29,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
         attendees: true,
         references: true,
         title: true,
-        eventType: {
-          select: {
-            userId: true,
-          },
-        },
       },
       where: {
         uid,
