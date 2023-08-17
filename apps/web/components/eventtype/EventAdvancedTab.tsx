@@ -284,7 +284,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
           setHashedLinkVisible(e);
         }}>
-        {/* Textfield has some margin by default we remove that so we can keep consitant alignment */}
+        {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
         <div className="lg:-ml-2">
           <TextField
             disabled
