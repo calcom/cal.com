@@ -464,7 +464,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-function getBookingData({
+async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -534,7 +534,7 @@ function getBookingData({
           }
         });
 
-  const reqBody = bookingDataSchema.parse(req.body);
+  const reqBody = await bookingDataSchema.parseAsync(req.body);
 
   // Work with Typescript to require reqBody.end
   type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
@@ -671,7 +671,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     ...reqBody
-  } = getBookingData({
+  } = await getBookingData({
     req,
     isNotAnApiCall,
     eventType,
