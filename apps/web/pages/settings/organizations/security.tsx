@@ -20,7 +20,7 @@ const SkeletonLoader = () => {
   );
 };
 
-const TwoFactorAuthView = () => {
+const OrgSecurityView = () => {
   const utils = trpc.useContext();
 
   const { t } = useLocale();
@@ -71,7 +71,7 @@ const TwoFactorAuthView = () => {
   );
 };
 
-TwoFactorAuthView.getLayout = getLayout;
-TwoFactorAuthView.PageWrapper = PageWrapper;
+OrgSecurityView.getLayout = getLayout;
+OrgSecurityView.PageWrapper = PageWrapper;
 
-export default TwoFactorAuthView;
+export default OrgSecurityView;
