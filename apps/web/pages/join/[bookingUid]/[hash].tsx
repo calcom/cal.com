@@ -36,6 +36,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
         },
       },
       where: {
+        uid: bookingUid,
         status: BookingStatus.ACCEPTED,
         references: {
           some: {
