@@ -11,7 +11,7 @@ import appConfig from "../../config.json";
 import type { BbbOptions } from "../../lib/bbbApi";
 import { bbbOptionsSchema } from "../../lib/bbbApi";
 
-export default function ExchangeSetup() {
+export default function BbbSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,7 +40,7 @@ export default function ExchangeSetup() {
               {/* eslint-disable @next/next/no-img-element */}
               <img
                 src={`/api/app-store/${slug}/icon.svg`}
-                alt="Microsoft Exchange"
+                alt="BigBlueButton"
                 className="h-12 w-12 max-w-2xl"
               />
             </div>
@@ -92,11 +92,10 @@ export default function ExchangeSetup() {
                           label={t("hash_algorithm")}
                           options={hashes}
                           defaultValue={hashes.at(-1)}
-                          onChange={async (hash) => {
-                            if (hash) {
-                              onChange(hash.value);
-                              form.setValue("hash", hash.value);
-                            }
+                          onChange={(hash) => {
+                            if (!hash) return;
+                            onChange(hash.value);
+                            form.setValue("hash", hash.value);
                           }}
                         />
                       )}
