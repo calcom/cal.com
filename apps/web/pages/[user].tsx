@@ -102,8 +102,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               imageSrc={profile.image}
               size="xl"
               alt={profile.name}
-              organizationLogo={profile.organizationLogo}
-              organizationName={profile.organizationName}
+              organizationSlug={profile.organizationSlug}
             />
             <h1 className="font-cal text-emphasis mb-1 text-3xl">
               {profile.name}
@@ -226,8 +225,7 @@ export type UserPageProps = {
     theme: string | null;
     brandColor: string;
     darkBrandColor: string;
-    organizationName?: string | null;
-    organizationLogo?: string | null;
+    organizationSlug: string | null;
     allowSEOIndexing: boolean;
   };
   users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
@@ -331,14 +329,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     theme: user.theme,
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
-    organizationName: user.organization?.name,
-    organizationLogo: "",
+    organizationSlug: user.organization?.slug ?? null,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
   };
-
-  if (user.organization) {
-    profile.organizationLogo = `/org/${user.organization.slug}/avatar.png`;
-  }
 
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();

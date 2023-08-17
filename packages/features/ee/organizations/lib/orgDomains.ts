@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 /**
  * return the org slug
@@ -63,4 +64,9 @@ export function getSlugOrRequestedSlug(slug: string) {
       },
     ],
   } satisfies Prisma.TeamWhereInput;
+}
+
+export function getUserOrgDomain(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
+  const orgFullDomain = organization.slug ? getOrgFullDomain(organization.slug) : undefined;
+  return orgFullDomain ?? WEBAPP_URL;
 }

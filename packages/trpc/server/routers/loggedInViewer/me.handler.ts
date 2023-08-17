@@ -1,4 +1,4 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserOrgDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type MeOptions = {
@@ -10,6 +10,7 @@ type MeOptions = {
 export const meHandler = async ({ ctx }: MeOptions) => {
   const crypto = await import("crypto");
   const { user } = ctx;
+  const userOrgDomain = getUserOrgDomain(user.organization);
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -24,7 +25,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+    avatar: `${userOrgDomain}/${user.username}/avatar.png`,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,
