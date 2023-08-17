@@ -10,7 +10,6 @@ import { z } from "zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -36,7 +35,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, LogOut, Trash2 } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, LogOut, Trash2, Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -181,7 +180,12 @@ const ProfileView = () => {
                   name="logo"
                   render={({ field: { value } }) => (
                     <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
+                      <Avatar
+                        alt={(team?.name as string) || ""}
+                        imageSrc={value}
+                        size="lg"
+                        fallback={<Plus className="text-subtle h-6 w-6" />}
+                      />
                       <div className="ms-4">
                         <ImageUploader
                           target="avatar"

@@ -98,7 +98,9 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <Avatar alt={user.username || ""} size="lg" imageSrc={imageSrc} />}
+        {user && (
+          <Avatar alt={user.email || user.name || ""} fallbackTo="gravatar" size="lg" imageSrc={imageSrc} />
+        )}
         <input
           ref={avatarRef}
           type="hidden"
