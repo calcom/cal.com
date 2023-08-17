@@ -3,23 +3,11 @@ import stringify from "qs-stringify";
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
 
 import { getSlackAppKeys } from "../lib/getSlackAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Get user
-    const user = await prisma.user.findUnique({
-      where: {
-        id: req.session?.user?.id,
-      },
-      select: {
-        email: true,
-        name: true,
-      },
-    });
-
     const { client_id } = await getSlackAppKeys();
 
     const redirect_uri = encodeURI(WEBAPP_URL + "/api/integrations/slack/callback");
