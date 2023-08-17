@@ -17,7 +17,7 @@ export type AvatarProps = {
   title?: string;
   alt: string;
   href?: string;
-  gravatarFallbackMd5?: string;
+  // gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   fallbackTo?: "gravatar" | "initials";
   accepted?: boolean;
@@ -59,7 +59,7 @@ export function Avatar(props: AvatarProps) {
               <img
                 src={
                   fallbackTo && fallbackTo == "gravatar"
-                    ? defaultAvatarSrc({ md5: gravatarFallbackMd5 ?? alt })
+                    ? defaultAvatarSrc({ md5: alt })
                     : getPlaceholderAvatar(null, alt)
                 }
                 alt={alt}
