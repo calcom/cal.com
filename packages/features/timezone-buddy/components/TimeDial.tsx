@@ -75,7 +75,9 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
           if (!day.length) return null;
           const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
           return (
-            <div key={i} className={classNames("flex flex-none overflow-hidden rounded-lg border border-2")}>
+            <div
+              key={i}
+              className={classNames("border-subtle flex flex-none overflow-hidden rounded-lg border-2")}>
               {day.map((h) => {
                 const hours = Math.floor(h); // Whole number part
                 const fractionalHours = h - hours; // Decimal part
@@ -96,7 +98,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                     key={h}
                     className={classNames(
                       "flex h-8 flex-col items-center justify-center",
-                      isInRange ? "text-emphasis bg-success" : "",
+                      isInRange ? "text-emphasis bg-success dark:text-inverted" : "",
                       hours ? "" : "bg-subtle font-medium"
                     )}
                     style={{

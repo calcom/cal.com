@@ -54,12 +54,10 @@ export function AvailabilitySliderTable() {
                 gravatarFallbackMd5="fallback"
               />
               <div className="">
-                <div
-                  className="text-emphasis max-w-64 truncate text-sm font-medium leading-none"
-                  title={email}>
+                <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}
                 </div>
-                <div className="text-subtle text-sm leading-none">{timeZone}</div>
+                <div className="text-subtle text-xs leading-none">{timeZone}</div>
               </div>
             </div>
           );
@@ -81,9 +79,9 @@ export function AvailabilitySliderTable() {
             .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
           return (
-            <div className="flex flex-col gap-2 leading-none">
+            <div className="flex flex-col">
               <span className="text-default text-sm font-medium">{time}</span>
-              <span className="text-subtle text-xs ">GMT {offsetFormatted}</span>
+              <span className="text-subtle text-xs leading-none">GMT {offsetFormatted}</span>
             </div>
           );
         },
