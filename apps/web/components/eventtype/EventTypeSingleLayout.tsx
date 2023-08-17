@@ -287,7 +287,7 @@ function EventTypeSingleLayout({
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
             {!isManagedEventType && (
               <>
-                {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
+                {/* We have to warp this in tooltip as it has a href which disables the tooltip on buttons */}
                 <Tooltip content={t("preview")}>
                   <Button
                     color="secondary"
