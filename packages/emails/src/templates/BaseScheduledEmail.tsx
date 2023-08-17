@@ -20,7 +20,7 @@ export const BaseScheduledEmail = (
     calEvent: CalendarEvent;
     attendee: Person;
     timeZone: string;
-    includeAppsStatus?: boolean;
+    isOrganizer?: boolean;
     t: TFunction;
     locale: string;
     timeFormat: TimeFormat | undefined;
@@ -80,10 +80,15 @@ export const BaseScheduledEmail = (
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
-      <LocationInfo calEvent={props.calEvent} t={t} />
+      <LocationInfo
+        attendee={props.attendee}
+        calEvent={props.calEvent}
+        isOrganizer={props.isOrganizer}
+        t={t}
+      />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
-      {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+      {props.isOrganizer && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses calEvent={props.calEvent} />
       {props.calEvent.paymentInfo?.amount && (
         <Info
