@@ -8,13 +8,14 @@ import { z } from "zod";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
@@ -211,7 +212,7 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: user.avatar || "",
+    avatar: `/${user.username}/avatar.png` || "",
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -412,7 +413,7 @@ const ProfileForm = ({
                 imageSrc={value}
                 gravatarFallbackMd5="fallback"
                 size="lg"
-                organizationLogo={userOrganization.logo}
+                organizationLogo={`${WEBAPP_URL}/org/${userOrganization.slug}/avatar.png`}
                 organizationName={userOrganization.name}
               />
               <div className="ms-4">

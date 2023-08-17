@@ -3,7 +3,10 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { Avatar } from "@calcom/ui";
 import type { AvatarProps } from "@calcom/ui";
 
-type OrganizationAvatarProps = Pick<AvatarProps, "size" | "imageSrc" | "alt" | "indicator"> & {
+type OrganizationAvatarProps = Pick<
+  AvatarProps,
+  "size" | "imageSrc" | "alt" | "indicator" | "gravatarFallbackMd5"
+> & {
   organizationName?: string | null;
   organizationLogo?: string | null;
 };
@@ -14,12 +17,14 @@ const OrganizationAvatar = ({
   alt,
   organizationName,
   organizationLogo,
+  gravatarFallbackMd5,
 }: OrganizationAvatarProps) => {
   return (
     <Avatar
       size={size}
       imageSrc={imageSrc}
       alt={alt}
+      gravatarFallbackMd5={gravatarFallbackMd5}
       indicator={
         (organizationLogo || organizationName) && (
           <div
