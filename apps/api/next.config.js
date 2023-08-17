@@ -40,7 +40,7 @@ module.exports = withAxiom({
   async rewrites() {
     return {
       afterFiles: [
-        // This redirects requests recieved at / the root to the /api/ folder.
+        // This redirects requests received at / the root to the /api/ folder.
         {
           source: "/v:version/:rest*",
           destination: "/api/v:version/:rest*",
