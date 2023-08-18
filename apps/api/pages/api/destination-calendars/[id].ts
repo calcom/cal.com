@@ -23,7 +23,7 @@ export async function destionationCalendarById(
   }
   const data = await prisma.destinationCalendar.findMany({ where: { userId } });
   const userDestinationCalendars = data.map((destinationCalendar) => destinationCalendar.id);
-  //  FIXME: Should we also check ownership of bokingId and eventTypeId to avoid users cross-pollinating other users calendars.
+  //  FIXME: Should we also check ownership of bookingId and eventTypeId to avoid users cross-pollinating other users calendars.
   // On a related note, moving from sequential integer IDs to UUIDs would be a good idea. and maybe help avoid having this problem.
   if (userDestinationCalendars.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
