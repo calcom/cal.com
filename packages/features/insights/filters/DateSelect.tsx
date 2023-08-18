@@ -42,7 +42,7 @@ export const DateSelect = () => {
               currentDates.pop();
               // push new value to array
               currentDates.push(dayjs(selected));
-              // if lenght > 2 then remove first value
+              // if length > 2 then remove first value
               if (currentDates.length > 2) {
                 currentDates.shift();
               }
