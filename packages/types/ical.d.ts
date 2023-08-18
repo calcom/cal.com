@@ -75,7 +75,7 @@ declare module "ical.js" {
 
     public constructor(
       component?: Component | null,
-      options?: { strictExceptions: boolean; exepctions: Array<Component | Event> }
+      options?: { strictExceptions: boolean; exceptions: Array<Component | Event> }
     );
 
     public isRecurring(): boolean;
