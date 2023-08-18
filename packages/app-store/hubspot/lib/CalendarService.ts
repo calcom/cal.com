@@ -27,7 +27,7 @@ import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
 
-interface CustomPlublicObjectInput extends SimplePublicObjectInput {
+interface CustomPublicObjectInput extends SimplePublicObjectInput {
   id?: string;
 }
 
@@ -205,7 +205,7 @@ export default class HubspotCalendarService implements Calendar {
     };
   };
 
-  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPlublicObjectInput[]) {
+  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPublicObjectInput[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
     const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
