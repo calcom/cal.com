@@ -728,7 +728,7 @@ export default function Success(props: SuccessProps) {
               </div>
               {isGmail && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-right rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>
