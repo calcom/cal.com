@@ -2,6 +2,7 @@ import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/cl
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
