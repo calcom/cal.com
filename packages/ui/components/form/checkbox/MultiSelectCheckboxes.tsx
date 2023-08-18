@@ -66,7 +66,7 @@ export default function MultiSelectCheckboxes({
   className,
   isDisabled,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
-  const additonalComponents = { MultiValue };
+  const additionalComponents = { MultiValue };
 
   return (
     <Select
@@ -86,7 +86,7 @@ export default function MultiSelectCheckboxes({
       hideSelectedOptions={false}
       isLoading={isLoading}
       components={{
-        ...additonalComponents,
+        ...additionalComponents,
         Option: InputOption,
       }}
     />
