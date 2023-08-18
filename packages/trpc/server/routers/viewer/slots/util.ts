@@ -448,7 +448,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
 
       // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
-      // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+      // toLocaleDateString sluggish, using Intl.DateTimeFormat we get the desired speed results.
       const dateString = formatter.format(time.toDate());
 
       r[dateString] = r[dateString] || [];
