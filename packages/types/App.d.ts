@@ -113,9 +113,9 @@ export interface App {
   verified?: boolean;
   /** Wether the app should appear in the trending section of the app store */
   trending?: boolean;
-  /** Rating from 0 to 5, harcoded for now. Should be fetched later on. */
+  /** Rating from 0 to 5, hardcoded for now. Should be fetched later on. */
   rating?: number;
-  /** Number of reviews, harcoded for now. Should be fetched later on. */
+  /** Number of reviews, hardcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
    *  Whether if the app is installed globally or needs user intervention.

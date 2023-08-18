@@ -76,7 +76,7 @@ export const SnippedGenerator = {
               //             path,
               //             method,
               //             targets
-              //             // Since I don't know why hostname was undefinedundefined, I harcoded it here
+              //             // Since I don't know why hostname was undefinedundefined, I hardcoded it here
               //           ).snippets[0].content;
               //         } catch (err) {
               //           // set to error in case it happens the npm package has some flaws
