@@ -127,7 +127,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
 };
 
 /**
- * The most important job for this fn is to generate correct storageKey for theme persistenc.
+ * The most important job for this fn is to generate correct storageKey for theme persistence.
  * `storageKey` is important because that key is listened for changes(using [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event) and any pages opened will change it's theme based on that(as part of next-themes implementation).
  * Choosing the right storageKey avoids theme flickering caused by another page using different theme
  * So, we handle all the cases here namely,
