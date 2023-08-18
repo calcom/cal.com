@@ -72,7 +72,7 @@ function preprocess<T extends z.ZodType>({
           return;
         }
         const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
-        // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
+        // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Form builder
         if (fieldTypeSchema) {
           newResponses[field.name] = fieldTypeSchema.preprocess({
             response: value,
