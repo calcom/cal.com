@@ -37,7 +37,7 @@ Contributions are what make the open source community such an amazing place to l
   </tr>
   <tr>
     <td>
-      Core Features (Booking page, availabilty, timezone calculation)
+      Core Features (Booking page, availability, timezone calculation)
     </td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">
