@@ -85,6 +85,7 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          locale: true,
           organization: {
             select: {
               id: true,
@@ -181,6 +182,7 @@ const providers: Provider[] = [
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
         organizationId: user.organizationId,
+        locale: user.locale,
       };
     },
   }),
@@ -225,6 +227,7 @@ if (isSAMLLoginEnabled) {
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
+        locale: profile.locale,
       };
     },
     options: {
@@ -275,7 +278,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
+        const { id, firstName, lastName, email, locale } = userInfo;
 
         return {
           id: id as unknown as number,
@@ -284,6 +287,7 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
+          locale,
         };
       },
     })
@@ -372,6 +376,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             email: true,
             organizationId: true,
             role: true,
+            locale: true,
             teams: {
               include: {
                 team: true,
@@ -416,6 +421,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           organizationId: user?.organizationId,
+          locale: user?.locale,
         };
       }
 
@@ -454,6 +460,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          locale: existingUser.locale,
         };
       }
 
@@ -473,6 +480,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          locale: token.locale,
         },
       };
       return calendsoSession;

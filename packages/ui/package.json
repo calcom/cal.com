@@ -8,7 +8,8 @@
     ".": "./index.tsx",
     "./components/toast": "./components/toast/index.tsx",
     "./components/icon": "./components/icon/index.ts",
-    "./components/icon/Discord": "./components/icon/Discord.tsx"
+    "./components/icon/Discord": "./components/icon/Discord.tsx",
+    "./components/credits/Credits": "./components/credits/Credits.tsx"
   },
   "types": "./index.tsx",
   "license": "MIT",

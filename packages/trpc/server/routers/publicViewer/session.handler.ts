@@ -7,5 +7,6 @@ type SessionOptions = {
 };
 
 export const sessionHandler = async ({ ctx }: SessionOptions) => {
+  console.log("---------------------SESSION", ctx.session);
   return ctx.session;
 };

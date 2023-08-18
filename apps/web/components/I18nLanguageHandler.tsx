@@ -2,18 +2,20 @@ import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
+import { CalComVersion } from "@calcom/ui/components/credits/Credits";
 
-export function useViewerI18n() {
-  return trpc.viewer.public.i18n.useQuery(undefined, {
-    staleTime: Infinity,
-    /**
-     * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-     * We intend to not cache i18n query
-     **/
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+export function useViewerI18n(language) {
+  return trpc.viewer.public.i18n.useQuery(
+    { language, CalComVersion },
+    {
+      /**
+       * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
+       **/
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 }
 
 /**
@@ -21,7 +23,7 @@ export function useViewerI18n() {
  */
 const I18nLanguageHandler = () => {
   const { i18n } = useTranslation("common");
-  const locale = useViewerI18n().data?.locale || i18n.language;
+  const locale = useViewerI18n(i18n.language).data?.locale || i18n.language;
 
   useEffect(() => {
     // bail early when i18n = {}

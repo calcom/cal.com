@@ -69,9 +69,11 @@ type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
 const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   * We intend to not cache i18n query
    **/
-  const { i18n, locale } = useViewerI18n().data ?? {
+  const session = useSession();
+  const localeToUse = session.data?.user.locale ?? "en";
+  console.log(session);
+  const { i18n, locale } = useViewerI18n(localeToUse).data ?? {
     locale: "en",
   };
 
@@ -256,6 +258,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
     },
     ...rest,
   };
+
+  console.log(propsWithoutNonce);
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
