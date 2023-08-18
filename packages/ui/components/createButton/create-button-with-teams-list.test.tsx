@@ -6,7 +6,7 @@ import type { CreateBtnProps } from "./CreateButton";
 import { CreateButtonWithTeamsList } from "./CreateButtonWithTeamsList";
 
 const runtimeMock = async (data: Array<any>) => {
-  const updatedTrcp = {
+  const updatedTrpc = {
     viewer: {
       teamsAndUserProfilesQuery: {
         useQuery() {
@@ -18,7 +18,7 @@ const runtimeMock = async (data: Array<any>) => {
     },
   };
   const mockedLib = (await import("@calcom/trpc/react")) as any;
-  mockedLib.trpc = updatedTrcp;
+  mockedLib.trpc = updatedTrpc;
 };
 const renderCreateButton = (
   props: Omit<CreateBtnProps, "options"> & { onlyShowWithTeams?: boolean; onlyShowWithNoTeams?: boolean }
