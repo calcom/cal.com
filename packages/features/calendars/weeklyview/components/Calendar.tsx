@@ -22,7 +22,7 @@ export function Calendar(props: CalendarComponentProps) {
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
-  const initalState = useCalendarStore((state) => state.initState);
+  const initialState = useCalendarStore((state) => state.initState);
   const { timezone } = useTimePreferences();
 
   const startDate = useCalendarStore((state) => state.startDate);
@@ -42,10 +42,10 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initialise State on inital mount
+  // Initialise State on initial mount
   useEffect(() => {
-    initalState(props);
-  }, [props, initalState]);
+    initialState(props);
+  }, [props, initialState]);
 
   return (
     <MobileNotSupported>

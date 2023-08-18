@@ -46,7 +46,7 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
-// TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
+// TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initialsteps,headers etc. These can all be in one place
 const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
