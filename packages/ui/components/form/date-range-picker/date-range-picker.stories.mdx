@@ -1,0 +1,72 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Examples, Example, Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import DateRangePicker from "./DateRangePicker";
+
+<Meta title="UI/DateRangePicker" component={DateRangePicker} />
+
+<Title title="DateRangePicker" suffix="Brief" subtitle="Version 1.0 — Last Update: 18 Aug 2023" />
+
+## Definitions
+
+`DateRangePicker` is a component that allows the user to select a date range.
+
+## Structure
+
+The `DateRangePicker` component has a state to determine whether it's disabled or not, and the currently selected start and end dates.
+
+<CustomArgsTable of={DateRangePicker} />
+
+## Examples
+
+<Examples title="DateRangePicker">
+  <Example title="Default">
+    <DateRangePicker startDate={new Date(2023, 8, 14)} endDate={new Date(2023, 8, 20)} />
+  </Example>
+
+  <Example title="Disabled">
+    <DateRangePicker startDate={new Date(2023, 8, 14)} endDate={new Date(2023, 8, 20)} disabled />
+  </Example>
+</Examples>
+
+## DateRangePicker Story
+
+<Canvas>
+  <Story
+    name="DateRangePicker"
+    args={{
+      startDate: new Date(2023, 8, 14),
+      endDate: new Date(2023, 8, 20),
+      disabled: false,
+      onDatesChange: ({ startDate, endDate }) => {
+        console.log(startDate, endDate);
+      },
+    }}
+    argTypes={{
+      startDate: {
+        control: {
+          type: "date",
+        },
+      },
+      endDate: {
+        control: {
+          type: "date",
+        },
+      },
+      disabled: {
+        control: {
+          type: "boolean",
+        },
+      },
+    }}>
+    {({ startDate, endDate, disabled, onDatesChange }) => (
+      <DateRangePicker
+        startDate={startDate}
+        endDate={endDate}
+        disabled={disabled}
+        onDatesChange={onDatesChange}
+      />
+    )}
+  </Story>
+</Canvas>
