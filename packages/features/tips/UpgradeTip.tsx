@@ -21,7 +21,7 @@ export function UpgradeTip({
   background: string;
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
-  /**Chldren renders when the user is in a team */
+  /**Children renders when the user is in a team */
   children: JSX.Element;
   isParentLoading?: ReactNode;
 }) {
