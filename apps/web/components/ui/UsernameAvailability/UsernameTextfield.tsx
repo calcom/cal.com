@@ -25,7 +25,7 @@ interface ICustomUsernameProps {
 
 const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
 
   const {
     currentUsername,
