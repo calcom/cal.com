@@ -552,7 +552,7 @@ async function handler(req: CustomRequest) {
       throw new Error("Payment app credentials not found");
     }
 
-    // Posible to refactor TODO:
+    // Possible to refactor TODO:
     const paymentApp = (await appStore[
       paymentAppCredential?.app?.dirName as keyof typeof appStore
     ]()) as PaymentApp;
