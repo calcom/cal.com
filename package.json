@@ -69,7 +69,9 @@
     "test": "vitest run",
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
-    "web": "yarn workspace @calcom/web"
+    "web": "yarn workspace @calcom/web",
+    "spell-check": "sh .cspell/cspell.sh",
+    "spell-check:staged": "sh .cspell/cspell-staged.sh"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
@@ -79,6 +81,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@types/dompurify": "^2.4.0",
     "c8": "^7.13.0",
+    "cspell": "^7.0.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",

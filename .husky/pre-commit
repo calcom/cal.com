@@ -3,4 +3,6 @@
 
 yarn lint-staged
 
+yarn run "spell-check:staged"
+
 yarn app-store:build && git add packages/app-store/*.generated.*
