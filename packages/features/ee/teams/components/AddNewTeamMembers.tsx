@@ -120,7 +120,6 @@ export const AddNewTeamMembersForm = ({
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
-                  isOrg: !!orgBranding,
                 },
                 {
                   onSuccess: async (data) => {
@@ -173,12 +172,16 @@ export const AddNewTeamMembersForm = ({
       )}
       <hr className="border-subtle my-6" />
       <Button
-        EndIcon={ArrowRight}
+        EndIcon={!orgBranding ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
-          publishTeamMutation.mutate({ teamId });
+          if (orgBranding) {
+            router.push("/settings/teams");
+          } else {
+            publishTeamMutation.mutate({ teamId });
+          }
         }}>
         {t(orgBranding ? "finish" : "team_publish")}
       </Button>
