@@ -103,7 +103,7 @@ export async function patchHandler(req: NextApiRequest) {
     where: { userId: query.userId },
   });
   const userSchedulesIds = userSchedules.map((schedule) => schedule.id);
-  // @note: here we make sure user can only make as default his own scheudles
+  // @note: here we make sure user can only make as default his own schedules
   if (body.defaultScheduleId && !userSchedulesIds.includes(Number(body.defaultScheduleId))) {
     throw new HttpError({
       statusCode: 400,
