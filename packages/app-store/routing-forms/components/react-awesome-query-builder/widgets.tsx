@@ -11,9 +11,7 @@ import type {
 import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
 import { Trash, Plus } from "@calcom/ui/components/icon";
 
-const Select = dynamic(
-  async () => (await import("@calcom/ui")).SelectWithValidation
-) as unknown as typeof import("@calcom/ui").SelectWithValidation;
+const Select = dynamic(async () => (await import("@calcom/ui")).SelectWithValidation);
 
 export type CommonProps<
   TVal extends
