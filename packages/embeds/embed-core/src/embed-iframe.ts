@@ -228,7 +228,7 @@ export const useEmbedUiConfig = () => {
   return uiConfig;
 };
 
-// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
+// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute identifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [, setStyles] = useState<EmbedStyles>({});
 
