@@ -23,7 +23,7 @@ export const requestSnippets = {
   languages: ["node", "curl_bash"],
 };
 // Since swagger-ui-react was not configured to change the request snippets some workarounds required
-// configuration will be added programatically
+// configuration will be added programmatically
 // Custom Plugin
 export const SnippedGenerator = {
   statePlugins: {
