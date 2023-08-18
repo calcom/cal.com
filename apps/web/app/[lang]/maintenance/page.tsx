@@ -1,0 +1,26 @@
+import Head from "next/head";
+
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+
+import { getDictionary } from "@lib/core/i18n/dictionaries";
+
+import { Button } from "../../../../../packages/ui/components/button/Button";
+
+export default async function MaintenancePage({ params: { lang } }: { params: { lang: "en" | "nl" } }) {
+  const t = await getDictionary(lang);
+  return (
+    <div className="bg-subtle flex h-screen">
+      <Head>
+        <title>
+          {t["under_maintenance"]} | {APP_NAME}
+        </title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <div className="bg-default m-auto rounded-md p-10 text-right ltr:text-left">
+        <h1 className="text-emphasis text-2xl font-medium">{t["under_maintenance"]}</h1>
+        <p className="text-default mb-6 mt-4 max-w-2xl text-sm">{t["under_maintenance_description"]}</p>
+        <Button href={`${WEBSITE_URL}/support`}>{t["contact_support"]}</Button>
+      </div>
+    </div>
+  );
+}

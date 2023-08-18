@@ -15,11 +15,10 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
-
-import PageWrapper from "@components/PageWrapper";
+import PageWrapper from "../../../components/PageWrapper";
+import type { EmbedProps } from "../../../lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

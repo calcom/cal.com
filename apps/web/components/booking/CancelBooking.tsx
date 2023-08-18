@@ -28,7 +28,7 @@ type Props = {
 export default function CancelBooking(props: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const asPath = `${pathname}?${searchParams.toString()}`;
+  const asPath = `${pathname}?${(searchParams || "").toString()}`;
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();

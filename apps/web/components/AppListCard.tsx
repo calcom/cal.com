@@ -62,7 +62,7 @@ export default function AppListCard(props: AppListCardProps) {
     if (shouldHighlight && highlight) {
       const timer = setTimeout(() => {
         setHighlight(false);
-        const _searchParams = new URLSearchParams(searchParams);
+        const _searchParams = new URLSearchParams(searchParams || undefined);
         _searchParams.delete("hl");
         router.replace(`${pathname}?${_searchParams.toString()}`);
       }, 3000);
