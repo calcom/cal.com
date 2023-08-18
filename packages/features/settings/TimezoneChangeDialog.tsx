@@ -43,7 +43,7 @@ export default function TimezoneChangeDialog() {
     const tzDifferent =
       !isLoading && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
     const showDialog = tzDifferent && !document.cookie.includes("calcom-timezone-dialog=1");
-    setOpen(showDialog);
+    setOpen(!globalThis.window?.Meticulous?.isRunningAsTest && showDialog);
   }, [currentTz, isLoading, userTz]);
 
   // save cookie to not show again
