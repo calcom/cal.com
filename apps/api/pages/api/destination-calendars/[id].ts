@@ -94,7 +94,7 @@ export async function destinationCalendarById(
        *      - destination-calendars
        *     responses:
        *       201:
-       *         description: OK, destinationCalendar edited successfuly
+       *         description: OK, destinationCalendar edited successfully
        *       400:
        *        description: Bad request. DestinationCalendar body is invalid.
        *       401:
@@ -118,7 +118,7 @@ export async function destinationCalendarById(
        *      - destination-calendars
        *     responses:
        *       201:
-       *         description: OK, destinationCalendar removed successfuly
+       *         description: OK, destinationCalendar removed successfully
        *       400:
        *        description: Bad request. DestinationCalendar id is invalid.
        *       401:
@@ -158,7 +158,7 @@ export async function destinationCalendarById(
        *      - destination-calendars
        *     responses:
        *       201:
-       *         description: OK, destinationCalendar edited successfuly
+       *         description: OK, destinationCalendar edited successfully
        *       400:
        *        description: Bad request. DestinationCalendar body is invalid.
        *       401:
@@ -204,7 +204,7 @@ export async function destinationCalendarById(
        *      - destination-calendars
        *     responses:
        *       201:
-       *         description: OK, destinationCalendar removed successfuly
+       *         description: OK, destinationCalendar removed successfully
        *       400:
        *        description: Bad request. DestinationCalendar id is invalid.
        *       401:

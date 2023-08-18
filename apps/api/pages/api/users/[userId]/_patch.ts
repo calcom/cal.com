@@ -79,7 +79,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *       - users
  *     responses:
  *       200:
- *         description: OK, user edited successfuly
+ *         description: OK, user edited successfully
  *       400:
  *         description: Bad request. User body is invalid.
  *       401:
