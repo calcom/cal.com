@@ -37,7 +37,7 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
     distinct: ["userId"],
   });
 
-  // Throw error if any of the users are not in the organization. They should be invited to the organization via the onboaring flow first.
+  // Throw error if any of the users are not in the organization. They should be invited to the organization via the onboarding flow first.
   if (usersInOrganization.length !== input.userIds.length) {
     throw new TRPCError({
       code: "BAD_REQUEST",
