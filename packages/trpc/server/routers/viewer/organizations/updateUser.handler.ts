@@ -17,7 +17,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { user } = ctx;
   const { id: userId, organizationId } = user;
   if (!organizationId)
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organization" });
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
