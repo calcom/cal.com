@@ -137,7 +137,7 @@ function withColorScheme(
   // https://fvsch.com/transparent-iframes#:~:text=the%20resolution%20was%3A-,If%20the%20color%20scheme%20of%20an%20iframe%20differs%20from%20embedding%20document%2C%20iframe%20gets%20an%20opaque%20canvas%20background%20appropriate%20to%20its%20color%20scheme.,-So%20the%20dark
   if (!queryObject["ui.color-scheme"]) {
     const colorScheme = getColorScheme(containerEl);
-    // Only handle two color-schemes for now. We don't want to have unintented affect by always explicitly adding color-scheme
+    // Only handle two color-schemes for now. We don't want to have unintended affect by always explicitly adding color-scheme
     if (colorScheme) {
       queryObject["ui.color-scheme"] = colorScheme;
     }
