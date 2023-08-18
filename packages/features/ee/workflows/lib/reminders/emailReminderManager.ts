@@ -235,7 +235,7 @@ export const scheduleEmailReminder = async (
       !scheduledDate.isAfter(currentDate.add(72, "hour"))
     ) {
       try {
-        // If sendEmail failed then workflowReminer will not be created, failing E2E tests
+        // If sendEmail failed then workflowRemainder will not be created, failing E2E tests
         await sendEmail({
           to: sendTo,
           sendAt: scheduledDate.unix(),
