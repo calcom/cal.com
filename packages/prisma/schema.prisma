@@ -255,6 +255,7 @@ model Team {
   /// @zod.min(1)
   slug                String?
   logo                String?
+  orgCalVideoLogo     String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?

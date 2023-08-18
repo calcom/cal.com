@@ -105,7 +105,7 @@ export default function JoinCall(props: JoinCallPageProps) {
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
         <img
-          className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+          className="fixed z-10 hidden h-5 w-auto sm:inline-block"
           src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
           alt="Cal.com Logo"
           style={{

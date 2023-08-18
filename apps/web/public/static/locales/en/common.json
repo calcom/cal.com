@@ -255,6 +255,8 @@
   "yours": "Your account",
   "available_apps": "Available Apps",
   "available_apps_lower_case": "Available apps",
+  "change_cal_video_logo":"Change Cal Video Logo",
+  "cal_video_logo_upload_instruction":"Please only update a white mono-color version of your logo as an *.svg file on a transparent background",
   "available_apps_desc": "You have no apps installed. View popular apps below and explore more in our <1>App Store</1>",
   "fixed_host_helper": "Add anyone who needs to attend the event. <1>Learn more</1>",
   "round_robin_helper":"People in the group take turns and only one person will show up for the event.",

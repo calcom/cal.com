@@ -2,15 +2,18 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Avatar,
   Button,
   ColorPicker,
   Form,
   Meta,
   showToast,
+  ImageUploader,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
@@ -48,6 +51,7 @@ interface OrgAppearanceValues {
   brandColor: string;
   darkBrandColor: string;
   theme: string | null | undefined;
+  orgCalVideoLogo: string | null;
 }
 
 const OrgAppearanceView = () => {
@@ -71,12 +75,15 @@ const OrgAppearanceView = () => {
     },
   });
 
+  console.log("Current_Org", currentOrg);
+
   const form = useForm<OrgAppearanceValues>({
     defaultValues: {
       theme: currentOrg?.theme,
       brandColor: currentOrg?.brandColor,
       darkBrandColor: currentOrg?.darkBrandColor,
       hideBranding: currentOrg?.hideBranding,
+      orgCalVideoLogo: currentOrg?.orgCalVideoLogo,
     },
   });
 
@@ -94,11 +101,41 @@ const OrgAppearanceView = () => {
         <Form
           form={form}
           handleSubmit={(values) => {
+            console.log(values);
             mutation.mutate({
               ...values,
               theme: values.theme || null,
             });
           }}>
+          <div className="mb-6 flex items-center text-sm">
+            <Controller
+              control={form.control}
+              name="orgCalVideoLogo"
+              defaultValue={currentOrg.orgCalVideoLogo}
+              render={({ field: { value } }) => (
+                <>
+                  <Avatar
+                    alt=""
+                    imageSrc={getPlaceholderAvatar(value, currentOrg?.name as string)}
+                    size="lg"
+                  />
+                  {console.log("VALUES", value)}
+                  <div className="ms-4">
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg={t("change_cal_video_logo")}
+                      handleAvatarChange={(newLogo) => {
+                        form.setValue("orgCalVideoLogo", newLogo);
+                      }}
+                      imageSrc={value}
+                      imageUploadInstruction={t("cal_video_logo_upload_instruction")}
+                    />
+                  </div>
+                </>
+              )}
+            />
+          </div>
           <div className="mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("theme")}</p>

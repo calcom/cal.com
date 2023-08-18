@@ -65,6 +65,7 @@ type ImageUploaderProps = {
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
+  imageUploadInstruction?: string;
 };
 
 interface FileEvent<T = Element> extends FormEvent<T> {
@@ -117,6 +118,7 @@ export default function ImageUploader({
   id,
   buttonMsg,
   handleAvatarChange,
+  imageUploadInstruction,
   ...props
 }: ImageUploaderProps) {
   const { t } = useLocale();
@@ -201,6 +203,9 @@ export default function ImageUploader({
               />
               {t("choose_a_file")}
             </label>
+            {imageUploadInstruction && (
+              <p className="text-muted mt-4 text-center text-sm">({imageUploadInstruction})</p>
+            )}
           </div>
         </div>
         <DialogFooter className="relative">
