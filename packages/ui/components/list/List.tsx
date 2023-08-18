@@ -19,7 +19,7 @@ export function List(props: ListProps) {
       {...props}
       className={classNames(
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
-        // Add rounded top and bottome if roundContainer is true
+        // Add rounded top and bottom if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
         !props.noBorderTreatment &&
           "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
