@@ -9,7 +9,7 @@ import { useBookerStore } from "../store";
 
 /**
  * Wrapper hook around the trpc query that fetches
- * the event curently viewed in the booker. It will get
+ * the event currently viewed in the booker. It will get
  * the current event slug and username from the booker store.
  *
  * Using this hook means you only need to use one hook, instead
