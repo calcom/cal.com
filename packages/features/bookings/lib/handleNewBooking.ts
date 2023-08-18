@@ -366,7 +366,7 @@ async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
 
-  const orginalBookingDuration = input.originalRescheduledBooking
+  const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
         dayjs(input.originalRescheduledBooking.startTime),
         "minutes"
@@ -379,7 +379,7 @@ async function ensureAvailableUsers(
       {
         userId: user.id,
         eventTypeId: eventType.id,
-        duration: orginalBookingDuration,
+        duration: originalBookingDuration,
         ...input,
       },
       {
