@@ -141,17 +141,17 @@ export const getPublicEvent = async (
     const defaultEvent = getDefaultEvent(eventSlug);
     let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
 
-    // Get the prefered location type from the first user
+    // Get the preferred location type from the first user
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
-    const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
+    const preferredLocationType = firstUsersMetadata?.defaultConferencingApp;
 
-    if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+    if (preferredLocationType?.appSlug) {
+      const foundApp = getAppFromSlug(preferredLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
         // Replace the location with the prefered location type
         // This will still be default to daily if the app is not found
-        locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
+        locations = [{ type: appType, link: preferredLocationType.appLink }] as LocationObject[];
       }
     }
 
