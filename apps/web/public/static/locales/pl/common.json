@@ -337,7 +337,7 @@
   "cancelling_event_recurring": "Wydarzenie jest jednym z wystąpień wydarzenia cyklicznego.",
   "cancelling_all_recurring": "Są to wszystkie pozostałe wystąpienia wydarzenia cyklicznego.",
   "error_with_status_code_occurred": "Wystąpił błąd z kodem statusu {{status}}.",
-  "error_event_type_url_duplicate": "Typ wydarzenia o podanym adresie URL już istnieje.",
+  "error_event_type_url_duplicate": "Typ wydarzenia o tym adresie URL już istnieje.",
   "error_event_type_unauthorized_create": "Nie możesz utworzyć tego wydarzenia.",
   "error_event_type_unauthorized_update": "Nie możesz edytować tego wydarzenia.",
   "error_workflow_unauthorized_create": "Nie możesz utworzyć tego przepływu pracy.",
