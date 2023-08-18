@@ -17,3 +17,5 @@ export const i18nHandler = async ({ ctx }: I18nOptions) => {
     locale,
   };
 };
+
+export default i18nHandler;

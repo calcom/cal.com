@@ -17,3 +17,5 @@ export const samlTenantProductHandler = ({ ctx, input }: SamlTenantProductOption
 
   return samlTenantProduct(prisma, email);
 };
+
+export default samlTenantProductHandler;
