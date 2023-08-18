@@ -2007,5 +2007,6 @@
   "attendee_last_name_info": "The person booking's last name",
   "me": "Me",
   "verify_team_tooltip": "Verify your team to enable sending messages to attendees",
+  "include_calender_event": "Include calender event",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

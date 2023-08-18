@@ -1,8 +1,12 @@
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
+import { createEvent } from "ics";
+import type { DateArray } from "ics";
+import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -62,7 +66,8 @@ export const scheduleEmailReminder = async (
   template: WorkflowTemplates,
   sender: string,
   hideBranding?: boolean,
-  seatReferenceUid?: string
+  seatReferenceUid?: string,
+  includeCalenderEvent?: boolean
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -191,7 +196,8 @@ export const scheduleEmailReminder = async (
       console.info("No sendgrid API key provided, skipping email");
       return Promise.resolve();
     }
-    return sgMail.send({
+
+    let emailData = {
       to: data.to,
       from: {
         email: senderEmail,
@@ -206,7 +212,53 @@ export const scheduleEmailReminder = async (
           enable: sandboxMode,
         },
       },
-    });
+    };
+
+    if (includeCalenderEvent) {
+      const uid = uuidv4();
+
+      const icsEvent = createEvent({
+        uid,
+        startInputType: "utc",
+        start: dayjs(startTime)
+          .utc()
+          .toArray()
+          .slice(0, 6)
+          .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+        duration: { minutes: dayjs(endTime).diff(dayjs(startTime), "minute") },
+        title: evt.title,
+        description: evt.additionalNotes || "",
+        location: evt.location,
+        organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
+        attendees: [
+          {
+            name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name),
+            email: evt.attendees[0].email,
+          },
+        ],
+      });
+
+      if (icsEvent.error) {
+        console.log("Error creating calender event ", icsEvent.error);
+      }
+
+      if (icsEvent.value) {
+        emailData = {
+          ...emailData,
+          attachments: [
+            {
+              content: Buffer.from(icsEvent.value).toString("base64"),
+              filename: "event.ics",
+              name: "event.ics",
+              type: "text/calendar; method=REQUEST",
+              disposition: "attachment",
+              content_id: uid,
+            },
+          ],
+        };
+      }
+    }
+    return sgMail.send(emailData);
   }
 
   if (

@@ -64,6 +64,7 @@ const formSchema = z.object({
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
       numberRequired: z.boolean().nullable(),
+      includeCalenderEvent: z.boolean().nullable(),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))

@@ -1,7 +1,10 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
+import { createEvent } from "ics";
+import type { DateArray } from "ics";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -242,7 +245,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const batchId = batchIdResponse[1].batch_id;
 
         if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
-          await sgMail.send({
+          let emailData = {
             to: sendTo,
             from: {
               email: senderEmail,
@@ -258,7 +261,58 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 enable: sandboxMode,
               },
             },
-          });
+          };
+
+          if (reminder.workflowStep.includeCalenderEvent) {
+            const uid = uuidv4();
+
+            const icsEvent = createEvent({
+              uid,
+              startInputType: "utc",
+              start: dayjs(reminder.booking.startTime.toISOString() || "")
+                .utc()
+                .toArray()
+                .slice(0, 6)
+                .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+              duration: {
+                minutes: dayjs(reminder.booking.endTime.toISOString() || "").diff(
+                  dayjs(reminder.booking.startTime.toISOString() || ""),
+                  "minute"
+                ),
+              },
+              title: reminder.booking.eventType?.title || "",
+              description: reminder.booking.description,
+              location: reminder.booking.location || "",
+              organizer: {
+                email: reminder.booking.user?.email || "",
+                name: reminder.booking.user?.name || "",
+              },
+              attendees: [
+                { name: reminder.booking.attendees[0].name, email: reminder.booking.attendees[0].email },
+              ],
+            });
+
+            if (icsEvent.error) {
+              console.log("Error creating calender event ", icsEvent.error);
+            }
+
+            if (icsEvent.value) {
+              emailData = {
+                ...emailData,
+                attachments: [
+                  {
+                    content: Buffer.from(icsEvent.value).toString("base64"),
+                    filename: "event.ics",
+                    name: "event.ics",
+                    type: "text/calendar; method=REQUEST",
+                    disposition: "attachment",
+                    content_id: uid,
+                  },
+                ],
+              };
+            }
+          }
+          await sgMail.send(emailData);
         }
 
         await prisma.workflowReminder.update({
