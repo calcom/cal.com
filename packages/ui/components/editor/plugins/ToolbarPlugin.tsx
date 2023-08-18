@@ -332,8 +332,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
         editor.update(() => {
-          const formatedVariable = `{${variable.toUpperCase().replace(/ /g, "_")}}`;
-          selection?.insertRawText(formatedVariable);
+          const formattedVariable = `{${variable.toUpperCase().replace(/ /g, "_")}}`;
+          selection?.insertRawText(formattedVariable);
         });
       }
     });

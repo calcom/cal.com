@@ -94,14 +94,14 @@ const customTemplate = (
 
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formatedToVariable = customInput
+        const formattedToVariable = customInput
           .replace(/[^a-zA-Z0-9 ]/g, "")
           .trim()
           .replaceAll(" ", "_")
           .toUpperCase();
 
         if (
-          variable === formatedToVariable &&
+          variable === formattedToVariable &&
           variables.responses &&
           variables.responses[customInput as keyof typeof variables.responses].value
         ) {
