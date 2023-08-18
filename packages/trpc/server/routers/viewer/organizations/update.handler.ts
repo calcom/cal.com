@@ -100,3 +100,5 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   return { update: true, userId: ctx.user.id };
 };
+
+export default updateHandler;

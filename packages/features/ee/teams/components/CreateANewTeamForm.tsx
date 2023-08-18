@@ -111,8 +111,9 @@ export const CreateANewTeamForm = () => {
                 placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${
-                  orgBranding?.fullDomain.replace("https://", "").replace("http://", "") ??
-                  `${extractDomainFromWebsiteUrl}/team/`
+                  orgBranding
+                    ? orgBranding.fullDomain.replace("https://", "").replace("http://", "") + "/"
+                    : `${extractDomainFromWebsiteUrl}/team/`
                 }`}
                 defaultValue={value}
                 onChange={(e) => {
