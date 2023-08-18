@@ -63,7 +63,7 @@ export const OptionComponent = <
   );
 };
 
-// We need to override this component if we need a icon - we can't simpily override styles
+// We need to override this component if we need a icon - we can't simply override styles
 type IconLeadingProps = {
   icon: React.ReactNode;
   children?: React.ReactNode;
