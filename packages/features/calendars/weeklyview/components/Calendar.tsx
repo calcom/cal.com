@@ -15,7 +15,7 @@ import { SchedulerColumns } from "./grid";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { Spinner } from "./spinner/Spinner";
-import { VeritcalLines } from "./verticalLines";
+import { VerticalLines } from "./verticalLines";
 
 export function Calendar(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -81,7 +81,7 @@ export function Calendar(props: CalendarComponentProps) {
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
                   containerOffsetRef={containerOffset}
                 />
-                <VeritcalLines days={days} />
+                <VerticalLines days={days} />
 
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}

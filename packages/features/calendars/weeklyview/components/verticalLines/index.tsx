@@ -1,6 +1,6 @@
 import type dayjs from "@calcom/dayjs";
 
-export const VeritcalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
+export const VerticalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
   const isRTL = () => {
     const userLocale = navigator.language;
     const userLanguage = new Intl.Locale(userLocale).language;
