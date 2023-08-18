@@ -60,6 +60,9 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               hidden:
  *                 type: boolean
  *                 description: If the event type should be hidden from your public booking page
+ *               scheduleId:
+ *                 type: number
+ *                 description: The ID of the schedule for this event type
  *               position:
  *                 type: integer
  *                 description: The position of the event type on the public booking page
@@ -178,6 +181,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                  position: 0
  *                  eventName: null
  *                  timeZone: null
+ *                  scheduleId: 5
  *                  periodType: UNLIMITED
  *                  periodStartDate: 2023-02-15T08:46:16.000Z
  *                  periodEndDate: 2023-0-15T08:46:16.000Z
