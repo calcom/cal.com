@@ -17,7 +17,7 @@ export async function defineConfig(env) {
       standardLintRules({
         // deactivating identical pattern because of nested
         // resources like "de-DE" and "de-AT" where "de-AT"
-        // contrains overwrites but the majority are identical patterns.
+        // constrains overwrites but the majority are identical patterns.
         identicalPattern: "off",
       }),
     ],
