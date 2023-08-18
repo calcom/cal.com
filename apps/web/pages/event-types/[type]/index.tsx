@@ -69,7 +69,7 @@ const EventAppsTab = dynamic(() =>
   import("@components/eventtype/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
-const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkfowsTab"));
+const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkflowsTab"));
 
 const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
