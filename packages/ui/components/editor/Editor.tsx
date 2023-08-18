@@ -22,7 +22,7 @@ import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
 /*
- Detault toolbar items:
+ Default toolbar items:
   - blockType
   - bold
   - italic
