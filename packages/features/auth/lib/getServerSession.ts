@@ -43,11 +43,9 @@ export async function getServerSession(options: {
   const cachedSession = CACHE.get(JSON.stringify(token));
 
   if (cachedSession) {
-    console.log("-----------USING CACHED SESSION--------------");
     return cachedSession;
   }
 
-  console.log("------------GET USER IN getServerSession-----------");
   const user = await prisma.user.findUnique({
     where: {
       email: token.email.toLowerCase(),
