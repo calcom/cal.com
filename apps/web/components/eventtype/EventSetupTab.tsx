@@ -347,6 +347,7 @@ export const EventSetupTab = (
             ) && (
               <div className="text-default flex text-sm">
                 <Check className="mr-1.5 mt-0.5 h-2 w-2.5" />
+                {/* cspell:ignore requres */}
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.

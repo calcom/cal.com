@@ -186,6 +186,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="text-subtle bg-muted w-full p-5">
         <p className="">{t("specific_issue")}</p>
         <button
+          // cspell:ignore defualt
           className="hover:text-emphasis text-defualt font-medium underline"
           onClick={async () => {
             setActive(true);
@@ -204,6 +205,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
+          // cspell:ignore defualt
           className="hover:text-emphasis text-defualt font-medium underline"
           href="https://cal.com/docs"
           target="_blank"
