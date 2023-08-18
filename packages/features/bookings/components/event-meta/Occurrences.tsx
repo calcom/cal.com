@@ -13,12 +13,12 @@ import type { PublicEvent } from "../../types";
 export const EventOccurrences = ({ event }: { event: PublicEvent }) => {
   const maxOccurrences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
-  const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] = useBookerStore(
+  const [setRecurringEventCount, recurringEventCount, setOccurrenceCount, occurrenceCount] = useBookerStore(
     (state) => [
       state.setRecurringEventCount,
       state.recurringEventCount,
-      state.setOccurenceCount,
-      state.occurenceCount,
+      state.setOccurrenceCount,
+      state.occurrenceCount,
     ]
   );
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -28,11 +28,11 @@ export const EventOccurrences = ({ event }: { event: PublicEvent }) => {
   // Set initial value in booker store.
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
-    setOccurenceCount(occurenceCount || event.recurringEvent.count);
+    setOccurrenceCount(occurrenceCount || event.recurringEvent.count);
     setRecurringEventCount(recurringEventCount || event.recurringEvent.count);
-    if (occurenceCount && (occurenceCount > event.recurringEvent.count || occurenceCount < 1))
+    if (occurrenceCount && (occurrenceCount > event.recurringEvent.count || occurrenceCount < 1))
       setWarning(true);
-  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, setOccurenceCount, occurenceCount]);
+  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, setOccurrenceCount, occurrenceCount]);
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
@@ -72,11 +72,11 @@ export const EventOccurrences = ({ event }: { event: PublicEvent }) => {
         type="number"
         min="1"
         max={event.recurringEvent.count}
-        defaultValue={occurenceCount || event.recurringEvent.count}
+        defaultValue={occurrenceCount || event.recurringEvent.count}
         onChange={(event) => {
           const pattern = /^(?=.*[0-9])\S+$/;
           const inputValue = parseInt(event.target.value);
-          setOccurenceCount(inputValue);
+          setOccurrenceCount(inputValue);
           if (
             !pattern.test(event.target.value) ||
             inputValue < 1 ||

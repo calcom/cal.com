@@ -100,8 +100,8 @@ export type BookerStore = {
   /**
    * Input occurrence count.
    */
-  occurenceCount: number | null;
-  setOccurenceCount(count: number | null): void;
+  occurrenceCount: number | null;
+  setOccurrenceCount(count: number | null): void;
   /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
@@ -274,8 +274,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-  occurenceCount: null,
-  setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
+  occurrenceCount: null,
+  setOccurrenceCount: (occurrenceCount: number | null) => set({ occurrenceCount }),
   rescheduleUid: null,
   bookingData: null,
   bookingUid: null,
