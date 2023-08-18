@@ -17,9 +17,8 @@ import {
 import { useState } from "react";
 import { useVirtual } from "react-virtual";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
+import type { ActionItem } from "./DataTableSelectionBar";
 import { DataTableSelectionBar } from "./DataTableSelectionBar";
 import type { FilterableItems } from "./DataTableToolbar";
 import { DataTableToolbar } from "./DataTableToolbar";
@@ -30,11 +29,7 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   filterableItems?: FilterableItems;
-  selectionOptions?: {
-    label: string;
-    onClick: () => void;
-    icon?: SVGComponent;
-  }[];
+  selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
