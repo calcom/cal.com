@@ -106,8 +106,8 @@ export default function JoinCall(props: JoinCallPageProps) {
       <div style={{ zIndex: 2, position: "relative" }}>
         <img
           className="fixed z-10 hidden h-5 w-auto sm:inline-block"
-          src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-          alt="Cal.com Logo"
+          src={booking?.eventType?.team?.orgCalVideoLogo ?? `${WEBSITE_URL}/cal-logo-word-dark.svg`}
+          alt="Logo"
           style={{
             top: 46,
             left: 24,
@@ -288,6 +288,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           timeZone: true,
           name: true,
           email: true,
+        },
+      },
+      eventType: {
+        select: {
+          team: {
+            select: {
+              orgCalVideoLogo: true,
+            },
+          },
         },
       },
       references: {
