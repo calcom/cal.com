@@ -1,12 +1,15 @@
+import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import { CalComVersion } from "@calcom/ui/components/credits/Credits";
 
-export function useViewerI18n(language) {
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const vercelCommitHash = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
+
+export function useViewerI18n(language: string) {
   return trpc.viewer.public.i18n.useQuery(
-    { language, CalComVersion },
+    { language, CalComVersion: vercelCommitHash },
     {
       /**
        * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
@@ -22,8 +25,9 @@ export function useViewerI18n(language) {
  * Auto-switches locale client-side to the logged in user's preference
  */
 const I18nLanguageHandler = () => {
+  const session = useSession();
   const { i18n } = useTranslation("common");
-  const locale = useViewerI18n(i18n.language).data?.locale || i18n.language;
+  const locale = useViewerI18n(session.data?.user.locale || "en").data?.locale || i18n.language;
 
   useEffect(() => {
     // bail early when i18n = {}

@@ -360,6 +360,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
+          locale: session?.locale ?? token.locale,
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
