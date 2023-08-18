@@ -10,7 +10,7 @@ type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
  *
  * @param credentials - Can be user or team credentials
  * @param options
- * @param options.where Aditional where conditions to filter out apps
+ * @param options.where Additional where conditions to filter out apps
  * @param options.filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
