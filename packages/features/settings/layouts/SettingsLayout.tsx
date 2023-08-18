@@ -244,7 +244,10 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  if (currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role)) {
+  const isOrgAdminOrOwner =
+    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+
+  if (isOrgAdminOrOwner) {
     const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
 
     tabsWithPermissions.splice(teamsIndex + 1, 0, {
@@ -325,7 +328,7 @@ const SettingsSidebarContainer = ({
                           as="p"
                           className="truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(tab.name)}
+                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
                         </Skeleton>
                       </div>
                     </Link>
@@ -517,7 +520,7 @@ const SettingsSidebarContainer = ({
                                     alt={otherTeam.name || "Team logo"}
                                   />
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
-                                  {!otherTeam.accepted && (
+                                  {!otherTeam.accepted && otherTeam.userId === session.data?.user.id && (
                                     <Badge className="ms-3" variant="orange">
                                       Inv.
                                     </Badge>
@@ -525,7 +528,8 @@ const SettingsSidebarContainer = ({
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
-                                {otherTeam.accepted && (
+                                {((otherTeam.accepted && otherTeam.userId === session.data?.user.id) ||
+                                  isOrgAdminOrOwner) && (
                                   <VerticalTabItem
                                     name={t("profile")}
                                     href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
