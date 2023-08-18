@@ -452,7 +452,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
 };
 
 async function confirmPendingPayment(page: Page) {
-  await page.waitForURL("/booking/*");
+  await page.waitForURL(new RegExp("/booking/*"));
 
   const url = page.url();
 
@@ -462,7 +462,11 @@ async function confirmPendingPayment(page: Page) {
 
   if (!id) throw new Error(`Payment intent not found in url ${url}`);
 
-  const payload = JSON.stringify({ type: "payment_intent.succeeded", data: { object: { id } } }, null, 2);
+  const payload = JSON.stringify(
+    { type: "payment_intent.succeeded", data: { object: { id } }, account: "e2e_test" },
+    null,
+    2
+  );
 
   const signature = stripe.webhooks.generateTestHeaderString({
     payload,
