@@ -27,7 +27,7 @@ export const requestSnippets = {
 // Custom Plugin
 export const SnippedGenerator = {
   statePlugins: {
-    // extend some internals to gain information about current path, method and spec in the generator function metioned later
+    // extend some internals to gain information about current path, method and spec in the generator function mentioned later
     spec: {
       wrapSelectors: {
         requestFor: (ori) => (state, path, method) => {
