@@ -175,7 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         });
 
-        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
+        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team within a ORG. */
         await prisma.membership.updateMany({
           where: {
             userId: user.id,
