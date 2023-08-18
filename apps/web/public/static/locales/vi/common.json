@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Sự kiện đã trong quá khứ",
   "cancelling_event_recurring": "Sự kiện này là một trường hợp về một sự kiện định kỳ.",
   "cancelling_all_recurring": "Đây là tất cả những trường hợp còn lại trong sự kiện định kỳ.",
-  "error_with_status_code_occured": "Đã xảy ra lỗi với mã trạng thái {{status}}.",
+  "error_with_status_code_occurred": "Đã xảy ra lỗi với mã trạng thái {{status}}.",
   "error_event_type_url_duplicate": "Đã tồn tại một loại sự kiện với URL này.",
   "error_event_type_unauthorized_create": "Bạn không thể tạo sự kiện này",
   "error_event_type_unauthorized_update": "Bạn không thể sửa sự kiện này",

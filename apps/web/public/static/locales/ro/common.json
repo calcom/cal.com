@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Evenimentul este în trecut",
   "cancelling_event_recurring": "Evenimentul este un exemplu de eveniment recurent.",
   "cancelling_all_recurring": "Toate acestea sunt exemple rămase pentru evenimentul recurent.",
-  "error_with_status_code_occured": "A apărut o eroare la codul de stare {{status}}.",
+  "error_with_status_code_occurred": "A apărut o eroare la codul de stare {{status}}.",
   "error_event_type_url_duplicate": "Există deja un tip de eveniment cu această adresă URL.",
   "error_event_type_unauthorized_create": "Nu puteți crea acest eveniment",
   "error_event_type_unauthorized_update": "Nu puteți edita acest eveniment",

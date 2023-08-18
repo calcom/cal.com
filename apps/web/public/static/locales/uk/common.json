@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Цей захід уже минув",
   "cancelling_event_recurring": "Подія – це один екземпляр повторюваної події.",
   "cancelling_all_recurring": "Усе це решта екземплярів повторюваної події.",
-  "error_with_status_code_occured": "Сталася помилка з кодом стану: {{status}}.",
+  "error_with_status_code_occurred": "Сталася помилка з кодом стану: {{status}}.",
   "error_event_type_url_duplicate": "Тип заходу із цією URL-адресою вже існує.",
   "error_event_type_unauthorized_create": "Ви не можете створити цей захід",
   "error_event_type_unauthorized_update": "Ви не можете редагувати цей захід",

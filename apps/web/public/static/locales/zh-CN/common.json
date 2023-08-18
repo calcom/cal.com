@@ -339,7 +339,7 @@
   "event_is_in_the_past": "该活动发生在过去",
   "cancelling_event_recurring": "该活动是定期活动的一个实例。",
   "cancelling_all_recurring": "这些是定期活动中的所有剩余实例。",
-  "error_with_status_code_occured": "发生错误，状态码 {{status}}",
+  "error_with_status_code_occurred": "发生错误，状态码 {{status}}",
   "error_event_type_url_duplicate": "使用此链接的活动类型已存在。",
   "error_event_type_unauthorized_create": "您无法创建此活动",
   "error_event_type_unauthorized_update": "您无法编辑此活动",

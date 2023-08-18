@@ -348,7 +348,7 @@
   "event_is_in_the_past": "Der Termin ist in der Vergangenheit",
   "cancelling_event_recurring": "Der Termin ist eine Instanz eines wiederkehrenden Termins.",
   "cancelling_all_recurring": "Dies sind alle verbleibende Instanzen im wiederkehrenden Termin.",
-  "error_with_status_code_occured": "Ein Fehler mit dem Statuscode {{status}} ist aufgetreten.",
+  "error_with_status_code_occurred": "Ein Fehler mit dem Statuscode {{status}} ist aufgetreten.",
   "error_event_type_url_duplicate": "Ein Termintyp mit dieser URL existiert bereits.",
   "error_event_type_unauthorized_create": "Sie können diesen Termin nicht erstellen",
   "error_event_type_unauthorized_update": "Sie können diesen Termin nicht bearbeiten",

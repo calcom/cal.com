@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Tato událost je v minulosti",
   "cancelling_event_recurring": "Tato událost je jedním z případů opakující se události.",
   "cancelling_all_recurring": "Toto jsou všechny zbývající instance opakující se události.",
-  "error_with_status_code_occured": "Došlo k chybě se stavovým kódem {{status}}.",
+  "error_with_status_code_occurred": "Došlo k chybě se stavovým kódem {{status}}.",
   "error_event_type_url_duplicate": "Typ události s touto adresou URL již existuje.",
   "error_event_type_unauthorized_create": "Tuto událost nelze vytvořit",
   "error_event_type_unauthorized_update": "Tuto událost nelze upravit",

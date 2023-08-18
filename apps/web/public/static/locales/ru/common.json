@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Это событие уже прошло",
   "cancelling_event_recurring": "Данное событие — один из экземпляров повторяющегося события.",
   "cancelling_all_recurring": "Это все оставшиеся экземпляры повторяющегося события.",
-  "error_with_status_code_occured": "Произошла ошибка с кодом состояния {{status}}.",
+  "error_with_status_code_occurred": "Произошла ошибка с кодом состояния {{status}}.",
   "error_event_type_url_duplicate": "Тип события с этим URL-адресом уже существует.",
   "error_event_type_unauthorized_create": "Вы не можете создать это событие",
   "error_event_type_unauthorized_update": "Вы не можете редактировать это событие",

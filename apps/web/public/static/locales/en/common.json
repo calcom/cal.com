@@ -351,7 +351,7 @@
   "event_is_in_the_past": "The event is in the past",
   "cancelling_event_recurring": "The event is one instance of a recurring event.",
   "cancelling_all_recurring": "These are all remaining instances in the recurring event.",
-  "error_with_status_code_occured": "An error with status code {{status}} occurred.",
+  "error_with_status_code_occurred": "An error with status code {{status}} occurred.",
   "error_event_type_url_duplicate": "An event type with this URL already exists.",
   "error_event_type_unauthorized_create": "You are not able to create this event",
   "error_event_type_unauthorized_update": "You are not able to edit this event",

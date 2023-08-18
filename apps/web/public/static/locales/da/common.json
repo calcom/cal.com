@@ -290,7 +290,7 @@
   "event_is_in_the_past": "Begivenheden er i fortiden",
   "cancelling_event_recurring": "Begivenheden er en forekomst af en tilbagevendende begivenhed.",
   "cancelling_all_recurring": "Disse er alle resterende forekomster i den tilbagevendende begivenhed.",
-  "error_with_status_code_occured": "Der opstod en fejl med statuskoden {{status}}.",
+  "error_with_status_code_occurred": "Der opstod en fejl med statuskoden {{status}}.",
   "booking_already_accepted_rejected": "Denne booking er allerede accepteret eller afvist",
   "go_back_home": "Gå tilbage til hjem",
   "or_go_back_home": "Eller gå tilbage til hjem",

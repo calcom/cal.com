@@ -336,7 +336,7 @@
   "event_is_in_the_past": "이미 지나간 이벤트입니다.",
   "cancelling_event_recurring": "이 이벤트는 되풀이 이벤트의 한 인스턴스입니다.",
   "cancelling_all_recurring": "이들은 모두 되풀이 이벤트의 나머지 인스턴스입니다.",
-  "error_with_status_code_occured": "상태 코드가 {{status}}인 오류가 발생했습니다.",
+  "error_with_status_code_occurred": "상태 코드가 {{status}}인 오류가 발생했습니다.",
   "error_event_type_url_duplicate": "이 URL을 사용하는 이벤트 유형이 이미 존재합니다.",
   "error_event_type_unauthorized_create": "이 이벤트를 만들 수 없습니다.",
   "error_event_type_unauthorized_update": "이 일정을 편집할 수 없습니다.",

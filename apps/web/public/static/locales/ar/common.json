@@ -336,7 +336,7 @@
   "event_is_in_the_past": "الحدث في الماضي",
   "cancelling_event_recurring": "إن هذا الحدث أحد الأمثلة على حدث متكرر.",
   "cancelling_all_recurring": "هذه هي كل الأمثلة المتبقية في الحدث المتكرر.",
-  "error_with_status_code_occured": "حدث خطأ برمز الحالة {{status}}.",
+  "error_with_status_code_occurred": "حدث خطأ برمز الحالة {{status}}.",
   "error_event_type_url_duplicate": "يوجد بالفعل نوع فعالية مع هذا الرابط.",
   "error_event_type_unauthorized_create": "أنت غير قادر على إنشاء هذه الفعالية",
   "error_event_type_unauthorized_update": "أنت غير قادر على تعديل هذه الفعالية",

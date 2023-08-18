@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Händelsen har redan ägt rum",
   "cancelling_event_recurring": "Händelsen är i en återkommande händelse.",
   "cancelling_all_recurring": "Dessa är alla kvarvarande instanser i den återkommande händelsen.",
-  "error_with_status_code_occured": "Ett fel med statuskoden {{status}} inträffade.",
+  "error_with_status_code_occurred": "Ett fel med statuskoden {{status}} inträffade.",
   "error_event_type_url_duplicate": "En händelsetyp med denna URL finns redan.",
   "error_event_type_unauthorized_create": "Du kan inte skapa den här händelsen",
   "error_event_type_unauthorized_update": "Du kan inte redigera den här händelsen",

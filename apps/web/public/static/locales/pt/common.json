@@ -336,7 +336,7 @@
   "event_is_in_the_past": "O evento já passou",
   "cancelling_event_recurring": "O evento é uma instância de um evento recorrente.",
   "cancelling_all_recurring": "Estas são todas as restantes instâncias do evento recorrente.",
-  "error_with_status_code_occured": "Ocorreu um erro com o código de estado {{status}}",
+  "error_with_status_code_occurred": "Ocorreu um erro com o código de estado {{status}}",
   "error_event_type_url_duplicate": "Já existe um tipo de evento com este URL.",
   "error_event_type_unauthorized_create": "Não tem autorização para criar este evento",
   "error_event_type_unauthorized_update": "Não tem autorização para editar este evento",

@@ -339,7 +339,7 @@
   "event_is_in_the_past": "De afspraak is verlopen",
   "cancelling_event_recurring": "De gebeurtenis is één exemplaar van een terugkerende gebeurtenis.",
   "cancelling_all_recurring": "Dit zijn alle resterende exemplaren van de terugkerende gebeurtenis.",
-  "error_with_status_code_occured": "Er is een fout opgetreden met de code {{status}}.",
+  "error_with_status_code_occurred": "Er is een fout opgetreden met de code {{status}}.",
   "error_event_type_url_duplicate": "Er bestaat al een gebeurtenistype met deze URL.",
   "error_event_type_unauthorized_create": "U kunt deze gebeurtenis niet maken",
   "error_event_type_unauthorized_update": "U kunt deze gebeurtenis niet bewerken",

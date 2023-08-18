@@ -104,7 +104,7 @@ export default function CancelBooking(props: Props) {
                   } else {
                     setLoading(false);
                     setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                      `${t("error_with_status_code_occurred", { status: res.status })} ${t(
                         "please_try_again"
                       )}`
                     );

@@ -336,7 +336,7 @@
   "event_is_in_the_past": "活動時間已過",
   "cancelling_event_recurring": "此活動為定期活動的一個實例。",
   "cancelling_all_recurring": "這些是定期活動中的所有剩餘實例。",
-  "error_with_status_code_occured": "發生代號是 {{status}} 的錯誤。",
+  "error_with_status_code_occurred": "發生代號是 {{status}} 的錯誤。",
   "error_event_type_url_duplicate": "已存在使用此網址的活動類型。",
   "error_event_type_unauthorized_create": "您無法建立此活動",
   "error_event_type_unauthorized_update": "您無法編輯此活動",

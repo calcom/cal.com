@@ -336,7 +336,7 @@
   "event_is_in_the_past": "Etkinlik geçmişte kaldı",
   "cancelling_event_recurring": "Etkinlik, yinelenen etkinliğin bir örneğidir.",
   "cancelling_all_recurring": "Bunların tümü, yinelenen etkinlikteki kalan örneklerdir.",
-  "error_with_status_code_occured": "{{status}} durum koduyla ilgili bir hata oluştu.",
+  "error_with_status_code_occurred": "{{status}} durum koduyla ilgili bir hata oluştu.",
   "error_event_type_url_duplicate": "Bu URL'ye sahip bir etkinlik türü zaten var.",
   "error_event_type_unauthorized_create": "Bu etkinliği oluşturamazsınız",
   "error_event_type_unauthorized_update": "Bu etkinliği düzenleyemezsiniz",

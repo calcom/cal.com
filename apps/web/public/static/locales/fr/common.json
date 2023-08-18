@@ -351,7 +351,7 @@
   "event_is_in_the_past": "L'événement est dans le passé",
   "cancelling_event_recurring": "L'événement est une instance d'un événement récurrent.",
   "cancelling_all_recurring": "Voici toutes les instances restantes dans l'événement récurrent.",
-  "error_with_status_code_occured": "Une erreur avec le code de statut {{status}} est survenue.",
+  "error_with_status_code_occurred": "Une erreur avec le code de statut {{status}} est survenue.",
   "error_event_type_url_duplicate": "Un type d'événement avec cette URL existe déjà.",
   "error_event_type_unauthorized_create": "Vous n'êtes pas autorisé à créer cet événement",
   "error_event_type_unauthorized_update": "Vous n'êtes pas autorisé à modifier cet événement",

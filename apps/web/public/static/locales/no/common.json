@@ -287,7 +287,7 @@
   "event_is_in_the_past": "Hendelsen er i fortiden",
   "cancelling_event_recurring": "Hendelsen er en forekomst av en gjentakende hendelse.",
   "cancelling_all_recurring": "Dette er alle gjenværende forekomster i den gjentakende hendelsen.",
-  "error_with_status_code_occured": "Det oppstod en feil med statuskoden {{status}}.",
+  "error_with_status_code_occurred": "Det oppstod en feil med statuskoden {{status}}.",
   "booking_already_accepted_rejected": "Denne bookingen var allerede akseptert eller avvist",
   "go_back_home": "Gå til hjem",
   "or_go_back_home": "Eller gå tilbake til hjem",

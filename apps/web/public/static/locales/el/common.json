@@ -147,7 +147,7 @@
   "thursday_time_error": "Μη έγκυρη ώρα την Πέμπτη",
   "friday_time_error": "Μη έγκυρη ώρα την Παρασκευή",
   "saturday_time_error": "Μη έγκυρη ώρα το Σάββατο",
-  "error_with_status_code_occured": "Παρουσιάστηκε ένα σφάλμα με κωδικό κατάστασης {{status}}.",
+  "error_with_status_code_occurred": "Παρουσιάστηκε ένα σφάλμα με κωδικό κατάστασης {{status}}.",
   "booking_already_accepted_rejected": "Αυτή η κράτηση έγινε ήδη αποδεκτή ή απορρίφθηκε",
   "go_back_home": "Επιστροφή στην αρχική σελίδα",
   "or_go_back_home": "Ή επιστροφή στην αρχική σελίδα",

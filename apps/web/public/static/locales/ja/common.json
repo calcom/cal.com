@@ -336,7 +336,7 @@
   "event_is_in_the_past": "イベントは過去のものです",
   "cancelling_event_recurring": "このイベントは、繰り返しイベントに含まれている 1 つのインスタンスです。",
   "cancelling_all_recurring": "これらはすべて、繰り返しイベントに含まれているインスタンスの残りです。",
-  "error_with_status_code_occured": "ステータスコード {{status}} に関するエラーが発生しました。",
+  "error_with_status_code_occurred": "ステータスコード {{status}} に関するエラーが発生しました。",
   "error_event_type_url_duplicate": "この URL のイベントの種類はすでに存在します。",
   "error_event_type_unauthorized_create": "このイベントを作成することができません",
   "error_event_type_unauthorized_update": "このイベントを編集することができません",

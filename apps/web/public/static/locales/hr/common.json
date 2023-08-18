@@ -286,7 +286,7 @@
   "event_is_in_the_past": "Ovaj događaj je u prošlosti",
   "cancelling_event_recurring": "Događaj je jedan od ponavljajućih događaja.",
   "cancelling_all_recurring": "Ovo su svi preostali događaji u ponavljajućem događaju.",
-  "error_with_status_code_occured": "Došlo je do pogreške sa statusnim kodom {{status}}.",
+  "error_with_status_code_occurred": "Došlo je do pogreške sa statusnim kodom {{status}}.",
   "booking_already_accepted_rejected": "Ova rezervacija je već prihvaćena ili odbijena",
   "go_back_home": "Nazad na početnu stranicu",
   "or_go_back_home": "Ili nazad na početnu stranicu",

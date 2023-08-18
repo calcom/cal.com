@@ -336,7 +336,7 @@
   "event_is_in_the_past": "האירוע חל בעבר",
   "cancelling_event_recurring": "האירוע הוא מופע אחד מתוך אירוע חוזר.",
   "cancelling_all_recurring": "כל אלה הם יתר המופעים של האירוע החוזר.",
-  "error_with_status_code_occured": "אירעה שגיאה עם קוד הסטטוס {{status}}.",
+  "error_with_status_code_occurred": "אירעה שגיאה עם קוד הסטטוס {{status}}.",
   "error_event_type_url_duplicate": "כבר קיים סוג אירוע עם כתובת ה-URL הזו.",
   "error_event_type_unauthorized_create": "אין לך אפשרות ליצור את האירוע הזה",
   "error_event_type_unauthorized_update": "אין לך אפשרות לערוך את האירוע הזה",
