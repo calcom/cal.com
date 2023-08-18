@@ -10,7 +10,7 @@ import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
-import { EventOccurences } from "./Occurences";
+import { EventOccurrences } from "./Occurrences";
 import { EventPrice } from "./Price";
 
 type EventDetailsPropsBase = {
@@ -48,7 +48,7 @@ interface EventMetaProps {
 const defaultEventDetailsBlocks = [
   EventDetailBlocks.REQUIRES_CONFIRMATION,
   EventDetailBlocks.DURATION,
-  EventDetailBlocks.OCCURENCES,
+  EventDetailBlocks.OCCURRENCES,
   EventDetailBlocks.LOCATION,
   EventDetailBlocks.PRICE,
 ];
@@ -142,12 +142,12 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
               </EventMetaBlock>
             );
 
-          case EventDetailBlocks.OCCURENCES:
+          case EventDetailBlocks.OCCURRENCES:
             if (!event.recurringEvent) return null;
 
             return (
               <EventMetaBlock key={block} icon={RefreshCcw}>
-                <EventOccurences event={event} />
+                <EventOccurrences event={event} />
               </EventMetaBlock>
             );
 

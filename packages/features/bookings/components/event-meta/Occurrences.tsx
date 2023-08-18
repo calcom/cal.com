@@ -10,8 +10,8 @@ import { Input } from "@calcom/ui";
 import { useTimePreferences } from "../../lib";
 import type { PublicEvent } from "../../types";
 
-export const EventOccurences = ({ event }: { event: PublicEvent }) => {
-  const maxOccurences = event.recurringEvent?.count || null;
+export const EventOccurrences = ({ event }: { event: PublicEvent }) => {
+  const maxOccurrences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
   const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] = useBookerStore(
     (state) => [
@@ -80,10 +80,10 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
           if (
             !pattern.test(event.target.value) ||
             inputValue < 1 ||
-            (maxOccurences && inputValue > maxOccurences)
+            (maxOccurrences && inputValue > maxOccurrences)
           ) {
             setWarning(true);
-            setRecurringEventCount(maxOccurences);
+            setRecurringEventCount(maxOccurrences);
           } else {
             setWarning(false);
             setRecurringEventCount(inputValue);
@@ -96,7 +96,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
       })}
       {warning && (
         <div className="-ml-4 mr-4 mt-2 flex">
-          <Alert severity="warning" title={t("enter_number_between_range", { maxOccurences })} />
+          <Alert severity="warning" title={t("enter_number_between_range", { maxOccurrences })} />
         </div>
       )}
     </>

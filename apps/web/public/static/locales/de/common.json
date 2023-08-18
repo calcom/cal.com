@@ -521,7 +521,7 @@
   "your_name": "Ihr Name",
   "your_full_name": "Ihr vollständiger Name",
   "no_name": "Kein Name",
-  "enter_number_between_range": "Bitte geben Sie eine Zahl zwischen 1 und {{maxOccurences}} ein",
+  "enter_number_between_range": "Bitte geben Sie eine Zahl zwischen 1 und {{maxOccurrences}} ein",
   "email_address": "E-Mail Adresse",
   "enter_valid_email": "Bitte geben Sie eine gültige Emaildresse ein",
   "location": "Ort",
