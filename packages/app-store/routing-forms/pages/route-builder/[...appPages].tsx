@@ -7,7 +7,7 @@ import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-
 import type { UseFormReturn } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
-import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
+import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -96,7 +96,7 @@ const Route = ({
 
   const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
-    const eventTypeValidInContext = areTheySiblingEntitites({
+    const eventTypeValidInContext = areTheySiblingEntities({
       entity1: {
         teamId: group.teamId ?? null,
         // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
@@ -336,7 +336,7 @@ const Routes = ({
   const availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
-        const routerValidInContext = areTheySiblingEntitites({
+        const routerValidInContext = areTheySiblingEntities({
           entity1: {
             teamId: router.teamId ?? null,
             // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
