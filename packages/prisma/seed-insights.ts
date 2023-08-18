@@ -258,7 +258,7 @@ async function main() {
       description: "Single Event",
       startTime: dayjs().toISOString(),
       endTime: dayjs().toISOString(),
-      // This gets overriden in shuffle
+      // This gets overridden in shuffle
       userId: insightsUser.id,
     };
 
