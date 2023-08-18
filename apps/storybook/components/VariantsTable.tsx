@@ -12,7 +12,7 @@ export function VariantsTable({
   children: ReactElement<RowProps> | ReactElement<RowProps>[];
   titles: string[];
   isDark?: boolean;
-  // Mainly useful on mobile, so components don't get squeesed
+  // Mainly useful on mobile, so components don't get squeezed
   columnMinWidth?: number;
 }) {
   const columns = React.Children.toArray(children) as ReactElement<RowProps>[];
