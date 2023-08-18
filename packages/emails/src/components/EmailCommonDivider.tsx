@@ -3,11 +3,11 @@ import Row from "./Row";
 
 const EmailCommonDivider = ({
   children,
-  mutipleRows = false,
+  multipleRows = false,
   headStyles,
 }: {
   children: React.ReactNode;
-  mutipleRows?: boolean;
+  multipleRows?: boolean;
   headStyles?: React.DetailedHTMLProps<
     React.TdHTMLAttributes<HTMLTableCellElement>,
     HTMLTableCellElement
@@ -56,7 +56,7 @@ const EmailCommonDivider = ({
                 verticalAlign: "top",
                 width: "100%",
               }}>
-              <Row border="0" style={{ verticalAlign: "top" }} width="100%" multiple={mutipleRows}>
+              <Row border="0" style={{ verticalAlign: "top" }} width="100%" multiple={multipleRows}>
                 {children}
               </Row>
             </div>

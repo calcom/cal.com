@@ -7,7 +7,7 @@ const EmailScheduledBodyHeaderContent = (props: {
   subtitle?: React.ReactNode;
   headStyles?: CSSProperties;
 }) => (
-  <EmailCommonDivider headStyles={{ padding: 0, ...props.headStyles }} mutipleRows>
+  <EmailCommonDivider headStyles={{ padding: 0, ...props.headStyles }} multipleRows>
     <tr>
       <td
         align="center"
