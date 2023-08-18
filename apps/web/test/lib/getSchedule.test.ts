@@ -1382,7 +1382,7 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   let _date = new Date().getDate() + dateIncrement;
   let year = new Date().getFullYear() + yearIncrement;
 
-  // Make it start with 1 to match with DayJS requiremet
+  // Make it start with 1 to match with DayJS requirement
   let _month = new Date().getMonth() + monthIncrement + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
