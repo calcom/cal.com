@@ -2,10 +2,10 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -19,16 +19,6 @@ export const UsernameAvailability = IS_SELF_HOSTED ? UsernameTextfield : Premium
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-}
-
-function useUserNamePrefix(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
-  return organization
-    ? organization.slug
-      ? getOrgFullDomain(organization.slug, { protocol: false })
-      : organization.metadata && organization.metadata.requestedSlug
-      ? getOrgFullDomain(organization.metadata.requestedSlug, { protocol: false })
-      : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")
-    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
 }
 
 export const UsernameAvailabilityField = ({
@@ -49,7 +39,11 @@ export const UsernameAvailabilityField = ({
     },
   });
 
-  const usernamePrefix = useUserNamePrefix(user.organization);
+  const orgBranding = useOrgBranding();
+
+  const usernamePrefix = orgBranding
+    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
+    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <Controller
