@@ -12,7 +12,7 @@ const rule: Rule.RuleModule = {
         if (node.id.type === "Identifier" && node.id.name !== "bla") {
           context.report({
             node,
-            message: 'All variabled should be named "bla"!',
+            message: 'All variable should be named "bla"!',
           });
         }
       },
