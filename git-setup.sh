@@ -27,7 +27,7 @@ for module in "$@"; do
     # Update to the latest from main in that submodule
     cd apps/$module && git pull origin main && cd ../..
 
-    # We forcefully added the subdmoule which was in .gitignore, so unstage it.
+    # We forcefully added the submodule which was in .gitignore, so unstage it.
     git restore --staged apps/$module
   else
     echo "You don't have access to: '${module}' module."
