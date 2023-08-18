@@ -12,7 +12,7 @@ import {
 
 import { DataTable } from "../";
 import { columns, filterableItems } from "./columns";
-import { dataTableDemousers,dataTableSelectionActions } from "./data";
+import { dataTableDemousers, dataTableSelectionActions } from "./data";
 
 <Meta title="UI/table/data-table" component={DataTable} />
 
@@ -22,6 +22,12 @@ import { dataTableDemousers,dataTableSelectionActions } from "./data";
 
 <Canvas>
   <Story name="Datatable">
-    <DataTable columns={columns} data={dataTableDemousers} filterableItems={filterableItems} searchKey="username" selectionOptions={dataTableSelectionActions} />
+    <DataTable
+      columns={columns}
+      data={dataTableDemousers}
+      filterableItems={filterableItems}
+      searchKey="username"
+      selectionOptions={dataTableSelectionActions}
+    />
   </Story>
 </Canvas>

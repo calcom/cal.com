@@ -31,6 +31,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         // Only send reminders if the event hasn't finished
         endTime: { gte: new Date() },
+        OR: [
+          // no payment required
+          {
+            payment: { none: {} },
+          },
+          // paid but awaiting approval
+          {
+            payment: { some: {} },
+            paid: true,
+          },
+        ],
       },
       select: {
         ...bookingMinimalSelect,

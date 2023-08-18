@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+
 import { test } from "./lib/fixtures";
 
 function chooseEmbedType(page: Page, embedType: string) {
@@ -81,12 +83,16 @@ async function expectToContainValidCode(page: Page, { embedType }: { embedType: 
   };
 }
 
+/**
+ * Let's just check if iframe is opened with preview.html. preview.html tests are responsibility of embed-core
+ */
 async function expectToContainValidPreviewIframe(
   page: Page,
   { embedType, calLink }: { embedType: string; calLink: string }
 ) {
+  const bookerUrl = `${WEBAPP_URL}`;
   expect(await page.locator("[data-testid=embed-preview]").getAttribute("src")).toContain(
-    `/preview.html?embedType=${embedType}&calLink=${calLink}`
+    `/preview.html?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${EMBED_LIB_URL}&bookerUrl=${bookerUrl}`
   );
 }
 
