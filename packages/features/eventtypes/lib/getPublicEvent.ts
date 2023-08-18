@@ -149,7 +149,7 @@ export const getPublicEvent = async (
       const foundApp = getAppFromSlug(preferredLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
-        // Replace the location with the prefered location type
+        // Replace the location with the preferred location type
         // This will still be default to daily if the app is not found
         locations = [{ type: appType, link: preferredLocationType.appLink }] as LocationObject[];
       }
