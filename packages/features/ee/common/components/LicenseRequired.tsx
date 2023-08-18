@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import type { AriaRole, ComponentType } from "react";
@@ -63,17 +62,17 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           headline={t("enterprise_license")}
           description={
             <div
+              // It is okay to not sanitize the HTML here, because the variables in here are not user-provided. They are env variables hardcoded in the instance.
+              // In turn it saves us the cost of super heavy dom purify library
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(
-                  t("enterprise_license_description", {
-                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                __html: t("enterprise_license_description", {
+                  consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 ${APP_NAME}
               </a>`,
-                    setupUrl: `<a href="${WEBAPP_URL}/auth/setup" class="underline">/auth/setup</a>`,
-                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
+                  setupUrl: `<a href="${WEBAPP_URL}/auth/setup" class="underline">/auth/setup</a>`,
+                  supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
                 ${SUPPORT_MAIL_ADDRESS}</a>`,
-                  })
-                ),
+                }),
               }}
             />
           }
