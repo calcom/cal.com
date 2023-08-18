@@ -58,7 +58,20 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
-        this.log.error("Error refreshing google token", err);
+        let message;
+        if (err instanceof Error) message = err.message;
+        else message = String(err);
+        // if not invalid_grant, default behaviour (which admittedly isn't great)
+        if (message !== "invalid_grant") return myGoogleAuth;
+        // when the error is invalid grant, it's unrecoverable and the credential marked invalid.
+        // TODO: Evaluate bubbling up and handling this in the CalendarManager. IMO this should be done
+        //       but this is a bigger refactor.
+        await prisma.credential.update({
+          where: { id: credential.id },
+          data: {
+            invalid: true,
+          },
+        });
       }
       return myGoogleAuth;
     };
@@ -396,7 +409,7 @@ export default class GoogleCalendarService implements Calendar {
                 integration: this.integrationName,
                 name: cal.summary ?? "No name",
                 primary: cal.primary ?? false,
-                readOnly: !(cal.accessRole === "reader" || cal.accessRole === "owner") && true,
+                readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
                 email: cal.id ?? "",
               };
               return calendar;

@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -10,6 +10,7 @@ import EventTypeDescription from "@calcom/features/eventtypes/components/EventTy
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -17,7 +18,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
+import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -32,11 +33,12 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
+  const routerQuery = useRouterQuery();
+  const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
-  const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
@@ -46,26 +48,22 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry, router.asPath]);
+  }, [telemetry, pathname]);
 
   if (isUnpublished) {
+    const slug = team.slug || metadata?.requestedSlug;
     return (
-      <div className="m-8 flex items-center justify-center">
-        <EmptyScreen
-          avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
-          headline={t("team_is_unpublished", {
-            team: teamName,
-          })}
-          description={t("team_is_unpublished_description", {
-            entity: metadata?.isOrganization ? t("organization").toLowerCase() : t("team").toLowerCase(),
-          })}
+      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+        <UnpublishedEntity
+          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
+          name={teamName}
         />
       </div>
     );
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
@@ -227,8 +225,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                         href={{
                           pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
                           query: {
-                            members: "1",
                             ...queryParamsToForward,
+                            members: "1",
                           },
                         }}
                         shallow={true}>
@@ -249,15 +247,21 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
+    context.req.headers.host ?? "",
+    context.params?.orgSlug
+  );
   const flags = await getFeatureFlagMap(prisma);
-
-  const team = await getTeamWithMembers(undefined, slug);
+  const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-
+  console.warn("gSSP, team/[slug] - ", {
+    isValidOrgDomain,
+    currentOrgDomain,
+    ALLOWED_HOSTNAMES: process.env.ALLOWED_HOSTNAMES,
+    flags: JSON.stringify,
+  });
   // Taking care of sub-teams and orgs
   if (
-    (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
     (!isValidOrgDomain && team?.parent) ||
     (!isValidOrgDomain && !!metadata?.isOrganization) ||
     flags["organizations"] !== true
@@ -265,13 +269,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { notFound: true } as const;
   }
 
-  if (!team) {
+  if (!team || (team.parent && !team.parent.slug)) {
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
-        metadata: {
-          path: ["requestedSlug"],
-          equals: slug,
-        },
+        ...(team?.parent
+          ? { id: team.parent.id }
+          : {
+              metadata: {
+                path: ["requestedSlug"],
+                equals: slug,
+              },
+            }),
       },
     });
 
@@ -307,7 +315,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      team: { ...serializableTeam, safeBio, members },
+      team: { ...serializableTeam, safeBio, members, metadata },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,

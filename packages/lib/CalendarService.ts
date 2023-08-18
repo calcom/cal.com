@@ -60,6 +60,30 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
+// for Apple's Travel Time feature only (for now)
+const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) => {
+  const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
+  if (!travelDuration) return 0;
+
+  // we can't rely on this being a valid duration and it's painful to check, so just try and catch if anything throws
+  try {
+    const travelSeconds = travelDuration.toSeconds();
+    // integer validation as we can never be sure with ical.js
+    if (!Number.isInteger(travelSeconds)) return 0;
+    return travelSeconds;
+  } catch (e) {
+    log.error("invalid travelDuration?", e);
+    return 0;
+  }
+};
+
+const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
+  if (seconds <= 0) return event;
+  // move event start date back by the specified travel time
+  event.startDate.second -= seconds;
+  return event;
+};
+
 const convertDate = (date: string): DateArray =>
   dayjs(date)
     .utc()
@@ -386,6 +410,9 @@ export default abstract class BaseCalendarService implements Calendar {
           }
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+
+        // mutate event to consider travel time
+        applyTravelDuration(event, getTravelDurationInSeconds(vevent, this.log));
 
         if (event.isRecurring()) {
           let maxIterations = 365;

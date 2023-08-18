@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -64,13 +64,17 @@ export default function AppleCalendarSetup() {
                     router.push(json.url);
                   }
                 }}>
-                <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+                <fieldset
+                  className="space-y-2"
+                  disabled={form.formState.isSubmitting}
+                  data-testid="apple-calendar-form">
                   <TextField
                     required
                     type="text"
                     {...form.register("username")}
                     label="Apple ID"
                     placeholder="appleid@domain.com"
+                    data-testid="apple-calendar-email"
                   />
                   <TextField
                     required
@@ -79,6 +83,7 @@ export default function AppleCalendarSetup() {
                     label={t("password")}
                     placeholder="•••••••••••••"
                     autoComplete="password"
+                    data-testid="apple-calendar-password"
                   />
                 </fieldset>
 
@@ -87,7 +92,10 @@ export default function AppleCalendarSetup() {
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
-                  <Button type="submit" loading={form.formState.isSubmitting}>
+                  <Button
+                    type="submit"
+                    loading={form.formState.isSubmitting}
+                    data-testid="apple-calendar-login-button">
                     {t("save")}
                   </Button>
                 </div>

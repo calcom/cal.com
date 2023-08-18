@@ -5,8 +5,16 @@ import type { GetBookingType } from "../lib/get-booking";
 export interface BookerProps {
   eventSlug: string;
   username: string;
-  // Make it optional later, once we figure out where we can possibly need to set org
-  org: string | null;
+
+  /**
+   * Whether is a team or org, we gather basic info from both
+   */
+  entity: {
+    isUnpublished?: boolean;
+    orgSlug?: string | null;
+    teamSlug?: string | null;
+    name?: string | null;
+  };
 
   /**
    * If month is NOT set as a prop on the component, we expect a query parameter
@@ -50,6 +58,12 @@ export interface BookerProps {
    * that will always result in the user event being returned.
    */
   isTeamEvent?: boolean;
+  /**
+   * Refers to a multiple-duration event-type
+   * It will correspond to selected time from duration query param if exists and if it is allowed as an option,
+   * otherwise, the default value is selected
+   */
+  duration?: number | null;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

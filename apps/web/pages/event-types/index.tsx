@@ -2,35 +2,40 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { useEffect, useState, memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
+  Alert,
   Avatar,
   AvatarGroup,
   Badge,
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
+  CreateButton,
   Dialog,
   Dropdown,
   DropdownItem,
@@ -40,15 +45,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   EmptyScreen,
+  HeadSeo,
+  HorizontalTabs,
+  Label,
   showToast,
+  Skeleton,
   Switch,
   Tooltip,
-  CreateButton,
-  HorizontalTabs,
-  HeadSeo,
-  Skeleton,
-  Label,
-  Alert,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -63,13 +66,12 @@ import {
   MoreHorizontal,
   Trash,
   Upload,
-  Users,
   User as UserIcon,
+  Users,
 } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import { EmbedButton, EmbedDialog } from "@components/Embed";
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
@@ -202,6 +204,8 @@ const MemoizedItem = memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -292,25 +296,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
-    const query = {
-      ...router.query,
-      dialog: "duplicate",
-      title: eventType.title,
-      description: eventType.description,
-      slug: eventType.slug,
-      id: eventType.id,
-      length: eventType.length,
-      pageSlug: group.profile.slug,
-    };
-
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
+    const newSearchParams = new URLSearchParams(searchParams);
+    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
+      if (value) newSearchParams.set(key, value.toString());
+      if (value === null) newSearchParams.delete(key);
+    }
+    setParamsIfDefined("dialog", "duplicate");
+    setParamsIfDefined("title", eventType.title);
+    setParamsIfDefined("description", eventType.description);
+    setParamsIfDefined("slug", eventType.slug);
+    setParamsIfDefined("id", eventType.id);
+    setParamsIfDefined("length", eventType.length);
+    setParamsIfDefined("pageSlug", group.profile.slug);
+    router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -510,7 +508,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               )}
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
-                                  <EmbedButton
+                                  <EventTypeEmbedButton
                                     as={DropdownItem}
                                     type="button"
                                     StartIcon={Code}
@@ -518,7 +516,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     embedUrl={encodeURIComponent(embedLink)}
                                     eventId={type.id}>
                                     {t("embed")}
-                                  </EmbedButton>
+                                  </EventTypeEmbedButton>
                                 </DropdownMenuItem>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
@@ -718,10 +716,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
-          undefined
-        }
+        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -742,7 +737,9 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
+          <Link
+            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+            className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
@@ -845,8 +842,7 @@ const Main = ({
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const router = useRouter();
-
+  const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
 
   if (!data || status === "loading") {
@@ -896,21 +892,21 @@ const Main = ({
         )
       )}
       {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
-      <EmbedDialog />
-      {router.query.dialog === "duplicate" && <DuplicateDialog />}
+      <EventTypeEmbedDialog />
+      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
   );
 };
 
 const EventTypesPage = () => {
   const { t } = useLocale();
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { open } = useIntercom();
-  const { query } = router;
   const { data: user } = useMeQuery();
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
-  const filters = getTeamsFiltersFromQuery(router.query);
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
@@ -926,34 +922,37 @@ const EventTypesPage = () => {
   }
 
   useEffect(() => {
-    if (query?.openIntercom && query?.openIntercom === "true") {
+    if (searchParams?.get("openIntercom") === "true") {
       open();
     }
-    setShowProfileBanner(
-      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setShowProfileBanner(
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+    );
+  }, [orgBranding, user]);
+
   return (
-    <div>
+    <ShellMain
+      withoutSeo
+      heading={t("event_types_page_title")}
+      hideHeadingOnMobile
+      subtitle={t("event_types_page_subtitle")}
+      afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
+      beforeCTAactions={<Actions />}
+      CTA={<CTA data={data} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Shell
-        withoutSeo
-        heading={t("event_types_page_title")}
-        hideHeadingOnMobile
-        subtitle={t("event_types_page_subtitle")}
-        afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
-        beforeCTAactions={<Actions />}
-        CTA={<CTA data={data} />}>
-        <Main data={data} status={status} error={error} filters={filters} />
-      </Shell>
-    </div>
+      <Main data={data} status={status} error={error} filters={filters} />
+    </ShellMain>
   );
 };
+
+EventTypesPage.getLayout = getLayout;
 
 EventTypesPage.PageWrapper = PageWrapper;
 

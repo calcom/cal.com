@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
@@ -17,6 +18,8 @@ import AttendeeLocationChangeEmail from "./templates/attendee-location-change-em
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import type { EmailVerifyCode } from "./templates/attendee-verify-email";
+import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
@@ -273,6 +276,10 @@ export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvit
 
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
+};
+
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (

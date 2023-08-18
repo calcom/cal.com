@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -27,8 +28,8 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
   Switch,
+  TextField,
 } from "@calcom/ui";
 import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
@@ -265,13 +266,13 @@ interface EditModalState extends Pick<App, "keys"> {
 }
 
 const AdminAppsListContainer = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
-  const { category } = querySchema.parse(router.query);
+  const category = searchParams.get("category") || AppCategories.calendar;
 
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    { enabled: router.isReady }
+    { enabled: searchParams !== null }
   );
 
   const [modalState, setModalState] = useReducer(

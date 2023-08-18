@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
@@ -52,13 +53,12 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
-
-  const router = useRouter();
   const utils = trpc.useContext();
   const team = props.team;
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
 
@@ -103,7 +103,7 @@ export default function TeamListItem(props: Props) {
         <span className="text-muted block text-xs">
           {team.slug
             ? orgBranding
-              ? `${orgBranding.fullDomain}${team.slug}`
+              ? `${orgBranding.fullDomain}/${team.slug}`
               : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
             : "Unpublished team"}
         </span>
@@ -238,8 +238,8 @@ export default function TeamListItem(props: Props) {
                           `${
                             orgBranding
                               ? `${orgBranding.fullDomain}`
-                              : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/"
-                          }${team.slug}`
+                              : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                          }/${team.slug}`
                         );
                         showToast(t("link_copied"), "success");
                       }}
@@ -278,8 +278,8 @@ export default function TeamListItem(props: Props) {
                           href={`${
                             orgBranding
                               ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/`
-                          }${team.slug}`}
+                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
+                          }/${team.slug}`}
                           StartIcon={ExternalLink}>
                           {t("preview_team") as string}
                         </DropdownItem>

@@ -562,7 +562,7 @@ export default function RouteBuilder({
 
 RouteBuilder.getLayout = (page: React.ReactElement) => {
   return (
-    <Shell backPath="/routing-forms/forms" withoutMain={true}>
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
       {page}
     </Shell>
   );
