@@ -113,7 +113,7 @@ We use it in several ways, but mainly, we first import the auto-generated schema
 
 We have some shared validations which several resources require, like baseApiParams which parses apiKey in all requests, or querIdAsString or TransformParseInt which deal with the id's coming from req.query.
 
-- **[*]BaseBodyParams** that omits any values from the model that are too sensitive or we don't want to pick when creating a new resource like id, userId, etc.. (those are gotten from context or elswhere)
+- **[*]BaseBodyParams** that omits any values from the model that are too sensitive or we don't want to pick when creating a new resource like id, userId, etc.. (those are gotten from context or elsewhere)
 
 - **[*]Public** that also omits any values that we don't want to expose when returning the model as a response, which we parse against before returning all resources.
 
