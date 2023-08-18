@@ -172,7 +172,7 @@ The documentation of the API lives inside the code, and it's auto-generated, the
 The API is deployed to vercel.com, it uses a similar deployment script to website or webapp, and requires transpilation of several shared packages that are part of our turborepo ["app-store", "prisma", "lib", "ee"]
 in order to build and deploy properly.
 
-## Envirorment variables
+## Environment variables
 
 ### Required
 
@@ -180,9 +180,9 @@ DATABASE_URL=DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
 
 ## Optional
 
-API*KEY_PREFIX=cal*# This can be changed per envirorment so cal*test* for staging for example.
+API*KEY_PREFIX=cal*# This can be changed per environment so cal*test* for staging for example.
 
-> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any envirorment variable) or modify it
+> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any environment variable) or modify it
 
 **Ensure that while testing swagger, API project should be run in production mode**
 We make sure of this by not using next in dev, but next build && next start, if you want hot module reloading and such when developing, please use yarn run next directly on apps/api.
