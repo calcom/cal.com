@@ -67,7 +67,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
       !extraDays
         ? [date]
         : [
-            // If NO date is selected yet, we show by default the upcomming `nextDays` days.
+            // If NO date is selected yet, we show by default the upcoming `nextDays` days.
             date,
             ...Array.from({ length: extraDays }).map((_, index) =>
               dayjs(date)
