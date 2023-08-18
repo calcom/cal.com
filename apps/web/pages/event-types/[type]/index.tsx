@@ -40,7 +40,7 @@ import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayo
 
 import { ssrInit } from "@server/lib/ssr";
 
-// These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
+// These can't really be moved into calcom/ui due to the fact they use inferred getserverside props typings;
 const EventSetupTab = dynamic(() =>
   import("@components/eventtype/EventSetupTab").then((mod) => mod.EventSetupTab)
 );
