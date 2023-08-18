@@ -129,8 +129,6 @@ const getUserSession = async (ctx: TRPCContextInner) => {
   const session = ctx.session || (await getSession(ctx));
   const user = session ? await getUserFromSession(ctx, session) : null;
 
-  console.log("---------------------SESSION getusersession", session);
-
   return { user, session };
 };
 const sessionMiddleware = middleware(async ({ ctx, next }) => {

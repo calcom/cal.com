@@ -72,7 +72,6 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
    **/
   const session = useSession();
   const localeToUse = session.data?.user.locale ?? "en";
-  console.log(session);
   const { i18n, locale } = useViewerI18n(localeToUse).data ?? {
     locale: "en",
   };
@@ -258,8 +257,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
     },
     ...rest,
   };
-
-  console.log(propsWithoutNonce);
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
