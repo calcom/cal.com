@@ -26,7 +26,7 @@ type BookerLayoutSelectorProps = {
   /**
    * isDark boolean should be passed in when the user selected 'dark mode' in the theme settings in profile/appearance.
    * So it's not based on the user's system settings, but on the user's preference for the booker.
-   * This boolean is then used to show a dark version of the layout image. It's only easthetic, no functionality is attached
+   * This boolean is then used to show a dark version of the layout image. It's only aesthetic, no functionality is attached
    * to this boolean.
    */
   isDark?: boolean;
