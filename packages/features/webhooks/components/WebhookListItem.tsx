@@ -57,7 +57,7 @@ export default function WebhookListItem(props: {
   });
 
   const onDeleteWebhook = () => {
-    // TODO: Confimation dialog before deleting
+    // TODO: Confirmation dialog before deleting
     deleteWebhook.mutate({
       id: webhook.id,
       eventTypeId: webhook.eventTypeId || undefined,
