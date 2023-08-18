@@ -38,7 +38,7 @@
   "invite_team_member": "邀請團隊成員",
   "invite_team_individual_segment": "邀請個人",
   "invite_team_bulk_segment": "大量匯入",
-  "invite_team_notifcation_badge": "邀請",
+  "invite_team_notification_badge": "邀請",
   "your_event_has_been_scheduled": "活動已預定時間",
   "your_event_has_been_scheduled_recurring": "您的定期活動已預定",
   "accept_our_license": "接受授權的方式是修改 .env 變數 <1>NEXT_PUBLIC_LICENSE_CONSENT</1> 為 '{{agree}}'。",

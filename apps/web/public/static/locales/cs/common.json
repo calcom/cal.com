@@ -38,7 +38,7 @@
   "invite_team_member": "Pozvat člena týmu",
   "invite_team_individual_segment": "Pozvat jednotlivce",
   "invite_team_bulk_segment": "Hromadný import",
-  "invite_team_notifcation_badge": "Pozv.",
+  "invite_team_notification_badge": "Pozv.",
   "your_event_has_been_scheduled": "Vaše událost byla naplánována",
   "your_event_has_been_scheduled_recurring": "Opakovaná událost byla naplánována",
   "accept_our_license": "Přijměte naši licenci změnou proměnné .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> na '{{agree}}'.",

@@ -44,7 +44,7 @@
   "invite_team_member": "Teammitglied einladen",
   "invite_team_individual_segment": "Person einladen",
   "invite_team_bulk_segment": "Massenimport",
-  "invite_team_notifcation_badge": "Eing.",
+  "invite_team_notification_badge": "Eing.",
   "your_event_has_been_scheduled": "Ihr Termin wurde gebucht",
   "your_event_has_been_scheduled_recurring": "Ihr wiederkehrender Termin wurde gebucht",
   "accept_our_license": "Akzeptieren Sie unsere Lizenz, indem Sie die .env-Variable <1>NEXT_PUBLIC_LICENSE_CONSENT</1> auf '{{agree}} ' ändern.",

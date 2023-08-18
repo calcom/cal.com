@@ -40,7 +40,7 @@
   "invite_team_member": "Teamlid uitnodigen",
   "invite_team_individual_segment": "Persoon uitnodigen",
   "invite_team_bulk_segment": "Bulkimport",
-  "invite_team_notifcation_badge": "Uitg.",
+  "invite_team_notification_badge": "Uitg.",
   "your_event_has_been_scheduled": "Uw gebeurtenis is gepland",
   "your_event_has_been_scheduled_recurring": "Uw terugkerende gebeurtenis is gepland",
   "accept_our_license": "Accepteer onze licentie door de variable .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> te veranderen in '{{agree}}'.",

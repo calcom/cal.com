@@ -38,7 +38,7 @@
   "invite_team_member": "팀원 초대",
   "invite_team_individual_segment": "개인 초대",
   "invite_team_bulk_segment": "일괄 가져오기",
-  "invite_team_notifcation_badge": "초대",
+  "invite_team_notification_badge": "초대",
   "your_event_has_been_scheduled": "귀하의 이벤트가 예약되었습니다.",
   "your_event_has_been_scheduled_recurring": "되풀이 이벤트가 예약되었습니다",
   "accept_our_license": "<1>NEXT_PUBLIC_LICENSE_CONSENT</1> 환경 변수를 '{{agree}}'로 바꾸어 라이선스를 허용해주십시오.",

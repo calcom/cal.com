@@ -8,5 +8,5 @@ export function TeamInviteBadge() {
 
   if (isLoading || !listInvites || listInvites.length === 0) return null;
 
-  return <Badge variant="default">{t("invite_team_notifcation_badge")}</Badge>;
+  return <Badge variant="default">{t("invite_team_notification_badge")}</Badge>;
 }

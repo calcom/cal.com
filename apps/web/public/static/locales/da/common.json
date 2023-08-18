@@ -23,7 +23,7 @@
   "rejection_confirmation": "Afvis bookingen",
   "manage_this_event": "Administrer denne begivenhed",
   "invite_team_member": "Invitér teammedlem",
-  "invite_team_notifcation_badge": "Inv.",
+  "invite_team_notification_badge": "Inv.",
   "your_event_has_been_scheduled": "Din begivenhed er blevet planlagt",
   "your_event_has_been_scheduled_recurring": "Din tilbagevendende begivenhed er blevet planlagt",
   "accept_our_license": "Acceptér vores licens ved at ændre .env variablen <1>NEXT_PUBLIC_LICENSE_CONSENT</1> til '{{agree}}'.",

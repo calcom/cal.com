@@ -38,7 +38,7 @@
   "invite_team_member": "Bjud in teammedlem",
   "invite_team_individual_segment": "Bjud in individ",
   "invite_team_bulk_segment": "Massimport",
-  "invite_team_notifcation_badge": "Inbj.",
+  "invite_team_notification_badge": "Inbj.",
   "your_event_has_been_scheduled": "Din bokning har schemalagts",
   "your_event_has_been_scheduled_recurring": "Din återkommande händelseförfrågan har schemalagts",
   "accept_our_license": "Acceptera vår licens genom att ändra .env variabeln <1>NEXT_PUBLIC_LICENSE_CONSENT</1> till '{{agree}}'.",

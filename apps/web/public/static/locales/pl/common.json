@@ -38,7 +38,7 @@
   "invite_team_member": "Zaproś członka zespołu",
   "invite_team_individual_segment": "Zaproś pojedynczą osobę",
   "invite_team_bulk_segment": "Import zbiorczy",
-  "invite_team_notifcation_badge": "Zap.",
+  "invite_team_notification_badge": "Zap.",
   "your_event_has_been_scheduled": "Zaplanowano wydarzenie",
   "your_event_has_been_scheduled_recurring": "Twoje wydarzenie cykliczne zostało zaplanowane",
   "accept_our_license": "Zaakceptuj naszą licencję, zmieniając zmienną .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> na '{{agree}}'.",

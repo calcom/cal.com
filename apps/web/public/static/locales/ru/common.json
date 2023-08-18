@@ -38,7 +38,7 @@
   "invite_team_member": "Пригласить участника команды",
   "invite_team_individual_segment": "Пригласить пользователя",
   "invite_team_bulk_segment": "Массовый импорт контактов",
-  "invite_team_notifcation_badge": "Прг.",
+  "invite_team_notification_badge": "Прг.",
   "your_event_has_been_scheduled": "Запланирована новая встреча",
   "your_event_has_been_scheduled_recurring": "Повторяющееся событие запланировано",
   "accept_our_license": "Примите нашу лицензию, изменив переменную окружения <1>NEXT_PUBLIC_LICENSE_CONSENT</1> на '{{agree}}'.",

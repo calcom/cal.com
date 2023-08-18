@@ -44,7 +44,7 @@
   "invite_team_member": "Convidar membro da equipe",
   "invite_team_individual_segment": "Convite individual",
   "invite_team_bulk_segment": "Importação em massa",
-  "invite_team_notifcation_badge": "Con.",
+  "invite_team_notification_badge": "Con.",
   "your_event_has_been_scheduled": "A sua reunião foi agendada",
   "your_event_has_been_scheduled_recurring": "Seu evento recorrente foi agendado",
   "accept_our_license": "Aceite a nossa licença alterando a variável no arquivo .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> para '{{agree}}'.",

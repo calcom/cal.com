@@ -38,7 +38,7 @@
   "invite_team_member": "チームメンバーを招待",
   "invite_team_individual_segment": "個人を招待",
   "invite_team_bulk_segment": "一括インポート",
-  "invite_team_notifcation_badge": "招待",
+  "invite_team_notification_badge": "招待",
   "your_event_has_been_scheduled": "イベントがスケジュールされました",
   "your_event_has_been_scheduled_recurring": "繰り返しイベントがスケジュールされています",
   "accept_our_license": ".env 変数 <1>NEXT_PUBLIC_LICENSE_CONSENT</1> を '{{agree}} ' に変更することで、ライセンスに同意してください。",

@@ -38,7 +38,7 @@
   "invite_team_member": "Ekip üyesi davet et",
   "invite_team_individual_segment": "Kişi davet et",
   "invite_team_bulk_segment": "Toplu içe aktar",
-  "invite_team_notifcation_badge": "Dvt.",
+  "invite_team_notification_badge": "Dvt.",
   "your_event_has_been_scheduled": "Etkinliğiniz planlandı",
   "your_event_has_been_scheduled_recurring": "Yinelenen etkinliğiniz planlandı",
   "accept_our_license": "<1>NEXT_PUBLIC_LICENSE_CONSENT</1> .env değişkenini '{{agree}}' olarak değiştirerek lisansımızı kabul edin.",

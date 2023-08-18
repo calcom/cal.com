@@ -39,7 +39,7 @@
   "invite_team_member": "Pozovite člana tima",
   "invite_team_individual_segment": "Pozovite jednu osobu",
   "invite_team_bulk_segment": "Pozovite grupno",
-  "invite_team_notifcation_badge": "Poz.",
+  "invite_team_notification_badge": "Poz.",
   "your_event_has_been_scheduled": "Vaš dogadjaj je odložen",
   "your_event_has_been_scheduled_recurring": "Vaš ponavljajući događaj je zakazan",
   "accept_our_license": "Prihvatite našu dozvolu tako što ćete promeniti .env varijablu <1>NEXT_PUBLIC_LICENSE_CONSENT</1> u '{{agree}}'.",

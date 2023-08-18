@@ -24,7 +24,7 @@
   "rejection_confirmation": "முன்பதிவை நிராகரிக்கவும்",
   "manage_this_event": "இந்த நிகழ்வை நிர்வகிக்கவும்",
   "invite_team_member": "குழு உறுப்பினரை அழைக்கவும்",
-  "invite_team_notifcation_badge": "Inv.",
+  "invite_team_notification_badge": "Inv.",
   "your_event_has_been_scheduled": "உங்கள் நிகழ்வு திட்டமிடப்பட்டது",
   "your_event_has_been_scheduled_recurring": "உங்கள் தொடர் நிகழ்வு திட்டமிடப்பட்டுள்ளது",
   "accept_our_license": ".env மாறியை மாற்றுவதன் மூலம் எங்கள் உரிமத்தை ஏற்கவும்\n<1>NEXT_PUBLIC_LICENSE_CONSENT</1> to '{{agree}}'.",

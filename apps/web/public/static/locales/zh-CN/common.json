@@ -39,7 +39,7 @@
   "invite_team_member": "邀请团队成员",
   "invite_team_individual_segment": "邀请个人",
   "invite_team_bulk_segment": "批量导入",
-  "invite_team_notifcation_badge": "邀请",
+  "invite_team_notification_badge": "邀请",
   "your_event_has_been_scheduled": "您的活动已预约",
   "your_event_has_been_scheduled_recurring": "您的定期活动已安排",
   "accept_our_license": "请更改 .env 文件下的变量 <1>NEXT_PUBLIC_LICENSE_CONSENT</1> 为 '{{agree}}' 以接受我们的许可协议。",

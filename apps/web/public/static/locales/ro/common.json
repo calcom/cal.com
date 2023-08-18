@@ -38,7 +38,7 @@
   "invite_team_member": "Invitați un membru al echipei",
   "invite_team_individual_segment": "Invitați o persoană",
   "invite_team_bulk_segment": "Importare în masă",
-  "invite_team_notifcation_badge": "Inv.",
+  "invite_team_notification_badge": "Inv.",
   "your_event_has_been_scheduled": "Evenimentul a fost programat",
   "your_event_has_been_scheduled_recurring": "Evenimentul dvs. recurent a fost programat",
   "accept_our_license": "Acceptați licența noastră schimbând variabila .env <1>URMĂTOAREA_LICENȚĂ_PUBLICĂ</1> în.",
