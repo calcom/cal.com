@@ -65,7 +65,7 @@ export const getEmbedIframe = async ({
         setTimeout(() => {
           clearInterval(interval);
           resolve(false);
-          // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
+          // This is the time embed-iframe.ts loads in the iframe and fires at least one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
         }, hardTimeout);
       });
     },
