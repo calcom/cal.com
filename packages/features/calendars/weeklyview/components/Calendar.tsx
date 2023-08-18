@@ -42,7 +42,7 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initalise State on inital mount
+  // Initialise State on inital mount
   useEffect(() => {
     initalState(props);
   }, [props, initalState]);
