@@ -64,7 +64,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const cacheRules = {
           session: "no-cache",
 
-          // i18n data is user specific and thus should not be cached
           i18n: `max-age=${ONE_YEAR_IN_SECONDS}`,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
