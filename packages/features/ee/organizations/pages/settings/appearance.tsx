@@ -128,7 +128,7 @@ const OrgAppearanceView = () => {
                       handleAvatarChange={(newLogo) => {
                         form.setValue("orgCalVideoLogo", newLogo);
                       }}
-                      imageSrc={value}
+                      imageSrc={value ?? undefined}
                       imageUploadInstruction={t("cal_video_logo_upload_instruction")}
                     />
                   </div>
