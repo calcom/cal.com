@@ -11,7 +11,7 @@ import {
   withValidQueryIdTransformParseInt,
 } from "~/lib/validations/shared/queryIdTransformParseInt";
 
-export async function destionationCalendarById(
+export async function destinationCalendarById(
   { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<DestinationCalendarResponse>
 ) {
@@ -236,5 +236,5 @@ export async function destionationCalendarById(
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(
-  withValidQueryIdTransformParseInt(destionationCalendarById)
+  withValidQueryIdTransformParseInt(destinationCalendarById)
 );
