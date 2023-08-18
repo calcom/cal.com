@@ -48,7 +48,7 @@ const addOauthBasedIntegration = async function ({
   };
 }) {
   const code = uuidv4();
-  // Note the difference b/w MSW wildcard and Playwright wildards. Playwright requires query params to be explicitly specified.
+  // Note the difference b/w MSW wildcard and Playwright wildcards. Playwright requires query params to be explicitly specified.
   page.route(`${authorization.url}?**`, (route, request) => {
     const u = new URL(request.url());
     const result = authorization.verify({
