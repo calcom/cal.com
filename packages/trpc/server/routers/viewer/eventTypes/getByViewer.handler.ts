@@ -1,4 +1,5 @@
 import { type PrismaClient, Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
