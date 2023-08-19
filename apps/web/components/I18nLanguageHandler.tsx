@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const CalComVersion = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
 
-export function useViewerI18n(locale: string) {
+function useViewerI18n(locale: string) {
   return trpc.viewer.public.i18n.useQuery(
     { locale, CalComVersion },
     {
