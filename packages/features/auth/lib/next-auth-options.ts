@@ -1,4 +1,4 @@
-import type { UserPermissionRole, Membership, Team } from "@prisma/client";
+import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -278,7 +278,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email, locale } = userInfo;
+        const { id, firstName, lastName, email } = userInfo;
 
         return {
           id: id as unknown as number,
@@ -287,7 +287,6 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
-          locale,
         };
       },
     })
@@ -392,7 +391,7 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
 
         return {
           ...existingUserWithoutTeamsField,

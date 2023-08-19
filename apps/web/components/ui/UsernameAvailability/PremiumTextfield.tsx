@@ -51,7 +51,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -95,7 +95,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
 
-  const utils = trpc.useContext();
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
@@ -104,9 +103,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
-    },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 

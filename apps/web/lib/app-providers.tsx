@@ -1,7 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";

@@ -7,9 +7,9 @@ import { trpc } from "@calcom/trpc/react";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const vercelCommitHash = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
 
-export function useViewerI18n(language: string) {
+export function useViewerI18n(locale: string) {
   return trpc.viewer.public.i18n.useQuery(
-    { language, CalComVersion: vercelCommitHash },
+    { locale, CalComVersion: vercelCommitHash },
     {
       /**
        * i18n should never be clubbed with other queries, so that it's caching can be managed independently.

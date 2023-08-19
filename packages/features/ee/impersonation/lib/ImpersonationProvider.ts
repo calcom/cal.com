@@ -11,7 +11,7 @@ const teamIdschema = z.object({
 });
 
 const auditAndReturnNextUser = async (
-  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId", "locale">,
+  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId" | "locale">,
   impersonatedByUID: number,
   hasTeam?: boolean
 ) => {
