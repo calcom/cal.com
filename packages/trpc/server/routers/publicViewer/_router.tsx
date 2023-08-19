@@ -1,9 +1,9 @@
-import localeMiddleware from "../../middlewares/localeMiddleware";
 import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
+import { i18nInputSchema } from "./i18n.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
@@ -36,7 +36,7 @@ export const publicViewerRouter = router({
     });
   }),
 
-  i18n: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
+  i18n: publicProcedure.input(i18nInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.i18n) {
       UNSTABLE_HANDLER_CACHE.i18n = await import("./i18n.handler").then((mod) => mod.i18nHandler);
     }
@@ -46,7 +46,7 @@ export const publicViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.i18n({ ctx });
+    return UNSTABLE_HANDLER_CACHE.i18n({ ctx, input });
   }),
 
   countryCode: publicProcedure.query(async ({ ctx }) => {

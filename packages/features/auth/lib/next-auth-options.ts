@@ -1,4 +1,4 @@
-import type { UserPermissionRole, Membership, Team } from "@prisma/client";
+import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -85,6 +85,7 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          locale: true,
           organization: {
             select: {
               id: true,
@@ -181,6 +182,7 @@ const providers: Provider[] = [
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
         organizationId: user.organizationId,
+        locale: user.locale,
       };
     },
   }),
@@ -225,6 +227,7 @@ if (isSAMLLoginEnabled) {
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
+        locale: profile.locale,
       };
     },
     options: {
@@ -356,6 +359,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
+          locale: session?.locale ?? token.locale,
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
@@ -372,6 +376,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             email: true,
             organizationId: true,
             role: true,
+            locale: true,
             teams: {
               include: {
                 team: true,
@@ -386,7 +391,7 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
 
         return {
           ...existingUserWithoutTeamsField,
@@ -416,6 +421,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           organizationId: user?.organizationId,
+          locale: user?.locale,
         };
       }
 
@@ -454,6 +460,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          locale: existingUser.locale,
         };
       }
 
@@ -473,6 +480,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          locale: token.locale,
         },
       };
       return calendsoSession;
