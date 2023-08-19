@@ -364,6 +364,7 @@ export default class GoogleCalendarService implements Calendar {
                 timeMax: dateTo,
                 items: calsIds.map((id) => ({ id: id })),
               },
+              fields: "calendars(busy)",
             },
             (err, apires) => {
               if (err) return reject(err);
@@ -400,7 +401,9 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       calendar.calendarList
-        .list()
+        .list({
+          fields: "items(id,summary,primary,accessRole)",
+        })
         .then((cals) => {
           resolve(
             cals.data.items?.map((cal) => {
