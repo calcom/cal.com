@@ -1,6 +1,7 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import type { z } from "zod";
 
+import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
@@ -15,10 +16,9 @@ import {
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
 if (typeof window !== "undefined") {
-  console.warn("This file should not be imported on the client side");
+  // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.
+  throw new Error("`getBookingFields` must not be imported on the client side.");
 }
-
-export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
 /**
  * PHONE -> Phone

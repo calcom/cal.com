@@ -36,6 +36,12 @@ module.exports = {
       },
     ],
     "unused-imports/no-unused-imports": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["lodash"],
+      },
+    ],
   },
   overrides: [
     {

@@ -7,7 +7,8 @@ export const slugify = (str: string) => {
     .replace(/[^\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode) with a dash
     .replace(/[\s_]+/g, "-") // Replace whitespace and underscores with a single dash
     .replace(/^-+/, "") // Remove dashes from start
-    .replace(/-+$/, ""); // Remove dashes from end
+    .replace(/-+$/, "") // Remove dashes from end
+    .replace(/\+/g, "-"); // Transform all + to -
 };
 
 export default slugify;
