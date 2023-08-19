@@ -66,8 +66,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     }
   }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
-  const utils = trpc.useContext();
-
   const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
@@ -77,9 +75,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
-    },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 

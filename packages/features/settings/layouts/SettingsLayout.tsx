@@ -273,7 +273,7 @@ const SettingsSidebarContainer = ({
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (
-            <>
+            <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
@@ -560,7 +560,7 @@ const SettingsSidebarContainer = ({
                   </div>
                 </React.Fragment>
               )}
-            </>
+            </React.Fragment>
           );
         })}
       </>
