@@ -228,8 +228,6 @@ export const scheduleEmailReminder = async (
       return Promise.resolve();
     }
 
-    const uid = uuidv4();
-
     return sgMail.send({
       to: data.to,
       from: {
@@ -252,7 +250,7 @@ export const scheduleEmailReminder = async (
               filename: "event.ics",
               type: "text/calendar; method=REQUEST",
               disposition: "attachment",
-              contentId: uid,
+              contentId: uuidv4(),
             },
           ]
         : undefined,
