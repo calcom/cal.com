@@ -11,6 +11,7 @@ export function useViewerI18n(locale: string) {
   return trpc.viewer.public.i18n.useQuery(
     { locale, CalComVersion: vercelCommitHash },
     {
+      initialData: { locale: "en", i18n: {} },
       /**
        * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
        **/
@@ -21,13 +22,27 @@ export function useViewerI18n(locale: string) {
   );
 }
 
+function useClientLocale() {
+  const session = useSession();
+  // If the user is logged in, use their locale
+  if (session.data?.user.locale) return session.data.user.locale;
+  // If the user is not logged in, use the browser locale
+  if (typeof window !== "undefined") return window.navigator.language;
+  // If the browser is not available, use English
+  return "en";
+}
+
+export function useClientViewerI18n() {
+  const clientLocale = useClientLocale();
+  return useViewerI18n(clientLocale);
+}
+
 /**
  * Auto-switches locale client-side to the logged in user's preference
  */
 const I18nLanguageHandler = () => {
-  const session = useSession();
   const { i18n } = useTranslation("common");
-  const locale = useViewerI18n(session.data?.user.locale || "en").data?.locale || i18n.language;
+  const locale = useClientViewerI18n().data?.locale || i18n.language;
 
   useEffect(() => {
     // bail early when i18n = {}
