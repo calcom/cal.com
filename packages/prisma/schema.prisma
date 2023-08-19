@@ -736,7 +736,7 @@ model WorkflowStep {
   numberRequired            Boolean?
   sender                    String?
   numberVerificationPending Boolean            @default(true)
-  includeCalenderEvent      Boolean?
+  includeCalendarEvent      Boolean            @default(false)
 
   @@index([workflowId])
 }

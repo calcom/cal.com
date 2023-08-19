@@ -64,7 +64,7 @@ const formSchema = z.object({
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
       numberRequired: z.boolean().nullable(),
-      includeCalenderEvent: z.boolean().nullable(),
+      includeCalendarEvent: z.boolean().nullable(),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
@@ -320,6 +320,9 @@ function WorkflowPage() {
             <Alert severity="error" title="Something went wrong" message={error.message} />
           )}
         </LicenseRequired>
+        <Button data-testid="save-workflow" type="submit">
+          {t("save")}
+        </Button>
       </Shell>
     </Form>
   ) : (

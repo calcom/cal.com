@@ -46,6 +46,37 @@ async function getBatchId() {
   return batchIdResponse[1].batch_id as string;
 }
 
+function getiCalEventAsString(evt: BookingInfo) {
+  const uid = uuidv4();
+
+  const icsEvent = createEvent({
+    uid,
+    startInputType: "utc",
+    start: dayjs(evt.startTime)
+      .utc()
+      .toArray()
+      .slice(0, 6)
+      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+    duration: { minutes: dayjs(evt.endTime).diff(dayjs(evt.startTime), "minute") },
+    title: evt.title,
+    description: evt.additionalNotes || "",
+    location: evt.location || "",
+    organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
+    attendees: [
+      {
+        name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
+        email: evt.attendees[0].email,
+      },
+    ],
+  });
+
+  if (icsEvent.error) {
+    throw icsEvent.error;
+  }
+
+  return icsEvent.value;
+}
+
 type ScheduleEmailReminderAction = Extract<
   WorkflowActions,
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
@@ -67,7 +98,7 @@ export const scheduleEmailReminder = async (
   sender: string,
   hideBranding?: boolean,
   seatReferenceUid?: string,
-  includeCalenderEvent?: boolean
+  includeCalendarEvent?: boolean
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -197,7 +228,9 @@ export const scheduleEmailReminder = async (
       return Promise.resolve();
     }
 
-    let emailData = {
+    const uid = uuidv4();
+
+    return sgMail.send({
       to: data.to,
       from: {
         email: senderEmail,
@@ -212,53 +245,18 @@ export const scheduleEmailReminder = async (
           enable: sandboxMode,
         },
       },
-    };
-
-    if (includeCalenderEvent) {
-      const uid = uuidv4();
-
-      const icsEvent = createEvent({
-        uid,
-        startInputType: "utc",
-        start: dayjs(startTime)
-          .utc()
-          .toArray()
-          .slice(0, 6)
-          .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
-        duration: { minutes: dayjs(endTime).diff(dayjs(startTime), "minute") },
-        title: evt.title,
-        description: evt.additionalNotes || "",
-        location: evt.location,
-        organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
-        attendees: [
-          {
-            name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name),
-            email: evt.attendees[0].email,
-          },
-        ],
-      });
-
-      if (icsEvent.error) {
-        console.log("Error creating calender event ", icsEvent.error);
-      }
-
-      if (icsEvent.value) {
-        emailData = {
-          ...emailData,
-          attachments: [
+      attachments: includeCalendarEvent
+        ? [
             {
-              content: Buffer.from(icsEvent.value).toString("base64"),
+              content: Buffer.from(getiCalEventAsString(evt) || "").toString("base64"),
               filename: "event.ics",
-              name: "event.ics",
               type: "text/calendar; method=REQUEST",
               disposition: "attachment",
-              content_id: uid,
+              contentId: uid,
             },
-          ],
-        };
-      }
-    }
-    return sgMail.send(emailData);
+          ]
+        : undefined,
+    });
   }
 
   if (

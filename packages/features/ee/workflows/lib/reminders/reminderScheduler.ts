@@ -107,7 +107,7 @@ const processWorkflowStep = async (
       step.sender || SENDER_NAME,
       hideBranding,
       seatReferenceUid,
-      step.includeCalenderEvent
+      step.includeCalendarEvent
     );
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;

@@ -864,18 +864,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isEmailSubjectNeeded && (
                   <div className="mt-2">
                     <Controller
-                      name={`steps.${step.stepNumber - 1}.includeCalenderEvent`}
+                      name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
                       control={form.control}
                       render={() => (
                         <CheckboxField
                           disabled={props.readOnly}
                           defaultChecked={
-                            form.getValues(`steps.${step.stepNumber - 1}.includeCalenderEvent`) || false
+                            form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
                           }
                           description={t("include_calender_event")}
                           onChange={(e) =>
                             form.setValue(
-                              `steps.${step.stepNumber - 1}.includeCalenderEvent`,
+                              `steps.${step.stepNumber - 1}.includeCalendarEvent`,
                               e.target.checked
                             )
                           }
