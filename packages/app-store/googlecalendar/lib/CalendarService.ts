@@ -364,7 +364,6 @@ export default class GoogleCalendarService implements Calendar {
                 timeMax: dateTo,
                 items: calsIds.map((id) => ({ id: id })),
               },
-              fields: "calendars(busy)",
             },
             (err, apires) => {
               if (err) return reject(err);
