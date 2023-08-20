@@ -1,3 +1,5 @@
+import type { AppFlags } from "flags/config";
+
 import { trpc } from "@calcom/trpc/react";
 
 export function useFlags() {
@@ -7,5 +9,5 @@ export function useFlags() {
       : undefined,
     placeholderData: {},
   });
-  return query.data;
+  return query.data ?? ({} as AppFlags);
 }
