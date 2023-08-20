@@ -11,7 +11,7 @@ function useViewerI18n(locale: string) {
   return trpc.viewer.public.i18n.useQuery(
     { locale, CalComVersion },
     {
-      initialData: { locale: "en", i18n: {} },
+      initialData: { locale: null, i18n: {} },
       refetchOnMount: "always",
       /**
        * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
