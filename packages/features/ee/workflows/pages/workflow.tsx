@@ -320,9 +320,6 @@ function WorkflowPage() {
             <Alert severity="error" title="Something went wrong" message={error.message} />
           )}
         </LicenseRequired>
-        <Button data-testid="save-workflow" type="submit">
-          {t("save")}
-        </Button>
       </Shell>
     </Form>
   ) : (
