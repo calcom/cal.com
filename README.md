@@ -461,6 +461,18 @@ following
 4. Now paste the API key to your `.env` file into the `DAILY_API_KEY` field in your `.env` file.
 5. If you have the [Daily Scale Plan](https://daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
+### Obtaining Basecamp Client ID and Secret
+
+1. Visit the [37 Signals Integrations Dashboard](launchpad.37signals.com/integrations) and sign in.
+2. Register a new application by clicking the Register one now link.
+3. Fill in your company details.
+4. Select Basecamp 4 as the product to integrate with.
+5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
+6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
+For example, `Cal.com (support@cal.com)`.
+
+
 ### Obtaining HubSpot Client ID and Secret
 
 1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
