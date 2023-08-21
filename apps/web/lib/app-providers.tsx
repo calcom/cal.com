@@ -69,7 +69,8 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-  const { i18n, locale } = useClientViewerI18n().data;
+  const clientViewerI18n = useClientViewerI18n(props.router.locales || []);
+  const { i18n, locale } = clientViewerI18n.data || {};
 
   const passedProps = {
     ...props,

@@ -5,7 +5,10 @@ import { z } from "zod";
 const { i18n } = require("@calcom/config/next-i18next.config");
 
 export const i18nInputSchema = z.object({
-  locale: z.string().transform((locale) => parser.pick(i18n.locales, locale, { loose: true })),
+  locale: z
+    .string()
+    .min(2)
+    .transform((locale) => parser.pick<string>(i18n.locales, locale, { loose: true }) || locale),
   CalComVersion: z.string(),
 });
 
