@@ -1,0 +1,114 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import { Dialog, DialogContent, DialogFooter, DialogClose, DialogHeader } from "./Dialog";
+
+<Meta title="UI/Dialog" component={Dialog} />
+
+<Title title="Dialog" suffix="Brief" subtitle="Version 1.0 — Last Update: 18 Aug 2023" />
+
+## Definition
+
+The `Dialog` component provides a flexible way to create dialogs in your application.
+
+## Structure
+
+The `Dialog` component is composed of the following components:
+
+- `Dialog`: The main component that wraps the entire dialog. It manages the dialog's open and close states.
+
+- `DialogContent`: Represents the content of the dialog. It can have different sizes, types, and an optional icon.
+
+- `DialogHeader`: Renders the header of the dialog, including the title and subtitle.
+
+- `DialogFooter`: Renders the footer of the dialog, which can contain action buttons.
+
+- `DialogClose`: Renders a close button for the dialog.
+
+## Components Arguments
+
+### Dialog
+
+<CustomArgsTable of={Dialog} />
+
+### DialogContent
+
+<CustomArgsTable of={DialogContent} />
+
+### DialogHeader
+
+<CustomArgsTable of={DialogHeader} />
+
+### DialogFooter
+
+<CustomArgsTable of={DialogFooter} />
+
+### DialogClose
+
+<CustomArgsTable of={DialogClose} />
+
+## Dialog Story
+
+<Canvas>
+  <Story
+    name="Dialog"
+    args={{
+      title: "Example Dialog",
+      description: "Example Dialog Description",
+      type: "creation",
+      open: true,
+      showDivider: false,
+      disabled: false,
+      color: "minimal",
+    }}
+    argTypes={{
+      title: {
+        control: "text",
+      },
+      description: {
+        control: "text",
+      },
+      type: {
+        control: {
+          type: "select",
+          options: ["creation", "confirmation"],
+        },
+      },
+      open: {
+        control: "boolean",
+      },
+      showDivider: {
+        control: "boolean",
+      },
+      disabled: {
+        control: "boolean",
+      },
+      color: {
+        control: {
+          type: "select",
+          options: ["minimal", "primary", "secondary", "emphasis"],
+        },
+      },
+      onClick: { action: "clicked" },
+    }}>
+    {({ title, description, type, open, showDivider, disabled, color, onClick }) => (
+      <Dialog title="Default" open={open}>
+        <DialogContent type={type}>
+          <DialogHeader title={title} subtitle={description} />
+          <DialogFooter showDivider={showDivider}>
+            <DialogClose
+              disabled={disabled}
+              color={color}
+              onClick={() => {
+                const newPath = "?path=/story/ui-dialog--dialog&args=open:false";
+                window.open(newPath, "_self");
+                onClick();
+              }}
+            />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+  </Story>
+</Canvas>
