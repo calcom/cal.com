@@ -12,9 +12,6 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.me.invalidate();
     },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
-    },
   });
 
   return (

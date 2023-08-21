@@ -1,57 +1,20 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, showToast, TextField } from "@calcom/ui";
 
-export interface PayPalSetupProps {
-  public_key: string;
-  access_token: string;
-  currency: string;
-}
-
-export const currencyOptions = [
-  { label: "United States dollar", value: "USD" },
-  { label: "Australian dollar", value: "AUD" },
-  { label: "Brazilian real 2", value: "BRL" },
-  { label: "Canadian dollar", value: "CAD" },
-  { label: "Chinese Renmenbi 3", value: "CNY" },
-  { label: "Czech koruna", value: "CZK" },
-  { label: "Danish krone", value: "DKK" },
-  { label: "Euro", value: "EUR" },
-  { label: "Hong Kong dollar", value: "HKD" },
-  { label: "Hungarian forint 1", value: "HUF" },
-  { label: "Israeli new shekel", value: "ILS" },
-  { label: "Japanese yen 1", value: "JPY" },
-  { label: "Malaysian ringgit 3", value: "MYR" },
-  { label: "Mexican peso", value: "MXN" },
-  { label: "New Taiwan dollar 1", value: "TWD" },
-  { label: "New Zealand dollar", value: "NZD" },
-  { label: "Norwegian krone", value: "NOK" },
-  { label: "Philippine peso", value: "PHP" },
-  { label: "Polish złoty", value: "PLN" },
-  { label: "Pound sterling", value: "GBP" },
-  { label: "Russian ruble", value: "RUB" },
-  { label: "Singapore dollar", value: "SGD" },
-  { label: "Swedish krona", value: "SEK" },
-  { label: "Swiss franc", value: "CHF" },
-  { label: "Thai baht", value: "THB" },
-];
-
-export default function PayPalSetup(props: PayPalSetupProps) {
+export default function PayPalSetup() {
   const [newClientId, setNewClientId] = useState("");
   const [newSecretKey, setNewSecretKey] = useState("");
-
   const router = useRouter();
   const { t } = useLocale();
-
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment" });
-  const paypalPaymentAppCredentials = integrations.data?.items.find((item) => item.type === "paypal_payment");
-  const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [false];
+  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "paypal" });
+  const [paypalPaymentAppCredentials] = integrations.data?.items || [];
+  const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -62,48 +25,6 @@ export default function PayPalSetup(props: PayPalSetupProps) {
       showToast(error.message, "error");
     },
   });
-
-  const saveKeys = async (key: { clientId: string; secretKey: string }) => {
-    if (!key.clientId || !key.secretKey || key.clientId === key.secretKey) {
-      return false;
-    }
-    if (typeof credentialId !== "number") {
-      return;
-    }
-
-    // Test credentials before saving
-    const paypalClient = new Paypal({ clientId: key.clientId, secretKey: key.secretKey });
-    const test = await paypalClient.test();
-    if (!test) {
-      return false;
-    }
-
-    // Delete all existing webhooks
-    const webhooksToDelete = await paypalClient.listWebhooks();
-    if (webhooksToDelete) {
-      for (const webhook of webhooksToDelete) {
-        await paypalClient.deleteWebhook(webhook);
-      }
-    }
-
-    // Create webhook for this installation
-    const webhookId = await paypalClient.createWebhook();
-    if (!webhookId) {
-      // @TODO: make a button that tries to create the webhook again
-      console.log("Failed to create webhook", webhookId);
-      return false;
-    }
-    saveKeysMutation.mutate({
-      credentialId,
-      key: {
-        client_id: key.clientId,
-        secret_key: key.secretKey,
-        webhook_id: webhookId,
-      },
-    });
-
-    return true;
-  };
 
   if (integrations.isLoading) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
@@ -144,12 +65,15 @@ export default function PayPalSetup(props: PayPalSetupProps) {
               <div className="mt-5 flex flex-row justify-end">
                 <Button
                   color="secondary"
-                  onClick={() =>
-                    saveKeys({
-                      clientId: newClientId,
-                      secretKey: newSecretKey,
-                    })
-                  }>
+                  onClick={() => {
+                    saveKeysMutation.mutate({
+                      credentialId,
+                      key: {
+                        client_id: newClientId,
+                        secret_key: newSecretKey,
+                      },
+                    });
+                  }}>
                   {t("save")}
                 </Button>
               </div>
