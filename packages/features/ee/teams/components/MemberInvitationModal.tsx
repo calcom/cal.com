@@ -355,7 +355,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </div>
           <DialogFooter showDivider>
             {!disableCopyLink && (
-              <div className="relative right-40">
+              <div className="flex-grow">
                 <Button
                   type="button"
                   color="minimal"
