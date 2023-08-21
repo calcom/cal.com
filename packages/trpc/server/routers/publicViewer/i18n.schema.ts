@@ -8,7 +8,7 @@ export const i18nInputSchema = z.object({
   locale: z
     .string()
     .min(2)
-    .transform((locale) => parser.pick<string>(i18n.locales, locale) || locale),
+    .transform((locale) => parser.pick<string>(i18n.locales, locale, { loose: true }) || locale),
   CalComVersion: z.string(),
 });
 
