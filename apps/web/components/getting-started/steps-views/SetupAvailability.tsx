@@ -12,7 +12,7 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
-  defaultScheduleId?: number | null;
+  defaultScheduleId?: number | undefined;
 }
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
@@ -22,20 +22,19 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { nextStep } = props;
 
   const router = useRouter();
-  
-  queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-  { scheduleId: defaultScheduleId },
-  {
-    enabled: router.isReady,
-  }
-  );
-  
-  const availabilityForm = useForm({
-  defaultValues: {
-    schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
-  },
-  });
 
+  const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId: defaultScheduleId },
+    {
+      enabled: router.isReady,
+    }
+  );
+
+  const availabilityForm = useForm({
+    defaultValues: {
+      schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
+    },
+  });
 
   const mutationOptions = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
