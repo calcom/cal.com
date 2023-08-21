@@ -221,7 +221,7 @@ export async function expectEmailsToHaveSubject({
 
   const [organizerFirstEmail] = (emailsOrganizerReceived as Messages).items;
   const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
-  const emailSubject = `${eventTitle} between ${organizer.name} and ${booker.name}`;
+  const emailSubject = `${eventTitle} between ${organizer.name ?? "Nameless"} and ${booker.name}`;
 
   expect(organizerFirstEmail.subject).toBe(emailSubject);
   expect(bookerFirstEmail.subject).toBe(emailSubject);
