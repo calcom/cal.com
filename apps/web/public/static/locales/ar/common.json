@@ -310,7 +310,7 @@
   "bookerlayout_user_settings_title": "تخطيط الحجز",
   "bookerlayout_user_settings_description": "يمكنك تحديد خيارات متعددة ويمكن لمن يقومون بالحجز لديك تبديل طرق العرض. يمكن إبطال هذا بحسب وضع كل فعالية.",
   "bookerlayout_month_view": "شهر",
-  "bookerlayout_week_view": "أسبوعياً",
+  "bookerlayout_week_view": "أسبوعيًا",
   "bookerlayout_column_view": "عمود",
   "bookerlayout_error_min_one_enabled": "يجب تمكين تخطيط واحد على الأقل.",
   "bookerlayout_error_default_not_enabled": "التخطيط الذي حددته كطريقة عرض افتراضية ليس جزءاً من التخطيطات التي تم تمكينها.",
