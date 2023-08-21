@@ -45,18 +45,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
-      }}
-      description={
-        <>
-          <div className="">
-            {t("payment_app_commission", {
-              paymentFeePercentage: 0.5,
-              fee: 0.1,
-              formatParams: { fee: { currency } },
-            })}
-          </div>
-        </>
-      }>
+      }}>
       <>
         {recurringEventDefined && (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />

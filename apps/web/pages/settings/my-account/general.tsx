@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -19,8 +20,6 @@ import {
   SkeletonText,
   TimezoneSelect,
 } from "@calcom/ui";
-
-import { withQuery } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -45,11 +44,6 @@ interface GeneralViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.public.i18n as any, undefined, {
-  trpc: { context: { skipBatch: true } },
-});
-
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
@@ -58,30 +52,26 @@ const GeneralQueryView = () => {
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return (
-    <WithQuery
-      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
-      customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
-    />
-  );
+  return <GeneralView user={user} localeProp={user.locale} />;
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const { update } = useSession();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
-      // Invalidate our previous i18n cache
-      await utils.viewer.public.i18n.invalidate();
+    onSuccess: async (res) => {
+      await utils.viewer.me.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
+      update(res);
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
-      await utils.viewer.public.i18n.invalidate();
+      await utils.viewer.me.invalidate();
     },
   });
 

@@ -1,7 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -69,9 +68,10 @@ type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
 const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   * We intend to not cache i18n query
    **/
-  const { i18n, locale } = useViewerI18n().data ?? {
+  const session = useSession();
+  const localeToUse = session.data?.user.locale ?? "en";
+  const { i18n, locale } = useViewerI18n(localeToUse).data ?? {
     locale: "en",
   };
 

@@ -1980,5 +1980,7 @@
   "no_other_teams_found_description": "Es gibt keine weiteren Teams in dieser Organisation.",
   "attendee_first_name_variable": "Vorname des Teilnehmers",
   "attendee_last_name_variable": "Nachname des Teilnehmers",
+  "my_availability": "Meine Verfügbarkeit",
+  "team_availability": "Teamverfügbarkeit",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
