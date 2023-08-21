@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { COMPANY_NAME, IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { CALCOM_VERSION, COMPANY_NAME, IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const vercelCommitHash = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA;
 const commitHash = vercelCommitHash ? `-${vercelCommitHash.slice(0, 7)}` : "";
-const CalComVersion = `v.${process.env.NEXT_PUBLIC_CALCOM_VERSION}-${!IS_SELF_HOSTED ? "h" : "sh"}`;
+const CalComVersion = `v.${CALCOM_VERSION}-${!IS_SELF_HOSTED ? "h" : "sh"}`;
 
 export default function Credits() {
   const [hasMounted, setHasMounted] = useState(false);
