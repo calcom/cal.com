@@ -182,7 +182,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
               size="lg"
             />
           </div>
-          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
             {teamName}
           </p>
