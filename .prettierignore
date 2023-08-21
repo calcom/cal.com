@@ -7,7 +7,6 @@ public
 
 *.lock
 *.log
-*.test.ts
 
 .gitignore
 .npmignore
