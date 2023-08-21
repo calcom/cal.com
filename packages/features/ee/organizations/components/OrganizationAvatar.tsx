@@ -2,11 +2,8 @@ import classNames from "@calcom/lib/classNames";
 import { Avatar } from "@calcom/ui";
 import type { AvatarProps } from "@calcom/ui";
 
-type OrganizationAvatarProps = Pick<
-  AvatarProps,
-  "size" | "imageSrc" | "alt" | "indicator" | "gravatarFallbackMd5"
-> & {
-  organizationSlug?: string | null;
+type OrganizationAvatarProps = AvatarProps & {
+  organizationSlug: string | null | undefined;
 };
 
 const OrganizationAvatar = ({
@@ -15,6 +12,7 @@ const OrganizationAvatar = ({
   alt,
   gravatarFallbackMd5,
   organizationSlug,
+  ...rest
 }: OrganizationAvatarProps) => {
   return (
     <Avatar

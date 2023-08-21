@@ -67,6 +67,7 @@ export function getSlugOrRequestedSlug(slug: string) {
 }
 
 export function getUserOrgDomain(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
-  const orgFullDomain = organization.slug ? getOrgFullDomain(organization.slug) : undefined;
+  const orgSlug = organization.slug ?? organization.metadata?.requestedSlug;
+  const orgFullDomain = orgSlug ? getOrgFullDomain(organization.slug) : undefined;
   return orgFullDomain ?? WEBAPP_URL;
 }

@@ -11,7 +11,6 @@ export type AvatarGroupProps = {
     href?: string;
   }[];
   className?: string;
-  accepted?: boolean;
   truncateAfter?: number;
 };
 

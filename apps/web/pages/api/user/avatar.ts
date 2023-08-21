@@ -62,18 +62,12 @@ async function getIdentityData(req: NextApiRequest) {
       org,
       name: teamname,
       email: null,
-      avatar: team?.logo || getPlaceholderAvatar(null, teamname),
+      avatar: getPlaceholderAvatar(team?.logo, teamname),
     };
   }
   if (orgSlug) {
     const org = await prisma.team.findFirst({
-      where: {
-        slug: orgSlug,
-        metadata: {
-          path: ["isOrganization"],
-          equals: true,
-        },
-      },
+      where: getSlugOrRequestedSlug(orgSlug),
       select: {
         slug: true,
         logo: true,
@@ -84,7 +78,7 @@ async function getIdentityData(req: NextApiRequest) {
       org: org?.slug,
       name: org?.name,
       email: null,
-      avatar: org?.logo || getPlaceholderAvatar(null, org?.name),
+      avatar: getPlaceholderAvatar(org?.logo, org?.name),
     };
   }
 }
