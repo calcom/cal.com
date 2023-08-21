@@ -1,7 +1,9 @@
+import parser from "accept-language-parser";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
+import { locales } from "@calcom/lib/i18n";
 import { trpc } from "@calcom/trpc/react";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -28,7 +30,10 @@ function useClientLocale() {
   // If the user is logged in, use their locale
   if (session.data?.user.locale) return session.data.user.locale;
   // If the user is not logged in, use the browser locale
-  if (typeof window !== "undefined") return window.navigator.language;
+  if (typeof window !== "undefined") {
+    const browserLocale = parser.pick(locales, window.navigator.language, { loose: true });
+    return browserLocale || window.navigator.language;
+  }
   // If the browser is not available, use English
   return "en";
 }
