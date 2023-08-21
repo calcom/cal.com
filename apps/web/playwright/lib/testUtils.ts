@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 
 import { test } from "./fixtures";
@@ -182,4 +183,11 @@ export async function gotoRoutingLink({
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
   await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+export async function installAppleCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+  await page.waitForURL("/apps/apple-calendar");
+  await page.click('[data-testid="install-app-button"]');
 }

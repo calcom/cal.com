@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
@@ -69,118 +70,91 @@ export const checkIfIsAvailable = ({
   });
 };
 
-export async function getEventType(input: TGetScheduleInputSchema) {
-  const { eventTypeSlug, usernameList } = input;
-  let eventTypeId = input.eventTypeId;
-  let eventType;
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+}) {
+  if (!eventTypeSlug || !slug) return null;
 
-  if (eventTypeId === undefined && eventTypeSlug && usernameList && usernameList.length === 1) {
-    // If we only have the slug and usernameList, we need to get the id first
-    const username = usernameList[0];
-    const startPrismaEventTypeGet = performance.now();
-    const userId = await getUserIdFromUsername(username);
-    const endPrismaEventTypeGet = performance.now();
-    console.log("getUserIdFromUsername", endPrismaEventTypeGet - startPrismaEventTypeGet);
-    let teamId;
-
-    if (!userId) {
-      teamId = await getTeamIdFromSlug(username);
-      if (!teamId) {
-        throw new TRPCError({
-          message: "User or team not found",
-          code: "NOT_FOUND",
-        });
-      }
-    }
-
-    const startFirstPrismaEventTypeGet = performance.now();
-    eventType = await prisma.eventType.findFirst({
-      where: {
-        slug: eventTypeSlug,
-        ...(teamId ? { teamId } : {}),
-        ...(userId ? { userId } : {}),
-      },
-      select: {
-        id: true,
-        slug: true,
-        minimumBookingNotice: true,
-        length: true,
-        offsetStart: true,
-        seatsPerTimeSlot: true,
-        timeZone: true,
-        slotInterval: true,
-        beforeEventBuffer: true,
-        afterEventBuffer: true,
-        bookingLimits: true,
-        durationLimits: true,
-        schedulingType: true,
-        periodType: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodCountCalendarDays: true,
-        periodDays: true,
-        metadata: true,
-        // THIS IS SUPER SLOW - Adds around 600ms on QA database
-        // users: {
-        //   select: {
-        //     credentials: true,
-        //     ...availabilityUserSelect,
-        //   },
-        // },
-      },
-    });
-
-    const endFirstPrismaEventTypeGet = performance.now();
-    console.log("firstGetEventType", endFirstPrismaEventTypeGet - startFirstPrismaEventTypeGet);
-    if (!eventType) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    eventTypeId = eventType.id;
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(slug);
+  } else {
+    userId = await getUserIdFromUsername(slug);
   }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
 
-  console.log("eventTypeId", eventTypeId);
+export async function getEventType(input: TGetScheduleInputSchema) {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+    }));
+
+  if (!eventTypeId) {
+    return null;
+  }
 
   const startSecondPrismaEventTypeGet = performance.now();
   const queries = [];
-
-  if (!eventType) {
-    console.log("Getting second event type!");
-    eventType = await prisma.eventType.findUnique({
-      where: {
-        id: eventTypeId,
-      },
-      select: {
-        id: true,
-        slug: true,
-        minimumBookingNotice: true,
-        length: true,
-        offsetStart: true,
-        seatsPerTimeSlot: true,
-        timeZone: true,
-        slotInterval: true,
-        beforeEventBuffer: true,
-        afterEventBuffer: true,
-        bookingLimits: true,
-        durationLimits: true,
-        schedulingType: true,
-        periodType: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodCountCalendarDays: true,
-        periodDays: true,
-        metadata: true,
-        // THIS IS SUPER SLOW - Adds around 600ms on QA database
-        // users: {
-        //   select: {
-        //     id: true,
-        //     credentials: true,
-        //     //...availabilityUserSelect,
-        //   },
-        // },
-      },
-    });
-  }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: eventTypeId,
+    },
+    select: {
+      id: true,
+      slug: true,
+      minimumBookingNotice: true,
+      length: true,
+      offsetStart: true,
+      seatsPerTimeSlot: true,
+      timeZone: true,
+      slotInterval: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      bookingLimits: true,
+      durationLimits: true,
+      schedulingType: true,
+      periodType: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      periodDays: true,
+      metadata: true,
+      // THIS IS SUPER SLOW - Adds around 600ms on QA database
+      // users: {
+      //   select: {
+      //     id: true,
+      //     credentials: true,
+      //     //...availabilityUserSelect,
+      //   },
+      // },
+    },
+  });
 
   const endSecondPrismaEventTypeGet = performance.now();
   console.log("secondGetEventType", endSecondPrismaEventTypeGet - startSecondPrismaEventTypeGet);
@@ -311,7 +285,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
   }
 
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
