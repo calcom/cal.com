@@ -79,6 +79,9 @@ const MembersView = () => {
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.organizationId,
+  });
 
   const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
@@ -109,13 +112,17 @@ const MembersView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+
   return (
     <>
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
         CTA={
-          isAdmin ? (
+          isAdmin || isOrgAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
@@ -152,7 +159,7 @@ const MembersView = () => {
               </>
             )}
 
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate) && (
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} />
                 <hr className="border-subtle my-8" />
@@ -167,7 +174,7 @@ const MembersView = () => {
               />
             )}
 
-            {team && isAdmin && (
+            {team && (isAdmin || isOrgAdminOrOwner) && (
               <>
                 <hr className="border-subtle my-8" />
                 <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />

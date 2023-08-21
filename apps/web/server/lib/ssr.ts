@@ -7,6 +7,10 @@ import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
+// TODO: Consolidate this constant
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const CalComVersion = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
+
 /**
  * Initialize server-side rendering tRPC helpers.
  * Provides a method to prefetch tRPC-queries in a `getServerSideProps`-function.
@@ -25,7 +29,7 @@ export async function ssrInit(context: GetServerSidePropsContext) {
   });
 
   // always preload "viewer.public.i18n"
-  await ssr.viewer.public.i18n.fetch();
+  await ssr.viewer.public.i18n.fetch({ locale, CalComVersion });
   // So feature flags are available on first render
   await ssr.viewer.features.map.prefetch();
   // Provides a better UX to the users who have already upgraded.

@@ -52,6 +52,9 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
+ *               scheduleId:
+ *                 type: number
+ *                 description: The ID of the schedule for this event type
  *               hosts:
  *                 type: array
  *                 items:
