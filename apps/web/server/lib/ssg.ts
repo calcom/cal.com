@@ -9,6 +9,10 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { i18n } = require("@calcom/config/next-i18next.config");
 
+// TODO: Consolidate this constant
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const CalComVersion = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
+
 /**
  * Initialize static site rendering tRPC helpers.
  * Provides a method to prefetch tRPC-queries in a `getStaticProps`-function.
@@ -37,7 +41,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   });
 
   // always preload i18n
-  await ssg.viewer.public.i18n.fetch();
+  await ssg.viewer.public.i18n.fetch({ locale, CalComVersion });
 
   return ssg;
 }
