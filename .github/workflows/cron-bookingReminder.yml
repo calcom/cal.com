@@ -5,7 +5,7 @@ on:
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
     # Runs “At every 15th minute.” (see https://crontab.guru)
-    - cron: "0/15 * * * *"
+    - cron: "*/15 * * * *"
 jobs:
   cron-bookingReminder:
     env:
