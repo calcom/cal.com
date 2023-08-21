@@ -14,9 +14,7 @@ export async function getLocaleFromRequest(
   if (session?.user?.locale) return session.user.locale;
   let preferredLocale: string | null | undefined;
   if (req.headers["accept-language"]) {
-    preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"], {
-      loose: true,
-    }) as Maybe<string>;
+    preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
   }
   return preferredLocale ?? i18n.defaultLocale;
 }
