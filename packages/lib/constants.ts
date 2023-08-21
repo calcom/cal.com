@@ -93,3 +93,4 @@ export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES ||
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
 export const ORGANIZATION_MIN_SEATS = 30;
+export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;

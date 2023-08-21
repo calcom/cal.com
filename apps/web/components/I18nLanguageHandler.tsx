@@ -1,20 +1,15 @@
-import parser from "accept-language-parser";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
-import { locales } from "@calcom/lib/i18n";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-
-// eslint-disable-next-line turbo/no-undeclared-env-vars
-const CalComVersion = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
 
 function useViewerI18n(locale: string) {
   return trpc.viewer.public.i18n.useQuery(
-    { locale, CalComVersion },
+    { locale, CalComVersion: CALCOM_VERSION },
     {
-      initialData: { locale: null, i18n: {} },
-      refetchOnMount: "always",
+      placeholderData: { locale: null, i18n: {} },
       /**
        * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
        **/
@@ -30,10 +25,7 @@ function useClientLocale() {
   // If the user is logged in, use their locale
   if (session.data?.user.locale) return session.data.user.locale;
   // If the user is not logged in, use the browser locale
-  if (typeof window !== "undefined") {
-    const browserLocale = parser.pick(locales, window.navigator.language, { loose: true });
-    return browserLocale || window.navigator.language;
-  }
+  if (typeof window !== "undefined") return window.navigator.language;
   // If the browser is not available, use English
   return "en";
 }
