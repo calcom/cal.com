@@ -21,7 +21,7 @@ import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useEvent } from "./utils/event";
+import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
@@ -40,7 +40,19 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
   entity,
+  duration,
 }: BookerProps) => {
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
+  useScheduleForEvent({
+    prefetchNextMonth: false,
+    username,
+    eventSlug,
+    month,
+    duration,
+  });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -195,7 +207,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed right-4 top-4 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
@@ -268,7 +280,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-col px-5 py-3 pb-0 md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -287,7 +299,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
             hasDarkBackground ? "dark" : "",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
