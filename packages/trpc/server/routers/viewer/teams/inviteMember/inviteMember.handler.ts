@@ -35,7 +35,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
 
-  await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
+  await checkPermissions({
+    userId: ctx.user.id,
+    teamId:
+      ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
+    isOrg: input.isOrg,
+  });
 
   const translation = await getTranslation(input.language ?? "en", "common");
 
