@@ -14,7 +14,6 @@ export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
   username: string;
-  organizationSlug?: string | null | undefined;
   eventTypeId?: number;
   startTime: string;
   beforeEventBuffer?: number;
@@ -22,6 +21,8 @@ export async function getBusyTimes(params: {
   endTime: string;
   selectedCalendars: SelectedCalendar[];
   seatedEvent?: boolean;
+  rescheduleUid?: string | null;
+  duration?: number | null;
 }) {
   const {
     credentials,
@@ -30,11 +31,12 @@ export async function getBusyTimes(params: {
     eventTypeId,
     startTime,
     endTime,
-    organizationSlug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars,
     seatedEvent,
+    rescheduleUid,
+    duration,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -69,9 +71,14 @@ export async function getBusyTimes(params: {
    */
   performance.mark("prismaBookingGetStart");
 
+  const startTimeDate =
+    rescheduleUid && duration ? dayjs(startTime).subtract(duration, "minute").toDate() : new Date(startTime);
+  const endTimeDate =
+    rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
+
   const sharedQuery = {
-    startTime: { gte: new Date(startTime) },
-    endTime: { lte: new Date(endTime) },
+    startTime: { gte: startTimeDate },
+    endTime: { lte: endTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
@@ -98,6 +105,7 @@ export async function getBusyTimes(params: {
     },
     select: {
       id: true,
+      uid: true,
       startTime: true,
       endTime: true,
       title: true,
@@ -140,6 +148,9 @@ export async function getBusyTimes(params: {
         // doing this allows using the map later to remove the ranges from calendar busy times.
         delete bookingSeatCountMap[bookedAt];
       }
+      if (rest.uid === rescheduleUid) {
+        return aggregate;
+      }
       aggregate.push({
         start: dayjs(startTime)
           .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
@@ -165,8 +176,7 @@ export async function getBusyTimes(params: {
       credentials,
       startTime,
       endTime,
-      selectedCalendars,
-      organizationSlug
+      selectedCalendars
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
@@ -182,6 +192,17 @@ export async function getBusyTimes(params: {
         end: dayjs(end),
       };
     });
+
+    if (rescheduleUid) {
+      const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
+      // calendar busy time from original rescheduled booking should not be blocked
+      if (originalRescheduleBooking) {
+        openSeatsDateRanges.push({
+          start: dayjs(originalRescheduleBooking.startTime),
+          end: dayjs(originalRescheduleBooking.endTime),
+        });
+      }
+    }
 
     const result = subtract(
       calendarBusyTimes.map((value) => ({
@@ -207,6 +228,65 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
+  return busyTimes;
+}
+
+export async function getBusyTimesForLimitChecks(params: {
+  userId: number;
+  eventTypeId: number;
+  startDate: Date;
+  endDate: Date;
+}) {
+  const { userId, eventTypeId, startDate, endDate } = params;
+  logger.silly(
+    `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+    })}`
+  );
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      // FIXME: bookings that overlap on one side will never be counted
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+    },
+    select: {
+      id: true,
+      startTime: true,
+      endTime: true,
+      eventType: {
+        select: {
+          id: true,
+        },
+      },
+      title: true,
+    },
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventType?.id}-booking-${id}`,
+  }));
+
+  logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
+  performance.mark("getBusyTimesForLimitChecksEnd");
+  performance.measure(
+    `prisma booking get for limits took $1'`,
+    "getBusyTimesForLimitChecksStart",
+    "getBusyTimesForLimitChecksEnd"
+  );
   return busyTimes;
 }
 

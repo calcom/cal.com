@@ -1,4 +1,5 @@
 import { type PrismaClient, Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
@@ -160,24 +161,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const userEventTypes = user.eventTypes.map(mapEventType);
-  // backwards compatibility, TMP:
-  const typesRaw = (
-    await prisma.eventType.findMany({
-      where: {
-        userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        team: null,
-      },
-      select: eventTypeSelect,
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-    })
-  ).map(mapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -196,15 +179,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-    const oldItem = hashMap[newItem.id];
-    hashMap[newItem.id] = { ...oldItem, ...newItem };
-    return hashMap;
-  }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-
-  const mergedEventTypes = Object.values(eventTypesHashMap)
-    .map((eventType) => eventType)
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+  const unmanagedEventTypes = userEventTypes.filter(
+    (evType) => evType.schedulingType !== SchedulingType.MANAGED
+  );
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
@@ -216,7 +193,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,
@@ -301,12 +278,12 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
 export function getPrismaWhereUserIdFromFilter(
   userId: number,
-  filters: NonNullable<TEventTypeInputSchema>["filters"]
+  filters: NonNullable<TEventTypeInputSchema>["filters"] | undefined
 ) {
   if (!filters || !hasFilter(filters)) {
     return userId;
   } else if (filters.userIds?.[0] === userId) {
     return userId;
   }
-  return null;
+  return 0;
 }

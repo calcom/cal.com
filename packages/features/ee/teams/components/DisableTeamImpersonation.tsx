@@ -23,9 +23,6 @@ const DisableTeamImpersonation = ({
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.teams.getMembershipbyUser.invalidate();
     },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
-    },
   });
   if (query.isLoading) return <></>;
 

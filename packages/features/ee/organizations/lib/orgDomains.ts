@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 
 /**
@@ -46,7 +48,7 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}`;
+  return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}/`;
 }
 
 export function getSlugOrRequestedSlug(slug: string) {
@@ -60,5 +62,5 @@ export function getSlugOrRequestedSlug(slug: string) {
         },
       },
     ],
-  };
+  } satisfies Prisma.TeamWhereInput;
 }

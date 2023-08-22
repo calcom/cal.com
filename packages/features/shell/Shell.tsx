@@ -12,6 +12,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -23,12 +24,12 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
@@ -111,7 +112,6 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-
   useEffect(() => {
     if (isPublic) {
       return;
@@ -132,7 +132,6 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
 }
 
 function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
-  const router = useRouter();
   const bannerRef = useRef<HTMLDivElement | null>(null);
 
   useIsomorphicLayoutEffect(() => {
@@ -307,8 +306,9 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const { data: avatar } = useAvatarQuery();
   const utils = trpc.useContext();
+  const bookerUrl = useBookerUrl();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -372,7 +372,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+              imageSrc={bookerUrl + "/" + user.username + "/avatar.png"}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -547,7 +547,7 @@ const navigation: NavigationItemType[] = [
     icon: Grid,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path?.startsWith(item.href) || path?.startsWith("/v2" + item.href);
+      return path?.startsWith(item.href) && !path?.includes("routing-forms/");
     },
     child: [
       {
@@ -556,8 +556,7 @@ const navigation: NavigationItemType[] = [
         isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path?.startsWith(item.href) || path?.startsWith("/v2" + item.href)) &&
-            !path.includes("/installed")
+            path?.startsWith(item.href) && !path?.includes("routing-forms/") && !path?.includes("/installed")
           );
         },
       },
@@ -576,9 +575,9 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/routing-forms/forms",
+    href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/routing-forms/"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
   },
   {
     name: "workflows",
@@ -656,9 +655,10 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+            "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+            item.child ? `[&[aria-current='page']]:bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
             isChild
-              ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+              ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
@@ -788,9 +788,6 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-const getOrganizationUrl = (slug: string) =>
-  `${slug}.${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace?.(/http(s*):\/\//, "")}`;
-
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
@@ -798,7 +795,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const publicPageUrl = useMemo(() => {
     if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
+    const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.organizationId, user?.username]);
 
@@ -833,7 +830,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
             {!isOrgBrandingDataFetched ? null : orgBranding ? (
-              <Link href="/event-types" className="px-1.5">
+              <Link href="/settings/organizations/profile" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
@@ -987,7 +984,7 @@ export function ShellMain(props: LayoutProps) {
                       : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                   )}>
-                  {props.CTA}
+                  {isLocaleReady && props.CTA}
                 </div>
               )}
               {props.actions && props.actions}
