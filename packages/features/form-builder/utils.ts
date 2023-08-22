@@ -5,7 +5,7 @@ import type { fieldSchema } from "./schema";
 
 export const preprocessNameFieldDataWithVariant = (
   variantName: "fullName" | "firstAndLastName",
-  value: string | Record<"firstName" | "lastName", string>
+  value: string | Record<"firstName" | "lastName", string> | undefined
 ) => {
   // We expect an object here, but if we get a string, then we will try to transform it into the appropriate object
   if (variantName === "firstAndLastName") {
@@ -16,7 +16,7 @@ export const preprocessNameFieldDataWithVariant = (
   }
 };
 
-export const getFullName = (name: string | { firstName: string; lastName?: string }) => {
+export const getFullName = (name: string | { firstName: string; lastName?: string } | undefined) => {
   if (!name) {
     return "";
   }
@@ -29,8 +29,9 @@ export const getFullName = (name: string | { firstName: string; lastName?: strin
   return nameString;
 };
 
-function getFirstAndLastName(value: string | Record<"firstName" | "lastName", string>) {
+function getFirstAndLastName(value: string | Record<"firstName" | "lastName", string> | undefined) {
   let newValue: Record<"firstName" | "lastName", string>;
+  value = value || "";
   if (typeof value === "string") {
     try {
       // Support name={"firstName": "John", "lastName": "Johny Janardan"} for prefilling

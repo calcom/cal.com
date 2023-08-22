@@ -2,8 +2,10 @@ import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
+import type { API } from "mailhog";
 
 import dayjs from "@calcom/dayjs";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -116,7 +118,7 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
+export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (
@@ -330,7 +332,19 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       await page.goto("/auth/logout");
     },
     deleteAll: async () => {
+      const emailMessageIds: string[] = [];
       const ids = store.users.map((u) => u.id);
+      for (const user of store.users) {
+        const emailMessages = await emails.search(user.email);
+        if (emailMessages && emailMessages.count > 0) {
+          emailMessages.items.forEach((item) => {
+            emailMessageIds.push(item.ID);
+          });
+        }
+      }
+      for (const id of emailMessageIds) {
+        await emails.deleteMessage(id);
+      }
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
       store.users = [];
     },
@@ -387,6 +401,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: { team: { select: { children: true, metadata: true, name: true } } },
       });
     },
+    getFirstEventAsOwner: async () =>
+      prisma.eventType.findFirstOrThrow({
+        where: {
+          userId: user.id,
+        },
+      }),
     getFirstTeamEvent: async (teamId: number) => {
       return prisma.eventType.findFirstOrThrow({
         where: {
@@ -397,8 +417,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
       setupEventWithPrice(eventType, store.page),
-    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
-      bookAndPaidEvent(user, eventType, store.page),
+    bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+      bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -408,6 +428,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       });
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
+    confirmPendingPayment: async () => confirmPendingPayment(store.page),
   };
 };
 
@@ -448,6 +469,36 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
         : undefined,
   };
 };
+
+async function confirmPendingPayment(page: Page) {
+  await page.waitForURL(new RegExp("/booking/*"));
+
+  const url = page.url();
+
+  const params = new URLSearchParams(url.split("?")[1]);
+
+  const id = params.get("payment_intent");
+
+  if (!id) throw new Error(`Payment intent not found in url ${url}`);
+
+  const payload = JSON.stringify(
+    { type: "payment_intent.succeeded", data: { object: { id } }, account: "e2e_test" },
+    null,
+    2
+  );
+
+  const signature = stripe.webhooks.generateTestHeaderString({
+    payload,
+    secret: process.env.STRIPE_WEBHOOK_SECRET as string,
+  });
+
+  const response = await page.request.post("/api/integrations/stripepayment/webhook", {
+    data: payload,
+    headers: { "stripe-signature": signature },
+  });
+
+  if (response.status() !== 200) throw new Error(`Failed to confirm payment. Response: ${response.text()}`);
+}
 
 // login using a replay of an E2E routine.
 export async function login(
@@ -500,7 +551,7 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
   await page.getByTestId("update-eventtype").click();
 }
 
-export async function bookAndPaidEvent(
+export async function bookAndPayEvent(
   user: Pick<Prisma.User, "username">,
   eventType: Pick<Prisma.EventType, "slug">,
   page: Page

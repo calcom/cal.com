@@ -30,6 +30,7 @@ export default function Type({
   booking,
   away,
   isBrandingHidden,
+  isSEOIndexable,
   rescheduleUid,
   entity,
   duration,
@@ -41,6 +42,7 @@ export default function Type({
         eventSlug={slug}
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
+        isSEOIndexable={isSEOIndexable ?? true}
         entity={entity}
       />
       <Booker
@@ -128,6 +130,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       away: false,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
+      isSEOIndexable: true,
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
@@ -154,6 +157,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     select: {
       away: true,
       hideBranding: true,
+      allowSEOIndexing: true,
     },
   });
 
@@ -199,6 +203,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      isSEOIndexable: user?.allowSEOIndexing,
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,

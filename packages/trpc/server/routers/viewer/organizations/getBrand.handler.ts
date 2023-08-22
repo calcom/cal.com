@@ -14,3 +14,5 @@ export const getBrandHandler = async ({ ctx }: VerifyCodeOptions) => {
 
   return await getBrand(user.organizationId);
 };
+
+export default getBrandHandler;

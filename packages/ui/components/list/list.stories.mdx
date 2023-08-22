@@ -1,21 +1,29 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
-import { List, ListItem } from './List';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { List, ListItem } from "./List";
 
 <Meta title="UI/List" component={List} />
 
-<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023"/>
+<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023" />
 
 ## Definition
+
 Sums it up nicely.
 
 <Canvas>
-  <Story
-    name="List">
+  <Story name="List">
     <VariantsTable titles={[]} columnMinWidth={150}>
-      <VariantRow variant="Default">
-        TODO!
-      </VariantRow>
+      <VariantRow variant="Default">TODO!</VariantRow>
     </VariantsTable>
   </Story>
 </Canvas>
