@@ -56,7 +56,15 @@ function getiCalEventAsString(booking: Booking) {
       email: booking.user?.email || "",
       name: booking.user?.name || "",
     },
-    attendees: [{ name: booking.attendees[0].name, email: booking.attendees[0].email }],
+    attendees: [
+      {
+        name: booking.attendees[0].name,
+        email: booking.attendees[0].email,
+        partstat: "ACCEPTED",
+        role: "REQ-PARTICIPANT",
+        rsvp: true,
+      },
+    ],
   });
 
   if (icsEvent.error) {

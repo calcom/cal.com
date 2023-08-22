@@ -2,6 +2,7 @@ import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
+import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
 import { v4 as uuidv4 } from "uuid";
 
@@ -46,7 +47,7 @@ async function getBatchId() {
   return batchIdResponse[1].batch_id as string;
 }
 
-function getiCalEventAsString(evt: BookingInfo) {
+function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();
 
   const icsEvent = createEvent({
@@ -66,6 +67,9 @@ function getiCalEventAsString(evt: BookingInfo) {
       {
         name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
         email: evt.attendees[0].email,
+        partstat: status || "ACCEPTED",
+        role: "REQ-PARTICIPANT",
+        rsvp: true,
       },
     ],
   });
@@ -222,11 +226,18 @@ export const scheduleEmailReminder = async (
 
   const batchId = await getBatchId();
 
-  function sendEmail(data: Partial<MailData>) {
+  function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
     if (!process.env.SENDGRID_API_KEY) {
       console.info("No sendgrid API key provided, skipping email");
       return Promise.resolve();
     }
+
+    const status =
+      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
+        ? "COMPLETED"
+        : triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
+        ? "DECLINED"
+        : "ACCEPTED";
 
     return sgMail.send({
       to: data.to,
@@ -246,7 +257,7 @@ export const scheduleEmailReminder = async (
       attachments: includeCalendarEvent
         ? [
             {
-              content: Buffer.from(getiCalEventAsString(evt) || "").toString("base64"),
+              content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
               filename: "event.ics",
               type: "text/calendar; method=REQUEST",
               disposition: "attachment",
@@ -265,7 +276,7 @@ export const scheduleEmailReminder = async (
     try {
       if (!sendTo) throw new Error("No email addresses provided");
       const addressees = Array.isArray(sendTo) ? sendTo : [sendTo];
-      const promises = addressees.map((email) => sendEmail({ to: email }));
+      const promises = addressees.map((email) => sendEmail({ to: email }, triggerEvent));
       // TODO: Maybe don't await for this?
       await Promise.all(promises);
     } catch (error) {
@@ -284,10 +295,13 @@ export const scheduleEmailReminder = async (
     ) {
       try {
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
-        await sendEmail({
-          to: sendTo,
-          sendAt: scheduledDate.unix(),
-        });
+        await sendEmail(
+          {
+            to: sendTo,
+            sendAt: scheduledDate.unix(),
+          },
+          triggerEvent
+        );
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
