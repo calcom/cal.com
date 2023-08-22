@@ -301,6 +301,9 @@ const DatePicker = ({
   );
 };
 
+/**
+ * Takes care of selecting a valid date in the month if the selected date is not available in the month
+ */
 const useHandleInitialDateSelection = ({
   daysToRenderForTheMonth,
   selected,
@@ -310,6 +313,10 @@ const useHandleInitialDateSelection = ({
   selected: Dayjs | Dayjs[] | null | undefined;
   onChange: (date: Dayjs | null) => void;
 }) => {
+  // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+  if (selected instanceof Array) {
+    return;
+  }
   const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
 
   const isSelectedDateAvailable = selected
