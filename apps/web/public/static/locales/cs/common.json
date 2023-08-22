@@ -1923,7 +1923,7 @@
   "my_settings": "Moje nastavení",
   "crm": "CRM",
   "messaging": "Zasílání zpráv",
-  "sender_id_info": "Jméno nebo číslo zobrazené jako odesílatel SMS (některé země nepovolují alfanumerické ID odesílatele).",
+  "sender_id_info": "Jméno nebo číslo zobrazené jako odesílatel SMS (některé země nepovolují alfanumerické ID odesílatele)",
   "org_admins_can_create_new_teams": "Nové týmy může vytvářet pouze správce vaší organizace",
   "google_new_spam_policy": "Nové zásady společnosti Google týkající se nevyžádané pošty by mohly zabránit tomu, abyste dostávali e-mailová oznámení a oznámení kalendáře o této rezervaci.",
   "resolve": "Vyřešit",

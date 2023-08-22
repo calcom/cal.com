@@ -1905,7 +1905,7 @@
   "ill_do_this_later": "אעשה זאת מאוחר יותר",
   "verify_your_email": "אימות כתובת הדוא״ל",
   "enter_digit_code": "הזן/הזיני את הקוד בן 6 הספרות ששלחנו לכתובת {{email}}",
-  "verify_email_organization": "אמת/י את כתובת הדוא\"ל שלך כדי ליצור ארגון",
+  "verify_email_organization": "אמת/י את כתובת הדוא״ל שלך כדי ליצור ארגון",
   "code_provided_invalid": "הקוד לא תקין, נסה/י שוב",
   "email_already_used": "כתובת הדוא\"ל הזו כבר בשימוש",
   "organization_admin_invited_heading": "הוזמנת להצטרף אל {{orgName}}",
