@@ -1918,7 +1918,7 @@
   "org_no_teams_yet_description": "관리자인 경우 여기에 표시할 팀을 만들어야 합니다.",
   "set_up": "설정",
   "set_up_your_profile": "사용자 프로필 설정",
-  "set_up_your_profile_description": "{{orgName}} 내에서 귀하가 누구인지, 그리고 귀하의 공개 링크에 언제 참여하는지 사람들에게 알려줍니다.",
+  "set_up_your_profile_description": "{{orgName}} 내에서 귀하가 누구인지, 그리고 귀하의 공개 링크에 언제 참여하는지 사람들에게 알려주세요.",
   "my_profile": "내 프로필",
   "my_settings": "내 설정",
   "crm": "CRM",
@@ -1940,5 +1940,5 @@
   "insights_user_filter": "사용자: {{userName}}",
   "insights_subtitle": "이벤트 전반에 걸친 예약 Insights 보기",
   "custom_plan": "사용자 정의 플랜",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하십시오 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
