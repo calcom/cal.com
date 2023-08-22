@@ -313,7 +313,7 @@
   "bookerlayout_week_view": "Săptămânal",
   "bookerlayout_column_view": "Coloană",
   "bookerlayout_error_min_one_enabled": "Trebuie activat cel puțin un aspect.",
-  "bookerlayout_error_default_not_enabled": "Aspectul selectat ca vizualizare implicită nu face parte din aspectele activate.",
+  "bookerlayout_error_default_not_enabled": "Aspectul selectat ca vizualizare implicită nu se numără printre aspectele activate.",
   "bookerlayout_error_unknown_layout": "Aspectul selectat nu este un aspect valid.",
   "bookerlayout_override_global_settings": "Puteți gestiona acest parametru pentru toate tipurile de evenimente din <2>setări/aspect</2> sau <6>puteți suprascrie doar pentru acest eveniment</6>.",
   "unexpected_error_try_again": "A apărut o eroare neașteptată. Încercați din nou.",
