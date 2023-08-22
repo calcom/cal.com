@@ -1902,7 +1902,7 @@
   "code_provided_invalid": "الرمز المقدم غير صالح، حاول ثانيةً",
   "email_already_used": "البريد الإلكتروني مستخدم بالفعل",
   "organization_admin_invited_heading": "تمت دعوتك للانضمام إلى {{orgName}}",
-  "organization_admin_invited_body": "انضم إلى فريقك في {{orgName}} وابدأ بالتركيز على الاجتماع، وليس عقد الاجتماعات!",
+  "organization_admin_invited_body": "انضم إلى فريقك في {{orgName}} وابدأ الانشغال بالاجتماعاتك، وليس بكيفية الإعداد لها!",
   "duplicated_slugs_warning": "لا يمكن إنشاء الفرق التالية بسبب تكرار الكلمات اللطيفة (Slug): {{slugs}}",
   "team_names_empty": "لا يمكن أن تكون أسماء الفرق فارغة",
   "team_names_repeated": "لا يمكن تكرار أسماء الفرق",
