@@ -439,12 +439,18 @@ type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "loc
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
+  // ignores adding the worker-index after username
+  useExactUsername?: boolean;
 };
 
 // creates the actual user in the db.
 const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
   // build a unique name for our user
-  const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+  const uname =
+    opts?.useExactUsername && opts?.username
+      ? opts.username
+      : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+
   return {
     username: uname,
     name: opts?.name,
