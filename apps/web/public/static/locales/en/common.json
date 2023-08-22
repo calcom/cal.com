@@ -872,6 +872,7 @@
   "account_managed_by_identity_provider_description": "To change your email, password, enable two-factor authentication and more, please visit your {{provider}} account settings.",
   "signin_with_google": "Sign in with Google",
   "signin_with_saml": "Sign in with SAML",
+  "signin_with_saml_oidc": "Sign in with SAML/OIDC",
   "you_will_need_to_generate": "You will need to generate an access token from your old scheduling tool.",
   "import": "Import",
   "import_from": "Import from",
