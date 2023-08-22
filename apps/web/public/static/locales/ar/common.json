@@ -1931,6 +1931,6 @@
   "insights_all_org_filter": "الكل",
   "insights_team_filter": "الفريق: {{teamName}}",
   "insights_user_filter": "المستخدم: {{userName}}",
-  "insights_subtitle": "عرض رؤى الحجز عبر فعالياتك",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف خيوطك الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "insights_subtitle": "عرض Insights الحجز عبر أحداثك",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
