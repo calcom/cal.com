@@ -170,6 +170,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     onlyInstalled: true,
   });
 
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -466,6 +467,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               ...input
             } = values;
 
+            let emailMeta;
+
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
               if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
@@ -488,9 +491,24 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-            const { availability, ...rest } = input;
+
+            if (connectedCalendarsQuery.data?.connectedCalendars.length && input.destinationCalendar) {
+              const organizerEmail = connectedCalendarsQuery.data?.connectedCalendars
+                .map((connected) => connected.primary)
+                .find((cal) => cal?.externalId === input.destinationCalendar.externalId)?.email;
+              emailMeta = { organizerEmail, isDefaultEmail: false };
+            }
+
+            if (!input.destinationCalendar) {
+              // when no email is selected, use default email in calendar
+              emailMeta = {
+                organizerEmail: connectedCalendarsQuery.data?.destinationCalendar.primaryEmail,
+                isDefaultEmail: true,
+              };
+            }
+
             updateMutation.mutate({
-              ...rest,
+              ...input,
               locations,
               recurringEvent,
               periodStartDate: periodDates.startDate,
@@ -503,7 +521,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
-              metadata,
+              metadata: { ...metadata, ...emailMeta },
               customInputs,
             });
           }}>
