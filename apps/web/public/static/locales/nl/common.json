@@ -1916,7 +1916,7 @@
   "code_provided_invalid": "De opgegeven code is ongeldig, probeer het opnieuw",
   "email_already_used": "Het e-mailadres wordt al gebruikt",
   "organization_admin_invited_heading": "U bent uitgenodigd om lid te worden van {{orgName}}",
-  "organization_admin_invited_body": "Word lid van uw team bij {{orgName}} en begin u met het richten op afspraken, niet op het maken van afspraken!",
+  "organization_admin_invited_body": "Word lid van uw team bij {{orgName}} en begin met het richten op afspraken, niet op het maken van afspraken!",
   "duplicated_slugs_warning": "De volgende teams konden niet worden gemaakt vanwege dubbele slugs: {{slugs}}",
   "team_names_empty": "Teamnamen mogen niet leeg zijn",
   "team_names_repeated": "Teamnamen mogen niet herhaald worden",
