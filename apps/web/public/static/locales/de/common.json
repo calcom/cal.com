@@ -1933,7 +1933,7 @@
   "organization_admin_invited_body": "Schließen Sie sich Ihrem Team bei {{orgName}} an und konzentrieren Sie sich auf Ihre Meetings, nicht auf das Planen von Meetings!",
   "duplicated_slugs_warning": "Die folgenden Teams konnten aufgrund von doppelten Slugs nicht erstellt werden: {{slugs}}",
   "team_names_empty": "Teamnamen dürfen nicht leer sein",
-  "team_names_repeated": "Teamnamen müssen einzigartig sein",
+  "team_names_repeated": "Teamnamen dürfen nicht wiederholt vorkommen",
   "user_belongs_organization": "Der Benutzer gehört einer Organization an",
   "org_no_teams_yet": "Diese Organization hat noch keine Teams",
   "org_no_teams_yet_description": "Falls Sie ein Administrator sind, sollten Sie unbedingt Teams erstellen, welche hier angezeigt werden können.",
@@ -1959,7 +1959,7 @@
   "insights_all_org_filter": "Alle Apps",
   "insights_team_filter": "Team: {{teamName}}",
   "insights_user_filter": "Benutzer: {{userName}}",
-  "insights_subtitle": "Sehen Sie sich Buchungs-Insights zu allen Ihren Termine an",
+  "insights_subtitle": "Sehen Sie sich Buchungs-Insights zu Ihren Termine an",
   "custom_plan": "Maßgeschneiderter Tarif",
   "email_embed": "E-Mail Einbettung",
   "add_times_to_your_email": "Zeiten zur E-Mail hinzufügen",
@@ -1982,5 +1982,5 @@
   "attendee_last_name_variable": "Nachname des Teilnehmers",
   "my_availability": "Meine Verfügbarkeit",
   "team_availability": "Teamverfügbarkeit",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Zeichenketten über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
