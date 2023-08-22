@@ -13,7 +13,7 @@
   "reset_password_subject": "{{appName}}: Anleitung zum Zurücksetzen des Passworts",
   "verify_email_subject": "{{appName}}: Bestätigen Sie Ihr Konto",
   "check_your_email": "Schauen Sie in Ihrem E-Mail-Postfach nach",
-  "verify_email_page_body": "Wir haben eine E-Mail an {{email}} gesendet. Es ist wichtig, Ihre E-Mail-Adresse zu bestätigen, um die beste Zustellbarkeit für E-Mails und Kalendernotifikationen von {{appName}} zu gewährleisten.",
+  "verify_email_page_body": "Wir haben eine E-Mail an {{email}} gesendet. Es ist wichtig, Ihre E-Mail-Adresse zu bestätigen, um die Zustellbarkeit für E-Mails und Kalenderbenachrichtigungen von {{appName}} zu gewährleisten.",
   "verify_email_banner_body": "Bestätigen Sie Ihre E-Mail-Adresse, um die beste Zustellbarkeit von E-Mails und Kalenderdaten zu gewährleisten",
   "verify_email_email_header": "Bestätigen Sie Ihre E-Mail-Adresse",
   "verify_email_email_button": "E-Mail bestätigen",

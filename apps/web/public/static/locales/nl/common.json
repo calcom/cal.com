@@ -12,7 +12,7 @@
   "have_any_questions": "Heeft u vragen? We zijn er om te helpen.",
   "reset_password_subject": "{{appName}}: Instructies voor het opnieuw instellen van uw wachtwoord",
   "verify_email_subject": "{{appName}}: verifieer je account",
-  "check_your_email": "Controleer je e-mail",
+  "check_your_email": "Controleer uw e-mail",
   "verify_email_page_body": "We hebben een e-mail naar {{email}} gestuurd. Het is belangrijk om uw e-mailadres te verifiëren om de beste bezorgbaarheid van e-mails en agenda's van {{appName}} te garanderen.",
   "verify_email_banner_body": "Verifieer uw e-mailadres om de beste bezorgbaarheid van e-mails en agenda's te garanderen",
   "verify_email_email_header": "Verifieer uw e-mailadres",

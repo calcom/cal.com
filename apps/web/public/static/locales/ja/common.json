@@ -1379,7 +1379,7 @@
   "routing_forms_send_email_owner": "所有者にメールを送信",
   "routing_forms_send_email_owner_description": "フォームの送信時に所有者にメールを送信します",
   "add_new_form": "新しいフォームを追加",
-  "add_new_team_form": "新しいフォームをチームに追加",
+  "add_new_team_form": "新しいフォームをチームに追加する",
   "create_your_first_route": "最初のルートを作成",
   "route_to_the_right_person": "フォームへの回答に基づいて適切なユーザーにルーティングする",
   "form_description": "予約者をルーティングするフォームを作成します",
