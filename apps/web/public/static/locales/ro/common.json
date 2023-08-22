@@ -339,7 +339,7 @@
   "error_with_status_code_occured": "A apărut o eroare la codul de stare {{status}}.",
   "error_event_type_url_duplicate": "Există deja un tip de eveniment cu această adresă URL.",
   "error_event_type_unauthorized_create": "Nu puteți crea acest eveniment",
-  "error_event_type_unauthorized_update": "Nu puteți edita acest eveniment",
+  "error_event_type_unauthorized_update": "Nu puteți modifica acest eveniment",
   "error_workflow_unauthorized_create": "Nu puteți crea acest flux de lucru",
   "error_schedule_unauthorized_create": "Nu puteți crea acest program",
   "booking_already_cancelled": "Această rezervare a fost deja anulată",

@@ -883,7 +883,7 @@
   "installed_app_automation_description": "どの自動化アプリを使用するかを構成する",
   "installed_app_web3_description": "予約ページでどの Web3 アプリを使用するかを構成します",
   "installed_app_messaging_description": "カスタム通知とリマインダーの設定にどのメッセージングアプリを使用するかを設定します",
-  "installed_app_crm_description": "会った人の記録にどの CRM アプリを使用するかを設定します",
+  "installed_app_crm_description": "会った人を記録するのにどの CRM アプリを使用するかを設定します",
   "analytics": "分析",
   "empty_installed_apps_headline": "アプリがインストールされていません",
   "empty_installed_apps_description": "アプリを使えば、ワークフローの質を高め、スケジュールライフを大幅に改善することができます。",
