@@ -4,6 +4,7 @@
 .cal-embed {
   border: 0px;
   min-height: 300px;
-  margin: 0 auto;
-  width: 100%;
+  margin: 0 auto 20px; /* Margin at the bottom*/
+  padding: 0 20px; /* Margin on the left and right */
+  width: calc(100%-40px); /*Substracting 2*20px padding from 100% width */
 }
