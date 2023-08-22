@@ -3792,6 +3792,50 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/auth@workspace:apps/auth":
+  version: 0.0.0-use.local
+  resolution: "@calcom/auth@workspace:apps/auth"
+  dependencies:
+    "@auth/core": ^0.1.4
+    "@calcom/app-store": "*"
+    "@calcom/app-store-cli": "*"
+    "@calcom/config": "*"
+    "@calcom/core": "*"
+    "@calcom/dayjs": "*"
+    "@calcom/embed-core": "workspace:*"
+    "@calcom/embed-react": "workspace:*"
+    "@calcom/embed-snippet": "workspace:*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/trpc": "*"
+    "@calcom/tsconfig": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    "@types/node": 16.9.1
+    "@types/react": 18.0.26
+    "@types/react-dom": ^18.0.9
+    eslint: ^8.34.0
+    eslint-config-next: ^13.2.1
+    next: ^13.4.6
+    next-auth: ^4.22.1
+    postcss: ^8.4.18
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    tailwindcss: ^3.3.1
+    typescript: ^4.9.4
+  languageName: unknown
+  linkType: soft
+
+"@calcom/basecamp3@workspace:packages/app-store/basecamp3":
+  version: 0.0.0-use.local
+  resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar"
@@ -4104,7 +4148,6 @@ __metadata:
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
     "@testing-library/react-hooks": ^8.0.1
-    dompurify: ^2.4.1
     framer-motion: ^10.12.8
     lexical: ^0.9.0
     react-select: ^5.7.0
@@ -4792,6 +4835,102 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/website@workspace:apps/website":
+  version: 0.0.0-use.local
+  resolution: "@calcom/website@workspace:apps/website"
+  dependencies:
+    "@algora/sdk": ^0.1.2
+    "@calcom/app-store": "*"
+    "@calcom/config": "*"
+    "@calcom/dayjs": "*"
+    "@calcom/embed-react": "workspace:^"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/tsconfig": "*"
+    "@calcom/ui": "*"
+    "@floating-ui/react-dom": ^1.0.0
+    "@headlessui/react": ^1.5.0
+    "@heroicons/react": ^1.0.6
+    "@hookform/resolvers": ^2.9.7
+    "@juggle/resize-observer": ^3.4.0
+    "@next/bundle-analyzer": ^13.1.6
+    "@radix-ui/react-accordion": ^1.0.0
+    "@radix-ui/react-dropdown-menu": ^2.0.5
+    "@radix-ui/react-navigation-menu": ^1.0.0
+    "@radix-ui/react-portal": ^1.0.0
+    "@radix-ui/react-slider": ^1.0.0
+    "@radix-ui/react-tabs": ^1.0.0
+    "@radix-ui/react-tooltip": ^1.0.0
+    "@stripe/stripe-js": ^1.35.0
+    "@tanstack/react-query": ^4.3.9
+    "@typeform/embed-react": ^1.2.4
+    "@types/bcryptjs": ^2.4.2
+    "@types/debounce": ^1.2.1
+    "@types/gtag.js": ^0.0.10
+    "@types/micro": 7.3.7
+    "@types/node": 16.9.1
+    "@types/react": 18.0.26
+    "@types/react-gtm-module": ^2.0.1
+    "@types/xml2js": ^0.4.11
+    "@vercel/analytics": ^0.1.6
+    "@vercel/edge-functions-ui": ^0.2.1
+    "@vercel/og": ^0.5.0
+    autoprefixer: ^10.4.12
+    bcryptjs: ^2.4.3
+    clsx: ^1.2.1
+    cobe: ^0.4.1
+    concurrently: ^7.6.0
+    cross-env: ^7.0.3
+    datocms-structured-text-to-plain-text: ^2.0.4
+    datocms-structured-text-utils: ^2.0.4
+    debounce: ^1.2.1
+    env-cmd: ^10.1.0
+    eslint: ^8.34.0
+    fathom-client: ^3.5.0
+    globby: ^13.1.3
+    gray-matter: ^4.0.3
+    gsap: ^3.11.0
+    i18n-unused: ^0.13.0
+    iframe-resizer-react: ^1.1.0
+    keen-slider: ^6.8.0
+    lucide-react: ^0.171.0
+    micro: ^10.0.1
+    next: ^13.4.6
+    next-auth: ^4.22.1
+    next-axiom: ^0.17.0
+    next-collect: ^0.2.1
+    next-i18next: ^13.2.2
+    next-seo: ^6.0.0
+    playwright: ^1.31.2
+    postcss: ^8.4.18
+    prism-react-renderer: ^1.3.5
+    react: ^18.2.0
+    react-confetti: ^6.0.1
+    react-datocms: ^3.1.0
+    react-device-detect: ^2.2.2
+    react-dom: ^18.2.0
+    react-fast-marquee: ^1.3.5
+    react-github-btn: ^1.4.0
+    react-hook-form: ^7.43.3
+    react-hot-toast: ^2.3.0
+    react-live-chat-loader: ^2.8.1
+    react-merge-refs: 1.1.0
+    react-twemoji: ^0.3.0
+    react-use-measure: ^2.1.1
+    react-wrap-balancer: ^1.0.0
+    remark: ^14.0.2
+    remark-html: ^14.0.1
+    stripe: ^9.16.0
+    tailwind-merge: ^1.13.2
+    tailwindcss: ^3.3.1
+    typescript: ^4.9.4
+    wait-on: ^7.0.1
+    xml2js: ^0.6.0
+    zod: ^3.20.2
   languageName: unknown
   linkType: soft
 
@@ -11981,15 +12120,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dompurify@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "@types/dompurify@npm:2.4.0"
-  dependencies:
-    "@types/trusted-types": "*"
-  checksum: b48cd81e997794ebc390c7c5bef1a67ec14a6f2f0521973e07e06af186c7583abe114d94d24868c0632b9573f5bd77131a4b76f3fffdf089ba99a4e53dd46c39
-  languageName: node
-  linkType: hard
-
 "@types/eslint-scope@npm:^3.7.3":
   version: 3.7.4
   resolution: "@types/eslint-scope@npm:3.7.4"
@@ -12650,7 +12780,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/trusted-types@npm:*, @types/trusted-types@npm:^2.0.2":
+"@types/trusted-types@npm:^2.0.2":
   version: 2.0.2
   resolution: "@types/trusted-types@npm:2.0.2"
   checksum: 3371eef5f1c50e1c3c07a127c1207b262ba65b83dd167a1c460fc1b135a3fb0c97b9f508efebd383f239cc5dd5b7169093686a692a501fde9c3f7208657d9b0d
@@ -15649,7 +15779,6 @@ __metadata:
     "@playwright/test": ^1.31.2
     "@snaplet/copycat": ^0.3.0
     "@testing-library/jest-dom": ^5.16.5
-    "@types/dompurify": ^2.4.0
     c8: ^7.13.0
     city-timezones: ^1.2.1
     cspell: ^7.0.0
@@ -18234,13 +18363,6 @@ __metadata:
   version: 2.3.3
   resolution: "dompurify@npm:2.3.3"
   checksum: 947e3661681bd183aae1cd08f991b14c6aa41fd188f6c801c5e916c2dc4575bbefbaa121ed06dbe0cb0f595545527d588a44b53bfc35d1cbb898c214dc0d7930
-  languageName: node
-  linkType: hard
-
-"dompurify@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "dompurify@npm:2.4.1"
-  checksum: 1169177465b3cbb25a44322937fba549f6c4e1a91b83245d144471be26619c835cccf0f8e20aa78c25ac11a06efd17cc1b9db9cacadceb78a4c08a1029eafee5
   languageName: node
   linkType: hard
 
@@ -28411,6 +28533,26 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: bf1257b7d80b9d027c99cbfa7ab9d47a2110ec804422b3e3d623bbb3c43e06df7bec4764ca1d852a6d62c76e35c8776efb19941f42ce738db9bc92e7f1b6281c
+  languageName: node
+  linkType: hard
+
+"playwright-core@npm:1.37.1":
+  version: 1.37.1
+  resolution: "playwright-core@npm:1.37.1"
+  bin:
+    playwright-core: cli.js
+  checksum: 69f818da2230057584140d5b3af7778a4f4a822b5b18d133abfc5d259128becb943c343a2ddf6b0635277a69f28983e83e2bc3fce23595ececb1e410475b6368
+  languageName: node
+  linkType: hard
+
+"playwright@npm:^1.31.2":
+  version: 1.37.1
+  resolution: "playwright@npm:1.37.1"
+  dependencies:
+    playwright-core: 1.37.1
+  bin:
+    playwright: cli.js
+  checksum: 99406ef3e15b83a659cb23ef1d92d9935789aad430580d1e0371087dfdf266891483c6f97cfa06bf5f49f081eacd44245d05d20714f98531edef4cc317044d6b
   languageName: node
   linkType: hard
 

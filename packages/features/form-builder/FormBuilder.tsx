@@ -30,6 +30,7 @@ import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
+import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -448,6 +449,9 @@ function FieldEditDialog({
                       required
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
+                      onChange={(e) => {
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                      }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||
                         fieldForm.getValues("editable") === "system-but-optional"

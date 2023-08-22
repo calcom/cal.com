@@ -5,6 +5,7 @@ import { hashSync as hash } from "bcryptjs";
 import type { API } from "mailhog";
 
 import dayjs from "@calcom/dayjs";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -416,8 +417,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
       setupEventWithPrice(eventType, store.page),
-    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
-      bookAndPaidEvent(user, eventType, store.page),
+    bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+      bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     // ths is for development only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -427,6 +428,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       });
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
+    confirmPendingPayment: async () => confirmPendingPayment(store.page),
   };
 };
 
@@ -437,12 +439,18 @@ type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "loc
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
+  // ignores adding the worker-index after username
+  useExactUsername?: boolean;
 };
 
 // creates the actual user in the db.
 const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
   // build a unique name for our user
-  const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+  const uname =
+    opts?.useExactUsername && opts?.username
+      ? opts.username
+      : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+
   return {
     username: uname,
     name: opts?.name,
@@ -467,6 +475,36 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
         : undefined,
   };
 };
+
+async function confirmPendingPayment(page: Page) {
+  await page.waitForURL(new RegExp("/booking/*"));
+
+  const url = page.url();
+
+  const params = new URLSearchParams(url.split("?")[1]);
+
+  const id = params.get("payment_intent");
+
+  if (!id) throw new Error(`Payment intent not found in url ${url}`);
+
+  const payload = JSON.stringify(
+    { type: "payment_intent.succeeded", data: { object: { id } }, account: "e2e_test" },
+    null,
+    2
+  );
+
+  const signature = stripe.webhooks.generateTestHeaderString({
+    payload,
+    secret: process.env.STRIPE_WEBHOOK_SECRET as string,
+  });
+
+  const response = await page.request.post("/api/integrations/stripepayment/webhook", {
+    data: payload,
+    headers: { "stripe-signature": signature },
+  });
+
+  if (response.status() !== 200) throw new Error(`Failed to confirm payment. Response: ${response.text()}`);
+}
 
 // login using a replay of an E2E routine.
 export async function login(
@@ -519,7 +557,7 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
   await page.getByTestId("update-eventtype").click();
 }
 
-export async function bookAndPaidEvent(
+export async function bookAndPayEvent(
   user: Pick<Prisma.User, "username">,
   eventType: Pick<Prisma.EventType, "slug">,
   page: Page
