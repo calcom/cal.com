@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
@@ -54,7 +55,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
-  const prevMetadata = teamMetadataSchema.parse(prevOrganisation.metadata);
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
@@ -68,10 +69,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeZone: input.timeZone,
     weekStart: input.weekStart,
     timeFormat: input.timeFormat,
-    metadata: {
-      ...prevMetadata,
-      ...input.metadata,
-    },
+    metadata: mergeMetadata({ ...input.metadata }),
   };
 
   if (input.slug) {
@@ -81,18 +79,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       !prevOrganisation.slug
     ) {
       // Save it on the metadata so we can use it later
-      data.metadata = {
-        requestedSlug: input.slug,
-      };
+      data.metadata = mergeMetadata({ requestedSlug: input.slug });
     } else {
       data.slug = input.slug;
-
-      // If we save slug, we don't need the requestedSlug anymore
-      const { requestedSlug: _, ...cleanMetadata } = prevMetadata || {};
-      data.metadata = {
-        ...cleanMetadata,
+      data.metadata = mergeMetadata({
+        // If we save slug, we don't need the requestedSlug anymore
+        requestedSlug: undefined,
         ...input.metadata,
-      };
+      });
     }
   }
 
