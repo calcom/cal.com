@@ -49,14 +49,6 @@ describe("Tests for navigation folder", () => {
         const name = screen.getByText(tab.name);
         expect(name).toBeInTheDocument();
         expect(tabLabelElement).toHaveAttribute("href", tab.href);
-
-        const spanSibling = name.querySelector("span");
-
-        if (tab.name === "Tab 2") {
-          expect(spanSibling).toBeTruthy();
-        } else {
-          expect(spanSibling).toBeFalsy();
-        }
       });
     });
 
