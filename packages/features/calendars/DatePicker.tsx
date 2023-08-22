@@ -69,7 +69,11 @@ export const Day = ({
       {...props}>
       {date.date()}
       {date.isToday() && (
-        <span className="absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full bg-white align-middle sm:translate-y-[12px]">
+        <span
+          className={classNames(
+            "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
+            active && "invert"
+          )}>
           <span className="sr-only">{t("today")}</span>
         </span>
       )}

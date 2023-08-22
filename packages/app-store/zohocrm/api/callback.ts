@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential(
     { appId: "zohocrm", type: "zohocrm_other_calendar" },
-    zohoCrmTokenInfo.data as any,
+    zohoCrmTokenInfo.data,
     req
   );
 
