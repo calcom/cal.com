@@ -92,7 +92,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextSlots) : (-extraDays - 1))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextSlots) : (-extraDays))}
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
@@ -100,7 +100,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : (extraDays + 1))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : (extraDays))}
           />
           {selectedDateMin3DaysDifference && (
             <Button

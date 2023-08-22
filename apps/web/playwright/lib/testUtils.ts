@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 
 import { test } from "./fixtures";

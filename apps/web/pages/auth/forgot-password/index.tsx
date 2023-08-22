@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";

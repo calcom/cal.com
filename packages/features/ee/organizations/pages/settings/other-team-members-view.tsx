@@ -1,12 +1,15 @@
 // import { debounce } from "lodash";
+import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Meta, showToast } from "@calcom/ui";
+import { Meta, showToast, Button } from "@calcom/ui";
+import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
@@ -51,7 +54,7 @@ const MembersView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const teamId = Number(searchParams.get("id"));
-
+  const session = useSession();
   const utils = trpc.useContext();
   const [offset, setOffset] = useState<number>(1);
   // const [query, setQuery] = useState<string | undefined>("");
@@ -60,6 +63,9 @@ const MembersView = () => {
   const limit = 100;
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState<boolean>(false);
   const [members, setMembers] = useState<Members>([]);
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.organizationId,
+  });
   const { data: team, isLoading: isTeamLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId },
     {
@@ -68,6 +74,16 @@ const MembersView = () => {
       },
     }
   );
+  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+        distinctUser: true,
+      },
+      {
+        enabled: searchParams !== null,
+      }
+    );
   const { data: membersFetch, isLoading: isLoadingMembers } =
     trpc.viewer.organizations.listOtherTeamMembers.useQuery(
       { teamId, limit, offset: (offset - 1) * limit },
@@ -89,38 +105,34 @@ const MembersView = () => {
     }
   }, [membersFetch]);
 
-  // useEffect(() => {
-  //   if (queryToFetch !== "") {
-  //     setMembers(membersFetch || []);
-  //     setLoadMore(false);
-  //   }
-  // }, [membersFetch, query]);
-
-  const isLoading = isTeamLoading || isLoadingMembers;
+  const isLoading = isTeamLoading || isLoadingMembers || isOrgListLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
-  // const debouncedFunction = debounce((query) => {
-  //   setQueryToFetch(query);
-  // }, 500);
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
   return (
     <>
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
-        // @TODO: Add this back in when we have the ability to invite members
-        // CTA={
-        //   <Button
-        //     type="button"
-        //     color="primary"
-        //     StartIcon={Plus}
-        //     className="ml-auto"
-        //     onClick={() => setShowMemberInvitationModal(true)}
-        //     data-testid="new-member-button">
-        //     {t("add")}
-        //   </Button>
-        // }
+        CTA={
+          isOrgAdminOrOwner ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={Plus}
+              className="ml-auto"
+              onClick={() => setShowMemberInvitationModal(true)}
+              data-testid="new-member-button">
+              {t("add")}
+            </Button>
+          ) : (
+            <></>
+          )
+        }
       />
       {!isLoading && (
         <>
@@ -157,6 +169,7 @@ const MembersView = () => {
             <MemberInvitationModal
               isLoading={inviteMemberMutation.isLoading}
               isOpen={showMemberInvitationModal}
+              orgMembers={orgMembersNotInThisTeam}
               teamId={team.id}
               disableCopyLink={true}
               onExit={() => setShowMemberInvitationModal(false)}
