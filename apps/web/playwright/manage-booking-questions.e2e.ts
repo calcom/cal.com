@@ -202,7 +202,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
     await addQuestionAndSave({
       page,
       question: {
-        name: "how_are_you",
+        name: "how-are-you",
         type: "Address",
         label: "How are you?",
         placeholder: "I'm fine, thanks",
@@ -214,7 +214,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
       const userFieldLocator = allFieldsLocator.nth(5);
 
-      await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
+      await expect(userFieldLocator.locator('[name="how-are-you"]')).toBeVisible();
       // There are 2 labels right now. Will be one in future. The second one is hidden
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
       await expect(userFieldLocator.locator("input")).toBeVisible();
@@ -223,18 +223,18 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Hide Question and see that it's not shown on Booking Page", async () => {
     await toggleQuestionAndSave({
-      name: "how_are_you",
+      name: "how-are-you",
       page,
     });
     await doOnFreshPreview(page, context, async (page) => {
-      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
+      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
       await expect(formBuilderFieldLocator).toBeHidden();
     });
   });
 
   await test.step("Show Question Again", async () => {
     await toggleQuestionAndSave({
-      name: "how_are_you",
+      name: "how-are-you",
       page,
     });
   });
@@ -242,7 +242,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
   await test.step('Try to book without providing "How are you?" response', async () => {
     await doOnFreshPreview(page, context, async (page) => {
       await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-      await expectErrorToBeThereFor({ page, name: "how_are_you" });
+      await expectErrorToBeThereFor({ page, name: "how-are-you" });
     });
   });
 
@@ -260,18 +260,18 @@ async function runTestStepsCommonForTeamAndUserEventType(
         page,
         context,
         async (page) => {
-          const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
+          const formBuilderFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
           await expect(formBuilderFieldLocator).toBeVisible();
           expect(
-            await formBuilderFieldLocator.locator('[name="how_are_you"]').getAttribute("placeholder")
+            await formBuilderFieldLocator.locator('[name="how-are-you"]').getAttribute("placeholder")
           ).toBe("I'm fine, thanks");
           expect(await getLabelText(formBuilderFieldLocator)).toBe("How are you?");
-          await formBuilderFieldLocator.locator('[name="how_are_you"]').fill("I am great!");
+          await formBuilderFieldLocator.locator('[name="how-are-you"]').fill("I am great!");
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
           expect(
-            await page.locator('[data-testid="field-response"][data-fob-field="how_are_you"]').innerText()
+            await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
 
           await waitFor(() => {
@@ -287,7 +287,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
               label: "email_address",
               value: "booker@example.com",
             },
-            how_are_you: {
+            "how-are-you": {
               label: "How are you?",
               value: "I am great!",
             },
@@ -303,7 +303,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
           });
 
           expect(payload.userFieldsResponses).toMatchObject({
-            how_are_you: {
+            "how-are-you": {
               label: "How are you?",
               value: "I am great!",
             },
