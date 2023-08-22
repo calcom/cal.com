@@ -196,9 +196,10 @@ export async function getEmailsReceivedByUser({
   emails,
   userEmail,
 }: {
-  emails: API;
+  emails?: API;
   userEmail: string;
 }): Promise<Messages | null> {
+  if (!emails) return null;
   return emails.search(userEmail, "to");
 }
 
@@ -208,11 +209,12 @@ export async function expectEmailsToHaveSubject({
   booker,
   eventTitle,
 }: {
-  emails: API;
+  emails?: API;
   organizer: { name?: string | null; email: string };
   booker: { name: string; email: string };
   eventTitle: string;
 }) {
+  if (!emails) return null;
   const emailsOrganizerReceived = await getEmailsReceivedByUser({ emails, userEmail: organizer.email });
   const emailsBookerReceived = await getEmailsReceivedByUser({ emails, userEmail: booker.email });
 
