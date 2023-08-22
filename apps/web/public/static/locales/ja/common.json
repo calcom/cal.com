@@ -1906,7 +1906,7 @@
   "verify_your_email": "メールを確認する",
   "enter_digit_code": "{{email}} に送信した 6 桁のコードを入力してください",
   "verify_email_organization": "組織を作成するには、メールを確認してください",
-  "code_provided_invalid": "提供されたコードは有効ではありません。もう一度お試しください",
+  "code_provided_invalid": "提供されたコードは無効です。もう一度お試しください",
   "email_already_used": "メールはすでに使用されています",
   "organization_admin_invited_heading": "{{orgName}} に参加するよう招待されました",
   "organization_admin_invited_body": "{{orgName}} のチームに参加して、これからはスケジューリングではなくミーティングに集中しましょう！",
