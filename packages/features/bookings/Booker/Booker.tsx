@@ -1,4 +1,4 @@
-import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
@@ -26,6 +26,7 @@ import { validateLayout } from "./utils/layout";
 import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
+const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
@@ -319,7 +320,7 @@ export const Booker = (props: BookerProps) => {
   if (props.isAway) return <Away />;
 
   return (
-    <LazyMotion features={domAnimation}>
+    <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />
     </LazyMotion>
   );
