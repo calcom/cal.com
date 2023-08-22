@@ -102,15 +102,19 @@ const BookerComponent = ({
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const totalWeekDays = 7;
   const addonDays =
-    nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays : 
-    nonEmptyScheduleDays.length === extraDays ? totalWeekDays : 0;
-    
+    nonEmptyScheduleDays.length < extraDays
+      ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
+      : nonEmptyScheduleDays.length === extraDays
+      ? totalWeekDays
+      : 0;
+
   //Taking one more avaliable slot(extraDays + 1) to claculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
-  const prefetchNextMonth = dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
+  const prefetchNextMonth =
+    dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
   const monthCount =
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
       ? 2
@@ -309,7 +313,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"

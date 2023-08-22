@@ -58,7 +58,7 @@ export function Header({
   if (isMonthView) {
     return <LayoutToggleWithData />;
   }
-  const endDate = selectedDate.add(extraDays - 1, "days");
+  const endDate = selectedDate.add(layout === BookerLayouts.COLUMN_VIEW ? extraDays : extraDays - 1, "days");
 
   const isSameMonth = () => {
     return selectedDate.format("MMM") === endDate.format("MMM");
@@ -92,7 +92,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextSlots) : (-extraDays))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
@@ -100,7 +100,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : (extraDays))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />
           {selectedDateMin3DaysDifference && (
             <Button
@@ -173,5 +173,3 @@ const LayoutToggle = ({
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };
-
-

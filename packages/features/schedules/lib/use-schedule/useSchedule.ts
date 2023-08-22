@@ -23,12 +23,12 @@ export const useSchedule = ({
   eventId,
   prefetchNextMonth,
   duration,
-  monthCount
+  monthCount,
   rescheduleUid,
   isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
-  const nextMonthDayjs = monthDayjs.add(monthCount? monthCount : 1, "month");
+  const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typscript.
