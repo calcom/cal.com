@@ -1,4 +1,4 @@
-import parser from "accept-language-parser";
+import { lookup } from "bcp-47-match";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
@@ -28,7 +28,7 @@ function useClientLocale(locales: string[]) {
   if (typeof window !== "undefined") {
     // This is the only way I found to ensure the prefetched locale is used on first render
     // FIXME: Find a better way to pick the best matching locale from the browser
-    return parser.pick(locales, window.navigator.language, { loose: true }) || window.navigator.language;
+    return lookup(locales, window.navigator.language) || window.navigator.language;
   }
   // If the browser is not available, use English
   return "en";
