@@ -1323,7 +1323,7 @@
   "connect_analytics_apps": "Analyse-Apps verbinden",
   "connect_other_apps": "Andere Apps verbinden",
   "connect_web3_apps": "web3-Apps verbinden",
-  "connect_messaging_apps": "Nachrichten-Apps verbinden",
+  "connect_messaging_apps": "Nachrichten-Apps verknüpfen",
   "connect_crm_apps": "CRM-Apps verbinden",
   "current_step_of_total": "Schritt {{currentStep}} von {{maxSteps}}",
   "add_variable": "Variable hinzufügen",
