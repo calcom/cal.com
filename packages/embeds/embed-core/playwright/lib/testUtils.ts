@@ -153,3 +153,10 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   return booking;
 }
+
+export async function installAppleCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+  await page.waitForURL("/apps/apple-calendar");
+  await page.click('[data-testid="install-app-button"]');
+}
