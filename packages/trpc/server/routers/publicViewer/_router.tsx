@@ -1,9 +1,9 @@
-import localeMiddleware from "../../middlewares/localeMiddleware";
 import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
+import { i18nInputSchema } from "./i18n.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
@@ -17,7 +17,7 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("session"), () => import("./session.handler"));
     return handler(opts);
   }),
-  i18n: publicProcedure.use(localeMiddleware).query(async (opts) => {
+  i18n: publicProcedure.input(i18nInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("i18n"), () => import("./i18n.handler"));
     return handler(opts);
   }),
