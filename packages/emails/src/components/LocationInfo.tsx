@@ -40,7 +40,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             title={t("meeting_url")}
             style={{ color: "#101010" }}
             rel="noreferrer">
-            {providerName || "Link"} <CallToActionIcon iconName="linkIcon" />
+            {providerName || "Link"}
           </a>
         }
         extraInfo={

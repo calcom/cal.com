@@ -20,10 +20,11 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { t } = useLocale();
   const { nextStep } = props;
 
+  const scheduleId = defaultScheduleId === null ? undefined : defaultScheduleId;
   const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId: defaultScheduleId! },
+    { scheduleId },
     {
-      enabled: !!defaultScheduleId,
+      enabled: !!scheduleId,
     }
   );
 

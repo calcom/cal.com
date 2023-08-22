@@ -368,7 +368,7 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("error_collecting_card")}
               </Badge>
             ) : booking.paid ? (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
                 {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
             ) : null}

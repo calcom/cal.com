@@ -3906,6 +3906,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/basecamp3@workspace:packages/app-store/basecamp3":
+  version: 0.0.0-use.local
+  resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar"
