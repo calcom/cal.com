@@ -1,7 +1,4 @@
-import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
-
-
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -14,7 +11,6 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
 import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 import { ArrowRight } from "@calcom/ui/components/icon";
-
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -34,7 +30,7 @@ export type DatePickerProps = {
   /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
   excludedDates?: string[];
   /** defaults to all, which dates are bookable (inverse of excludedDates) */
-  includedDates?: string[];
+  includedDates?: string[] | null;
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
@@ -121,7 +117,7 @@ const Days = ({
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
-  const availableDates = (includedDates: string[] | undefined) => {
+  const availableDates = (includedDates: string[] | undefined | null) => {
     const dates = [];
     const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
     for (
@@ -148,7 +144,7 @@ const Days = ({
     days.push(date);
   }
 
-  const daysToRender = days.map((day) => {
+  const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
     return {
       day: day,
@@ -157,21 +153,10 @@ const Days = ({
     };
   });
 
-  const firstAvailableDate = daysToRender.find((day) => !day.disabled)?.day;
-
-  const doesMonthContainAvailableDates = firstAvailableDate ? true : false;
-
-  const isSelectedDateAvailable =
-    selected && doesMonthContainAvailableDates
-      ? daysToRender.some(({ day, disabled }) => {
-          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
-        })
-      : false;
-
-  useEffect(() => {
-    if (!selected || !selected.date() || props.isLoading) return;
-    else if (!doesMonthContainAvailableDates) props.onChange(null);
-    else if (!isSelectedDateAvailable && firstAvailableDate) props.onChange(firstAvailableDate);
+  useHandleInitialDateSelection({
+    daysToRenderForTheMonth,
+    selected,
+    onChange: props.onChange,
   });
 
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
@@ -203,7 +188,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRender.map(({ day, disabled }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -314,6 +299,36 @@ const DatePicker = ({
       </div>
     </div>
   );
+};
+
+const useHandleInitialDateSelection = ({
+  daysToRenderForTheMonth,
+  selected,
+  onChange,
+}: {
+  daysToRenderForTheMonth: { day: Dayjs | null; disabled: boolean }[];
+  selected: Dayjs | Dayjs[] | null | undefined;
+  onChange: (date: Dayjs | null) => void;
+}) => {
+  const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+
+  const isSelectedDateAvailable = selected
+    ? daysToRenderForTheMonth.some(({ day, disabled }) => {
+        if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+      })
+    : false;
+
+  if (firstAvailableDateOfTheMonth) {
+    // If selected date not available in the month, select the first available date of the month
+    if (!isSelectedDateAvailable) {
+      onChange(firstAvailableDateOfTheMonth);
+    }
+  } else {
+    // No date is available and if we were asked to select something inform that it couldn't be selected. This would actually help in not showing the timeslots section(with No Time Available) when no date in the month is available
+    if (selected) {
+      onChange(null);
+    }
+  }
 };
 
 export default DatePicker;
