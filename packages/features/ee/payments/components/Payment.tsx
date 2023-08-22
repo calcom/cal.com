@@ -1,4 +1,5 @@
 import type { Payment } from "@prisma/client";
+import type { EventType } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type stripejs from "@stripe/stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
@@ -13,7 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";
-import type { EventType } from ".prisma/client";
 
 type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {

@@ -55,3 +55,5 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
 
   return { update: true };
 };
+
+export default setPasswordHandler;

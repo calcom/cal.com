@@ -40,3 +40,5 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     metadata,
   };
 };
+
+export default listHandler;

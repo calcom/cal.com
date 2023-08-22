@@ -1,5 +1,7 @@
+import type { Credential, Prisma } from "@prisma/client";
+
 import type { CredentialOwner } from "@calcom/app-store/types";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
@@ -7,7 +9,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
-import type { Prisma, Credential } from ".prisma/client";
 
 type IntegrationsOptions = {
   ctx: {
@@ -44,6 +45,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     extendsFeature,
     teamId,
     sortByMostPopular,
+    categories,
+    appId,
   } = input;
   let credentials = await getUsersCredentials(user.id);
   let userTeams: TeamQuery[] = [];
@@ -116,7 +119,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     }
   }
 
-  const enabledApps = await getEnabledApps(credentials, onlyInstalled);
+  const enabledApps = await getEnabledAppsFromCredentials(credentials, {
+    filterOnCredentials: onlyInstalled,
+    ...(appId ? { where: { slug: appId } } : {}),
+  });
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {

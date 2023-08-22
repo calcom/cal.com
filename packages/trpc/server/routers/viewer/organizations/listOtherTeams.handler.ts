@@ -37,7 +37,10 @@ export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
   return teamsInOrgIamNotPartOf.map(({ team, ...membership }) => ({
     role: membership.role,
     accepted: membership.accepted,
+    userId: membership.userId,
     isOrgAdmin: true,
     ...team,
   }));
 };
+
+export default listOtherTeamHandler;

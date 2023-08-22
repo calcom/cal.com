@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import { currencyOptions } from "@calcom/app-store/paypal/pages/setup";
+import { currencyOptions } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

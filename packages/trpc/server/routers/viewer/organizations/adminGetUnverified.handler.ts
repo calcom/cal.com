@@ -49,3 +49,5 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
 
   return unVerifiedTeams;
 };
+
+export default adminGetUnverifiedHandler;

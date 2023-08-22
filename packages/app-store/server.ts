@@ -2,7 +2,7 @@ import type { TFunction } from "next-i18next";
 
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
@@ -77,7 +77,7 @@ export async function getLocationGroupedOptions(
     },
   });
 
-  const integrations = await getEnabledApps(credentials, true);
+  const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
 
   integrations.forEach((app) => {
     // All apps that are labeled as a locationOption are video apps.
