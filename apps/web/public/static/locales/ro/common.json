@@ -1553,7 +1553,7 @@
   "no_available_apps": "Nu există nicio aplicație disponibilă",
   "no_available_apps_description": "Asigură-te că există aplicații în implementare sub „packages/app-store”",
   "no_apps": "Nu există nicio aplicație activată în această instanță de Cal",
-  "no_apps_configured": "Nu a fost configurată nicio aplicație încă",
+  "no_apps_configured": "Încă nu a fost configurată nicio aplicație",
   "enable_in_settings": "Puteți activa aplicații din setări",
   "please_contact_admin": "Contactați administratorul",
   "apps_settings": "Setări aplicații",
