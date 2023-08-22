@@ -11,7 +11,7 @@
   "calcom_explained_new_user": "Finalizați configurarea contului {{appName}}! Mai aveți doar câțiva pași până la soluționarea tuturor problemelor legate de program.",
   "have_any_questions": "Aveți întrebări? Suntem aici pentru a vă ajuta.",
   "reset_password_subject": "{{appName}}: instrucțiuni de resetare a parolei",
-  "verify_email_subject": "{{appName}}: Verificați-vă contul",
+  "verify_email_subject": "{{appName}}: verificați-vă contul",
   "check_your_email": "Verificați-vă e-mailul",
   "verify_email_page_body": "Am trimis un e-mail către {{email}}. Este important să vă verificați adresa de e-mail pentru a garanta cea mai bună furnizare a e-mailurilor și datelor de calendar de la {{appName}}.",
   "verify_email_banner_body": "Verificați-vă adresa de e-mail pentru a garanta cea mai bună furnizare a e-mailurilor și datelor de calendar",

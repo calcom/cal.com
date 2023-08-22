@@ -1687,7 +1687,7 @@
   "attendee_no_longer_attending": "참석자가 더 이상 이벤트에 참석하고 있지 않습니다",
   "attendee_no_longer_attending_subtitle": "{{name}}이(가) 취소되었습니다. 즉, 이 시간 슬롯에 좌석이 비어 있습니다",
   "create_event_on": "이벤트 생성일:",
-  "create_routing_form_on": "라우팅 양식을 만들 계정",
+  "create_routing_form_on": "라우팅 양식을 만들 대상",
   "default_app_link_title": "기본 앱 링크 설정",
   "default_app_link_description": "기본 앱 링크를 설정하면 새로 생성된 모든 이벤트 유형에서 설정된 앱 링크를 사용할 수 있습니다.",
   "organizer_default_conferencing_app": "주최자의 기본 앱",
