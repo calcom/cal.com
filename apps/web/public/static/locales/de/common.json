@@ -1948,7 +1948,7 @@
   "org_admins_can_create_new_teams": "Nur der Administrator Ihrer Organization kann neue Teams erstellen",
   "google_new_spam_policy": "Die neuen Spam-Richtlinien von Google könnten verhindern, dass Sie E-Mail- und Kalenderbenachrichtigungen zu dieser Buchung erhalten.",
   "resolve": "Problem lösen",
-  "no_organization_slug": "Beim Erstellen von Teams für diese Organization ist ein Fehler aufgetreten. Ein URL-Slug fehlt.",
+  "no_organization_slug": "Beim Erstellen von Teams für diese Organization ist ein Fehler aufgetreten. URL-Slug fehlt.",
   "org_name": "Name der Organization",
   "org_url": "URL der Organization",
   "copy_link_org": "Link zur Organization kopieren",
