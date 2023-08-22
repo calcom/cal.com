@@ -51,9 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
 
-  createOAuthAppCredential(
+  await createOAuthAppCredential(
     { appId: "zohocrm", type: "zohocrm_other_calendar" },
-    zohoCrmTokenInfo.data as any,
+    zohoCrmTokenInfo.data,
     req
   );
 

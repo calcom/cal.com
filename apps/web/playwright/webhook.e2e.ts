@@ -184,6 +184,7 @@ test.describe("BOOKING_REJECTED", async () => {
       expect(webhookReceiver.requestList.length).toBe(1);
     });
     const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
 
     // remove dynamic properties that differs depending on where you run the tests
@@ -409,13 +410,6 @@ test.describe("FORM_SUBMITTED", async () => {
 
     await page.waitForLoadState("networkidle");
 
-    // Install Routing Forms App
-    await page.goto(`/apps/routing-forms`);
-    // eslint-disable-next-line playwright/no-conditional-in-test
-
-    await page.click('[data-testid="install-app-button"]');
-    await page.click('[data-testid="install-app-button-personal"]');
-
     await page.waitForLoadState("networkidle");
     await page.goto(`/settings/developer/webhooks/new`);
 
@@ -428,7 +422,7 @@ test.describe("FORM_SUBMITTED", async () => {
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     await page.waitForLoadState("networkidle");
-    await page.goto("/apps/routing-forms/forms");
+    await page.goto("/routing-forms/forms");
     await page.click('[data-testid="new-routing-form"]');
     // Choose to create the Form for the user(which is the first option) and not the team
     await page.click('[data-testid="option-0"]');

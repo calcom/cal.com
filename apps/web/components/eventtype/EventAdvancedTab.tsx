@@ -25,6 +25,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Alert,
   Button,
   CheckboxField,
   Label,
@@ -32,9 +33,8 @@ import {
   showToast,
   TextField,
   Tooltip,
-  Alert,
 } from "@calcom/ui";
-import { Edit, Copy } from "@calcom/ui/components/icon";
+import { Copy, Edit } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -202,6 +202,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
+      />
+      <hr className="border-subtle" />
+      <Controller
+        name="requiresBookerEmailVerification"
+        control={formMethods.control}
+        defaultValue={eventType.requiresBookerEmailVerification}
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            title={t("requires_booker_email_verification")}
+            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            description={t("description_requires_booker_email_verification")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
       />
       <hr className="border-subtle" />
       <Controller

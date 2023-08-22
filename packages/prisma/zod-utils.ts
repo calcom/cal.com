@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -150,6 +149,7 @@ export const eventTypeLocations = z.array(
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
+    teamName: z.string().optional(),
   })
 );
 
@@ -588,7 +588,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
+  locations: allManagedEventTypeProps.locations,
+  scheduleId: allManagedEventTypeProps.scheduleId,
+  destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
@@ -598,3 +600,10 @@ export const emailSchemaRefinement = (value: string) => {
   const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
   return emailRegex.test(value);
 };
+
+export const ZVerifyCodeInputSchema = z.object({
+  email: z.string().email(),
+  code: z.string(),
+});
+
+export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;

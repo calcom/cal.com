@@ -5,7 +5,7 @@ const html = `<style>
   height:100%;
   top:0;
   left:0;
-  z-index:99999999;
+  z-index:999999999999;
   display:block;
   background-color:rgb(5,5,5, 0.8)
 }

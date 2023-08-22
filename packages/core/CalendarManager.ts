@@ -1,4 +1,5 @@
 import type { SelectedCalendar } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -21,7 +22,7 @@ import getCalendarsEvents from "./getCalendarsEvents";
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
-  const calendarCredentials = getApps(credentials)
+  const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
@@ -198,8 +199,7 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  organizationSlug?: string | null
+  selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);

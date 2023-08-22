@@ -1,7 +1,6 @@
 import type { Prisma, Credential } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -86,6 +85,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
+  requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
   hidden: false,
@@ -96,48 +96,21 @@ const commons = {
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
-  bookingFields: getBookingFieldsWithSystemFields({
-    bookingFields: [],
-    customInputs: [],
-    // Default value of disableGuests from DB.
-    disableGuests: false,
-    metadata: {},
-    workflows: [],
-  }),
+  bookingFields: [],
 };
 
-const min15Event = {
-  length: 15,
-  slug: "15",
-  title: "15min",
-  eventName: "Dynamic Collective 15min Event",
-  description: "Dynamic Collective 15min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 15min Event",
+const dynamicEvent = {
+  length: 30,
+  slug: "dynamic",
+  title: "Dynamic",
+  eventName: "Dynamic Event",
+  description: "",
+  descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
 };
-const min30Event = {
-  length: 30,
-  slug: "30",
-  title: "30min",
-  eventName: "Dynamic Collective 30min Event",
-  description: "Dynamic Collective 30min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 30min Event",
-  position: 1,
-  ...commons,
-};
-const min60Event = {
-  length: 60,
-  slug: "60",
-  title: "60min",
-  eventName: "Dynamic Collective 60min Event",
-  description: "Dynamic Collective 60min Event",
-  descriptionAsSafeHTML: "Dynamic Collective 60min Event",
-  position: 2,
-  ...commons,
-};
 
-const defaultEvents = [min15Event, min30Event, min60Event];
+const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
@@ -152,7 +125,7 @@ export const getDefaultEvent = (slug: string) => {
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });
-  return event || min15Event;
+  return event || dynamicEvent;
 };
 
 export const getGroupName = (usernameList: string[]): string => {

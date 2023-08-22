@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useRouter } from "next/router";
+import type { AppCategories } from "@prisma/client";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -53,6 +54,8 @@ interface CategoryTabProps {
 }
 
 function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -92,7 +95,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ref={ref}>
         <li
           onClick={() => {
-            router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
+            router.replace(pathname);
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
@@ -105,11 +108,11 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             key={pos}
             onClick={() => {
               if (selectedCategory === cat) {
-                router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
+                router.replace(pathname);
               } else {
-                router.replace(router.asPath.split("?")[0] + `?category=${cat}`, undefined, {
-                  shallow: true,
-                });
+                const _searchParams = new URLSearchParams(searchParams);
+                _searchParams.set("category", cat);
+                router.replace(`${pathname}?${_searchParams.toString()}`);
               }
             }}
             className={classNames(
@@ -133,10 +136,11 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
 }
 
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const categoryQuery = searchParams?.get("category");
 
   if (searchText) {
     enableAnimation && enableAnimation(false);
@@ -144,18 +148,16 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
 
   useEffect(() => {
     const queryCategory =
-      typeof router.query.category === "string" && categories.includes(router.query.category)
-        ? router.query.category
-        : null;
+      typeof categoryQuery === "string" && categories.includes(categoryQuery) ? categoryQuery : null;
     setSelectedCategory(queryCategory);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.category]);
+  }, [categoryQuery]);
 
   const filteredApps = apps
     .filter((app) =>
       selectedCategory !== null
         ? app.categories
-          ? app.categories.includes(selectedCategory)
+          ? app.categories.includes(selectedCategory as AppCategories)
           : app.category === selectedCategory
         : true
     )

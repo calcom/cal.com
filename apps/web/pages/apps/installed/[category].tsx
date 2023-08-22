@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
 
@@ -169,7 +169,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && (
+                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
@@ -350,10 +350,9 @@ type ModalState = {
 };
 
 export default function InstalledApps() {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
-  const category = router.query.category as querySchemaType["category"];
-
+  const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
     // Exclude calendar and other from categoryList, we handle those slightly differently below
     return !(category in { other: null, calendar: null });

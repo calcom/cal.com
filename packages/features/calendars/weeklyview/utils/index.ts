@@ -13,11 +13,12 @@ export function weekdayDates(weekStart = 0, startDate: Date, length = 6) {
   };
 }
 export type GridCellToDateProps = {
-  day: Date;
+  day: dayjs.Dayjs;
   gridCellIdx: number;
   totalGridCells: number;
   selectionLength: number;
   startHour: number;
+  timezone: string;
 };
 
 export function gridCellToDateTime({
@@ -26,6 +27,7 @@ export function gridCellToDateTime({
   totalGridCells,
   selectionLength,
   startHour,
+  timezone,
 }: GridCellToDateProps) {
   // endHour - startHour = selectionLength
   const minutesInSelection = (selectionLength + 1) * 60;
@@ -34,27 +36,34 @@ export function gridCellToDateTime({
 
   // Add startHour since we use StartOfDay for day props. This could be improved by changing the getDaysBetweenDates function
   // To handle the startHour+endHour
-  const cellDateTime = dayjs(day).startOf("day").add(minutesIntoSelection, "minutes").add(startHour, "hours");
+  const cellDateTime = dayjs(day)
+    .tz(timezone)
+    .startOf("day")
+    .add(minutesIntoSelection, "minutes")
+    .add(startHour, "hours");
   return cellDateTime;
 }
 
 export function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom).utc().hour(0).minute(0).second(0).millisecond(0);
+  let startDate = dayjs(dateFrom).hour(0).minute(0).second(0).millisecond(0);
+
   dates.push(startDate);
-  const endDate = dayjs(dateTo).utc().hour(0).minute(0).second(0).millisecond(0);
+  const endDate = dayjs(dateTo).hour(0).minute(0).second(0).millisecond(0);
+
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "day"));
     startDate = startDate.add(1, "day");
   }
-  return dates;
+
+  return dates.slice(0, 7);
 }
 
-export function getHoursToDisplay(startHour: number, endHour: number) {
+export function getHoursToDisplay(startHour: number, endHour: number, timezone?: string) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs("1970-01-01").utc().hour(startHour);
+  let startDate = dayjs("1970-01-01").tz(timezone).hour(startHour);
   dates.push(startDate);
-  const endDate = dayjs("1970-01-01").utc().hour(endHour);
+  const endDate = dayjs("1970-01-01").tz(timezone).hour(endHour);
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "hour"));
     startDate = startDate.add(1, "hour");

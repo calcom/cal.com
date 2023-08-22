@@ -1,9 +1,9 @@
-import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -20,8 +20,6 @@ import {
   SkeletonText,
   TimezoneSelect,
 } from "@calcom/ui";
-
-import { withQuery } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -46,11 +44,6 @@ interface GeneralViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.public.i18n as any, undefined, {
-  trpc: { context: { skipBatch: true } },
-});
-
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
@@ -59,40 +52,28 @@ const GeneralQueryView = () => {
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return (
-    <WithQuery
-      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
-      customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
-    />
-  );
+  return <GeneralView user={user} localeProp={user.locale} />;
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
-  const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const { update } = useSession();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
-      // Invalidate our previous i18n cache
-      await utils.viewer.public.i18n.invalidate();
+    onSuccess: async (res) => {
+      await utils.viewer.me.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
+      update(res);
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
-      await utils.viewer.public.i18n.invalidate();
+      await utils.viewer.me.invalidate();
     },
   });
-
-  const localeOptions = useMemo(() => {
-    return (router.locales || []).map((locale) => ({
-      value: locale,
-      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
-    }));
-  }, [router.locales]);
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -125,6 +106,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
       allowDynamicBooking: user.allowDynamicBooking ?? true,
+      allowSEOIndexing: user.allowSEOIndexing ?? true,
     },
   });
   const {
@@ -133,6 +115,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
+
   return (
     <Form
       form={formMethods}
@@ -234,7 +217,30 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           )}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
+
+      <div className="mt-8">
+        <Controller
+          name="allowSEOIndexing"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("seo_indexing")}
+              description={t("allow_seo_indexing")}
+              checked={formMethods.getValues("allowSEOIndexing")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
+
+      <Button
+        loading={mutation.isLoading}
+        disabled={isDisabled}
+        color="primary"
+        type="submit"
+        className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>

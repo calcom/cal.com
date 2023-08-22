@@ -94,7 +94,12 @@ const DisableTwoFactorAuthModal = ({
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
-            <Button type="submit" className="me-2 ms-2" data-testid="disable-2fa" disabled={isDisabling}>
+            <Button
+              type="submit"
+              className="me-2 ms-2"
+              data-testid="disable-2fa"
+              loading={isDisabling}
+              disabled={isDisabling}>
               {t("disable")}
             </Button>
           </DialogFooter>
