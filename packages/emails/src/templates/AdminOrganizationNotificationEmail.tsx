@@ -1,8 +1,8 @@
-import type { TFunction } from "next-i18next";
+import { Trans, type TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
-import { BaseEmailHtml } from "../components";
+import { BaseEmailHtml, CallToAction } from "../components";
 
 type AdminOrganizationNotification = {
   language: TFunction;
@@ -11,11 +11,19 @@ type AdminOrganizationNotification = {
 
 export const AdminOrganizationNotificationEmail = ({ orgSlug, language }: AdminOrganizationNotification) => {
   return (
-    <BaseEmailHtml subject={language("admin_org_notification_email_subject", { appName: APP_NAME })}>
+    <BaseEmailHtml
+      subject={language("admin_org_notification_email_subject", { appName: APP_NAME })}
+      callToAction={
+        <CallToAction
+          label={language("admin_org_notification_email_cta")}
+          href={`${WEBAPP_URL}/settings/admin/organizations`}
+          endIconName="white-arrow-right"
+        />
+      }>
       <p
         style={{
           fontWeight: 600,
-          fontSize: "32px",
+          fontSize: "24px",
           lineHeight: "38px",
         }}>
         <>{language("admin_org_notification_email_title")}</>
@@ -24,7 +32,17 @@ export const AdminOrganizationNotificationEmail = ({ orgSlug, language }: AdminO
         <>{language("hi_admin")}!</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <>{language("admin_org_notification_email_body", { orgSlug })}</>
+        <Trans i18nKey="admin_org_notification_email_body" t={language} values={{ orgSlug }}>
+          An organization with slug {`"${orgSlug}"`} was created.
+          <br />
+          <br />
+          Please be sure to configure your DNS registry to point the subdomain corresponding to the new
+          organization to where the main app is running. Otherwise the organization will not work.
+          <br />
+          <br />
+          Once you configure the subdomain, please mark the DNS configuration as done in Organizations Admin
+          Settings.
+        </Trans>
       </p>
     </BaseEmailHtml>
   );
