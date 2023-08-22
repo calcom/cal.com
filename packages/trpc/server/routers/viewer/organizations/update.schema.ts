@@ -3,12 +3,12 @@ import { z } from "zod";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
-  id: z.number(),
   name: z.string().optional(),
   orgId: z
     .string()
     .regex(/^\d+$/)
     .transform((id) => parseInt(id))
+    .or(z.number())
     .optional(),
   bio: z.string().optional(),
   logo: z
@@ -25,7 +25,7 @@ export const ZUpdateInputSchema = z.object({
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataSchema,
+  metadata: teamMetadataSchema.optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

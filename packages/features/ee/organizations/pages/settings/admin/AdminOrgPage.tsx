@@ -105,7 +105,7 @@ function AdminOrgTable() {
                                 label: t("mark_dns_configured"),
                                 onClick: () => {
                                   updateMutation.mutate({
-                                    id: org.id,
+                                    orgId: org.id,
                                     metadata: {
                                       isOrganizationConfigured: true,
                                     },
