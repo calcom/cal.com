@@ -2,18 +2,14 @@ import { createHash } from "crypto";
 import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
+import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import {
-  IS_CALCOM,
-  IS_TEAM_BILLING_ENABLED,
-  RESERVED_SUBDOMAINS,
-  IS_PRODUCTION,
-} from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, IS_PRODUCTION } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -43,12 +39,10 @@ const vercelCreateDomain = async (domain: string) => {
   const data = await response.json();
 
   // Domain is already owned by another team but you can request delegation to access it
-  if (data.error?.code === "forbidden")
-    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_team" });
+  if (data.error?.code === "forbidden") return false;
 
   // Domain is already being used by a different project
-  if (data.error?.code === "domain_taken")
-    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_project" });
+  if (data.error?.code === "domain_taken") return false;
 
   return true;
 };
@@ -85,9 +79,34 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+  let isOrganizationConfigured = false;
 
   if (check === false) {
-    if (IS_CALCOM) await vercelCreateDomain(slug);
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    if (process.env.VERCEL) {
+      // We only want to proceed to register the subdomain for the org in Vercel
+      // within a Vercel context
+      isOrganizationConfigured = await vercelCreateDomain(slug);
+    } else {
+      // Otherwise, we proceed to send an administrative email to admins regarding
+      // the need to configure DNS registry to support the newly created org
+      const instanceAdmins = await prisma.user.findMany({
+        where: { role: UserPermissionRole.ADMIN },
+        select: { email: true },
+      });
+      if (instanceAdmins.length) {
+        await sendAdminOrganizationNotification({
+          instanceAdmins,
+          orgSlug: slug,
+          ownerEmail: adminEmail,
+          t,
+        });
+      } else {
+        console.warn(
+          "Organization created: no subdomain setup could be done nor notified to adminnistrators"
+        );
+      }
+    }
 
     const createOwnerOrg = await prisma.user.create({
       data: {
@@ -118,6 +137,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
               isOrganizationVerified: false,
+              isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },
           },
