@@ -248,10 +248,10 @@
     --cal-bg-inverted: #f3f4f6;
 
     /* background -> components*/
-    --cal-bg-info: #dee9fc;
-    --cal-bg-success: #e2fbe8;
-    --cal-bg-attention: #fceed8;
-    --cal-bg-error: #f9e3e2;
+    --cal-bg-info: #263FA9;
+    --cal-bg-success: #306339;
+    --cal-bg-attention: #8E3B1F;
+    --cal-bg-error: #8C2822;
     --cal-bg-dark-error: #752522;
 
     /* Borders */
