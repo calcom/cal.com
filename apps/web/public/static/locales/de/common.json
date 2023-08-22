@@ -1926,7 +1926,7 @@
   "ill_do_this_later": "Ich werde das später tun",
   "verify_your_email": "Bestätigen Sie Ihre E-Mail-Adresse",
   "enter_digit_code": "Geben Sie den 6-stelligen Code ein, den wir an {{email}} gesendet haben",
-  "verify_email_organization": "Bestätigen Sie Ihre E-Mail, um eine Organization zu erstellen",
+  "verify_email_organization": "Bestätigen Sie Ihre E-Mail-Adresse, um eine Organization zu erstellen",
   "code_provided_invalid": "Der eingegebene Code ist ungültig, versuchen Sie es erneut",
   "email_already_used": "Die E-Mail-Adresse wird bereits verwendet",
   "organization_admin_invited_heading": "Sie wurden eingeladen, ein Mitglied von {{orgName}} zu werden",
