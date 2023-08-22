@@ -21,11 +21,11 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { nextStep } = props;
 
   const router = useRouter();
-
+  const scheduleId = defaultScheduleId === null ? undefined : defaultScheduleId;
   const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId: defaultScheduleId as number | undefined },
+    { scheduleId },
     {
-      enabled: router.isReady,
+      enabled: router.isReady && !!scheduleId ,
     }
   );
 
