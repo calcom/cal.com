@@ -34,6 +34,7 @@ export interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
+  tableOverlay?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +46,7 @@ export function DataTable<TData, TValue>({
   selectionOptions,
   tableContainerRef,
   isLoading,
+  tableOverlay,
   onScroll,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
@@ -159,6 +161,7 @@ export function DataTable<TData, TValue>({
               </tr>
             )}
           </TableBody>
+          {tableOverlay && tableOverlay}
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}
