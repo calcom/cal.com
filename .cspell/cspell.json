@@ -12,7 +12,7 @@
   "ignorePaths": [
     "**/node_modules/**",
     "**/apps/web/public/static/locales/**",
-    "/allowedWords.txt",
+    "/projectWords.txt",
     "**/**.avif",
     "**/.yarn/releases/**"
   ],
