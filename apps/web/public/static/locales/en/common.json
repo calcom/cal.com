@@ -809,6 +809,7 @@
   "add_new_event_type": "Add a new event type",
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
+  "people":"People",
   "minimum_booking_notice": "Minimum Notice",
   "offset_toggle": "Offset start times",
   "offset_toggle_description": "Offset timeslots shown to bookers by a specified number of minutes",
@@ -872,7 +873,6 @@
   "account_managed_by_identity_provider_description": "To change your email, password, enable two-factor authentication and more, please visit your {{provider}} account settings.",
   "signin_with_google": "Sign in with Google",
   "signin_with_saml": "Sign in with SAML",
-  "signin_with_saml_oidc": "Sign in with SAML/OIDC",
   "you_will_need_to_generate": "You will need to generate an access token from your old scheduling tool.",
   "import": "Import",
   "import_from": "Import from",
@@ -1582,6 +1582,7 @@
   "apps_settings": "Apps settings",
   "fill_this_field": "Please fill in this field",
   "options": "Options",
+  "no_options_available":"No options available",
   "enter_option": "Enter Option {{index}}",
   "add_an_option": "Add an option",
   "radio": "Radio",
@@ -2010,6 +2011,6 @@
   "member_removed": "Member removed",
   "my_availability": "My Availability",
   "team_availability": "Team Availability",
-  "include_calendar_event": "Include calendar event",
+  "include_calender_event": "Include calender event",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

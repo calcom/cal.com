@@ -872,7 +872,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           defaultChecked={
                             form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
                           }
-                          description={t("include_calendar_event")}
+                          description={t("include_calender_event")}
                           onChange={(e) =>
                             form.setValue(
                               `steps.${step.stepNumber - 1}.includeCalendarEvent`,

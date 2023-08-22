@@ -67,7 +67,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
       {
         name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
         email: evt.attendees[0].email,
-        partstat: status,
+        partstat: status || "ACCEPTED",
         role: "REQ-PARTICIPANT",
         rsvp: true,
       },
@@ -232,7 +232,7 @@ export const scheduleEmailReminder = async (
       return Promise.resolve();
     }
 
-    const status: ParticipationStatus =
+    const status =
       triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
         ? "COMPLETED"
         : triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
