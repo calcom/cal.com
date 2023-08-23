@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -18,16 +20,30 @@ type GetOptions = {
 
 async function getTeamMembers({
   teamId,
+  teamIds,
   cursor,
   limit,
 }: {
-  teamId: number;
+  teamId?: number;
+  teamIds?: number[];
   cursor: number | null | undefined;
   limit: number;
 }) {
+  let whereQuery: Prisma.MembershipWhereInput = {
+    teamId,
+  };
+
+  if (teamIds) {
+    whereQuery = {
+      teamId: {
+        in: teamIds,
+      },
+    };
+  }
+
   return await prisma.membership.findMany({
     where: {
-      teamId,
+      ...whereQuery,
       accepted: true,
     },
     select: {
@@ -48,6 +64,7 @@ async function getTeamMembers({
     orderBy: {
       id: "asc",
     },
+    distinct: ["userId"],
   });
 }
 
@@ -88,40 +105,98 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   };
 }
 
-export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) => {
-  const teamId = input.teamId || ctx.user.organizationId;
-
-  if (!teamId) {
-    // Get all users TODO:
-    throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
-  }
-
-  // check if user is part of team
-  const isMember = await prisma.membership.findFirst({
-    where: {
-      teamId,
-      userId: ctx.user.id,
-    },
-  });
-
-  if (!isMember) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
-  }
-
+async function getInfoForAllTeams({ ctx, input }: GetOptions) {
   const { cursor, limit } = input;
 
-  const getTotalMembers = await prisma.membership.count({
-    where: {
-      teamId: teamId,
-    },
-  });
+  // Get all teamIds for the user
+  const teamIds = await prisma.membership
+    .findMany({
+      where: {
+        userId: ctx.user.id,
+      },
+      select: {
+        id: true,
+      },
+    })
+    .then((memberships) => memberships.map((membership) => membership.id));
 
-  // I couldnt get this query to work direct on membership table
+  if (!teamIds.length) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
+  }
+
+  // Get total DISTINCT users for all teams
+  // const getTotalMembers = await prisma.membership.count({
+  //   where: {
+  //     teamId: {
+  //       in: teamIds,
+  //     },
+  //   },
+  //   distinct: ["userId"],
+  // });
+
+  const getTotalMembers = await prisma.$queryRaw<{
+    count: number;
+  }>(Prisma.sql`
+      SELECT
+        COUNT(DISTINCT "userId") as "count"
+      FROM "Membership"
+      WHERE "teamId" IN (${Prisma.join(teamIds)})
+`);
+
   const teamMembers = await getTeamMembers({
-    teamId,
+    teamIds,
     cursor,
     limit,
   });
+
+  return {
+    teamMembers,
+    totalTeamMembers: getTotalMembers.count,
+  };
+}
+
+export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) => {
+  const { cursor, limit } = input;
+  const teamId = input.teamId || ctx.user.organizationId;
+
+  let teamMembers: Member[] = [];
+  let totalTeamMembers = 0;
+
+  if (!teamId) {
+    // Get all users TODO:
+    const teamAllInfo = await getInfoForAllTeams({ ctx, input });
+
+    console.log("teamAllInfo", teamAllInfo);
+
+    teamMembers = teamAllInfo.teamMembers;
+    totalTeamMembers = teamAllInfo.totalTeamMembers;
+  } else {
+    const isMember = await prisma.membership.findFirst({
+      where: {
+        teamId,
+        userId: ctx.user.id,
+      },
+    });
+
+    if (!isMember) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
+    }
+
+    const { cursor, limit } = input;
+
+    totalTeamMembers = await prisma.membership.count({
+      where: {
+        teamId: teamId,
+      },
+    });
+
+    // I couldnt get this query to work direct on membership table
+    teamMembers = await getTeamMembers({
+      teamId,
+      cursor,
+      limit,
+    });
+  }
 
   let nextCursor: typeof cursor | undefined = undefined;
   if (teamMembers && teamMembers.length > limit) {
@@ -140,7 +215,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     rows: members || [],
     nextCursor,
     meta: {
-      totalRowCount: getTotalMembers || 0,
+      totalRowCount: totalTeamMembers,
     },
   };
 };
