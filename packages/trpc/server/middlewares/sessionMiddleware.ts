@@ -134,13 +134,10 @@ const getUserSession = async (ctx: TRPCContextInner) => {
 };
 
 const sessionMiddleware = middleware(async ({ ctx, next }) => {
-  // const middlewareStart = performance.now();
+  const middlewareStart = performance.now();
   const { user, session } = await getUserSession(ctx);
-  // const middlewareEnd = performance.now();
-  // addServerTimingHeaderIfRes({
-  //   res: ctx.res,
-  //   timings: [{ duration: middlewareEnd - middlewareStart, label: "t.sessionMiddleware" }],
-  // });
+  const middlewareEnd = performance.now();
+  logger.debug("Perf:t.sessionMiddleware", middlewareEnd - middlewareStart);
   return next({
     ctx: { user, session },
   });
