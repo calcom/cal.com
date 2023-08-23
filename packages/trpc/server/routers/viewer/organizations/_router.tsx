@@ -4,287 +4,123 @@ import authedProcedure, {
   authedAdminProcedure,
   authedOrgAdminProcedure,
 } from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
+import { importHandler, router } from "../../../trpc";
+import { ZAddBulkTeams } from "./addBulkTeams.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
+import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
+import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
-type OrganizationsRouterHandlerCache = {
-  create?: typeof import("./create.handler").createHandler;
-  listCurrent?: typeof import("./list.handler").listHandler;
-  publish?: typeof import("./publish.handler").publishHandler;
-  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
-  update?: typeof import("./update.handler").updateHandler;
-  verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
-  createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
-  setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
-  adminGetUnverified?: typeof import("./adminGetUnverified.handler").adminGetUnverifiedHandler;
-  adminVerify?: typeof import("./adminVerify.handler").adminVerifyHandler;
-  listMembers?: typeof import("./listMembers.handler").listMembersHandler;
-  getBrand?: typeof import("./getBrand.handler").getBrandHandler;
-  getMembers?: typeof import("./getMembers.handler").getMembersHandler;
-  listOtherTeams?: typeof import("./listOtherTeams.handler").listOtherTeamHandler;
-  getOtherTeam?: typeof import("./getOtherTeam.handler").getOtherTeamHandler;
-  listOtherTeamMembers?: typeof import("./listOtherTeamMembers.handler").listOtherTeamMembers;
-};
+const NAMESPACE = "organizations";
 
-const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.create({
-      ctx,
-      input,
-    });
+  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+    return handler(opts);
   }),
-  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.update({
-      ctx,
-      input,
-    });
+  update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
+    return handler(opts);
   }),
-  verifyCode: authedProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.verifyCode) {
-      UNSTABLE_HANDLER_CACHE.verifyCode = await import("./verifyCode.handler").then(
-        (mod) => mod.verifyCodeHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.verifyCode) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.verifyCode({
-      ctx,
-      input,
-    });
+  verifyCode: authedProcedure.input(ZVerifyCodeInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("verifyCode"), () => import("./verifyCode.handler"));
+    return handler(opts);
   }),
-  createTeams: authedProcedure.input(ZCreateTeamsSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.createTeams) {
-      UNSTABLE_HANDLER_CACHE.createTeams = await import("./createTeams.handler").then(
-        (mod) => mod.createTeamsHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.createTeams) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.createTeams({
-      ctx,
-      input,
-    });
+  createTeams: authedProcedure.input(ZCreateTeamsSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("createTeams"), () => import("./createTeams.handler"));
+    return handler(opts);
   }),
-  listCurrent: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
-      UNSTABLE_HANDLER_CACHE.listCurrent = await import("./list.handler").then((mod) => mod.listHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listCurrent({
-      ctx,
-    });
+  listCurrent: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("listCurrent"), () => import("./list.handler"));
+    return handler(opts);
   }),
-  checkIfOrgNeedsUpgrade: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
-      UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade = await import("./checkIfOrgNeedsUpgrade.handler").then(
-        (mod) => mod.checkIfOrgNeedsUpgradeHandler
-      );
-    }
-
-    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade({ ctx });
+  checkIfOrgNeedsUpgrade: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("checkIfOrgNeedsUpgrade"),
+      () => import("./checkIfOrgNeedsUpgrade.handler")
+    );
+    return handler(opts);
   }),
-  publish: authedProcedure.mutation(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.publish) {
-      UNSTABLE_HANDLER_CACHE.publish = await import("./publish.handler").then((mod) => mod.publishHandler);
-    }
-
-    if (!UNSTABLE_HANDLER_CACHE.publish) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.publish({ ctx });
+  publish: authedProcedure.mutation(async (opts) => {
+    const handler = await importHandler(namespaced("publish"), () => import("./publish.handler"));
+    return handler(opts);
   }),
-  setPassword: authedProcedure.input(ZSetPasswordSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.setPassword) {
-      UNSTABLE_HANDLER_CACHE.setPassword = await import("./setPassword.handler").then(
-        (mod) => mod.setPasswordHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.setPassword) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.setPassword({
-      ctx,
-      input,
-    });
+  setPassword: authedProcedure.input(ZSetPasswordSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("setPassword"), () => import("./setPassword.handler"));
+    return handler(opts);
   }),
-  getMembers: authedProcedure.input(ZGetMembersInput).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
-      UNSTABLE_HANDLER_CACHE.getMembers = await import("./getMembers.handler").then(
-        (mod) => mod.getMembersHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getMembers({
-      ctx,
-      input,
-    });
+  getMembers: authedProcedure.input(ZGetMembersInput).query(async (opts) => {
+    const handler = await importHandler(namespaced("getMembers"), () => import("./getMembers.handler"));
+    return handler(opts);
   }),
-  adminGetUnverified: authedAdminProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.adminGetUnverified) {
-      UNSTABLE_HANDLER_CACHE.adminGetUnverified = await import("./adminGetUnverified.handler").then(
-        (mod) => mod.adminGetUnverifiedHandler
-      );
-    }
-    if (!UNSTABLE_HANDLER_CACHE.adminGetUnverified) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.adminGetUnverified({
-      ctx,
-    });
+  adminGetUnverified: authedAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("adminGetUnverified"),
+      () => import("./adminGetUnverified.handler")
+    );
+    return handler(opts);
   }),
-  adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.adminVerify) {
-      UNSTABLE_HANDLER_CACHE.adminVerify = await import("./adminVerify.handler").then(
-        (mod) => mod.adminVerifyHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.adminVerify) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.adminVerify({
-      ctx,
-      input,
-    });
+  adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("adminVerify"), () => import("./adminVerify.handler"));
+    return handler(opts);
   }),
-  listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
-      UNSTABLE_HANDLER_CACHE.listMembers = await import("./listMembers.handler").then(
-        (mod) => mod.listMembersHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listMembers({
-      ctx,
-      input,
-    });
+  listMembers: authedProcedure.input(ZListMembersSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
+    return handler(opts);
   }),
-  getBrand: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getBrand) {
-      UNSTABLE_HANDLER_CACHE.getBrand = await import("./getBrand.handler").then((mod) => mod.getBrandHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getBrand) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getBrand({
-      ctx,
-    });
+  getBrand: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("getBrand"), () => import("./getBrand.handler"));
+    return handler(opts);
   }),
-  listOtherTeams: authedOrgAdminProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listOtherTeams) {
-      UNSTABLE_HANDLER_CACHE.listOtherTeams = await import("./listOtherTeams.handler").then(
-        (mod) => mod.listOtherTeamHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listOtherTeams) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listOtherTeams({
-      ctx,
-    });
+  getUser: authedProcedure.input(ZGetUserInput).query(async (opts) => {
+    const handler = await importHandler(namespaced("getUser"), () => import("./getUser.handler"));
+    return handler(opts);
   }),
-  getOtherTeam: authedOrgAdminProcedure.input(ZGetOtherTeamInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getOtherTeam) {
-      UNSTABLE_HANDLER_CACHE.getOtherTeam = await import("./getOtherTeam.handler").then(
-        (mod) => mod.getOtherTeamHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getOtherTeam) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getOtherTeam({
-      ctx,
-      input,
-    });
+  updateUser: authedProcedure.input(ZUpdateUserInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("updateUser"), () => import("./updateUser.handler"));
+    return handler(opts);
   }),
-  listOtherTeamMembers: authedOrgAdminProcedure
-    .input(ZListOtherTeamMembersSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.listOtherTeamMembers) {
-        UNSTABLE_HANDLER_CACHE.listOtherTeamMembers = await import("./listOtherTeamMembers.handler").then(
-          (mod) => mod.listOtherTeamMembers
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.listOtherTeamMembers) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.listOtherTeamMembers({
-        ctx,
-        input,
-      });
-    }),
+  getTeams: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("getTeams"), () => import("./getTeams.handler"));
+    return handler(opts);
+  }),
+  bulkAddToTeams: authedProcedure.input(ZAddBulkTeams).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("addBulkTeams"), () => import("./addBulkTeams.handler"));
+    return handler(opts);
+  }),
+  bulkDeleteUsers: authedProcedure.input(ZBulkUsersDelete).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("bulkDeleteUsers"),
+      () => import("./bulkDeleteUsers.handler")
+    );
+    return handler(opts);
+  }),
+  listOtherTeamMembers: authedOrgAdminProcedure.input(ZListOtherTeamMembersSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("listOtherTeamMembers"),
+      () => import("./listOtherTeamMembers.handler")
+    );
+    return handler(opts);
+  }),
+  getOtherTeam: authedOrgAdminProcedure.input(ZGetOtherTeamInputSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("getOtherTeam"), () => import("./getOtherTeam.handler"));
+    return handler(opts);
+  }),
+  listOtherTeams: authedOrgAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("listOtherTeams"),
+      () => import("./listOtherTeams.handler")
+    );
+    return handler(opts);
+  }),
 });

@@ -716,10 +716,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
-          undefined
-        }
+        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -740,7 +737,9 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
+          <Link
+            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+            className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
@@ -833,13 +832,13 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
 
 const Main = ({
   status,
-  error,
+  errorMessage,
   data,
   filters,
 }: {
   status: string;
   data: GetByViewerResponse;
-  error: any;
+  errorMessage?: string;
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -851,7 +850,7 @@ const Main = ({
   }
 
   if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={error.message} />;
+    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
   const isFilteredByOnlyOneItem =
@@ -926,11 +925,14 @@ const EventTypesPage = () => {
     if (searchParams?.get("openIntercom") === "true") {
       open();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     setShowProfileBanner(
       !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [orgBranding, user]);
 
   return (
     <ShellMain
@@ -945,7 +947,7 @@ const EventTypesPage = () => {
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} error={error} filters={filters} />
+      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );
 };

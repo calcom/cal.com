@@ -1,4 +1,5 @@
 import getApps from "@calcom/app-store/utils";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -15,7 +16,7 @@ type AppByIdOptions = {
 export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
   const { user } = ctx;
   const appId = input.appId;
-  const { credentials } = user;
+  const credentials = await getUsersCredentials(user.id);
   const apps = getApps(credentials);
   const appFromDb = apps.find((app) => app.slug === appId);
   if (!appFromDb) {

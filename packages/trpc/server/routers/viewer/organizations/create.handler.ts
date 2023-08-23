@@ -5,7 +5,12 @@ import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { IS_CALCOM, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import {
+  IS_CALCOM,
+  IS_TEAM_BILLING_ENABLED,
+  RESERVED_SUBDOMAINS,
+  IS_PRODUCTION,
+} from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -24,7 +29,7 @@ type CreateOptions = {
 
 const vercelCreateDomain = async (domain: string) => {
   const response = await fetch(
-    `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
       headers: {
@@ -131,6 +136,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
+    if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")
@@ -154,3 +160,5 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   return { checked: true };
 };
+
+export default createHandler;
