@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "http";
 import type { Session } from "next-auth";
 
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import "./next-auth";
 
@@ -14,7 +14,7 @@ export declare module "next" {
     body: unkown;
     userId: number;
     method: string;
-    prisma: PrismaType;
+    prisma: PrismaClient;
     // session: { user: { id: number } };
     // query: Partial<{ [key: string]: string | string[] }>;
     isAdmin: boolean;

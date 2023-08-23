@@ -1,7 +1,7 @@
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -12,7 +12,7 @@ import type { TToggleInputSchema } from "./toggle.schema";
 type ToggleOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TToggleInputSchema;
 };

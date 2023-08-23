@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
 type BookingSelect = {
@@ -45,7 +45,7 @@ function getResponsesFromOldBooking(
   };
 }
 
-async function getBooking(prisma: PrismaType, uid: string) {
+async function getBooking(prisma: PrismaClient, uid: string) {
   const rawBooking = await prisma.booking.findFirst({
     where: {
       uid,

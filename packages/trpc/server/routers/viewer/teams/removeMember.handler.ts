@@ -2,7 +2,7 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -12,7 +12,7 @@ import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 type RemoveMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TRemoveMemberInputSchema;
 };

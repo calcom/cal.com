@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -12,7 +12,7 @@ import type { TReserveSlotInputSchema } from "./reserveSlot.schema";
 
 interface ReserveSlotOptions {
   ctx: {
-    prisma: PrismaType;
+    prisma: PrismaClient;
     req?: NextApiRequest | undefined;
     res?: NextApiResponse | undefined;
   };

@@ -2,7 +2,7 @@ import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -12,7 +12,7 @@ import type { TrpcSessionUser } from "../../../trpc";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {
-  ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaType };
+  ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
   input: TChargeCardInputSchema;
 }
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {

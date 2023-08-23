@@ -7,7 +7,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -22,7 +22,7 @@ type UpdateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };

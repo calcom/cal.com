@@ -11,7 +11,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -22,7 +22,7 @@ export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
   evt: CalendarEvent;
   recurringEventId?: string;
-  prisma: PrismaType;
+  prisma: PrismaClient;
   bookingId: number;
   booking: {
     eventType: {

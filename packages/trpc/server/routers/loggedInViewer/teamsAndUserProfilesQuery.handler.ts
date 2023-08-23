@@ -1,6 +1,6 @@
 import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 type TeamsAndUserProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
 };
 

@@ -5,7 +5,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -17,7 +17,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TCreateInputSchema;
 };

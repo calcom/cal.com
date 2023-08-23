@@ -1,8 +1,8 @@
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { AppFlags } from "../config";
 
-export async function getFeatureFlagMap(prisma: PrismaType) {
+export async function getFeatureFlagMap(prisma: PrismaClient) {
   const flags = await prisma.feature.findMany({
     orderBy: { slug: "asc" },
   });

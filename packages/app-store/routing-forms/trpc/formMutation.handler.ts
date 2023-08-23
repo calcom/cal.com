@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -18,7 +18,7 @@ import type { TFormMutationInputSchema } from "./formMutation.schema";
 
 interface FormMutationHandlerOptions {
   ctx: {
-    prisma: PrismaType;
+    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TFormMutationInputSchema;

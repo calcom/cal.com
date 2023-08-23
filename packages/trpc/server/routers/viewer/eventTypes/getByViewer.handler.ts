@@ -7,7 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -21,7 +21,7 @@ import type { TEventTypeInputSchema } from "./getByViewer.schema";
 type GetByViewerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TEventTypeInputSchema;
 };

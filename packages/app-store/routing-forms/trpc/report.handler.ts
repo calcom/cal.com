@@ -1,5 +1,5 @@
 import logger from "@calcom/lib/logger";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
@@ -9,7 +9,7 @@ import type { TReportInputSchema } from "./report.schema";
 
 interface ReportHandlerOptions {
   ctx: {
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TReportInputSchema;
 }

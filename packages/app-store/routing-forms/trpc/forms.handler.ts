@@ -1,7 +1,7 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -11,7 +11,7 @@ import type { TFormSchema } from "./forms.schema";
 
 interface FormsHandlerOptions {
   ctx: {
-    prisma: PrismaType;
+    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TFormSchema;

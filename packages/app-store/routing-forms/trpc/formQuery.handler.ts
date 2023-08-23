@@ -1,5 +1,5 @@
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -7,7 +7,7 @@ import type { TFormQueryInputSchema } from "./formQuery.schema";
 
 interface FormsHandlerOptions {
   ctx: {
-    prisma: PrismaType;
+    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TFormQueryInputSchema;

@@ -1,4 +1,4 @@
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TListMembersInputSchema } from "./listMembers.schema";
@@ -6,7 +6,7 @@ import type { TListMembersInputSchema } from "./listMembers.schema";
 type ListMembersOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TListMembersInputSchema;
 };

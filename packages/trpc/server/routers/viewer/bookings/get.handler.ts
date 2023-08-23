@@ -1,5 +1,5 @@
 import { parseRecurringEvent } from "@calcom/lib";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -11,7 +11,7 @@ import type { TGetInputSchema } from "./get.schema";
 type GetOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
   input: TGetInputSchema;
 };
@@ -112,7 +112,7 @@ async function getBookings({
 }: {
   user: { id: number; email: string };
   filters: TGetInputSchema["filters"];
-  prisma: PrismaType;
+  prisma: PrismaClient;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
   orderBy: Prisma.BookingOrderByWithAggregationInput;
   take: number;

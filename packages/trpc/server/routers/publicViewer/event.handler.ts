@@ -1,10 +1,10 @@
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { TEventInputSchema } from "./event.schema";
 
 interface EventHandlerOptions {
-  ctx: { prisma: PrismaType };
+  ctx: { prisma: PrismaClient };
   input: TEventInputSchema;
 }
 

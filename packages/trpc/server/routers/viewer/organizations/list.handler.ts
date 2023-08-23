@@ -1,4 +1,4 @@
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
 type ListHandlerInput = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaType;
+    prisma: PrismaClient;
   };
 };
 

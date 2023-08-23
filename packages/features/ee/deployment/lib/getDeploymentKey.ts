@@ -1,6 +1,6 @@
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
-export async function getDeploymentKey(prisma: PrismaType) {
+export async function getDeploymentKey(prisma: PrismaClient) {
   const deployment = await prisma.deployment.findUnique({
     where: { id: 1 },
     select: { licenseKey: true },

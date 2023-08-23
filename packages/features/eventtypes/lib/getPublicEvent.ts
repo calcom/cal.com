@@ -9,7 +9,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   bookerLayoutOptions,
@@ -108,7 +108,7 @@ export const getPublicEvent = async (
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  prisma: PrismaType
+  prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -294,7 +294,7 @@ function getUsersFromEvent(event: Event) {
   return [{ username, name, weekStart }];
 }
 
-async function getOwnerFromUsersArray(prisma: PrismaType, eventTypeId: number) {
+async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
   const { users } = await prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
     select: { users: { select: { username: true, name: true, weekStart: true } } },

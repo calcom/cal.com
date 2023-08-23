@@ -2,7 +2,7 @@ import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import type { PrismaType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
@@ -30,7 +30,7 @@ export const isSAMLAdmin = (email: string) => {
   return false;
 };
 
-export const samlTenantProduct = async (prisma: PrismaType, email: string) => {
+export const samlTenantProduct = async (prisma: PrismaClient, email: string) => {
   const user = await prisma.user.findUnique({
     where: {
       email,
