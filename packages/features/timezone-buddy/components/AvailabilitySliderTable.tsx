@@ -154,11 +154,6 @@ export function AvailabilitySliderTable() {
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
-  console.log({
-    totalDBRowCount,
-    totalFetched,
-  });
-
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
