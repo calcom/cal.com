@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
@@ -43,7 +44,7 @@ export default function TimezoneChangeDialog() {
     const tzDifferent =
       !isLoading && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
     const showDialog = tzDifferent && !document.cookie.includes("calcom-timezone-dialog=1");
-    setOpen(!globalThis.window?.Meticulous?.isRunningAsTest && showDialog);
+    setOpen(!IS_VISUAL_REGRESSION_TESTING && showDialog);
   }, [currentTz, isLoading, userTz]);
 
   // save cookie to not show again

@@ -8,6 +8,6 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [".", "../types/next-auth.d.ts", "../types/window.d.ts"],
+  "include": [".", "../types/next-auth.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

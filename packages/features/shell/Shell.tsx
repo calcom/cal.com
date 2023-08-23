@@ -21,7 +21,14 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  IS_VISUAL_REGRESSION_TESTING,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -920,7 +927,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               </ButtonOrLink>
             </Tooltip>
           ))}
-          {!globalThis.window?.Meticulous?.isRunningAsTest && <Credits />}
+          {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
         </div>
       </aside>
     </div>

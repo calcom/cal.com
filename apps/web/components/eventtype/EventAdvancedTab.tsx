@@ -20,7 +20,7 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -286,7 +286,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         }}>
         {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
         <div className="lg:-ml-2">
-          {!globalThis.window?.Meticulous?.isRunningAsTest && (
+          {!IS_VISUAL_REGRESSION_TESTING && (
             <TextField
               disabled
               name="hashedLink"
