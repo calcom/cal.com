@@ -832,13 +832,13 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
 
 const Main = ({
   status,
-  error,
+  errorMessage,
   data,
   filters,
 }: {
   status: string;
   data: GetByViewerResponse;
-  error: any;
+  errorMessage?: string;
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -850,7 +850,7 @@ const Main = ({
   }
 
   if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={error.message} />;
+    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
   const isFilteredByOnlyOneItem =
@@ -947,7 +947,7 @@ const EventTypesPage = () => {
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} error={error} filters={filters} />
+      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );
 };
