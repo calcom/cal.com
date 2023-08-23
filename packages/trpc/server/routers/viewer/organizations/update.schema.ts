@@ -25,7 +25,7 @@ export const ZUpdateInputSchema = z.object({
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataSchema.optional(),
+  metadata: teamMetadataSchema.unwrap().pick({ isOrganizationConfigured: true }),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
