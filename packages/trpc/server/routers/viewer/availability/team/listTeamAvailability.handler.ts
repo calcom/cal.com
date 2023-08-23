@@ -124,16 +124,6 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
   }
 
-  // Get total DISTINCT users for all teams
-  // const getTotalMembers = await prisma.membership.count({
-  //   where: {
-  //     teamId: {
-  //       in: teamIds,
-  //     },
-  //   },
-  //   distinct: ["userId"],
-  // });
-
   const getTotalMembers = await prisma.$queryRaw<{
     count: number;
   }>(Prisma.sql`
@@ -166,8 +156,6 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     // Get all users TODO:
     const teamAllInfo = await getInfoForAllTeams({ ctx, input });
 
-    console.log("teamAllInfo", teamAllInfo);
-
     teamMembers = teamAllInfo.teamMembers;
     totalTeamMembers = teamAllInfo.totalTeamMembers;
   } else {
@@ -179,23 +167,24 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     });
 
     if (!isMember) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
+      teamMembers = [];
+      totalTeamMembers = 0;
+    } else {
+      const { cursor, limit } = input;
+
+      totalTeamMembers = await prisma.membership.count({
+        where: {
+          teamId: teamId,
+        },
+      });
+
+      // I couldnt get this query to work direct on membership table
+      teamMembers = await getTeamMembers({
+        teamId,
+        cursor,
+        limit,
+      });
     }
-
-    const { cursor, limit } = input;
-
-    totalTeamMembers = await prisma.membership.count({
-      where: {
-        teamId: teamId,
-      },
-    });
-
-    // I couldnt get this query to work direct on membership table
-    teamMembers = await getTeamMembers({
-      teamId,
-      cursor,
-      limit,
-    });
   }
 
   let nextCursor: typeof cursor | undefined = undefined;
