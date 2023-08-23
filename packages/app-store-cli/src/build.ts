@@ -1,5 +1,6 @@
 import chokidar from "chokidar";
 import fs from "fs";
+// eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
@@ -7,7 +8,7 @@ import prettier from "prettier";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
-import { AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";

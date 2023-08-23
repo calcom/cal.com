@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
@@ -285,7 +286,9 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
+    const existingBookingFieldIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
+    );
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
@@ -303,8 +306,13 @@ export const ensureBookingInputsHaveSystemFields = ({
   // Backward Compatibility for SMS Reminder Number
   // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
   // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (smsNumberSources.length && !bookingFields.find((f) => f.name !== SMS_REMINDER_NUMBER_FIELD)) {
-    const indexForLocation = bookingFields.findIndex((f) => f.name === "location");
+  if (
+    smsNumberSources.length &&
+    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
+  ) {
+    const indexForLocation = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+    );
     // Add the SMS Reminder Number field after `location` field always
     bookingFields.splice(indexForLocation + 1, 0, {
       ...getSmsReminderNumberField(),
@@ -340,7 +348,9 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemAfterFields = [];
   for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
+    const existingBookingFieldIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
+    );
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);

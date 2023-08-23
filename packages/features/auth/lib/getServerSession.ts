@@ -73,6 +73,7 @@ export async function getServerSession(options: {
       impersonatedByUID: token.impersonatedByUID ?? undefined,
       belongsToActiveTeam: token.belongsToActiveTeam,
       organizationId: token.organizationId,
+      locale: user.locale ?? undefined,
     },
   };
 
