@@ -158,6 +158,7 @@ export default function AvailabilityPage() {
               className="hidden md:block"
               defaultValue={searchParams?.get("type") ?? "mine"}
               onValueChange={(value) => {
+                if (!value) return;
                 router.push(`${pathname}?${createQueryString("type", value)}`);
               }}
               options={[
