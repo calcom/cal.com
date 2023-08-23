@@ -132,6 +132,7 @@ export type FormValues = {
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
+  multipleDurationEnabled: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -278,6 +279,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               .filter((slug) => slug !== eventType.slug) ?? [],
         },
       })),
+      seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
     };
   }, [eventType, periodDates, metadata]);
 
@@ -375,7 +377,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       minimumBookingNoticeInDurationType,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       bookerLayouts,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      multipleDurationEnabled,
       ...input
     } = values;
 
@@ -463,6 +468,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // We don't need to send send these values to the backend
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               seatsPerTimeSlotEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              multipleDurationEnabled,
               ...input
             } = values;
 

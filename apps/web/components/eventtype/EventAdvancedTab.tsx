@@ -338,6 +338,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   toggleGuests(false);
                   formMethods.setValue("requiresConfirmation", false);
                   setRequiresConfirmation(false);
+                  formMethods.setValue("metadata.multipleDuration", undefined);
                   formMethods.setValue("seatsPerTimeSlot", 2);
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);

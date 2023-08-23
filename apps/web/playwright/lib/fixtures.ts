@@ -3,6 +3,7 @@ import { test as base } from "@playwright/test";
 import type { API } from "mailhog";
 import mailhog from "mailhog";
 
+import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
@@ -21,7 +22,7 @@ export interface Fixtures {
   getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
-  emails: API;
+  emails?: API;
 }
 
 declare global {
@@ -71,7 +72,11 @@ export const test = base.extend<Fixtures>({
     await use(prisma);
   },
   emails: async ({}, use) => {
-    const mailhogAPI = mailhog();
-    await use(mailhogAPI);
+    if (IS_MAILHOG_ENABLED) {
+      const mailhogAPI = mailhog();
+      await use(mailhogAPI);
+    } else {
+      await use(undefined);
+    }
   },
 });

@@ -1,4 +1,5 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -12,6 +13,7 @@ export interface EventMembersProps {
   schedulingType: PublicEvent["schedulingType"];
   users: PublicEvent["users"];
   profile: PublicEvent["profile"];
+  entity: PublicEvent["entity"];
 }
 
 type Avatar = {
@@ -23,7 +25,7 @@ type Avatar = {
 
 type AvatarWithRequiredImage = Avatar & { image: string };
 
-export const EventMembers = ({ schedulingType, users, profile }: EventMembersProps) => {
+export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
 
@@ -37,8 +39,18 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
     title: `${user.name}`,
     image: "image" in user ? `${user.image}` : `/${user.username}/avatar.png`,
     alt: user.name || undefined,
-    href: user.username ? `${CAL_URL}/${user.username}` : undefined,
+    href: `/${user.username}`,
   }));
+
+  // Add organization avatar
+  if (entity.orgSlug) {
+    avatars.unshift({
+      title: `${entity.name}`,
+      image: `${WEBAPP_URL}/team/${entity.orgSlug}/avatar.png`,
+      alt: entity.name || undefined,
+      href: getOrgFullDomain(entity.orgSlug),
+    });
+  }
 
   // Add profile later since we don't want to force creating an avatar for this if it doesn't exist.
   avatars.unshift({
