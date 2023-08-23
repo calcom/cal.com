@@ -1,4 +1,4 @@
-import parser from "accept-language-parser";
+import { lookup } from "bcp-47-match";
 import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -8,7 +8,7 @@ export const i18nInputSchema = z.object({
   locale: z
     .string()
     .min(2)
-    .transform((locale) => parser.pick<string>(i18n.locales, locale, { loose: true }) || locale),
+    .transform((locale) => lookup(i18n.locales, locale) || locale),
   CalComVersion: z.string(),
 });
 

@@ -118,7 +118,7 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerInfo) => {
+export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (
@@ -332,19 +332,22 @@ export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerIn
       await page.goto("/auth/logout");
     },
     deleteAll: async () => {
-      const emailMessageIds: string[] = [];
       const ids = store.users.map((u) => u.id);
-      for (const user of store.users) {
-        const emailMessages = await emails.search(user.email);
-        if (emailMessages && emailMessages.count > 0) {
-          emailMessages.items.forEach((item) => {
-            emailMessageIds.push(item.ID);
-          });
+      if (emails) {
+        const emailMessageIds: string[] = [];
+        for (const user of store.users) {
+          const emailMessages = await emails.search(user.email);
+          if (emailMessages && emailMessages.count > 0) {
+            emailMessages.items.forEach((item) => {
+              emailMessageIds.push(item.ID);
+            });
+          }
+        }
+        for (const id of emailMessageIds) {
+          await emails.deleteMessage(id);
         }
       }
-      for (const id of emailMessageIds) {
-        await emails.deleteMessage(id);
-      }
+
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
       store.users = [];
     },
