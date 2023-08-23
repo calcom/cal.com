@@ -212,7 +212,7 @@ export const BookEventFormChild = ({
       return bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
-        bookingUid: uid,
+        booking: responseData,
       });
     },
     onError: () => {
@@ -222,7 +222,8 @@ export const BookEventFormChild = ({
 
   const createRecurringBookingMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData) => {
-      const { uid } = responseData[0] || {};
+      const booking = responseData[0] || {};
+      const { uid } = booking;
 
       if (!uid) {
         console.error("No uid returned from createRecurringBookingMutation");
@@ -241,7 +242,7 @@ export const BookEventFormChild = ({
       return bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
-        bookingUid: uid,
+        booking,
       });
     },
   });
