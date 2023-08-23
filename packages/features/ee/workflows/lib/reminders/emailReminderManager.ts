@@ -273,6 +273,7 @@ export const scheduleEmailReminder = async (
             },
           ]
         : undefined,
+      sendAt: data.sendAt,
     });
   }
 
