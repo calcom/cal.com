@@ -6,7 +6,6 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import ResponseEmail from "../emails/templates/response-email";
 import type { Response, SerializableForm } from "../types/types";
 
 export async function onFormSubmission(
@@ -58,8 +57,11 @@ export const sendResponseEmail = async (
   ownerEmail: string
 ) => {
   try {
-    const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], response: response });
-    await email.sendEmail();
+    if (typeof window === "undefined") {
+      const { default: ResponseEmail } = await import("../emails/templates/response-email");
+      const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], response: response });
+      await email.sendEmail();
+    }
   } catch (e) {
     logger.error("Error sending response email", e);
   }

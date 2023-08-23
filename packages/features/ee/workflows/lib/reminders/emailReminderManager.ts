@@ -206,6 +206,7 @@ export const scheduleEmailReminder = async (
           enable: sandboxMode,
         },
       },
+      sendAt: data.sendAt,
     });
   }
 
