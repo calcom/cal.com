@@ -219,7 +219,7 @@ export default class ZohoCalendarService implements Calendar {
       // needed to fetch etag
       let existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       let existingEventData = await this.handleData(existingEventResponse, this.log);
-      
+
       const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
         method: "DELETE",
         headers: {
@@ -286,8 +286,9 @@ export default class ZohoCalendarService implements Calendar {
         data.freebusy
           .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
           .map((freebusy: FreeBusy) => ({
-            start: dayjs(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-            end: dayjs(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+            // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
+            start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+            end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
           })) || [];
       return busyData;
     } catch (error) {
