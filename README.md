@@ -221,6 +221,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+   > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
    docker pull mailhog/mailhog
