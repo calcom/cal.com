@@ -233,7 +233,7 @@ test.describe("pro user", () => {
     expect(firstSlotAvailableText).toContain("9:00");
   });
 
-  test("double booking cannot be done for same slot - check ui", async ({ page, users }) => {
+  test("double booking cannot be done for same slot", async ({ page, users }) => {
     // First booking done for first available time slot in next month
     await bookOptinEvent(page);
 
