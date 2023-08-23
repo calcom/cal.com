@@ -101,6 +101,17 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
+const set = new Set();
+const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
+  const unique = arr.filter((booking) => {
+    const duplicate = set.has(booking.uid);
+    set.add(booking.uid);
+    return !duplicate;
+  });
+  set.clear();
+  return unique;
+};
+
 async function getBookings({
   user,
   prisma,
@@ -236,6 +247,7 @@ async function getBookings({
 
     recurringInfoBasic,
     recurringInfoExtended,
+    // We need all promises to be successful, so we are not using Promise.allSettled
   ] = await Promise.all([
     prisma.booking.findMany({
       where: {
@@ -408,14 +420,3 @@ async function getBookings({
   });
   return { bookings, recurringInfo };
 }
-
-const set = new Set();
-const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
-  const unique = arr.filter((booking) => {
-    const duplicate = set.has(booking.uid);
-    set.add(booking.uid);
-    return !duplicate;
-  });
-  set.clear();
-  return unique;
-};

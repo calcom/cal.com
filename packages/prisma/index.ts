@@ -18,6 +18,7 @@ export const customPrisma = (options: Prisma.PrismaClientOptions) =>
   new PrismaClientWithoutExtension({ ...prismaOptions, ...options });
 
 // If any changed on middleware server restart is required
+// TODO: Migrate it to $extends
 bookingReferenceMiddleware(prismaWithoutClientExtensions);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it

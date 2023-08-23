@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -151,10 +152,7 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
   const { user, session } = await getUserSession(ctx);
 
   const middlewareEnd = performance.now();
-  // addServerTimingHeaderIfRes({
-  //   res: ctx.res,
-  //   timings: [{ duration: middlewareEnd - middlewareStart, label: "t.isAuthed" }],
-  // });
+  logger.debug("Perf:t.isAuthed", middlewareEnd - middlewareStart);
 
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
