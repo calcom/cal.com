@@ -1,3 +1,8 @@
+/**
+ *  This script can be used to seed the database with a lot of data for performance testing.
+ *  TODO: Make it more structured and configurable from CLI
+ *  Run it as `npx ts-node --transpile-only ./seed-performance-testing.ts`
+ */
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
