@@ -1,4 +1,5 @@
 // TODO: i18n
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -30,10 +31,9 @@ import {
   List,
   ListLinkItem,
   Tooltip,
+  ArrowButton
 } from "@calcom/ui";
 import {
-  ArrowDown,
-  ArrowUp,
   BarChart,
   CheckCircle,
   Code,
@@ -86,16 +86,15 @@ export default function RoutingForms({
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const utils = trpc.useContext();
+  const [parent] = useAutoAnimate<HTMLUListElement>();
 
   const mutation = trpc.viewer.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       await utils.viewer.appRoutingForms.invalidate();
     },
     onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       utils.viewer.appRoutingForms.invalidate();
     },
   });
@@ -146,7 +145,7 @@ export default function RoutingForms({
   ];
 
   async function moveRoutingForm(index: number, increment: 1 | -1) {
-    const types = forms?.map((type) => {
+    const types = forms!.map((type) => {
       return type.form;
     })!;
 
@@ -215,7 +214,7 @@ export default function RoutingForms({
                   }
                   SkeletonLoader={SkeletonLoaderTeamList}>
                   <div className="bg-default mb-16 overflow-hidden">
-                    <List data-testid="routing-forms-list">
+                    <List data-testid="routing-forms-list" ref={parent}>
                       {forms?.map(({ form, readOnly }, index) => {
                         if (!form) {
                           return null;
@@ -229,24 +228,17 @@ export default function RoutingForms({
                         const lastItem = forms[forms.length - 1].form;
 
                         return (
-                          <div className="group flex w-full max-w-full items-center justify-between overflow-hidden">
+                          <div
+                            className="group flex w-full max-w-full items-center justify-between overflow-hidden"
+                            key={form.id}>
                             {!(firstItem && firstItem.id === form.id) && (
-                              <button
-                                className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                                onClick={() => moveRoutingForm(index, -1)}>
-                                <ArrowUp className="h-5 w-5" />
-                              </button>
+                              <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
                             )}
 
                             {!(lastItem && lastItem.id === form.id) && (
-                              <button
-                                className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                                onClick={() => moveRoutingForm(index, 1)}>
-                                <ArrowDown className="h-5 w-5" />
-                              </button>
+                              <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
                             )}
                             <ListLinkItem
-                              key={form.id}
                               href={appUrl + "/form-edit/" + form.id}
                               heading={form.name}
                               disabled={readOnly}

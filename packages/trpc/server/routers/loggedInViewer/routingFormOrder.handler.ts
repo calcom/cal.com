@@ -18,10 +18,25 @@ type RoutingFormOrderOptions = {
 
 export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
   const { user } = ctx;
-  const where = getPrismaWhereFromFilters(user, undefined);
 
   const forms = await prisma.app_RoutingForms_Form.findMany({
-    where,
+    where: {
+      OR: [
+        {
+          userId: user.id,
+        },
+        {
+          team: {
+            members: {
+              some: {
+                userId: user.id,
+                accepted: true,
+              },
+            },
+          },
+        },
+      ],
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -60,76 +75,3 @@ export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOp
   );
 };
 
-export function getPrismaWhereFromFilters(
-  user: {
-    id: number;
-  },
-  filters: NonNullable<TFormSchema>["filters"]
-) {
-  const where = {
-    OR: [] as Prisma.App_RoutingForms_FormWhereInput[],
-  };
-
-  const prismaQueries: Record<
-    keyof NonNullable<typeof filters>,
-    (...args: [number[]]) => Prisma.App_RoutingForms_FormWhereInput
-  > & {
-    all: () => Prisma.App_RoutingForms_FormWhereInput;
-  } = {
-    userIds: (userIds: number[]) => ({
-      userId: {
-        in: userIds,
-      },
-      teamId: null,
-    }),
-    teamIds: (teamIds: number[]) => ({
-      team: {
-        id: {
-          in: teamIds ?? [],
-        },
-        members: {
-          some: {
-            userId: user.id,
-            accepted: true,
-          },
-        },
-      },
-    }),
-    all: () => ({
-      OR: [
-        {
-          userId: user.id,
-        },
-        {
-          team: {
-            members: {
-              some: {
-                userId: user.id,
-                accepted: true,
-              },
-            },
-          },
-        },
-      ],
-    }),
-  };
-
-  if (!filters || !hasFilter(filters)) {
-    where.OR.push(prismaQueries.all());
-  } else {
-    for (const entry of entries(filters)) {
-      if (!entry) {
-        continue;
-      }
-      const [filterName, filter] = entry;
-      const getPrismaQuery = prismaQueries[filterName];
-      // filter might be accidentally set undefined as well
-      if (!getPrismaQuery || !filter) {
-        continue;
-      }
-      where.OR.push(getPrismaQuery(filter));
-    }
-  }
-
-  return where;
-}
