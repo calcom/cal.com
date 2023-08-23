@@ -15,6 +15,7 @@ type PublicViewerRouterHandlerCache = {
   stripeCheckoutSession?: typeof import("./stripeCheckoutSession.handler").stripeCheckoutSessionHandler;
   cityTimezones?: typeof import("./cityTimezones.handler").cityTimezonesHandler;
   event?: typeof import("./event.handler").eventHandler;
+  ssoConnections?: typeof import("./ssoConnections.handler").handler;
 };
 
 const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
@@ -132,5 +133,20 @@ export const publicViewerRouter = router({
       ctx,
       input,
     });
+  }),
+
+  ssoConnections: publicProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.ssoConnections) {
+      UNSTABLE_HANDLER_CACHE.ssoConnections = await import("./ssoConnections.handler").then(
+        (mod) => mod.handler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.ssoConnections) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.ssoConnections();
   }),
 });
