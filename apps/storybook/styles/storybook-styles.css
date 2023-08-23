@@ -269,10 +269,10 @@
     --cal-text-inverted: #101010;
 
     /* Content/Text -> components */
-    --cal-text-info: #253985;
-    --cal-text-success: #285231;
-    --cal-text-attention: #73321b;
-    --cal-text-error: #752522;
+    --cal-text-info: #dee9fc;
+    --cal-text-success: #e2fbe8;
+    --cal-text-attention: #fceed8;
+    --cal-text-error: #f9e3e2;
 
     /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
