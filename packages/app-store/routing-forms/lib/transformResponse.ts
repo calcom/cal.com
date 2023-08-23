@@ -5,8 +5,11 @@ export default function transformResponse({
   value,
 }: {
   field: Field;
-  value: Response[string]["value"];
+  value: Response[string]["value"] | undefined;
 }) {
+  if (!value) {
+    return "";
+  }
   // type="number" still gives value as a string but we need to store that as number so that number operators can work.
   if (field.type === "number") {
     if (typeof value === "string") {
