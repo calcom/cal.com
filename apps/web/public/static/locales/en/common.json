@@ -2010,6 +2010,7 @@
   "member_removed": "Member removed",
   "my_availability": "My Availability",
   "team_availability": "Team Availability",
+  "your_organization_updated_sucessfully": "Your organization updated successfully",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations", 
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
