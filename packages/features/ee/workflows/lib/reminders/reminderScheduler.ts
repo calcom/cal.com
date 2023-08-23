@@ -1,6 +1,9 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isTextMessageToAttendeeAction,
+  isWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -20,6 +23,8 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
+  isKYCVerified: boolean;
+  eventTypeRequiresConfirmation?: boolean;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
@@ -28,7 +33,7 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
       steps: WorkflowStep[];
     };
   })[];
-  requiresConfirmation?: boolean;
+  isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
 }
@@ -42,8 +47,13 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
+    eventTypeRequiresConfirmation,
+    isKYCVerified,
   }: ProcessWorkflowStepParams
 ) => {
+  if (isTextMessageToAttendeeAction(step.action) && (!isKYCVerified || !eventTypeRequiresConfirmation))
+    return;
+
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder(
@@ -125,15 +135,16 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     workflows,
     smsReminderNumber,
     calendarEvent: evt,
-    requiresConfirmation = false,
+    isNotConfirmed = false,
     isRescheduleEvent = false,
     isFirstRecurringEvent = false,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
+    eventTypeRequiresConfirmation = false,
+    isKYCVerified,
   } = args;
-
-  if (requiresConfirmation || !workflows.length) return;
+  if (isNotConfirmed || !workflows.length) return;
 
   for (const workflowReference of workflows) {
     if (workflowReference.workflow.steps.length === 0) continue;
@@ -164,6 +175,8 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
+        eventTypeRequiresConfirmation,
+        isKYCVerified,
       });
     }
   }
@@ -194,10 +207,13 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  isKYCVerified: boolean;
+  eventTypeRequiresConfirmation?: boolean;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt, hideBranding } = args;
+  const { workflows, smsReminderNumber, evt, hideBranding, isKYCVerified, eventTypeRequiresConfirmation } =
+    args;
   if (!workflows.length) return;
 
   for (const workflowRef of workflows) {
@@ -210,6 +226,8 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
+        eventTypeRequiresConfirmation,
+        isKYCVerified,
       });
     }
   }

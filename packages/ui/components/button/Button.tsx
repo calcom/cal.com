@@ -36,7 +36,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "inline-flex items-center text-sm font-medium relative rounded-md transition-colors disabled:cursor-not-allowed",
+  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-md transition-colors disabled:cursor-not-allowed",
   {
     variants: {
       variant: {

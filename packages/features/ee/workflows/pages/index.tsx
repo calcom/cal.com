@@ -3,7 +3,8 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
+import { getLayout } from "@calcom/features/MainLayout";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,7 +50,7 @@ function WorkflowsPage() {
   });
 
   return (
-    <Shell
+    <ShellMain
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
@@ -92,7 +93,7 @@ function WorkflowsPage() {
           </FilterResults>
         </>
       </LicenseRequired>
-    </Shell>
+    </ShellMain>
   );
 }
 
@@ -220,5 +221,7 @@ const Filter = (props: {
     </div>
   );
 };
+
+WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

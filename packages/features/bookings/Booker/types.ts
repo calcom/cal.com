@@ -58,6 +58,12 @@ export interface BookerProps {
    * that will always result in the user event being returned.
    */
   isTeamEvent?: boolean;
+  /**
+   * Refers to a multiple-duration event-type
+   * It will correspond to selected time from duration query param if exists and if it is allowed as an option,
+   * otherwise, the default value is selected
+   */
+  duration?: number | null;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

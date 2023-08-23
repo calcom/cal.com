@@ -1,4 +1,4 @@
-import type { Booking, Payment, Prisma, PaymentOption } from "@prisma/client";
+import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -12,7 +12,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
-import type { StripeSetupIntentData, StripePaymentData } from "./server";
+import type { StripePaymentData, StripeSetupIntentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -38,6 +38,13 @@ export class PaymentService implements IAbstractPaymentService {
     });
   }
 
+  private async getPayment(where: Prisma.PaymentWhereInput) {
+    const payment = await prisma.payment.findFirst({ where });
+    if (!payment) throw new Error("Payment not found");
+    if (!payment.externalId) throw new Error("Payment externalId not found");
+    return { ...payment, externalId: payment.externalId };
+  }
+
   /* This method is for creating charges at the time of booking */
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
@@ -52,7 +59,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       // Load stripe keys
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
@@ -60,10 +67,6 @@ export class PaymentService implements IAbstractPaymentService {
           slug: "stripe",
         },
       });
-
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         bookerEmail,
@@ -81,7 +84,7 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      const paymentData = await prisma?.payment.create({
+      const paymentData = await prisma.payment.create({
         data: {
           uid: uuidv4(),
           app: {
@@ -97,12 +100,11 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           currency: payment.currency,
           externalId: paymentIntent.id,
-
           data: Object.assign({}, paymentIntent, {
             stripe_publishable_key: this.credentials.stripe_publishable_key,
             stripeAccount: this.credentials.stripe_user_id,
           }) as unknown as Prisma.InputJsonValue,
-          fee: paymentFee,
+          fee: 0,
           refunded: false,
           success: false,
           paymentOption: paymentOption || "ON_BOOKING",
@@ -131,7 +133,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       // Load stripe keys
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
@@ -139,10 +141,6 @@ export class PaymentService implements IAbstractPaymentService {
           slug: "stripe",
         },
       });
-
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         bookerEmail,
@@ -161,7 +159,7 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      const paymentData = await prisma?.payment.create({
+      const paymentData = await prisma.payment.create({
         data: {
           uid: uuidv4(),
           app: {
@@ -177,7 +175,6 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           currency: payment.currency,
           externalId: setupIntent.id,
-
           data: Object.assign(
             {},
             {
@@ -186,7 +183,7 @@ export class PaymentService implements IAbstractPaymentService {
               stripeAccount: this.credentials.stripe_user_id,
             }
           ) as unknown as Prisma.InputJsonValue,
-          fee: paymentFee,
+          fee: 0,
           refunded: false,
           success: false,
           paymentOption: paymentOption || "ON_BOOKING",
@@ -202,7 +199,7 @@ export class PaymentService implements IAbstractPaymentService {
 
   async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
     try {
-      const stripeAppKeys = await prisma?.app.findFirst({
+      const stripeAppKeys = await prisma.app.findFirst({
         select: {
           keys: true,
         },
@@ -280,17 +277,11 @@ export class PaymentService implements IAbstractPaymentService {
 
   async refund(paymentId: Payment["id"]): Promise<Payment> {
     try {
-      const payment = await prisma.payment.findFirst({
-        where: {
-          id: paymentId,
-          success: true,
-          refunded: false,
-        },
+      const payment = await this.getPayment({
+        id: paymentId,
+        success: true,
+        refunded: false,
       });
-      if (!payment) {
-        throw new Error("Payment not found");
-      }
-
       const refund = await this.stripe.refunds.create(
         {
           payment_intent: payment.externalId,
@@ -345,15 +336,9 @@ export class PaymentService implements IAbstractPaymentService {
 
   async deletePayment(paymentId: Payment["id"]): Promise<boolean> {
     try {
-      const payment = await prisma.payment.findFirst({
-        where: {
-          id: paymentId,
-        },
+      const payment = await this.getPayment({
+        id: paymentId,
       });
-
-      if (!payment) {
-        throw new Error("Payment not found");
-      }
       const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
 
       if (!stripeAccount) {

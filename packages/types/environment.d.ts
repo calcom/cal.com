@@ -45,10 +45,13 @@ declare namespace NodeJS {
     /** The URL of the deployment. Example: my-site-7q03y4pi5.vercel.app. */
     readonly VERCEL_URL: string | undefined;
     /**
-     * This is used so we can bypass emails in auth flows for E2E testing.
      * Set it to "1" if you need to run E2E tests locally
      **/
     readonly NEXT_PUBLIC_IS_E2E: "1" | undefined;
+    /**
+     * This is used so we can enable Mailhog in E2E tests.
+     */
+    readonly E2E_TEST_MAILHOG_ENABLED: "1" | undefined;
     readonly NEXT_PUBLIC_APP_NAME: string | "Cal";
     readonly NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS: string | "help@cal.com";
     readonly NEXT_PUBLIC_COMPANY_NAME: string | "Cal.com, Inc.";

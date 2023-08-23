@@ -1,4 +1,3 @@
-import { merge } from "lodash";
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
 import { usePathname } from "next/navigation";
@@ -31,7 +30,7 @@ const buildSeoMeta = (pageProps: {
   siteName?: string;
   url?: string;
   canonical?: string;
-}): NextSeoProps => {
+}) => {
   const { title, description, image, canonical, siteName = seoConfig.headSeo.siteName } = pageProps;
   return {
     title: title,
@@ -123,7 +122,18 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     });
   }
 
-  const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);
+  // Instead of doing a blackbox deep merge which can be tricky implementation wise and need a good implementation, we should generate the object manually as we know the properties
+  // Goal is to avoid big dependency
+  const seoProps: NextSeoProps = {
+    ...nextSeoProps,
+    ...seoObject,
+    openGraph: {
+      ...nextSeoProps.openGraph,
+      ...seoObject.openGraph,
+      images: [...(nextSeoProps.openGraph?.images || []), ...seoObject.openGraph.images],
+    },
+    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || [])],
+  };
 
   return <NextSeo {...seoProps} />;
 };
