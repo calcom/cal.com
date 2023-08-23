@@ -232,6 +232,31 @@ test.describe("pro user", () => {
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:00");
   });
+
+  test("double booking cannot be done for same slot - check ui", async ({ page, users }) => {
+    // First booking done for first available time slot in next month
+    await bookOptinEvent(page);
+
+    const [pro] = users.get();
+    await page.goto(`/${pro.username}`);
+
+    // Second booking done for same time slot
+    await bookOptinEvent(page);
+
+    await pro.apiLogin();
+
+    // Confirm first booking
+    await page.goto("/bookings/unconfirmed");
+    await Promise.all([
+      page.click('[data-testid="confirm"]'),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
+    ]);
+
+    await page.goto("/bookings/unconfirmed");
+    // The only confirm button available in the page would be for second booking,
+    // expect it to be disabled
+    await expect(page.locator('[data-testid="confirm"]')).toBeDisabled();
+  });
 });
 
 test.describe("prefill", () => {
