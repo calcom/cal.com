@@ -4,6 +4,7 @@ import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
+import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -49,6 +50,10 @@ async function getBatchId() {
 
 function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();
+  let recurrenceRule: string | undefined = undefined;
+  if (evt.eventType.recurringEvent?.count) {
+    recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
+  }
 
   const icsEvent = createEvent({
     uid,
@@ -72,6 +77,9 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
         rsvp: true,
       },
     ],
+    method: "REQUEST",
+    ...{ recurrenceRule },
+    status: "CONFIRMED",
   });
 
   if (icsEvent.error) {

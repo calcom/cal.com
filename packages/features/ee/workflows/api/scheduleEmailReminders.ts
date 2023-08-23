@@ -5,10 +5,12 @@ import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
 import type { DateArray } from "ics";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { parseRecurringEvent } from "@calcom/lib";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -33,6 +35,12 @@ type Booking = Prisma.BookingGetPayload<{
 }>;
 
 function getiCalEventAsString(booking: Booking) {
+  let recurrenceRule: string | undefined = undefined;
+  const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
+  if (recurringEvent?.count) {
+    recurrenceRule = new RRule(recurringEvent).toString().replace("RRULE:", "");
+  }
+
   const uid = uuidv4();
 
   const icsEvent = createEvent({
@@ -65,6 +73,9 @@ function getiCalEventAsString(booking: Booking) {
         rsvp: true,
       },
     ],
+    method: "REQUEST",
+    ...{ recurrenceRule },
+    status: "CONFIRMED",
   });
 
   if (icsEvent.error) {
