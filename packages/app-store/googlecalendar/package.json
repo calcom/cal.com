@@ -9,7 +9,14 @@
     "@calcom/prisma": "*",
     "googleapis": "^84.0.0"
   },
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "msw": "1.2.3",
+    "node-mocks-http": "^1.11.0",
+    "vitest": "^0.34.2"
   }
 }
