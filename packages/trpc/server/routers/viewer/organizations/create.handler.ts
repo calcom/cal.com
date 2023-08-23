@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { lookup } from "dns";
 import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
@@ -6,7 +7,12 @@ import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, IS_PRODUCTION } from "@calcom/lib/constants";
+import {
+  IS_TEAM_BILLING_ENABLED,
+  RESERVED_SUBDOMAINS,
+  IS_PRODUCTION,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -21,6 +27,15 @@ type CreateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TCreateInputSchema;
+};
+
+const getIPAddress = async (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    lookup(url, (err, address) => {
+      if (err) reject(err);
+      resolve(address);
+    });
+  });
 };
 
 const vercelCreateDomain = async (domain: string) => {
@@ -99,6 +114,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           instanceAdmins,
           orgSlug: slug,
           ownerEmail: adminEmail,
+          webappIPAddress: await getIPAddress(
+            WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
+          ),
           t,
         });
       } else {

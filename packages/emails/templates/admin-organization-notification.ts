@@ -10,6 +10,7 @@ export type OrganizationNotification = {
   instanceAdmins: { email: string }[];
   ownerEmail: string;
   orgSlug: string;
+  webappIPAddress: string;
 };
 
 export default class AdminOrganizationNotification extends BaseEmail {
@@ -28,6 +29,7 @@ export default class AdminOrganizationNotification extends BaseEmail {
       subject: `${this.input.t("admin_org_notification_email_subject")}`,
       html: renderEmail("AdminOrganizationNotificationEmail", {
         orgSlug: this.input.orgSlug,
+        webappIPAddress: this.input.webappIPAddress,
         language: this.input.t,
       }),
       text: this.getTextBody(),
