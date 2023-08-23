@@ -1,6 +1,6 @@
 import { middleware } from "../trpc";
 
-const perfMiddleware = middleware(async ({ path, type, next, ctx }) => {
+const perfMiddleware = middleware(async ({ path, type, next }) => {
   performance.mark("Start");
   const result = await next();
   performance.mark("End");
