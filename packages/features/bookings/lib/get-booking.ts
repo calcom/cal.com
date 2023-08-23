@@ -120,8 +120,8 @@ export const getBookingForReschedule = async (uid: string) => {
     },
   });
 
-  // If no booking is found via the uid, it's probably a booking seat,
-  // which we query next.
+  // If no booking is found via the uid, it's probably a booking seat
+  // that its being rescheduled, which we query next.
   let attendeeEmail: string | null = null;
   if (!theBooking) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
@@ -224,4 +224,14 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     })),
   };
   return result;
+};
+
+export const getMultipleDurationValue = (
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | undefined,
+  defaultValue: number
+) => {
+  if (!multipleDurationConfig) return null;
+  if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
+  return defaultValue;
 };

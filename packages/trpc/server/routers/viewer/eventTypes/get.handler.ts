@@ -1,3 +1,5 @@
+import type { PrismaClient } from "@prisma/client";
+
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import type { PrismaType } from "@calcom/prisma";
 
