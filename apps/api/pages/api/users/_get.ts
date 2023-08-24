@@ -53,7 +53,7 @@ export async function getHandler(req: NextApiRequest) {
   if (!isAdmin) where.id = userId;
 
   if (req.query.email) {
-    const validationResult = schemaQuerySingleOrMultipleUserEmails.safeParse(req.query);
+    const validationResult = schemaQuerySingleOrMultipleUserEmails.parse(req.query);
 
     if (!validationResult.success) {
       // Handle the validation error, maybe return a response or throw an error.
