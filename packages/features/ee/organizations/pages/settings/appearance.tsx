@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -75,8 +76,6 @@ const OrgAppearanceView = () => {
     },
   });
 
-  console.log("Current_Org", currentOrg);
-
   const form = useForm<OrgAppearanceValues>({
     defaultValues: {
       theme: currentOrg?.theme,
@@ -115,11 +114,13 @@ const OrgAppearanceView = () => {
               render={({ field: { value } }) => (
                 <>
                   <Avatar
-                    alt=""
-                    imageSrc={getPlaceholderAvatar(value, currentOrg?.name as string)}
+                    alt="calVideoLogo"
+                    imageSrc={getPlaceholderAvatar(
+                      value ?? `${WEBSITE_URL}/cal-logo-word-dark.svg`,
+                      undefined
+                    )}
                     size="lg"
                   />
-                  {console.log("VALUES", value)}
                   <div className="ms-4">
                     <ImageUploader
                       target="avatar"
