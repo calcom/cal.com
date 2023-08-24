@@ -226,6 +226,7 @@ const SortableListItem = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
+    // Set transition to none to avoid flickering
     transition: "none",
   };
 
@@ -265,6 +266,7 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
+  // Added types state to reorder event types in the UI on dragEnd faster
   const [types, setTypes] = useState(unorderedTypes);
   const utils = trpc.useContext();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
