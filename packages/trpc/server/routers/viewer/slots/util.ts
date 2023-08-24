@@ -88,7 +88,10 @@ async function getEventTypeId({
   let teamId;
   let userId;
   if (isTeamEvent) {
-    teamId = await getTeamIdFromSlug(slug);
+    teamId = await getTeamIdFromSlug(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
   } else {
     userId = await getUserIdFromUsername(
       slug,
@@ -525,10 +528,15 @@ async function getUserIdFromUsername(
   return user?.id;
 }
 
-async function getTeamIdFromSlug(slug: string) {
+async function getTeamIdFromSlug(
+  slug: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   const team = await prisma.team.findFirst({
     where: {
       slug,
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
