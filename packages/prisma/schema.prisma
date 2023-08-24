@@ -803,7 +803,7 @@ model WorkflowReminder {
   @@index([seatReferenceId])
 }
 
-model ZapierScheduledTriggers {
+model WebhookScheduledTriggers {
   id            Int       @id @default(autoincrement())
   jobName       String
   subscriberUrl String

@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "ZapierScheduledTriggers" (
+CREATE TABLE "WebhookScheduledTriggers" (
     "id" SERIAL NOT NULL,
     "jobName" TEXT NOT NULL,
     "subscriberUrl" TEXT NOT NULL,
@@ -8,5 +8,5 @@ CREATE TABLE "ZapierScheduledTriggers" (
     "retryCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "ZapierScheduledTriggers_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "WebhookScheduledTriggers_pkey" PRIMARY KEY ("id")
 );

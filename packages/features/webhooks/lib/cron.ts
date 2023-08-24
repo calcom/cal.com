@@ -1,4 +1,4 @@
-/* Cron job for scheduled zapier events triggers */
+/* Cron job for scheduled webhook events triggers */
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // get jobs that should be run
-  const jobsToRun = await prisma.zapierScheduledTriggers.findMany({
+  const jobsToRun = await prisma.webhookScheduledTriggers.findMany({
     where: {
       startAfter: {
         lte: dayjs().toISOString(),
@@ -29,11 +29,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         body: job.payload,
       });
     } catch (error) {
-      console.log(`Error running zapier trigger (retry count: ${job.retryCount}): ${error}`);
+      console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
 
       // if job fails, retry again for 5 times.
       if (job.retryCount < 5) {
-        await prisma.zapierScheduledTriggers.update({
+        await prisma.webhookScheduledTriggers.update({
           where: {
             id: job.id,
           },
@@ -58,7 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     };
 
     // clean finished job
-    await prisma.zapierScheduledTriggers.delete({
+    await prisma.webhookScheduledTriggers.delete({
       where: {
         id: job.id,
       },
@@ -69,7 +69,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       select: { id: true, scheduledJobs: true },
     });
     if (!booking) {
-      console.log("Error finding booking in zapier trigger:", parsedJobPayload);
+      console.log("Error finding booking in webhook trigger:", parsedJobPayload);
       return res.json({ ok: false });
     }
 

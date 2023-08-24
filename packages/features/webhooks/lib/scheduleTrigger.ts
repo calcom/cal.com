@@ -11,7 +11,7 @@ export async function scheduleTrigger(
     const jobName = `${subscriber.appId}_${subscriber.id}`;
 
     // add scheduled job to database
-    const createTrigger = prisma.zapierScheduledTriggers.create({
+    const createTrigger = prisma.webhookScheduledTriggers.create({
       data: {
         jobName,
         payload,
@@ -50,7 +50,7 @@ export async function cancelScheduledJobs(
       booking.scheduledJobs.forEach(async (scheduledJob) => {
         if (appId) {
           if (scheduledJob.startsWith(appId)) {
-            await prisma.zapierScheduledTriggers.deleteMany({
+            await prisma.webhookScheduledTriggers.deleteMany({
               where: {
                 jobName: scheduledJob,
               },
@@ -59,7 +59,7 @@ export async function cancelScheduledJobs(
           }
         } else {
           //if no specific appId given, delete all scheduled jobs of booking
-          await prisma.zapierScheduledTriggers.deleteMany({
+          await prisma.webhookScheduledTriggers.deleteMany({
             where: {
               jobName: scheduledJob,
             },

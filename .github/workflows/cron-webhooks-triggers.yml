@@ -1,4 +1,4 @@
-name: Cron - zapierTriggers
+name: Cron - webhookTriggers
 
 on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
@@ -7,7 +7,7 @@ on:
     # Runs “every 5 minutes” (see https://crontab.guru)
     - cron: "*/5 * * * *"
 jobs:
-  cron-zapierTriggers:
+  cron-webhookTriggers:
     env:
       APP_URL: ${{ secrets.APP_URL }}
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
@@ -16,7 +16,7 @@ jobs:
       - name: cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY }}
         run: |
-          curl ${{ secrets.APP_URL }}/api/cron/zapierTriggers \
+          curl ${{ secrets.APP_URL }}/api/cron/webhookTriggers \
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
