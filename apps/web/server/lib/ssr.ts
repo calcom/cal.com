@@ -3,7 +3,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/i18n";
+import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";

@@ -872,6 +872,7 @@
   "account_managed_by_identity_provider_description": "Pour modifier votre adresse e-mail et/ou votre mot de passe, activez l'authentification à deux facteurs et plus, veuillez consulter les paramètres de votre compte {{provider}}.",
   "signin_with_google": "Se connecter avec Google",
   "signin_with_saml": "Se connecter avec SAML",
+  "signin_with_saml_oidc": "Se connecter avec SAML/OIDC",
   "you_will_need_to_generate": "Vous devrez générer un token d'accès à partir de votre ancien outil de planification.",
   "import": "Importer",
   "import_from": "Importer depuis",
