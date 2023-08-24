@@ -91,7 +91,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(-extraDays - 1)}
+            onClick={() => addToSelectedDate(-extraDays)}
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
@@ -99,7 +99,7 @@ export function Header({
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(extraDays + 1)}
+            onClick={() => addToSelectedDate(extraDays)}
           />
           {selectedDateMin3DaysDifference && (
             <Button
