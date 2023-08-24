@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -91,6 +92,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
     });
+
     test("edit first event", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
@@ -152,5 +154,44 @@ test.describe("Event Types tests", () => {
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
+
+    test.describe("Different Locations Tests", () => {
+      test.only("can add Attendee Phone Number location and book with it", async ({ page }) => {
+        const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+        await firstEventTypeElement.click();
+        await page.waitForURL((url) => {
+          return !!url.pathname.match(/\/event-types\/.+/);
+        });
+
+        await selectAttendeePhoneNumber(page);
+        await saveEventType(page);
+        await gotoBookingPage(page);
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator(`[data-fob-field-name="location"] input`).fill("+919999999999");
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      });
+    });
   });
 });
+
+const selectAttendeePhoneNumber = async (page: Page) => {
+  const locationOptionText = "Attendee Phone Number";
+  await page.locator("#location-select").click();
+  await page.locator(`text=${locationOptionText}`).click();
+};
+
+async function saveEventType(page: Page) {
+  await page.locator("[data-testid=update-eventtype]").click();
+}
+
+async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}
