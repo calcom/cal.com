@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";

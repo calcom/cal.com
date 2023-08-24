@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,6 +117,8 @@ export const EventSetupTab = (
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const orgBranding = useOrgBranding();
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -385,6 +388,9 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+  const urlPrefix = orgBranding
+    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
+    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -413,10 +419,10 @@ export const EventSetupTab = (
           defaultValue={eventType.slug}
           addOnLeading={
             <>
-              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {urlPrefix}/
               {!isManagedEventType
                 ? team
-                  ? "team/" + team.slug
+                  ? (orgBranding ? "" : "team/") + team.slug
                   : eventType.users[0].username
                 : t("username_placeholder")}
               /
@@ -503,6 +509,8 @@ export const EventSetupTab = (
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
               checked={multipleDuration !== undefined}
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
               onCheckedChange={() => {
                 if (multipleDuration !== undefined) {
                   setMultipleDuration(undefined);
