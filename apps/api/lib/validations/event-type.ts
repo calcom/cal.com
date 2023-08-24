@@ -130,6 +130,8 @@ export const schemaEventTypeReadPublic = EventType.pick({
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
   bookingFields: true,
+  bookingLimits: true,
+  durationLimits: true,
 }).merge(
   z.object({
     locations: z
