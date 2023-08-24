@@ -4,6 +4,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
 import { schemaUsersReadPublic } from "~/lib/validations/user";
 
 /**
@@ -39,6 +40,30 @@ export async function getHandler(req: NextApiRequest) {
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
+
+  if (req.query.email) {
+    const validationResult = schemaQuerySingleOrMultipleUserEmails.safeParse(req.query);
+
+    if (!validationResult.success) {
+      // Handle the validation error, maybe return a response or throw an error.
+      throw new Error("Invalid email format");
+    }
+
+    const { email } = validationResult.data;
+
+    if (email) {
+      // If email is a single string
+      if (typeof email === "string") {
+        where.email = email;
+      }
+      // If email is an array of strings
+      else if (Array.isArray(email)) {
+        where.email = {
+          in: email,
+        };
+      }
+    }
+  }
   const [total, data] = await prisma.$transaction([
     prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),
