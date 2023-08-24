@@ -23,6 +23,15 @@ Below are the props for `Image uploader`
 <Canvas>
   <Story
     name="ImageUploader"
+    play={({ canvasElement }) => {
+      const darkVariantContainer = canvasElement.querySelector("#dark-variant");
+      const imageUploaderElement = darkVariantContainer.querySelector("button");
+      imageUploaderElement?.addEventListener("click", () => {
+        setTimeout(() => {
+          document.querySelector('[role="dialog"]')?.classList.add("dark");
+        }, 1);
+      });
+    }}
     args={{
       id: "image-1",
       buttonMsg: "upload",
