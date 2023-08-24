@@ -156,25 +156,18 @@ test.describe("Event Types tests", () => {
     });
 
     test.describe("Different Locations Tests", () => {
-      test.only("can add Attendee Phone Number location and book with it", async ({ page }) => {
-        const $eventTypes = page.locator("[data-testid=event-types] > li a");
-        const firstEventTypeElement = $eventTypes.first();
-        await firstEventTypeElement.click();
-        await page.waitForURL((url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        });
-
+      test("can add Attendee Phone Number location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
         await selectAttendeePhoneNumber(page);
         await saveEventType(page);
         await gotoBookingPage(page);
-
         await selectFirstAvailableTimeSlotNextMonth(page);
 
-        await page.locator(`[data-fob-field-name="location"] input`).fill("+919999999999");
-
+        await page.locator(`[data-fob-field-name="location"] input`).fill("9199999999");
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
       });
     });
   });
@@ -185,6 +178,15 @@ const selectAttendeePhoneNumber = async (page: Page) => {
   await page.locator("#location-select").click();
   await page.locator(`text=${locationOptionText}`).click();
 };
+
+async function gotoFirstEventType(page: Page) {
+  const $eventTypes = page.locator("[data-testid=event-types] > li a");
+  const firstEventTypeElement = $eventTypes.first();
+  await firstEventTypeElement.click();
+  await page.waitForURL((url) => {
+    return !!url.pathname.match(/\/event-types\/.+/);
+  });
+}
 
 async function saveEventType(page: Page) {
   await page.locator("[data-testid=update-eventtype]").click();
