@@ -1,15 +1,16 @@
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
-type AdminGetUnverifiedOptions = {
+type AdminGetAllOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
 };
 
-export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptions) => {
-  const unVerifiedTeams = await prisma.team.findMany({
+export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetAllOptions) => {
+  const allOrgs = await prisma.team.findMany({
     where: {
       AND: [
         {
@@ -18,18 +19,13 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
             equals: true,
           },
         },
-        {
-          metadata: {
-            path: ["isOrganizationVerified"],
-            equals: false,
-          },
-        },
       ],
     },
     select: {
       id: true,
       name: true,
       slug: true,
+      metadata: true,
       members: {
         where: {
           role: "OWNER",
@@ -47,7 +43,7 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
     },
   });
 
-  return unVerifiedTeams;
+  return allOrgs.map((org) => ({ ...org, metadata: teamMetadataSchema.parse(org.metadata) }));
 };
 
 export default adminGetUnverifiedHandler;

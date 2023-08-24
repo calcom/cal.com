@@ -5,19 +5,19 @@ export {
   EmailField,
   EmailInput,
   FieldsetLegend,
-  Form,
-  Input,
-  InputField,
   InputGroupBox,
   InputLeading,
   PasswordField,
   TextArea,
   TextAreaField,
-  TextField,
-  InputFieldWithSelect,
   NumberInput,
   FilterSearchField,
 } from "./inputs/Input";
+
+export { InputFieldWithSelect } from "./inputs/InputFieldWithSelect";
+
+export { InputField, Input, TextField } from "./inputs/TextField";
+export { Form } from "./inputs/Form";
 export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
 export { TimezoneSelect } from "./timezone-select";

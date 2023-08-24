@@ -603,7 +603,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      if (isTextMessageToAttendeeAction(s.action)) {
+      if (!isKYCVerified && isTextMessageToAttendeeAction(s.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const { id: _stepId, ...stepToAdd } = s;
