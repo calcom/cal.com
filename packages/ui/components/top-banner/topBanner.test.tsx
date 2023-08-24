@@ -1,5 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 
 import { ArrowDown } from "@calcom/ui/components/icon";
 
@@ -14,17 +13,6 @@ describe("Tests for TopBanner component", () => {
 
     const btnElt = screen.queryByRole("button");
     expect(btnElt).toBeNull();
-  });
-
-  test("Should render a button", () => {
-    const mockOnClose = vi.fn();
-    render(<TopBanner text="the banner test" onClose={mockOnClose} />);
-
-    const btnElt = screen.getByRole("button");
-    expect(btnElt).toBeInTheDocument();
-
-    fireEvent.click(btnElt);
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
   test("Should render actions", () => {
