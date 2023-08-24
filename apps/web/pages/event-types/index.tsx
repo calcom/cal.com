@@ -52,7 +52,7 @@ import {
   Skeleton,
   Switch,
   Tooltip,
-  ArrowButton
+  ArrowButton,
 } from "@calcom/ui";
 import {
   Clipboard,

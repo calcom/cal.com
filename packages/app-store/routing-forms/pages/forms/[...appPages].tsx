@@ -31,7 +31,7 @@ import {
   List,
   ListLinkItem,
   Tooltip,
-  ArrowButton
+  ArrowButton,
 } from "@calcom/ui";
 import {
   BarChart,

@@ -1,8 +1,4 @@
-import { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
-import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
-import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -74,4 +70,3 @@ export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOp
     })
   );
 };
-
