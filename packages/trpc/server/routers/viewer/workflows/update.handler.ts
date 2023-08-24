@@ -466,11 +466,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       //cancel all workflow reminders from steps that were edited
       // FIXME: async calls into ether
       remindersToUpdate.forEach((reminder) => {
-        // FIXME: should probably call deleteScheduledWhatsappReminder as well
         if (reminder.method === WorkflowMethods.EMAIL) {
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+          deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
         }
       });
       const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
