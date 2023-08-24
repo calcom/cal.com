@@ -5,7 +5,9 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import dayjs from "@calcom/dayjs";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -74,6 +76,9 @@ const BookerComponent = ({
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
+  const columnViewExtraDays = useRef<number>(
+    isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop
+  );
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -87,9 +92,36 @@ const BookerComponent = ({
     shallow
   );
 
+  const date = dayjs(selectedDate).format("YYYY-MM-DD");
+  const schedule = useScheduleForEvent({ prefetchNextMonth: true });
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
+    (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
+  );
+
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const totalWeekDays = 7;
+  const addonDays =
+    nonEmptyScheduleDays.length < extraDays
+      ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
+      : nonEmptyScheduleDays.length === extraDays
+      ? totalWeekDays
+      : 0;
+
+  //Taking one more avaliable slot(extraDays + 1) to claculate the no of days in between, that next and prev button need to shift.
+  const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
+  if (nonEmptyScheduleDays.length !== 0)
+    columnViewExtraDays.current =
+      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+  const prefetchNextMonth =
+    dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
+  const monthCount =
+    dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
+      ? 2
+      : undefined;
+  const nextSlots =
+    Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
   // I would expect isEmbed to be not needed here as it's handled in derived variable layout, but somehow removing it breaks the views.
   const defaultLayout = isEmbed
@@ -214,8 +246,9 @@ const BookerComponent = ({
               )}>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={extraDays}
+                extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                 isMobile={isMobile}
+                nextSlots={nextSlots}
               />
             </BookerSection>
             <StickyOnDesktop
@@ -281,7 +314,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -291,6 +324,8 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
+                prefetchNextMonth={prefetchNextMonth}
+                monthCount={monthCount}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>

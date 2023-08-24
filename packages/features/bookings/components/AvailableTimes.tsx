@@ -26,6 +26,7 @@ type AvailableTimesProps = {
   seatsPerTimeSlot?: number | null;
   showTimeFormatToggle?: boolean;
   className?: string;
+  availableMonth?: String | undefined;
   selectedSlots?: string[];
 };
 
@@ -36,6 +37,7 @@ export const AvailableTimes = ({
   seatsPerTimeSlot,
   showTimeFormatToggle = true,
   className,
+  availableMonth,
   selectedSlots,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
@@ -64,7 +66,7 @@ export const AvailableTimes = ({
               "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
               isMonthView ? "text-default text-sm" : "text-xs"
             )}>
-            {date.format("DD")}
+            {date.format("DD")}{availableMonth && `, ${availableMonth}`}
           </span>
         </span>
 
@@ -134,3 +136,4 @@ export const AvailableTimesSkeleton = () => (
     ))}
   </div>
 );
+
