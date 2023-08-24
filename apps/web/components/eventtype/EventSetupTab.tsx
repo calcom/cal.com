@@ -129,9 +129,10 @@ export const EventSetupTab = (
     };
   });
 
-  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
-    value: mins,
-    label: t("multiple_duration_mins", { count: mins }),
+  const generateDurationLabel = (hrs) => `${hrs} hour${hrs > 1 ? "s" : ""}`;
+  const multipleDurationOptions = [1, 2, 3, 4, 5, 6, 7, 8].map((hrs) => ({
+    value: hrs,
+    label: generateDurationLabel(hrs),
   }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
