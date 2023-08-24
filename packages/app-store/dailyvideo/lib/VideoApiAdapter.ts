@@ -129,6 +129,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_chat: true,
           exp: exp,
           enable_recording: "cloud",
+          recordings_bucket: {
+            bucket_name: "<BUCKET_NAME>",
+            bucket_region: "<BUCKET_REGION?",
+            assume_role_arn: "<ARN_ROLE_HERE>",
+            allow_api_access: true,
+          },
         },
       };
     }
