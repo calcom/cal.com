@@ -198,17 +198,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
     credentialsMap.has(ref.type)
   );
-  const pCancellations = bookingRefsFiltered.map(async (bookingRef) => {
-    if (!bookingRef.uid) return;
 
-    if (bookingRef.type.endsWith("_calendar")) {
-      const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
-      return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
-    } else if (bookingRef.type.endsWith("_video")) {
-      return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
-    }
-  });
-  await Promise.all(pCancellations);
+  // FIXME: error-handling
+  await Promise.allSettled(
+    bookingRefsFiltered.map(async (bookingRef) => {
+      if (!bookingRef.uid) return;
+
+      if (bookingRef.type.endsWith("_calendar")) {
+        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
+      } else if (bookingRef.type.endsWith("_video")) {
+        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+      }
+    })
+  );
 
   // Send emails
   await sendRequestRescheduleEmail(builder.calendarEvent, {

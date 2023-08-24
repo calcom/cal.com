@@ -58,9 +58,9 @@ export async function cancelScheduledJobs(
   appId?: string | null,
   isReschedule?: boolean
 ) {
-  let scheduledJobs = booking.scheduledJobs || [];
   if (!booking.scheduledJobs) return;
 
+  let scheduledJobs = booking.scheduledJobs || [];
   const promises = booking.scheduledJobs.map(async (scheduledJob) => {
     if (appId) {
       if (scheduledJob.startsWith(appId)) {
