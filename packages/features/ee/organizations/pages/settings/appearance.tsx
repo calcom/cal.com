@@ -2,8 +2,6 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { WEBSITE_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -19,6 +17,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Plus } from "@calcom/ui/components/icon";
 
 import ThemeLabel from "../../../../settings/ThemeLabel";
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
@@ -115,10 +114,8 @@ const OrgAppearanceView = () => {
                 <>
                   <Avatar
                     alt="calVideoLogo"
-                    imageSrc={getPlaceholderAvatar(
-                      value ?? `${WEBSITE_URL}/cal-logo-word-dark.svg`,
-                      undefined
-                    )}
+                    imageSrc={value}
+                    fallback={<Plus className="text-subtle h-6 w-6" />}
                     size="lg"
                   />
                   <div className="ms-4">
