@@ -11,7 +11,7 @@ module.exports = {
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
+    project: ["../../apps/*/tsconfig.json", "../../packages/*/tsconfig.json"],
   },
   settings: {
     next: {
@@ -23,6 +23,7 @@ module.exports = {
     "@next/next/no-html-link-for-pages": "off",
     "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
     "playwright/no-page-pause": "error",
+    "@typescript-eslint/no-floating-promises": "error",
     "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
     "react/self-closing-comp": ["error", { component: true, html: true }],
     "@typescript-eslint/no-unused-vars": [
