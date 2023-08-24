@@ -2006,5 +2006,17 @@
   "member_removed": "Membre supprimé",
   "my_availability": "Mes disponibilités",
   "team_availability": "Disponibilités de l'équipe",
+  "admin_org_notification_email_subject": "Nouvelle organisation créée : action en attente",
+  "admin_org_notification_email_title": "Une organisation nécessite une configuration DNS",
+  "admin_org_notification_email_body_part2": "Ou l'enregistrement CNAME :",
+  "admin_org_notification_email_body_part3": "Une fois le sous-domaine configuré, veuillez marquer la configuration DNS comme terminée dans les paramètres d'administration des organisations.",
+  "admin_org_notification_email_cta": "Accéder aux paramètres d'administration des organisations",
+  "org_error_processing": "Une erreur s'est produite lors du traitement de cette organisation",
+  "orgs_page_description": "Une liste de toutes les organisations. Accepter une organisation permettra à tous les utilisateurs avec ce domaine de messagerie de s'inscrire SANS vérification d'e-mail.",
+  "unverified": "Non vérifié",
+  "dns_missing": "DNS manquant",
+  "mark_dns_configured": "Marquer comme DNS configuré",
+  "value": "Valeur",
+  "your_organization_updated_sucessfully": "Votre organisation a été mise à jour avec succès",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
