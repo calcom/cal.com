@@ -249,12 +249,7 @@ const SortableListItem = ({
   );
 };
 
-export const EventTypeList = ({
-  group,
-  groupIndex,
-  readOnly,
-  types: unorderedTypes,
-}: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -266,8 +261,6 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
-  // Added types state to reorder event types in the UI on dragEnd faster
-  const [types, setTypes] = useState(unorderedTypes);
   const utils = trpc.useContext();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
@@ -327,7 +320,19 @@ export const EventTypeList = ({
       ...tempNewList.slice(index + increment),
     ];
 
-    setTypes(newList);
+    await utils.viewer.eventTypes.getByViewer.cancel();
+
+    const previousValue = utils.viewer.eventTypes.getByViewer.getData();
+    if (previousValue) {
+      utils.viewer.eventTypes.getByViewer.setData(undefined, {
+        ...previousValue,
+        eventTypeGroups: [
+          ...previousValue.eventTypeGroups.slice(0, groupIndex),
+          { ...group, eventTypes: newList },
+          ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+        ],
+      });
+    }
 
     mutation.mutate({
       ids: newList.map((type) => type.id),
