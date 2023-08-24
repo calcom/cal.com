@@ -168,8 +168,8 @@ export default class ZohoCalendarService implements Calendar {
     }
     try {
       // needed to fetch etag
-      let existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      let existingEventData = await this.handleData(existingEventResponse, this.log);
+      const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      const existingEventData = await this.handleData(existingEventResponse, this.log);
 
       const query = stringify({
         eventdata: JSON.stringify({
@@ -217,8 +217,8 @@ export default class ZohoCalendarService implements Calendar {
     }
     try {
       // needed to fetch etag
-      let existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      let existingEventData = await this.handleData(existingEventResponse, this.log);
+      const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      const existingEventData = await this.handleData(existingEventResponse, this.log);
 
       const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
         method: "DELETE",
@@ -231,6 +231,33 @@ export default class ZohoCalendarService implements Calendar {
       this.log.error(error);
       throw error;
     }
+  }
+
+  private async getBusyData(dateFrom: string, dateTo: string, userEmail: string) {
+    const query = stringify({
+      sdate: dateFrom,
+      edate: dateTo,
+      ftype: "eventbased",
+      uemail: userEmail,
+    });
+
+    const response = await this.fetcher(`/calendars/freebusy?${query}`, {
+      method: "GET",
+    });
+
+    const data = await this.handleData(response, this.log);
+
+    if (data.fb_not_enabled || data.NODATA) return [];
+
+    return (
+      data.freebusy
+        .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
+        .map((freebusy: FreeBusy) => ({
+          // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
+          start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+          end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+        })) || []
+    );
   }
 
   async getAvailability(
@@ -259,38 +286,43 @@ export default class ZohoCalendarService implements Calendar {
       if (!selectedCalendars[0]) return [];
 
       const userInfo = await this.getUserInfo();
-      let startDate = dayjs(dateFrom);
-      const endDate = dayjs(dateTo);
-      const diff = endDate.diff(startDate, "days");
+      const originalStartDate = dayjs(dateFrom);
+      const originalEndDate = dayjs(dateTo);
+      const diff = originalEndDate.diff(originalStartDate, "days");
 
-      if (diff > 30) {
-        this.log.error("Zoho only supports 31 days of freebusy data");
-        startDate = endDate.subtract(31, "days");
+      if (diff <= 30) {
+        const busyData = await this.getBusyData(
+          originalStartDate.format("YYYYMMDD[T]HHmmss[Z]"),
+          originalEndDate.format("YYYYMMDD[T]HHmmss[Z]"),
+          userInfo.Email
+        );
+        return busyData;
+      } else {
+        // Zoho only supports 31 days of freebusy data
+        const busyData = [];
+
+        const loopsNumber = Math.ceil(diff / 30);
+
+        let startDate = originalStartDate;
+        let endDate = originalStartDate.add(30, "days");
+
+        for (let i = 0; i < loopsNumber; i++) {
+          if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+
+          busyData.push(
+            ...(await this.getBusyData(
+              startDate.format("YYYYMMDD[T]HHmmss[Z]"),
+              endDate.format("YYYYMMDD[T]HHmmss[Z]"),
+              userInfo.Email
+            ))
+          );
+
+          startDate = endDate.add(1, "minutes");
+          endDate = startDate.add(30, "days");
+        }
+
+        return busyData;
       }
-      const query = stringify({
-        sdate: startDate.format("YYYYMMDD[T]HHmmss[Z]"),
-        edate: endDate.format("YYYYMMDD[T]HHmmss[Z]"),
-        ftype: "eventbased",
-        uemail: userInfo.Email,
-      });
-
-      const response = await this.fetcher(`/calendars/freebusy?${query}`, {
-        method: "GET",
-      });
-
-      const data = await this.handleData(response, this.log);
-
-      if (data.fb_not_enabled || data.NODATA) return [];
-
-      const busyData =
-        data.freebusy
-          .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
-          .map((freebusy: FreeBusy) => ({
-            // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
-            start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-            end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-          })) || [];
-      return busyData;
     } catch (error) {
       this.log.error(error);
       return [];
