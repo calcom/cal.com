@@ -1,43 +1,69 @@
-import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
 
-import { Examples, Example, Note, Title, CustomArgsTable } from "@calcom/storybook/components";
+import { Title, VariantRow, VariantsTable, CustomArgsTable } from "@calcom/storybook/components";
 
 import TokenHandler from "./TokenHandler";
 
 <Meta title="UI/TokenHandler" component={TokenHandler} />
 
-<Title title="TokenHandler" subtitle="Version 0.1" />
+<Title title="TokenHandler" subtitle="Version 2.0 - Last Update: 24 Aug 2023" />
+
+## Definition
+
+The `TokenHandler` component is used to input a multi-digit authentication code.
 
 ## Structure
 
-<TokenHandler
-  digits={[
-    {
-      value: "1",
-      onChange: (e) => {},
-    },
-    {
-      value: "2",
-      onChange: (e) => {},
-    },
-    {
-      value: "3",
-      onChange: (e) => {},
-    },
-    {
-      value: "4",
-      onChange: (e) => {},
-    },
-    {
-      value: "5",
-      onChange: (e) => {},
-    },
-    {
-      value: "6",
-      onChange: (e) => {},
-    },
-  ]}
-  digitClassName="digit-input"
-/>
+The `TokenHandler` component consists of a label and a row of input fields.
+
+<CustomArgsTable of={TokenHandler} />
+
+## TokenHandler Story
+
+<Canvas>
+  <Story
+    name="TokenHandler"
+    args={{
+      digits: [
+        {
+          value: "1",
+          onChange: (e) => {},
+        },
+        {
+          value: "2",
+          onChange: (e) => {},
+        },
+        {
+          value: "3",
+          onChange: (e) => {},
+        },
+        {
+          value: "4",
+          onChange: (e) => {},
+        },
+        {
+          value: "5",
+          onChange: (e) => {},
+        },
+        {
+          value: "6",
+          onChange: (e) => {},
+        },
+      ],
+      digitClassName: "digit-input",
+    }}
+    argTypes={{
+      digits: { control: "array" },
+      digitClassName: { control: "text" },
+    }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <TokenHandler {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>
 
 #all the numbers should be visible while the first one is focused
