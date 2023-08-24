@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-import type { Messages } from "mailhog";
 
 import { randomString } from "@calcom/lib/random";
 
@@ -8,6 +7,7 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -41,19 +41,13 @@ test.describe("free user", () => {
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
-    // TODO: follow DRY
-    const emailsOrganiserReceived = await emails.search(user.email, "to");
-    const emailsBookerReceived = await emails.search(bookerObj.email, "to");
-    expect(emailsOrganiserReceived?.total).toBe(1);
-    expect(emailsBookerReceived?.total).toBe(1);
 
-    const [organizerFirstEmail] = (emailsOrganiserReceived as Messages).items;
-    const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
-    const emailSubject = `${eventTitle} between ${user.name} and ${bookerObj.name}`;
-
-    expect(organizerFirstEmail.subject).toBe(emailSubject);
-    expect(bookerFirstEmail.subject).toBe(emailSubject);
-
+    await expectEmailsToHaveSubject({
+      emails,
+      organizer: user,
+      booker: bookerObj,
+      eventTitle,
+    });
     await page.goto(bookingUrl);
 
     // book same time spot again

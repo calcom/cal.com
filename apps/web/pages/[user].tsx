@@ -98,7 +98,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           )}>
           <div className="mb-8 text-center">
             <Avatar imageSrc={profile.image} size="xl" alt={profile.name} />
-            <h1 className="font-cal text-emphasis mb-1 text-3xl">
+            <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
