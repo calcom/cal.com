@@ -92,6 +92,9 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.0.8",
+    "@dnd-kit/modifiers": "^6.0.1",
+    "@dnd-kit/sortable": "^7.0.2",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
