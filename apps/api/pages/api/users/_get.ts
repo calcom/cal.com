@@ -20,6 +20,17 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
  *         schema:
  *           type: string
  *         description: Your API key
+ *       - in: query
+ *         name: email
+ *         required: false
+ *         schema:
+ *          type: array
+ *          items:
+ *            type: string
+ *            format: email
+ *         style: form
+ *         explode: true
+ *         description: The email address or an array of email addresses to filter by
  *     tags:
  *     - users
  *     responses:
@@ -46,7 +57,7 @@ export async function getHandler(req: NextApiRequest) {
 
     if (!validationResult.success) {
       // Handle the validation error, maybe return a response or throw an error.
-      throw new Error("Invalid email format");
+      throw new HttpError({ message: "Invalid email format", statusCode: 400 });
     }
 
     const { email } = validationResult.data;
