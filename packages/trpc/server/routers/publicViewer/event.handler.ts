@@ -18,3 +18,5 @@ export const eventHandler = async ({ ctx, input }: EventHandlerOptions) => {
   );
   return event;
 };
+
+export default eventHandler;
