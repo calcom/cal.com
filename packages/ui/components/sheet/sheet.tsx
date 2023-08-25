@@ -35,6 +35,7 @@ SheetPortal.displayName = SheetPrimitive.Portal.displayName;
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >(({ className, children, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={classNames(
@@ -52,10 +53,10 @@ const sheetVariants = cva(
   {
     variants: {
       position: {
-        top: "animate-in slide-in-from-top w-full duration-300",
-        bottom: "animate-in slide-in-from-bottom w-full duration-300",
-        left: "animate-in slide-in-from-left h-full duration-300",
-        right: "animate-in slide-in-from-right h-full duration-300",
+        top: "animate-in slide-in-from-top w-full duration-200",
+        bottom: "animate-in slide-in-from-bottom w-full duration-200",
+        left: "animate-in slide-in-from-left h-full duration-200",
+        right: "animate-in slide-in-from-right h-full duration-200",
       },
       size: {
         content: "",
@@ -105,12 +106,12 @@ const sheetVariants = cva(
       {
         position: ["right", "left"],
         size: "default",
-        class: "w-1/3 h-[calc(100vh-2rem)]",
+        class: "w-1/3 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "sm",
-        class: "w-1/4 h-[calc(100vh-2rem)]",
+        class: "w-1/4 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],

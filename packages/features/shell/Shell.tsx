@@ -77,6 +77,7 @@ import {
   Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
+import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -920,7 +921,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               </ButtonOrLink>
             </Tooltip>
           ))}
-          <Credits />
+          {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
         </div>
       </aside>
     </div>
@@ -984,7 +985,7 @@ export function ShellMain(props: LayoutProps) {
                       : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                   )}>
-                  {props.CTA}
+                  {isLocaleReady && props.CTA}
                 </div>
               )}
               {props.actions && props.actions}

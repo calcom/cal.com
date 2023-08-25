@@ -57,7 +57,7 @@ export default function OtherTeamListItem(props: Props) {
         <span className="text-muted block text-xs">
           {team.slug
             ? orgBranding
-              ? `${orgBranding.fullDomain}${team.slug}`
+              ? `${orgBranding.fullDomain}/${team.slug}`
               : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
             : "Unpublished team"}
         </span>
@@ -81,8 +81,8 @@ export default function OtherTeamListItem(props: Props) {
                         `${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/"
-                        }${team.slug}`
+                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                        }/${team.slug}`
                       );
                       showToast(t("link_copied"), "success");
                     }}
@@ -119,8 +119,8 @@ export default function OtherTeamListItem(props: Props) {
                         href={`${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other/`
-                        }${team.slug}`}
+                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
+                        }/${team.slug}`}
                         StartIcon={ExternalLink}>
                         {t("preview_team") as string}
                       </DropdownItem>

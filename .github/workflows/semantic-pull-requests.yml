@@ -29,11 +29,11 @@ jobs:
           header: pr-title-lint-error
           message: |
             Hey there and thank you for opening this pull request! 👋🏼
-            
+
             We require pull request titles to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and it looks like your proposed title needs to be adjusted.
 
             Details:
-            
+
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
             ```
@@ -41,7 +41,7 @@ jobs:
       # Delete a previous comment when the issue has been resolved
       - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
         uses: marocchino/sticky-pull-request-comment@v2
-        with:   
+        with:
           header: pr-title-lint-error
           message: |
-            Thank you for following the naming conventions! 🙏 
+            Thank you for following the naming conventions! 🙏
