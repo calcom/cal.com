@@ -54,27 +54,11 @@ export async function getHandler(req: NextApiRequest) {
 
   if (req.query.email) {
     const validationResult = schemaQuerySingleOrMultipleUserEmails.parse(req.query);
-
-    if (!validationResult.success) {
-      // Handle the validation error, maybe return a response or throw an error.
-      throw new HttpError({ message: "Invalid email format", statusCode: 400 });
-    }
-
-    const { email } = validationResult.data;
-
-    if (email) {
-      // If email is a single string
-      if (typeof email === "string") {
-        where.email = email;
-      }
-      // If email is an array of strings
-      else if (Array.isArray(email)) {
-        where.email = {
-          in: email,
-        };
-      }
-    }
+    where.email = {
+      in: Array.isArray(validationResult.email) ? validationResult.email : [validationResult.email],
+    };
   }
+
   const [total, data] = await prisma.$transaction([
     prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),

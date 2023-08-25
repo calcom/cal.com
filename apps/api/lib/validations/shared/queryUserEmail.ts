@@ -10,7 +10,7 @@ export const schemaQueryUserEmail = baseApiParams.extend({
 });
 
 export const schemaQuerySingleOrMultipleUserEmails = z.object({
-  email: z.union([z.string().email(), z.array(z.string().email())]).optional(),
+  email: z.union([z.string().email(), z.array(z.string().email())]),
 });
 
 export const withValidQueryUserEmail = withValidation({
