@@ -78,7 +78,21 @@ export default function Bookings() {
   const { data: filterQuery } = useFilterQuery();
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
-
+  function sortEventsByDate(events: any) {
+    events.sort(function (event1: any, event2: any) {
+      const date1 = new Date(event1.startTime);
+      const date2 = new Date(event2.startTime);
+      // Compare the dates
+      if (date1 < date2) {
+        return -1;
+      } else if (date1 > date2) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    return events;
+  }
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
@@ -95,7 +109,9 @@ export default function Bookings() {
   );
 
   // Animate page (tab) tranistions to look smoothing
-
+  if (!query.isFetching && query.status === "success") {
+    console.log(query.data.pages);
+  }
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -103,7 +119,6 @@ export default function Bookings() {
   });
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
-
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
     if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
@@ -181,7 +196,7 @@ export default function Bookings() {
                   <div className="border-subtle overflow-hidden rounded-md border">
                     <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
                       <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
-                        {query.data.pages.map((page, index) => (
+                        {sortEventsByDate(query.data.pages).map((page, index) => (
                           <Fragment key={index}>
                             {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
                               const recurringInfo = page.recurringInfo.find(
