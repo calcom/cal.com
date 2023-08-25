@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { Session } from "next-auth";
 import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getLocaleFromHeaders } from "@calcom/lib/i18n";
+import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
@@ -62,7 +62,7 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  * @link https://trpc.io/docs/context
  */
 export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter?: GetSessionFn) => {
-  const locale = getLocaleFromHeaders(req);
+  const locale = await getLocaleFromRequest(req);
   const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
   const contextInner = await createContextInner({ locale, session });
   return {
