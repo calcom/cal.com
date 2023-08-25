@@ -1,6 +1,7 @@
 import { parseRecurringEvent } from "@calcom/lib";
+import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -72,6 +73,62 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     unconfirmed: { startTime: "asc" },
   };
 
+  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
+  const orderBy = bookingListingOrderby[bookingListingByStatus];
+
+  const { bookings, recurringInfo } = await getBookings({
+    user,
+    prisma,
+    passedBookingsStatusFilter,
+    filters: input.filters,
+    orderBy,
+    take,
+    skip,
+  });
+
+  const bookingsFetched = bookings.length;
+  let nextCursor: typeof skip | null = skip;
+  if (bookingsFetched > take) {
+    nextCursor += bookingsFetched;
+  } else {
+    nextCursor = null;
+  }
+
+  return {
+    bookings,
+    recurringInfo,
+    nextCursor,
+  };
+};
+
+const set = new Set();
+const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
+  const unique = arr.filter((booking) => {
+    const duplicate = set.has(booking.uid);
+    set.add(booking.uid);
+    return !duplicate;
+  });
+  set.clear();
+  return unique;
+};
+
+async function getBookings({
+  user,
+  prisma,
+  passedBookingsStatusFilter,
+  filters,
+  orderBy,
+  take,
+  skip,
+}: {
+  user: { id: number; email: string };
+  filters: TGetInputSchema["filters"];
+  prisma: PrismaClient;
+  passedBookingsStatusFilter: Prisma.BookingWhereInput;
+  orderBy: Prisma.BookingOrderByWithAggregationInput;
+  take: number;
+  skip: number;
+}) {
   // TODO: Fix record typing
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
     teamIds: {
@@ -80,7 +137,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           eventType: {
             team: {
               id: {
-                in: input.filters?.teamIds,
+                in: filters?.teamIds,
               },
             },
           },
@@ -94,7 +151,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
             users: {
               some: {
                 id: {
-                  in: input.filters?.userIds,
+                  in: filters?.userIds,
                 },
               },
             },
@@ -106,7 +163,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       AND: [
         {
           eventTypeId: {
-            in: input.filters?.eventTypeIds,
+            in: filters?.eventTypeIds,
           },
         },
       ],
@@ -114,21 +171,100 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 
   const filtersCombined: Prisma.BookingWhereInput[] =
-    input.filters &&
-    Object.keys(input.filters).map((key) => {
+    filters &&
+    Object.keys(filters).map((key) => {
       return bookingWhereInputFilters[key];
     });
 
-  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
-  const orderBy = bookingListingOrderby[bookingListingByStatus];
+  const bookingSelect = {
+    ...bookingMinimalSelect,
+    uid: true,
+    recurringEventId: true,
+    location: true,
+    eventType: {
+      select: {
+        slug: true,
+        id: true,
+        eventName: true,
+        price: true,
+        recurringEvent: true,
+        currency: true,
+        metadata: true,
+        seatsShowAttendees: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+    status: true,
+    paid: true,
+    payment: {
+      select: {
+        paymentOption: true,
+        amount: true,
+        currency: true,
+        success: true,
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+    rescheduled: true,
+    references: true,
+    isRecorded: true,
+    seatsReferences: {
+      where: {
+        attendee: {
+          email: user.email,
+        },
+      },
+      select: {
+        referenceUid: true,
+        attendee: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    },
+  };
 
-  const [bookingsQuery, recurringInfoBasic, recurringInfoExtended] = await Promise.all([
+  const [
+    // Quering these in parallel to save time.
+    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
+    bookingsQueryUserId,
+    bookingsQueryAttendees,
+    bookingsQueryTeamMember,
+    bookingsQuerySeatReference,
+    //////////////////////////
+
+    recurringInfoBasic,
+    recurringInfoExtended,
+    // We need all promises to be successful, so we are not using Promise.allSettled
+  ] = await Promise.all([
     prisma.booking.findMany({
       where: {
         OR: [
           {
             userId: user.id,
           },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
           {
             attendees: {
               some: {
@@ -136,6 +272,16 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
               },
             },
           },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
           {
             eventType: {
               team: {
@@ -150,6 +296,16 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
               },
             },
           },
+        ],
+        AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
           {
             seatsReferences: {
               some: {
@@ -161,65 +317,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           },
         ],
         AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-      },
-      select: {
-        ...bookingMinimalSelect,
-        uid: true,
-        recurringEventId: true,
-        location: true,
-        eventType: {
-          select: {
-            slug: true,
-            id: true,
-            eventName: true,
-            price: true,
-            recurringEvent: true,
-            currency: true,
-            metadata: true,
-            seatsShowAttendees: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        status: true,
-        paid: true,
-        payment: {
-          select: {
-            paymentOption: true,
-            amount: true,
-            currency: true,
-            success: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        rescheduled: true,
-        references: true,
-        isRecorded: true,
-        seatsReferences: {
-          where: {
-            attendee: {
-              email: user.email,
-            },
-          },
-          select: {
-            referenceUid: true,
-            attendee: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        },
       },
       orderBy,
       take: take + 1,
@@ -285,7 +382,25 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     }
   );
 
-  const bookings = bookingsQuery.map((booking) => {
+  const plainBookings = getUniqueBookings(
+    bookingsQueryUserId
+      .concat(bookingsQueryAttendees)
+      .concat(bookingsQueryTeamMember)
+      .concat(bookingsQuerySeatReference)
+  );
+
+  // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
+  // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
+  const bookings = (
+    await prisma.booking.findMany({
+      where: {
+        id: {
+          in: plainBookings.map((booking) => booking.id),
+        },
+      },
+      select: bookingSelect,
+    })
+  ).map((booking) => {
     // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
@@ -303,18 +418,5 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       endTime: booking.endTime.toISOString(),
     };
   });
-
-  const bookingsFetched = bookings.length;
-  let nextCursor: typeof skip | null = skip;
-  if (bookingsFetched > take) {
-    nextCursor += bookingsFetched;
-  } else {
-    nextCursor = null;
-  }
-
-  return {
-    bookings,
-    recurringInfo,
-    nextCursor,
-  };
-};
+  return { bookings, recurringInfo };
+}
