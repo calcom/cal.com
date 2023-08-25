@@ -52,7 +52,7 @@ export function getOrgFullDomain(slug: string, options: { protocol: boolean } = 
 }
 
 export function getSlugOrRequestedSlug(slug: string) {
-  return {
+  const whereInput = {
     OR: [
       { slug },
       {
@@ -63,4 +63,6 @@ export function getSlugOrRequestedSlug(slug: string) {
       },
     ],
   } satisfies Prisma.TeamWhereInput;
+
+  return whereInput;
 }
