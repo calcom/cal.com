@@ -39,19 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const username = slugify(data.username);
   const userEmail = email.toLowerCase();
 
-  const validationResponse = (
-    incomingEmail: string,
-    validation: { isValid: boolean; email: string | undefined }
-  ) => {
-    const { isValid, email } = validation;
-    if (!isValid) {
-      const message: string =
-        email !== incomingEmail ? "Username already taken" : "Email address is already registered";
-
-      return res.status(409).json({ message });
-    }
-  };
-
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
     return;
@@ -79,11 +66,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (foundToken?.teamId) {
       const teamUserValidation = await validateUsernameInTeam(username, userEmail, foundToken?.teamId);
-      return validationResponse(userEmail, teamUserValidation);
+      if (!teamUserValidation.isValid) {
+        return res.status(409).json({ message: "Username or email is already taken" });
+      }
     }
   } else {
     const userValidation = await validateUsername(username, userEmail);
-    return validationResponse(userEmail, userValidation);
+    if (!userValidation.isValid) {
+      return res.status(409).json({ message: "Username or email is already taken" });
+    }
   }
 
   const hashedPassword = await hashPassword(password);
@@ -94,7 +85,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: foundToken.teamId,
       },
     });
-
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
