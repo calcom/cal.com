@@ -104,7 +104,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.recurringEvent = Prisma.DbNull;
   }
 
-  if (destinationCalendar) {
+  if (destinationCalendar && destinationCalendar.length > 0) {
     /** We connect or create a destination calendar to the event type instead of the user */
     await setDestinationCalendarHandler({
       ctx,

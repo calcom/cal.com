@@ -114,7 +114,9 @@ export default class EventManager {
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
+    // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
+    const [mainHostDestinationCalendar] = evt.destinationCalendar ?? [];
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar.integration !== "google_calendar") {
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -164,8 +166,8 @@ export default class EventManager {
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: isCalendarType ? evt.destinationCalendar?.externalId : undefined,
-        credentialId: isCalendarType ? evt.destinationCalendar?.credentialId : result.credentialId,
+        externalCalendarId: isCalendarType ? result.externalId : undefined,
+        credentialId: isCalendarType ? result.credentialId : undefined,
       };
     });
 
@@ -203,8 +205,8 @@ export default class EventManager {
         meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
-        externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: result.credentialId ?? evt.destinationCalendar?.credentialId,
+        externalCalendarId: result.externalId,
+        credentialId: result.credentialId ?? undefined,
       };
     });
 
@@ -332,29 +334,52 @@ export default class EventManager {
    * @private
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
-    /** Can I use destinationCalendar here? */
-    /* How can I link a DC to a cred? */
-
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
-    if (event.destinationCalendar) {
-      if (event.destinationCalendar.credentialId) {
-        const credential = this.calendarCredentials.find(
-          (c) => c.id === event.destinationCalendar?.credentialId
-        );
-
-        if (credential) {
-          const createdEvent = await createEvent(credential, event);
-          if (createdEvent) {
-            createdEvents.push(createdEvent);
+    if (event.destinationCalendar && event.destinationCalendar.length > 0) {
+      for (const destination of event.destinationCalendar) {
+        if (destination.credentialId) {
+          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
+          if (!credential) {
+            // Fetch credential from DB
+            const credentialFromDB = await prisma.credential.findUnique({
+              include: {
+                app: {
+                  select: {
+                    slug: true,
+                  },
+                },
+              },
+              where: {
+                id: destination.credentialId,
+              },
+            });
+            if (credentialFromDB && credentialFromDB.app?.slug) {
+              credential = {
+                appName: credentialFromDB?.app.slug ?? "",
+                id: credentialFromDB.id,
+                type: credentialFromDB.type,
+                key: credentialFromDB.key,
+                userId: credentialFromDB.userId,
+                teamId: credentialFromDB.teamId,
+                invalid: credentialFromDB.invalid,
+                appId: credentialFromDB.appId,
+              };
+            }
           }
+          if (credential) {
+            const createdEvent = await createEvent(credential, event, destination.externalId);
+            if (createdEvent) {
+              createdEvents.push(createdEvent);
+            }
+          }
+        } else {
+          const destinationCalendarCredentials = this.calendarCredentials.filter(
+            (c) => c.type === destination.integration
+          );
+          createdEvents = createdEvents.concat(
+            await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
+          );
         }
-      } else {
-        const destinationCalendarCredentials = this.calendarCredentials.filter(
-          (c) => c.type === event.destinationCalendar?.integration
-        );
-        createdEvents = createdEvents.concat(
-          await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
-        );
       }
     } else {
       /**
