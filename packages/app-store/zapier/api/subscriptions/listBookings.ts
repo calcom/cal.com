@@ -22,8 +22,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const where: Prisma.BookingWhereInput = {};
-    if (validKey.teamId) where.eventType = { teamId: validKey.teamId };
-    else where.userId = validKey.userId;
+    if (validKey.teamId) {
+      where.eventType = {
+        OR: [{ teamId: validKey.teamId }, { parent: { teamId: validKey.teamId } }],
+      };
+    } else {
+      where.userId = validKey.userId;
+      s;
+    }
+
     const bookings = await prisma.booking.findMany({
       take: 3,
       where,
