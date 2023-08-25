@@ -1,6 +1,6 @@
 # Setting up Make Integration
 
-1. Create a [Make account](), if you don't have one.
+1. Create a [Make account](https://www.make.com/en/login), if you don't have one.
 2. Go to `Scenarios` in the sidebar and click on **Create a new scenario**
 3. Search for `Cal.com` in the apps list and select from the list of triggers - Booking Created, Booking Deleted, Booking Rescheduled, Meeting Ended
 4. To create a **connection** you will need your Cal deployment url and the app API Key generated when you install `Make` from the Cal app store.You only need to create a **connection** once, all webhooks can use that connection.
