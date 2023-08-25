@@ -20,6 +20,7 @@ test.describe("Bookings", () => {
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
         bookingsFixture: bookings,
+        // Create a booking 3 days from today
         relativeDate: 3,
         organizer: firstUser,
         organizerEventType: firstUser.eventTypes[0],
@@ -35,6 +36,7 @@ test.describe("Bookings", () => {
         title: "Booking as attendee",
         bookingsFixture: bookings,
         organizer: secondUser,
+        // Booking created 2 days from today
         relativeDate: 2,
         organizerEventType: secondUser.eventTypes[0],
         attendees: [
@@ -67,6 +69,11 @@ async function createBooking({
   organizer,
   organizerEventType,
   attendees,
+  /**
+   * Relative date from today
+   * 0 means today
+   * 1 means tomorrow
+   */
   relativeDate = 0,
   durationMins = 30,
   title,
