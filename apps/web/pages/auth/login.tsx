@@ -270,7 +270,7 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
           },
         };
       }
-    } catch (e) {
+    }{
       return {
         redirect: {
           destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",

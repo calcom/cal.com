@@ -203,7 +203,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       username,
       language,
     });
-
     res.status(201).json({ message: "Created user" });
   } catch (error) {
     console.error("Error processing signup:", error);
