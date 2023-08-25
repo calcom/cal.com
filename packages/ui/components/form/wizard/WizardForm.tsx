@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";

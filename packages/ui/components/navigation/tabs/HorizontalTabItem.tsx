@@ -43,6 +43,7 @@ const HorizontalTabItem = function ({
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
+      data-testid={`horizontal-tab-${name}`}
       aria-current={isCurrent ? "page" : undefined}>
       {props.icon && (
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
