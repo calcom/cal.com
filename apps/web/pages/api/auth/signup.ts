@@ -23,6 +23,7 @@ const signupSchema = z.object({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
+    res.status(405).json({ message: "Method not allowed" }); // Return 405 for unsupported methods
     return;
   }
 
@@ -32,179 +33,180 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const data = req.body;
-  const { email, password, language, token } = signupSchema.parse(data);
+  try {
+    const { email, password, language, token } = signupSchema.parse(data);
 
-  const username = slugify(data.username);
-  const userEmail = email.toLowerCase();
+    const username = slugify(data.username);
+    const userEmail = email.toLowerCase();
 
-  if (!username) {
-    res.status(422).json({ message: "Invalid username" });
-    return;
-  }
+    if (!username) {
+      res.status(422).json({ message: "Invalid username" });
+      return;
+    }
 
-  // There is an existingUser if the username matches
-  // OR if the email matches AND either the email is verified
-  // or both username and password are set
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { username },
-        {
-          AND: [
-            { email: userEmail },
-            {
-              OR: [
-                { emailVerified: { not: null } },
-                {
-                  AND: [{ password: { not: null } }, { username: { not: null } }],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    const message: string =
-      existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
-
-    return res.status(409).json({ message });
-  }
-
-  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
-  if (token) {
-    foundToken = await prisma.verificationToken.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
-        token,
-      },
-      select: {
-        id: true,
-        expires: true,
-        teamId: true,
+        OR: [
+          { username },
+          {
+            AND: [
+              { email: userEmail },
+              {
+                OR: [
+                  { emailVerified: { not: null } },
+                  {
+                    AND: [{ password: { not: null } }, { username: { not: null } }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     });
 
-    if (!foundToken) {
-      return res.status(401).json({ message: "Invalid Token" });
+    if (existingUser) {
+      const message: string =
+        existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
+      res.status(409).json({ message });
+      return;
     }
 
-    if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    if (foundToken?.teamId) {
-      const isValidUsername = await validateUsernameInOrg(username, foundToken?.teamId);
-
-      if (!isValidUsername) {
-        return res.status(409).json({ message: "Username already taken" });
-      }
-    }
-  }
-
-  const hashedPassword = await hashPassword(password);
-
-  const user = await prisma.user.upsert({
-    where: { email: userEmail },
-    update: {
-      username,
-      password: hashedPassword,
-      emailVerified: new Date(Date.now()),
-      identityProvider: IdentityProvider.CAL,
-    },
-    create: {
-      username,
-      email: userEmail,
-      password: hashedPassword,
-      identityProvider: IdentityProvider.CAL,
-    },
-  });
-
-  if (foundToken && foundToken?.teamId) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: foundToken.teamId,
-      },
-    });
-
-    if (team) {
-      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
-      if (teamMetadata?.isOrganization) {
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            organizationId: team.id,
-          },
-        });
-      }
-
-      const membership = await prisma.membership.update({
+    let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+    if (token) {
+      foundToken = await prisma.verificationToken.findFirst({
         where: {
-          userId_teamId: { userId: user.id, teamId: team.id },
+          token,
         },
-        data: {
-          accepted: true,
+        select: {
+          id: true,
+          expires: true,
+          teamId: true,
         },
       });
-      closeComUpsertTeamUser(team, user, membership.role);
 
-      // Accept any child team invites for orgs.
-      if (team.parentId) {
-        // Join ORG
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            organizationId: team.parentId,
-          },
-        });
+      if (!foundToken) {
+        res.status(401).json({ message: "Invalid Token" });
+        return;
+      }
 
-        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
-        await prisma.membership.updateMany({
-          where: {
-            userId: user.id,
-            team: {
-              id: team.parentId,
-            },
-            accepted: false,
-          },
-          data: {
-            accepted: true,
-          },
-        });
+      if (dayjs(foundToken?.expires).isBefore(dayjs())) {
+        res.status(401).json({ message: "Token expired" });
+        return;
+      }
 
-        // Join any other invites
-        await prisma.membership.updateMany({
-          where: {
-            userId: user.id,
-            team: {
-              parentId: team.parentId,
-            },
-            accepted: false,
-          },
-          data: {
-            accepted: true,
-          },
-        });
+      if (foundToken?.teamId) {
+        const isValidUsername = await validateUsernameInOrg(username, foundToken?.teamId);
+
+        if (!isValidUsername) {
+          res.status(409).json({ message: "Username already taken" });
+          return;
+        }
       }
     }
 
-    // Cleanup token after use
-    await prisma.verificationToken.delete({
-      where: {
-        id: foundToken.id,
+    const hashedPassword = await hashPassword(password);
+
+    const user = await prisma.user.upsert({
+      where: { email: userEmail },
+      update: {
+        username,
+        password: hashedPassword,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+      },
+      create: {
+        username,
+        email: userEmail,
+        password: hashedPassword,
+        identityProvider: IdentityProvider.CAL,
       },
     });
+
+    if (foundToken && foundToken?.teamId) {
+      const team = await prisma.team.findUnique({
+        where: {
+          id: foundToken.teamId,
+        },
+      });
+
+      if (team) {
+        const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+        if (teamMetadata?.isOrganization) {
+          await prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              organizationId: team.id,
+            },
+          });
+        }
+
+        const membership = await prisma.membership.update({
+          where: {
+            userId_teamId: { userId: user.id, teamId: team.id },
+          },
+          data: {
+            accepted: true,
+          },
+        });
+        closeComUpsertTeamUser(team, user, membership.role);
+
+        if (team.parentId) {
+          await prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              organizationId: team.parentId,
+            },
+          });
+
+          await prisma.membership.updateMany({
+            where: {
+              userId: user.id,
+              team: {
+                id: team.parentId,
+              },
+              accepted: false,
+            },
+            data: {
+              accepted: true,
+            },
+          });
+
+          await prisma.membership.updateMany({
+            where: {
+              userId: user.id,
+              team: {
+                parentId: team.parentId,
+              },
+              accepted: false,
+            },
+            data: {
+              accepted: true,
+            },
+          });
+        }
+      }
+
+      await prisma.verificationToken.delete({
+        where: {
+          id: foundToken.id,
+        },
+      });
+    }
+
+    await sendEmailVerification({
+      email: userEmail,
+      username,
+      language,
+    });
+
+    res.status(201).json({ message: "Created user" });
+  } catch (error) {
+    console.error("Error processing signup:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-
-  await sendEmailVerification({
-    email: userEmail,
-    username,
-    language,
-  });
-
-  res.status(201).json({ message: "Created user" });
 }
