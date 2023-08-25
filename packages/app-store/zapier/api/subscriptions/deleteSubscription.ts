@@ -26,9 +26,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const deleteEventSubscription = await deleteSubscription({
     appApiKey: validKey,
     webhookId: id,
+    appName: "zapier",
   });
 
-  if (!deleteEventSubscription) {
+  if (!deleteEventSubscription || deleteEventSubscription.error) {
     return res.status(500).json({ message: "Could not delete subscription." });
   }
   res.status(204).json({ message: "Subscription is deleted." });

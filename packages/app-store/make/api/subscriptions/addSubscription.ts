@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     appId: "make",
   });
 
-  if (!createAppSubscription) {
+  if (!createAppSubscription || createAppSubscription.error) {
     return res.status(500).json({ message: "Could not create subscription." });
   }
 

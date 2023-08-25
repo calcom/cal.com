@@ -9,7 +9,7 @@ import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 const MAKE = "make";
-const appInviteLink = process.env.MAKE_INVITE_LINK;
+const appInviteLink = process.env.MAKE_INVITE_LINK; //TODO Add MAKE_INVITE_LINK to env vars
 
 export default function MakeSetup() {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});

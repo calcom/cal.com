@@ -1731,7 +1731,6 @@
   "form_builder_field_already_exists": "A field with this name already exists",
   "show_on_booking_page": "Show on booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
-  "get_started_make_templates": "Get started with Make templates",
   "team_is_unpublished": "{{team}} is unpublished",
   "team_is_unpublished_description": "This {{entity}} link is currently not available. Please contact the {{entity}} owner or ask them to publish it.",
   "team_member": "Team member",
