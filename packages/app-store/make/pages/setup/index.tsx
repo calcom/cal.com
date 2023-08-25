@@ -8,13 +8,10 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
-export interface IMakeSetupProps {
-  inviteLink: string;
-}
-
 const MAKE = "make";
+const appInviteLink = process.env.MAKE_INVITE_LINK;
 
-export default function MakeSetup(props: IMakeSetupProps) {
+export default function MakeSetup() {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -116,7 +113,7 @@ export default function MakeSetup(props: IMakeSetupProps) {
                 {isCalDev && (
                   <li>
                     {t("go_to")}
-                    <a href={props.inviteLink} className="text-orange-600 underline">
+                    <a href={appInviteLink} className="text-orange-600 underline">
                       {t("make_invite_link")}
                     </a>
                   </li>
