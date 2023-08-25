@@ -248,9 +248,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         parentId: bookingToReschedule?.eventType?.parentId ?? null,
       },
     });
+
+    const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
+
     // Send Webhook call if hooked to BOOKING.CANCELLED
     const subscriberOptions = {
-      userId: bookingToReschedule.userId,
+      userId: triggerForUser ? bookingToReschedule.userId : null,
       eventTypeId: bookingToReschedule.eventTypeId as number,
       triggerEvent: eventTrigger,
       teamId,
