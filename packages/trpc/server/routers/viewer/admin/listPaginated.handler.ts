@@ -56,7 +56,7 @@ export const listPaginatedHandler = async ({ input }: GetOptions) => {
   let nextCursor: typeof cursor | undefined = undefined;
   if (users && users.length > limit) {
     const nextItem = users.pop();
-    nextCursor = nextItem!.id;
+    nextCursor = nextItem?.id;
   }
 
   return {
