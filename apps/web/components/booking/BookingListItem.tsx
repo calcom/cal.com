@@ -336,7 +336,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="hover:bg-muted group flex flex-col sm:flex-row">
+      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
         <td
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
