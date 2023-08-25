@@ -1,4 +1,4 @@
-import type { Prisma, UserPermissionRole } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -6,131 +6,12 @@ import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
+import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
-
-async function createUserAndEventType({
-  user,
-  eventTypes = [],
-}: {
-  user: {
-    email: string;
-    password: string;
-    username: string;
-    name: string;
-    completedOnboarding?: boolean;
-    timeZone?: string;
-    role?: UserPermissionRole;
-    theme?: "dark" | "light";
-  };
-  eventTypes?: Array<
-    Prisma.EventTypeUncheckedCreateInput & {
-      _bookings?: Prisma.BookingCreateInput[];
-    }
-  >;
-}) {
-  const userData = {
-    ...user,
-    password: await hashPassword(user.password),
-    emailVerified: new Date(),
-    completedOnboarding: user.completedOnboarding ?? true,
-    locale: "en",
-    schedules:
-      user.completedOnboarding ?? true
-        ? {
-            create: {
-              name: "Working Hours",
-              availability: {
-                createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-                },
-              },
-            },
-          }
-        : undefined,
-  };
-
-  const theUser = await prisma.user.upsert({
-    where: { email_username: { email: user.email, username: user.username } },
-    update: userData,
-    create: userData,
-  });
-
-  console.log(
-    `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
-  );
-
-  for (const eventTypeInput of eventTypes) {
-    const { _bookings: bookingFields = [], ...eventTypeData } = eventTypeInput;
-    eventTypeData.userId = theUser.id;
-    eventTypeData.users = { connect: { id: theUser.id } };
-
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        slug: eventTypeData.slug,
-        users: {
-          some: {
-            id: eventTypeData.userId,
-          },
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (eventType) {
-      console.log(
-        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
-      );
-      continue;
-    }
-    const { id } = await prisma.eventType.create({
-      data: eventTypeData,
-    });
-
-    console.log(
-      `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
-    );
-    for (const bookingInput of bookingFields) {
-      await prisma.booking.create({
-        data: {
-          ...bookingInput,
-          user: {
-            connect: {
-              email: user.email,
-            },
-          },
-          attendees: {
-            create: {
-              email: user.email,
-              name: user.name,
-              timeZone: "Europe/London",
-            },
-          },
-          eventType: {
-            connect: {
-              id,
-            },
-          },
-          status: bookingInput.status,
-        },
-      });
-      console.log(
-        `\t\t☎️ Created booking ${bookingInput.title} at ${new Date(
-          bookingInput.startTime
-        ).toLocaleDateString()}`
-      );
-    }
-  }
-
-  return theUser;
-}
 
 async function createTeamAndAddUsers(
   teamInput: Prisma.TeamCreateInput,
