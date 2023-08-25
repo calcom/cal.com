@@ -167,7 +167,7 @@ const getEmbedTypeSpecificString = ({
     uiInstructionStringArg = {
       apiName: "cal",
       theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
+      brandColor: previewState.palette["cal-brand"],
       hideEventTypeDetails: previewState.hideEventTypeDetails,
       layout: previewState.layout,
     };
@@ -175,7 +175,7 @@ const getEmbedTypeSpecificString = ({
     uiInstructionStringArg = {
       apiName: "Cal",
       theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
+      brandColor: previewState.palette["cal-brand"],
       hideEventTypeDetails: previewState.hideEventTypeDetails,
       layout: previewState.layout,
     };
@@ -230,9 +230,9 @@ const getEmbedUIInstructionString = ({
     instructionName: "ui",
     instructionArg: {
       theme,
-      styles: {
-        branding: {
-          brandColor,
+      cssVarsPerTheme: {
+        light: {
+          "cal-brand": brandColor,
         },
       },
       hideEventTypeDetails: hideEventTypeDetails,

@@ -16,7 +16,7 @@ export type PreviewState = {
   };
   elementClick: Record<string, string>;
   palette: {
-    brandColor: string;
+    "cal-brand": string;
   };
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;

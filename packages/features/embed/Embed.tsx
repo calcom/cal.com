@@ -575,7 +575,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     elementClick: {},
     hideEventTypeDetails: false,
     palette: {
-      brandColor: "#000000",
+      "cal-brand": "#000000",
     },
   });
 
@@ -638,8 +638,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      styles: {
-        branding: {
+      cssVarsPerTheme: {
+        light: {
           ...previewState.palette,
         },
       },
@@ -948,7 +948,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {[
-                        { name: "brandColor", title: "Brand Color" },
+                        { name: "cal-brand", title: "Brand Color" },
                         // { name: "lightColor", title: "Light Color" },
                         // { name: "lighterColor", title: "Lighter Color" },
                         // { name: "lightestColor", title: "Lightest Color" },
