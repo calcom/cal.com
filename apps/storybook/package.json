@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@calcom/config": "*",
-    "@calcom/dayjs": "*",
     "@calcom/ui": "*",
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-collapsible": "^1.0.0",
@@ -27,7 +26,7 @@
     "storybook-addon-rtl-direction": "^0.0.19"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.6",
+    "@babel/core": "^7.22.11",
     "@storybook/addon-actions": "^6.5.13",
     "@storybook/addon-essentials": "^6.5.13",
     "@storybook/addon-interactions": "^6.5.13",
@@ -41,7 +40,7 @@
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^2.2.0",
     "autoprefixer": "^10.4.12",
-    "babel-loader": "^8.2.5",
+    "babel-loader": "^8.3.0",
     "fs": "^0.0.1-security",
     "postcss": "^8.4.18",
     "postcss-pseudo-companion-classes": "^0.1.1",
