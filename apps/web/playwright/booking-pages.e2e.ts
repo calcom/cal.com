@@ -1,6 +1,10 @@
 import { expect } from "@playwright/test";
 
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
+import { entries } from "@calcom/prisma/zod-utils";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
 import {
@@ -268,251 +272,216 @@ test.describe("prefill", () => {
   });
 });
 
-const limitTests = [
-  {
-    type: "booking",
-    divisor: 1,
-    limits: {
-      PER_DAY: 2,
-      PER_WEEK: 2,
-      PER_MONTH: 2,
-      PER_YEAR: 2,
-    },
-  },
-  {
-    type: "duration",
-    divisor: 30,
-    limits: {
-      PER_DAY: 30 * 2,
-      PER_WEEK: 30 * 2,
-      PER_MONTH: 30 * 2,
-      PER_YEAR: 30 * 2,
-    },
-  },
-];
+const EVENT_LENGTH = 30;
+const BOOKING_LIMITS_SINGLE = {
+  day: 2,
+  week: 2,
+  month: 2,
+  year: 2,
+};
+const BOOKING_LIMITS_MULTIPLE = {
+  day: 1,
+  week: 2,
+  month: 3,
+  year: 4,
+};
+
+// prevent tests from crossing year boundaries (if already in Nov, start booking in Jan instead of Dec)
+const firstDayInBookingMonth =
+  dayjs().month() === 10 ? dayjs().add(1, "year").month(0).date(1) : dayjs().add(1, "month").date(1);
+
+// avoid weekly edge cases
+const firstMondayInBookingMonth = firstDayInBookingMonth.day(
+  firstDayInBookingMonth.date() === firstDayInBookingMonth.startOf("week").date() ? 1 : 8
+);
+
+// ensure we land on the same weekday when incrementing month
+const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
+  if (unit !== "month") return date.add(1, unit);
+  return date.add(1, "month").day(date.day());
+};
 
 // TODO: verify that past bookings count towards limits
 // TODO: consider edge cases, e.g. partial weeks
 
-limitTests.forEach((testParams) => {
-  test.describe(`${testParams.type} limits`, () => {
-    test("day", async ({ page, users }) => {
-      const slug = "limit-day";
-      const limit = { PER_DAY: testParams.limits.PER_DAY };
-      const user = await users.create({
-        eventTypes: [
-          { title: `${testParams.type} limit`, slug, length: 30, [`${testParams.type}Limits`]: limit },
-        ],
-      });
+["booking", "duration"].forEach((limitType) => {
+  test.describe(`${limitType} limits`, () => {
+    entries(BOOKING_LIMITS_SINGLE).forEach(([limitUnit, bookingLimit]) => {
+      const limitValue = limitType === "duration" ? bookingLimit * EVENT_LENGTH : bookingLimit;
 
-      let dayUrl = "";
-      let slotUrl = "";
+      // test one limit at a time
+      test(limitUnit, async ({ page, users }) => {
+        const slug = `${limitType}-limit-${limitUnit}`;
+        const limit = { [`PER_${limitUnit.toUpperCase()}`]: limitValue };
+        const user = await users.create({
+          eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, [`${limitType}Limits`]: limit }],
+        });
 
-      await page.goto(`/${user.username}/${slug}`);
-      await page.getByTestId("incrementMonth").click();
+        let dayUrl = "";
+        let slotUrl = "";
 
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const firstAvailableDay = availableDays.nth(0);
-      await expect(firstAvailableDay).toBeVisible();
-      const availableDaysBefore = await availableDays.count();
+        await page.goto(`/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`);
 
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < Object.values(limit)[0] / testParams.divisor; i++) {
-          await firstAvailableDay.click();
+        const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
+        const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
+          exact: true,
+        });
 
-          dayUrl = page.url();
+        // finish rendering days before counting
+        await expect(bookingDay).toBeVisible({ timeout: 10_000 });
+        const availableDaysBefore = await availableDays.count();
 
-          await page.getByTestId("time").nth(0).click();
+        await test.step("can book up to limit", async () => {
+          for (let i = 0; i < bookingLimit; i++) {
+            await bookingDay.click();
+
+            dayUrl = page.url();
+
+            await page.getByTestId("time").nth(0).click();
+            await bookTimeSlot(page);
+
+            slotUrl = page.url();
+
+            await expect(page.getByTestId("success-page")).toBeVisible();
+
+            await page.goto(`/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`);
+          }
+        });
+
+        const expectedAvailableDays = {
+          day: -1,
+          week: -5,
+          month: 0,
+          year: 0,
+        };
+
+        await test.step("but not over", async () => {
+          await page.goto(dayUrl);
+
+          // ensure the day we just booked is now blocked
+          await expect(page.getByTestId("day").nth(0)).toBeVisible();
+          await expect(page.getByTestId("time")).toBeHidden();
+
+          const availableDaysAfter = await availableDays.count();
+
+          // equals 0 if no available days, otherwise signed difference
+          expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
+            expectedAvailableDays[limitUnit]
+          );
+
+          // try to book directly via form page
+          await page.goto(slotUrl);
           await bookTimeSlot(page);
 
-          slotUrl = page.url();
+          await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+        });
 
-          await expect(page.getByTestId("success-page")).toBeVisible();
+        await test.step(`month after booking`, async () => {
+          await page.goto(
+            `/${user.username}/${slug}?month=${firstMondayInBookingMonth.add(1, "month").format("YYYY-MM")}`
+          );
 
-          await page.goto(`/${user.username}/${slug}`);
-          await page.getByTestId("incrementMonth").click();
-        }
-      });
+          // finish rendering days before counting
+          await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
 
-      await test.step("but not over", async () => {
-        await page.goto(dayUrl);
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        await expect(page.getByTestId("time")).toBeHidden();
-
-        expect(await availableDays.count()).toEqual(availableDaysBefore - 1);
-
-        // try to book via form page
-        await page.goto(slotUrl);
-        await bookTimeSlot(page);
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+          // the month after we made bookings should have availability unless we hit a yearly limit
+          await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
+        });
       });
     });
 
-    test("week", async ({ page, users }) => {
-      const slug = "limit-week";
-      const limit = { PER_WEEK: testParams.limits.PER_WEEK };
+    test("multiple", async ({ page, users }) => {
+      const slug = `${limitType}-limit-multiple`;
+      const limits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitUnit, bookingLimit]) => {
+        const limitValue = limitType === "duration" ? bookingLimit * EVENT_LENGTH : bookingLimit;
+        return {
+          ...limits,
+          [`PER_${limitUnit.toUpperCase()}`]: limitValue,
+        };
+      }, {} as Record<keyof IntervalLimit, number>);
+
       const user = await users.create({
-        eventTypes: [
-          { title: `${testParams.type} limit`, slug, length: 30, [`${testParams.type}Limits`]: limit },
-        ],
+        eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, [`${limitType}Limits`]: limits }],
       });
 
       let dayUrl = "";
       let slotUrl = "";
 
-      await page.goto(`/${user.username}/${slug}`);
-      await page.getByTestId("incrementMonth").click();
+      let bookingDate = firstMondayInBookingMonth;
 
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const firstAvailableDay = availableDays.nth(0);
-      await expect(firstAvailableDay).toBeVisible();
-      const availableDaysBefore = await availableDays.count();
+      // keep track of total bookings across multiple limits
+      let bookingCount = 0;
 
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < Object.values(limit)[0] / testParams.divisor; i++) {
-          // don't book possibly shorter first week (important for available days count later)
-          await availableDays.nth(7).click();
+      for (const [limitUnit, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
+        await page.goto(`/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`);
 
-          dayUrl = page.url();
+        const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
+        const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
 
-          await page.getByTestId("time").nth(0).click();
+        // finish rendering days before counting
+        await expect(bookingDay).toBeVisible({ timeout: 10_000 });
+
+        const availableDaysBefore = await availableDays.count();
+
+        await test.step(`can book up ${limitUnit} to limit`, async () => {
+          for (let i = 0; i + bookingCount < limitValue; i++) {
+            await bookingDay.click();
+
+            dayUrl = page.url();
+
+            await page.getByTestId("time").nth(0).click();
+            await bookTimeSlot(page);
+            bookingCount++;
+
+            slotUrl = page.url();
+
+            await expect(page.getByTestId("success-page")).toBeVisible();
+
+            await page.goto(`/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`);
+          }
+        });
+
+        const expectedAvailableDays = {
+          day: -1,
+          week: -4, // one day will already be blocked by daily limit
+          month: 0,
+          year: 0,
+        };
+
+        await test.step("but not over", async () => {
+          await page.goto(dayUrl);
+
+          // ensure the day we just booked is now blocked
+          await expect(page.getByTestId("day").nth(0)).toBeVisible();
+          await expect(page.getByTestId("time")).toBeHidden();
+
+          const availableDaysAfter = await availableDays.count();
+
+          // equals 0 if no available days, otherwise signed difference
+          expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
+            expectedAvailableDays[limitUnit]
+          );
+
+          // try to book directly via form page
+          await page.goto(slotUrl);
           await bookTimeSlot(page);
 
-          slotUrl = page.url();
+          await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+        });
 
-          await expect(page.getByTestId("success-page")).toBeVisible();
+        await test.step(`month after booking`, async () => {
+          await page.goto(`/${user.username}/${slug}?month=${bookingDate.add(1, "month").format("YYYY-MM")}`);
 
-          await page.goto(`/${user.username}/${slug}`);
-          await page.getByTestId("incrementMonth").click();
-        }
-      });
+          // finish rendering days before counting
+          await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
 
-      await test.step("but not over", async () => {
-        await page.goto(dayUrl);
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
+          // the month after we made bookings should have availability unless we hit a yearly limit
+          await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
+        });
 
-        await expect(page.getByTestId("time")).toBeHidden();
-
-        // the whole business week should now be blocked
-        expect(await availableDays.count()).toEqual(availableDaysBefore - 5);
-
-        // try to book via form page
-        await page.goto(slotUrl);
-        await bookTimeSlot(page);
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
-      });
-    });
-
-    test("month", async ({ page, users }) => {
-      const slug = "limit-month";
-      const limit = { PER_MONTH: testParams.limits.PER_MONTH };
-      const user = await users.create({
-        eventTypes: [
-          { title: `${testParams.type} limit`, slug, length: 30, [`${testParams.type}Limits`]: limit },
-        ],
-      });
-
-      let dayUrl = "";
-      let slotUrl = "";
-
-      await page.goto(`/${user.username}/${slug}`);
-      await page.getByTestId("incrementMonth").click();
-
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const firstAvailableDay = availableDays.nth(0);
-      await expect(firstAvailableDay).toBeVisible();
-
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < Object.values(limit)[0] / testParams.divisor; i++) {
-          await firstAvailableDay.click();
-
-          dayUrl = page.url();
-
-          await page.getByTestId("time").nth(0).click();
-          await bookTimeSlot(page);
-
-          slotUrl = page.url();
-
-          await expect(page.getByTestId("success-page")).toBeVisible();
-
-          await page.goto(`/${user.username}/${slug}`);
-          await page.getByTestId("incrementMonth").click();
-        }
-      });
-
-      await test.step("but not over", async () => {
-        await page.goto(dayUrl);
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        await expect(page.getByTestId("time")).toBeHidden();
-
-        // the whole month should now be blocked
-        expect(await availableDays.count()).toEqual(0);
-
-        // try to book via form page
-        await page.goto(slotUrl);
-        await bookTimeSlot(page);
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
-      });
-    });
-
-    test("year", async ({ page, users }) => {
-      const slug = "limit-year";
-      const limit = { PER_YEAR: testParams.limits.PER_YEAR };
-      const user = await users.create({
-        eventTypes: [
-          { title: `${testParams.type} limit`, slug, length: 30, [`${testParams.type}Limits`]: limit },
-        ],
-      });
-
-      let dayUrl = "";
-      let slotUrl = "";
-
-      await page.goto(`/${user.username}/${slug}`);
-      await page.getByTestId("incrementMonth").click();
-
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const firstAvailableDay = availableDays.nth(0);
-      await expect(firstAvailableDay).toBeVisible();
-
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < Object.values(limit)[0] / testParams.divisor; i++) {
-          await firstAvailableDay.click();
-
-          dayUrl = page.url();
-
-          await page.getByTestId("time").nth(0).click();
-          await bookTimeSlot(page);
-
-          slotUrl = page.url();
-
-          await expect(page.getByTestId("success-page")).toBeVisible();
-
-          await page.goto(`/${user.username}/${slug}`);
-          await page.getByTestId("incrementMonth").click();
-        }
-      });
-
-      await test.step("but not over", async () => {
-        await page.goto(dayUrl);
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        await expect(page.getByTestId("time")).toBeHidden();
-
-        // the whole year should now be blocked
-        // FIXME: should check an additional month in the same year (but we may already be in December)
-        expect(await availableDays.count()).toEqual(0);
-
-        // try to book via form page
-        await page.goto(slotUrl);
-        await bookTimeSlot(page);
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
-      });
+        // increment date by unit after hitting each limit
+        bookingDate = incrementDate(bookingDate, limitUnit);
+      }
     });
   });
 });
