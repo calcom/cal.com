@@ -383,6 +383,7 @@ async function getBookings({
   );
 
   const plainBookings = getUniqueBookings(
+    // It's going to mess up the orderBy as we are concatenating independent queries results
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
@@ -399,6 +400,8 @@ async function getBookings({
         },
       },
       select: bookingSelect,
+      // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
+      orderBy,
     })
   ).map((booking) => {
     // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
