@@ -15,6 +15,7 @@ const nextConfig = {
   },
   transpilePackages: [
     "@calcom/app-store",
+    "@calcom/dayjs",
     "@calcom/emails",
     "@calcom/trpc",
     "@calcom/embed-core",

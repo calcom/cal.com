@@ -3862,6 +3862,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.22.11
     "@calcom/config": "*"
+    "@calcom/dayjs": "*"
     "@calcom/ui": "*"
     "@radix-ui/react-avatar": ^1.0.0
     "@radix-ui/react-collapsible": ^1.0.0

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@calcom/config": "*",
+    "@calcom/dayjs": "*",
     "@calcom/ui": "*",
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-collapsible": "^1.0.0",
