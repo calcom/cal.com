@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     appId: "zapier",
   });
 
-  if (!createAppSubscription || createAppSubscription.error) {
+  if (!createAppSubscription) {
     return res.status(500).json({ message: "Could not create subscription." });
   }
 

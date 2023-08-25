@@ -58,7 +58,9 @@ export async function addSubscription({
 
     return createSubscription;
   } catch (error) {
-    return { error: "There was an error creating a subscription" };
+    return console.error(
+      `Error creating subscription for user ${appApiKey.userId} and appId ${appApiKey.appId}.`
+    );
   }
 }
 
@@ -115,7 +117,9 @@ export async function deleteSubscription({
     }
     return deleteWebhook;
   } catch (err) {
-    return { error: "Error deleting subscription" };
+    return console.error(
+      `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appName ${appName}`
+    );
   }
 }
 export async function listBookings(appApiKey: ApiKey) {
@@ -189,7 +193,9 @@ export async function listBookings(appApiKey: ApiKey) {
 
     return updatedBookings;
   } catch (err) {
-    return { error: "Could not retrieve bookings." };
+    return console.error(
+      `Error retrieving list of bookings for user ${appApiKey.userId} and appId ${appApiKey.appId}.`
+    );
   }
 }
 

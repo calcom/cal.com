@@ -29,7 +29,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     appName: "make",
   });
 
-  if (!deleteEventSubscription || deleteEventSubscription.error) {
+  if (!deleteEventSubscription) {
     return res.status(500).json({ message: "Could not delete subscription." });
   }
   res.status(204).json({ message: "Subscription is deleted." });
