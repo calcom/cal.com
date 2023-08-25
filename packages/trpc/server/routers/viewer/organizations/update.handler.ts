@@ -1,9 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -20,11 +22,13 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
-  const currentOrgId = ctx.user?.organization?.id;
+  const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
-  if (!currentOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!currentOrgId || ctx.user.role !== UserPermissionRole.ADMIN)
+    throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (!(await isOrganisationAdmin(ctx.user?.id, currentOrgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!(await isOrganisationAdmin(ctx.user?.id, currentOrgId)) || ctx.user.role !== UserPermissionRole.ADMIN)
+    throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
     const userConflict = await prisma.team.findMany({
@@ -51,6 +55,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
@@ -64,6 +69,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeZone: input.timeZone,
     weekStart: input.weekStart,
     timeFormat: input.timeFormat,
+    metadata: mergeMetadata({ ...input.metadata }),
   };
 
   if (input.slug) {
@@ -73,20 +79,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       !prevOrganisation.slug
     ) {
       // Save it on the metadata so we can use it later
-      data.metadata = {
-        requestedSlug: input.slug,
-      };
+      data.metadata = mergeMetadata({ requestedSlug: input.slug });
     } else {
       data.slug = input.slug;
-
-      // If we save slug, we don't need the requestedSlug anymore
-      const metadataParse = teamMetadataSchema.safeParse(prevOrganisation.metadata);
-      if (metadataParse.success) {
-        const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
-        data.metadata = {
-          ...cleanMetadata,
-        };
-      }
+      data.metadata = mergeMetadata({
+        // If we save slug, we don't need the requestedSlug anymore
+        requestedSlug: undefined,
+        ...input.metadata,
+      });
     }
   }
 

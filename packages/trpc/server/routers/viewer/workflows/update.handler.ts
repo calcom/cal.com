@@ -19,7 +19,7 @@ import {
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -603,7 +603,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      if (isTextMessageToAttendeeAction(s.action)) {
+      if (!isKYCVerified && isTextMessageToAttendeeAction(s.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
       }
       const { id: _stepId, ...stepToAdd } = s;
