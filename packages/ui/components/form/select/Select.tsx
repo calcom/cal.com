@@ -141,7 +141,7 @@ export function SelectWithValidation<
 }: SelectProps<Option, IsMulti, Group> & { required?: boolean }) {
   const [hiddenInputValue, _setHiddenInputValue] = React.useState(() => {
     if (value instanceof Array || !value) {
-      return;
+      return "";
     }
     return value.value || "";
   });

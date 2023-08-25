@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import type { Slots } from "./types";
-import dayjs from "@calcom/dayjs";
 
 /**
  * Get's slots for a specific date from the schedul cache.
@@ -18,8 +17,7 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   return slotsForDate;
 };
 
-export const useSlotsForAvailableDates = ( dates: (string | null)[], slots?: Slots) => {
-
+export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
   const slotsForDates = useMemo(() => {
     if (slots === undefined) return [];
     return dates
