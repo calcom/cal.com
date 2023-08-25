@@ -25,11 +25,11 @@ The `UnpublishedEntity` component consists of the following parts:
 ## UnpublishedEntity Story
 
 <Canvas>
-  <Story name="UnpublishedEntity">
-    {() => (
-      <VariantsTable titles={["Default"]} columnMinWidth={100}>
+  <Story name="UnpublishedEntity" args={{ name: "TeamExample", teamSlug: "team-example" }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
         <VariantRow>
-          <UnpublishedEntity />
+          <UnpublishedEntity {...args} />
         </VariantRow>
       </VariantsTable>
     )}
