@@ -79,11 +79,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (foundToken?.teamId) {
       const teamUserValidation = await validateUsernameInTeam(username, userEmail, foundToken?.teamId);
-      return validationResponse(userEmail, teamUserValidation);
+      validationResponse(userEmail, teamUserValidation);
     }
   } else {
     const userValidation = await validateUsername(username, userEmail);
-    return validationResponse(userEmail, userValidation);
+    validationResponse(userEmail, userValidation);
   }
 
   const hashedPassword = await hashPassword(password);
@@ -94,7 +94,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: foundToken.teamId,
       },
     });
-
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
