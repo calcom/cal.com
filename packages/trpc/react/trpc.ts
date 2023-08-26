@@ -23,6 +23,7 @@ const ENDPOINTS = [
   "apps",
   "auth",
   "availability",
+  "appBasecamp3",
   "bookings",
   "deploymentSetup",
   "eventTypes",
