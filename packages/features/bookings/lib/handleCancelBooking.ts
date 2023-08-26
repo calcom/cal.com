@@ -430,9 +430,9 @@ async function handler(req: CustomRequest) {
           bookingToDelete.recurringEventId &&
           allRemainingBookings
         ) {
-          bookingToDelete.user.credentials
+          const promises = bookingToDelete.user.credentials
             .filter((credential) => credential.type.endsWith("_calendar"))
-            .forEach(async (credential) => {
+            .map(async (credential) => {
               const calendar = await getCalendar(credential);
               for (const updBooking of updatedBookings) {
                 const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
@@ -443,6 +443,13 @@ async function handler(req: CustomRequest) {
                 }
               }
             });
+          try {
+            await Promise.all(promises);
+          } catch (error) {
+            if (error instanceof Error) {
+              logger.error(error.message);
+            }
+          }
         } else {
           apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
         }
@@ -603,11 +610,13 @@ async function handler(req: CustomRequest) {
   });
 
   // delete scheduled jobs of cancelled bookings
+  // FIXME: async calls into ether
   updatedBookings.forEach((booking) => {
     cancelScheduledJobs(booking);
   });
 
   //Workflows - cancel all reminders for cancelled bookings
+  // FIXME: async calls into ether
   updatedBookings.forEach((booking) => {
     booking.workflowReminders.forEach((reminder) => {
       if (reminder.method === WorkflowMethods.EMAIL) {
@@ -622,11 +631,14 @@ async function handler(req: CustomRequest) {
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
-  // @TODO: find a way in the future if a promise fails don't stop the rest of the promises
-  // Also if emails fails try to requeue them
   try {
-    await Promise.all(prismaPromises.concat(apiDeletes));
+    const settled = await Promise.allSettled(prismaPromises.concat(apiDeletes));
+    const rejected = settled.filter(({ status }) => status === "rejected") as PromiseRejectedResult[];
+    if (rejected.length) {
+      throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);
+    }
 
+    // TODO: if emails fail try to requeue them
     await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
   } catch (error) {
     console.error("Error deleting event", error);
