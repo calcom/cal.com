@@ -1,6 +1,7 @@
 import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
@@ -10,6 +11,7 @@ import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
   useIsEmbed,
+  useEmbedType,
 } from "@calcom/embed-core/embed-iframe";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -34,6 +36,8 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
 
@@ -53,6 +57,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     orgSlug: _orgSlug,
     ...query
   } = useRouterQuery();
+  const embedType = useEmbedType();
+  const hasDarkBackground = isEmbed && embedType !== "inline";
 
   /*
    const telemetry = useTelemetry();
@@ -157,6 +163,14 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           </div>
 
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
+          <span
+            key="logo"
+            className={classNames(
+              "mt-6 flex flex-col items-center [&_img]:h-[15px]",
+              hasDarkBackground ? "dark" : ""
+            )}>
+            <PoweredBy logoOnly />
+          </span>
         </main>
         <Toaster position="bottom-right" />
       </div>
