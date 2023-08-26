@@ -157,8 +157,10 @@ async function handler(req: CustomRequest) {
     },
   });
 
+  const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
+
   const subscriberOptions = {
-    userId: bookingToDelete.userId,
+    userId: triggerForUser ? bookingToDelete.userId : null,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
