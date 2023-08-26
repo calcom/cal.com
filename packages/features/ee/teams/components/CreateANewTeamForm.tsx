@@ -135,12 +135,28 @@ export const CreateANewTeamForm = () => {
               <>
                 <Label>{t("team_logo")}</Label>
                 <div className="flex items-center">
-                  <Avatar
-                    alt=""
-                    imageSrc={value}
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
-                    size="lg"
-                  />
+                  <label htmlFor="avatar-upload" className="cursor-pointer">
+                    <Avatar
+                      alt=""
+                      imageSrc={value}
+                      fallback={<Plus className="text-subtle h-6 w-6" />}
+                      size="lg"
+                    />
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      style={{ display: "none" }}
+                      onChange={(event) => {
+                        const inputElement = event.target as HTMLInputElement;
+                        const selectedFile = inputElement.files?.[0];
+                        if (selectedFile) {
+                          const newAvatar = URL.createObjectURL(selectedFile);
+                          newTeamFormMethods.setValue("logo", newAvatar);
+                          createTeamMutation.reset();
+                        }
+                      }}
+                    />
+                  </label>
                   <div className="ms-4">
                     <ImageUploader
                       target="avatar"
