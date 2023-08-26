@@ -45,6 +45,23 @@
       "cache": false,
       "dependsOn": []
     },
+    "@calcom/ai#build": {
+      "env": [
+        "CAL_AI_DATABASE_URL",
+        "CAL_API_KEY",
+        "BACKEND_URL",
+        "APP_ID",
+        "APP_URL",
+        "ENCRYPTION_KEY",
+        "NODE_ENV",
+        "OPENAI_API_KEY",
+        "RESEND_API_KEY",
+        "SEED_CAL_API_KEY",
+        "SEED_CAL_EMAIL",
+        "SEED_CAL_USERNAME",
+        "SENDER_EMAIL"
+      ]
+    },
     "@calcom/website#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
