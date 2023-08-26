@@ -37,7 +37,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev -p 3005",
     "format": "npx prettier . --write",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.json,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
