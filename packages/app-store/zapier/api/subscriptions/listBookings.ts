@@ -28,7 +28,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       };
     } else {
       where.userId = validKey.userId;
-      s;
     }
 
     const bookings = await prisma.booking.findMany({
