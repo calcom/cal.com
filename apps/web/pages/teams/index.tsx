@@ -15,14 +15,14 @@ import { ssrInit } from "@server/lib/ssr";
 
 function Teams() {
   const { t } = useLocale();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
-
+  const { data: user, status, error } = trpc.viewer.me.useQuery();
   return (
     <ShellMain
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
+        user &&
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
             variant="fab"
