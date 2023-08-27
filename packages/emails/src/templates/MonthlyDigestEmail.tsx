@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -38,103 +38,66 @@ export const MonthlyDigestEmail = (
       <div
         style={{
           display: "flex",
-          justifyContent: "center",
           alignItems: "center",
           gap: "50px",
           marginTop: "30px",
           marginBottom: "30px",
         }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <div
+        <div>
+          <p
             style={{
-              height: "60px",
-              width: "60px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "50%",
-              border: "4px solid black",
-              gap: "0px",
+              fontWeight: 600,
+              fontSize: "48px",
+              lineHeight: "48px",
+              fontFamily: "Inter",
             }}>
-            <p>{props.Created}</p>
-          </div>
-          <p style={{ fontSize: "10px" }}>{props.language("events_created")}</p>
+            {props.Created}
+          </p>
+          <p style={{ fontSize: "16px", fontWeight: 500, lineHeight: "20px" }}>
+            {props.language("events_created")}
+          </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <div
+        <div>
+          <p
             style={{
-              height: "60px",
-              width: "60px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "50%",
-              border: "4px solid black",
-              gap: "0px",
+              fontWeight: 600,
+              fontSize: "48px",
+              lineHeight: "48px",
+              fontFamily: "Inter",
             }}>
-            <p>{props.Completed}</p>
-          </div>
-          <p style={{ fontSize: "10px" }}>{props.language("events_completed")}</p>
+            {props.Completed}
+          </p>
+          <p style={{ fontSize: "16px", fontWeight: 500, lineHeight: "20px" }}>
+            {props.language("completed")}
+          </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <div
+        <div>
+          <p
             style={{
-              height: "60px",
-              width: "60px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "50%",
-              border: "4px solid black",
-              gap: "0px",
+              fontWeight: 600,
+              fontSize: "48px",
+              lineHeight: "48px",
+              fontFamily: "Inter",
             }}>
-            <p>{props.Rescheduled}</p>
-          </div>
-          <p style={{ fontSize: "10px" }}>{props.language("events_rescheduled")}</p>
+            {props.Rescheduled}
+          </p>
+          <p style={{ fontSize: "16px", fontWeight: 500, lineHeight: "20px" }}>
+            {props.language("rescheduled")}
+          </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <div
+        <div>
+          <p
             style={{
-              height: "60px",
-              width: "60px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "50%",
-              border: "4px solid black",
-              gap: "0px",
+              fontWeight: 600,
+              fontSize: "48px",
+              lineHeight: "48px",
+              fontFamily: "Inter",
             }}>
-            <p>{props.Cancelled}</p>
-          </div>
-          <p style={{ fontSize: "10px" }}>{props.language("events_cancelled")}</p>
+            {props.Cancelled}
+          </p>
+          <p style={{ fontSize: "16px", fontWeight: 500, lineHeight: "20px" }}>
+            {props.language("cancelled")}
+          </p>
         </div>
       </div>
     );
@@ -149,75 +112,97 @@ export const MonthlyDigestEmail = (
             fontSize: "32px",
             lineHeight: "38px",
             width: "100%",
-            textAlign: "center",
+            marginBottom: "30px",
+            fontFamily: "Cal Sans",
           }}>
-          {props.language("30_day_digest_email")}
+          {props.language("your_monthly_digest")}
         </p>
-        <p style={{ fontWeight: 400, width: "100%", textAlign: "center" }}>
-          <>{props.language("hi_user_name", { name: props.admin.name })}!</>
+        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px", fontFamily: "Inter" }}>
+          {props.language("hi_user_name", { name: props.admin.name })}!
         </p>
-        <p style={{ fontWeight: 400, lineHeight: "24px", width: "100%", textAlign: "center" }}>
+        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px", fontFamily: "Inter" }}>
           {props.language("summary_of_events_for_your_team_for_the_last_30_days", {
             teamName: props.team.name,
           })}
         </p>
         <EventsDetails />
-        <div style={{ width: "100%" }}>
-          <p style={{ marginBottom: "10px" }}>{props.language("here_are_your_most_popular_events")} :</p>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", color: "grey" }}>
-              <p>{props.language("event_name")}</p>
-              <p>{props.language("times_booked")}</p>
-            </div>
-            {props.mostBookedEvents
-              ? props.mostBookedEvents.map((ev, idx) => (
-                  <div
-                    key={ev.eventTypeId}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontWeight: "bold",
-                      borderBottom: `${idx === props.mostBookedEvents.length - 1 ? "" : "1px solid grey"}`,
-                    }}>
-                    <p>{ev.eventTypeName}</p>
-                    <p>{ev.count}</p>
-                  </div>
-                ))
-              : null}
+        <div
+          style={{
+            fontFamily: "Inter",
+            width: "100%",
+          }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid grey",
+              fontSize: "16px",
+            }}>
+            <p style={{ fontWeight: 600 }}>{props.language("most_popular_events")}</p>
+            <p style={{ fontWeight: 500 }}>{props.language("bookings")}</p>
           </div>
+          {props.mostBookedEvents
+            ? props.mostBookedEvents.map((ev, idx) => (
+                <div
+                  key={ev.eventTypeId}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    borderBottom: `${idx === props.mostBookedEvents.length - 1 ? "" : "1px solid grey"}`,
+                  }}>
+                  <p style={{ fontWeight: 500 }}>{ev.eventTypeName}</p>
+                  <p style={{ fontWeight: 500 }}>{ev.count}</p>
+                </div>
+              ))
+            : null}
         </div>
-        <div style={{ width: "100%", marginTop: "30px" }}>
-          <p style={{ marginBottom: "10px" }}>{props.language("here_are_your_most_booked_members")} :</p>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", color: "grey" }}>
-              <p>{props.language("member_name")}</p>
-              <p>{props.language("times_booked")}</p>
-            </div>
-            {props.membersWithMostBookings
-              ? props.membersWithMostBookings.map((it, idx) => (
-                  <div
-                    key={it.userId}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontWeight: "bold",
-                      borderBottom: `${
-                        idx === props.membersWithMostBookings.length - 1 ? "" : "1px solid grey"
-                      }`,
-                    }}>
-                    <p>{it.user.name}</p>
-                    <p>{it.count}</p>
-                  </div>
-                ))
-              : null}
+        <div style={{ width: "100%", marginTop: "30px", fontFamily: "Inter" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid grey",
+            }}>
+            <p style={{ fontWeight: 600 }}>{props.language("most_booked_members")}</p>
+            <p style={{ fontWeight: 500 }}>{props.language("bookings")}</p>
           </div>
+          {props.membersWithMostBookings
+            ? props.membersWithMostBookings.map((it, idx) => (
+                <div
+                  key={it.userId}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    borderBottom: `${
+                      idx === props.membersWithMostBookings.length - 1 ? "" : "1px solid grey"
+                    }`,
+                  }}>
+                  <p style={{ fontWeight: 500 }}>{it.user.name}</p>
+                  <p style={{ fontWeight: 500 }}>{it.count}</p>
+                </div>
+              ))
+            : null}
         </div>
-        <div style={{ width: "100%", textAlign: "center", marginTop: "30px" }}>
+        <div style={{ marginTop: "30px", marginBottom: "30px" }}>
           <CallToAction
             label="View all stats"
             href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/insights?teamId=${props.team.id}`}
           />
         </div>
+      </div>
+      <div style={{ lineHeight: "6px" }}>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+          <>
+            {props.language("happy_scheduling")}, <br />
+            <a
+              href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
+              style={{ color: "#3E3E3E" }}
+              target="_blank"
+              rel="noreferrer">
+              <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
+            </a>
+          </>
+        </p>
       </div>
     </BaseEmailHtml>
   );

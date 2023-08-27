@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { send30DayDigestEmails } from "@calcom/emails/email-manager";
+import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -36,10 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         slug: {
           not: null,
         },
-        createdAt: {
-          // created before last 30days
-          lte: date30DaysAgo,
-        },
+        // createdAt: {
+        //   // created before last 30days
+        //   lte: date30DaysAgo,
+        // },
       },
       select: {
         id: true,
@@ -326,7 +326,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Only send email if events were booked in this time span
         if (EventData.mostBookedEvents.length > 0) {
-          await send30DayDigestEmails({ ...EventData, language: t });
+          await sendMonthlyDigestEmails({ ...EventData, language: t });
         }
       }
 

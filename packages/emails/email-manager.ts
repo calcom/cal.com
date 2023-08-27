@@ -379,6 +379,6 @@ export const sendOrganizationEmailVerification = async (sendOrgInput: Organizati
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };
 
-export const send30DayDigestEmails = async (eventData: MonthlyDigestEmailData) => {
+export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
   await sendEmail(() => new MonthlyDigestEmail(eventData));
 };

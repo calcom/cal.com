@@ -235,6 +235,23 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         />
       </div>
 
+      <div className="mt-8">
+        <Controller
+          name="allowSEOIndexing"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("monthly_digest_email")}
+              description={t("monthly_digest_email_for_teams")}
+              checked={formMethods.getValues("allowSEOIndexing")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
+
       <Button
         loading={mutation.isLoading}
         disabled={isDisabled}
