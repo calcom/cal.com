@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
@@ -259,12 +259,19 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma, body } = req;
 
-  const { hosts = [], ...parsedBody } = schemaEventTypeCreateBodyParams.parse(body || {});
+  const {
+    hosts = [],
+    bookingLimits,
+    durationLimits,
+    ...parsedBody
+  } = schemaEventTypeCreateBodyParams.parse(body || {});
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
     userId,
     users: { connect: { id: userId } },
+    bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
+    durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
   await checkPermissions(req);

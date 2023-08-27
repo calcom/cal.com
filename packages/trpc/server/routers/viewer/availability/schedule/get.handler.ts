@@ -32,7 +32,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       timeZone: true,
       eventType: {
         select: {
-          _count: true,
           id: true,
           eventName: true,
           team: {
