@@ -246,7 +246,11 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     // Confirm first booking
-    await page.goto("/bookings/unconfirmed");
+    await Promise.all([
+      page.goto("/bookings/unconfirmed"),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/public/slots")),
+    ]);
+
     await Promise.all([
       page.click('[data-testid="confirm"]'),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
