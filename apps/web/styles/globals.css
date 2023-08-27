@@ -216,6 +216,7 @@ html.todesktop nav a svg{
     .no-scrollbar {
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
+      overflow: hidden !important;
     }
   }
 }
