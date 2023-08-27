@@ -137,7 +137,15 @@ function BookingListItem(booking: BookingItemProps) {
         enabled: true,
       }
     );
-    return resp?.data?.slots && Object.keys(resp?.data?.slots).length;
+
+    if (resp?.data?.slots) {
+      if (Object.keys(resp?.data?.slots).length > 0) {
+        return true;
+      } else {
+        return false; // No slots are available
+      }
+    }
+    return true; // On any other error return true, to avoid disabling confirm button
   };
 
   const pendingActions: ActionType[] = [
