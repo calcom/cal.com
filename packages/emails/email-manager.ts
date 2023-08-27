@@ -383,7 +383,8 @@ export const sendOrganizationEmailVerification = async (sendOrgInput: Organizati
 
 export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
   await sendEmail(() => new MonthlyDigestEmail(eventData));
-  
+};
+
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
 };
