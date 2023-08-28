@@ -89,6 +89,10 @@ export const POST = async (request: NextRequest) => {
     }),
   ]);
 
+  if ("error" in availability) {
+    return new NextResponse("Error fetching availability. Please try again.", { status: 400 });
+  }
+
   const { timeZone, workingHours } = availability;
 
   const appHost = getHostFromHeaders(request.headers);

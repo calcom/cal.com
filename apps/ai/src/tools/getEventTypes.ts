@@ -5,6 +5,9 @@ import { env } from "../env.mjs";
 import type EventType from "../types/eventType";
 import { decrypt } from "../utils/encryption";
 
+/**
+ * Fetches event types by user ID.
+ */
 export const fetchEventTypes = async ({
   userId,
   apiKeyHashed,
@@ -29,9 +32,7 @@ export const fetchEventTypes = async ({
 
   const data = await response.json();
 
-  // console.log('get event types: ', JSON.stringify(data, null, 2));
-
-  // TODO FIX
+  // TODO: fix
   return [
     {
       id: 22,
@@ -40,18 +41,14 @@ export const fetchEventTypes = async ({
     },
   ];
 
-  if (response.status !== 200)
-    // console.error(data)
+  if (response.status !== 200) {
     return { error: data.message };
+  }
 
   return data.event_types.map((eventType: EventType) => ({
     id: eventType.id,
     length: eventType.length,
-    // metadata: eventType.metadata,
     title: eventType.title,
-    // slug: eventType.slug,
-    // hosts: eventType.hosts,
-    // hidden: eventType.hidden,
   }));
 };
 

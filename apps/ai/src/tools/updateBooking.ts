@@ -4,12 +4,15 @@ import { z } from "zod";
 import { env } from "../env.mjs";
 import { decrypt } from "../utils/encryption";
 
+/**
+ * Edits a booking for a user by booking ID with new times, title, description, or status.
+ */
 const editBooking = async ({
   apiKeyHashed,
   apiKeyIV,
   id,
-  startTime, // In the docs it says start, but it's startTime -> https://cal.com/docs/enterprise-features/api/api-reference/bookings#edit-an-existing-booking
-  endTime, // Same here, it says end, but it's endTime
+  startTime, // In the docs it says start, but it's startTime: https://cal.com/docs/enterprise-features/api/api-reference/bookings#edit-an-existing-booking.
+  endTime, // Same here: it says end but it's endTime.
   title,
   description,
   status,
@@ -22,7 +25,7 @@ const editBooking = async ({
   title?: string;
   description?: string;
   status?: string;
-}) => {
+}): Promise<string | { error: string }> => {
   const params = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
   };
@@ -42,9 +45,9 @@ const editBooking = async ({
 
   const data = await response.json();
 
-  console.log("update bookings: ", JSON.stringify(data, null, 2));
-
-  if (response.status !== 200) return { error: data.message };
+  if (response.status !== 200) {
+    return { error: data.message };
+  }
 
   return "Booking edited";
 };

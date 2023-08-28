@@ -4,6 +4,9 @@ import { z } from "zod";
 import { env } from "../env.mjs";
 import { decrypt } from "../utils/encryption";
 
+/**
+ * Cancels a booking for a user by ID with reason.
+ */
 const cancelBooking = async ({
   apiKeyHashed,
   apiKeyIV,
@@ -14,10 +17,11 @@ const cancelBooking = async ({
   apiKeyIV: string;
   id: string;
   reason: string;
-}) => {
+}): Promise<string | { error: string }> => {
   const params = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
   };
+
   const urlParams = new URLSearchParams(params);
 
   const url = `${env.BACKEND_URL}/bookings/${id}/cancel?${urlParams.toString()}`;
@@ -34,11 +38,9 @@ const cancelBooking = async ({
 
   const data = await response.json();
 
-  // console.log("delete booking: ", JSON.stringify(data, null, 2));
-
-  if (response.status !== 200)
-    // console.error(data)
+  if (response.status !== 200) {
     return { error: data.message };
+  }
 
   return "Booking cancelled";
 };

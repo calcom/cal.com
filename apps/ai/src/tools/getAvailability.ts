@@ -4,6 +4,9 @@ import { z } from "zod";
 import { env } from "../env.mjs";
 import { decrypt } from "../utils/encryption";
 
+/**
+ * Fetches availability for a user by date range and event type.
+ */
 export const fetchAvailability = async ({
   apiKeyHashed,
   apiKeyIV,
@@ -18,7 +21,7 @@ export const fetchAvailability = async ({
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
-}) => {
+}): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
     dateFrom,
@@ -29,27 +32,26 @@ export const fetchAvailability = async ({
   if (eventTypeId) params["eventTypeId"] = eventTypeId.toString();
 
   const urlParams = new URLSearchParams(params);
+
   const url = `${env.BACKEND_URL}/availability?${urlParams.toString()}`;
 
   const response = await fetch(url);
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  if (response.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
   const data = await response.json();
 
-  // console.log('get availability: ', JSON.stringify(data, null, 2));
-
-  if (response.status !== 200)
-    // console.error(data)
+  if (response.status !== 200) {
     return { error: data.message };
+  }
 
   return {
     busy: data.busy,
     dateRanges: data.dateRanges,
     timeZone: data.timeZone,
     workingHours: data.workingHours,
-    // dateOverrides: data.dateOverrides,
-    // currentSeats: data.currentSeats,
   };
 };
 
