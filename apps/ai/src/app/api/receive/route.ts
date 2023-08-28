@@ -59,6 +59,10 @@ export const POST = async (request: NextRequest) => {
   const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
   const key = credential && credential["apiKey"];
 
+  // Context is used in agent tools
+  context.apiKey = key;
+  context.userId = user.id.toString();
+
   // User has not installed the app from the app store. Direct them to install it.
   if (!key) {
     const url = env.APP_URL;
@@ -72,9 +76,6 @@ export const POST = async (request: NextRequest) => {
 
     return new NextResponse("ok");
   }
-
-  context.apiKey = key;
-  context.userId = user.id.toString();
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
@@ -112,6 +113,7 @@ export const POST = async (request: NextRequest) => {
   // Hand off to long-running agent endpoint to handle the email.
   fetch(`${appHost}/api/agent`, {
     body: JSON.stringify({
+      context,
       message: parsed.text,
       subject: parsed.subject,
       user: {

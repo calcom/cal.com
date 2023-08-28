@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import agent from "../../../utils/agent";
+import { context } from "../../../utils/context";
 import sendEmail from "../../../utils/sendEmail";
 
 /**
@@ -11,19 +12,23 @@ import sendEmail from "../../../utils/sendEmail";
 export const POST = async (request: NextRequest) => {
   const json = await request.json();
 
-  const { message, subject, user } = json;
+  const { context: _context, message, subject, user } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 
+  // Persist context for agent tools
+  context.apiKey = _context.apiKey;
+  context.userId = _context.userId;
+
   try {
     const response = await agent(`${subject}\n\n${message}`, user);
 
     await sendEmail({
-      html: response,
+      // html: response.replace(/(?:\r\n|\r|\n)/g, "<br>"),
       subject: `Re: ${subject}`,
-      text: response,
+      text: response.replace(/(?:\r\n|\r|\n)/g, "\n"),
       to: user.email,
     });
 

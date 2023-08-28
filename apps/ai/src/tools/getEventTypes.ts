@@ -26,8 +26,6 @@ export const fetchEventTypes = async () => {
 
   const url = `${env.BACKEND_URL}/event-types?${urlParams.toString()}`;
 
-  console.log(url);
-
   const response = await fetch(url);
 
   if (response.status === 401) throw new Error("Unauthorized");
