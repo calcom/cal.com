@@ -1,7 +1,7 @@
-import type EventType from "./eventType";
-import type WorkingHours from "./workingHours";
+import type { EventType } from "./eventType";
+import type { WorkingHours } from "./workingHours";
 
-type User = {
+export type User = {
   id: string;
   email: string;
   timeZone: string;
@@ -10,5 +10,3 @@ type User = {
   eventTypes: EventType[];
   workingHours: WorkingHours[];
 };
-
-export default User;

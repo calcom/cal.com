@@ -2,7 +2,7 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import type Booking from "../types/booking";
+import type { Booking } from "../types/booking";
 import { BOOKING_STATUS } from "../types/booking";
 import { decrypt } from "../utils/encryption";
 

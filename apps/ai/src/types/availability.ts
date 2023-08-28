@@ -1,4 +1,4 @@
-type Availability = {
+export type Availability = {
   busy: {
     start: string;
     end: string;
@@ -23,5 +23,3 @@ type Availability = {
   };
   currentSeats: number;
 };
-
-export default Availability;

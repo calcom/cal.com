@@ -7,9 +7,9 @@ import deleteBooking from "../tools/deleteBooking";
 import getAvailability from "../tools/getAvailability";
 import getBookings from "../tools/getBookings";
 import updateBooking from "../tools/updateBooking";
-import type EventType from "../types/eventType";
-import type User from "../types/user";
-import type WorkingHours from "../types/workingHours";
+import type { EventType } from "../types/eventType";
+import type { User } from "../types/user";
+import type { WorkingHours } from "../types/workingHours";
 import now from "./now";
 
 const gptModel = "gpt-4";

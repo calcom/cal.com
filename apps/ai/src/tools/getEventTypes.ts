@@ -2,7 +2,7 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import type EventType from "../types/eventType";
+import type { EventType } from "../types/eventType";
 import { decrypt } from "../utils/encryption";
 
 /**
