@@ -118,6 +118,7 @@ export const EventSetupTab = (
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
   const orgBranding = useOrgBranding();
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -508,6 +509,8 @@ export const EventSetupTab = (
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
               checked={multipleDuration !== undefined}
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
               onCheckedChange={() => {
                 if (multipleDuration !== undefined) {
                   setMultipleDuration(undefined);
