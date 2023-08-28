@@ -143,6 +143,8 @@ test.describe("pro user", () => {
       page.click('[data-testid="confirm"]'),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
     ]);
+
+    await page.goto("/bookings/unconfirmed");
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
