@@ -18,6 +18,7 @@ export function VariantsTable({
   const columns = React.Children.toArray(children) as ReactElement<RowProps>[];
   return (
     <div
+      id="light-variant"
       className={classNames(
         isDark &&
           "relative py-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#1C1C1C]"
@@ -43,7 +44,7 @@ export function VariantsTable({
         </table>
       </div>
       {!isDark && (
-        <div data-mode="dark" className="dark">
+        <div id="dark-variant" data-mode="dark" className="dark">
           <VariantsTable titles={titles} isDark columnMinWidth={columnMinWidth}>
             {children}
           </VariantsTable>
