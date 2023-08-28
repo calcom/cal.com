@@ -1,138 +1,41 @@
-import type { Prisma, UserPermissionRole } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { uuid } from "short-uuid";
+import type z from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
-
-async function createUserAndEventType(opts: {
-  user: {
-    email: string;
-    password: string;
-    username: string;
-    name: string;
-    completedOnboarding?: boolean;
-    timeZone?: string;
-    role?: UserPermissionRole;
-    theme?: "dark" | "light";
-  };
-  eventTypes: Array<
-    Prisma.EventTypeCreateInput & {
-      _bookings?: Prisma.BookingCreateInput[];
-    }
-  >;
-}) {
-  const userData = {
-    ...opts.user,
-    password: await hashPassword(opts.user.password),
-    emailVerified: new Date(),
-    completedOnboarding: opts.user.completedOnboarding ?? true,
-    locale: "en",
-    schedules:
-      opts.user.completedOnboarding ?? true
-        ? {
-            create: {
-              name: "Working Hours",
-              availability: {
-                createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-                },
-              },
-            },
-          }
-        : undefined,
-  };
-
-  const user = await prisma.user.upsert({
-    where: { email_username: { email: opts.user.email, username: opts.user.username } },
-    update: userData,
-    create: userData,
-  });
-
-  console.log(
-    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${opts.user.username}`
-  );
-
-  for (const eventTypeInput of opts.eventTypes) {
-    const { _bookings: bookingFields = [], ...eventTypeData } = eventTypeInput;
-    eventTypeData.userId = user.id;
-    eventTypeData.users = { connect: { id: user.id } };
-
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        slug: eventTypeData.slug,
-        users: {
-          some: {
-            id: eventTypeData.userId,
-          },
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (eventType) {
-      console.log(
-        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
-      );
-      continue;
-    }
-    const { id } = await prisma.eventType.create({
-      data: eventTypeData,
-    });
-
-    console.log(
-      `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
-    );
-    for (const bookingInput of bookingFields) {
-      await prisma.booking.create({
-        data: {
-          ...bookingInput,
-          user: {
-            connect: {
-              email: opts.user.email,
-            },
-          },
-          attendees: {
-            create: {
-              email: opts.user.email,
-              name: opts.user.name,
-              timeZone: "Europe/London",
-            },
-          },
-          eventType: {
-            connect: {
-              id,
-            },
-          },
-          status: bookingInput.status,
-        },
-      });
-      console.log(
-        `\t\t☎️ Created booking ${bookingInput.title} at ${new Date(
-          bookingInput.startTime
-        ).toLocaleDateString()}`
-      );
-    }
-  }
-
-  return user;
-}
+import { createUserAndEventType } from "./seed-utils";
+import type { teamMetadataSchema } from "./zod-utils";
 
 async function createTeamAndAddUsers(
   teamInput: Prisma.TeamCreateInput,
-  users: { id: number; username: string; role?: MembershipRole }[]
+  users: { id: number; username: string; role?: MembershipRole }[] = []
 ) {
+  const checkUnpublishedTeam = async (slug: string) => {
+    return await prisma.team.findFirst({
+      where: {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    });
+  };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
+      const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+      if (requestedSlug) {
+        const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
+        if (unpublishedTeam) {
+          throw Error("Unique constraint failed on the fields");
+        }
+      }
       return await prisma.team.create({
         data: {
           ...team,
@@ -168,6 +71,8 @@ async function createTeamAndAddUsers(
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
+
+  return team;
 }
 
 async function main() {
@@ -178,7 +83,6 @@ async function main() {
       username: "delete-me",
       name: "delete-me",
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -189,7 +93,6 @@ async function main() {
       name: "onboarding",
       completedOnboarding: false,
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -279,19 +182,19 @@ async function main() {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
-        locations: [{ type: zoomMeta.appData?.location.type }],
+        locations: [{ type: zoomMeta.appData?.location?.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
-        locations: [{ type: dailyMeta.appData?.location.type }],
+        locations: [{ type: dailyMeta.appData?.location?.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
-        locations: [{ type: googleMeetMeta.appData?.location.type }],
+        locations: [{ type: googleMeetMeta.appData?.location?.type }],
       },
       {
         title: "Yoga class",
@@ -503,7 +406,6 @@ async function main() {
       username: "teamfree",
       name: "Team Free Example",
     },
-    eventTypes: [],
   });
 
   const proUserTeam = await createUserAndEventType({
@@ -513,7 +415,6 @@ async function main() {
       username: "teampro",
       name: "Team Pro Example",
     },
-    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -525,7 +426,6 @@ async function main() {
       name: "Admin Example",
       role: "ADMIN",
     },
-    eventTypes: [],
   });
 
   const pro2UserTeam = await createUserAndEventType({
@@ -535,7 +435,6 @@ async function main() {
       username: "teampro2",
       name: "Team Pro Example 2",
     },
-    eventTypes: [],
   });
 
   const pro3UserTeam = await createUserAndEventType({
@@ -545,7 +444,6 @@ async function main() {
       username: "teampro3",
       name: "Team Pro Example 3",
     },
-    eventTypes: [],
   });
 
   const pro4UserTeam = await createUserAndEventType({
@@ -555,7 +453,6 @@ async function main() {
       username: "teampro4",
       name: "Team Pro Example 4",
     },
-    eventTypes: [],
   });
 
   await createTeamAndAddUsers(

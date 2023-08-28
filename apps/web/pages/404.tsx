@@ -1,10 +1,10 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL, IS_CALCOM } from "@calcom/lib/constants";
+import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
@@ -22,9 +22,8 @@ enum pageType {
 }
 
 export default function Custom404() {
+  const pathname = usePathname();
   const { t } = useLocale();
-
-  const router = useRouter();
   const [username, setUsername] = useState<string>("");
   const [currentPageType, setCurrentPageType] = useState<pageType>(pageType.USER);
 
@@ -52,7 +51,7 @@ export default function Custom404() {
   const [url, setUrl] = useState(`${WEBSITE_URL}/signup`);
   useEffect(() => {
     const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
-    const [routerUsername] = router.asPath.replace("%20", "-").split(/[?#]/);
+    const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/);
     if (!isValidOrgDomain || !currentOrgDomain) {
       const splitPath = routerUsername.split("/");
       if (splitPath[1] === "team" && splitPath.length === 3) {
@@ -76,16 +75,17 @@ export default function Custom404() {
         )}`
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isSuccessPage = router.asPath.startsWith("/booking");
-  const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
-  const isSignup = router.asPath.startsWith("/signup");
+  const isSuccessPage = pathname?.startsWith("/booking");
+  const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
+  const isSignup = pathname?.startsWith("/signup");
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
    **/
-  const isInsights = router.asPath.startsWith("/insights");
+  const isInsights = pathname?.startsWith("/insights");
   if (isInsights) {
     return (
       <>

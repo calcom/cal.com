@@ -10,38 +10,40 @@
   }
 }
 
-
-.tremor-DateRangePicker-calendarButton, .tremor-DateRangePicker-dropdownButton {
-  @apply  border-subtle bg-default text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0 focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle
+.tremor-DateRangePicker-calendarButton,
+.tremor-DateRangePicker-dropdownButton {
+  @apply border-subtle bg-default focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0;
 }
 
-.tremor-DateRangePicker-calendarButtonText,.tremor-DateRangePicker-dropdownButtonText {
-  @apply text-default
+.tremor-DateRangePicker-calendarButtonText,
+.tremor-DateRangePicker-dropdownButtonText {
+  @apply text-default;
 }
 
-.tremor-DateRangePicker-calendarModal,.tremor-DateRangePicker-dropdownModal{
-  @apply dark:invert
+.tremor-DateRangePicker-calendarModal,
+.tremor-DateRangePicker-dropdownModal {
+  @apply dark:invert;
 }
 
-.tremor-Card-root{
-  @apply p-5
+.tremor-Card-root {
+  @apply p-5;
 }
 
-.tremor-TableCell-root{
-  @apply pl-0
+.tremor-TableCell-root {
+  @apply pl-0;
 }
 
-.recharts-responsive-container{
-  @apply -mx-4
+.recharts-responsive-container {
+  @apply -mx-4;
 }
 .tremor-Card-root > p {
-  @apply text-base font-semibold mb-2
+  @apply mb-2 text-base font-semibold;
 }
 
-.tremor-Legend-legendItem{
-  @apply ml-2
+.tremor-Legend-legendItem {
+  @apply ml-2;
 }
 
-.tremor-TableBody-root{
-  @apply divide-subtle
+.tremor-TableBody-root {
+  @apply divide-subtle;
 }

@@ -25,6 +25,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Alert,
   Button,
   CheckboxField,
   Label,
@@ -32,9 +33,9 @@ import {
   showToast,
   TextField,
   Tooltip,
-  Alert,
 } from "@calcom/ui";
-import { Edit, Copy } from "@calcom/ui/components/icon";
+import { Copy, Edit } from "@calcom/ui/components/icon";
+import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -205,6 +206,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
       <hr className="border-subtle" />
       <Controller
+        name="requiresBookerEmailVerification"
+        control={formMethods.control}
+        defaultValue={eventType.requiresBookerEmailVerification}
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            title={t("requires_booker_email_verification")}
+            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            description={t("description_requires_booker_email_verification")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <hr className="border-subtle" />
+      <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}
@@ -271,36 +287,38 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         }}>
         {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
         <div className="lg:-ml-2">
-          <TextField
-            disabled
-            name="hashedLink"
-            label={t("private_link_label")}
-            data-testid="generated-hash-url"
-            labelSrOnly
-            type="text"
-            hint={t("private_link_hint")}
-            defaultValue={placeholderHashedLink}
-            addOnSuffix={
-              <Tooltip content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
-                <Button
-                  color="minimal"
-                  size="sm"
-                  type="button"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                  aria-label="copy link"
-                  onClick={() => {
-                    navigator.clipboard.writeText(placeholderHashedLink);
-                    if (eventType.hashedLink) {
-                      showToast(t("private_link_copied"), "success");
-                    } else {
-                      showToast(t("enabled_after_update_description"), "warning");
-                    }
-                  }}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </Tooltip>
-            }
-          />
+          {!IS_VISUAL_REGRESSION_TESTING && (
+            <TextField
+              disabled
+              name="hashedLink"
+              label={t("private_link_label")}
+              data-testid="generated-hash-url"
+              labelSrOnly
+              type="text"
+              hint={t("private_link_hint")}
+              defaultValue={placeholderHashedLink}
+              addOnSuffix={
+                <Tooltip content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
+                  <Button
+                    color="minimal"
+                    size="sm"
+                    type="button"
+                    className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                    aria-label="copy link"
+                    onClick={() => {
+                      navigator.clipboard.writeText(placeholderHashedLink);
+                      if (eventType.hashedLink) {
+                        showToast(t("private_link_copied"), "success");
+                      } else {
+                        showToast(t("enabled_after_update_description"), "warning");
+                      }
+                    }}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </Tooltip>
+              }
+            />
+          )}
         </div>
       </SettingsToggle>
       <hr className="border-subtle" />
@@ -323,6 +341,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   toggleGuests(false);
                   formMethods.setValue("requiresConfirmation", false);
                   setRequiresConfirmation(false);
+                  formMethods.setValue("metadata.multipleDuration", undefined);
                   formMethods.setValue("seatsPerTimeSlot", 2);
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);

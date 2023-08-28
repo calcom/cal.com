@@ -58,7 +58,7 @@
   border-style: solid;
   -webkit-animation: loader 2s infinite ease;
   animation: loader 2s infinite ease;
- }
+}
 
 .loader.modal-loader {
   margin: 60px auto;

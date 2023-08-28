@@ -1,15 +1,17 @@
-import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -85,8 +87,18 @@ export async function handleConfirmation(args: {
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
+      team: {
+        metadata: Prisma.JsonValue;
+      } | null;
       owner: {
         hideBranding?: boolean | null;
+        metadata: Prisma.JsonValue;
+        teams: {
+          accepted: boolean;
+          team: {
+            metadata: Prisma.JsonValue;
+          };
+        }[];
       } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
@@ -123,9 +135,25 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
+              team: {
+                select: {
+                  metadata: true,
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
+                  metadata: true,
+                  teams: {
+                    select: {
+                      accepted: true,
+                      team: {
+                        select: {
+                          metadata: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
               workflows: {
@@ -174,9 +202,25 @@ export async function handleConfirmation(args: {
           select: {
             slug: true,
             bookingFields: true,
+            team: {
+              select: {
+                metadata: true,
+              },
+            },
             owner: {
               select: {
                 hideBranding: true,
+                metadata: true,
+                teams: {
+                  select: {
+                    accepted: true,
+                    team: {
+                      select: {
+                        metadata: true,
+                      },
+                    },
+                  },
+                },
               },
             },
             workflows: {
@@ -206,6 +250,8 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const isKYCVerified = isEventTypeOwnerKYCVerified(updatedBookings[0].eventType);
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -229,6 +275,8 @@ export async function handleConfirmation(args: {
           },
           isFirstRecurringEvent: isFirstBooking,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          eventTypeRequiresConfirmation: true,
+          isKYCVerified,
         });
       }
     }
@@ -245,14 +293,16 @@ export async function handleConfirmation(args: {
       },
     });
 
+    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
     const subscribersBookingCreated = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: booking.eventType?.teamId,

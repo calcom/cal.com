@@ -87,6 +87,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
+  requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
@@ -102,6 +103,7 @@ export type FormValues = {
     phone?: string;
     hostDefault?: string;
     credentialId?: number;
+    teamName?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -130,6 +132,7 @@ export type FormValues = {
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
+  multipleDurationEnabled: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -205,6 +208,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
+      }
+
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
@@ -247,10 +254,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
+      hashedLink: eventType.hashedLink?.link || undefined,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
@@ -270,6 +279,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               .filter((slug) => slug !== eventType.slug) ?? [],
         },
       })),
+      seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
     };
   }, [eventType, periodDates, metadata]);
 
@@ -367,7 +377,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       minimumBookingNoticeInDurationType,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       bookerLayouts,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      multipleDurationEnabled,
       ...input
     } = values;
 
@@ -398,6 +411,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, ...rest } = input;
     updateMutation.mutate({
       ...rest,
@@ -455,6 +469,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // We don't need to send send these values to the backend
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               seatsPerTimeSlotEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              multipleDurationEnabled,
               ...input
             } = values;
 
@@ -480,6 +496,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
               ...rest,
@@ -526,6 +543,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
+  if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 

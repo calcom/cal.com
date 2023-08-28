@@ -11,7 +11,7 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
-export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
+export const listPaginatedHandler = async ({ input }: GetOptions) => {
   const { cursor, limit, searchTerm } = input;
 
   const getTotalUsers = await prisma.user.count();
@@ -49,13 +49,14 @@ export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
+      organizationId: true,
     },
   });
 
   let nextCursor: typeof cursor | undefined = undefined;
   if (users && users.length > limit) {
     const nextItem = users.pop();
-    nextCursor = nextItem!.id;
+    nextCursor = nextItem?.id;
   }
 
   return {

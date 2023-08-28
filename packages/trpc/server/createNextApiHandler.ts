@@ -58,19 +58,36 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
 
       if (isPublic && paths) {
         const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+        const FIVE_MINUTES_IN_SECONDS = 5 * 60;
+        const ONE_YEAR_IN_SECONDS = 31536000;
+
         const cacheRules = {
-          session: `no-cache`,
-          i18n: `no-cache`,
-          // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
-          "slots.getSchedule": `no-cache`, // FIXME
-          cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
-          "features.map": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`, // "map" - Feature Flag Map
+          session: "no-cache",
+
+          i18n: `max-age=${ONE_YEAR_IN_SECONDS}`,
+
+          // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
+          "slots.getSchedule": `no-cache`,
+
+          // Timezones are hardly updated. No need to burden the servers with requests for this by keeping low max-age.
+          // Keep it cached for a day and then give it 60 seconds more at most to be updated.
+          cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate=60`,
+
+          // Feature Flags change but it might be okay to have a 5 minute cache to avoid burdening the servers with requests for this.
+          // Note that feature flags can be used to quickly kill a feature if it's not working as expected. So, we have to keep fresh time lesser than the deployment time atleast
+          "features.map": `max-age=${FIVE_MINUTES_IN_SECONDS}, stale-while-revalidate=60`, // "map" - Feature Flag Map
         } as const;
 
         const prependNamespace = (key: string) =>
           (namespace ? `${namespace}.${key}` : key) as keyof typeof cacheRules;
         const matchedPath = paths.find((v) => prependNamespace(v) in cacheRules);
-        if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[prependNamespace(matchedPath)];
+        if (matchedPath) {
+          const cacheRule = cacheRules[prependNamespace(matchedPath)];
+
+          // We must set cdn-cache-control as well to ensure that Vercel doesn't strip stale-while-revalidate
+          // https://vercel.com/docs/concepts/edge-network/caching#:~:text=If%20you%20set,in%20the%20response.
+          defaultHeaders.headers["cache-control"] = defaultHeaders.headers["cdn-cache-control"] = cacheRule;
+        }
       }
 
       return defaultHeaders;

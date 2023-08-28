@@ -1,12 +1,10 @@
+import type { AppCategories } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { defaultLocations } from "@calcom/app-store/locations";
-import { AppCategories } from "@calcom/prisma/enums";
 import type { App, AppMeta } from "@calcom/types/App";
 
 export * from "./_utils/getEventTypeAppData";
@@ -33,101 +31,50 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, appId: true, invalid: true },
+  select: { id: true, type: true, key: true, userId: true, teamId: true, appId: true, invalid: true },
 });
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
+export type CredentialDataWithTeamName = CredentialData & {
+  team?: {
+    name: string;
+  } | null;
+};
+
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
-
-export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
-  const apps: Record<
-    string,
-    { label: string; value: string; disabled?: boolean; icon?: string; slug?: string }[]
-  > = {};
-  integrations.forEach((app) => {
-    if (app.locationOption) {
-      // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
-      let category =
-        app.categories.length >= 2
-          ? app.categories.find(
-              (category) =>
-                !([AppCategories.video, AppCategories.conferencing] as string[]).includes(category)
-            )
-          : app.category;
-      if (!category) category = AppCategories.conferencing;
-      const option = { ...app.locationOption, icon: app.logo, slug: app.slug };
-      if (apps[category]) {
-        apps[category] = [...apps[category], option];
-      } else {
-        apps[category] = [option];
-      }
-    }
-  });
-
-  defaultLocations.forEach((l) => {
-    const category = l.category;
-    if (apps[category]) {
-      apps[category] = [
-        ...apps[category],
-        {
-          label: l.label,
-          value: l.type,
-          icon: l.iconUrl,
-        },
-      ];
-    } else {
-      apps[category] = [
-        {
-          label: l.label,
-          value: l.type,
-          icon: l.iconUrl,
-        },
-      ];
-    }
-  });
-  const locations = [];
-
-  // Translating labels and pushing into array
-  for (const category in apps) {
-    const tmp = {
-      label: t(category),
-      options: apps[category].map((l) => ({
-        ...l,
-        label: t(l.label),
-      })),
-    };
-
-    locations.push(tmp);
-  }
-
-  return locations;
-}
 
 /**
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.map((appMeta) => {
-    const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
+function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
+  const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
+    const appCredentials = credentials.filter((credential) => credential.type === appMeta.type);
+
+    if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
+
     let locationOption: LocationOption | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
-      credentials.push({
+      appCredentials.push({
         id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
+        teamId: null,
         appId: appMeta.slug,
         invalid: false,
+        team: {
+          name: "Global",
+        },
       });
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
-    if (credentials.length > 0 && appMeta?.appData?.location) {
+    if (appCredentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
         value: appMeta.appData.location.type,
         label: appMeta.appData.location.label || "No label set",
@@ -135,18 +82,21 @@ function getApps(userCredentials: CredentialData[]) {
       };
     }
 
-    const credential: (typeof credentials)[number] | null = credentials[0] || null;
-    return {
+    const credential: (typeof appCredentials)[number] | null = appCredentials[0] || null;
+
+    reducedArray.push({
       ...appMeta,
       /**
        * @deprecated use `credentials`
        */
       credential,
-      credentials,
+      credentials: appCredentials,
       /** Option to display in `location` field while editing event types */
       locationOption,
-    };
-  });
+    });
+
+    return reducedArray;
+  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }
@@ -182,5 +132,29 @@ export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
 export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
+
+/**
+ *
+ * @param appCategories - from app metadata
+ * @param concurrentMeetings - from app metadata
+ * @returns - true if app supports team install
+ */
+export function doesAppSupportTeamInstall(
+  appCategories: string[],
+  concurrentMeetings: boolean | undefined = undefined
+) {
+  return !appCategories.some(
+    (category) =>
+      category === "calendar" ||
+      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
+  );
+}
+
+export const defaultVideoAppCategories: AppCategories[] = [
+  "conferencing",
+  "messaging",
+  // Legacy name for conferencing
+  "video",
+];
 
 export default getApps;

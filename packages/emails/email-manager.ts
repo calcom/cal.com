@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
@@ -8,6 +9,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
+import type { OrganizationNotification } from "./templates/admin-organization-notification";
+import AdminOrganizationNotification from "./templates/admin-organization-notification";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -17,6 +20,8 @@ import AttendeeLocationChangeEmail from "./templates/attendee-location-change-em
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import type { EmailVerifyCode } from "./templates/attendee-verify-email";
+import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
@@ -275,6 +280,10 @@ export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLi
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
+};
+
 export const sendRequestRescheduleEmail = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string }
@@ -368,4 +377,8 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
 
 export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
+};
+
+export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
+  await sendEmail(() => new AdminOrganizationNotification(input));
 };

@@ -1,46 +1,37 @@
-import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-
-import { PremiumTextfield } from "./PremiumTextfield";
-import { UsernameTextfield } from "./UsernameTextfield";
-
-export const UsernameAvailability = IS_SELF_HOSTED ? UsernameTextfield : PremiumTextfield;
 
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-function useUserNamePrefix(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
-  return organization
-    ? organization.slug
-      ? getOrgFullDomain(organization.slug, { protocol: false })
-      : organization.metadata && organization.metadata.requestedSlug
-      ? getOrgFullDomain(organization.metadata.requestedSlug, { protocol: false })
-      : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")
-    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
-}
+export const getUsernameAvailabilityComponent = (isPremium: boolean) => {
+  if (isPremium)
+    return dynamic(() => import("./PremiumTextfield").then((m) => m.PremiumTextfield), { ssr: false });
+  return dynamic(() => import("./UsernameTextfield").then((m) => m.UsernameTextfield), { ssr: false });
+};
 
 export const UsernameAvailabilityField = ({
   onSuccessMutation,
   onErrorMutation,
 }: UsernameAvailabilityFieldProps) => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
   const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
-    router.query["username"] && user.username === null
+    searchParams?.get("username") && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
@@ -49,7 +40,12 @@ export const UsernameAvailabilityField = ({
     },
   });
 
-  const usernamePrefix = useUserNamePrefix(user.organization);
+  const UsernameAvailability = getUsernameAvailabilityComponent(!IS_SELF_HOSTED && !user.organization?.id);
+  const orgBranding = useOrgBranding();
+
+  const usernamePrefix = orgBranding
+    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
+    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <Controller
@@ -65,7 +61,8 @@ export const UsernameAvailabilityField = ({
             setInputUsernameValue={onChange}
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
-            addOnLeading={usernamePrefix}
+            disabled={!!user.organization?.id}
+            addOnLeading={`${usernamePrefix}/`}
           />
         );
       }}

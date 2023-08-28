@@ -3,7 +3,6 @@ import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import React from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,6 +23,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
   const formMethods = useForm<{ new_password: string }>();
   const success = formMethods.formState.isSubmitSuccessful;
   const loading = formMethods.formState.isSubmitting;
+  const passwordValue = formMethods.watch("new_password");
+  const isEmpty = passwordValue?.length === 0;
 
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
     const res = await fetch("/api/auth/reset-password", {
@@ -123,7 +124,7 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
                 loading={loading}
                 color="primary"
                 type="submit"
-                disabled={loading}
+                disabled={loading || isEmpty}
                 className="w-full justify-center">
                 {t("reset_password")}
               </Button>

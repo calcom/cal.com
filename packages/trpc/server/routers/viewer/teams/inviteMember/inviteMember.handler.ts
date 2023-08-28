@@ -21,6 +21,7 @@ import {
   createProvisionalMembership,
   getIsOrgVerified,
   sendVerificationEmail,
+  createAndAutoJoinIfInOrg,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -34,7 +35,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
 
-  await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
+  await checkPermissions({
+    userId: ctx.user.id,
+    teamId:
+      ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
+    isOrg: input.isOrg,
+  });
 
   const translation = await getTranslation(input.language ?? "en", "common");
 
@@ -68,6 +74,17 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
     } else {
       throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
+
+      const shouldAutoJoinOrgTeam = await createAndAutoJoinIfInOrg({
+        invitee,
+        role: input.role,
+        team,
+      });
+      if (shouldAutoJoinOrgTeam.autoJoined) {
+        // Continue here because if this is true we dont need to send an email to the user
+        // we also dont need to update stripe as thats handled on an ORG level and not a team level.
+        continue;
+      }
 
       // create provisional membership
       await createProvisionalMembership({

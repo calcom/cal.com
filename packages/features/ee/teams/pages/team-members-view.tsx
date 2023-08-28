@@ -1,12 +1,13 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Meta, TextField, showToast } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Button, Meta, showToast, TextField } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -64,18 +65,23 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
   const session = useSession();
 
   const utils = trpc.useContext();
+  const params = useParamsWithFallback();
 
-  const teamId = Number(router.query.id);
+  const teamId = Number(params.id);
 
-  const showDialog = router.query.inviteModal === "true";
+  const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.organizationId,
+  });
 
   const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
@@ -84,7 +90,7 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: router.isReady,
+        enabled: searchParams !== null,
       }
     );
 
@@ -106,13 +112,17 @@ const MembersView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+
   return (
     <>
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
         CTA={
-          isAdmin ? (
+          isAdmin || isOrgAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
@@ -149,7 +159,7 @@ const MembersView = () => {
               </>
             )}
 
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate) && (
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} />
                 <hr className="border-subtle my-8" />
@@ -164,7 +174,7 @@ const MembersView = () => {
               />
             )}
 
-            {team && isAdmin && (
+            {team && (isAdmin || isOrgAdminOrOwner) && (
               <>
                 <hr className="border-subtle my-8" />
                 <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />

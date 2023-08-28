@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Avatar } from "../../avatar";
@@ -28,9 +28,8 @@ const HorizontalTabItem = function ({
   ...props
 }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
-  const { asPath } = useRouter();
 
-  const isCurrent = asPath === href;
+  const isCurrent = useUrlMatchesCurrentUrl(href);
 
   return (
     <Link
@@ -44,6 +43,7 @@ const HorizontalTabItem = function ({
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
+      data-testid={`horizontal-tab-${name}`}
       aria-current={isCurrent ? "page" : undefined}>
       {props.icon && (
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

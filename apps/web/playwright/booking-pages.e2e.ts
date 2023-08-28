@@ -1,39 +1,53 @@
 import { expect } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+
 import { test } from "./lib/fixtures";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
 } from "./lib/testUtils";
 
+const freeUserObj = { name: `Free-user-${randomString(3)}` };
 test.describe.configure({ mode: "parallel" });
-test.afterEach(async ({ users }) => users.deleteAll());
+test.afterEach(async ({ users }) => {
+  await users.deleteAll();
+});
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
-    const free = await users.create();
+    const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
   });
 
-  test("cannot book same slot multiple times", async ({ page }) => {
+  test("cannot book same slot multiple times", async ({ page, users, emails }) => {
+    const [user] = users.get();
+    const bookerObj = { email: `testEmail-${randomString(4)}@example.com`, name: "testBooker" };
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await bookTimeSlot(page);
+    await bookTimeSlot(page, bookerObj);
 
     // save booking url
     const bookingUrl: string = page.url();
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    // return to same time spot booking page
+    await expectEmailsToHaveSubject({
+      emails,
+      organizer: user,
+      booker: bookerObj,
+      eventTitle,
+    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -144,9 +158,10 @@ test.describe("pro user", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    additionalGuests.forEach(async (email) => {
+    const promises = additionalGuests.map(async (email) => {
       await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
+    await Promise.all(promises);
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
@@ -211,5 +226,45 @@ test.describe("pro user", () => {
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:00");
+  });
+});
+
+test.describe("prefill", () => {
+  test("logged in", async ({ page, users }) => {
+    const prefill = await users.create({ name: "Prefill User" });
+    await prefill.apiLogin();
+    await page.goto("/pro/30min");
+
+    await test.step("from session", async () => {
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await expect(page.locator('[name="name"]')).toHaveValue(prefill.name || "");
+      await expect(page.locator('[name="email"]')).toHaveValue(prefill.email);
+    });
+
+    await test.step("from query params", async () => {
+      const url = new URL(page.url());
+      url.searchParams.set("name", testName);
+      url.searchParams.set("email", testEmail);
+      await page.goto(url.toString());
+
+      await expect(page.locator('[name="name"]')).toHaveValue(testName);
+      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
+    });
+  });
+
+  test("logged out", async ({ page, users }) => {
+    await page.goto("/pro/30min");
+
+    await test.step("from query params", async () => {
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      const url = new URL(page.url());
+      url.searchParams.set("name", testName);
+      url.searchParams.set("email", testEmail);
+      await page.goto(url.toString());
+
+      await expect(page.locator('[name="name"]')).toHaveValue(testName);
+      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
+    });
   });
 });

@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
-import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
+import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/features/auth/lib/passwordResetRequest";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
@@ -14,7 +14,7 @@ type GetOptions = {
   input: TAdminPasswordResetSchema;
 };
 
-export const sendPasswordResetHandler = async ({ ctx, input }: GetOptions) => {
+export const sendPasswordResetHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
 
   const user = await prisma.user.findUnique({

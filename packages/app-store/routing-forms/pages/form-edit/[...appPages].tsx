@@ -66,7 +66,6 @@ function Field({
   hookForm,
   hookFieldNamespace,
   deleteField,
-  fieldIndex,
   moveUp,
   moveDown,
   appUrl,
@@ -425,7 +424,7 @@ export default function FormEditPage({
 
 FormEditPage.getLayout = (page: React.ReactElement) => {
   return (
-    <Shell backPath="/routing-forms/forms" withoutMain={true}>
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
       {page}
     </Shell>
   );
