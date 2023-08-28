@@ -149,7 +149,7 @@ export default function RoutingForms({
       return type.form;
     });
 
-    if (types.length) {
+    if (types?.length) {
       const newList = [...types];
 
       const type = types[index];
