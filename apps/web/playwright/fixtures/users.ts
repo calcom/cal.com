@@ -118,7 +118,7 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerInfo) => {
+export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (
@@ -332,19 +332,22 @@ export const createUsersFixture = (page: Page, emails: API, workerInfo: WorkerIn
       await page.goto("/auth/logout");
     },
     deleteAll: async () => {
-      const emailMessageIds: string[] = [];
       const ids = store.users.map((u) => u.id);
-      for (const user of store.users) {
-        const emailMessages = await emails.search(user.email);
-        if (emailMessages && emailMessages.count > 0) {
-          emailMessages.items.forEach((item) => {
-            emailMessageIds.push(item.ID);
-          });
+      if (emails) {
+        const emailMessageIds: string[] = [];
+        for (const user of store.users) {
+          const emailMessages = await emails.search(user.email);
+          if (emailMessages && emailMessages.count > 0) {
+            emailMessages.items.forEach((item) => {
+              emailMessageIds.push(item.ID);
+            });
+          }
+        }
+        for (const id of emailMessageIds) {
+          await emails.deleteMessage(id);
         }
       }
-      for (const id of emailMessageIds) {
-        await emails.deleteMessage(id);
-      }
+
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
       store.users = [];
     },
@@ -439,12 +442,18 @@ type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "loc
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
+  // ignores adding the worker-index after username
+  useExactUsername?: boolean;
 };
 
 // creates the actual user in the db.
 const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
   // build a unique name for our user
-  const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+  const uname =
+    opts?.useExactUsername && opts?.username
+      ? opts.username
+      : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+
   return {
     username: uname,
     name: opts?.name,
@@ -533,7 +542,7 @@ export async function apiLogin(
     .then((json) => json.csrfToken);
   const data = {
     email: user.email ?? `${user.username}@example.com`,
-    password: user.password ?? user.username!,
+    password: user.password ?? user.username,
     callbackURL: "http://localhost:3000/",
     redirect: "false",
     json: "true",
