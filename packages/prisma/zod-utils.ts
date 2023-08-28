@@ -328,6 +328,7 @@ export const teamMetadataSchema = z
     subscriptionItemId: z.string().nullable(),
     isOrganization: z.boolean().nullable(),
     isOrganizationVerified: z.boolean().nullable(),
+    isOrganizationConfigured: z.boolean().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
@@ -607,3 +608,5 @@ export const ZVerifyCodeInputSchema = z.object({
 });
 
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
+
+export const coerceToDate = z.coerce.date();
