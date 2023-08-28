@@ -103,7 +103,7 @@ export default function WorkflowListPage({ workflows }: Props) {
     <>
       {workflows && workflows.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <ul className="divide-subtle divide-y" data-testid="workflow-list" ref={parent}>
+          <ul className="divide-subtle !static w-full divide-y" data-testid="workflow-list" ref={parent}>
             {workflows.map((workflow, index) => {
               const firstItem = workflows[0];
               const lastItem = workflows[workflows.length - 1];
