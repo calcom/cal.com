@@ -26,7 +26,7 @@ type AvailableTimesProps = {
   seatsPerTimeSlot?: number | null;
   showTimeFormatToggle?: boolean;
   className?: string;
-  availableMonth?: String | undefined;
+  availableMonth?: string | undefined;
   selectedSlots?: string[];
 };
 
@@ -66,7 +66,8 @@ export const AvailableTimes = ({
               "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
               isMonthView ? "text-default text-sm" : "text-xs"
             )}>
-            {date.format("DD")}{availableMonth && `, ${availableMonth}`}
+            {date.format("DD")}
+            {availableMonth && `, ${availableMonth}`}
           </span>
         </span>
 
@@ -136,4 +137,3 @@ export const AvailableTimesSkeleton = () => (
     ))}
   </div>
 );
-

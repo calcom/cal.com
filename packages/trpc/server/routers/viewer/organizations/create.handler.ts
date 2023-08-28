@@ -161,12 +161,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
+    if (!createOwnerOrg.organizationId) throw Error("User not created");
+
     await prisma.membership.create({
       data: {
         userId: createOwnerOrg.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: createOwnerOrg.organizationId!,
+        teamId: createOwnerOrg.organizationId,
       },
     });
 
