@@ -145,24 +145,26 @@ export default function RoutingForms({
   ];
 
   async function moveRoutingForm(index: number, increment: 1 | -1) {
-    const types = forms!.map((type) => {
+    const types = forms?.map((type) => {
       return type.form;
-    })!;
-
-    const newList = [...types];
-
-    const type = types[index];
-    const tmp = types[index + increment];
-    if (tmp) {
-      newList[index] = tmp;
-      newList[index + increment] = type;
-    }
-
-    await utils.viewer.appRoutingForms.forms.cancel();
-
-    mutation.mutate({
-      ids: newList?.map((type) => type.id),
     });
+
+    if (types.length) {
+      const newList = [...types];
+
+      const type = types[index];
+      const tmp = types[index + increment];
+      if (tmp) {
+        newList[index] = tmp;
+        newList[index + increment] = type;
+      }
+
+      await utils.viewer.appRoutingForms.forms.cancel();
+
+      mutation.mutate({
+        ids: newList?.map((type) => type.id),
+      });
+    }
   }
 
   return (

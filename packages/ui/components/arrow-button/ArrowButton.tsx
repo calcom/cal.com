@@ -21,7 +21,6 @@ export function ArrowButton(props: ArrowButtonProps) {
           <ArrowDown className="h-5 w-5" />
         </button>
       )}
-      ;
     </>
   );
 }
