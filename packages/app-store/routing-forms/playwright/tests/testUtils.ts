@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
   await page.goto("/routing-forms/forms");

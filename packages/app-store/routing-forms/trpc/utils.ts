@@ -49,7 +49,7 @@ export async function onFormSubmission(
         responses: fieldResponsesByName,
       },
       rootData: {
-        // Send legacy responses key at root level for backwards compatibility
+        // Send responses unwrapped at root level for backwards compatibility
         ...Object.entries(fieldResponsesByName).reduce((acc, [key, value]) => {
           acc[key] = value.value;
           return acc;
