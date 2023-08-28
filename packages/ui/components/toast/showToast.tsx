@@ -17,7 +17,7 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
-    <span class="mt-0.5">
+    <span className="mt-0.5">
       <Check className="h-4 w-4" />
     </span>
     <p data-testid="toast-success" className="text-left">
@@ -33,7 +33,7 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) 
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
-    <span class="mt-0.5">
+    <span className="mt-0.5">
       <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-error" className="text-left">
@@ -49,7 +49,7 @@ export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
-    <span class="mt-0.5">
+    <span className="mt-0.5">
       <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-warning" className="text-left">
@@ -65,7 +65,7 @@ export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
-    <span class="mt-0.5">
+    <span className="mt-0.5">
       <Check className="h-4 w-4" />
     </span>
     <p data-testid="toast-default" className="text-left">
@@ -74,7 +74,7 @@ export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast
   </button>
 );
 
-const TOAST_VISIBLE_DURATION = Infinity;
+const TOAST_VISIBLE_DURATION = 6000;
 
 export function showToast(
   message: string,
