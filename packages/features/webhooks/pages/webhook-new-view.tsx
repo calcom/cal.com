@@ -80,7 +80,11 @@ const NewWebhookView = () => {
         description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
-      <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
+      <WebhookForm
+        noRoutingFormTriggers={false}
+        onSubmit={onCreateWebhook}
+        apps={installedApps?.items.map((app) => app.slug)}
+      />
     </>
   );
 };

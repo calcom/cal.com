@@ -145,10 +145,11 @@ export const sendGenericWebhookPayload = async ({
   rootData?: Record<string, unknown>;
 }) => {
   const body = JSON.stringify({
+    // Added rootData props first so that using the known(i.e. triggerEvent, createdAt, payload) properties in rootData doesn't override the known properties
+    ...rootData,
     triggerEvent: triggerEvent,
     createdAt: createdAt,
     payload: data,
-    ...rootData,
   });
 
   return _sendPayload(secretKey, webhook, body, "application/json");

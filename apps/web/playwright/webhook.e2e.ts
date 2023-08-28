@@ -448,15 +448,13 @@ test.describe("FORM_SUBMITTED", async () => {
           },
         },
       },
-      responses: {
-        name: "John Doe",
-      },
+      name: "John Doe",
     });
 
     webhookReceiver.close();
   });
 
-  test.only("on submitting team form, triggers team webhook", async ({ page, users, routingForms }) => {
+  test("on submitting team form, triggers team webhook", async ({ page, users, routingForms }) => {
     const webhookReceiver = createHttpServer();
     const user = await users.create(null, {
       hasTeam: true,
@@ -509,9 +507,7 @@ test.describe("FORM_SUBMITTED", async () => {
           },
         },
       },
-      responses: {
-        name: "John Doe",
-      },
+      name: "John Doe",
     });
 
     webhookReceiver.close();

@@ -36,7 +36,6 @@ export async function onFormSubmission(
 
   const webhooks = await getWebhooks(subscriberOptions);
 
-  console.log("onFormSubmission", webhooks, subscriberOptions);
   const promises = webhooks.map((webhook) => {
     sendGenericWebhookPayload({
       secretKey: webhook.secret,
@@ -51,7 +50,7 @@ export async function onFormSubmission(
       },
       rootData: {
         // Send legacy responses key at root level for backwards compatibility
-        responses: Object.entries(fieldResponsesByName).reduce((acc, [key, value]) => {
+        ...Object.entries(fieldResponsesByName).reduce((acc, [key, value]) => {
           acc[key] = value.value;
           return acc;
         }, {} as Record<string, Response[keyof Response]["value"]>),
