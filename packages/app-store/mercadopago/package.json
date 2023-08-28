@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/mercadopago",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Mercado Pago is a leading digital payment platform in Latin America. Currently, it’s available in seven countries: Argentina, Brazil, Chile, Colombia, Mexico, Uruguay, and Peru. It’s widely used by businesses and consumers in all the above countries, and it surpassed $20 billion payment volume in 2019."
+}
