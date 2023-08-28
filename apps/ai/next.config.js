@@ -1,21 +1,12 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
-await import("./src/env.mjs");
+const plugins = [];
 
 /** @type {import("next").NextConfig} */
-const config = {
-  /**
-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
-   * out.
-   *
-   * @see https://github.com/vercel/next.js/issues/41980
-   */
+const nextConfig = {
   i18n: {
     defaultLocale: "en",
     locales: ["en"],
   },
   reactStrictMode: true,
 };
-export default config;
+
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
