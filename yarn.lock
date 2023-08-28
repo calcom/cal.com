@@ -3714,6 +3714,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/ai@workspace:apps/ai"
   dependencies:
+    "@calcom/prisma": "*"
     "@rubriclab/tailwind-config": ^1.0.0
     "@rubriclab/typescript-config": ^1.0.0
     "@t3-oss/env-nextjs": ^0.6.1
