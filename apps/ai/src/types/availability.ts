@@ -23,3 +23,5 @@ type Availability = {
   };
   currentSeats: number;
 };
+
+export default Availability;

@@ -2,6 +2,7 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
+import type { Availability } from "../types/availability";
 import { decrypt } from "../utils/encryption";
 
 /**
