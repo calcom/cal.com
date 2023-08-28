@@ -224,25 +224,22 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
   return (
     <div className="flex flex-col">
       <div className="mb-[9px] font-medium">
-        <Collapsible open>
-          <CollapsibleContent>
-            <div className="text-default text-sm">{t("select_date")}</div>
-            <DatePicker
-              isLoading={schedule.isLoading}
-              onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : date)}
-              onMonthChange={(date) => {
-                setMonth(date.format("YYYY-MM"));
-                setSelectedDate(date.format("YYYY-MM-DD"));
-              }}
-              includedDates={nonEmptyScheduleDays}
-              locale={i18n.language}
-              browsingDate={month ? dayjs(month) : undefined}
-              selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
-              eventSlug={eventType?.slug}
-            />
-          </CollapsibleContent>
-        </Collapsible>
+        <DatePicker
+          isLoading={schedule.isLoading}
+          onChange={(date: Dayjs) => {
+            setSelectedDate(date.format("YYYY-MM-DD"));
+          }}
+          onMonthChange={(date: Dayjs) => {
+            setMonth(date.format("YYYY-MM"));
+            setSelectedDate(date.format("YYYY-MM-DD"));
+          }}
+          includedDates={nonEmptyScheduleDays}
+          locale={i18n.language}
+          browsingDate={month ? dayjs(month) : undefined}
+          selected={dayjs(selectedDate)}
+          weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+          eventSlug={eventType?.slug}
+        />
       </div>
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
