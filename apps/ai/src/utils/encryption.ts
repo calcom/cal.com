@@ -2,6 +2,10 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 const encryptionAlgo = "aes-256-ctr";
 
+/**
+ * Hashes a string with initialization vector (a cryptographically-random and
+ * unique sequence to prevent dictionary attack).
+ */
 export const encrypt = (text: string): { hash: string; initVector: string } => {
   const secret = process.env.ENCRYPTION_KEY || "";
 
@@ -15,6 +19,9 @@ export const encrypt = (text: string): { hash: string; initVector: string } => {
   };
 };
 
+/**
+ * Decrypts a string by key and initialization vector
+ */
 export const decrypt = (content: string, initVector: string): string => {
   const secret = process.env.ENCRYPTION_KEY || "";
 

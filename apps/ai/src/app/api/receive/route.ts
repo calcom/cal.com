@@ -9,7 +9,7 @@ import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
 import { encrypt } from "../../../utils/encryption";
-import host from "../../../utils/host";
+import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
 
@@ -91,7 +91,7 @@ export const POST = async (request: NextRequest) => {
 
   const { timeZone, workingHours } = availability;
 
-  const appHost = host(request.headers);
+  const appHost = getHostFromHeaders(request.headers);
 
   // Hand off to long-running agent endpoint to handle the email.
   fetch(`${appHost}/api/agent`, {

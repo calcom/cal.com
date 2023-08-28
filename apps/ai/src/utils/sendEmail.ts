@@ -4,28 +4,32 @@ import { env } from "../env.mjs";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
+/**
+ * Simply send an email by address, subject, and body.
+ */
 const send = async ({
+  subject,
   to,
   text,
   html,
-  subject,
 }: {
+  subject: string;
   to: string;
   text: string;
-  subject: string;
   html?: string;
-}) => {
+}): Promise<boolean> => {
   const msg = {
     from: env.SENDER_EMAIL,
     html,
-    subject: `${subject}`,
+    subject,
     text,
     to,
   };
 
-  // console.log("Sending email: ", msg);
+  const email = await resend.emails.send(msg);
+  const success = !!email?.id;
 
-  return !!(await resend.emails.send(msg));
+  return success;
 };
 
 export default send;
