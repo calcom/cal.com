@@ -7,7 +7,6 @@ import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calc
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
@@ -64,11 +63,16 @@ export const EventMeta = () => {
       )}
       {!isLoading && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
+          <EventMembers
+            schedulingType={event.schedulingType}
+            users={event.users}
+            profile={event.profile}
+            entity={event.entity}
+          />
           <EventTitle className="my-2">{event?.title}</EventTitle>
           {event.description && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(event.description) }} />
+              <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">

@@ -1,4 +1,5 @@
-import { type PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
@@ -6,6 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -160,24 +162,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const userEventTypes = user.eventTypes.map(mapEventType);
-  // backwards compatibility, TMP:
-  const typesRaw = (
-    await prisma.eventType.findMany({
-      where: {
-        userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        team: null,
-      },
-      select: eventTypeSelect,
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-    })
-  ).map(mapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -196,15 +180,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-    const oldItem = hashMap[newItem.id];
-    hashMap[newItem.id] = { ...oldItem, ...newItem };
-    return hashMap;
-  }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-
-  const mergedEventTypes = Object.values(eventTypesHashMap)
-    .map((eventType) => eventType)
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+  const unmanagedEventTypes = userEventTypes.filter(
+    (evType) => evType.schedulingType !== SchedulingType.MANAGED
+  );
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
@@ -216,7 +194,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,

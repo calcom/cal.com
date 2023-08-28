@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
@@ -11,6 +11,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -292,14 +293,16 @@ export async function handleConfirmation(args: {
       },
     });
 
+    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
     const subscribersBookingCreated = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: booking.eventType?.teamId,
