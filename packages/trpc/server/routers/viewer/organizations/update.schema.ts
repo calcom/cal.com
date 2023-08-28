@@ -1,11 +1,14 @@
 import { z } from "zod";
 
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
 export const ZUpdateInputSchema = z.object({
   name: z.string().optional(),
   orgId: z
     .string()
     .regex(/^\d+$/)
     .transform((id) => parseInt(id))
+    .or(z.number())
     .optional(),
   bio: z.string().optional(),
   logo: z
@@ -23,6 +26,7 @@ export const ZUpdateInputSchema = z.object({
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
   requireTwoFactor: z.boolean().optional(),
+  metadata: teamMetadataSchema.unwrap().pick({ isOrganizationConfigured: true }).optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

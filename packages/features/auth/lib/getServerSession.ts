@@ -78,6 +78,7 @@ export async function getServerSession(options: {
       organizationId: token.organizationId,
       twoFactorEnabled: user.twoFactorEnabled,
       requireTwoFactor: user?.organization?.requireTwoFactor,
+      locale: user.locale ?? undefined,
     },
   };
 

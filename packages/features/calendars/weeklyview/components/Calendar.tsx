@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { classNames } from "@calcom/lib";
 
 import { useCalendarStore } from "../state/store";
@@ -22,6 +23,7 @@ export function Calendar(props: CalendarComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
   const initalState = useCalendarStore((state) => state.initState);
+  const { timezone } = useTimePreferences();
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);
@@ -32,7 +34,11 @@ export function Calendar(props: CalendarComponentProps) {
   const hideHeader = useCalendarStore((state) => state.hideHeader);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
-  const hours = useMemo(() => getHoursToDisplay(startHour || 0, endHour || 23), [startHour, endHour]);
+
+  const hours = useMemo(
+    () => getHoursToDisplay(startHour || 0, endHour || 23, timezone),
+    [startHour, endHour, timezone]
+  );
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
@@ -108,7 +114,7 @@ export function Calendar(props: CalendarComponentProps) {
                         {availableTimeslots ? (
                           <AvailableCellsForDay
                             key={days[i].toISOString()}
-                            day={days[i].toDate()}
+                            day={days[i]}
                             startHour={startHour}
                             availableSlots={availableTimeslots}
                           />
@@ -119,11 +125,12 @@ export function Calendar(props: CalendarComponentProps) {
                               return (
                                 <EmptyCell
                                   key={key}
-                                  day={days[i].toDate()}
+                                  day={days[i]}
                                   gridCellIdx={j}
                                   totalGridCells={numberOfGridStopsPerDay}
                                   selectionLength={endHour - startHour}
                                   startHour={startHour}
+                                  timezone={timezone}
                                 />
                               );
                             })}

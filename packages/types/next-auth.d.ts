@@ -21,6 +21,7 @@ declare module "next-auth" {
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     twoFactorEnabled: boolean;
     requireTwoFactor: boolean;
+    locale?: string | null;
   }
 }
 
@@ -34,5 +35,6 @@ declare module "next-auth/jwt" {
     impersonatedByUID?: number | null;
     belongsToActiveTeam?: boolean;
     organizationId?: number | null;
+    locale?: string;
   }
 }

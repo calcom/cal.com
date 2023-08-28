@@ -77,27 +77,25 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
+      await update(res);
       showToast(t("settings_updated_successfully"), "success");
-      if (res.signOutUser && tempFormValues) {
-        if (res.passwordReset) {
-          showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?passReset=true" });
-        } else {
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?emailChange=true" });
-        }
+
+      // signout user only in case of password reset
+      if (res.signOutUser && tempFormValues && res.passwordReset) {
+        showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+        await signOut({ callbackUrl: "/auth/logout?passReset=true" });
+      } else {
+        utils.viewer.me.invalidate();
+        utils.viewer.avatar.invalidate();
+        utils.viewer.shouldVerifyEmail.invalidate();
       }
-      utils.viewer.me.invalidate();
-      utils.viewer.avatar.invalidate();
+
       setConfirmAuthEmailChangeWarningDialogOpen(false);
-      update(res);
       setTempFormValues(null);
     },
     onError: () => {
@@ -205,14 +203,14 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || isLoadingAvatar || !avatar)
+  if (isLoading || !user)
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
 
   const defaultValues = {
     username: user.username || "",
-    avatar: avatar.avatar || "",
+    avatar: user.avatar || "",
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -326,7 +324,10 @@ const ProfileView = () => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter showDivider>
-            <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+            <Button
+              color="primary"
+              loading={confirmPasswordMutation.isLoading}
+              onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -346,7 +347,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              disabled={updateProfileMutation.isLoading}
+              loading={updateProfileMutation.isLoading}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>

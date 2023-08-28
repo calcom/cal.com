@@ -12,7 +12,6 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
@@ -123,6 +122,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "kyc_verification", href: "/settings/admin/kycVerification" },
     ],
   },
 ];
@@ -141,7 +141,6 @@ const organizationRequiredKeys = ["organization"];
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
-  const { data: avatar } = useAvatarQuery();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -149,7 +148,7 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
+      tab.avatar = WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
@@ -249,7 +248,10 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  if (currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role)) {
+  const isOrgAdminOrOwner =
+    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+
+  if (isOrgAdminOrOwner) {
     const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
 
     tabsWithPermissions.splice(teamsIndex + 1, 0, {
@@ -275,7 +277,7 @@ const SettingsSidebarContainer = ({
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (
-            <>
+            <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
@@ -330,7 +332,7 @@ const SettingsSidebarContainer = ({
                           as="p"
                           className="truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(tab.name)}
+                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
                         </Skeleton>
                       </div>
                     </Link>
@@ -522,7 +524,7 @@ const SettingsSidebarContainer = ({
                                     alt={otherTeam.name || "Team logo"}
                                   />
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
-                                  {!otherTeam.accepted && (
+                                  {!otherTeam.accepted && otherTeam.userId === session.data?.user.id && (
                                     <Badge className="ms-3" variant="orange">
                                       Inv.
                                     </Badge>
@@ -530,7 +532,8 @@ const SettingsSidebarContainer = ({
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
-                                {otherTeam.accepted && (
+                                {((otherTeam.accepted && otherTeam.userId === session.data?.user.id) ||
+                                  isOrgAdminOrOwner) && (
                                   <VerticalTabItem
                                     name={t("profile")}
                                     href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
@@ -561,7 +564,7 @@ const SettingsSidebarContainer = ({
                   </div>
                 </React.Fragment>
               )}
-            </>
+            </React.Fragment>
           );
         })}
       </>

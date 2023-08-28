@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
@@ -10,6 +9,7 @@ import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@cal
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole, AppCategories } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -18,11 +18,7 @@ import { TRPCError } from "@trpc/server";
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
-  prisma: PrismaClient<
-    Prisma.PrismaClientOptions,
-    never,
-    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-  >;
+  prisma: PrismaClient;
   isTrpcCall?: boolean;
 }
 
@@ -120,6 +116,7 @@ export default async function getEventTypeById({
           members: {
             select: {
               role: true,
+              accepted: true,
               user: {
                 select: {
                   ...userSelect,
@@ -230,7 +227,7 @@ export default async function getEventTypeById({
       app: {
         enabled: true,
         categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video],
+          hasSome: [AppCategories.conferencing, AppCategories.video, AppCategories.payment],
         },
       },
     },
@@ -264,8 +261,6 @@ export default async function getEventTypeById({
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
   };
 
-  // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
-  // const parsedMetaData = _EventTypeModel.parse(newMetadata);
   const parsedMetaData = newMetadata;
 
   const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
@@ -363,18 +358,21 @@ export default async function getEventTypeById({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
+  const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
-    ? eventTypeObject.team.members.map((member) => {
-        const user: typeof member.user & { avatar: string } = {
-          ...member.user,
-          avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
-        };
-        return {
-          ...user,
-          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-          membership: member.role,
-        };
-      })
+    ? eventTypeObject.team.members
+        .filter((member) => member.accepted || isOrgEventType)
+        .map((member) => {
+          const user: typeof member.user & { avatar: string } = {
+            ...member.user,
+            avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
+          };
+          return {
+            ...user,
+            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            membership: member.role,
+          };
+        })
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.

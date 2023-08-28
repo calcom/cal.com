@@ -1,6 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { SessionProvider } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import type { Session } from "next-auth";
+import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -17,10 +17,10 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
-import usePublicPage from "@lib/hooks/usePublicPage";
+import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithNonceProps } from "@lib/withNonce";
 
-import { useViewerI18n } from "@components/I18nLanguageHandler";
+import { useClientViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -33,6 +33,7 @@ export type AppProps = Omit<
   NextAppProps<
     WithNonceProps & {
       themeBasis?: string;
+      session: Session;
     } & Record<string, unknown>
   >,
   "Component"
@@ -67,11 +68,9 @@ type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
 const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   * We intend to not cache i18n query
    **/
-  const { i18n, locale } = useViewerI18n().data ?? {
-    locale: "en",
-  };
+  const clientViewerI18n = useClientViewerI18n(props.router.locales || []);
+  const { i18n, locale } = clientViewerI18n.data || {};
 
   const passedProps = {
     ...props,
@@ -81,6 +80,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
     },
     router: locale ? { locale } : props.router,
   } as unknown as ComponentProps<typeof I18nextAdapter>;
+
   return <I18nextAdapter {...passedProps} />;
 };
 
@@ -243,9 +243,8 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
-  const isPublicPage = usePublicPage();
+  const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
   const { _nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
@@ -257,7 +256,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={session || undefined}>
+      <SessionProvider session={pageProps.session ?? undefined}>
         <CustomI18nextProvider {...propsWithoutNonce}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
@@ -265,7 +264,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
               themeBasis={props.pageProps.themeBasis}
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage}
+              isBookingPage={props.Component.isBookingPage || isBookingPage}
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
@@ -279,7 +278,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     </EventCollectionProvider>
   );
 
-  if (isPublicPage) {
+  if (isBookingPage) {
     return RemainingProviders;
   }
 

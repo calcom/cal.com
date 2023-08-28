@@ -34,13 +34,17 @@ const triggerWebhook = async ({
   booking: {
     userId: number | undefined;
     eventTypeId: number | null;
+    eventTypeParentId: number | null | undefined;
     teamId?: number | null;
   };
 }) => {
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
+
+  const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
+
   const subscriberOptions = {
-    userId: booking.userId,
+    userId: triggerForUser ? booking.userId : null,
     eventTypeId: booking.eventTypeId,
     triggerEvent: eventTrigger,
     teamId: booking.teamId,
@@ -183,6 +187,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       booking: {
         userId: booking?.user?.id,
         eventTypeId: booking.eventTypeId,
+        eventTypeParentId: booking.eventType?.parentId,
         teamId,
       },
     });

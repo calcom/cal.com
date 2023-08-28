@@ -17,9 +17,8 @@ import {
 import { useState } from "react";
 import { useVirtual } from "react-virtual";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
+import type { ActionItem } from "./DataTableSelectionBar";
 import { DataTableSelectionBar } from "./DataTableSelectionBar";
 import type { FilterableItems } from "./DataTableToolbar";
 import { DataTableToolbar } from "./DataTableToolbar";
@@ -30,15 +29,12 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   filterableItems?: FilterableItems;
-  selectionOptions?: {
-    label: string;
-    onClick: () => void;
-    icon?: SVGComponent;
-  }[];
+  selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
+  tableOverlay?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +46,7 @@ export function DataTable<TData, TValue>({
   selectionOptions,
   tableContainerRef,
   isLoading,
+  tableOverlay,
   onScroll,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
@@ -101,7 +98,7 @@ export function DataTable<TData, TValue>({
         tableCTA={tableCTA}
       />
       <div
-        className="rounded-md border"
+        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={onScroll}
         style={{
@@ -164,6 +161,7 @@ export function DataTable<TData, TValue>({
               </tr>
             )}
           </TableBody>
+          {tableOverlay && tableOverlay}
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}

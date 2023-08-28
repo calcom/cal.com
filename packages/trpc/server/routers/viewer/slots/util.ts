@@ -1,12 +1,13 @@
+// eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
-import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -19,6 +20,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
+import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 
 export const checkIfIsAvailable = ({
@@ -70,10 +72,70 @@ export const checkIfIsAvailable = ({
   });
 };
 
-export async function getEventType(input: TGetScheduleInputSchema) {
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+  organizationDetails,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+  organizationDetails?: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+}) {
+  if (!eventTypeSlug || !slug) return null;
+
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
+  } else {
+    userId = await getUserIdFromUsername(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
+
+export async function getEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+      organizationDetails,
+    }));
+
+  if (!eventTypeId) {
+    return null;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -114,32 +176,22 @@ export async function getEventType(input: TGetScheduleInputSchema) {
           isFixed: true,
           user: {
             select: {
-              credentials: true, // Don't leak credentials to the client
+              credentials: true,
               ...availabilityUserSelect,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
       },
       users: {
         select: {
-          credentials: true, // Don't leak credentials to the client
+          credentials: true,
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
   });
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
@@ -160,18 +212,17 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   const users = await prisma.user.findMany({
     where: {
       username: {
-        in: input.usernameList,
+        in: Array.isArray(input.usernameList)
+          ? input.usernameList
+          : input.usernameList
+          ? [input.usernameList]
+          : [],
       },
     },
     select: {
       allowDynamicBooking: true,
-      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
-      organization: {
-        select: {
-          slug: true,
-        },
-      },
+      credentials: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -186,13 +237,17 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   });
 }
 
-export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
-  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
+export function getRegularOrDynamicEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
+  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
 }
 
-/** This should be called getAvailableSlots */
-export async function getSchedule(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -200,7 +255,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await getRegularOrDynamicEventType(input);
+  const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -235,13 +290,12 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (eventType.schedulingType && !!eventType.hosts?.length) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
-        workingHours,
-        dateOverrides,
         dateRanges,
         currentSeats: _currentSeats,
         timeZone,
@@ -251,19 +305,16 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats }
+        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
       return {
         timeZone,
-        workingHours,
-        dateOverrides,
         dateRanges,
         busy,
         user: currentUser,
@@ -271,11 +322,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     })
   );
 
-  // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
-  );
-  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
@@ -298,8 +344,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
-    workingHours,
-    dateOverrides,
     offsetStart: eventType.offsetStart,
     dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
@@ -408,24 +452,33 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  // fr-CA uses YYYY-MM-DD
+  const formatter = new Intl.DateTimeFormat("fr-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: input.timeZone,
+  });
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: _time, ...passThroughProps }
+      { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-      const time = _time.tz(input.timeZone);
 
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+      // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
+      // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+      const dateString = formatter.format(time.toDate());
+
+      r[dateString] = r[dateString] || [];
+      r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
         users: (eventType.hosts
           ? eventType.hosts.map((hostUserWithCredentials) => {
               const { user } = hostUserWithCredentials;
-              const { credentials: _credentials, ...hostUser } = user;
-              return hostUser;
+              return user;
             })
           : eventType.users
         ).map((user) => user.username || ""),
@@ -456,4 +509,38 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   return {
     slots: computedAvailableSlots,
   };
+}
+
+async function getUserIdFromUsername(
+  username: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
+  const user = await prisma.user.findFirst({
+    where: {
+      username,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return user?.id;
+}
+
+async function getTeamIdFromSlug(
+  slug: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
+  const team = await prisma.team.findFirst({
+    where: {
+      slug,
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return team?.id;
 }
