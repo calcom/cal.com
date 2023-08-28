@@ -42,7 +42,7 @@ jobs:
         with:
           header: pr-title-lint-error
           message: |
-            Thank you for following the naming conventions!
+            Thank you for following the naming conventions! 🙏
 
   team-labels:
     runs-on: ubuntu-latest

@@ -1,7 +1,6 @@
-import { type PrismaClient } from "@prisma/client";
-
 import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
