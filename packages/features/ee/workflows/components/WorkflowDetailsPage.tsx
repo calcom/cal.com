@@ -220,6 +220,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        setKYCVerificationDialogOpen={() => setKYCVerificationDialogOpen(true)}
       />
       <KYCVerificationDialog
         isOpenDialog={isKYCVerificationDialogOpen}

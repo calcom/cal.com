@@ -79,7 +79,9 @@ model EventType {
   bookingFields                   Json?
   timeZone                        String?
   periodType                      PeriodType              @default(UNLIMITED)
+  /// @zod.custom(imports.coerceToDate)
   periodStartDate                 DateTime?
+  /// @zod.custom(imports.coerceToDate)
   periodEndDate                   DateTime?
   periodDays                      Int?
   periodCountCalendarDays         Boolean?
