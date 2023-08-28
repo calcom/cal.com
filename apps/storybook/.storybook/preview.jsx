@@ -21,6 +21,14 @@ export const parameters = {
     push() {},
     Provider: AppRouterContext.Provider,
   },
+  globals: {
+    locale: "en",
+    locales: {
+      en: "English",
+      fr: "Français",
+    },
+  },
+  i18n,
 };
 
 addDecorator((storyFn) => (
