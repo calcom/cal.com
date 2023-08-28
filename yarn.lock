@@ -3730,7 +3730,6 @@ __metadata:
     next: ^13.4.19
     postcss: ^8.4.28
     prettier: ^3.0.2
-    prisma: ^5.1.1
     react: ^18.2.0
     react-dom: ^18.2.0
     resend: ^1.0.0
@@ -7709,7 +7708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^5.0.0":
+"@prisma/client@npm:5.0.0, @prisma/client@npm:^5.0.0":
   version: 5.0.0
   resolution: "@prisma/client@npm:5.0.0"
   dependencies:
@@ -7777,13 +7776,6 @@ __metadata:
   version: 5.0.0
   resolution: "@prisma/engines@npm:5.0.0"
   checksum: 31271d85c29709059f91051d4cef7acf874014ba0128b674ca2f842e5fac61d3011e9db246dfa67ba4803081d36dbc9e31492716bab677128588343c92117b2b
-  languageName: node
-  linkType: hard
-
-"@prisma/engines@npm:5.2.0":
-  version: 5.2.0
-  resolution: "@prisma/engines@npm:5.2.0"
-  checksum: c4d0a424b211ab5f02c977bd87e03a151a7d297d8448b08ef9de931a0dcebbbea76cdefc15a17fd06dacac692b164fd88b32c23eb84f7822dbaf3d0885b700a7
   languageName: node
   linkType: hard
 
@@ -15601,6 +15593,7 @@ __metadata:
     "@changesets/cli": ^2.26.1
     "@deploysentinel/playwright": ^0.3.3
     "@playwright/test": ^1.31.2
+    "@prisma/client": 5.0.0
     "@snaplet/copycat": ^0.3.0
     "@testing-library/jest-dom": ^5.16.5
     c8: ^7.13.0
@@ -29543,17 +29536,6 @@ __metadata:
   bin:
     prisma: build/index.js
   checksum: fdc62377853d25b4db664c736fd0b08d2b0c6db5752e6f6c6ec3bda77634cfb79e6f49d52d4b8f54ddb8ec9c28fc3fb0c13f95caf61085447d0929e258af9284
-  languageName: node
-  linkType: hard
-
-"prisma@npm:^5.1.1":
-  version: 5.2.0
-  resolution: "prisma@npm:5.2.0"
-  dependencies:
-    "@prisma/engines": 5.2.0
-  bin:
-    prisma: build/index.js
-  checksum: 8b99ab5a5f801c72b2eb1809db980bd104dfd699cb14c5d5db5b675566c89e46501267399bb2f02bc3ea8fb86fc2f029cccd7178768109dc4d198bc93552b1da
   languageName: node
   linkType: hard
 
