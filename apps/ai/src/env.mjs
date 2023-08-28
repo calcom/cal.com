@@ -24,9 +24,6 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    SEED_CAL_API_KEY: process.env.SEED_CAL_API_KEY,
-    SEED_CAL_EMAIL: process.env.SEED_CAL_EMAIL,
-    SEED_CAL_USERNAME: process.env.SEED_CAL_USERNAME,
     SENDER_EMAIL: process.env.SENDER_EMAIL,
   },
 
@@ -43,9 +40,6 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     OPENAI_API_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
-    SEED_CAL_API_KEY: z.string().optional(),
-    SEED_CAL_EMAIL: z.string().email().optional(),
-    SEED_CAL_USERNAME: z.string().optional(),
     SENDER_EMAIL: z.string().email(),
   },
 });
