@@ -18,6 +18,7 @@ const fetchBookings = async ({
 }): Promise<Booking[] | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey: context.apiKey,
+    userId: context.userId,
   };
 
   const urlParams = new URLSearchParams(params);
