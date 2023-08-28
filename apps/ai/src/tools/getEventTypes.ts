@@ -15,7 +15,7 @@ export const fetchEventTypes = async ({
   apiKeyHashed: string;
   apiKeyIV: string;
 }) => {
-  // TODO: fix
+  // TODO: comment this out once the bug is fixed with get event types in the API app/
   return [
     {
       id: 22,
@@ -31,6 +31,8 @@ export const fetchEventTypes = async ({
   const urlParams = new URLSearchParams(params);
 
   const url = `${env.BACKEND_URL}/event-types?${urlParams.toString()}`;
+
+  console.log(url);
 
   const response = await fetch(url);
 

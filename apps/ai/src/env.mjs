@@ -16,7 +16,6 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    CAL_API_KEY: process.env.CAL_API_KEY,
     BACKEND_URL: process.env.BACKEND_URL,
     APP_ID: process.env.APP_ID,
     APP_URL: process.env.APP_URL,
@@ -32,7 +31,6 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    CAL_API_KEY: z.string().min(1),
     BACKEND_URL: z.string().url(),
     APP_ID: z.string().min(1),
     APP_URL: z.string().url(),

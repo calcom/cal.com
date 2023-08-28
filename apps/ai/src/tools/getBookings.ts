@@ -12,16 +12,21 @@ import { decrypt } from "../utils/encryption";
 const fetchBookings = async ({
   apiKeyHashed,
   apiKeyIV,
+  userIdHashed,
+  userIdIV,
   from,
   to,
 }: {
   apiKeyHashed: string;
   apiKeyIV: string;
+  userIdHashed: string;
+  userIdIV: string;
   from: string;
   to: string;
 }): Promise<Booking[] | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
+    userId: decrypt(userIdHashed, userIdIV),
   };
 
   const urlParams = new URLSearchParams(params);
@@ -60,13 +65,15 @@ const fetchBookings = async ({
 
 const getBookingsTool = new DynamicStructuredTool({
   description: "Get bookings for a user between two dates.",
-  func: async ({ apiKeyHashed, apiKeyIV, from, to }) => {
-    return JSON.stringify(await fetchBookings({ apiKeyHashed, apiKeyIV, from, to }));
+  func: async ({ apiKeyHashed, apiKeyIV, from, to, userIdHashed, userIdIV }) => {
+    return JSON.stringify(await fetchBookings({ apiKeyHashed, apiKeyIV, from, to, userIdHashed, userIdIV }));
   },
   name: "getBookings",
   schema: z.object({
     apiKeyHashed: z.string(),
     apiKeyIV: z.string(),
+    userIdHashed: z.string(),
+    userIdIV: z.string(),
     from: z.string().describe("ISO 8601 datetime string"),
     to: z.string().describe("ISO 8601 datetime string"),
   }),

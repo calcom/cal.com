@@ -19,7 +19,6 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@rubriclab/tailwind-config": "^1.0.0",
     "@rubriclab/typescript-config": "^1.0.0",
     "@types/mailparser": "^3.4.0",
     "@types/node": "^20.5.1",
@@ -28,9 +27,7 @@
     "@types/react-dom": "^18.2.7",
     "autoprefixer": "^10.4.15",
     "eslint": "^8.47.0",
-    "postcss": "^8.4.28",
     "prettier": "^3.0.2",
-    "tailwindcss": "^3.3.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
