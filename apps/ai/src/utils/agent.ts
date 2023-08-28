@@ -34,7 +34,7 @@ const agent = async (input: string, user: User) => {
   const executor = await initializeAgentExecutorWithOptions(tools, model, {
     agentArgs: {
       prefix: `You are Cal AI - a bleeding edge scheduling assistant that interfaces via email.
-            Make sure your final answers are definitive and complete.
+            Make sure your final answers are definitive, complete and well formatted.
             Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
             Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
 
