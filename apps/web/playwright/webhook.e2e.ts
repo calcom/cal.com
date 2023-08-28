@@ -402,7 +402,7 @@ test.describe("FORM_SUBMITTED", async () => {
     // Add webhook
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
     await page.fill('[name="secret"]', "secret");
-    await Promise.all([page.click("[type=submit]"), page.goForward()]);
+    await page.click("[type=submit]");
 
     // Page contains the url
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
