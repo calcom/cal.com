@@ -106,35 +106,6 @@ const OrgAppearanceView = () => {
             });
           }}>
           <div className="mb-6 flex items-center text-sm">
-            <Controller
-              control={form.control}
-              name="orgCalVideoLogo"
-              defaultValue={currentOrg.orgCalVideoLogo}
-              render={({ field: { value } }) => (
-                <>
-                  <Avatar
-                    alt="calVideoLogo"
-                    imageSrc={value}
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
-                    size="lg"
-                  />
-                  <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("change_cal_video_logo")}
-                      handleAvatarChange={(newLogo) => {
-                        form.setValue("orgCalVideoLogo", newLogo);
-                      }}
-                      imageSrc={value ?? undefined}
-                      imageUploadInstruction={t("cal_video_logo_upload_instruction")}
-                    />
-                  </div>
-                </>
-              )}
-            />
-          </div>
-          <div className="mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("theme")}</p>
               <p className="text-default">{t("theme_applies_note")}</p>
@@ -201,6 +172,38 @@ const OrgAppearanceView = () => {
                     onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
                   />
                 </div>
+              )}
+            />
+          </div>
+
+          <hr className="border-subtle my-8" />
+
+          <div className="flex items-center text-sm">
+            <Controller
+              control={form.control}
+              name="orgCalVideoLogo"
+              defaultValue={currentOrg.orgCalVideoLogo}
+              render={({ field: { value } }) => (
+                <>
+                  <Avatar
+                    alt="calVideoLogo"
+                    imageSrc={value}
+                    fallback={<Plus className="text-subtle h-6 w-6" />}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg={t("change_cal_video_logo")}
+                      handleAvatarChange={(newLogo) => {
+                        form.setValue("orgCalVideoLogo", newLogo);
+                      }}
+                      imageSrc={value ?? undefined}
+                      imageUploadInstruction={t("cal_video_logo_upload_instruction")}
+                    />
+                  </div>
+                </>
               )}
             />
           </div>
