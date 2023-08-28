@@ -3,7 +3,6 @@
     "initVersion": "7.13.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.0.0",
     "@t3-oss/env-nextjs": "^0.6.1",
     "langchain": "^0.0.131",
     "mailparser": "^3.6.5",
@@ -41,7 +40,7 @@
     "format": "npx prettier . --write",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.json,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "postinstall": "prisma generate",
+    "postinstall": "yarn prisma generate",
     "start": "next start"
   },
   "version": "0.1.0"
