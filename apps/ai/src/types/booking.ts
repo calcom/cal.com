@@ -5,7 +5,7 @@ export enum BOOKING_STATUS {
   REJECTED = "REJECTED",
 }
 
-type Booking = {
+export type Booking = {
   id: number;
   userId: number;
   description: string | null;
@@ -21,5 +21,3 @@ type Booking = {
   status: BOOKING_STATUS;
   responses: { email: string; name: string; location: string } | null;
 };
-
-export default Booking;

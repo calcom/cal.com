@@ -4,10 +4,12 @@ import { z } from "zod";
 import { env } from "../env.mjs";
 import { decrypt } from "../utils/encryption";
 
+/**
+ * Creates a booking for a user by event type, times, and timezone.
+ */
 const createBooking = async ({
   apiKeyHashed,
   apiKeyIV,
-  userId,
   eventTypeId,
   start,
   end,
@@ -18,7 +20,6 @@ const createBooking = async ({
 }: {
   apiKeyHashed: string;
   apiKeyIV: string;
-  userId: string;
   eventTypeId: number;
   start: string;
   end: string;
@@ -28,56 +29,43 @@ const createBooking = async ({
   title?: string;
   description?: string;
   status?: string;
-}) => {
+}): Promise<string | Error | { error: string }> => {
   const params = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
-    userId,
   };
+
   const urlParams = new URLSearchParams(params);
 
   const url = `${env.BACKEND_URL}/bookings?${urlParams.toString()}`;
 
-  const [
-    response,
-    // availability
-  ] = await Promise.all([
-    fetch(url, {
-      body: JSON.stringify({
-        description,
-        end,
-        eventTypeId,
-        language,
-        metadata: {},
-        responses,
-        start,
-        timeZone,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+  const response = await fetch(url, {
+    body: JSON.stringify({
+      description,
+      end,
+      eventTypeId,
+      language,
+      metadata: {},
+      responses,
+      start,
+      timeZone,
     }),
-    // fetchAvailability({
-    //   apiKey,
-    //   username,
-    //   dateFrom: start, // TODO: make this the full day
-    //   dateTo: end,
-    //   eventTypeId,
-    // }),
-  ]);
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  if (response.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
   const data = await response.json();
 
-  console.log(JSON.stringify(data, null, 2));
-
-  if (response.status !== 200)
-    // console.error(data)
+  if (response.status !== 200) {
     return {
       error: data.message,
-      // availability
     };
+  }
 
   return "Booking created";
 };
@@ -88,7 +76,6 @@ const createBookingTool = new DynamicStructuredTool({
   func: async ({
     apiKeyHashed,
     apiKeyIV,
-    userId,
     eventTypeId,
     start,
     end,
@@ -112,7 +99,6 @@ const createBookingTool = new DynamicStructuredTool({
         status,
         timeZone,
         title,
-        userId,
       })
     );
   },
@@ -124,26 +110,18 @@ const createBookingTool = new DynamicStructuredTool({
     end: z
       .string()
       .describe("This should correspond to the event type's length, unless otherwise specified."),
-
     eventTypeId: z.number(),
-
     language: z.string(),
-
     responses: z
       .object({
         email: z.string().optional(),
         name: z.string().optional(),
-        // location
       })
       .describe("External invited user. Not the user making the request."),
-
-    //   .describe("The ID of the event type to book.")
     start: z.string(),
-
     status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
     timeZone: z.string(),
     title: z.string().optional(),
-    userId: z.string(),
   }),
 });
 

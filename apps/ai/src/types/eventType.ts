@@ -1,4 +1,4 @@
-type EventType = {
+export type EventType = {
   id: number;
   title: string;
   length: number;
@@ -11,5 +11,3 @@ type EventType = {
   hidden: boolean;
   // ...
 };
-
-export default EventType;

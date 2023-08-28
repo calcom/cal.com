@@ -1,8 +1,9 @@
-import type EventType from "./eventType";
-import type WorkingHours from "./workingHours";
+import type { EventType } from "./eventType";
+import type { WorkingHours } from "./workingHours";
 
-type User = {
-  id: string;
+export type User = {
+  userIdHashed: string;
+  userIdIV: string;
   email: string;
   timeZone: string;
   apiKeyHashed: string;
@@ -10,5 +11,3 @@ type User = {
   eventTypes: EventType[];
   workingHours: WorkingHours[];
 };
-
-export default User;

@@ -1,9 +1,13 @@
 {
+  "name": "@calcom/ai",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Cal.com Inc.",
   "ct3aMetadata": {
     "initVersion": "7.13.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.1.1",
+    "@calcom/prisma": "*",
     "@t3-oss/env-nextjs": "^0.6.1",
     "langchain": "^0.0.131",
     "mailparser": "^3.6.5",
@@ -30,19 +34,12 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
-  "name": "@calcom/ai",
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  },
-  "private": true,
   "scripts": {
     "build": "next build",
     "dev": "next dev -p 3005",
     "format": "npx prettier . --write",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.json,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "postinstall": "prisma generate",
     "start": "next start"
-  },
-  "version": "0.1.0"
+  }
 }

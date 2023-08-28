@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
-const host = (headers: NextRequest["headers"]) => `https://${headers.get("host")}`;
+const getHostFromHeaders = (headers: NextRequest["headers"]): string => {
+  return `https://${headers.get("host")}`;
+};
 
-export default host;
+export default getHostFromHeaders;

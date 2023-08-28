@@ -1,4 +1,3 @@
-// https://python.langchain.com/docs/modules/agents/how_to/custom-functions-with-openai-functions-agent
 import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 
@@ -7,38 +6,37 @@ import createBookingIfAvailable from "../tools/createBookingIfAvailable";
 import deleteBooking from "../tools/deleteBooking";
 import getAvailability from "../tools/getAvailability";
 import getBookings from "../tools/getBookings";
-// import getEventTypes from '../tools/getEventTypes";
 import updateBooking from "../tools/updateBooking";
-import type EventType from "../types/eventType";
-import type User from "../types/user";
-import type WorkingHours from "../types/workingHours";
+import type { EventType } from "../types/eventType";
+import type { User } from "../types/user";
+import type { WorkingHours } from "../types/workingHours";
 import now from "./now";
 
+const gptModel = "gpt-4";
+
+/**
+ * Core of the Cal AI booking agent: a LangChain Agent Executor.
+ * Uses a toolchain to book meetings, list available slots, etc.
+ * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
+ */
 const agent = async (input: string, user: User) => {
-  const tools = [
-    createBookingIfAvailable,
-    deleteBooking,
-    getAvailability,
-    getBookings,
-    // getEventTypes,
-    updateBooking,
-  ];
+  const tools = [createBookingIfAvailable, deleteBooking, getAvailability, getBookings, updateBooking];
 
   const model = new ChatOpenAI({
-    modelName: "gpt-4",
+    modelName: gptModel,
     openAIApiKey: env.OPENAI_API_KEY,
     temperature: 0,
-    // maxRetries: 2,
   });
 
+  /**
+   * Initialize the agent executor with arguments.
+   */
   const executor = await initializeAgentExecutorWithOptions(tools, model, {
     agentArgs: {
-      // TODO: encourage agent to translate times to user's timezone.
-      // TODO: fork getAvailability to return nicely-formatted, free blocks.
       prefix: `You are Cal AI - a bleeding edge scheduling assistant that interfaces via email.
             Make sure your final answers are definitive and complete.
             Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
-            Tools will always handle times in UTC, but times sent to the user should be formatted as AM/PM in the user's timezone.
+            Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
 
             Current UTC time is: ${now}
             The user's time zone is: ${user.timeZone}
@@ -53,28 +51,22 @@ const agent = async (input: string, user: User) => {
                   }, End Time (minutes in UTC): ${w.endTime}`
               )
               .join("\n")}
-            The user's ID is: ${user.id}
+            The user's ID hash is: ${user.userIdHashed}
+            The user's ID IV is: ${user.userIdIV}
             The user's email is: ${user.email}
             The API key hash is: ${user.apiKeyHashed}
             The API key IV is: ${user.apiKeyIV}
             `,
     },
     agentType: "openai-functions",
-    // returnIntermediateSteps: true,
-    // verbose: true,
+    returnIntermediateSteps: env.NODE_ENV === "development",
+    verbose: env.NODE_ENV === "development",
   });
 
-  // console.log(`Agent activated with input "${input}"...`);
-
   const result = await executor.call({ input });
+  const { output } = result;
 
-  // console.log(
-  //   `Intermediate steps: ${JSON.stringify(result.intermediateSteps, null, 2)}`,
-  // );
-
-  // console.log(`Output: ${result.output}`);
-
-  return result.output;
+  return output;
 };
 
 export default agent;

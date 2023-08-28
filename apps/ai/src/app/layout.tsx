@@ -1,4 +1,5 @@
 import localFont from "next/font/local";
+import React from "react";
 
 import "../styles/globals.css";
 

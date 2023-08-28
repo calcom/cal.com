@@ -1,4 +1,4 @@
-type Availability = {
+export type Availability = {
   busy: {
     start: string;
     end: string;
