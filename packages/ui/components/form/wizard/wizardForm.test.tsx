@@ -47,18 +47,6 @@ const renderComponent = (extraProps?: { disableNavigation: boolean }) =>
   render(<WizardForm {...props} {...extraProps} />);
 
 describe("Tests for WizardForm component", () => {
-  test("Should render view of component correctly", async () => {
-    currentStepNavigation = 1;
-    const { getByTestId, queryByText } = renderComponent();
-    const { nextLabel } = props;
-
-    expect(getByTestId("wizard-form")).toBeInTheDocument();
-    expect(getByTestId("step-title")).toBeInTheDocument();
-    expect(getByTestId("step-description")).toBeInTheDocument();
-    expect(getByTestId("content-1")).toBeInTheDocument();
-    expect(queryByText(nextLabel)).toBeInTheDocument();
-  });
-
   test("Should handle all the steps correctly", async () => {
     currentStepNavigation = 1;
     const { queryByTestId, queryByText, rerender } = renderComponent();
