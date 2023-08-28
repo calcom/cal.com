@@ -4,29 +4,20 @@ import { z } from "zod";
 import { env } from "../env.mjs";
 import type { Booking } from "../types/booking";
 import { BOOKING_STATUS } from "../types/booking";
-import { decrypt } from "../utils/encryption";
+import { context } from "../utils/context";
 
 /**
  * Fetches bookings for a user by date range.
  */
 const fetchBookings = async ({
-  apiKeyHashed,
-  apiKeyIV,
-  userIdHashed,
-  userIdIV,
   from,
   to,
 }: {
-  apiKeyHashed: string;
-  apiKeyIV: string;
-  userIdHashed: string;
-  userIdIV: string;
   from: string;
   to: string;
 }): Promise<Booking[] | { error: string }> => {
   const params: { [k: string]: string } = {
-    apiKey: decrypt(apiKeyHashed, apiKeyIV),
-    userId: decrypt(userIdHashed, userIdIV),
+    apiKey: context.apiKey,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -65,15 +56,11 @@ const fetchBookings = async ({
 
 const getBookingsTool = new DynamicStructuredTool({
   description: "Get bookings for a user between two dates.",
-  func: async ({ apiKeyHashed, apiKeyIV, from, to, userIdHashed, userIdIV }) => {
-    return JSON.stringify(await fetchBookings({ apiKeyHashed, apiKeyIV, from, to, userIdHashed, userIdIV }));
+  func: async ({ from, to }) => {
+    return JSON.stringify(await fetchBookings({ from, to }));
   },
   name: "getBookings",
   schema: z.object({
-    apiKeyHashed: z.string(),
-    apiKeyIV: z.string(),
-    userIdHashed: z.string(),
-    userIdIV: z.string(),
     from: z.string().describe("ISO 8601 datetime string"),
     to: z.string().describe("ISO 8601 datetime string"),
   }),

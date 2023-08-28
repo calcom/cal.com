@@ -3,33 +3,25 @@ import { z } from "zod";
 
 import { env } from "../env.mjs";
 import type { Availability } from "../types/availability";
-import { decrypt } from "../utils/encryption";
+import { context } from "../utils/context";
 
 /**
  * Fetches availability for a user by date range and event type.
  */
 export const fetchAvailability = async ({
-  apiKeyHashed,
-  apiKeyIV,
-  userIdHashed,
-  userIdIV,
   dateFrom,
   dateTo,
   eventTypeId,
 }: {
-  apiKeyHashed: string;
-  apiKeyIV: string;
-  userIdHashed: string;
-  userIdIV: string;
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
-    apiKey: decrypt(apiKeyHashed, apiKeyIV),
+    apiKey: context.apiKey,
+    userId: context.userId,
     dateFrom,
     dateTo,
-    userId: decrypt(userIdHashed, userIdIV),
   };
 
   if (eventTypeId) params["eventTypeId"] = eventTypeId.toString();
@@ -60,25 +52,17 @@ export const fetchAvailability = async ({
 
 const getAvailabilityTool = new DynamicStructuredTool({
   description: "Get availability within range.",
-  func: async ({ apiKeyHashed, apiKeyIV, userIdHashed, userIdIV, dateFrom, dateTo, eventTypeId }) => {
+  func: async ({ dateFrom, dateTo, eventTypeId }) => {
     return JSON.stringify(
       await fetchAvailability({
-        apiKeyHashed,
-        apiKeyIV,
         dateFrom,
         dateTo,
         eventTypeId,
-        userIdHashed,
-        userIdIV,
       })
     );
   },
   name: "getAvailability",
   schema: z.object({
-    apiKeyHashed: z.string(),
-    apiKeyIV: z.string(),
-    userIdHashed: z.string(),
-    userIdIV: z.string(),
     dateFrom: z.string(),
     dateTo: z.string(),
     eventTypeId: z

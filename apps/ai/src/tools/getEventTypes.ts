@@ -3,18 +3,12 @@ import { z } from "zod";
 
 import { env } from "../env.mjs";
 import type { EventType } from "../types/eventType";
-import { decrypt } from "../utils/encryption";
+import { context } from "../utils/context";
 
 /**
  * Fetches event types by user ID.
  */
-export const fetchEventTypes = async ({
-  apiKeyHashed,
-  apiKeyIV,
-}: {
-  apiKeyHashed: string;
-  apiKeyIV: string;
-}) => {
+export const fetchEventTypes = async () => {
   // TODO: comment this out once the bug is fixed with get event types in the API app/
   return [
     {
@@ -25,7 +19,7 @@ export const fetchEventTypes = async ({
   ];
 
   const params = {
-    apiKey: decrypt(apiKeyHashed, apiKeyIV),
+    apiKey: context.apiKey,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -53,16 +47,11 @@ export const fetchEventTypes = async ({
 
 const getEventTypesTool = new DynamicStructuredTool({
   description: "Get the user's event type IDs. Usually necessary to book a meeting.",
-  func: async ({ apiKeyHashed, apiKeyIV }) => {
-    return JSON.stringify(await fetchEventTypes({ apiKeyHashed, apiKeyIV }));
+  func: async () => {
+    return JSON.stringify(await fetchEventTypes());
   },
   name: "getEventTypes",
-  schema: z.object({
-    apiKeyHashed: z.string(),
-    apiKeyIV: z.string(),
-    userIdHashed: z.string(),
-    userIdIV: z.string(),
-  }),
+  schema: z.object({}),
 });
 
 export default getEventTypesTool;

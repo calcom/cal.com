@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
-import { encrypt } from "../../../utils/encryption";
+import { context } from "../../../utils/context";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
@@ -73,22 +73,15 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   }
 
-  const { hash: apiKeyHashed, initVector: apiKeyIV } = encrypt(key);
-  const { hash: userIdHashed, initVector: userIdIV } = encrypt(user.id.toString());
+  context.apiKey = key;
+  context.userId = user.id.toString();
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
-    fetchEventTypes({
-      apiKeyHashed,
-      apiKeyIV,
-    }),
+    fetchEventTypes(),
     fetchAvailability({
-      apiKeyHashed,
-      apiKeyIV,
       dateFrom: now,
       dateTo: now,
-      userIdHashed,
-      userIdIV,
     }),
   ]);
 
@@ -122,11 +115,7 @@ export const POST = async (request: NextRequest) => {
       message: parsed.text,
       subject: parsed.subject,
       user: {
-        userIdHashed,
-        userIdIV,
         email: user.email,
-        apiKeyHashed,
-        apiKeyIV,
         eventTypes,
         timeZone,
         workingHours,

@@ -51,11 +51,6 @@ const agent = async (input: string, user: User) => {
                   }, End Time (minutes in UTC): ${w.endTime}`
               )
               .join("\n")}
-            The user's ID hash is: ${user.userIdHashed}
-            The user's ID IV is: ${user.userIdIV}
-            The user's email is: ${user.email}
-            The API key hash is: ${user.apiKeyHashed}
-            The API key IV is: ${user.apiKeyIV}
             `,
     },
     agentType: "openai-functions",

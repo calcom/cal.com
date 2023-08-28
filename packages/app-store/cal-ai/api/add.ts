@@ -26,8 +26,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const ctx = await createContext({ req, res });
     const caller = viewerRouter.createCaller(ctx);
 
-    const event = { note: "Cal AI", expiresAt: null, appId: "cal-ai", name: "Cal AI" };
-    const apiKey = await caller.apiKeys.create({ userId: req.session.user.id, event });
+    const apiKey = await caller.apiKeys.create({
+      note: "Cal AI",
+      expiresAt: null,
+      appId: "cal-ai",
+    });
     const installation = await prisma.credential.create({
       data: {
         type: appType,
@@ -41,7 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!installation) {
       throw new Error("Unable to create user credential for cal-ai");
     }
-    console.log("AT THIS POINT THIGNS SHOULD BE INSTALLED", apiKey);
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });

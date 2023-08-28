@@ -2,14 +2,12 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import { decrypt } from "../utils/encryption";
+import { context } from "../utils/context";
 
 /**
  * Edits a booking for a user by booking ID with new times, title, description, or status.
  */
 const editBooking = async ({
-  apiKeyHashed,
-  apiKeyIV,
   id,
   startTime, // In the docs it says start, but it's startTime: https://cal.com/docs/enterprise-features/api/api-reference/bookings#edit-an-existing-booking.
   endTime, // Same here: it says end but it's endTime.
@@ -17,8 +15,6 @@ const editBooking = async ({
   description,
   status,
 }: {
-  apiKeyHashed: string;
-  apiKeyIV: string;
   id: string;
   startTime?: string;
   endTime?: string;
@@ -27,7 +23,8 @@ const editBooking = async ({
   status?: string;
 }): Promise<string | { error: string }> => {
   const params = {
-    apiKey: decrypt(apiKeyHashed, apiKeyIV),
+    apiKey: context.apiKey,
+    userId: context.userId,
   };
   const urlParams = new URLSearchParams(params);
 
@@ -54,11 +51,9 @@ const editBooking = async ({
 
 const editBookingTool = new DynamicStructuredTool({
   description: "Edit a booking",
-  func: async ({ apiKeyHashed, apiKeyIV, description, endTime, id, startTime, status, title }) => {
+  func: async ({ description, endTime, id, startTime, status, title }) => {
     return JSON.stringify(
       await editBooking({
-        apiKeyHashed,
-        apiKeyIV,
         description,
         endTime,
         id,
@@ -70,8 +65,6 @@ const editBookingTool = new DynamicStructuredTool({
   },
   name: "editBooking",
   schema: z.object({
-    apiKeyHashed: z.string(),
-    apiKeyIV: z.string(),
     description: z.string().optional(),
     endTime: z.string().optional(),
     id: z.string(),

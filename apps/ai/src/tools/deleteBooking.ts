@@ -2,24 +2,20 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import { decrypt } from "../utils/encryption";
+import { context } from "../utils/context";
 
 /**
  * Cancels a booking for a user by ID with reason.
  */
 const cancelBooking = async ({
-  apiKeyHashed,
-  apiKeyIV,
   id,
   reason,
 }: {
-  apiKeyHashed: string;
-  apiKeyIV: string;
   id: string;
   reason: string;
 }): Promise<string | { error: string }> => {
   const params = {
-    apiKey: decrypt(apiKeyHashed, apiKeyIV),
+    apiKey: context.apiKey,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -47,11 +43,9 @@ const cancelBooking = async ({
 
 const cancelBookingTool = new DynamicStructuredTool({
   description: "Cancel a booking",
-  func: async ({ apiKeyHashed, apiKeyIV, id, reason }) => {
+  func: async ({ id, reason }) => {
     return JSON.stringify(
       await cancelBooking({
-        apiKeyHashed,
-        apiKeyIV,
         id,
         reason,
       })
@@ -59,8 +53,6 @@ const cancelBookingTool = new DynamicStructuredTool({
   },
   name: "cancelBooking",
   schema: z.object({
-    apiKeyHashed: z.string(),
-    apiKeyIV: z.string(),
     id: z.string(),
     reason: z.string(),
   }),
