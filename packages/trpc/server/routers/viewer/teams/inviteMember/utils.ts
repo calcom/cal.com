@@ -74,9 +74,13 @@ export async function getUserToInviteOrThrowIfExists({
   isOrg?: boolean;
 }) {
   // Check if user exists in ORG or exists all together
+
+  const orgWhere = isOrg && {
+    organizationId: orgId,
+  };
   const invitee = await prisma.user.findFirst({
     where: {
-      OR: [{ username: usernameOrEmail, organizationId: orgId }, { email: usernameOrEmail }],
+      OR: [{ username: usernameOrEmail, ...orgWhere }, { email: usernameOrEmail }],
     },
   });
 
