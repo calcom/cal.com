@@ -52,13 +52,33 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
 }
 
 export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
-  const emailsToInvite = Array.isArray(usernameOrEmail) ? usernameOrEmail : [usernameOrEmail];
+  const inputUsernamesOrEmails = Array.isArray(usernameOrEmail) ? usernameOrEmail : [usernameOrEmail];
 
-  if (emailsToInvite.length === 0) {
+  if (inputUsernamesOrEmails.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You must provide at least one email address to invite.",
     });
+  }
+
+  const emailsToInvite: string[] = [];
+  for (const inputUser of inputUsernamesOrEmails) {
+    // Check if user with username or email exists
+    // If yes, add email to the array to be returned
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ username: inputUser }, { email: inputUser }],
+      },
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `User ${usernameOrEmail} does not exist.`,
+      });
+    }
+
+    emailsToInvite.push(user.email);
   }
 
   return emailsToInvite;
