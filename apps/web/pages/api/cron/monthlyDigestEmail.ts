@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
+
   if (req.method !== "POST") {
     res.status(405).json({ message: "Invalid method" });
     return;
@@ -36,10 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         slug: {
           not: null,
         },
-        // createdAt: {
-        //   // created before last 30days
-        //   lte: date30DaysAgo,
-        // },
+        createdAt: {
+          // created before last 30days
+          lte: date30DaysAgo,
+        },
       },
       select: {
         id: true,
@@ -313,21 +314,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
-        const admin = team?.members?.find((u) => u.role === "OWNER");
+        // Send mail to all Owners and Admins
+        const mailReceivers = team?.members?.filter(
+          (member) => member.role === "OWNER" || member.role === "ADMIN"
+        );
 
-        const owner = await prisma.user.findUnique({
-          where: {
-            id: admin?.userId,
-          },
+        const mailsToSend = mailReceivers.map(async (receiver) => {
+          const owner = await prisma.user.findUnique({
+            where: {
+              id: receiver?.userId,
+            },
+          });
+
+          if (owner) {
+            EventData["admin"] = { email: owner?.email ?? "", name: owner?.name ?? "" };
+
+            const t = await getTranslation(owner?.locale ?? "en", "common");
+
+            // Only send email if user has allowed to receive monthly digest emails
+            if (owner.receiveMonthlyDigestEmail) {
+              await sendMonthlyDigestEmails({ ...EventData, language: t });
+            }
+          }
         });
-        EventData["admin"] = { email: owner?.email ?? "", name: owner?.name ?? "" };
 
-        const t = await getTranslation(owner?.locale ?? "en", "common");
-
-        // Only send email if events were booked in this time span
-        if (EventData.mostBookedEvents.length > 0) {
-          await sendMonthlyDigestEmails({ ...EventData, language: t });
-        }
+        await Promise.all(mailsToSend);
       }
 
       await delay(100); // Adjust the delay as needed to avoid rate limiting
