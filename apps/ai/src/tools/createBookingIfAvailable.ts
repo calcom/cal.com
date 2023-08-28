@@ -10,7 +10,6 @@ import { decrypt } from "../utils/encryption";
 const createBooking = async ({
   apiKeyHashed,
   apiKeyIV,
-  userId,
   eventTypeId,
   start,
   end,
@@ -21,7 +20,6 @@ const createBooking = async ({
 }: {
   apiKeyHashed: string;
   apiKeyIV: string;
-  userId: string;
   eventTypeId: number;
   start: string;
   end: string;
@@ -34,7 +32,6 @@ const createBooking = async ({
 }): Promise<string | Error | { error: string }> => {
   const params = {
     apiKey: decrypt(apiKeyHashed, apiKeyIV),
-    userId,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -79,7 +76,6 @@ const createBookingTool = new DynamicStructuredTool({
   func: async ({
     apiKeyHashed,
     apiKeyIV,
-    userId,
     eventTypeId,
     start,
     end,
@@ -103,7 +99,6 @@ const createBookingTool = new DynamicStructuredTool({
         status,
         timeZone,
         title,
-        userId,
       })
     );
   },
@@ -127,7 +122,6 @@ const createBookingTool = new DynamicStructuredTool({
     status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
     timeZone: z.string(),
     title: z.string().optional(),
-    userId: z.string(),
   }),
 });
 

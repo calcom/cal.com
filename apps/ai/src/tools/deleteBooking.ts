@@ -48,7 +48,14 @@ const cancelBooking = async ({
 const cancelBookingTool = new DynamicStructuredTool({
   description: "Cancel a booking",
   func: async ({ apiKeyHashed, apiKeyIV, id, reason }) => {
-    return JSON.stringify(await cancelBooking({ apiKeyHashed, apiKeyIV, id, reason }));
+    return JSON.stringify(
+      await cancelBooking({
+        apiKeyHashed,
+        apiKeyIV,
+        id,
+        reason,
+      })
+    );
   },
   name: "cancelBooking",
   schema: z.object({

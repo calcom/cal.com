@@ -13,7 +13,7 @@ export const POST = async (request: NextRequest) => {
 
   const { message, subject, user } = json;
 
-  if (!message || !subject || !user) {
+  if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 

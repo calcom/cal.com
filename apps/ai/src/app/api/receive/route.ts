@@ -28,8 +28,8 @@ export const POST = async (request: NextRequest) => {
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email);
 
-  if (!parsed.text || !parsed.subject) {
-    return new NextResponse("Email missing text or subject", { status: 400 });
+  if (!parsed.text && !parsed.subject) {
+    return new NextResponse("Email missing text and subject", { status: 400 });
   }
 
   const user = await prisma.user.findUnique({
@@ -56,8 +56,11 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse();
   }
 
+  const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
+  const key = credential && credential["apiKey"];
+
   // User has not installed the app from the app store. Direct them to install it.
-  if (!user?.credentials.find((c) => c.appId === env.APP_ID)?.key) {
+  if (!key) {
     const url = env.APP_URL;
 
     await sendEmail({
@@ -70,27 +73,43 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   }
 
-  const { hash: apiKeyHashed, initVector: apiKeyIV } = encrypt(env.CAL_API_KEY);
-  const userId = user.id.toString();
+  const { hash: apiKeyHashed, initVector: apiKeyIV } = encrypt(key);
+  const { hash: userIdHashed, initVector: userIdIV } = encrypt(user.id.toString());
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
     fetchEventTypes({
       apiKeyHashed,
       apiKeyIV,
-      userId,
     }),
     fetchAvailability({
       apiKeyHashed,
       apiKeyIV,
       dateFrom: now,
       dateTo: now,
-      userId,
+      userIdHashed,
+      userIdIV,
     }),
   ]);
 
   if ("error" in availability) {
+    await sendEmail({
+      subject: `Re: ${body.subject}`,
+      text: "Sorry, there was an error fetching your availability. Please try again.",
+      to: user.email,
+    });
+    console.error(availability.error);
     return new NextResponse("Error fetching availability. Please try again.", { status: 400 });
+  }
+
+  if ("error" in eventTypes) {
+    await sendEmail({
+      subject: `Re: ${body.subject}`,
+      text: "Sorry, there was an error fetching your event types. Please try again.",
+      to: user.email,
+    });
+    console.error(eventTypes.error);
+    return new NextResponse("Error fetching event types. Please try again.", { status: 400 });
   }
 
   const { timeZone, workingHours } = availability;
@@ -103,7 +122,8 @@ export const POST = async (request: NextRequest) => {
       message: parsed.text,
       subject: parsed.subject,
       user: {
-        id: userId,
+        userIdHashed,
+        userIdIV,
         email: user.email,
         apiKeyHashed,
         apiKeyIV,
