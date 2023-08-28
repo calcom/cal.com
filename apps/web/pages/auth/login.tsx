@@ -90,9 +90,13 @@ export default function Login({
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
-
+  const searchParamsString = searchParams.toString();
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <a
+      href={
+        searchParamsString != "" ? `${WEBSITE_URL}/signup?${searchParamsString}` : `${WEBSITE_URL}/signup`
+      }
+      className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
   );

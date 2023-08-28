@@ -81,9 +81,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           ...data,
           callbackUrl: `${
             searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }?from=signup`,
+              ? `${searchParams.get("callbackUrl")}&from=signup`
+              : `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`
+          }`,
         });
       })
       .catch((err) => {
