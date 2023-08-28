@@ -39,7 +39,7 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
-import { ArrowDown, ArrowLeft, ArrowUp, Sun } from "@calcom/ui/components/icon";
+import { ArrowLeft, Sun } from "@calcom/ui/components/icon";
 
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -246,36 +246,24 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       </div>
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
-          <Collapsible open>
-            <CollapsibleContent>
-              <div
-                className="text-default mb-[9px] flex cursor-pointer items-center justify-between text-sm"
-                onClick={() => setSelectTime((prev) => !prev)}>
-                <p>{t("select_time")}</p>{" "}
-                <>
-                  {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
-                </>
-              </div>
-              {selectTime && selectedDate ? (
-                <div className="flex h-full w-full flex-row gap-4">
-                  <AvailableTimes
-                    className="w-full"
-                    date={dayjs(selectedDate)}
-                    selectedSlots={
-                      eventType.slug &&
-                      selectedDatesAndTimes &&
-                      selectedDatesAndTimes[eventType.slug] &&
-                      selectedDatesAndTimes[eventType.slug][selectedDate as string]
-                        ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
-                        : undefined
-                    }
-                    onTimeSelect={onTimeSelect}
-                    slots={slots}
-                  />
-                </div>
-              ) : null}
-            </CollapsibleContent>
-          </Collapsible>
+          {selectTime && selectedDate ? (
+            <div className="flex h-full w-full flex-row gap-4">
+              <AvailableTimes
+                className="w-full"
+                date={dayjs(selectedDate)}
+                selectedSlots={
+                  eventType.slug &&
+                  selectedDatesAndTimes &&
+                  selectedDatesAndTimes[eventType.slug] &&
+                  selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    : undefined
+                }
+                onTimeSelect={onTimeSelect}
+                slots={slots}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
       <div className="mb-[9px] font-medium ">
