@@ -8,6 +8,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZEventTypeInputSchema } from "./getByViewer.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
 
@@ -28,7 +29,7 @@ const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
-  getByViewer: authedProcedure.query(async ({ ctx }) => {
+  getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
       UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
         (mod) => mod.getByViewerHandler
@@ -44,6 +45,7 @@ export const eventTypesRouter = router({
 
     const result = await UNSTABLE_HANDLER_CACHE.getByViewer({
       ctx,
+      input,
     });
 
     timer();

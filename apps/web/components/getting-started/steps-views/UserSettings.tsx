@@ -13,15 +13,14 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
-
 interface IUserSettingsProps {
-  user: IOnboardingPageProps["user"];
   nextStep: () => void;
+  hideUsername?: boolean;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { user, nextStep } = props;
+  const { nextStep } = props;
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   const telemetry = useTelemetry();
@@ -68,8 +67,8 @@ const UserSettings = (props: IUserSettingsProps) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
-        {/* Username textfield */}
-        <UsernameAvailabilityField user={user} />
+        {/* Username textfield: when not coming from signup */}
+        {!props.hideUsername && <UsernameAvailabilityField />}
 
         {/* Full name textfield */}
         <div className="w-full">

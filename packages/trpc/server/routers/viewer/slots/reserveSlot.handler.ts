@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

@@ -1,0 +1,43 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import { Examples, Example, Note, Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import TokenHandler from "./TokenHandler";
+
+<Meta title="UI/TokenHandler" component={TokenHandler} />
+
+<Title title="TokenHandler" subtitle="Version 0.1" />
+
+## Structure
+
+<TokenHandler
+  digits={[
+    {
+      value: "1",
+      onChange: (e) => {},
+    },
+    {
+      value: "2",
+      onChange: (e) => {},
+    },
+    {
+      value: "3",
+      onChange: (e) => {},
+    },
+    {
+      value: "4",
+      onChange: (e) => {},
+    },
+    {
+      value: "5",
+      onChange: (e) => {},
+    },
+    {
+      value: "6",
+      onChange: (e) => {},
+    },
+  ]}
+  digitClassName="digit-input"
+/>
+
+#all the numbers should be visible while the first one is focused

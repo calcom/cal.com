@@ -14,6 +14,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -59,6 +60,7 @@ async function getBooking(bookingId: number) {
           id: true,
           username: true,
           timeZone: true,
+          timeFormat: true,
           email: true,
           name: true,
           locale: true,
@@ -108,6 +110,7 @@ async function getBooking(bookingId: number) {
       email: user.email,
       name: user.name!,
       timeZone: user.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
     },
@@ -163,6 +166,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
           username: true,
           credentials: true,
           timeZone: true,
+          timeFormat: true,
           email: true,
           name: true,
           locale: true,
@@ -216,6 +220,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       email: user.email,
       name: user.name!,
       timeZone: user.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -393,7 +398,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (!event.account) {
+    // bypassing this validation for e2e tests
+    // in order to successfully confirm the payment
+    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
       throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
     }
 

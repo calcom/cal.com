@@ -1,11 +1,11 @@
 import z from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -27,12 +27,13 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { user } = ctx;
+  const { id, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
@@ -44,6 +45,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           dirName: true,
         },
       },
+      id: true,
+      type: true,
+      userId: true,
+      teamId: true,
+      invalid: true,
     },
   });
 
@@ -73,7 +79,10 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   for (const eventType of eventTypes) {
     if (eventType.locations) {
       // If it's a video, replace the location with Cal video
-      if (credential.app?.categories.includes(AppCategories.video)) {
+      if (
+        credential.app?.categories.includes(AppCategories.video) ||
+        credential.app?.categories.includes(AppCategories.conferencing)
+      ) {
         // Find the user's event types
 
         // Look for integration name from app slug
@@ -105,40 +114,22 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
 
     // If it's a calendar, remove the destination calendar from the event type
-    if (credential.app?.categories.includes(AppCategories.calendar)) {
-      if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
-        const destinationCalendar = await prisma.destinationCalendar.findFirst({
-          where: {
-            id: eventType.destinationCalendar?.id,
-          },
-        });
-        if (destinationCalendar) {
-          await prisma.destinationCalendar.delete({
-            where: {
-              id: destinationCalendar.id,
-            },
-          });
-        }
-      }
+    if (
+      credential.app?.categories.includes(AppCategories.calendar) &&
+      eventType.destinationCalendar?.credential?.appId === credential.appId
+    ) {
+      const destinationCalendar = await prisma.destinationCalendar.findFirst({
+        where: {
+          id: eventType.destinationCalendar?.id,
+        },
+      });
 
-      if (externalId) {
-        const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+      if (destinationCalendar) {
+        await prisma.destinationCalendar.delete({
           where: {
-            externalId: externalId,
+            id: destinationCalendar.id,
           },
         });
-        // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
-        if (existingSelectedCalendar) {
-          await prisma.selectedCalendar.delete({
-            where: {
-              userId_integration_externalId: {
-                userId: existingSelectedCalendar.userId,
-                externalId: existingSelectedCalendar.externalId,
-                integration: existingSelectedCalendar.integration,
-              },
-            },
-          });
-        }
       }
     }
 
@@ -311,6 +302,31 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
   }
 
+  // If it's a calendar remove it from the SelectedCalendars
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    try {
+      const calendar = await getCalendar(credential);
+
+      const calendars = await calendar?.listCalendars();
+
+      if (calendars && calendars.length > 0) {
+        calendars.map(async (cal) => {
+          await prisma.selectedCalendar.delete({
+            where: {
+              userId_integration_externalId: {
+                userId: user.id,
+                externalId: cal.externalId,
+                integration: cal.integration as string,
+              },
+            },
+          });
+        });
+      }
+    } catch {
+      console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
+    }
+  }
+
   // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
   if (credential.app?.slug === "zapier") {
     await prisma.apiKey.deleteMany({
@@ -344,8 +360,4 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
-  // Revalidate user calendar cache.
-  if (credential.app?.slug.includes("calendar")) {
-    await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
-  }
 };

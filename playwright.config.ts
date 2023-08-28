@@ -34,6 +34,8 @@ const webServer: PlaywrightTestConfig["webServer"] = [
 ];
 
 if (IS_EMBED_TEST) {
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
+
   webServer.push({
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
@@ -43,6 +45,8 @@ if (IS_EMBED_TEST) {
 }
 
 if (IS_EMBED_REACT_TEST) {
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
+
   webServer.push({
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
@@ -69,7 +73,7 @@ const config: PlaywrightTestConfig = {
   outputDir: path.join(outputDir, "results"),
   webServer,
   use: {
-    baseURL: "http://localhost:3000/",
+    baseURL: process.env.NEXT_PUBLIC_WEBAPP_URL,
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
@@ -84,6 +88,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
@@ -97,6 +102,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
@@ -108,7 +114,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
+      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
@@ -117,7 +123,7 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
+      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3101/" },
     },
     {
       name: "@calcom/embed-core--firefox",
@@ -261,3 +267,11 @@ expect.extend({
 });
 
 export default config;
+
+function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: string }) {
+  // We should't depend on an embed dependency for App's tests. So, conditionally modify App webServer.
+  // Only one of port or url can be specified, so remove port.
+  delete webServer.port;
+  webServer.url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;
+  console.log("Ensuring that /embed/embed.js is 200 before starting tests");
+}

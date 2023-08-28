@@ -14,7 +14,8 @@ import { identityProviderNameMap } from "./identityProviderNameMap";
 export default function CalComAdapter(prismaClient: PrismaClient) {
   return {
     createUser: (data: Prisma.UserCreateInput) => prismaClient.user.create({ data }),
-    getUser: (id: User["id"]) => prismaClient.user.findUnique({ where: { id } }),
+    getUser: (id: string | number) =>
+      prismaClient.user.findUnique({ where: { id: typeof id === "string" ? parseInt(id) : id } }),
     getUserByEmail: (email: User["email"]) => prismaClient.user.findUnique({ where: { email } }),
     async getUserByAccount(provider_providerAccountId: {
       providerAccountId: Account["providerAccountId"];
@@ -89,8 +90,11 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       return { user, session };
     },
     createSession: (data: Prisma.SessionCreateInput) => prismaClient.session.create({ data }),
-    updateSession: (data: Prisma.SessionWhereUniqueInput) =>
-      prismaClient.session.update({ where: { sessionToken: data.sessionToken }, data }),
+    updateSession: (data: Prisma.SessionUpdateInput) =>
+      prismaClient.session.update({
+        where: { sessionToken: typeof data.sessionToken === "string" ? data.sessionToken : undefined },
+        data,
+      }),
     deleteSession: (sessionToken: string) => prismaClient.session.delete({ where: { sessionToken } }),
   };
 }

@@ -1,13 +1,22 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
-const glob = require("glob");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
+const {
+  orgHostPath,
+  orgUserRoutePath,
+  orgUserTypeRoutePath,
+  orgUserTypeEmbedRoutePath,
+} = require("./pagesAndRewritePaths");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+
+// To be able to use the version in the app without having to import package.json
+process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
@@ -20,8 +29,10 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-
-if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+if (
+  process.env.CSP_POLICY === "strict" &&
+  (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
+) {
   throw new Error(
     "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
   );
@@ -70,7 +81,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -81,21 +91,52 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+const matcherConfigRootPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: "/",
+};
 
-/** Needed to rewrite public booking page, gets all static pages but [user] */
-const pages = glob
-  .sync("pages/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
-  .map((filename) =>
-    filename
-      .substr(6)
-      .replace(/(\.tsx|\.js|\.ts)/, "")
-      .replace(/\/.*/, "")
-  )
-  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]"));
+const matcherConfigUserRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserRoutePath,
+};
+
+const matcherConfigUserTypeRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeRoutePath,
+};
+
+const matcherConfigUserTypeEmbedRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeEmbedRoutePath,
+};
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: {
+    ...i18n,
+    localeDetection: false,
+  },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
@@ -183,58 +224,81 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
+    const beforeFiles = [
+      // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
+      ...(process.env.ORGANIZATIONS_ENABLED
+        ? [
+            {
+              ...matcherConfigRootPath,
+              destination: "/team/:orgSlug",
+            },
+            {
+              ...matcherConfigUserRoute,
+              destination: "/org/:orgSlug/:user",
+            },
+            {
+              ...matcherConfigUserTypeRoute,
+              destination: "/org/:orgSlug/:user/:type",
+            },
+            {
+              ...matcherConfigUserTypeEmbedRoute,
+              destination: "/org/:orgSlug/:user/:type/embed",
+            },
+          ]
+        : []),
+    ];
+
+    let afterFiles = [
       {
-        source: "/:user/avatar.png",
-        destination: "/api/user/avatar?username=:user",
+        source: "/org/:slug",
+        destination: "/team/:slug",
       },
       {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
-      {
-        source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
-      },
-      {
-        source: "/success/:path*",
-        has: [
-          {
-            type: "query",
-            key: "uid",
-            value: "(?<uid>.*)",
-          },
-        ],
-        destination: "/booking/:uid/:path*",
-      },
-      {
-        source: "/cancel/:path*",
-        destination: "/booking/:path*",
-      },
+
+      // When updating this also update pagesAndRewritePaths.js
+      ...[
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
+        {
+          source: "/forms/:formQuery*",
+          destination: "/apps/routing-forms/routing-link/:formQuery*",
+        },
+        {
+          source: "/router",
+          destination: "/apps/routing-forms/router",
+        },
+        {
+          source: "/success/:path*",
+          has: [
+            {
+              type: "query",
+              key: "uid",
+              value: "(?<uid>.*)",
+            },
+          ],
+          destination: "/booking/:uid/:path*",
+        },
+        {
+          source: "/cancel/:path*",
+          destination: "/booking/:path*",
+        },
+      ],
+
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-      {
-        source: `/:user((?!${pages.join("|")}).*)/:type`,
-        destination: "/new-booker/:user/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/team/:slug/:type",
-        destination: "/new-booker/team/:slug/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/d/:link/:slug",
-        destination: "/new-booker/d/:link/:slug",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
     ];
+
+    return {
+      beforeFiles,
+      afterFiles,
+    };
   },
   async headers() {
     return [
@@ -269,6 +333,44 @@ const nextConfig = {
           },
         ],
       },
+      ...[
+        {
+          ...matcherConfigRootPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/team/:orgSlug",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeEmbedRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type/embed",
+            },
+          ],
+        },
+      ],
     ];
   },
   async redirects() {
@@ -282,6 +384,11 @@ const nextConfig = {
         source: "/auth/signup",
         destination: "/signup",
         permanent: true,
+      },
+      {
+        source: "/auth",
+        destination: "/auth/login",
+        permanent: false,
       },
       {
         source: "/settings",
@@ -343,6 +450,37 @@ const nextConfig = {
         destination: "/event-types?openIntercom=true",
         permanent: true,
       },
+      {
+        source: "/apps/categories/video",
+        destination: "/apps/categories/conferencing",
+        permanent: true,
+      },
+      {
+        source: "/apps/installed/video",
+        destination: "/apps/installed/conferencing",
+        permanent: true,
+      },
+      // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
+      ...(process.env.NODE_ENV === "development" &&
+      // Safer to enable the redirect only when the user is opting to test out organizations
+      process.env.ORGANIZATIONS_ENABLED &&
+      // Prevent infinite redirect by checking that we aren't already on localhost
+      process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
+        ? [
+            {
+              has: [
+                {
+                  type: "header",
+                  key: "host",
+                  value: "localhost:3000",
+                },
+              ],
+              source: "/api/integrations/:args*",
+              destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
+              permanent: false,
+            },
+          ]
+        : []),
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {

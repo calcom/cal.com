@@ -1,3 +1,4 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type MeOptions = {
@@ -7,6 +8,7 @@ type MeOptions = {
 };
 
 export const meHandler = async ({ ctx }: MeOptions) => {
+  const crypto = await import("crypto");
   const { user } = ctx;
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
@@ -15,13 +17,14 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     name: user.name,
     username: user.username,
     email: user.email,
+    emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
     startTime: user.startTime,
     endTime: user.endTime,
     bufferTime: user.bufferTime,
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: user.avatar,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,
@@ -39,5 +42,8 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     metadata: user.metadata,
     defaultBookerLayouts: user.defaultBookerLayouts,
     allowDynamicBooking: user.allowDynamicBooking,
+    allowSEOIndexing: user.allowSEOIndexing,
+    organizationId: user.organizationId,
+    organization: user.organization,
   };
 };

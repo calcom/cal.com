@@ -12,7 +12,7 @@ import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {
   className?: string;
-  size: "xs" | "sm" | "md" | "mdLg" | "lg" | "xl";
+  size?: "xxs" | "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
@@ -24,16 +24,18 @@ export type AvatarProps = {
 };
 
 const sizesPropsBySize = {
-  xs: "w-4 h-4", // 16px
-  sm: "w-6 h-6", // 24px
-  md: "w-8 h-8", // 32px
-  mdLg: "w-10 h-10", //40px
-  lg: "w-16 h-16", // 64px
-  xl: "w-24 h-24", // 96px
+  xxs: "w-3.5 h-3.5 min-w-3.5 min-h-3.5", // 14px
+  xs: "w-4 h-4 min-w-4 min-h-4 max-h-4", // 16px
+  xsm: "w-5 h-5 min-w-5 min-h-5", // 20px
+  sm: "w-6 h-6 min-w-6 min-h-6", // 24px
+  md: "w-8 h-8 min-w-8 min-h-8", // 32px
+  mdLg: "w-10 h-10 min-w-10 min-h-10", //40px
+  lg: "w-16 h-16 min-w-16 min-h-16", // 64px
+  xl: "w-24 h-24 min-w-24 min-h-24", // 96px
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  const { imageSrc, gravatarFallbackMd5, size = "md", alt, title, href } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
@@ -48,11 +50,16 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
+        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
-            {props.fallback && !gravatarFallbackMd5 && props.fallback}
-            {gravatarFallbackMd5 && (
-              <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
+            {props.fallback ? (
+              props.fallback
+            ) : (
+              <img
+                src={defaultAvatarSrc({ md5: gravatarFallbackMd5 ?? "fallback" })}
+                alt={alt}
+                className={rootClass}
+              />
             )}
           </>
         </AvatarPrimitive.Fallback>

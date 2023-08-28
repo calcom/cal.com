@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "http";
 import type { Session } from "next-auth";
 
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 
 import "./next-auth";
 
@@ -21,4 +21,11 @@ export declare module "next" {
     isCustomPrisma: boolean;
     pagination: { take: number; skip: number };
   }
+}
+
+export declare module "next/navigation" {
+  interface Params {
+    [key: string]: string;
+  }
+  export declare function useParams(): Params | null;
 }

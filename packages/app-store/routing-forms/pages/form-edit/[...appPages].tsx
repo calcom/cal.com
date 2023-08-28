@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { Controller, useFieldArray } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
@@ -65,7 +66,6 @@ function Field({
   hookForm,
   hookFieldNamespace,
   deleteField,
-  fieldIndex,
   moveUp,
   moveDown,
   appUrl,
@@ -145,6 +145,17 @@ function Field({
         .join("\n")
     );
   };
+
+  const label = useWatch({
+    control: hookForm.control,
+    name: `${hookFieldNamespace}.label`,
+  });
+
+  const identifier = useWatch({
+    control: hookForm.control,
+    name: `${hookFieldNamespace}.identifier`,
+  });
+
   return (
     <div
       data-testid="field"
@@ -160,6 +171,7 @@ function Field({
         <div className="w-full">
           <div className="mb-6 w-full">
             <TextField
+              data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
               label="Label"
               className="flex-grow"
@@ -168,7 +180,7 @@ function Field({
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
                * For other fields, value property is used because it exists and would take precedence
                */
-              defaultValue={routerField?.label}
+              defaultValue={label || routerField?.label || ""}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
             />
@@ -183,10 +195,7 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              defaultValue={
-                hookForm.watch(`${hookFieldNamespace}.identifier`) ||
-                hookForm.watch(`${hookFieldNamespace}.label`)
-              }
+              value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
               }}

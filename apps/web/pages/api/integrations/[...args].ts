@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
-import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
@@ -14,12 +14,14 @@ const defaultIntegrationAddHandler = async ({
   supportsMultipleInstalls,
   appType,
   user,
+  teamId = undefined,
   createCredential,
 }: {
   slug: string;
   supportsMultipleInstalls: boolean;
   appType: string;
   user?: Session["user"];
+  teamId?: number;
   createCredential: AppDeclarativeHandler["createCredential"];
 }) => {
   if (!user?.id) {
@@ -29,21 +31,24 @@ const defaultIntegrationAddHandler = async ({
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         appId: slug,
-        userId: user.id,
+        ...(teamId ? { AND: [{ userId: user.id }, { teamId }] } : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {
       throw new Error("App is already installed");
     }
   }
-  await createCredential({ user: user, appType, slug });
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId: user.id });
+
+  await createCredential({ user: user, appType, slug, teamId });
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getServerSession({ req, res });
 
-  const { args } = req.query;
+  const { args, teamId } = req.query;
 
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
@@ -55,6 +60,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
+    if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     let redirectUrl = "/apps/installed";
     if (typeof handler === "undefined")
@@ -62,21 +68,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (typeof handler === "function") {
       await handler(req, res);
-      if (appName.includes("calendar") && req.session?.user?.username) {
-        await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
-      }
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
-      if (handler.appType.includes("calendar") && req.session?.user?.username) {
-        await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
-      }
+      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
     return res.status(200);
   } catch (error) {
     console.error(error);
-
     if (error instanceof HttpError) {
       return res.status(error.statusCode).json({ message: error.message });
     }

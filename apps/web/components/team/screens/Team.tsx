@@ -1,38 +1,32 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
-type TeamType = NonNullable<TeamWithMembers>;
+type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number] & { safeBio: string | null };
-
-type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
+type TeamTypeWithSafeHtml = Omit<TeamType, "members" | "inviteToken"> & { members: MemberType[] };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
+  const routerQuery = useRouterQuery();
   const { t } = useLocale();
-  const router = useRouter();
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
 
-  // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  // We don't want to forward orgSlug and user which are route params to the next route
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>
       <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
-        <Avatar
-          size="md"
-          alt={member.name || ""}
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
-        />
-        <section className="line-clamp-4 mt-2 w-full space-y-1">
+        <Avatar size="md" alt={member.name || ""} imageSrc={"/" + member.username + "/avatar.png"} />
+        <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="line-clamp-3 text-subtle overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div

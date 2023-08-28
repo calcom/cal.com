@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
@@ -47,7 +47,6 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
- *                 example: my-event
  *               hosts:
  *                 type: array
  *                 items:
@@ -61,6 +60,9 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               hidden:
  *                 type: boolean
  *                 description: If the event type should be hidden from your public booking page
+ *               scheduleId:
+ *                 type: number
+ *                 description: The ID of the schedule for this event type
  *               position:
  *                 type: integer
  *                 description: The position of the event type on the public booking page
@@ -168,9 +170,9 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                             type: string
  *                           displayLocationPublicly:
  *                             type: boolean
- *           example:
+ *           examples:
  *              event-type:
- *                summary: An example of event type POST request
+ *                summary: An example of an individual event type POST request
  *                value:
  *                  title: Hello World
  *                  slug: hello-world
@@ -179,6 +181,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                  position: 0
  *                  eventName: null
  *                  timeZone: null
+ *                  scheduleId: 5
  *                  periodType: UNLIMITED
  *                  periodStartDate: 2023-02-15T08:46:16.000Z
  *                  periodEndDate: 2023-0-15T08:46:16.000Z
@@ -205,6 +208,42 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                      }
  *                    }
  *                  }
+ *              team-event-type:
+ *                summary: An example of a team event type POST request
+ *                value:
+ *                  title: "Tennis class"
+ *                  slug: "tennis-class-{{$guid}}"
+ *                  length: 60
+ *                  hidden: false
+ *                  position: 0
+ *                  teamId: 3
+ *                  eventName: null
+ *                  timeZone: null
+ *                  periodType: "UNLIMITED"
+ *                  periodStartDate: null
+ *                  periodEndDate: null
+ *                  periodDays: null
+ *                  periodCountCalendarDays: null
+ *                  requiresConfirmation: true
+ *                  recurringEvent:
+ *                    interval: 2
+ *                    count: 10
+ *                    freq: 2
+ *                  disableGuests: false
+ *                  hideCalendarNotes: false
+ *                  minimumBookingNotice: 120
+ *                  beforeEventBuffer: 0
+ *                  afterEventBuffer: 0
+ *                  schedulingType: "COLLECTIVE"
+ *                  price: 0
+ *                  currency: "usd"
+ *                  slotInterval: null
+ *                  successRedirectUrl: null
+ *                  description: null
+ *                  locations:
+ *                    - address: "London"
+ *                      type: "inPerson"
+ *                  metadata: {}
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -220,12 +259,19 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma, body } = req;
 
-  const { hosts = [], ...parsedBody } = schemaEventTypeCreateBodyParams.parse(body || {});
+  const {
+    hosts = [],
+    bookingLimits,
+    durationLimits,
+    ...parsedBody
+  } = schemaEventTypeCreateBodyParams.parse(body || {});
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
     userId,
     users: { connect: { id: userId } },
+    bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
+    durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
   await checkPermissions(req);

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 
 type Response = {
@@ -8,6 +9,7 @@ type Response = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>): Promise<void> {
-  const result = await checkUsername(req.body.username);
+  const { currentOrgDomain } = orgDomainConfig(req.headers.host ?? "");
+  const result = await checkUsername(req.body.username, currentOrgDomain);
   return res.status(200).json(result);
 }

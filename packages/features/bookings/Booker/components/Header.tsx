@@ -16,16 +16,25 @@ export function Header({
   extraDays,
   isMobile,
   enabledLayouts,
+  nextSlots,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
+  nextSlots: number;
 }) {
+  const { t, i18n } = useLocale();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
+  const today = dayjs();
+  const selectedDateMin3DaysDifference = useMemo(() => {
+    const diff = today.diff(selectedDate, "days");
+    return diff > 3 || diff < -3;
+  }, [today, selectedDate]);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -39,55 +48,81 @@ export function Header({
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
-  const LayoutToggleWithData = () => (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
-  );
+  const LayoutToggleWithData = () => {
+    return enabledLayouts.length <= 1 ? null : (
+      <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    );
+  };
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    if (enabledLayouts.length <= 1) return null;
-    return (
-      <div className="fixed top-3 right-3 z-10">
-        <LayoutToggleWithData />
-      </div>
-    );
+    return <LayoutToggleWithData />;
   }
+  const endDate = selectedDate.add(layout === BookerLayouts.COLUMN_VIEW ? extraDays : extraDays - 1, "days");
+
+  const isSameMonth = () => {
+    return selectedDate.format("MMM") === endDate.format("MMM");
+  };
+
+  const isSameYear = () => {
+    return selectedDate.format("YYYY") === endDate.format("YYYY");
+  };
+  const formattedMonth = new Intl.DateTimeFormat(i18n.language, { month: "short" });
+  const FormattedSelectedDateRange = () => {
+    return (
+      <h3 className="min-w-[150px] text-base font-semibold leading-4">
+        {formattedMonth.format(selectedDate.toDate())} {selectedDate.format("D")}
+        {!isSameYear() && <span className="text-subtle">, {selectedDate.format("YYYY")} </span>}-{" "}
+        {!isSameMonth() && formattedMonth.format(endDate.toDate())} {endDate.format("D")},{" "}
+        <span className="text-subtle">
+          {isSameYear() ? selectedDate.format("YYYY") : endDate.format("YYYY")}
+        </span>
+      </h3>
+    );
+  };
 
   return (
-    <div className="border-subtle relative z-10 flex border-l border-b px-5 py-4">
-      <div className="flex items-center gap-3">
-        <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
-          <span className="text-subtle">{selectedDate.format("YYYY")}</span>
-        </h3>
+    <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
+      <div className="flex items-center gap-5 rtl:flex-grow">
+        <FormattedSelectedDateRange />
         <ButtonGroup>
           <Button
+            className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(-extraDays - 1)}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
           <Button
+            className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(extraDays + 1)}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />
+          {selectedDateMin3DaysDifference && (
+            <Button
+              className="capitalize ltr:ml-2 rtl:mr-2"
+              color="secondary"
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              {t("today")}
+            </Button>
+          )}
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
         <TimeFormatToggle />
-        <div className="fixed top-4 right-4">
+        <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData />
         </div>
         {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
           for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
           would be really weird, because the element is positioned fixed in the month view, and then
-          when switching layouts wouldn't anymmore, causing it to animate from the center to the top right,
-          while it actuall already was on place. That's why we have this element twice.
+          when switching layouts wouldn't anymore, causing it to animate from the center to the top right,
+          while it actually already was on place. That's why we have this element twice.
         */}
         <div className="pointer-events-none opacity-0" aria-hidden>
           <LayoutToggleWithData />
@@ -106,7 +141,10 @@ const LayoutToggle = ({
   layout: string;
   enabledLayouts?: BookerLayouts[];
 }) => {
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+
   const { t } = useLocale();
+
   const layoutOptions = useMemo(() => {
     return [
       {
@@ -126,6 +164,12 @@ const LayoutToggle = ({
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);
+
+  // We don't want to show the layout toggle in embed mode as of now as it doesn't look rightly placed when embedded.
+  // There is a Embed API to control the layout toggle from outside of the iframe.
+  if (isEmbed) {
+    return null;
+  }
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };

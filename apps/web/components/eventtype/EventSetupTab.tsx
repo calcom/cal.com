@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,15 +117,27 @@ export const EventSetupTab = (
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const orgBranding = useOrgBranding();
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
-  const locationOptions = props.locationOptions.filter((option) => {
-    return !team ? option.label !== "Conferencing" : true;
+  const locationOptions = props.locationOptions.map((locationOption) => {
+    const options = locationOption.options.filter((option) => {
+      // Skip "Organizer's Default App" for non-team members
+      return !team ? option.label !== t("organizer_default_conferencing_app") : true;
+    });
+
+    return {
+      ...locationOption,
+      options,
+    };
   });
 
-  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
-    value: mins,
-    label: t("multiple_duration_mins", { count: mins }),
-  }));
+  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180].map(
+    (mins) => ({
+      value: mins,
+      label: t("multiple_duration_mins", { count: mins }),
+    })
+  );
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{
@@ -284,7 +297,7 @@ export const EventSetupTab = (
               return (
                 <li
                   key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 h-9 rounded-md border px-2 py-1.5 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
@@ -298,7 +311,9 @@ export const EventSetupTab = (
                         )}
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
+                      <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${
+                        location.teamName ? `(${location.teamName})` : ""
+                      }`}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -332,7 +347,7 @@ export const EventSetupTab = (
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
               <div className="text-default flex text-sm">
-                <Check className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Check className="mr-1.5 mt-0.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
@@ -373,6 +388,9 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+  const urlPrefix = orgBranding
+    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
+    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -401,10 +419,10 @@ export const EventSetupTab = (
           defaultValue={eventType.slug}
           addOnLeading={
             <>
-              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {urlPrefix}/
               {!isManagedEventType
                 ? team
-                  ? "team/" + team.slug
+                  ? (orgBranding ? "" : "team/") + team.slug
                   : eventType.users[0].username
                 : t("username_placeholder")}
               /
@@ -491,6 +509,8 @@ export const EventSetupTab = (
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
               checked={multipleDuration !== undefined}
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
               onCheckedChange={() => {
                 if (multipleDuration !== undefined) {
                   setMultipleDuration(undefined);
@@ -522,7 +542,6 @@ export const EventSetupTab = (
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog
-        isTeamEvent={!!team}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
         saveLocation={saveLocation}
@@ -545,6 +564,7 @@ export const EventSetupTab = (
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}
+        teamId={eventType.team?.id}
       />
     </div>
   );

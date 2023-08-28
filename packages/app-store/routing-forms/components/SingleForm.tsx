@@ -1,9 +1,10 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -55,6 +56,10 @@ import RoutingNavBar from "./RoutingNavBar";
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type RoutingFormWithResponseCount = RoutingForm & {
+  team: {
+    slug: Team["slug"];
+    name: Team["name"];
+  } | null;
   _count: {
     responses: number;
   };
@@ -132,7 +137,7 @@ const Actions = ({
           tooltip={t("delete")}
         />
         {typeformApp?.isInstalled ? (
-          <FormActionsDropdown form={form}>
+          <FormActionsDropdown>
             <FormAction
               data-testid="copy-redirect-url"
               routingForm={form}
@@ -147,7 +152,7 @@ const Actions = ({
       </ButtonGroup>
 
       <div className="flex md:hidden">
-        <FormActionsDropdown form={form}>
+        <FormActionsDropdown>
           <FormAction
             routingForm={form}
             color="minimal"
@@ -243,19 +248,39 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
+  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
 
   function testRouting() {
     const action = processRoute({ form, response });
     setDecidedAction(action);
   }
 
-  const hookForm = useForm({
-    defaultValues: form,
-  });
+  const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
-    hookForm.reset(form);
-  }, [form, hookForm]);
+    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
+    // and then it is considered the source of truth.
+
+    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
+
+    // 1 - When we change the edited form.
+
+    // 2 - When the form is saved elsewhere (such as in another browser tab)
+
+    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
+    // because each time a tab changes, a new component is created and another useEffect is executed.
+    // An update from the form always occurs after the first useEffect execution.
+    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
+      hookForm.reset(form);
+    }
+
+    if (skipFirstUpdate) {
+      setSkipFirstUpdate(false);
+    } else {
+      hookForm.reset(form);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
@@ -288,7 +313,16 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         <FormActionsProvider appUrl={appUrl}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
-            heading={form.name}
+            heading={
+              <div className="flex">
+                <div>{form.name}</div>
+                {form.team && (
+                  <Badge className="ml-4 mt-1" variant="gray">
+                    {form.team.name}
+                  </Badge>
+                )}
+              </div>
+            }
             subtitle={form.description || ""}
             backPath={`/${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
@@ -507,7 +541,11 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   if (!form) {
     throw new Error(t("something_went_wrong"));
   }
-  return <SingleForm form={form} {...props} />;
+  return (
+    <LicenseRequired>
+      <SingleForm form={form} {...props} />
+    </LicenseRequired>
+  );
 }
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
@@ -539,8 +577,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
-  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
+  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
+  if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
       notFound: true,
     };
@@ -551,6 +589,12 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       id: formId,
     },
     include: {
+      team: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
       _count: {
         select: {
           responses: true,
@@ -567,7 +611,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: await getSerializableForm(form),
+      form: await getSerializableForm({ form }),
     },
   };
 };

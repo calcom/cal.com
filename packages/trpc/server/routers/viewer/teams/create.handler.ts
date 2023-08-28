@@ -1,4 +1,3 @@
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -16,15 +15,35 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
+  const { user } = ctx;
   const { slug, name, logo } = input;
+  const isOrgChildTeam = !!user.organizationId;
+
+  // For orgs we want to create teams under the org
+  if (user.organizationId && !user.organization.isOrgAdmin) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
+  }
 
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
+      // If this is under an org, check that the team doesn't already exist
+      parentId: isOrgChildTeam ? user.organizationId : null,
     },
   });
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
+
+  if (user.organizationId) {
+    const nameCollisions = await prisma.user.findFirst({
+      where: {
+        organizationId: user.organization.id,
+        username: slug,
+      },
+    });
+
+    if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
+  }
 
   // Ensure that the user is not duplicating a requested team
   const duplicatedRequest = await prisma.team.findFirst({
@@ -47,6 +66,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const createTeam = await prisma.team.create({
     data: {
+      ...(isOrgChildTeam ? { slug } : {}),
       name,
       logo,
       members: {
@@ -56,10 +76,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      metadata: {
-        requestedSlug: slug,
-      },
-      ...(!IS_TEAM_BILLING_ENABLED && { slug }),
+      metadata: !isOrgChildTeam
+        ? {
+            requestedSlug: slug,
+          }
+        : undefined,
+      ...(isOrgChildTeam && { parentId: user.organizationId }),
     },
   });
 

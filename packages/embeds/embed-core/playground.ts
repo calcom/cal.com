@@ -6,8 +6,38 @@ const callback = function (e) {
   console.log("Event: ", e.type, detail);
 };
 
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+  if ("href" in target && typeof target.href === "string") {
+    const toUrl = new URL(target.href);
+    const pageUrl = new URL(document.URL);
+    for (const [name, value] of pageUrl.searchParams.entries()) {
+      if (toUrl.searchParams.get(name) === null) {
+        toUrl.searchParams.append(decodeURIComponent(name), value);
+      }
+    }
+    location.href = `?${toUrl.searchParams.toString()}#${toUrl.hash}`;
+    e.preventDefault();
+  }
+});
+
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const colorScheme = searchParams.get("color-scheme");
+
+if (colorScheme) {
+  document.documentElement.style.colorScheme = colorScheme;
+}
+const themeInParam = searchParams.get("theme");
+const validThemes = ["light", "dark", "auto"] as const;
+const theme = validThemes.includes((themeInParam as (typeof validThemes)[number]) || "")
+  ? (themeInParam as (typeof validThemes)[number])
+  : null;
+if (themeInParam && !theme) {
+  throw new Error(`Invalid theme: ${themeInParam}`);
+}
+
+const calLink = searchParams.get("cal-link");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -331,7 +361,7 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro/30min",
+    calLink: calLink || "pro",
     config: {
       iframeAttrs: {
         id: "floatingtest",
@@ -340,7 +370,91 @@ if (only === "all" || only == "ns:floatingButton") {
       email: "johndoe@gmail.com",
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
-      theme: "dark",
+      ...(theme ? { theme } : {}),
     },
+  });
+}
+
+if (only === "all" || only == "ns:monthView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "monthView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.monthView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-monthView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-monthView-iframe",
+        },
+        layout: "month_view",
+      },
+    }
+  );
+  Cal.ns.monthView("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only == "ns:weekView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "weekView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.weekView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-weekView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-weekView-iframe",
+        },
+        layout: "week_view",
+      },
+    }
+  );
+  Cal.ns.weekView("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only == "ns:columnView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "columnView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.columnView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-columnView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-columnView-iframe",
+        },
+        layout: "column_view",
+      },
+    }
+  );
+  Cal.ns.columnView("on", {
+    action: "*",
+    callback,
   });
 }

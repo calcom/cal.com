@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
@@ -8,6 +7,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -67,6 +67,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         select: {
           name: true,
           id: true,
+          parentId: true,
         },
       },
     },
@@ -187,7 +188,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const teamMemberIds = memberships.map((membership) => membership.userId);
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId))) {
+    // we let this pass through on organization sub-teams
+    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
@@ -298,10 +300,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-  const updatedEventType = await ctx.prisma.eventType.update({
-    where: { id },
-    data,
+
+  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    slug: true,
+    schedulingType: true,
   });
+  let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
+  try {
+    updatedEventType = await ctx.prisma.eventType.update({
+      where: { id },
+      data,
+      select: updatedEventTypeSelect,
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2002") {
+        // instead of throwing a 500 error, catch the conflict and throw a 400 error.
+        throw new TRPCError({ message: "error_event_type_url_duplicate", code: "BAD_REQUEST" });
+      }
+    }
+    throw e;
+  }
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({

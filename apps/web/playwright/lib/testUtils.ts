@@ -2,7 +2,9 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
+import type { API, Messages } from "mailhog";
 
 import { test } from "./fixtures";
 
@@ -17,6 +19,9 @@ type RequestHandler = (opts: RequestHandlerOptions) => void;
 
 export const testEmail = "test@example.com";
 export const testName = "Test Testson";
+
+export const teamEventTitle = "Team Event - 30min";
+export const teamEventSlug = "team-event-30min";
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
@@ -79,38 +84,21 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
+
   // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
-  // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
+
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
+
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
@@ -195,5 +183,48 @@ export async function gotoRoutingLink({
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+export async function installAppleCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+  await page.waitForURL("/apps/apple-calendar");
+  await page.click('[data-testid="install-app-button"]');
+}
+export async function getEmailsReceivedByUser({
+  emails,
+  userEmail,
+}: {
+  emails?: API;
+  userEmail: string;
+}): Promise<Messages | null> {
+  if (!emails) return null;
+  return emails.search(userEmail, "to");
+}
+
+export async function expectEmailsToHaveSubject({
+  emails,
+  organizer,
+  booker,
+  eventTitle,
+}: {
+  emails?: API;
+  organizer: { name?: string | null; email: string };
+  booker: { name: string; email: string };
+  eventTitle: string;
+}) {
+  if (!emails) return null;
+  const emailsOrganizerReceived = await getEmailsReceivedByUser({ emails, userEmail: organizer.email });
+  const emailsBookerReceived = await getEmailsReceivedByUser({ emails, userEmail: booker.email });
+
+  expect(emailsOrganizerReceived?.total).toBe(1);
+  expect(emailsBookerReceived?.total).toBe(1);
+
+  const [organizerFirstEmail] = (emailsOrganizerReceived as Messages).items;
+  const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
+  const emailSubject = `${eventTitle} between ${organizer.name ?? "Nameless"} and ${booker.name}`;
+
+  expect(organizerFirstEmail.subject).toBe(emailSubject);
+  expect(bookerFirstEmail.subject).toBe(emailSubject);
 }
