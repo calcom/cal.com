@@ -9,15 +9,6 @@ import { context } from "../utils/context";
  * Fetches event types by user ID.
  */
 export const fetchEventTypes = async () => {
-  // TODO: comment this out once the bug is fixed with get event types in the API app
-  return [
-    {
-      id: 22,
-      length: 15,
-      title: "Quick Chat",
-    },
-  ];
-
   const params = {
     apiKey: context.apiKey,
   };
