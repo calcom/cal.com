@@ -110,7 +110,7 @@ export const POST = async (request: NextRequest) => {
 
   const appHost = getHostFromHeaders(request.headers);
 
-  // Hand off to long-running agent endpoint to handle the email.
+  // Hand off to long-running agent endpoint to handle the email. (don't await)
   fetch(`${appHost}/api/agent`, {
     body: JSON.stringify({
       context,

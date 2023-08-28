@@ -25,6 +25,7 @@ export const POST = async (request: NextRequest) => {
   try {
     const response = await agent(`${subject}\n\n${message}`, user);
 
+    // Send response to user
     await sendEmail({
       // html: response.replace(/(?:\r\n|\r|\n)/g, "<br>"),
       subject: `Re: ${subject}`,
