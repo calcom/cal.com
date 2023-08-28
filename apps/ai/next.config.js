@@ -1,4 +1,7 @@
+const withBundleAnalyzer = require("@next/bundle-analyzer");
+
 const plugins = [];
+plugins.push(withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" }));
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
