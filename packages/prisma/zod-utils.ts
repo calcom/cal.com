@@ -608,3 +608,5 @@ export const ZVerifyCodeInputSchema = z.object({
 });
 
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
+
+export const coerceToDate = z.coerce.date();

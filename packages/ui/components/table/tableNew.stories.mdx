@@ -1,0 +1,50 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  CustomArgsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { TableNewExampleComponent } from "./TableExamples";
+import { Table } from "./TableNew";
+
+<Meta title="UI/Table/TableNew" component={Table} />
+
+<Title title="Table New" suffix="Brief" subtitle="Version 1.0 — Last Update: 21 Aug 2023" />
+
+## Definition
+
+The `Table` component (from TableNew.tsx) is a HTML table that utilizes Tailwind classes to enhance its styles.
+
+## Structure
+
+The `Table` component should be used with other table sub-components (exported in the same file) that follow the same pattern.
+These components render common elements that are styled with Tailwind. These components include:
+
+- `TableBody` -> (`tbody`)
+- `TableHeader` -> (`thead`)
+- `TableRow` -> (`tr`)
+- `TableHead` -> (`th`)
+- `TableCell` -> (`td`)
+- `TableFooter` -> (`tfoot`)
+- `TableCaption` -> (`caption`)
+
+<CustomArgsTable of={Table} />
+
+<Title offset title="Table New" suffix="Variants" />
+
+<Canvas>
+  <Story name="Table New">
+    {(props) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <TableNewExampleComponent />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>
