@@ -1,7 +1,5 @@
 # Cal.com Email Assistant
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`. Currently, it contains lots of tRPC scaffolding.
-
 The core logic is contained in [src/pages/api/receive.ts](https://github.com/RubricLab/cal-email-ai/blob/main/src/pages/api/receive.ts). This file contains some helpers:
 
 - `parseFormData` to extract the text from incoming emails (which have a complex raw format)
