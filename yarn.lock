@@ -4124,7 +4124,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/embed-core@workspace:packages/embeds/embed-core"
   dependencies:
-    "@playwright/test": ^1.31.2
+    "@playwright/test": ^1.37.1
     autoprefixer: ^10.4.12
     npm-run-all: ^4.1.5
     postcss: ^8.4.18
@@ -4140,7 +4140,7 @@ __metadata:
   dependencies:
     "@calcom/embed-core": "workspace:*"
     "@calcom/embed-snippet": "workspace:*"
-    "@playwright/test": ^1.31.2
+    "@playwright/test": ^1.37.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^2.2.0
@@ -4824,7 +4824,7 @@ __metadata:
     "@microsoft/microsoft-graph-types-beta": 0.15.0-preview
     "@next-auth/prisma-adapter": ^1.0.4
     "@next/bundle-analyzer": ^13.1.6
-    "@playwright/test": ^1.31.2
+    "@playwright/test": ^1.37.1
     "@radix-ui/react-avatar": ^1.0.0
     "@radix-ui/react-collapsible": ^1.0.0
     "@radix-ui/react-dialog": ^1.0.4
@@ -7744,19 +7744,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.31.2":
-  version: 1.31.2
-  resolution: "@playwright/test@npm:1.31.2"
+"@playwright/test@npm:^1.37.1":
+  version: 1.37.1
+  resolution: "@playwright/test@npm:1.37.1"
   dependencies:
     "@types/node": "*"
     fsevents: 2.3.2
-    playwright-core: 1.31.2
+    playwright-core: 1.37.1
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 5459ee0ce15b9a54337f4c26e2ee2d29c11e67e6207c167158eb180a4bea6659c988a2897f51dbebf591fc879f0d81f417e70936b9d8a001448c957939882588
+  checksum: b7038f29000289103c08b215eff7aabdda70cdc1375fa7dad0e81651be71086a1e2fc0e0e29dc70348037c366cf0cc69f762373fda34ba1a74aa1658741d9195
   languageName: node
   linkType: hard
 
@@ -15753,7 +15753,7 @@ __metadata:
   dependencies:
     "@changesets/cli": ^2.26.1
     "@deploysentinel/playwright": ^0.3.3
-    "@playwright/test": ^1.31.2
+    "@playwright/test": ^1.37.1
     "@snaplet/copycat": ^0.3.0
     "@testing-library/jest-dom": ^5.16.5
     c8: ^7.13.0
@@ -28918,15 +28918,6 @@ __metadata:
     mlly: ^1.2.0
     pathe: ^1.1.0
   checksum: 4b305c834b912ddcc8a0fe77530c0b0321fe340396f84cbb87aecdbc126606f47f2178f23b8639e71a4870f9631c7217aef52ffed0ae17ea2dbbe7e43d116a6e
-  languageName: node
-  linkType: hard
-
-"playwright-core@npm:1.31.2":
-  version: 1.31.2
-  resolution: "playwright-core@npm:1.31.2"
-  bin:
-    playwright: cli.js
-  checksum: bf1257b7d80b9d027c99cbfa7ab9d47a2110ec804422b3e3d623bbb3c43e06df7bec4764ca1d852a6d62c76e35c8776efb19941f42ce738db9bc92e7f1b6281c
   languageName: node
   linkType: hard
 
