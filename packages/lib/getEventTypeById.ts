@@ -321,7 +321,7 @@ export default async function getEventTypeById({
     }
     eventType.users.push(fallbackUser);
   }
-  console.log({ parent: eventType.team?.parent });
+
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
     (user) => ({
       ...user,
