@@ -9,7 +9,7 @@ import { Select } from "@calcom/ui";
 import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const [enabled, setEnabled] = useState(getAppData("enabled"));
   const [projects, setProjects] = useState();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
@@ -32,7 +32,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
-      setAppData={setAppData}
       app={app}
       switchOnClick={(e) => {
         if (!e) {

@@ -14,6 +14,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
@@ -602,6 +603,28 @@ export const emailSchemaRefinement = (value: string) => {
   return emailRegex.test(value);
 };
 
+export const signupSchema = z.object({
+  username: z.string().refine((value) => !value.includes("+"), {
+    message: "String should not contain a plus symbol (+).",
+  }),
+  email: z.string().email(),
+  password: z.string().superRefine((data, ctx) => {
+    const isStrict = false;
+    const result = isPasswordValid(data, true, isStrict);
+    Object.keys(result).map((key: string) => {
+      if (!result[key as keyof typeof result]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: key,
+        });
+      }
+    });
+  }),
+  language: z.string().optional(),
+  token: z.string().optional(),
+});
+
 export const ZVerifyCodeInputSchema = z.object({
   email: z.string().email(),
   code: z.string(),
@@ -610,3 +633,4 @@ export const ZVerifyCodeInputSchema = z.object({
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 
 export const coerceToDate = z.coerce.date();
+
