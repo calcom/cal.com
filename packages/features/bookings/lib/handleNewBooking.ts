@@ -1153,8 +1153,10 @@ async function handler(
 
   const teamId = await getTeamIdFromEventType({ eventType });
 
+  const triggerForUser = !teamId || (teamId && eventType.parentId);
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUser.id,
+    userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
@@ -1167,7 +1169,7 @@ async function handler(
   subscriberOptions.triggerEvent = eventTrigger;
 
   const subscriberOptionsMeetingEnded = {
-    userId: organizerUser.id,
+    userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,

@@ -158,9 +158,10 @@ test.describe("pro user", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    additionalGuests.forEach(async (email) => {
+    const promises = additionalGuests.map(async (email) => {
       await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
+    await Promise.all(promises);
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
