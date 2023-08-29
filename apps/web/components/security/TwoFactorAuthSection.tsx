@@ -19,7 +19,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
           <div className="flex flex-row items-center">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">{t("2fa")}</h2>
             <Badge className="ml-2 text-xs" variant={enabled ? "success" : "gray"}>
-              {enabled ? t("enabled") : t("disabled")} HELLO
+              {enabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
           <p className="text-subtle mt-1 text-sm">{t("add_an_extra_layer_of_security")}</p>
