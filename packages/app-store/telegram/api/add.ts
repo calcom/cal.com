@@ -9,9 +9,8 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  createCredential: ({ appType, user, slug, teamId }) => {
-    createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId });
-  },
+  createCredential: ({ appType, user, slug, teamId }) =>
+    createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
 };
 
 export default handler;
