@@ -16,7 +16,6 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    EMAIL_FROM_AI: process.env.EMAIL_FROM_AI,
     BACKEND_URL: process.env.BACKEND_URL,
     APP_ID: process.env.APP_ID,
     APP_URL: process.env.APP_URL,
@@ -29,7 +28,6 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    EMAIL_FROM_AI: z.string().email(),
     BACKEND_URL: z.string().url(),
     APP_ID: z.string().min(1),
     APP_URL: z.string().url(),

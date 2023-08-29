@@ -25,7 +25,7 @@ export const POST = async (request: NextRequest) => {
 
   const envelope = JSON.parse(body.envelope);
 
-  const aiEmail = envelope.to?.length === 1 ? envelope.to[0] : env.EMAIL_FROM_AI;
+  const aiEmail = envelope.to[0];
 
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email);
