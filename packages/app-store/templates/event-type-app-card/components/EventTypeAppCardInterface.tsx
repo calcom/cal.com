@@ -4,17 +4,16 @@ import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { Sunrise, Sunset } from "@calcom/ui/components/icon";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
-  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const isSunrise = getAppData("isSunrise");
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   return (
     <AppCard
       app={app}
-      appDataSchema={appDataSchema}
       switchOnClick={(e) => {
         if (!e) {
           updateEnabled(false);

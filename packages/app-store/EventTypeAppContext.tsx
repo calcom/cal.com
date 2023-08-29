@@ -9,18 +9,17 @@ type Disabled = boolean | undefined;
 type AppContext = {
   getAppData: GetAppData;
   setAppData: SetAppData;
-  LockedIcon: LockedIcon;
-  disabled: Disabled;
+  LockedIcon?: LockedIcon;
+  disabled?: Disabled;
 };
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EventTypeAppContext = React.createContext<AppContext>({
   getAppData: () => ({}),
   setAppData: () => ({}),
-  LockedIcon: undefined,
-  disabled: undefined,
 });
 
-export type SetAppDataGeneric<TAppData extends ZodType> = <
+type SetAppDataGeneric<TAppData extends ZodType> = <
   TKey extends keyof z.infer<TAppData>,
   TValue extends z.infer<TAppData>[TKey]
 >(
@@ -28,7 +27,7 @@ export type SetAppDataGeneric<TAppData extends ZodType> = <
   value: TValue
 ) => void;
 
-export type GetAppDataGeneric<TAppData extends ZodType> = <TKey extends keyof z.infer<TAppData>>(
+type GetAppDataGeneric<TAppData extends ZodType> = <TKey extends keyof z.infer<TAppData>>(
   key: TKey
 ) => z.infer<TAppData>[TKey];
 

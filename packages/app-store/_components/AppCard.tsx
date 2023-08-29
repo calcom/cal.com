@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import type { z } from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
@@ -18,7 +17,6 @@ export default function AppCard({
   children,
   returnTo,
   teamId,
-  appDataSchema,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -28,10 +26,9 @@ export default function AppCard({
   returnTo?: string;
   teamId?: number;
   LockedIcon?: React.ReactNode;
-  appDataSchema: z.ZodObject<any>;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema<typeof appDataSchema>();
+  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
 
   return (
     <div

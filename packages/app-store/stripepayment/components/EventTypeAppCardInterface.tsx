@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
@@ -39,7 +39,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     <AppCard
       returnTo={WEBAPP_URL + pathname + "?tabName=apps"}
       app={app}
-      appDataSchema={appDataSchema}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
