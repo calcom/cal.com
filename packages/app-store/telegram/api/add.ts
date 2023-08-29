@@ -10,7 +10,6 @@ const handler: AppDeclarativeHandler = {
   supportsMultipleInstalls: false,
   handlerType: "add",
   createCredential: ({ appType, user, slug, teamId }) => {
-    // req and res
     return createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId });
   },
 };
