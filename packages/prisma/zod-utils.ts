@@ -330,6 +330,7 @@ export const teamMetadataSchema = z
     isOrganizationVerified: z.boolean().nullable(),
     isOrganizationConfigured: z.boolean().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
+    orgRequireTwoFactorAuth: z.boolean().nullable(),
   })
   .partial()
   .nullable();

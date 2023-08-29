@@ -10,7 +10,10 @@ function TwoFactorAuthRequiredBanner() {
   const user = query.data;
 
   const belongsToOrganization = user && user.organization;
-  const organizationRequiresTwoFactor = belongsToOrganization ? user.organization.requireTwoFactor : false;
+  const orgRequireTwoFactorAuth = belongsToOrganization
+    ? user.organization.metadata.orgRequireTwoFactorAuth
+    : false;
+  const organizationRequiresTwoFactor = belongsToOrganization ? orgRequireTwoFactorAuth : false;
 
   const requiresMFA = belongsToOrganization && organizationRequiresTwoFactor && !user.twoFactorEnabled;
 

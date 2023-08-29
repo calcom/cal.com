@@ -69,7 +69,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeZone: input.timeZone,
     weekStart: input.weekStart,
     timeFormat: input.timeFormat,
-    requireTwoFactor: input.requireTwoFactor,
     metadata: mergeMetadata({ ...input.metadata }),
   };
 

@@ -61,6 +61,8 @@ export async function getServerSession(options: {
 
   const hasValidLicense = await checkLicense(prisma);
 
+  const { organization } = user;
+
   const session: Session = {
     hasValidLicense,
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
@@ -77,7 +79,7 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       organizationId: token.organizationId,
       twoFactorEnabled: user.twoFactorEnabled,
-      requireTwoFactor: user?.organization?.requireTwoFactor,
+      orgRequireTwoFactorAuth: organization ? organization.metadata.orgRequireTwoFactorAuth : false,
       locale: user.locale ?? undefined,
     },
   };

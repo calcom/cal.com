@@ -20,7 +20,7 @@ declare module "next-auth" {
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     twoFactorEnabled: boolean;
-    requireTwoFactor: boolean;
+    orgRequireTwoFactorAuth: boolean;
     locale?: string | null;
   }
 }

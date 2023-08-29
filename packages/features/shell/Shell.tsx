@@ -196,8 +196,12 @@ function useRedirectTo2FAIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
+  const orgRequireTwoFactorAuth =
+    user && user.organization ? user.organization.metadata.orgRequireTwoFactorAuth : false;
+  const userIsAttachedToAnOrganization = user && user.organization;
+
   const isRedirectingTo2Fa =
-    user && user?.organizationId && user?.organization.requireTwoFactor && !user.twoFactorEnabled;
+    user && userIsAttachedToAnOrganization && orgRequireTwoFactorAuth && !user.twoFactorEnabled;
 
   useEffect(() => {
     if (user) {

@@ -120,7 +120,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           t,
         });
       } else {
-        console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+        console.warn("Organization created: subdomain not configured and couldn't notify administrators");
       }
     }
 

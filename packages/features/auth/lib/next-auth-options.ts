@@ -89,7 +89,6 @@ const providers: Provider[] = [
           organization: {
             select: {
               id: true,
-              requireTwoFactor: true,
             },
           },
           teams: {

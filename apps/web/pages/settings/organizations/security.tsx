@@ -32,6 +32,7 @@ const OrgSecurityView = () => {
     },
     async onSuccess() {
       await utils.viewer.organizations.listCurrent.invalidate();
+      await utils.viewer.me.invalidate();
       showToast(t("your_organisation_updated_sucessfully"), "success");
     },
   });
@@ -50,9 +51,9 @@ const OrgSecurityView = () => {
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           data-testid="two-factor-switch"
-          checked={currentOrganisation?.requireTwoFactor}
-          onCheckedChange={(requireTwoFactor) => {
-            mutation.mutate({ requireTwoFactor });
+          checked={currentOrganisation.metadata.orgRequireTwoFactorAuth}
+          onCheckedChange={(orgRequireTwoFactorAuth) => {
+            mutation.mutate({ metadata: { orgRequireTwoFactorAuth } });
           }}
         />
         <div className="!mx-4">
@@ -60,8 +61,8 @@ const OrgSecurityView = () => {
             <p className="text-default font-semibold">{t("require_2fa_auth")}</p>
             <Badge
               className="mx-2 text-xs"
-              variant={currentOrganisation?.requireTwoFactor ? "success" : "gray"}>
-              {currentOrganisation?.requireTwoFactor ? t("enabled") : t("disabled")}
+              variant={currentOrganisation.metadata.orgRequireTwoFactorAuth ? "success" : "gray"}>
+              {currentOrganisation.metadata.orgRequireTwoFactorAuth ? t("enabled") : t("disabled")}
             </Badge>
           </div>
           <p className="text-default text-sm">{t("organization_enforce_two_factor_authentication")}</p>
