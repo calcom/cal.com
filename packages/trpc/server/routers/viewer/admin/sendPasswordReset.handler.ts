@@ -14,7 +14,7 @@ type GetOptions = {
   input: TAdminPasswordResetSchema;
 };
 
-export const sendPasswordResetHandler = async ({ ctx, input }: GetOptions) => {
+export const sendPasswordResetHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
 
   const user = await prisma.user.findUnique({
