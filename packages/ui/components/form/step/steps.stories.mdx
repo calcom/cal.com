@@ -1,0 +1,43 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Title, VariantRow, VariantsTable, CustomArgsTable } from "@calcom/storybook/components";
+
+import { Steps } from "./Steps";
+
+<Meta title="UI/Form/Steps" component={Steps} />
+
+<Title title="Steps" suffix="Brief" subtitle="Version 1.0 — Last Update: 15 Aug 2023" />
+
+## Definition
+
+Steps component is used to display the current step out of the total steps in a process.
+
+## Structure
+
+The `Steps` component can be used to show the steps of the total in a process.
+
+<CustomArgsTable of={Steps} />
+
+## Steps Story
+
+<Canvas>
+  <Story
+    name="Steps"
+    args={{ maxSteps: 4, currentStep: 2 }}
+    argTypes={{ maxSteps: { control: "number" }, currentStep: { control: "number" } }}>
+    {({ maxSteps, currentStep }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <Steps
+            maxSteps={maxSteps}
+            currentStep={currentStep}
+            navigateToStep={(step) => {
+              const newPath = `?path=/story/ui-form-steps--steps&args=currentStep:${step + 1}`;
+              window.open(newPath, "_self");
+            }}
+          />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

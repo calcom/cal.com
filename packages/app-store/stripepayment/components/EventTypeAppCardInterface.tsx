@@ -37,24 +37,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
   return (
     <AppCard
-      returnTo={WEBAPP_URL + pathname}
+      returnTo={WEBAPP_URL + pathname + "?tabName=apps"}
       app={app}
       appDataSchema={appDataSchema}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      description={
-        <>
-          <div className="">
-            {t("payment_app_commission", {
-              paymentFeePercentage: 0.5,
-              fee: 0.1,
-              formatParams: { fee: { currency } },
-            })}
-          </div>
-        </>
-      }>
+      teamId={eventType.team?.id || undefined}>
       <>
         {recurringEventDefined && (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
