@@ -163,7 +163,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       onClick={() =>
                         signIn("Cal.com", {
                           callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+                            ? `${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
