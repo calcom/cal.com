@@ -51,7 +51,11 @@ const DateOverrideForm = ({
 
   const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
 
-  const onDateChange = (newDate: Dayjs) => {
+  const onDateChange = (newDate: Dayjs | null) => {
+    // If no date is selected, do nothing
+    if (!newDate) {
+      return;
+    }
     // If clicking on a selected date unselect it
     if (selectedDates.some((date) => yyyymmdd(date) === yyyymmdd(newDate))) {
       setSelectedDates(selectedDates.filter((date) => yyyymmdd(date) !== yyyymmdd(newDate)));
