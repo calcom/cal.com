@@ -25,8 +25,8 @@ If you haven't yet, please run the [root setup](/README.md) steps.
 Before running the app, please see [env.mjs](./src/env.mjs) for all required environment variables. You'll need:
 
   - An [OpenAI API key](https://platform.openai.com/account/api-keys) with access to GPT-4
-  - A [Resend API key](https://resend.com/api-keys)
-  - A sender email (for example, `me@ai.cal.dev`)
+  - A [SendGrid API key](https://app.sendgrid.com/settings/api_keys)
+  - A default sender email (for example, `ai@cal.dev`)
   - The Cal AI's app ID and URL (see [add.ts](/packages/app-store/cal-ai/api/index.ts))
 
 To stand up the API and AI apps simultaneously, simply run `yarn dev:ai`.

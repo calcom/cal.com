@@ -25,6 +25,8 @@ export const POST = async (request: NextRequest) => {
 
   const envelope = JSON.parse(body.envelope);
 
+  const aiEmail = envelope.to?.length === 1 ? envelope.to[0] : env.EMAIL_FROM_AI;
+
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email);
 
@@ -51,6 +53,7 @@ export const POST = async (request: NextRequest) => {
       subject: `Re: ${body.subject}`,
       text: "Sorry, you are not authorized to use this service. Please verify your email address and try again.",
       to: user?.email || "",
+      from: aiEmail,
     });
 
     return new NextResponse();
@@ -72,6 +75,7 @@ export const POST = async (request: NextRequest) => {
       subject: `Re: ${body.subject}`,
       text: `Thanks for using Cal AI! To get started, the app must be installed. Click this link to install the Cal AI app: ${url}`,
       to: envelope.from,
+      from: aiEmail,
     });
 
     return new NextResponse("ok");
@@ -91,6 +95,7 @@ export const POST = async (request: NextRequest) => {
       subject: `Re: ${body.subject}`,
       text: "Sorry, there was an error fetching your availability. Please try again.",
       to: user.email,
+      from: aiEmail,
     });
     console.error(availability.error);
     return new NextResponse("Error fetching availability. Please try again.", { status: 400 });
@@ -101,6 +106,7 @@ export const POST = async (request: NextRequest) => {
       subject: `Re: ${body.subject}`,
       text: "Sorry, there was an error fetching your event types. Please try again.",
       to: user.email,
+      from: aiEmail,
     });
     console.error(eventTypes.error);
     return new NextResponse("Error fetching event types. Please try again.", { status: 400 });
@@ -116,6 +122,7 @@ export const POST = async (request: NextRequest) => {
       context,
       message: parsed.text,
       subject: parsed.subject,
+      replyTo: aiEmail,
       user: {
         email: user.email,
         eventTypes,

@@ -1,8 +1,6 @@
-import { Resend } from "resend";
+import mail from "@sendgrid/mail";
 
-import { env } from "../env.mjs";
-
-const resend = new Resend(env.RESEND_API_KEY);
+const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
 
 /**
  * Simply send an email by address, subject, and body.
@@ -10,24 +8,31 @@ const resend = new Resend(env.RESEND_API_KEY);
 const send = async ({
   subject,
   to,
+  from,
   text,
   html,
 }: {
   subject: string;
   to: string;
+  from: string;
   text: string;
   html?: string;
 }): Promise<boolean> => {
+  mail.setApiKey(sendgridAPIKey);
+
   const msg = {
-    from: env.SENDER_EMAIL,
+    to,
+    from: {
+      email: from,
+      name: "Cal AI",
+    },
+    text,
     html,
     subject,
-    text,
-    to,
   };
 
-  const email = await resend.emails.send(msg);
-  const success = !!email?.id;
+  const res = await mail.send(msg);
+  const success = !!res;
 
   return success;
 };

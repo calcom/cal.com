@@ -12,7 +12,7 @@ import sendEmail from "../../../utils/sendEmail";
 export const POST = async (request: NextRequest) => {
   const json = await request.json();
 
-  const { context: _context, message, subject, user } = json;
+  const { context: _context, message, subject, user, replyTo } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
@@ -27,10 +27,10 @@ export const POST = async (request: NextRequest) => {
 
     // Send response to user
     await sendEmail({
-      // html: response.replace(/(?:\r\n|\r|\n)/g, "<br>"),
       subject: `Re: ${subject}`,
       text: response.replace(/(?:\r\n|\r|\n)/g, "\n"),
       to: user.email,
+      from: replyTo,
     });
 
     return new NextResponse("ok");
