@@ -1,4 +1,5 @@
 import { Canvas, Story, Meta } from "@storybook/addon-docs";
+import { Button } from "@calcom/ui";
 
 import {
   Examples,
@@ -9,23 +10,20 @@ import {
   VariantsTable,
 } from "@calcom/storybook/components";
 
-import { Plus } from "../../icon";
+import { Plus, Trash, Copy } from "@calcom/ui/components/icon";
 import {
   Dropdown,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "./Dropdown";
 
 <Meta title="UI/Form/Dropdown" component={Dropdown} />
 
-<Title title="Dropdown" suffix="Brief" subtitle="Version 2.0 — Last Update: 21 Aug 2023" />
+<Title title="Dropdown" suffix="Brief" subtitle="Version 1.0 — Last Update: 29 Aug 2023" />
 
 ## Definition
 
@@ -60,217 +58,245 @@ The `Dropdown` component can be used to display a menu to the user.
 <Examples title="Dropdown">
   <Example title="Simple">
     <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">Menu</button>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
-  <Example title="With Direction rtl">
-    <Dropdown dir={"rtl"}>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">Menu</button>
+  <Example title="No modal">
+    <Dropdown modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
 </Examples>
-<Examples title="Dropdown Trigger">
-  <Example title="Simple">
+<Examples title="Dropdown Menu Trigger">
+  <Example title="Simple Button">
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <button aria-label="Customise options">Menu</button>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
-  <Example title="Icon">
+  <Example title="Button Icon">
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+        <Button StartIcon={Plus} />
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
-  <Example title=" Not as Child">
+  <Example title="Disabled">
+    <Dropdown>
+      <DropdownMenuTrigger disabled={true} asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Not as child">
     <Dropdown>
       <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
 </Examples>
 <Examples title="Dropdown Menu Content">
+  <Example title="Custom width">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent style={{ minWidth: "200px" }}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
   <Example title="Align start">
     <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent align={"start"}>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent style={{ minWidth: "80px" }} align={"start"}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
   <Example title="Align center">
     <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent align={"center"}>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
-  </Example>
-  <Example title="With side offset">
-    <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent sideOffset={50}>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent style={{ minWidth: "80px" }} align={"center"}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
   <Example title="With Menu Separator">
     <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent sideOffset={50}>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>New Private Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="With side offset">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent sideOffset={50}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="With Some icons">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Trash}>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
 </Examples>
-<Examples title="Dropdown Menu Item/Label/Radio/Checkbox">
-  <Example title="Simple Label">
+<Examples title="Dropdown Menu Label">
+  <Example title="Simple">
     <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>New Tab</DropdownMenuLabel>
-          <DropdownMenuLabel>New Window</DropdownMenuLabel>
-          <DropdownMenuLabel>New Private Window</DropdownMenuLabel>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
-  </Example>
-  <Example title="Label with Item">
-    <Dropdown>
-      <DropdownMenuTrigger>
-        <button aria-label="Customise options">
-          <Plus />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent align={"start"}>
-          <DropdownMenuLabel>New</DropdownMenuLabel>
-          <DropdownMenuItem>New Tab</DropdownMenuItem>
-          <DropdownMenuItem>New Window</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
-  </Example>
-  <Example title="Radio">
-    <Dropdown>
-      <DropdownMenuTrigger>
-        <button>
-          <Plus />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuRadioGroup
-            value="team"
-            onValueChange={(event) => console.log("value has changed: ", event)}>
-            <DropdownMenuRadioItem value="team">Team</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="individual">Individual</DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
-  </Example>
-  <Example title="Checkbox">
-    <Dropdown>
-      <DropdownMenuTrigger>
-        <button>
-          <Plus />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          <DropdownMenuCheckboxItem checked={true} onCheckedChange={() => console.log("checked")}>
-            Show Bookmarks
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked={false} onCheckedChange={() => console.log("checked")}>
-            Show Full URLs
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+      <DropdownMenuContent align={"start"}>
+        <DropdownMenuLabel>Number</DropdownMenuLabel>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </Dropdown>
   </Example>
 </Examples>
@@ -281,23 +307,21 @@ The `Dropdown` component can be used to display a menu to the user.
   <Story
     name="Dropdown"
     args={{
-      dir: "rtl",
-      open: false,
-      defaultOpen: false,
       asChild: false,
       align: "start",
+      disabled: false,
+      sideOffset: 0
     }}
     argTypes={{
-      dir: {
-        control: {
-          type: "inline-radio",
-          options: ["ltr", "rtl"],
-        },
-      },
       sideOffset: {
         control: {
           type: "number",
         },
+      },
+      asChild: {
+        control: {
+          type: "boolean"
+        }
       },
       align: {
         control: {
@@ -305,21 +329,30 @@ The `Dropdown` component can be used to display a menu to the user.
           options: ["center", "start", "end"],
         },
       },
+      disabled: {
+        control: {
+          type: "boolean"
+        }
+      }
     }}>
-    {({ dir, open, defaultOpen, asChild, sideOffset, align }) => (
+    {({ dir, asChild, sideOffset, align, disabled }) => (
       <VariantsTable titles={["Default"]} columnMinWidth={150}>
-        <VariantRow variant="Default">
-          <Dropdown dir={dir} open={open} defaultOpen={defaultOpen}>
-            <DropdownMenuTrigger asChild={asChild}>
-              <button>Menu</button>
+        <VariantRow>
+          <Dropdown>
+            <DropdownMenuTrigger disabled={disabled} asChild>
+              <Button>more</Button>
             </DropdownMenuTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuContent align={align} sideOffset={sideOffset}>
-                <DropdownMenuItem>New Tab</DropdownMenuItem>
-                <DropdownMenuItem>New Window</DropdownMenuItem>
-                <DropdownMenuItem>New Private Window</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenuPortal>
+            <DropdownMenuContent align={align} sideOffset={sideOffset}>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Trash}>First</DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </Dropdown>
         </VariantRow>
       </VariantsTable>
