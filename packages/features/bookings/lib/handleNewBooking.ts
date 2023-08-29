@@ -734,6 +734,7 @@ async function handler(
           },
           select: {
             ...userSelect.select,
+            credentials: true,
             metadata: true,
           },
         });
