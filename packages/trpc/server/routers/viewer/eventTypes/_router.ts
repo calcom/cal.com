@@ -9,6 +9,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZEventTypeInputSchema } from "./getByViewer.schema";
+import { ZInfiniteEventsTypeInputSchema } from "./infiniteEventTypes.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
 
@@ -23,6 +24,7 @@ type BookingsRouterHandlerCache = {
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
   bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
   bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
+  paginate?: typeof import("./infiniteEventTypes.handler").paginateHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
@@ -207,4 +209,22 @@ export const eventTypesRouter = router({
         input,
       });
     }),
+
+  paginate: authedProcedure.input(ZInfiniteEventsTypeInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.paginate) {
+      UNSTABLE_HANDLER_CACHE.paginate = await import("./infiniteEventTypes.handler").then(
+        (mod) => mod.paginateHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.paginate) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.paginate({
+      ctx,
+      input,
+    });
+  }),
 });
