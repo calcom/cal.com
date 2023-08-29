@@ -3,7 +3,7 @@
   "name": "Cal AI",
   "slug": "cal-ai",
   "type": "cal-ai_automation",
-  "logo": "icon.jpg",
+  "logo": "icon.png",
   "url": "https://cal.ai",
   "variant": "automation",
   "categories": ["automation"],
