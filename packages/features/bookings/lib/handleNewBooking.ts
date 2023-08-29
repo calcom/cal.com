@@ -722,8 +722,9 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
+  const loadUsers = async () => {
+    console.log("loadUsers", eventType.users);
+    return !eventTypeId
       ? await prisma.user.findMany({
           where: {
             username: {
@@ -747,6 +748,7 @@ async function handler(
           isFixed,
         }))
       : eventType.users || [];
+  };
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
