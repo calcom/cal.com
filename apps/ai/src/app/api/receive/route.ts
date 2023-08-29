@@ -12,12 +12,19 @@ import { context } from "../../../utils/context";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
+import { verifyParseKey } from "../../../utils/verifyParseKey";
 
 /**
  * Verifies email signature and app authorization,
  * then hands off to booking agent.
  */
 export const POST = async (request: NextRequest) => {
+  const verified = verifyParseKey(request.url);
+
+  if (!verified) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   const formData: any = await request.formData();
   const body = Object.fromEntries(formData);
 
@@ -117,7 +124,7 @@ export const POST = async (request: NextRequest) => {
   const appHost = getHostFromHeaders(request.headers);
 
   // Hand off to long-running agent endpoint to handle the email. (don't await)
-  fetch(`${appHost}/api/agent`, {
+  fetch(`${appHost}/api/agent?parseKey=${env.PARSE_KEY}`, {
     body: JSON.stringify({
       context,
       message: parsed.text,

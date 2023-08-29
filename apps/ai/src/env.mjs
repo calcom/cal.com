@@ -19,8 +19,10 @@ export const env = createEnv({
     BACKEND_URL: process.env.BACKEND_URL,
     APP_ID: process.env.APP_ID,
     APP_URL: process.env.APP_URL,
+    PARSE_KEY: process.env.PARSE_KEY,
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
   },
 
   /**
@@ -31,7 +33,9 @@ export const env = createEnv({
     BACKEND_URL: z.string().url(),
     APP_ID: z.string().min(1),
     APP_URL: z.string().url(),
+    PARSE_KEY: z.string().min(1),
     NODE_ENV: z.enum(["development", "test", "production"]),
     OPENAI_API_KEY: z.string().min(1),
+    SENDGRID_API_KEY: z.string().min(1),
   },
 });

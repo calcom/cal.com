@@ -4,12 +4,19 @@ import { NextResponse } from "next/server";
 import agent from "../../../utils/agent";
 import { context } from "../../../utils/context";
 import sendEmail from "../../../utils/sendEmail";
+import { verifyParseKey } from "../../../utils/verifyParseKey";
 
 /**
  * Launches a LangChain agent to process an incoming email,
  * then sends the response to the user.
  */
 export const POST = async (request: NextRequest) => {
+  const verified = verifyParseKey(request.url);
+
+  if (!verified) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   const json = await request.json();
 
   const { context: _context, message, subject, user, replyTo } = json;
