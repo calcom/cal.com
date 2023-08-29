@@ -41,6 +41,7 @@ interface LoginValues {
   totpCode: string;
   csrfToken: string;
 }
+
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -59,7 +60,6 @@ export default function Login({
         .email(`${t("enter_valid_email")}`),
       password: !!totpEmail ? z.literal("") : z.string().min(1, `${t("error_required_field")}`),
     })
-    // Passthrough other fields like totpCode
     .passthrough();
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
@@ -270,7 +270,7 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
           },
         };
       }
-    }{
+    } catch (error) {
       return {
         redirect: {
           destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",
