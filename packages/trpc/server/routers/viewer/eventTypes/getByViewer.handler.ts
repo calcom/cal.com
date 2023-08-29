@@ -272,7 +272,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${bookerUrl}${group.teamId ? "/team" : ""}/${group.profile.slug}/avatar.png`,
+      image: `${bookerUrl}/${group.profile.slug}/avatar.png`,
     })),
   };
 };
