@@ -57,12 +57,10 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
     }),
   });
 
-  const formMethods = useForm<{
-    username: string;
-    email_address: string;
-    full_name: string;
-    password: string;
-  }>({
+  type formSchemaType = z.infer<typeof formSchema>;
+
+  const formMethods = useForm<formSchemaType>({
+    mode: "onChange",
     resolver: zodResolver(formSchema),
   });
 
@@ -70,7 +68,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
     props.onError();
   };
 
-  const onSubmit = formMethods.handleSubmit(async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = formMethods.handleSubmit(async (data) => {
     props.onSubmit();
     const response = await fetch("/api/auth/setup", {
       method: "POST",
@@ -130,11 +128,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   className={classNames("my-0", longWebsiteUrl && "rounded-t-none")}
                   onBlur={onBlur}
                   name="username"
-                  onChange={async (e) => {
-                    onChange(e.target.value);
-                    formMethods.setValue("username", e.target.value);
-                    await formMethods.trigger("username");
-                  }}
+                  onChange={(e) => onChange(e.target.value)}
                 />
               </>
             )}
@@ -148,11 +142,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
               <TextField
                 value={value || ""}
                 onBlur={onBlur}
-                onChange={async (e) => {
-                  onChange(e.target.value);
-                  formMethods.setValue("full_name", e.target.value);
-                  await formMethods.trigger("full_name");
-                }}
+                onChange={(e) => onChange(e.target.value)}
                 color={formMethods.formState.errors.full_name ? "warn" : ""}
                 type="text"
                 name="full_name"
@@ -172,11 +162,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
               <EmailField
                 value={value || ""}
                 onBlur={onBlur}
-                onChange={async (e) => {
-                  onChange(e.target.value);
-                  formMethods.setValue("email_address", e.target.value);
-                  await formMethods.trigger("email_address");
-                }}
+                onChange={(e) => onChange(e.target.value)}
                 className="my-0"
                 name="email_address"
               />
@@ -191,11 +177,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
               <PasswordField
                 value={value || ""}
                 onBlur={onBlur}
-                onChange={async (e) => {
-                  onChange(e.target.value);
-                  formMethods.setValue("password", e.target.value);
-                  await formMethods.trigger("password");
-                }}
+                onChange={(e) => onChange(e.target.value)}
                 hintErrors={["caplow", "admin_min", "num"]}
                 name="password"
                 className="my-0"
