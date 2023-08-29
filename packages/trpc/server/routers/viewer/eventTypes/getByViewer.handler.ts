@@ -165,6 +165,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   type EventTypeGroup = {
     teamId?: number | null;
+    parentId?: number | null;
     membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof user)["username"];
@@ -226,6 +227,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         )?.membershipRole;
         return {
           teamId: membership.team.id,
+          parentId: membership.team.parentId,
           membershipRole:
             orgMembership && compareMembership(orgMembership, membership.role)
               ? orgMembership
@@ -265,7 +267,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   const bookerUrl = await getBookerUrl(user);
   return {
     // don't display event teams without event types,
-    eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
+    eventTypeGroups: eventTypeGroups.filter((groupBy) => groupBy.parentId || !!groupBy.eventTypes?.length),
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
       ...group.profile,
