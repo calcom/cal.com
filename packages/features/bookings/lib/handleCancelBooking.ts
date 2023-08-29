@@ -248,7 +248,11 @@ async function handler(req: CustomRequest) {
       ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
       : undefined,
     location: bookingToDelete?.location,
-    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+    destinationCalendar: bookingToDelete?.destinationCalendar
+      ? [bookingToDelete?.destinationCalendar]
+      : bookingToDelete?.user.destinationCalendar
+      ? [bookingToDelete?.user.destinationCalendar]
+      : [],
     cancellationReason: cancellationReason,
     ...(teamMembers && { team: { name: "", members: teamMembers } }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
@@ -411,57 +415,70 @@ async function handler(req: CustomRequest) {
 
   const apiDeletes = [];
 
-  const bookingCalendarReference = bookingToDelete.references.find((reference) =>
+  const bookingCalendarReference = bookingToDelete.references.filter((reference) =>
     reference.type.includes("_calendar")
   );
 
-  if (bookingCalendarReference) {
-    const { credentialId, uid, externalCalendarId } = bookingCalendarReference;
-    // If the booking calendar reference contains a credentialId
-    if (credentialId) {
-      // Find the correct calendar credential under user credentials
-      const calendarCredential = bookingToDelete.user.credentials.find(
-        (credential) => credential.id === credentialId
-      );
-      if (calendarCredential) {
-        const calendar = await getCalendar(calendarCredential);
-        if (
-          bookingToDelete.eventType?.recurringEvent &&
-          bookingToDelete.recurringEventId &&
-          allRemainingBookings
-        ) {
-          const promises = bookingToDelete.user.credentials
-            .filter((credential) => credential.type.endsWith("_calendar"))
-            .map(async (credential) => {
-              const calendar = await getCalendar(credential);
-              for (const updBooking of updatedBookings) {
-                const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
-                if (bookingRef) {
-                  const { uid, externalCalendarId } = bookingRef;
-                  const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
-                  apiDeletes.push(deletedEvent);
-                }
-              }
-            });
-          try {
-            await Promise.all(promises);
-          } catch (error) {
-            if (error instanceof Error) {
-              logger.error(error.message);
-            }
+  if (bookingCalendarReference.length > 0) {
+    for (const reference of bookingCalendarReference) {
+      const { credentialId, uid, externalCalendarId } = reference;
+      // If the booking calendar reference contains a credentialId
+      if (credentialId) {
+        // Find the correct calendar credential under user credentials
+        let calendarCredential = bookingToDelete.user.credentials.find(
+          (credential) => credential.id === credentialId
+        );
+        if (!calendarCredential) {
+          // get credential from DB
+          const foundCalendarCredential = await prisma.credential.findUnique({
+            where: {
+              id: credentialId,
+            },
+          });
+          if (foundCalendarCredential) {
+            calendarCredential = foundCalendarCredential;
           }
-        } else {
+        }
+        if (calendarCredential) {
+          const calendar = await getCalendar(calendarCredential);
+          if (
+            bookingToDelete.eventType?.recurringEvent &&
+            bookingToDelete.recurringEventId &&
+            allRemainingBookings
+          ) {
+            const promises = bookingToDelete.user.credentials
+              .filter((credential) => credential.type.endsWith("_calendar"))
+              .map(async (credential) => {
+                const calendar = await getCalendar(credential);
+                for (const updBooking of updatedBookings) {
+                  const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+                  if (bookingRef) {
+                    const { uid, externalCalendarId } = bookingRef;
+                    const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+                    apiDeletes.push(deletedEvent);
+                  }
+                }
+              });
+            try {
+              await Promise.all(promises);
+            } catch (error) {
+              if (error instanceof Error) {
+                logger.error(error.message);
+              }
+            }
+          } else {
+            apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+          }
+        }
+      } else {
+        // For bookings made before the refactor we go through the old behavior of running through each calendar credential
+        const calendarCredentials = bookingToDelete.user.credentials.filter((credential) =>
+          credential.type.endsWith("_calendar")
+        );
+        for (const credential of calendarCredentials) {
+          const calendar = await getCalendar(credential);
           apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
         }
-      }
-    } else {
-      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      const calendarCredentials = bookingToDelete.user.credentials.filter((credential) =>
-        credential.type.endsWith("_calendar")
-      );
-      for (const credential of calendarCredentials) {
-        const calendar = await getCalendar(credential);
-        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
       }
     }
   }
@@ -508,7 +525,11 @@ async function handler(req: CustomRequest) {
       attendees: attendeesList,
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
-      destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+      destinationCalendar: bookingToDelete?.destinationCalendar
+        ? [bookingToDelete?.destinationCalendar]
+        : bookingToDelete?.user.destinationCalendar
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     };
 
     const successPayment = bookingToDelete.payment.find((payment) => payment.success);

@@ -263,6 +263,7 @@ export const createEvent = async (
     calError,
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
     externalId,
+    credentialId: credential.id,
   };
 };
 

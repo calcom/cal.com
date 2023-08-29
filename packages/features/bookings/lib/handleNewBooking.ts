@@ -1077,6 +1077,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
   };
 
+  if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
+    evt.destinationCalendar?.push(...teamDestinationCalendars);
+  }
+
   /* Used for seats bookings to update evt object with video data */
   const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
     const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
