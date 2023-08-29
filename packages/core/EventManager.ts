@@ -508,7 +508,6 @@ export default class EventManager {
           calenderExternalId = bookingExternalCalendarId;
         }
 
-        const result = [];
         if (reference.credentialId) {
           credential = this.calendarCredentials.filter(
             (credential) => credential.id === reference?.credentialId

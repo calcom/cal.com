@@ -96,6 +96,7 @@ export default class GoogleCalendarService implements Calendar {
         displayName: m.name,
         responseStatus: "accepted",
       })) || [];
+    const [mainHostDestinationCalendar] = calEventRaw.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
@@ -115,8 +116,8 @@ export default class GoogleCalendarService implements Calendar {
             id: String(calEventRaw.organizer.id),
             responseStatus: "accepted",
             organizer: true,
-            email: calEventRaw.destinationCalendar?.externalId
-              ? calEventRaw.destinationCalendar.externalId
+            email: mainHostDestinationCalendar?.externalId
+              ? mainHostDestinationCalendar.externalId
               : calEventRaw.organizer.email,
           },
           ...eventAttendees,
@@ -138,8 +139,8 @@ export default class GoogleCalendarService implements Calendar {
       const calendar = google.calendar({
         version: "v3",
       });
-      const selectedCalendar = calEventRaw.destinationCalendar?.externalId
-        ? calEventRaw.destinationCalendar.externalId
+      const selectedCalendar = mainHostDestinationCalendar?.externalId
+        ? mainHostDestinationCalendar.externalId
         : "primary";
       calendar.events.insert(
         {
@@ -187,6 +188,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const eventAttendees = event.attendees.map(({ ...rest }) => ({
@@ -216,8 +218,8 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
-            email: event.destinationCalendar?.externalId
-              ? event.destinationCalendar.externalId
+            email: mainHostDestinationCalendar?.externalId
+              ? mainHostDestinationCalendar.externalId
               : event.organizer.email,
           },
           ...(eventAttendees as any),
@@ -244,7 +246,7 @@ export default class GoogleCalendarService implements Calendar {
 
       const selectedCalendar = externalCalendarId
         ? externalCalendarId
-        : event.destinationCalendar?.externalId;
+        : mainHostDestinationCalendar?.externalId;
 
       calendar.events.update(
         {
@@ -295,6 +297,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const calendar = google.calendar({
@@ -303,7 +306,7 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       const defaultCalendarId = "primary";
-      const calendarId = externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId;
+      const calendarId = externalCalendarId ? externalCalendarId : mainHostDestinationCalendar?.externalId;
 
       calendar.events.delete(
         {
