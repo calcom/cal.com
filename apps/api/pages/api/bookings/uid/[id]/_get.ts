@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
-import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
-  const { id } = schemaQueryIdParseInt.parse(query);
+  const { id } = schemaQueryIdAsString.parse(query);
   const booking = await prisma.booking.findUnique({
     where: { uid: id },
     include: { attendees: true, user: true, payment: true },

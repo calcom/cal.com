@@ -12,7 +12,7 @@ export default withMiddleware()(
     return defaultHandler({
       GET: import("./_get"),
       // PATCH: import("./_patch"),
-      // DELETE: import("./_delete"),
+      DELETE: import("./_delete"),
     })(req, res);
   })
 );

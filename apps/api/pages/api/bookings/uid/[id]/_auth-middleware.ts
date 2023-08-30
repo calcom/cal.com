@@ -2,11 +2,11 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;
-  const { id } = schemaQueryIdParseInt.parse(query);
+  const { id } = schemaQueryIdAsString.parse(query);
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
