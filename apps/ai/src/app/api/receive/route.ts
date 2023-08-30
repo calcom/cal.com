@@ -9,6 +9,7 @@ import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
 import { context } from "../../../utils/context";
+import { extractUsers } from "../../../utils/extractUsers";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
@@ -52,7 +53,7 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from },
+    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
   });
 
   if (!signature || !user?.email || !user?.id) {
@@ -89,13 +90,16 @@ export const POST = async (request: NextRequest) => {
   context.userId = user.id.toString();
 
   // Pre-fetch data relevant to most bookings.
-  const [eventTypes, availability] = await Promise.all([
+  const [eventTypes, availability, users] = await Promise.all([
     fetchEventTypes(),
     fetchAvailability({
       dateFrom: now,
       dateTo: now,
     }),
+    extractUsers(`${parsed.text} ${parsed.subject}`),
   ]);
+
+  console.log("EXTRACTED USERS", users);
 
   if ("error" in availability) {
     await sendEmail({
@@ -136,6 +140,7 @@ export const POST = async (request: NextRequest) => {
         timeZone,
         workingHours,
       },
+      users,
     }),
     headers: {
       "Content-Type": "application/json",

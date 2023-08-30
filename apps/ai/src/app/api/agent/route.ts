@@ -19,7 +19,7 @@ export const POST = async (request: NextRequest) => {
 
   const json = await request.json();
 
-  const { context: _context, message, subject, user, replyTo } = json;
+  const { context: _context, message, subject, user, replyTo, users } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
@@ -30,7 +30,7 @@ export const POST = async (request: NextRequest) => {
   context.userId = _context.userId;
 
   try {
-    const response = await agent(`${subject}\n\n${message}`, user);
+    const response = await agent(`${subject}\n\n${message}`, user, users);
 
     // Send response to user
     await sendEmail({
@@ -43,7 +43,7 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   } catch (error) {
     return new NextResponse(
-      error.message || "Something went wrong. Please try again or reach out for help.",
+      (error as Error).message || "Something went wrong. Please try again or reach out for help.",
       { status: 500 }
     );
   }

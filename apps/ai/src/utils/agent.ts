@@ -8,7 +8,7 @@ import getAvailability from "../tools/getAvailability";
 import getBookings from "../tools/getBookings";
 import updateBooking from "../tools/updateBooking";
 import type { EventType } from "../types/eventType";
-import type { User } from "../types/user";
+import type { User, UserList } from "../types/user";
 import type { WorkingHours } from "../types/workingHours";
 import now from "./now";
 
@@ -19,7 +19,7 @@ const gptModel = "gpt-4";
  * Uses a toolchain to book meetings, list available slots, etc.
  * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
  */
-const agent = async (input: string, user: User) => {
+const agent = async (input: string, user: User, users: UserList) => {
   const tools = [createBookingIfAvailable, deleteBooking, getAvailability, getBookings, updateBooking];
 
   const model = new ChatOpenAI({
@@ -51,6 +51,18 @@ const agent = async (input: string, user: User) => {
                   }, End Time (minutes in UTC): ${w.endTime}`
               )
               .join("\n")}
+            ${
+              users
+                ? `The user referenced the following users: ${users
+                    .map(
+                      (u) =>
+                        `id: ${u.id}` +
+                        (u.email ? `, email: ${u.email}` : "") +
+                        (u.username ? `, username: ${u.username}` : "")
+                    )
+                    .join("\n")}`
+                : ""
+            }
             `,
     },
     agentType: "openai-functions",

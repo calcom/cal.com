@@ -9,17 +9,19 @@ import { context } from "../utils/context";
  * Fetches availability for a user by date range and event type.
  */
 export const fetchAvailability = async ({
+  userId,
   dateFrom,
   dateTo,
   eventTypeId,
 }: {
+  userId?: string;
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey: context.apiKey,
-    userId: context.userId,
+    userId: userId || context.userId,
     dateFrom,
     dateTo,
   };
@@ -52,9 +54,10 @@ export const fetchAvailability = async ({
 
 const getAvailabilityTool = new DynamicStructuredTool({
   description: "Get availability within range.",
-  func: async ({ dateFrom, dateTo, eventTypeId }) => {
+  func: async ({ userId, dateFrom, dateTo, eventTypeId }) => {
     return JSON.stringify(
       await fetchAvailability({
+        userId,
         dateFrom,
         dateTo,
         eventTypeId,
@@ -63,6 +66,12 @@ const getAvailabilityTool = new DynamicStructuredTool({
   },
   name: "getAvailability",
   schema: z.object({
+    userId: z
+      .string()
+      .optional()
+      .describe(
+        "The user ID of an external user to fetch availability for. If not provided, uses the current user."
+      ),
     dateFrom: z.string(),
     dateTo: z.string(),
     eventTypeId: z
