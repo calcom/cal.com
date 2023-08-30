@@ -678,8 +678,8 @@
   "new_event_type_btn": "New event type",
   "new_event_type_heading": "Create your first event type",
   "new_event_type_description": "Event types enable you to share links that show available times on your calendar and allow people to make bookings with you.",
-  "event_type_created_successfully": "{{eventTypeTitle}} event type created successfully",
-  "event_type_updated_successfully": "{{eventTypeTitle}} event type updated successfully",
+  "event_type_created_successfully": "Event type created successfully",
+  "event_type_updated_successfully": "Event type updated successfully",
   "event_type_deleted_successfully": "Event type deleted successfully",
   "hours": "Hours",
   "people": "People",
@@ -2032,7 +2032,8 @@
   "mark_dns_configured": "Mark as DNS configured",
   "value": "Value",
   "your_organization_updated_sucessfully": "Your organization updated successfully",
-  "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations", 
+  "team_no_event_types": "This team has no event types",
+  "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

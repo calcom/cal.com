@@ -36,7 +36,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
   const avatars: Avatar[] = shownUsers.map((user) => ({
-    title: `${user.name}`,
+    title: `${user.name || user.username}`,
     image: "image" in user ? `${user.image}` : `/${user.username}/avatar.png`,
     alt: user.name || undefined,
     href: `/${user.username}`,
@@ -54,7 +54,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
 
   // Add profile later since we don't want to force creating an avatar for this if it doesn't exist.
   avatars.unshift({
-    title: `${profile.name}`,
+    title: `${profile.name || profile.username}`,
     image: "logo" in profile && profile.logo ? `${profile.logo}` : undefined,
     alt: profile.name || undefined,
     href: profile.username ? `${CAL_URL}/${profile.username}` : undefined,
