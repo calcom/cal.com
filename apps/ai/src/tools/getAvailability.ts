@@ -22,7 +22,7 @@ export const fetchAvailability = async ({
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey,
-    userId,
+    userId: userId.toString(),
     dateFrom,
     dateTo,
   };

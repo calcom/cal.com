@@ -16,6 +16,8 @@ const editBooking = async ({
   description,
   status,
 }: {
+  apiKey: string;
+  userId: number;
   id: string;
   startTime?: string;
   endTime?: string;
@@ -25,7 +27,7 @@ const editBooking = async ({
 }): Promise<string | { error: string }> => {
   const params = {
     apiKey,
-    userId,
+    userId: userId.toString(),
   };
   const urlParams = new URLSearchParams(params);
 

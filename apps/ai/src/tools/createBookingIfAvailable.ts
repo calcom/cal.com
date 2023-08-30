@@ -29,7 +29,7 @@ const createBooking = async ({
 }): Promise<string | Error | { error: string }> => {
   const params = {
     apiKey,
-    userId,
+    userId: userId.toString(),
   };
 
   const urlParams = new URLSearchParams(params);
