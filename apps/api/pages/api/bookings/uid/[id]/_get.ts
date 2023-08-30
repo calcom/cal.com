@@ -17,7 +17,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the booking to get
+ *         description: UID of the booking to get
  *       - in: query
  *         name: apiKey
  *         required: true
