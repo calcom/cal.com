@@ -19,7 +19,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *        schema:
  *          type: integer
  *        required: true
- *        description: ID of the booking to cancel
+ *        description: UID of the booking to cancel
  *      - in: query
  *        name: apiKey
  *        required: true
