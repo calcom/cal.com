@@ -143,7 +143,7 @@ export async function getTeamWithMembers(args: {
           }
           return { name: appMetaData?.name, logo: appMetaData?.logo, slug: appMetaData?.slug };
         })
-        .sort((a, b) => a.slug?.localeCompare(b.slug));
+        .sort((a, b) => (a.slug ?? "").localeCompare(b.slug ?? ""));
       //Prevent credentials from leaking to frontend
       const { credentials, destinationCalendar, selectedCalendars, ...rest } = {
         ...obj.user,
