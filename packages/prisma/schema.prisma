@@ -202,6 +202,7 @@ model User {
   timeFormat          Int?                 @default(12)
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
+  backupCodes         String?
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
   availability        Availability[]

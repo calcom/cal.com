@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { Slots } from "../use-schedule";
 
 export const getNonEmptyScheduleDays = (slots?: Slots) => {
-  if (typeof slots === "undefined") return null;
+  if (typeof slots === "undefined") return [];
   return Object.keys(slots).filter((day) => slots[day].length > 0);
 };
 
