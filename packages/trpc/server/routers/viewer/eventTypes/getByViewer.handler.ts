@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
@@ -7,6 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -271,7 +272,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${bookerUrl}${group.teamId ? "/team" : ""}/${group.profile.slug}/avatar.png`,
+      image: `${bookerUrl}/${group.profile.slug}/avatar.png`,
     })),
   };
 };
