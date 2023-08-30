@@ -207,7 +207,8 @@ export default function CreateEventTypeDialog({
               placeholder={t("Enter amount you are ready to pay")}
               {...register("amount", { valueAsNumber: true })}
               onChange={(e) => {
-                form.setValue("amount", e?.target.value);
+                const newValue = parseFloat(e?.target.value); // Convert string to number
+                form.setValue("amount", newValue);
               }}
             />
             {urlPrefix && urlPrefix.length >= 21 ? (

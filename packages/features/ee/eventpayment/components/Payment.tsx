@@ -8,13 +8,15 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
 
 type Props = {
-  payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
+  payment: Omit<
+    Payment,
+    "id" | "fee" | "success" | "refunded" | "externalId" | "data" | "appId" | "bookingId"
+  > & {
     data: Record<string, unknown>;
   };
   eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
@@ -42,7 +44,7 @@ const PaymentForm = (props: Props) => {
   console.log("ffffffff");
   console.log(paymentOption);
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
-  const bookingSuccessRedirect = useBookingSuccessRedirect();
+  //const bookingSuccessRedirect = useBookingSuccessRedirect();
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
@@ -59,14 +61,7 @@ const PaymentForm = (props: Props) => {
       uid: props.bookingUid,
       email: searchParams.get("email"),
     };
-    if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
-      payload = await stripe.confirmSetup({
-        elements,
-        confirmParams: {
-          return_url: props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.bookingUid}`,
-        },
-      });
-    } else if (paymentOption === "ON_BOOKING") {
+    if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -91,11 +86,11 @@ const PaymentForm = (props: Props) => {
         }
       }
 
-      return bookingSuccessRedirect({
-        successRedirectUrl: props.eventType.successRedirectUrl,
-        query: params,
-        bookingUid: props.eventType.uid,
-      });
+      // return bookingSuccessRedirect({
+      //   successRedirectUrl: props.eventType.successRedirectUrl,
+      //   query: params,
+      //   bookingUid: props.eventType.uid,
+      // });
     }
   };
 

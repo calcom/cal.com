@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { v4 as uuid } from "uuid";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -113,6 +114,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       data,
       select: {
         id: true,
+        uid: true,
         customInputs: true,
         disableGuests: true,
         users: {

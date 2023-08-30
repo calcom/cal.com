@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
 import type { TFunction } from "next-i18next";
+import { v4 as uuid } from "uuid";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
@@ -71,6 +72,11 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     locations: null,
+    uid: uuid(),
+    amount: 0,
+    ques: "wff",
+    joined: false,
+    paid: false,
     length: 15,
     offsetStart: 0,
     hidden: false,

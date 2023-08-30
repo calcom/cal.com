@@ -4,10 +4,9 @@ import Head from "next/head";
 import type { FC } from "react";
 import { useEffect } from "react";
 
-import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+// import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { CreditCard } from "@calcom/ui/components/icon";
@@ -25,7 +24,7 @@ const PaymentsPage: FC<PaymentPageProps> = (props) => {
   //const [timezone, setTimezone] = useState<string | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
-  const paymentAppData = getPaymentAppData(props.eventType);
+  // const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
     //const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
@@ -83,7 +82,7 @@ const PaymentsPage: FC<PaymentPageProps> = (props) => {
 
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-emphasis text-2xl font-semibold leading-6" id="modal-headline">
-                      {paymentAppData.paymentOption === "HOLD" ? t("complete_your_booking") : t("payment")}
+                      {/* {paymentAppData.paymentOption === "HOLD" ? t("complete_your_booking") : t("payment")} */}
                     </h3>
                     <div className="text-default mt-4 grid grid-cols-3 border-b border-t py-4 text-left dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("Paying for")}</div>
@@ -95,14 +94,6 @@ const PaymentsPage: FC<PaymentPageProps> = (props) => {
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>
                       </div> */}
-                      {props.eventType.location && (
-                        <>
-                          <div className="font-medium">{t("where")}</div>
-                          <div className="col-span-2 mb-6">
-                            {getSuccessPageLocationMessage(props.eventType.location, t)}
-                          </div>
-                        </>
-                      )}
                       {/* <div className="font-medium">
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div> */}

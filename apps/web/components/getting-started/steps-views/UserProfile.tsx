@@ -81,17 +81,23 @@ const UserProfile = () => {
       title: t("15min_meeting"),
       slug: "15min",
       length: 15,
+      ques: "Event Questions",
+      amount: 100,
     },
     {
       title: t("30min_meeting"),
       slug: "30min",
       length: 30,
+      ques: "Event Questions",
+      amount: 100,
     },
     {
       title: t("secret_meeting"),
       slug: "secret",
       length: 15,
       hidden: true,
+      ques: "Event Questions",
+      amount: 100,
     },
   ];
 

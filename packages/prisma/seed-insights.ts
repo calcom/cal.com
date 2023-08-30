@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -197,6 +198,7 @@ async function main() {
         slug: "single-event-admin",
         description: "Single Event Admin",
         length: 60,
+        uid: uuid(),
         userId: insightsAdmin.id,
         users: {
           connect: {
@@ -211,6 +213,7 @@ async function main() {
         slug: "single-event",
         description: "Single Event",
         length: 60,
+        uid: uuid(),
         userId: insightsUser.id,
         users: {
           connect: {
@@ -292,6 +295,7 @@ async function main() {
           slug: "team-meeting",
           description: "Team Meeting",
           length: 60,
+          uid: uuid(),
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
         },
@@ -300,6 +304,7 @@ async function main() {
           slug: "team-lunch",
           description: "Team Lunch",
           length: 30,
+          uid: uuid(),
           teamId: insightsTeam.id,
           schedulingType: "COLLECTIVE",
         },
@@ -308,6 +313,7 @@ async function main() {
           slug: "team-coffee",
           description: "Team Coffee",
           length: 15,
+          uid: uuid(),
           teamId: insightsTeam.id,
           schedulingType: "COLLECTIVE",
         },
@@ -480,6 +486,7 @@ async function createPerformanceData() {
       slug: `single-event-user-${memberId.id}`,
       description: `Single Event User - ${memberId.id}`,
       length: 30,
+      uid: uuid(),
       userId: memberId.id,
       users: {
         connect: {

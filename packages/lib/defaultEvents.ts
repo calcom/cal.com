@@ -1,4 +1,5 @@
 import type { Prisma, Credential } from "@prisma/client";
+import { v4 as uuid } from "uuid";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
@@ -103,6 +104,7 @@ const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Dynamic",
+  uid: uuid(),
   eventName: "Dynamic Event",
   description: "",
   descriptionAsSafeHTML: "",

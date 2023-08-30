@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useRouter } from "next/navigation";
 
 import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
@@ -21,7 +22,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
   const meQuery = trpc.viewer.me.useQuery();
 
-  //const router = useRouter();
+  const router = useRouter();
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {

@@ -104,6 +104,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventType: {
         ..._event,
         metadata: EventTypeMetaDataSchema.parse(_event.metadata),
+        uid: uid,
       },
       trpcState: ssr.dehydrate(),
       payment,
