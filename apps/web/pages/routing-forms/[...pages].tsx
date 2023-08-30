@@ -14,6 +14,9 @@ export default function RoutingForms() {
 }
 
 export const getServerSideProps = (context: GetServerSidePropsContext) => {
+  return {
+    notFound: true,
+  };
   const { pages } = paramsSchema.parse(context.params);
 
   return {

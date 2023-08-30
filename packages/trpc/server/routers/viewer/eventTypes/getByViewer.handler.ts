@@ -136,6 +136,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         where: {
           team: null,
           userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
+          paid: true,
+          joined: false,
         },
         select: eventTypeSelect,
         orderBy: [

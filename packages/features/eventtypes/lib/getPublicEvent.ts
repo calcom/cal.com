@@ -209,6 +209,8 @@ export const getPublicEvent = async (
   const event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
+      paid: true,
+      joined: false,
       ...usersOrTeamQuery,
     },
     select: publicEventSelect,

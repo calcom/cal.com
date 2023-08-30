@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
+import { stringify } from "querystring";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -115,10 +116,20 @@ export default function CreateEventTypeDialog({
       teamProfile?.membershipRole === MembershipRole.ADMIN);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
-    onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
+    onSuccess: async ({ paymentUid, name, email }) => {
+      if (paymentUid) {
+        const paymentLink =
+          `/payments/${paymentUid}?` +
+          stringify({
+            name,
+            email,
+          });
+        // Redirect the user to the generated payment link
+        return router.push(paymentLink);
+        // showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
+      }
     },
+
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
@@ -183,7 +194,22 @@ export default function CreateEventTypeDialog({
                 }
               }}
             />
-
+            <TextField
+              label={t("What do you want to ask")}
+              placeholder={t("Enter what you want to ask here")}
+              {...register("ques")}
+              onChange={(e) => {
+                form.setValue("ques", e?.target.value);
+              }}
+            />
+            <TextField
+              label={t("Amount")}
+              placeholder={t("Enter amount you are ready to pay")}
+              {...register("amount", { valueAsNumber: true })}
+              onChange={(e) => {
+                form.setValue("amount", e?.target.value);
+              }}
+            />
             {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
                 <TextField

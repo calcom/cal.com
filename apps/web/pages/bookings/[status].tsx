@@ -42,14 +42,14 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     name: "upcoming",
     href: "/bookings/upcoming",
   },
-  {
-    name: "unconfirmed",
-    href: "/bookings/unconfirmed",
-  },
-  {
-    name: "recurring",
-    href: "/bookings/recurring",
-  },
+  // {
+  //   name: "unconfirmed",
+  //   href: "/bookings/unconfirmed",
+  // },
+  // {
+  //   name: "recurring",
+  //   href: "/bookings/recurring",
+  // },
   {
     name: "past",
     href: "/bookings/past",

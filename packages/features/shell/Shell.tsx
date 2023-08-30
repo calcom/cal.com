@@ -56,14 +56,12 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  BarChart,
   Calendar,
   ChevronDown,
   Clock,
   Copy,
   Download,
   ExternalLink,
-  FileText,
   Grid,
   HelpCircle,
   Link as LinkIcon,
@@ -73,15 +71,12 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Users,
-  Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -528,20 +523,34 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/upcoming"),
+  },
+  {
+    name: "Past bookings",
+    href: "/bookings/past",
+    icon: Calendar,
+    badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/past"),
+  },
+  {
+    name: "Cancelled bookings",
+    href: "/bookings/cancelled",
+    icon: Calendar,
+    badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/cancelled"),
   },
   {
     name: "availability",
     href: "/availability",
     icon: Clock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Users,
+  //   onlyDesktop: true,
+  //   badge: <TeamInviteBadge />,
+  // },
   {
     name: "apps",
     href: "/apps",
@@ -574,22 +583,22 @@ const navigation: NavigationItemType[] = [
     href: "/more",
     icon: MoreHorizontal,
   },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
-    icon: FileText,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Zap,
-  },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: BarChart,
-  },
+  // {
+  //   name: "Routing Forms",
+  //   href: "/apps/routing-forms/forms",
+  //   icon: FileText,
+  //   isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
+  // },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Zap,
+  // },
+  // {
+  //   name: "insights",
+  //   href: "/insights",
+  //   icon: BarChart,
+  // },
 ];
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
@@ -886,7 +895,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         </div>
 
         <div>
-          <Tips />
+          {/* <Tips /> */}
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink

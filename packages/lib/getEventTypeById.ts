@@ -67,6 +67,7 @@ export default async function getEventTypeById({
           id: eventTypeId,
         },
       ],
+      paid: true,
     },
     select: {
       id: true,
