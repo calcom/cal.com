@@ -12,6 +12,7 @@ export const extractUsers = async (text: string) => {
         await prisma.user.findMany({
           select: {
             id: true,
+            email: true,
           },
           where: {
             username: {
@@ -19,7 +20,7 @@ export const extractUsers = async (text: string) => {
             },
           },
         })
-      ).map((user, n) => ({ username: usernames[n] as string, id: user.id }))
+      ).map((user, n) => ({ username: usernames[n] as string, id: user.id, email: user.email }))
     : [];
 
   const userIdsFromEmails = emails
