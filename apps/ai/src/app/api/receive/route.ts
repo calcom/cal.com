@@ -100,8 +100,6 @@ export const POST = async (request: NextRequest) => {
     extractUsers(`${parsed.text} ${parsed.subject}`),
   ]);
 
-  console.log("EXTRACTED USERS", users);
-
   if ("error" in availability) {
     await sendEmail({
       subject: `Re: ${body.subject}`,
