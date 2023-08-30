@@ -28,7 +28,8 @@ export const POST = async (request: NextRequest) => {
   const formData = await request.formData();
   const body = Object.fromEntries(formData);
 
-  const signature = body.dkim;
+  // body.dkim looks like {@domain-com.22222222.gappssmtp.com : pass}
+  const signature = (body.dkim as string).includes(" : pass");
 
   const envelope = JSON.parse(body.envelope as string);
 
