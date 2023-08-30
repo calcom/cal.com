@@ -17,3 +17,15 @@ export const withValidQueryIdString = withValidation({
   type: "Zod",
   mode: "query",
 });
+
+export const schemaQueryUidAsString = baseApiParams
+  .extend({
+    uid: z.string(),
+  })
+  .strict();
+
+export const withValidQueryUidString = withValidation({
+  schema: schemaQueryUidAsString,
+  type: "Zod",
+  mode: "query",
+});
