@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import { setTestEmail } from "@calcom/lib/testEmails";
 import prisma from "@calcom/prisma";
 
 export default class BaseEmail {
@@ -34,10 +35,13 @@ export default class BaseEmail {
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
 
-    if (process.env.NEXT_PUBLIC_IS_E2E || process.env.NEXT_PUBLIC_UNIT_TESTS) {
-      global.E2E_EMAILS = global.E2E_EMAILS || [];
-      global.E2E_EMAILS.push(this.getNodeMailerPayload());
-      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E or process.env.NEXT_PUBLIC_UNIT_TESTS is set");
+    if (process.env.NEXT_PUBLIC_UNIT_TESTS) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      setTestEmail(this.getNodeMailerPayload());
+      console.log(
+        "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in global.E2E_EMAILS"
+      );
       return new Promise((r) => r("Skipped sendEmail for E2E"));
     }
 

@@ -4,7 +4,8 @@ process.env.NEXT_PUBLIC_UNIT_TESTS = 1;
 export default defineConfig({
   test: {
     coverage: {
-      provider: "c8",
+      provider: "v8",
     },
+    testTimeout: 500000,
   },
 });

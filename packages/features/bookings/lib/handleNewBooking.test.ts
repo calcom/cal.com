@@ -1,96 +1,58 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// const mock = require('mock-require');
-// // eslint-disable-next-line @typescript-eslint/no-var-requires
-// const fs = require('fs')
-// const originalReadFileSync = fs.readFileSync
-// const originalExistsSync = fs.existsSync
-// mock('fs', {
-// 	...fs,
-// 	existsSync: function (fileName){
-// 		if (fileName.includes('next-i18next.config.js')) {
-// 			return true
-// 		}
-// 		return originalExistsSync.apply(this, [].slice.call(arguments))
-// 	},
-// 	readFileSync: function (){
-// 		console.log(arguments)
-// 		return originalReadFileSync.apply(this, [].slice.call(arguments))
-// 	}
-// })
-// mock(path.resolve('next-i18next.config.js'), )
 /**
  * How to ensure that unmocked prisma queries aren't called?
  */
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { describe, expect, beforeEach } from "vitest";
 
-import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  createBookingScenario,
+  getDate,
+  getGoogleCalendarCredential,
+  TestData,
+} from "@calcom/web/test/lib/createBookingScenario";
+
+import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
+import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 import reminderSchedulerMock from "../../../../tests/libs/__mocks__/reminderScheduler";
-import { createBookingScenario, getDate, getGoogleCalendarCredential, TestData } from "@calcom/web/test/lib/createBookingScenario";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
-
-vi.mock("@calcom/lib/server/i18n", () => ({
-  getTranslation: () => {
-    return (key: string) => key;
+expect.extend({
+  toHaveSentEmail(received, expected) {
+    const { isNot } = this;
+    return {
+      // do not alter your "pass" based on isNot. Vitest does it for you
+      pass: received === "foo",
+      message: () => `${received} is${isNot ? " not" : ""} foo`,
+    };
   },
-}));
-
-vi.mock("@calcom/app-store", () => ({
-  default: {
-    dailyvideo: () => {
-      return new Promise((resolve, reject) => {
-        resolve({
-          lib: {
-            VideoApiAdapter: () => ({
-              createMeeting: () => {
-                return Promise.resolve({
-                  type: "daily_video",
-                  id: "dailyEventName",
-                  password: "dailyvideopass",
-                  url: "http://dailyvideo.example.com",
-                });
-              },
-            }),
-          },
-        });
-      });
-    },
-  },
-}));
-
-
-
-function enableEmailFeature() {
-  prismaMock.feature.findMany.mockResolvedValue([
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    {
-      slug: "emails",
-      // It's a kill switch
-      enabled: false,
-    },
-  ]);
-}
-
+});
 describe("handleNewBooking", () => {
   beforeEach(() => {
-    global.E2E_EMAILS = [];
+    mockNoTranslations();
+    mockEnableEmailFeature();
   });
-  describe("Called by Frontend", () => {
-    test("should create a successful booking", async () => {
-      enableEmailFeature();
+
+  describe("Frontend:", () => {
+    test(`should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
+    1. Should send emails to the booker as well as organizer
+    `, async ({ emails }) => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const booker = {
+        email: "booker@booker.org",
+        name: "Booker",
+      };
+      const organizer = TestData.users.example;
+      const { req } = createMockNextJsRequest({
         method: "POST",
         body: {
           responses: {
-            email: "d@e.com",
-            name: "d",
+            email: booker.email,
+            name: booker.name,
             location: { optionValue: "", value: "integrations:daily" },
           },
           start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
@@ -107,19 +69,6 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus2DateString}T04:45:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      prismaMock.booking.create.mockImplementation(function (booking) {
-        return booking.data;
-      });
       const scenarioData = {
         hosts: [],
         eventTypes: [
@@ -136,7 +85,7 @@ describe("handleNewBooking", () => {
         ],
         users: [
           {
-            ...TestData.users.example,
+            ...organizer,
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
             credentials: [getGoogleCalendarCredential()],
@@ -145,12 +94,23 @@ describe("handleNewBooking", () => {
         ],
         apps: [TestData.apps.googleCalendar, TestData.apps.dailyVideo],
       };
+
+      mockDailyVideoToCreateSuccessfulMeeting();
+
+      // const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      // mockBusyCalendarTimes([
+      //   {
+      //     start: `${plus2DateString}T04:45:00.000Z`,
+      //     end: `${plus2DateString}T23:00:00.000Z`,
+      //   },
+      // ]);
+
       createBookingScenario(scenarioData);
 
       const createdBooking = await handleNewBooking(req);
       expect(createdBooking.responses).toContain({
-        email: "d@e.com",
-        name: "d",
+        email: booker.email,
+        name: booker.name,
       });
 
       expect(createdBooking).toContain({
@@ -163,12 +123,72 @@ describe("handleNewBooking", () => {
         hideBranding: false,
         isFirstRecurringEvent: true,
         isRescheduleEvent: false,
-        isNotConfirmed: false
+        isNotConfirmed: false,
       });
-      console.log({
-        Emails: global.E2E_EMAILS
+
+      const testEmails = emails.get();
+
+      expect(testEmails[0]).toContain({
+        to: `${organizer.email}`,
       });
-      expect(global.E2E_EMAILS).toHaveLength(2);
+
+      // TODO: Get the email HTML as DOM, so that we can get the title directly
+      expect(testEmails[0].html).toContain("<title>confirmed_event_type_subject</title>");
+
+      expect(testEmails[1]).toContain({
+        to: `${booker.name} <${booker.email}>`,
+      });
+      expect(testEmails[1].html).toContain("<title>confirmed_event_type_subject</title>");
     });
   });
 });
+
+function mockNoTranslations() {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  i18nMock.getTranslation.mockImplementation(() => {
+    return new Promise((resolve) => {
+      const identityFn = (key: string) => key;
+      resolve(identityFn);
+    });
+  });
+}
+
+function mockDailyVideoToCreateSuccessfulMeeting() {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  appStoreMock.appStore.dailyvideo.mockResolvedValue(() => {
+    return new Promise((resolve) => {
+      resolve({
+        lib: {
+          VideoApiAdapter: () => ({
+            createMeeting: () => {
+              return Promise.resolve({
+                type: "daily_video",
+                id: "dailyEventName",
+                password: "dailyvideopass",
+                url: "http://dailyvideo.example.com",
+              });
+            },
+          }),
+        },
+      });
+    });
+  });
+}
+
+function mockEnableEmailFeature() {
+  prismaMock.feature.findMany.mockResolvedValue([
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    {
+      slug: "emails",
+      // It's a kill switch
+      enabled: false,
+    },
+  ]);
+}
+
+function createMockNextJsRequest(...args: Parameters<typeof createMocks>) {
+  return createMocks<CustomNextApiRequest, CustomNextApiResponse>(...args);
+}

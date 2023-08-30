@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
+import type CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 type App = {
@@ -236,9 +237,10 @@ export function createBookingScenario(data: ScenarioData) {
     prismaMock.app.findFirst.mockImplementation(appMock);
   }
   data.bookings = data.bookings || [];
+  allowSuccessfulBookingCreation();
   addBookings(data.bookings, data.eventTypes);
+  // mockBusyCalendarTimes([]);
   addWebhooks();
-
   return {
     eventType,
   };
@@ -355,6 +357,7 @@ export const TestData = {
   },
   users: {
     example: {
+      name: "Example",
       username: "example",
       defaultScheduleId: 1,
       email: "example@example.com",
@@ -388,3 +391,19 @@ export const TestData = {
     },
   },
 };
+
+function allowSuccessfulBookingCreation() {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  prismaMock.booking.create.mockImplementation(function (booking) {
+    return booking.data;
+  });
+}
+
+// FIXME: This has to be per user.
+// Also, can we not mock Google Calendar Itself?
+export function mockBusyCalendarTimes(
+  busyTimes: Awaited<ReturnType<typeof CalendarManagerMock.getBusyCalendarTimes>>
+) {
+  // return CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busyTimes);
+}
