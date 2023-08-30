@@ -69,7 +69,7 @@ export const POST = async (request: NextRequest) => {
   const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
 
   // User has not installed the app from the app store. Direct them to install it.
-  if (!credential?.apiKey) {
+  if (!(credential as { apiKey: string })?.apiKey) {
     const url = env.APP_URL;
 
     await sendEmail({
@@ -84,8 +84,6 @@ export const POST = async (request: NextRequest) => {
   }
 
   const { apiKey } = credential as { apiKey: string };
-
-  console.log("here");
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
