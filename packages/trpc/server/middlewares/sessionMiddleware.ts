@@ -1,4 +1,5 @@
 import type { Session } from "next-auth";
+import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -192,6 +193,54 @@ export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({ ctx: { ...ctx, user: user } });
+});
+
+const userIdSchema = z.object({ requestedUserId: z.coerce.number() });
+
+export const hasPermissionToEditUser = isAuthed.unstable_pipe(async ({ ctx, rawInput, next }) => {
+  const { prisma } = ctx;
+  const parsed = userIdSchema.safeParse(rawInput);
+  if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
+  const { requestedUserId } = parsed.data;
+
+  const membershipOverlap = await prisma.membership.findMany({
+    where: {
+      OR: [
+        { userId: ctx.user.id, team: { members: { some: { userId: requestedUserId } } } },
+        { userId: requestedUserId, team: { members: { some: { userId: ctx.user.id } } } },
+      ],
+    },
+  });
+
+  const isAdminOrOwner = membershipOverlap.some(
+    (membership) =>
+      (membership.role === "ADMIN" || membership.role === "OWNER") && membership.userId === ctx.user.id
+  );
+
+  if (ctx.user.role !== "ADMIN" || !isAdminOrOwner) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  // fetch user
+  const user = await prisma.user.findUnique({
+    where: {
+      id: requestedUserId,
+    },
+  });
+
+  if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+  const { password: _password, ...userWithoutPassword } = user;
+
+  // If the user is an admin or owner, they can edit the user
+  // We should implement audit logging asap to track who is editing what - especially since we have a lot of team management features
+
+  return next({
+    ctx: {
+      user: ctx.user,
+      requestedUser: userWithoutPassword,
+    },
+  });
 });
 
 export default sessionMiddleware;
