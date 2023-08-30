@@ -229,7 +229,7 @@ export default function Availability() {
             )}>
             <div
               className={classNames(
-                "bg-default fixed right-0 top-11 z-20 flex h-3/5 w-80 flex-col space-y-1 overflow-x-hidden px-2 pb-3 transition-transform",
+                "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                 openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
               )}>
               <div className="flex flex-row items-center pt-5">
@@ -274,7 +274,7 @@ export default function Availability() {
                   )}
                 />
               </div>
-              <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2 py-6">
+              <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
