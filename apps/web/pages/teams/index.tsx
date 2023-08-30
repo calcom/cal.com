@@ -5,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -46,10 +47,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const token = context.query?.token;
   const resolvedUrl = context.resolvedUrl;
 
+  const callbackUrl = token ? getSafeRedirectUrl(`${WEBAPP_URL}${resolvedUrl}`) : null;
+
   if (!session) {
     return {
       redirect: {
-        destination: token ? `/auth/login?callbackUrl=${WEBAPP_URL}${resolvedUrl}` : "/auth/login",
+        destination: callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}&teamInvite=true` : "/auth/login",
         permanent: false,
       },
       props: {},

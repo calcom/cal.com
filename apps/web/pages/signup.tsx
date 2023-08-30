@@ -18,6 +18,7 @@ import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -56,6 +57,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
     }
   };
 
+  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation();
+
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
@@ -72,11 +75,12 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: `${
             searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+              ? `${searchParams.get("callbackUrl")}`
               : `${WEBAPP_URL}/${verifyOrGettingStarted}`
           }?from=signup`,
         });
@@ -158,7 +162,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       onClick={() =>
                         signIn("Cal.com", {
                           callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+                            ? `${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
