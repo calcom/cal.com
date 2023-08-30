@@ -33,9 +33,12 @@ import {
   showToast,
   TextField,
   Tooltip,
+  Select,
 } from "@calcom/ui";
 import { Copy, Edit } from "@calcom/ui/components/icon";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
+
+import InfoBadge from "@components/ui/InfoBadge";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -58,6 +61,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const [automaticallyDetermineEmail, setAutomaticallyDetermineEmail] = useState(
+    !!eventType.metadata.organizerEmail
+  );
 
   const bookingFields: Prisma.JsonObject = {};
 
@@ -123,6 +129,22 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
+
+  const emailMap = new Map();
+  const calendarEmails =
+    connectedCalendarsQuery.data?.connectedCalendars
+      .map((selectedCalendar) => ({
+        label: selectedCalendar.primary?.email || "",
+        value: selectedCalendar.primary?.email || "",
+      }))
+      .filter((email) => {
+        const mapValue = emailMap.get(email.value);
+        if (!mapValue) {
+          emailMap.set(email.label, email.value);
+          return true;
+        }
+      }) ?? [];
+
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -179,11 +201,57 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }
         />
       </div>
+
+      {!!connectedCalendarsQuery.data?.connectedCalendars.length && (
+        <Controller
+          name="organizerEmail"
+          control={formMethods.control}
+          defaultValue={eventType.metadata.organizerEmail}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                title={t("display_email_as_organizer")}
+                revertToggle
+                checked={!automaticallyDetermineEmail}
+                LockedIcon={
+                  !automaticallyDetermineEmail && (
+                    <InfoBadge
+                      className="mt-0"
+                      content={t("automatically_determine_email_address_tooltip")}
+                    />
+                  )
+                }
+                onCheckedChange={() => {
+                  setAutomaticallyDetermineEmail(!automaticallyDetermineEmail);
+                }}>
+                <div className="w-11/12 lg:-ml-2">
+                  <Select
+                    value={calendarEmails.find((cal) => cal.value === value)}
+                    defaultValue={calendarEmails.filter(
+                      (email) => email.value === eventType.metadata.organizerEmail
+                    )}
+                    options={calendarEmails}
+                    className="mb-2 mt-1 block w-full min-w-0 flex-1 text-sm"
+                    onChange={(option) => {
+                      formMethods.setValue("metadata.organizerEmail", option?.value);
+                      onChange(option?.value);
+                    }}
+                  />
+                  <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+                    {t("use_email_address_on_calendar_invite")}
+                  </div>
+                </div>
+              </SettingsToggle>
+            </>
+          )}
+        />
+      )}
+
       <hr className="border-subtle [&:has(+div:empty)]:hidden" />
       <div>
         <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
       </div>
-      <hr className="border-subtle" />
+      <hr className="border-subtle mt-0" />
       <FormBuilder
         title={t("booking_questions_title")}
         description={t("booking_questions_description")}

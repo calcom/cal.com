@@ -2034,5 +2034,8 @@
   "your_organization_updated_sucessfully": "Your organization updated successfully",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations", 
   "include_calendar_event": "Include calendar event",
+  "automatically_determine_email_address_tooltip": "If enabled, we'll use either the email \n address for the calendar you've chosen, \n or your primary email address on file.",
+  "display_email_as_organizer": "Display \"Add to calendar\" email as the organizer",
+  "use_email_address_on_calendar_invite": "We’ll use this email address on the calendar invite",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

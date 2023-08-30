@@ -133,6 +133,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  organizerEmail?: string;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -171,6 +172,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     onlyInstalled: true,
   });
 
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -471,8 +473,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsPerTimeSlotEnabled,
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               multipleDurationEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              organizerEmail,
               ...input
             } = values;
+
+            let emailMeta;
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -496,10 +502,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, ...rest } = input;
+
+            if (!metadata?.organizerEmail) {
+              // when no email is selected from dropdown, use default email in calendar
+              emailMeta = {
+                organizerEmail: connectedCalendarsQuery.data?.destinationCalendar.primaryEmail,
+                isDefaultEmail: true, // to keep track of when the default email is updated
+              };
+            }
+
             updateMutation.mutate({
-              ...rest,
+              ...input,
               locations,
               recurringEvent,
               periodStartDate: periodDates.startDate,
@@ -512,7 +525,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
-              metadata,
+              metadata: { ...metadata, ...emailMeta },
               customInputs,
             });
           }}>
