@@ -270,7 +270,6 @@ export default function Availability() {
                     <input
                       className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
                       {...field}
-                      data-testid="availablity-title"
                     />
                   )}
                 />
