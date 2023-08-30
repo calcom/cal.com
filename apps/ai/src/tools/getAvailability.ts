@@ -3,23 +3,26 @@ import { z } from "zod";
 
 import { env } from "../env.mjs";
 import type { Availability } from "../types/availability";
-import { context } from "../utils/context";
 
 /**
  * Fetches availability for a user by date range and event type.
  */
 export const fetchAvailability = async ({
+  apiKey,
+  userId,
   dateFrom,
   dateTo,
   eventTypeId,
 }: {
+  apiKey: string;
+  userId: number;
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
-    apiKey: context.apiKey,
-    userId: context.userId,
+    apiKey,
+    userId,
     dateFrom,
     dateTo,
   };
@@ -50,28 +53,32 @@ export const fetchAvailability = async ({
   };
 };
 
-const getAvailabilityTool = new DynamicStructuredTool({
-  description: "Get availability within range.",
-  func: async ({ dateFrom, dateTo, eventTypeId }) => {
-    return JSON.stringify(
-      await fetchAvailability({
-        dateFrom,
-        dateTo,
-        eventTypeId,
-      })
-    );
-  },
-  name: "getAvailability",
-  schema: z.object({
-    dateFrom: z.string(),
-    dateTo: z.string(),
-    eventTypeId: z
-      .number()
-      .optional()
-      .describe(
-        "The ID of the event type to filter availability for if you've called getEventTypes, otherwise do not include."
-      ),
-  }),
-});
+const getAvailabilityTool = (apiKey: string, userId: number) => {
+  return new DynamicStructuredTool({
+    description: "Get availability within range.",
+    func: async ({ dateFrom, dateTo, eventTypeId }) => {
+      return JSON.stringify(
+        await fetchAvailability({
+          apiKey,
+          userId,
+          dateFrom,
+          dateTo,
+          eventTypeId,
+        })
+      );
+    },
+    name: "getAvailability",
+    schema: z.object({
+      dateFrom: z.string(),
+      dateTo: z.string(),
+      eventTypeId: z
+        .number()
+        .optional()
+        .describe(
+          "The ID of the event type to filter availability for if you've called getEventTypes, otherwise do not include."
+        ),
+    }),
+  });
+};
 
 export default getAvailabilityTool;

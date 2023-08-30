@@ -2,12 +2,13 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import { context } from "../utils/context";
 
 /**
  * Creates a booking for a user by event type, times, and timezone.
  */
 const createBooking = async ({
+  apiKey,
+  userId,
   eventTypeId,
   start,
   end,
@@ -15,6 +16,8 @@ const createBooking = async ({
   language,
   responses,
 }: {
+  apiKey: string;
+  userId: number;
   eventTypeId: number;
   start: string;
   end: string;
@@ -25,8 +28,8 @@ const createBooking = async ({
   status?: string;
 }): Promise<string | Error | { error: string }> => {
   const params = {
-    apiKey: context.apiKey,
-    userId: context.userId,
+    apiKey,
+    userId,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -64,41 +67,45 @@ const createBooking = async ({
   return "Booking created";
 };
 
-const createBookingTool = new DynamicStructuredTool({
-  description:
-    "Tries to create a booking. If the user is unavailable, it will return availability that day, allowing you to avoid the getAvailability step in many cases.",
-  func: async ({ eventTypeId, start, end, timeZone, language, responses, title, status }) => {
-    return JSON.stringify(
-      await createBooking({
-        end,
-        eventTypeId,
-        language,
-        responses,
-        start,
-        status,
-        timeZone,
-        title,
-      })
-    );
-  },
-  name: "createBookingIfAvailable",
-  schema: z.object({
-    end: z
-      .string()
-      .describe("This should correspond to the event type's length, unless otherwise specified."),
-    eventTypeId: z.number(),
-    language: z.string(),
-    responses: z
-      .object({
-        email: z.string().optional(),
-        name: z.string().optional(),
-      })
-      .describe("External invited user. Not the user making the request."),
-    start: z.string(),
-    status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
-    timeZone: z.string(),
-    title: z.string().optional(),
-  }),
-});
+const createBookingTool = (apiKey: string, userId: number) => {
+  return new DynamicStructuredTool({
+    description:
+      "Tries to create a booking. If the user is unavailable, it will return availability that day, allowing you to avoid the getAvailability step in many cases.",
+    func: async ({ eventTypeId, start, end, timeZone, language, responses, title, status }) => {
+      return JSON.stringify(
+        await createBooking({
+          apiKey,
+          userId,
+          end,
+          eventTypeId,
+          language,
+          responses,
+          start,
+          status,
+          timeZone,
+          title,
+        })
+      );
+    },
+    name: "createBookingIfAvailable",
+    schema: z.object({
+      end: z
+        .string()
+        .describe("This should correspond to the event type's length, unless otherwise specified."),
+      eventTypeId: z.number(),
+      language: z.string(),
+      responses: z
+        .object({
+          email: z.string().optional(),
+          name: z.string().optional(),
+        })
+        .describe("External invited user. Not the user making the request."),
+      start: z.string(),
+      status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
+      timeZone: z.string(),
+      title: z.string().optional(),
+    }),
+  });
+};
 
 export default createBookingTool;

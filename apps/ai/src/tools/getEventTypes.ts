@@ -3,14 +3,13 @@ import { z } from "zod";
 
 import { env } from "../env.mjs";
 import type { EventType } from "../types/eventType";
-import { context } from "../utils/context";
 
 /**
  * Fetches event types by user ID.
  */
-export const fetchEventTypes = async () => {
+export const fetchEventTypes = async ({ apiKey }: { apiKey: string }) => {
   const params = {
-    apiKey: context.apiKey,
+    apiKey,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -34,13 +33,19 @@ export const fetchEventTypes = async () => {
   }));
 };
 
-const getEventTypesTool = new DynamicStructuredTool({
-  description: "Get the user's event type IDs. Usually necessary to book a meeting.",
-  func: async () => {
-    return JSON.stringify(await fetchEventTypes());
-  },
-  name: "getEventTypes",
-  schema: z.object({}),
-});
+const getEventTypesTool = (apiKey: string) => {
+  return new DynamicStructuredTool({
+    description: "Get the user's event type IDs. Usually necessary to book a meeting.",
+    func: async () => {
+      return JSON.stringify(
+        await fetchEventTypes({
+          apiKey,
+        })
+      );
+    },
+    name: "getEventTypes",
+    schema: z.object({}),
+  });
+};
 
 export default getEventTypesTool;

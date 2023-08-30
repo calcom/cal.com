@@ -19,8 +19,14 @@ const gptModel = "gpt-4";
  * Uses a toolchain to book meetings, list available slots, etc.
  * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
  */
-const agent = async (input: string, user: User) => {
-  const tools = [createBookingIfAvailable, deleteBooking, getAvailability, getBookings, updateBooking];
+const agent = async (input: string, user: User, apiKey: string, userId: number) => {
+  const tools = [
+    createBookingIfAvailable(apiKey, userId),
+    getAvailability(apiKey, userId),
+    getBookings(apiKey, userId),
+    updateBooking(apiKey, userId),
+    deleteBooking(apiKey),
+  ];
 
   const model = new ChatOpenAI({
     modelName: gptModel,

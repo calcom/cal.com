@@ -8,7 +8,6 @@ import prisma from "@calcom/prisma";
 import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
-import { context } from "../../../utils/context";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
@@ -68,10 +67,9 @@ export const POST = async (request: NextRequest) => {
   }
 
   const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
-  const key = credential && (credential as { apiKey: string }).apiKey;
 
   // User has not installed the app from the app store. Direct them to install it.
-  if (!key) {
+  if (!credential?.apiKey) {
     const url = env.APP_URL;
 
     await sendEmail({
@@ -85,14 +83,18 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   }
 
-  // Context is used in agent tools
-  context.apiKey = key;
-  context.userId = user.id.toString();
+  const { apiKey } = credential as { apiKey: string };
+
+  console.log("here");
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
-    fetchEventTypes(),
+    fetchEventTypes({
+      apiKey,
+    }),
     fetchAvailability({
+      apiKey,
+      userId: user.id,
       dateFrom: now,
       dateTo: now,
     }),
@@ -127,7 +129,8 @@ export const POST = async (request: NextRequest) => {
   // Hand off to long-running agent endpoint to handle the email. (don't await)
   fetch(`${appHost}/api/agent?parseKey=${env.PARSE_KEY}`, {
     body: JSON.stringify({
-      context,
+      apiKey,
+      userId: user.id,
       message: parsed.text,
       subject: parsed.subject,
       replyTo: aiEmail,

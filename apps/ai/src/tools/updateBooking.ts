@@ -2,12 +2,13 @@ import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
 import { env } from "../env.mjs";
-import { context } from "../utils/context";
 
 /**
  * Edits a booking for a user by booking ID with new times, title, description, or status.
  */
 const editBooking = async ({
+  apiKey,
+  userId,
   id,
   startTime, // In the docs it says start, but it's startTime: https://cal.com/docs/enterprise-features/api/api-reference/bookings#edit-an-existing-booking.
   endTime, // Same here: it says end but it's endTime.
@@ -23,8 +24,8 @@ const editBooking = async ({
   status?: string;
 }): Promise<string | { error: string }> => {
   const params = {
-    apiKey: context.apiKey,
-    userId: context.userId,
+    apiKey,
+    userId,
   };
   const urlParams = new URLSearchParams(params);
 
@@ -49,29 +50,33 @@ const editBooking = async ({
   return "Booking edited";
 };
 
-const editBookingTool = new DynamicStructuredTool({
-  description: "Edit a booking",
-  func: async ({ description, endTime, id, startTime, status, title }) => {
-    return JSON.stringify(
-      await editBooking({
-        description,
-        endTime,
-        id,
-        startTime,
-        status,
-        title,
-      })
-    );
-  },
-  name: "editBooking",
-  schema: z.object({
-    description: z.string().optional(),
-    endTime: z.string().optional(),
-    id: z.string(),
-    startTime: z.string().optional(),
-    status: z.string().optional(),
-    title: z.string().optional(),
-  }),
-});
+const editBookingTool = (apiKey: string, userId: number) => {
+  return new DynamicStructuredTool({
+    description: "Edit a booking",
+    func: async ({ description, endTime, id, startTime, status, title }) => {
+      return JSON.stringify(
+        await editBooking({
+          apiKey,
+          userId,
+          description,
+          endTime,
+          id,
+          startTime,
+          status,
+          title,
+        })
+      );
+    },
+    name: "editBooking",
+    schema: z.object({
+      description: z.string().optional(),
+      endTime: z.string().optional(),
+      id: z.string(),
+      startTime: z.string().optional(),
+      status: z.string().optional(),
+      title: z.string().optional(),
+    }),
+  });
+};
 
 export default editBookingTool;
