@@ -1009,10 +1009,6 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
-  if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && teamMembers.length > 0) {
-    attendeesList.push(...teamMembers);
-  }
-
   const responses = "responses" in reqBody ? reqBody.responses : null;
 
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
