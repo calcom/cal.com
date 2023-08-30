@@ -8,7 +8,6 @@ import { context } from "../utils/context";
  * Creates a booking for a user by event type, times, and timezone.
  */
 const createBooking = async ({
-  userId,
   eventTypeId,
   start,
   end,
@@ -16,7 +15,6 @@ const createBooking = async ({
   language,
   responses,
 }: {
-  userId?: string;
   eventTypeId: number;
   start: string;
   end: string;
@@ -28,7 +26,7 @@ const createBooking = async ({
 }): Promise<string | Error | { error: string }> => {
   const params = {
     apiKey: context.apiKey,
-    userId: userId || context.userId,
+    userId: context.userId,
   };
 
   const urlParams = new URLSearchParams(params);
@@ -69,10 +67,9 @@ const createBooking = async ({
 const createBookingTool = new DynamicStructuredTool({
   description:
     "Tries to create a booking. If the user is unavailable, it will return availability that day, allowing you to avoid the getAvailability step in many cases.",
-  func: async ({ userId, eventTypeId, start, end, timeZone, language, responses, title, status }) => {
+  func: async ({ eventTypeId, start, end, timeZone, language, responses, title, status }) => {
     return JSON.stringify(
       await createBooking({
-        userId,
         end,
         eventTypeId,
         language,
@@ -86,10 +83,6 @@ const createBookingTool = new DynamicStructuredTool({
   },
   name: "createBookingIfAvailable",
   schema: z.object({
-    userId: z
-      .string()
-      .optional()
-      .describe("The user ID of an external user to book with. If not provided, uses the current user."),
     end: z
       .string()
       .describe("This should correspond to the event type's length, unless otherwise specified."),
@@ -100,9 +93,7 @@ const createBookingTool = new DynamicStructuredTool({
         email: z.string().optional(),
         name: z.string().optional(),
       })
-      .describe(
-        "Users to invite. This should not be the user making the request unless another user's userId is provided."
-      ),
+      .describe("External invited user. Not the user making the request."),
     start: z.string(),
     status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
     timeZone: z.string(),
