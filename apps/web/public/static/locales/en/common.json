@@ -2010,6 +2010,13 @@
   "member_removed": "Member removed",
   "my_availability": "My Availability",
   "team_availability": "Team Availability",
+  "backup_code": "Backup Code",
+  "backup_codes": "Backup Codes",
+  "backup_code_instructions": "Each backup code can be used exactly once to grant access without your authenticator.",
+  "backup_codes_copied": "Backup codes copied!",
+  "incorrect_backup_code": "Backup code is incorrect.",
+  "lost_access": "Lost access",
+  "missing_backup_codes": "No backup codes found. Please generate them in your settings.",
   "admin_org_notification_email_subject": "New organization created: pending action",
   "hi_admin": "Hi Administrator",
   "admin_org_notification_email_title": "An organization requires DNS setup",
@@ -2026,5 +2033,6 @@
   "value": "Value",
   "your_organization_updated_sucessfully": "Your organization updated successfully",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations", 
+  "include_calendar_event": "Include calendar event",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
