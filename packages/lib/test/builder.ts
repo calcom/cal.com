@@ -189,6 +189,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     availability: [],
     avatar: "",
     away: false,
+    backupCodes: null,
     bio: null,
     brandColor: "#292929",
     bufferTime: 0,
