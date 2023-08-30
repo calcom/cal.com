@@ -562,7 +562,6 @@ class CalApi {
 
   modal({
     calLink,
-    calOrigin,
     config = {},
     uid,
   }: {

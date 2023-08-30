@@ -9,7 +9,7 @@ type AdminGetAllOptions = {
   };
 };
 
-export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetAllOptions) => {
+export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
   const allOrgs = await prisma.team.findMany({
     where: {
       AND: [
