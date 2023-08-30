@@ -1,4 +1,4 @@
-import type { ParsedMail } from "mailparser";
+import type { ParsedMail, Source } from "mailparser";
 import { simpleParser } from "mailparser";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -25,17 +25,17 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const formData: any = await request.formData();
+  const formData = await request.formData();
   const body = Object.fromEntries(formData);
 
   const signature = body.dkim;
 
-  const envelope = JSON.parse(body.envelope);
+  const envelope = JSON.parse(body.envelope as string);
 
   const aiEmail = envelope.to[0];
 
   // Parse email from mixed MIME type
-  const parsed: ParsedMail = await simpleParser(body.email);
+  const parsed: ParsedMail = await simpleParser(body.email as Source);
 
   if (!parsed.text && !parsed.subject) {
     return new NextResponse("Email missing text and subject", { status: 400 });
@@ -67,11 +67,7 @@ export const POST = async (request: NextRequest) => {
   }
 
   const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
-  const key = credential && credential["apiKey"];
-
-  // Context is used in agent tools
-  context.apiKey = key;
-  context.userId = user.id.toString();
+  const key = credential && (credential as { apiKey: string }).apiKey;
 
   // User has not installed the app from the app store. Direct them to install it.
   if (!key) {
@@ -87,6 +83,10 @@ export const POST = async (request: NextRequest) => {
 
     return new NextResponse("ok");
   }
+
+  // Context is used in agent tools
+  context.apiKey = key;
+  context.userId = user.id.toString();
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability] = await Promise.all([
