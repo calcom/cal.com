@@ -7,9 +7,6 @@ export const extractUsers = async (text: string) => {
   const usernames = text.match(/@[a-zA-Z0-9_]+/g)?.map((username) => username.slice(1));
   const emails = text.match(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g);
 
-  console.log("usernames", usernames);
-  console.log("emails", emails);
-
   const userIdsFromUsernames = usernames
     ? (
         await prisma.user.findMany({
