@@ -195,6 +195,12 @@ async function getBookings({
           select: {
             id: true,
             name: true,
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
+            },
           },
         },
       },
