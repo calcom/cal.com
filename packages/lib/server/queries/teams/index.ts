@@ -31,7 +31,12 @@ export async function getTeamWithMembers(args: {
     selectedCalendars: true,
     credentials: {
       include: {
-        app: true,
+        app: {
+          select: {
+            slug: true,
+            categories: true,
+          },
+        },
         destinationCalendars: {
           select: {
             externalId: true,
@@ -129,6 +134,9 @@ export async function getTeamWithMembers(args: {
 
   if (!team) return null;
 
+  // This should improve performance saving already app data found.
+  const appDataMap = new Map();
+
   const members = team.members.map((obj) => {
     return {
       ...obj.user,
@@ -137,17 +145,27 @@ export async function getTeamWithMembers(args: {
       disableImpersonation: obj.disableImpersonation,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
       connectedApps: obj.user.credentials.map((cred) => {
-        const appData = getAppFromSlug(cred.app?.slug);
+        const appSlug = cred.app?.slug;
+        let appData = appDataMap.get(appSlug);
+
+        if (!appData) {
+          appData = getAppFromSlug(appSlug);
+          appDataMap.set(appSlug, appData);
+        }
+
         const isCalendar = cred?.app?.categories.includes("calendar");
+        const externalId = isCalendar ? cred.destinationCalendars[0]?.externalId : undefined;
+
         return {
           name: appData?.name,
           logo: appData?.logo,
           app: cred.app,
-          externalId: isCalendar ? cred.destinationCalendars[0]?.externalId : undefined,
+          externalId,
         };
       }),
     };
   });
+
   const eventTypes = team.eventTypes.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
