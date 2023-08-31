@@ -149,7 +149,11 @@ export async function handlePaymentSuccess(
     },
     attendees: attendeesList,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: booking.destinationCalendar
+      ? [booking.destinationCalendar]
+      : user.destinationCalendar
+      ? [user.destinationCalendar]
+      : [],
     recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
   };
 
