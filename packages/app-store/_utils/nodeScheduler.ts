@@ -134,9 +134,7 @@ export async function listBookings(appApiKey: ApiKey) {
     }
     const bookings = await prisma.booking.findMany({
       take: 3,
-      where: {
-        userId: appApiKey.userId,
-      },
+      where: where,
       orderBy: {
         id: "desc",
       },
