@@ -8,28 +8,61 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { getBookingRedirectExtraParams, useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
+
+import type { PaymentPageProps } from "../pages/payment";
 
 type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
     data: Record<string, unknown>;
   };
-  eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
-  user: { username: string | null };
+  eventType: {
+    id: number;
+    successRedirectUrl: EventType["successRedirectUrl"];
+  };
+  user: {
+    username: string | null;
+  };
   location?: string | null;
-  bookingId: number;
-  bookingUid: string;
   clientSecret: string;
+  booking: PaymentPageProps["booking"];
 };
 
 type States =
-  | { status: "idle" }
-  | { status: "processing" }
-  | { status: "error"; error: Error }
-  | { status: "ok" };
+  | {
+      status: "idle";
+    }
+  | {
+      status: "processing";
+    }
+  | {
+      status: "error";
+      error: Error;
+    }
+  | {
+      status: "ok";
+    };
+
+const getReturnUrl = (props: Props) => {
+  if (!props.eventType.successRedirectUrl) {
+    return `${CAL_URL}/booking/${props.booking.uid}`;
+  }
+
+  const returnUrl = new URL(props.eventType.successRedirectUrl);
+  const queryParams = getBookingRedirectExtraParams(props.booking);
+
+  Object.entries(queryParams).forEach(([key, value]) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+    returnUrl.searchParams.append(key, String(value));
+  });
+
+  return returnUrl.toString();
+};
 
 const PaymentForm = (props: Props) => {
   const { t, i18n } = useLocale();
@@ -53,25 +86,28 @@ const PaymentForm = (props: Props) => {
     setState({ status: "processing" });
 
     let payload;
-    const params: { [k: string]: any } = {
-      uid: props.bookingUid,
+    const params: {
+      [k: string]: any;
+    } = {
+      uid: props.booking.uid,
       email: searchParams.get("email"),
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
         confirmParams: {
-          return_url: props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.bookingUid}`,
+          return_url: getReturnUrl(props),
         },
       });
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.bookingUid}`,
+          return_url: getReturnUrl(props),
         },
       });
     }
+
     if (payload?.error) {
       setState({
         status: "error",
@@ -89,7 +125,7 @@ const PaymentForm = (props: Props) => {
       return bookingSuccessRedirect({
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
-        bookingUid: props.bookingUid,
+        booking: props.booking,
       });
     }
   };

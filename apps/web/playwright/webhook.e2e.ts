@@ -184,6 +184,7 @@ test.describe("BOOKING_REJECTED", async () => {
       expect(webhookReceiver.requestList.length).toBe(1);
     });
     const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
 
     // remove dynamic properties that differs depending on where you run the tests
@@ -245,7 +246,7 @@ test.describe("BOOKING_REJECTED", async () => {
           },
         ],
         location: "[redacted/dynamic]",
-        destinationCalendar: null,
+        destinationCalendar: [],
         // hideCalendarNotes: false,
         requiresConfirmation: "[redacted/dynamic]",
         eventTypeId: "[redacted/dynamic]",
