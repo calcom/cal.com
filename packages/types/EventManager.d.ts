@@ -23,6 +23,7 @@ export interface EventResult<T> {
   calError?: string;
   calWarnings?: string[];
   credentialId?: number;
+  externalId?: string | null;
 }
 
 export interface CreateUpdateResult {

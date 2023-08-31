@@ -125,7 +125,8 @@ export default class LarkCalendarService implements Calendar {
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
-    const calendarId = event.destinationCalendar?.externalId;
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       throw new Error("no calendar id");
     }
@@ -160,7 +161,8 @@ export default class LarkCalendarService implements Calendar {
   }
 
   private createAttendees = async (event: CalendarEvent, eventId: string) => {
-    const calendarId = event.destinationCalendar?.externalId;
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in createAttendees");
       throw new Error("no calendar id provided in createAttendees");
@@ -187,7 +189,8 @@ export default class LarkCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
-    const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in updateEvent");
       throw new Error("no calendar id provided in updateEvent");
@@ -231,7 +234,8 @@ export default class LarkCalendarService implements Calendar {
    * @returns
    */
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
-    const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");
       throw new Error("no calendar id provided in deleteEvent");

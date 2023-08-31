@@ -70,9 +70,10 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     try {
-      const eventsUrl = event.destinationCalendar?.externalId
-        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+      const eventsUrl = mainHostDestinationCalendar?.externalId
+        ? `/me/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : "/me/calendar/events";
 
       const response = await this.fetcher(eventsUrl, {
