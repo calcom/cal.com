@@ -232,24 +232,26 @@ export const createEvent = async (
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (error: { code: number; calError: string }) => {
-        success = false;
-        /**
-         * There is a time when selectedCalendar externalId doesn't match witch certain credential
-         * so google returns 404.
-         * */
-        if (error?.code === 404) {
+    ? await calendar
+        .createEvent(calEvent, credential.id)
+        .catch(async (error: { code: number; calError: string }) => {
+          success = false;
+          /**
+           * There is a time when selectedCalendar externalId doesn't match witch certain credential
+           * so google returns 404.
+           * */
+          if (error?.code === 404) {
+            return undefined;
+          }
+          if (error?.calError) {
+            calError = error.calError;
+          }
+          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          // @TODO: This code will be off till we can investigate an error with it
+          //https://github.com/calcom/cal.com/issues/3949
+          // await sendBrokenIntegrationEmail(calEvent, "calendar");
           return undefined;
-        }
-        if (error?.calError) {
-          calError = error.calError;
-        }
-        log.error("createEvent failed", JSON.stringify(error), calEvent);
-        // @TODO: This code will be off till we can investigate an error with it
-        //https://github.com/calcom/cal.com/issues/3949
-        // await sendBrokenIntegrationEmail(calEvent, "calendar");
-        return undefined;
-      })
+        })
     : undefined;
 
   return {

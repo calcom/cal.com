@@ -84,7 +84,7 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
@@ -96,8 +96,11 @@ export default class GoogleCalendarService implements Calendar {
         displayName: m.name,
         responseStatus: "accepted",
       })) || [];
-    const [mainHostDestinationCalendar] = calEventRaw.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
+      const [mainHostDestinationCalendar] =
+        calEventRaw?.destinationCalendar && calEventRaw?.destinationCalendar.length > 0
+          ? calEventRaw.destinationCalendar
+          : [];
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
         summary: calEventRaw.title,
@@ -139,13 +142,16 @@ export default class GoogleCalendarService implements Calendar {
       const calendar = google.calendar({
         version: "v3",
       });
-      const selectedCalendar = mainHostDestinationCalendar?.externalId
-        ? mainHostDestinationCalendar.externalId
-        : "primary";
+      // Find in calEventRaw.destinationCalendar the one with the same credentialId
+
+      const selectedCalendar = calEventRaw.destinationCalendar?.find(
+        (cal) => cal.credentialId === credentialId
+      )?.externalId;
+
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: selectedCalendar,
+          calendarId: selectedCalendar || "primary",
           requestBody: payload,
           conferenceDataVersion: 1,
           sendUpdates: "none",
@@ -188,8 +194,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
+      const [mainHostDestinationCalendar] =
+        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
       const myGoogleAuth = await this.auth.getToken();
       const eventAttendees = event.attendees.map(({ ...rest }) => ({
         ...rest,
@@ -246,7 +253,7 @@ export default class GoogleCalendarService implements Calendar {
 
       const selectedCalendar = externalCalendarId
         ? externalCalendarId
-        : mainHostDestinationCalendar?.externalId;
+        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
       calendar.events.update(
         {
@@ -297,7 +304,6 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const calendar = google.calendar({
@@ -306,7 +312,9 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       const defaultCalendarId = "primary";
-      const calendarId = externalCalendarId ? externalCalendarId : mainHostDestinationCalendar?.externalId;
+      const calendarId = externalCalendarId
+        ? externalCalendarId
+        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
       calendar.events.delete(
         {
