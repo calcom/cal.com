@@ -11,7 +11,7 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
@@ -62,6 +62,7 @@ const providers: Provider[] = [
       email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
       password: { label: "Password", type: "password", placeholder: "Your super secure password" },
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+      backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
     async authorize(credentials) {
       if (!credentials) {
@@ -85,6 +86,7 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          backupCodes: true,
           locale: true,
           organization: {
             select: {
@@ -126,7 +128,33 @@ const providers: Provider[] = [
         }
       }
 
-      if (user.twoFactorEnabled) {
+      if (user.twoFactorEnabled && credentials.backupCode) {
+        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+          console.error("Missing encryption key; cannot proceed with backup code login.");
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+
+        const backupCodes = JSON.parse(
+          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
+        );
+
+        // check if user-supplied code matches one
+        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
+        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
+
+        // delete verified backup code and re-encrypt remaining
+        backupCodes[index] = null;
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+          },
+        });
+      } else if (user.twoFactorEnabled) {
         if (!credentials.totpCode) {
           throw new Error(ErrorCode.SecondFactorRequired);
         }
