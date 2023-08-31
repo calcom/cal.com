@@ -64,7 +64,7 @@ test.describe("Booking with Seats", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     const eventTitle = "My 2-seated event";
     await createNewSeatedEventType(page, { eventTitle });
-    await expect(page.locator(`text=${eventTitle} event type updated successfully`)).toBeVisible();
+    await expect(page.locator(`text=Event type updated successfully`)).toBeVisible();
   });
 
   test("Multiple Attendees can book a seated event time slot", async ({ users, page }) => {

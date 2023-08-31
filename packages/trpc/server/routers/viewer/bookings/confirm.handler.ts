@@ -172,7 +172,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     attendees: attendeesList,
     location: booking.location ?? "",
     uid: booking.uid,
-    destinationCalendar: booking?.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: booking?.destinationCalendar
+      ? [booking.destinationCalendar]
+      : user.destinationCalendar
+      ? [user.destinationCalendar]
+      : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     eventTypeId: booking.eventType?.id,
   };
