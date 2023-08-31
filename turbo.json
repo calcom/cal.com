@@ -46,7 +46,16 @@
       "dependsOn": []
     },
     "@calcom/ai#build": {
-      "env": ["CAL_AI_DATABASE_URL", "BACKEND_URL", "APP_ID", "APP_URL", "OPENAI_API_KEY", "PARSE_KEY"]
+      "env": [
+        "BACKEND_URL",
+        "APP_ID",
+        "APP_URL",
+        "PARSE_KEY",
+        "NODE_ENV",
+        "OPENAI_API_KEY",
+        "SENDGRID_API_KEY",
+        "DATABASE_URL"
+      ]
     },
     "@calcom/website#build": {
       "dependsOn": ["^build"],
