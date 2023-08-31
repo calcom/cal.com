@@ -1944,5 +1944,6 @@
   "insights_user_filter": "用户：{{userName}}",
   "insights_subtitle": "查看您活动的预约 insights",
   "custom_plan": "自定义计划",
+  "include_calendar_event": "包括日历活动",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

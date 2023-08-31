@@ -454,6 +454,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             senderName: newStep.senderName,
           }),
           numberVerificationPending: false,
+          includeCalendarEvent: newStep.includeCalendarEvent,
         },
       });
       //cancel all reminders of step and create new ones (not for newEventTypes)

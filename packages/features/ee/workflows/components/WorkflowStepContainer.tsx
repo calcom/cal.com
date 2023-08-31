@@ -861,6 +861,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                     </p>
                   )}
+                {isEmailSubjectNeeded && (
+                  <div className="mt-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                          }
+                          description={t("include_calendar_event")}
+                          onChange={(e) =>
+                            form.setValue(
+                              `steps.${step.stepNumber - 1}.includeCalendarEvent`,
+                              e.target.checked
+                            )
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                )}
                 {!props.readOnly && (
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>

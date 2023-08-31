@@ -6,6 +6,7 @@ import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
+import cal_ai_config_json from "./cal-ai/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -75,6 +76,7 @@ export const appStoreMetadata = {
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
   basecamp3: basecamp3_config_json,
+  "cal-ai": cal_ai_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   closecom: closecom_config_json,
