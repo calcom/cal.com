@@ -88,7 +88,8 @@ const zoomAuth = (credential: CredentialPayload) => {
             grant_type: "refresh_token",
           }),
         }),
-      credential.userId
+      credential.userId,
+      "zoomvideo"
     );
 
     // const response = await fetch("https://zoom.us/oauth/token", {
