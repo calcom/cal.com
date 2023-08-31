@@ -1,4 +1,3 @@
-import type { getStaticProps } from "make/pages/setup/_getStaticProps";
 import type { InferGetStaticPropsType } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -9,6 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
+
+import type { getStaticProps } from "./_getStaticProps";
 
 const MAKE = "make";
 
