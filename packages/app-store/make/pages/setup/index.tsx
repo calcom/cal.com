@@ -33,7 +33,6 @@ export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof
   );
   const [credentialId] = makeCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
-  const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 
   async function createApiKey(teamId?: number) {
     const event = { note: "Make", expiresAt: null, appId: MAKE, teamId };
@@ -112,14 +111,13 @@ export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof
               </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
-                {isCalDev && (
-                  <li>
-                    {t("go_to")}
-                    <a href={inviteLink} className="text-orange-600 underline">
-                      {t("make_invite_link")}
-                    </a>
-                  </li>
-                )}
+                <li>
+                  {t("go_to")}
+                  <a href={inviteLink} className="text-orange-600 underline">
+                    {t("make_invite_link")}
+                  </a>
+                </li>
+
                 <Trans i18nKey="make_setup_instructions">
                   <li>Log into your Make account and create a new Scenario.</li>
                   <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
