@@ -4,10 +4,13 @@ import { v4 } from "uuid";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+const log = logger.getChildLogger({ prefix: ["[node-scheduler]"] });
 
 export async function addSubscription({
   appApiKey,
@@ -58,7 +61,7 @@ export async function addSubscription({
 
     return createSubscription;
   } catch (error) {
-    return console.error(
+    return log.error(
       `Error creating subscription for user ${appApiKey.userId} and appId ${appApiKey.appId}.`
     );
   }
@@ -117,7 +120,7 @@ export async function deleteSubscription({
     }
     return deleteWebhook;
   } catch (err) {
-    return console.error(
+    return log.error(
       `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appId ${appId}`
     );
   }
@@ -196,7 +199,7 @@ export async function listBookings(appApiKey: ApiKey) {
 
     return updatedBookings;
   } catch (err) {
-    return console.error(
+    return log.error(
       `Error retrieving list of bookings for user ${appApiKey.userId} and appId ${appApiKey.appId}.`
     );
   }
@@ -248,7 +251,7 @@ export async function scheduleTrigger(
       },
     });
   } catch (error) {
-    console.error("Error cancelling scheduled jobs", error);
+    log.error("Error cancelling scheduled jobs", error);
   }
 }
 
@@ -291,6 +294,6 @@ export async function cancelScheduledJobs(
   try {
     await Promise.all(promises);
   } catch (error) {
-    console.error("Error cancelling scheduled jobs", error);
+    log.error("Error cancelling scheduled jobs", error);
   }
 }
