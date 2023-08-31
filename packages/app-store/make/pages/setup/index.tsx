@@ -1,3 +1,5 @@
+import type { getStaticProps } from "make/pages/setup/_getStaticProps";
+import type { InferGetStaticPropsType } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -9,10 +11,10 @@ import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 const MAKE = "make";
-const appInviteLink = process.env.MAKE_INVITE_LINK; //TODO Add MAKE_INVITE_LINK to env vars
 
-export default function MakeSetup() {
+export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
+
   const { t } = useLocale();
   const utils = trpc.useContext();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
@@ -113,7 +115,7 @@ export default function MakeSetup() {
                 {isCalDev && (
                   <li>
                     {t("go_to")}
-                    <a href={appInviteLink} className="text-orange-600 underline">
+                    <a href={inviteLink} className="text-orange-600 underline">
                       {t("make_invite_link")}
                     </a>
                   </li>
