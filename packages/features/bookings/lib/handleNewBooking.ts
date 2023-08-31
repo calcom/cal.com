@@ -1,4 +1,4 @@
-import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
+import type { App, Attendee, Credential, EventTypeCustomInput, DestinationCalendar } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -367,7 +367,7 @@ async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
 
-  const orginalBookingDuration = input.originalRescheduledBooking
+  const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
         dayjs(input.originalRescheduledBooking.startTime),
         "minutes"
@@ -380,7 +380,7 @@ async function ensureAvailableUsers(
       {
         userId: user.id,
         eventTypeId: eventType.id,
-        duration: orginalBookingDuration,
+        duration: originalBookingDuration,
         ...input,
       },
       {
@@ -686,8 +686,7 @@ async function handler(
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const isTeamEventType =
-    eventType.schedulingType === SchedulingType.COLLECTIVE ||
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
 
@@ -722,31 +721,46 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
-      ? await prisma.user.findMany({
+  const loadUsers = async () => {
+    try {
+      if (!eventTypeId) {
+        if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
+          throw new Error("dynamicUserList is not properly defined or empty.");
+        }
+
+        const users = await prisma.user.findMany({
           where: {
-            username: {
-              in: dynamicUserList,
-            },
+            username: { in: dynamicUserList },
           },
           select: {
             ...userSelect.select,
-            credentials: true, // Don't leak to client
+            credentials: true,
             metadata: true,
-            organization: {
-              select: {
-                slug: true,
-              },
-            },
           },
-        })
-      : eventType.hosts?.length
-      ? eventType.hosts.map(({ user, isFixed }) => ({
+        });
+
+        return users;
+      } else {
+        const hosts = eventType.hosts || [];
+
+        if (!Array.isArray(hosts)) {
+          throw new Error("eventType.hosts is not properly defined.");
+        }
+
+        const users = hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
-        }))
-      : eventType.users || [];
+        }));
+
+        return users.length ? users : eventType.users;
+      }
+    } catch (error) {
+      if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpError({ statusCode: 400, message: error.message });
+      }
+      throw new HttpError({ statusCode: 500, message: "Unable to load users" });
+    }
+  };
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -970,20 +984,26 @@ async function handler(
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
-  const teamMemberPromises =
-    users.length > 1
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
+  const teamDestinationCalendars: DestinationCalendar[] = [];
+
+  // Organizer or user owner of this event type it's not listed as a team member.
+  const teamMemberPromises = users.slice(1).map(async (user) => {
+    // push to teamDestinationCalendars if it's a team event but collective only
+    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+      teamDestinationCalendars.push(user.destinationCalendar);
+    }
+    return {
+      email: user.email ?? "",
+      name: user.name ?? "",
+      firstName: "",
+      lastName: "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+    };
+  });
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
@@ -1040,15 +1060,23 @@ async function handler(
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
-    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
+    destinationCalendar: eventType.destinationCalendar
+      ? [eventType.destinationCalendar]
+      : organizerUser.destinationCalendar
+      ? [organizerUser.destinationCalendar]
+      : null,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    schedulingType: eventType.schedulingType,
   };
+
+  if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
+    evt.destinationCalendar?.push(...teamDestinationCalendars);
+  }
 
   /* Used for seats bookings to update evt object with video data */
   const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
@@ -1843,11 +1871,12 @@ async function handler(
           id: organizerUser.id,
         },
       },
-      destinationCalendar: evt.destinationCalendar
-        ? {
-            connect: { id: evt.destinationCalendar.id },
-          }
-        : undefined,
+      destinationCalendar:
+        evt.destinationCalendar && evt.destinationCalendar.length > 0
+          ? {
+              connect: { id: evt.destinationCalendar[0].id },
+            }
+          : undefined,
     };
 
     if (reqBody.recurringEventId) {
