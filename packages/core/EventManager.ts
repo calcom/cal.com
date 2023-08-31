@@ -114,7 +114,9 @@ export default class EventManager {
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
+    // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
+    const [mainHostDestinationCalendar] = evt.destinationCalendar ?? [];
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar.integration !== "google_calendar") {
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -164,8 +166,8 @@ export default class EventManager {
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: isCalendarType ? evt.destinationCalendar?.externalId : undefined,
-        credentialId: isCalendarType ? evt.destinationCalendar?.credentialId : result.credentialId,
+        externalCalendarId: isCalendarType ? result.externalId : undefined,
+        credentialId: isCalendarType ? result.credentialId : undefined,
       };
     });
 
@@ -203,8 +205,8 @@ export default class EventManager {
         meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
-        externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: result.credentialId ?? evt.destinationCalendar?.credentialId,
+        externalCalendarId: result.externalId,
+        credentialId: result.credentialId ?? undefined,
       };
     });
 
@@ -332,29 +334,52 @@ export default class EventManager {
    * @private
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
-    /** Can I use destinationCalendar here? */
-    /* How can I link a DC to a cred? */
-
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
-    if (event.destinationCalendar) {
-      if (event.destinationCalendar.credentialId) {
-        const credential = this.calendarCredentials.find(
-          (c) => c.id === event.destinationCalendar?.credentialId
-        );
-
-        if (credential) {
-          const createdEvent = await createEvent(credential, event);
-          if (createdEvent) {
-            createdEvents.push(createdEvent);
+    if (event.destinationCalendar && event.destinationCalendar.length > 0) {
+      for (const destination of event.destinationCalendar) {
+        if (destination.credentialId) {
+          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
+          if (!credential) {
+            // Fetch credential from DB
+            const credentialFromDB = await prisma.credential.findUnique({
+              include: {
+                app: {
+                  select: {
+                    slug: true,
+                  },
+                },
+              },
+              where: {
+                id: destination.credentialId,
+              },
+            });
+            if (credentialFromDB && credentialFromDB.app?.slug) {
+              credential = {
+                appName: credentialFromDB?.app.slug ?? "",
+                id: credentialFromDB.id,
+                type: credentialFromDB.type,
+                key: credentialFromDB.key,
+                userId: credentialFromDB.userId,
+                teamId: credentialFromDB.teamId,
+                invalid: credentialFromDB.invalid,
+                appId: credentialFromDB.appId,
+              };
+            }
           }
+          if (credential) {
+            const createdEvent = await createEvent(credential, event, destination.externalId);
+            if (createdEvent) {
+              createdEvents.push(createdEvent);
+            }
+          }
+        } else {
+          const destinationCalendarCredentials = this.calendarCredentials.filter(
+            (c) => c.type === destination.integration
+          );
+          createdEvents = createdEvents.concat(
+            await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
+          );
         }
-      } else {
-        const destinationCalendarCredentials = this.calendarCredentials.filter(
-          (c) => c.type === event.destinationCalendar?.integration
-        );
-        createdEvents = createdEvents.concat(
-          await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
-        );
       }
     } else {
       /**
@@ -451,7 +476,7 @@ export default class EventManager {
     booking: PartialBooking,
     newBookingId?: number
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
-    let calendarReference: PartialReference | undefined = undefined,
+    let calendarReference: PartialReference[] | undefined = undefined,
       credential;
     try {
       // If a newBookingId is given, update that calendar event
@@ -468,33 +493,62 @@ export default class EventManager {
       }
 
       calendarReference = newBooking?.references.length
-        ? newBooking.references.find((reference) => reference.type.includes("_calendar"))
-        : booking.references.find((reference) => reference.type.includes("_calendar"));
+        ? newBooking.references.filter((reference) => reference.type.includes("_calendar"))
+        : booking.references.filter((reference) => reference.type.includes("_calendar"));
 
-      if (!calendarReference) {
+      if (calendarReference.length === 0) {
         return [];
       }
-      const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
-      let calenderExternalId: string | null = null;
-      if (bookingExternalCalendarId) {
-        calenderExternalId = bookingExternalCalendarId;
-      }
-
+      // process all calendar references
       let result = [];
-      if (calendarReference.credentialId) {
-        credential = this.calendarCredentials.filter(
-          (credential) => credential.id === calendarReference?.credentialId
-        )[0];
-        result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
-      } else {
-        const credentials = this.calendarCredentials.filter(
-          (credential) => credential.type === calendarReference?.type
-        );
-        for (const credential of credentials) {
+      for (const reference of calendarReference) {
+        const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = reference;
+        let calenderExternalId: string | null = null;
+        if (bookingExternalCalendarId) {
+          calenderExternalId = bookingExternalCalendarId;
+        }
+
+        if (reference.credentialId) {
+          credential = this.calendarCredentials.filter(
+            (credential) => credential.id === reference?.credentialId
+          )[0];
+          if (!credential) {
+            // Fetch credential from DB
+            const credentialFromDB = await prisma.credential.findUnique({
+              include: {
+                app: {
+                  select: {
+                    slug: true,
+                  },
+                },
+              },
+              where: {
+                id: reference.credentialId,
+              },
+            });
+            if (credentialFromDB && credentialFromDB.app?.slug) {
+              credential = {
+                appName: credentialFromDB?.app.slug ?? "",
+                id: credentialFromDB.id,
+                type: credentialFromDB.type,
+                key: credentialFromDB.key,
+                userId: credentialFromDB.userId,
+                teamId: credentialFromDB.teamId,
+                invalid: credentialFromDB.invalid,
+                appId: credentialFromDB.appId,
+              };
+            }
+          }
           result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+        } else {
+          const credentials = this.calendarCredentials.filter(
+            (credential) => credential.type === reference?.type
+          );
+          for (const credential of credentials) {
+            result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+          }
         }
       }
-
       // If we are merging two calendar events we should delete the old calendar event
       if (newBookingId) {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
@@ -516,17 +570,17 @@ export default class EventManager {
           .filter((cred) => cred.type.includes("other_calendar"))
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
-            if (!calendarReference)
-              if (!calendarReference) {
-                return {
-                  appName: cred.appName,
-                  type: cred.type,
-                  success: false,
-                  uid: "",
-                  originalEvent: event,
-                  credentialId: cred.id,
-                };
-              }
+
+            if (!calendarReference) {
+              return {
+                appName: cred.appName,
+                type: cred.type,
+                success: false,
+                uid: "",
+                originalEvent: event,
+                credentialId: cred.id,
+              };
+            }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
               calendarReference;
             return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
@@ -539,17 +593,19 @@ export default class EventManager {
       if (error instanceof Error) {
         message = message.replace("{thing}", error.message);
       }
-      console.error(message);
-      return Promise.resolve([
-        {
-          appName: "none",
-          type: calendarReference?.type || "calendar",
-          success: false,
-          uid: "",
-          originalEvent: event,
-          credentialId: 0,
-        },
-      ]);
+
+      return Promise.resolve(
+        calendarReference?.map((reference) => {
+          return {
+            appName: "none",
+            type: reference?.type || "calendar",
+            success: false,
+            uid: "",
+            originalEvent: event,
+            credentialId: 0,
+          };
+        }) ?? ([] as Array<EventResult<NewCalendarEventType>>)
+      );
     }
   }
 

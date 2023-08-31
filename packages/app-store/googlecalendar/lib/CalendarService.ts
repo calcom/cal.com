@@ -84,7 +84,7 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
@@ -97,6 +97,10 @@ export default class GoogleCalendarService implements Calendar {
         responseStatus: "accepted",
       })) || [];
     return new Promise(async (resolve, reject) => {
+      const [mainHostDestinationCalendar] =
+        calEventRaw?.destinationCalendar && calEventRaw?.destinationCalendar.length > 0
+          ? calEventRaw.destinationCalendar
+          : [];
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
         summary: calEventRaw.title,
@@ -115,8 +119,8 @@ export default class GoogleCalendarService implements Calendar {
             id: String(calEventRaw.organizer.id),
             responseStatus: "accepted",
             organizer: true,
-            email: calEventRaw.destinationCalendar?.externalId
-              ? calEventRaw.destinationCalendar.externalId
+            email: mainHostDestinationCalendar?.externalId
+              ? mainHostDestinationCalendar.externalId
               : calEventRaw.organizer.email,
           },
           ...eventAttendees,
@@ -138,13 +142,16 @@ export default class GoogleCalendarService implements Calendar {
       const calendar = google.calendar({
         version: "v3",
       });
-      const selectedCalendar = calEventRaw.destinationCalendar?.externalId
-        ? calEventRaw.destinationCalendar.externalId
-        : "primary";
+      // Find in calEventRaw.destinationCalendar the one with the same credentialId
+
+      const selectedCalendar = calEventRaw.destinationCalendar?.find(
+        (cal) => cal.credentialId === credentialId
+      )?.externalId;
+
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: selectedCalendar,
+          calendarId: selectedCalendar || "primary",
           requestBody: payload,
           conferenceDataVersion: 1,
           sendUpdates: "none",
@@ -188,6 +195,8 @@ export default class GoogleCalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
+      const [mainHostDestinationCalendar] =
+        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
       const myGoogleAuth = await this.auth.getToken();
       const eventAttendees = event.attendees.map(({ ...rest }) => ({
         ...rest,
@@ -216,8 +225,8 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
-            email: event.destinationCalendar?.externalId
-              ? event.destinationCalendar.externalId
+            email: mainHostDestinationCalendar?.externalId
+              ? mainHostDestinationCalendar.externalId
               : event.organizer.email,
           },
           ...(eventAttendees as any),
@@ -244,7 +253,7 @@ export default class GoogleCalendarService implements Calendar {
 
       const selectedCalendar = externalCalendarId
         ? externalCalendarId
-        : event.destinationCalendar?.externalId;
+        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
       calendar.events.update(
         {
@@ -303,7 +312,9 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       const defaultCalendarId = "primary";
-      const calendarId = externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId;
+      const calendarId = externalCalendarId
+        ? externalCalendarId
+        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
       calendar.events.delete(
         {
