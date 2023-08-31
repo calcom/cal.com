@@ -33,12 +33,14 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   position: true,
   eventName: true,
   timeZone: true,
+  schedulingType: true,
+  // START Limit future bookings
   periodType: true,
   periodStartDate: true,
-  schedulingType: true,
   periodEndDate: true,
   periodDays: true,
   periodCountCalendarDays: true,
+  // END Limit future bookings
   requiresConfirmation: true,
   disableGuests: true,
   hideCalendarNotes: true,
@@ -51,6 +53,8 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   locations: true,
+  bookingLimits: true,
+  durationLimits: true,
 })
   .merge(z.object({ hosts: z.array(hostSchema).optional().default([]) }))
   .partial()
@@ -67,6 +71,7 @@ const schemaEventTypeCreateParams = z
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
+    scheduleId: z.number().optional(),
   })
   .strict();
 
@@ -85,6 +90,7 @@ const schemaEventTypeEditParams = z
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
+    scheduleId: z.number().optional(),
   })
   .strict();
 
@@ -124,6 +130,8 @@ export const schemaEventTypeReadPublic = EventType.pick({
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
   bookingFields: true,
+  bookingLimits: true,
+  durationLimits: true,
 }).merge(
   z.object({
     locations: z

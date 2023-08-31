@@ -2,6 +2,7 @@ import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/cl
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
@@ -18,7 +19,6 @@ import {
 } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -47,6 +47,7 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -464,7 +465,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-function getBookingData({
+async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -534,7 +535,7 @@ function getBookingData({
           }
         });
 
-  const reqBody = bookingDataSchema.parse(req.body);
+  const reqBody = await bookingDataSchema.parseAsync(req.body);
 
   // Work with Typescript to require reqBody.end
   type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
@@ -671,7 +672,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     ...reqBody
-  } = getBookingData({
+  } = await getBookingData({
     req,
     isNotAnApiCall,
     eventType,
@@ -1125,8 +1126,10 @@ async function handler(
 
   const teamId = await getTeamIdFromEventType({ eventType });
 
+  const triggerForUser = !teamId || (teamId && eventType.parentId);
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUser.id,
+    userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
@@ -1139,7 +1142,7 @@ async function handler(
   subscriberOptions.triggerEvent = eventTrigger;
 
   const subscriberOptionsMeetingEnded = {
-    userId: organizerUser.id,
+    userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,

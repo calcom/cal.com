@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -15,6 +14,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
@@ -329,6 +329,7 @@ export const teamMetadataSchema = z
     subscriptionItemId: z.string().nullable(),
     isOrganization: z.boolean().nullable(),
     isOrganizationVerified: z.boolean().nullable(),
+    isOrganizationConfigured: z.boolean().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
@@ -589,7 +590,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
+  locations: allManagedEventTypeProps.locations,
+  scheduleId: allManagedEventTypeProps.scheduleId,
+  destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
@@ -600,9 +603,33 @@ export const emailSchemaRefinement = (value: string) => {
   return emailRegex.test(value);
 };
 
+export const signupSchema = z.object({
+  username: z.string().refine((value) => !value.includes("+"), {
+    message: "String should not contain a plus symbol (+).",
+  }),
+  email: z.string().email(),
+  password: z.string().superRefine((data, ctx) => {
+    const isStrict = false;
+    const result = isPasswordValid(data, true, isStrict);
+    Object.keys(result).map((key: string) => {
+      if (!result[key as keyof typeof result]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: key,
+        });
+      }
+    });
+  }),
+  language: z.string().optional(),
+  token: z.string().optional(),
+});
+
 export const ZVerifyCodeInputSchema = z.object({
   email: z.string().email(),
   code: z.string(),
 });
 
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
+
+export const coerceToDate = z.coerce.date();

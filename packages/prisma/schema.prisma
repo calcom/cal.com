@@ -79,7 +79,9 @@ model EventType {
   bookingFields                   Json?
   timeZone                        String?
   periodType                      PeriodType              @default(UNLIMITED)
+  /// @zod.custom(imports.coerceToDate)
   periodStartDate                 DateTime?
+  /// @zod.custom(imports.coerceToDate)
   periodEndDate                   DateTime?
   periodDays                      Int?
   periodCountCalendarDays         Boolean?
@@ -200,6 +202,7 @@ model User {
   timeFormat          Int?                 @default(12)
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
+  backupCodes         String?
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
   availability        Availability[]
@@ -736,6 +739,7 @@ model WorkflowStep {
   numberRequired            Boolean?
   sender                    String?
   numberVerificationPending Boolean            @default(true)
+  includeCalendarEvent      Boolean            @default(false)
 
   @@index([workflowId])
 }
@@ -801,6 +805,16 @@ model WorkflowReminder {
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
+}
+
+model WebhookScheduledTriggers {
+  id            Int       @id @default(autoincrement())
+  jobName       String
+  subscriberUrl String
+  payload       String
+  startAfter    DateTime
+  retryCount    Int       @default(0)
+  createdAt     DateTime? @default(now())
 }
 
 enum WorkflowTemplates {
