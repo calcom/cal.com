@@ -109,10 +109,7 @@ export default function MemberListItem(props: Props) {
   const bookerUrl = useBookerUrl();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
-  const isAdmin =
-    props.team &&
-    (props.team.membership.role === MembershipRole.OWNER ||
-      props.team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
   const appList = props.member.connectedApps.map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (

@@ -145,7 +145,12 @@ export async function getTeamWithMembers(args: {
         })
         .sort((a, b) => (a.slug ?? "").localeCompare(b.slug ?? ""));
       // Prevent credentials from leaking to frontend
-      const { credentials, destinationCalendar, selectedCalendars, ...rest } = {
+      const {
+        credentials: _credentials,
+        destinationCalendar: _destinationCalendar,
+        selectedCalendars: _selectedCalendars,
+        ...rest
+      } = {
         ...obj.user,
         role: obj.role,
         accepted: obj.accepted,
