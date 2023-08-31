@@ -35,7 +35,7 @@ function MoreInfoFooter() {
   return (
     <>
       <SheetClose asChild>
-        <Button color="secondary" type="button" className="justify-center md:w-1/5">
+        <Button color="secondary" type="button" className="w-full justify-center lg:w-1/5">
           {t("close")}
         </Button>
       </SheetClose>
