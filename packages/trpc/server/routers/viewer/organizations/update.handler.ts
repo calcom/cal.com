@@ -21,7 +21,7 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
-  const currentOrgId = ctx.user?.organizationId || input.orgId;
+  const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
   if (!currentOrgId || !(await isOrganisationAdmin(ctx.user?.id, currentOrgId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
