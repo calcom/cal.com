@@ -1,10 +1,9 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
-import { AppCategories, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
@@ -33,6 +32,11 @@ export async function getTeamWithMembers(args: {
     credentials: {
       include: {
         app: true,
+        destinationCalendars: {
+          select: {
+            externalId: true,
+          },
+        },
       },
     },
   });
@@ -124,43 +128,26 @@ export async function getTeamWithMembers(args: {
   });
 
   if (!team) return null;
-  const members = await Promise.all(
-    team.members.map(async (obj) => {
-      const calendarCredentials = getCalendarCredentials(obj.user.credentials);
 
-      const { connectedCalendars } = await getConnectedCalendars(
-        calendarCredentials,
-        obj.user.selectedCalendars,
-        obj.user.destinationCalendar?.externalId
-      );
-      const connectedApps = obj.user.credentials
-        .map(({ app, id }) => {
-          const appMetaData = getAppFromSlug(app?.slug);
-
-          if (app?.categories.includes(AppCategories.calendar)) {
-            const externalId = connectedCalendars.find((cal) => cal.credentialId == id)?.primary?.email;
-            return { name: appMetaData?.name, logo: appMetaData?.logo, slug: appMetaData?.slug, externalId };
-          }
-          return { name: appMetaData?.name, logo: appMetaData?.logo, slug: appMetaData?.slug };
-        })
-        .sort((a, b) => (a.slug ?? "").localeCompare(b.slug ?? ""));
-      // Prevent credentials from leaking to frontend
-      const {
-        credentials: _credentials,
-        destinationCalendar: _destinationCalendar,
-        selectedCalendars: _selectedCalendars,
-        ...rest
-      } = {
-        ...obj.user,
-        role: obj.role,
-        accepted: obj.accepted,
-        disableImpersonation: obj.disableImpersonation,
-        avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-        connectedApps,
-      };
-      return rest;
-    })
-  );
+  const members = team.members.map((obj) => {
+    return {
+      ...obj.user,
+      role: obj.role,
+      accepted: obj.accepted,
+      disableImpersonation: obj.disableImpersonation,
+      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
+      connectedApps: obj.user.credentials.map((cred) => {
+        const appData = getAppFromSlug(cred.app?.slug);
+        const isCalendar = cred?.app?.categories.includes("calendar");
+        return {
+          name: appData?.name,
+          logo: appData?.logo,
+          app: cred.app,
+          externalId: isCalendar ? cred.destinationCalendars[0]?.externalId : undefined,
+        };
+      }),
+    };
+  });
   const eventTypes = team.eventTypes.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
