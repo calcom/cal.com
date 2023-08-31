@@ -27,6 +27,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -82,7 +83,11 @@ type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 type PaginateEventTypeViewer = RouterOutputs["viewer"]["eventTypes"]["paginate"];
 
 interface EventTypeListHeadingProps {
-  profile: EventTypeGroupProfile;
+  profile: {
+    name: string | null;
+    slug?: string | null;
+    username?: string | null;
+  };
   membershipCount: number;
   teamId?: number | null;
   orgSlug?: string;
@@ -374,11 +379,14 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
     <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {data.map((eventType, index) => {
-          const embedLink = `${eventType?.team?.slug}/${eventType.slug}`;
+          const embedLink = `${eventType?.team?.slug || eventType.users[0].username}/${eventType.slug}`;
           const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+
           const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+          const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
           const isChildrenManagedEventType =
-            eventType.metadata?.managedEventConfig !== undefined &&
+            eventTypeMetadata.success &&
+            eventTypeMetadata.data?.managedEventConfig !== undefined &&
             eventType.schedulingType !== SchedulingType.MANAGED;
           return (
             <li key={eventType.id}>
@@ -717,12 +725,13 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
+  const slug = profile?.slug || profile?.username;
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -732,7 +741,7 @@ const EventTypeListHeading = ({
           className="text-emphasis font-bold">
           {profile?.name || ""}
         </Link>
-        {membershipCount && teamId && (
+        {membershipCount >= 0 && teamId && (
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
@@ -742,15 +751,15 @@ const EventTypeListHeading = ({
             </Link>
           </span>
         )}
-        {profile?.slug && (
+        {slug && (
           <Link
-            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${slug}`}
             className="text-subtle block text-xs">
-            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${slug}`}
           </Link>
         )}
       </div>
-      {!profile?.slug && !!teamId && (
+      {!slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
           <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}
@@ -873,50 +882,48 @@ const Main = ({
   const isFilteredByOnlyOneItem = false;
   return (
     <>
-      {/* {data?.length > 1 || isFilteredByOnlyOneItem ? (
+      {data?.length > 1 || isFilteredByOnlyOneItem ? (
         <>
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data} />
           ) : (
-            data.map((group: EventTypeGroup, index: number) => (
-              <div className="flex flex-col" key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  orgSlug={orgBranding?.slug}
-                />
+            <div className="flex flex-col">
+              <EventTypeListHeading
+                profile={data[0].users[0] || data[0].team}
+                membershipCount={data[0].team?.members.length || 0}
+                teamId={data[0].teamId}
+                orgSlug={orgBranding?.slug}
+              />
 
-                {group.eventTypes.length ? (
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
-                  />
-                ) : (
-                  <EmptyEventTypeList group={group} />
-                )}
-              </div>
-            ))
+              {data[0].length > 0 ? (
+                <EventTypeList
+                  data={data}
+                  // group={group}
+                  // groupIndex={index}
+                  readOnly={false}
+                />
+              ) : (
+                <EmptyEventTypeList group={group} />
+              )}
+            </div>
           )}
         </>
       ) : (
         data?.length === 1 && (
           <EventTypeList
-            types={data?.eventTypeGroups[0].eventTypes}
-            group={data?.eventTypeGroups[0]}
-            groupIndex={0}
-            readOnly={data.eventTypeGroups[0].metadata.readOnly}
+            data={data}
+            // group={data?.eventTypeGroups[0]}
+            // groupIndex={0}
+            readOnly={false}
           />
         )
-      )} */}
-      <EventTypeList
+      )}
+      {/* <EventTypeList
         data={data}
         // group={data?.eventTypeGroups[0]}
         // groupIndex={0}
         readOnly={false}
-      />
+      /> */}
       {data.length === 0 && <CreateFirstEventTypeView />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
@@ -943,7 +950,7 @@ const EventTypesPage = () => {
   const { data, status, error } = trpc.viewer.eventTypes.paginate.useQuery(
     {
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       teamIds: filters?.teamIds,
     },
     {
@@ -951,6 +958,10 @@ const EventTypesPage = () => {
         context: { skipBatch: true },
       },
     }
+  );
+
+  const eventTypePaginate = trpc.useQueries((t) =>
+    filters?.teamIds.map((id) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [id] }))
   );
 
   function closeBanner() {
