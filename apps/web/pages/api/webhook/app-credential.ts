@@ -10,7 +10,7 @@ const appCredentialWebhookRequestBodySchema = z.object({
   userId: z.number().int(),
   //   The dirname of the app under packages/app-store
   appDirName: z.string(),
-  //   keys: z.object({}),
+  keys: z.record(z.any()),
 });
 /** */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const reqBody = appCredentialWebhookRequestBodySchema.parse(req.body);
+  console.log("🚀 ~ file: app-credential.ts:28 ~ handler ~ reqBody:", reqBody);
 
   // Check that the user exists
   const user = await prisma.user.findUnique({ where: { id: reqBody.userId } });
@@ -40,23 +41,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "App not found. Ensure that you have the correct appDir" });
   }
 
-  // Write the credential to the database
-  await prisma.credential.upsert({
+  // Can't use prisma upsert as we don't know the id of the credential
+  const appCredential = await prisma.credential.findFirst({
     where: {
       userId: reqBody.userId,
-      type: appMetadata.type,
       appId: appMetadata.slug,
     },
-    create: {
-      type: appMetadata.type,
-      key: reqBody.keys,
-      userId: reqBody.userId,
-      appId: appMetadata.slug,
-    },
-    update: {
-      key: reqBody.keys,
+    select: {
+      id: true,
     },
   });
 
-  return res.status(200).json({ message: `Credentials updated for userId: ${reqBody.userId}` });
+  if (appCredential) {
+    await prisma.credential.update({
+      where: {
+        id: appCredential.id,
+      },
+      data: {
+        key: reqBody.keys,
+      },
+    });
+    return res.status(200).json({ message: `Credentials updated for userId: ${reqBody.userId}` });
+  } else {
+    await prisma.credential.create({
+      data: {
+        key: reqBody.keys,
+        userId: reqBody.userId,
+        appId: appMetadata.slug,
+        type: appMetadata.type,
+      },
+    });
+    return res.status(200).json({ message: `Credentials created for userId: ${reqBody.userId}` });
+  }
 }
