@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const deleteEventSubscription = await deleteSubscription({
     appApiKey: validKey,
     webhookId: id,
-    appName: "make",
+    appId: "make",
   });
 
   if (!deleteEventSubscription) {

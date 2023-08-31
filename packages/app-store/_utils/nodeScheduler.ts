@@ -67,11 +67,11 @@ export async function addSubscription({
 export async function deleteSubscription({
   appApiKey,
   webhookId,
-  appName,
+  appId,
 }: {
   appApiKey: ApiKey;
   webhookId: string;
-  appName: string;
+  appId: string;
 }) {
   try {
     const webhook = await prisma.webhook.findFirst({
@@ -94,7 +94,7 @@ export async function deleteSubscription({
       });
       for (const booking of bookingsWithScheduledJobs) {
         const updatedScheduledJobs = booking.scheduledJobs.filter(
-          (scheduledJob) => scheduledJob !== `${appName}_${webhook.id}`
+          (scheduledJob) => scheduledJob !== `${appId}_${webhook.id}`
         );
         await prisma.booking.update({
           where: {
@@ -118,7 +118,7 @@ export async function deleteSubscription({
     return deleteWebhook;
   } catch (err) {
     return console.error(
-      `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appName ${appName}`
+      `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appId ${appId}`
     );
   }
 }
