@@ -807,6 +807,16 @@ model WorkflowReminder {
   @@index([seatReferenceId])
 }
 
+model WebhookScheduledTriggers {
+  id            Int       @id @default(autoincrement())
+  jobName       String
+  subscriberUrl String
+  payload       String
+  startAfter    DateTime
+  retryCount    Int       @default(0)
+  createdAt     DateTime? @default(now())
+}
+
 enum WorkflowTemplates {
   REMINDER
   CUSTOM

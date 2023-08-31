@@ -10,7 +10,6 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/_utils/nodeScheduler";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -48,6 +47,7 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";

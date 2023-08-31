@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import { deleteSubscription } from "@calcom/app-store/_utils/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
+import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 const querySchema = z.object({

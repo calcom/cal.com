@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { addSubscription } from "@calcom/app-store/_utils/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
+import { addSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
