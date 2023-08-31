@@ -9,6 +9,10 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
+  redirect: {
+    newTab: true,
+    url: "/apps/make/setup",
+  },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
 };
