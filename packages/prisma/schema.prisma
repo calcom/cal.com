@@ -662,6 +662,7 @@ model App {
 model App_RoutingForms_Form {
   id          String                          @id @default(cuid())
   description String?
+  position    Int                             @default(0)
   routes      Json?
   createdAt   DateTime                        @default(now())
   updatedAt   DateTime                        @updatedAt
@@ -746,6 +747,7 @@ model WorkflowStep {
 
 model Workflow {
   id       Int                     @id @default(autoincrement())
+  position Int                     @default(0)
   name     String
   userId   Int?
   user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
