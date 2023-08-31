@@ -1,76 +1,103 @@
+import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
-import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { getSerializableForm } from "../lib/getSerializableForm";
-import type { TFormSchema } from "./forms.schema";
+import { TRPCError } from "@trpc/server";
 
-interface FormsHandlerOptions {
+import type { TWorkflowOrderInputSchema } from "./workflowOrder.schema";
+
+type RoutingFormOrderOptions = {
   ctx: {
-    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TFormSchema;
-}
-const log = logger.getChildLogger({ prefix: ["[formsHandler]"] });
+  input: TWorkflowOrderInputSchema;
+};
 
-export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
-  const { prisma, user } = ctx;
+export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
+  const { user } = ctx;
 
-  const where = getPrismaWhereFromFilters(user, input?.filters);
-  log.debug("Getting forms where", JSON.stringify(where));
+  const includedFields = {
+    activeOn: {
+      select: {
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            parentId: true,
+            _count: {
+              select: {
+                children: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    steps: true,
+    team: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        members: true,
+        logo: true,
+      },
+    },
+  };
 
-  const forms = await prisma.app_RoutingForms_Form.findMany({
-    where,
+  const allWorkflows = await prisma.workflow.findMany({
+    where: {
+      OR: [
+        {
+          userId: user.id,
+        },
+        {
+          team: {
+            members: {
+              some: {
+                userId: user.id,
+                accepted: true,
+              },
+            },
+          },
+        },
+      ],
+    },
+    include: includedFields,
     orderBy: [
       {
         position: "desc",
       },
       {
-        createdAt: "asc",
+        id: "asc",
       },
     ],
-    include: {
-      team: {
-        include: {
-          members: true,
-        },
-      },
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
   });
 
-  const totalForms = await prisma.app_RoutingForms_Form.count({
-    where: entityPrismaWhereClause({
-      userId: user.id,
-    }),
-  });
-
-  const serializableForms = [];
-  for (let i = 0; i < forms.length; i++) {
-    const form = forms[i];
-    const hasWriteAccess = canEditEntity(form, user.id);
-    serializableForms.push({
-      form: await getSerializableForm({ form: forms[i] }),
-      readOnly: !hasWriteAccess,
+  const allWorkflowIds = new Set(allWorkflows.map((workflow) => workflow.id));
+  if (input.ids.some((id) => !allWorkflowIds.has(id))) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
     });
   }
 
-  return {
-    filtered: serializableForms,
-    totalCount: totalForms,
-  };
+  await Promise.all(
+    input.ids.reverse().map((id, position) => {
+      return prisma.workflow.update({
+        where: {
+          id: id,
+        },
+        data: {
+          position,
+        },
+      });
+    })
+  );
 };
 
-export default formsHandler;
 export function getPrismaWhereFromFilters(
   user: {
     id: number;
