@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const reqBody = appCredentialWebhookRequestBodySchema.parse(req.body);
-  console.log("🚀 ~ file: app-credential.ts:28 ~ handler ~ reqBody:", reqBody);
 
   // Check that the user exists
   const user = await prisma.user.findUnique({ where: { id: reqBody.userId } });
