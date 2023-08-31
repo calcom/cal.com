@@ -5,7 +5,6 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -22,12 +21,9 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
-  const currentOrgId = ctx.user?.organization?.id || input.orgId;
+  const currentOrgId = ctx.user?.organizationId || input.orgId;
 
-  if (!currentOrgId || ctx.user.role !== UserPermissionRole.ADMIN)
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  if (!(await isOrganisationAdmin(ctx.user?.id, currentOrgId)) || ctx.user.role !== UserPermissionRole.ADMIN)
+  if (!currentOrgId || !(await isOrganisationAdmin(ctx.user?.id, currentOrgId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
