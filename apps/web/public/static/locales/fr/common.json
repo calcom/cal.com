@@ -678,8 +678,8 @@
   "new_event_type_btn": "Nouveau type d'événement",
   "new_event_type_heading": "Créez votre premier type d'événement",
   "new_event_type_description": "Les types d'événements vous permettent de partager des liens qui affichent vos disponibilités sur votre calendrier et permettent aux personnes de réserver des créneaux.",
-  "event_type_created_successfully": "Type d'événement {{eventTypeTitle}} créé avec succès",
-  "event_type_updated_successfully": "Type d'événement {{eventTypeTitle}} mis à jour avec succès",
+  "event_type_created_successfully": "Type d'événement créé avec succès",
+  "event_type_updated_successfully": "Type d'événement mis à jour avec succès",
   "event_type_deleted_successfully": "Type d'événement supprimé avec succès",
   "hours": "heures",
   "people": "Personnes",
@@ -2032,6 +2032,7 @@
   "mark_dns_configured": "Marquer comme DNS configuré",
   "value": "Valeur",
   "your_organization_updated_sucessfully": "Votre organisation a été mise à jour avec succès",
+  "team_no_event_types": "Cette équipe n'a aucun type d'événement",
   "seat_options_doesnt_multiple_durations": "L'option par place ne prend pas en charge les durées multiples",
   "include_calendar_event": "Inclure l'événement du calendrier",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
