@@ -1,5 +1,3 @@
-import schedule from "node-schedule";
-
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -9,45 +7,32 @@ export async function scheduleTrigger(
   subscriber: { id: string; appId: string | null }
 ) {
   try {
-    //schedule job to call subscriber url at the end of meeting
-    // FIXME: in-process scheduling - job will vanish on server crash / restart
-    const job = schedule.scheduleJob(
-      `${subscriber.appId}_${subscriber.id}`,
-      booking.endTime,
-      async function () {
-        const body = JSON.stringify({ triggerEvent: WebhookTriggerEvents.MEETING_ENDED, ...booking });
-        await fetch(subscriberUrl, {
-          method: "POST",
-          body,
-        });
+    const payload = JSON.stringify({ triggerEvent: WebhookTriggerEvents.MEETING_ENDED, ...booking });
+    const jobName = `${subscriber.appId}_${subscriber.id}`;
 
-        //remove scheduled job from bookings once triggered
-        const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
-          return scheduledJob !== `${subscriber.appId}_${subscriber.id}`;
-        });
-
-        await prisma.booking.update({
-          where: {
-            id: booking.id,
-          },
-          data: {
-            scheduledJobs: updatedScheduledJobs,
-          },
-        });
-      }
-    );
+    // add scheduled job to database
+    const createTrigger = prisma.webhookScheduledTriggers.create({
+      data: {
+        jobName,
+        payload,
+        startAfter: booking.endTime,
+        subscriberUrl,
+      },
+    });
 
     //add scheduled job name to booking
-    await prisma.booking.update({
+    const updateBooking = prisma.booking.update({
       where: {
         id: booking.id,
       },
       data: {
         scheduledJobs: {
-          push: job.name,
+          push: jobName,
         },
       },
     });
+
+    await prisma.$transaction([createTrigger, updateBooking]);
   } catch (error) {
     console.error("Error cancelling scheduled jobs", error);
   }
@@ -64,16 +49,20 @@ export async function cancelScheduledJobs(
   const promises = booking.scheduledJobs.map(async (scheduledJob) => {
     if (appId) {
       if (scheduledJob.startsWith(appId)) {
-        if (schedule.scheduledJobs[scheduledJob]) {
-          schedule.scheduledJobs[scheduledJob].cancel();
-        }
+        await prisma.webhookScheduledTriggers.deleteMany({
+          where: {
+            jobName: scheduledJob,
+          },
+        });
         scheduledJobs = scheduledJobs?.filter((job) => scheduledJob !== job) || [];
       }
     } else {
       //if no specific appId given, delete all scheduled jobs of booking
-      if (schedule.scheduledJobs[scheduledJob]) {
-        schedule.scheduledJobs[scheduledJob].cancel();
-      }
+      await prisma.webhookScheduledTriggers.deleteMany({
+        where: {
+          jobName: scheduledJob,
+        },
+      });
       scheduledJobs = [];
     }
 

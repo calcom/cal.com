@@ -830,6 +830,25 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <EmptyScreen
+        headline={t("team_no_event_types")}
+        buttonRaw={
+          <Button
+            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
+            variant="button"
+            className="mt-5">
+            {t("create")}
+          </Button>
+        }
+      />
+    </>
+  );
+};
+
 const Main = ({
   status,
   errorMessage,
@@ -871,12 +890,16 @@ const Main = ({
                   orgSlug={orgBranding?.slug}
                 />
 
-                <EventTypeList
-                  types={group.eventTypes}
-                  group={group}
-                  groupIndex={index}
-                  readOnly={group.metadata.readOnly}
-                />
+                {group.eventTypes.length ? (
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
+                ) : (
+                  <EmptyEventTypeList group={group} />
+                )}
               </div>
             ))
           )}

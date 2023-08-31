@@ -2,7 +2,6 @@ import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -13,6 +12,7 @@ import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/remind
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
