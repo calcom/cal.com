@@ -337,11 +337,6 @@ export default async function main() {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
-  if (process.env.MAKE_INVITE_LINK) {
-    await createApp("make", "make", ["automation"], "make_automation", {
-      invite_link: process.env.MAKE_INVITE_LINK,
-    });
-  }
   await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
 
   // Payment apps
