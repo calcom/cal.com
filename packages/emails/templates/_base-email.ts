@@ -40,7 +40,7 @@ export default class BaseEmail {
       //@ts-expect-error
       setTestEmail(this.getNodeMailerPayload());
       console.log(
-        "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in global.E2E_EMAILS"
+        "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );
       return new Promise((r) => r("Skipped sendEmail for E2E"));
     }

@@ -224,6 +224,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    console.log("process.env.ORGANIZATIONS_ENABLED", process.env.ORGANIZATIONS_ENABLED);
     const beforeFiles = [
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(process.env.ORGANIZATIONS_ENABLED

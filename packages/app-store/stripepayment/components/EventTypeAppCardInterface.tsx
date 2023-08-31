@@ -15,7 +15,7 @@ type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
-  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
@@ -38,10 +38,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       returnTo={WEBAPP_URL + pathname + "?tabName=apps"}
-      setAppData={setAppData}
       app={app}
-      disableSwitch={disabled}
-      LockedIcon={LockedIcon}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);

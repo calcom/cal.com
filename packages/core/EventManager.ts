@@ -10,6 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -118,13 +119,11 @@ export default class EventManager {
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
-
       if (result?.createdEvent) {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
@@ -334,7 +333,6 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
-
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
       if (event.destinationCalendar.credentialId) {
@@ -411,7 +409,14 @@ export default class EventManager {
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
      * @todo remove location from event types that has missing credentials
      * */
-    if (!videoCredential) videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+    if (!videoCredential) {
+      logger.warn(
+        'Falling back to "daily" video integration for event with location: ' +
+          event.location +
+          " because credential is missing for the app"
+      );
+      videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+    }
 
     return videoCredential;
   }

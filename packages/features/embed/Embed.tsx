@@ -8,7 +8,6 @@ import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -229,10 +228,8 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
               isLoading={schedule.isLoading}
-              onChange={(date: Dayjs) => {
-                setSelectedDate(date.format("YYYY-MM-DD"));
-              }}
-              onMonthChange={(date: Dayjs) => {
+              onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : date)}
+              onMonthChange={(date) => {
                 setMonth(date.format("YYYY-MM"));
                 setSelectedDate(date.format("YYYY-MM-DD"));
               }}

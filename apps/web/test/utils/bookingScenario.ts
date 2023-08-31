@@ -6,6 +6,7 @@ import type {
 } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -18,10 +19,22 @@ type App = {
   dirName: string;
 };
 
+/**
+ * Data to be mocked
+ */
 type ScenarioData = {
-  hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
+  // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
+  /**
+   * Prisma would return these eventTypes
+   */
   eventTypes: InputEventType[];
+  /**
+   * Prisma would return these users
+   */
   users: InputUser[];
+  /**
+   * Prisma would return these apps
+   */
   apps?: App[];
   bookings?: InputBooking[];
 };
@@ -55,6 +68,9 @@ type InputEventType = {
   offsetStart?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
+  /**
+   * These user ids are `ScenarioData["users"]["id"]`
+   */
   users?: { id: number }[];
   hosts?: { id: number }[];
   schedulingType?: SchedulingType;
@@ -223,6 +239,7 @@ export function createBookingScenario(data: ScenarioData) {
         resolve(
           ({
             ...foundApp,
+            ...(TestData.apps[foundApp?.slug] || {}),
             enabled: true,
           } as PrismaApp) || null
         );
@@ -239,7 +256,7 @@ export function createBookingScenario(data: ScenarioData) {
   data.bookings = data.bookings || [];
   allowSuccessfulBookingCreation();
   addBookings(data.bookings, data.eventTypes);
-  // mockBusyCalendarTimes([]);
+  mockBusyCalendarTimes([]);
   addWebhooks();
   return {
     eventType,
@@ -291,18 +308,49 @@ export const getDate = (
   };
 };
 
-export function getGoogleCalendarCredential() {
+export function getMockedCredential({
+  metadataLookupKey,
+  key,
+}: {
+  metadataLookupKey: string;
+  key: {
+    expiry_date?: number;
+    token_type?: string;
+    access_token?: string;
+    refresh_token?: string;
+    scope: string;
+  };
+}) {
   return {
-    type: "google_calendar",
+    type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+    appId: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].slug,
+    key: {
+      expiry_date: Date.now() + 1000000,
+      token_type: "Bearer",
+      access_token: "ACCESS_TOKEN",
+      refresh_token: "REFRESH_TOKEN",
+      ...key,
+    },
+  };
+}
+
+export function getGoogleCalendarCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "googlecalendar",
     key: {
       scope:
         "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
-      token_type: "Bearer",
-      expiry_date: 1656999025367,
-      access_token: "ACCESS_TOKEN",
-      refresh_token: "REFRESH_TOKEN",
     },
-  };
+  });
+}
+
+export function getZoomAppCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "zoomvideo",
+    key: {
+      scope: "meeting:writed",
+    },
+  });
 }
 
 export const TestData = {
@@ -358,14 +406,14 @@ export const TestData = {
   users: {
     example: {
       name: "Example",
+      email: "example@example.com",
       username: "example",
       defaultScheduleId: 1,
-      email: "example@example.com",
       timeZone: Timezones["+5:30"],
     },
   },
   apps: {
-    googleCalendar: {
+    "google-calendar": {
       slug: "google-calendar",
       dirName: "whatever",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -377,13 +425,15 @@ export const TestData = {
         redirect_uris: ["http://localhost:3000/auth/callback"],
       },
     },
-    dailyVideo: {
+    "daily-video": {
       slug: "daily-video",
       dirName: "whatever",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
         expiry_date: Infinity,
+        api_key: "",
+        scale_plan: "false",
         client_id: "client_id",
         client_secret: "client_secret",
         redirect_uris: ["http://localhost:3000/auth/callback"],
@@ -406,4 +456,61 @@ export function mockBusyCalendarTimes(
   busyTimes: Awaited<ReturnType<typeof CalendarManagerMock.getBusyCalendarTimes>>
 ) {
   // return CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busyTimes);
+}
+
+export function getOrganizer({
+  name,
+  email,
+  id,
+  schedules,
+  credentials,
+  selectedCalendars,
+}: {
+  name: string;
+  email: string;
+  id: number;
+  schedules: InputUser["schedules"];
+  credentials?: InputCredential[];
+  selectedCalendars?: InputSelectedCalendar[];
+}) {
+  return {
+    ...TestData.users.example,
+    name,
+    email,
+    id,
+    schedules,
+    credentials,
+    selectedCalendars,
+  };
+}
+
+export function getScenarioData({
+  organizer,
+  eventTypes,
+  usersApartFromOrganizer = [],
+  apps = [],
+}: // hosts = [],
+{
+  organizer: ReturnType<typeof getOrganizer>;
+  eventTypes: ScenarioData["eventTypes"];
+  apps: ScenarioData["apps"];
+  usersApartFromOrganizer?: ScenarioData["users"];
+  // hosts?: ScenarioData["hosts"];
+}) {
+  const users = [organizer, ...usersApartFromOrganizer];
+  eventTypes.forEach((eventType) => {
+    if (
+      eventType.users?.filter((eventTypeUser) => {
+        return !users.find((userToCreate) => userToCreate.id === eventTypeUser.id);
+      }).length
+    ) {
+      throw new Error(`EventType ${eventType.id} has users that are not present in ScenarioData["users"]`);
+    }
+  });
+  return {
+    // hosts: [...hosts],
+    eventTypes: [...eventTypes],
+    users,
+    apps: [...apps],
+  };
 }

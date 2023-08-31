@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
-import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
+import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
