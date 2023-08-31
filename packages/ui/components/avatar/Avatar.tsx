@@ -12,7 +12,7 @@ import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {
   className?: string;
-  size: "xxs" | "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
+  size?: "xxs" | "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
@@ -35,12 +35,12 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  const { imageSrc, gravatarFallbackMd5, size = "md", alt, title, href } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        "bg-emphasis item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
+        "bg-emphasis item-center relative aspect-square justify-center overflow-hidden rounded-full",
         props.className,
         sizesPropsBySize[size]
       )}>
@@ -50,7 +50,10 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
+        <AvatarPrimitive.Fallback
+          delayMs={600}
+          asChild={props.asChild}
+          className="flex h-full items-center justify-center">
           <>
             {props.fallback ? (
               props.fallback

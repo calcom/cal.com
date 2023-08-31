@@ -1,9 +1,8 @@
-import type { PrismaClient } from "@prisma/client";
-
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -20,12 +19,15 @@ type RemoveMemberOptions = {
 
 export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
   const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
+  const isOrgAdmin = ctx.user.organizationId
+    ? await isTeamAdmin(ctx.user.id, ctx.user.organizationId)
+    : false;
   if (!isAdmin && ctx.user.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
   // Only a team owner can remove another team owner.
   if ((await isTeamOwner(input.memberId, input.teamId)) && !(await isTeamOwner(ctx.user.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (ctx.user.id === input.memberId && isAdmin)
+  if (ctx.user.id === input.memberId && isAdmin && !isOrgAdmin)
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not remove yourself from a team you own.",

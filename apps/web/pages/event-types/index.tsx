@@ -728,7 +728,9 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
+          <Link
+            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+            className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
@@ -819,15 +821,34 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <EmptyScreen
+        headline={t("team_no_event_types")}
+        buttonRaw={
+          <Button
+            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
+            variant="button"
+            className="mt-5">
+            {t("create")}
+          </Button>
+        }
+      />
+    </>
+  );
+};
+
 const Main = ({
   status,
-  error,
+  errorMessage,
   data,
   filters,
 }: {
   status: string;
   data: GetByViewerResponse;
-  error: any;
+  errorMessage?: string;
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -839,7 +860,7 @@ const Main = ({
   }
 
   if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={error.message} />;
+    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
   const isFilteredByOnlyOneItem =
@@ -860,12 +881,16 @@ const Main = ({
                   orgSlug={orgBranding?.slug}
                 />
 
-                <EventTypeList
-                  types={group.eventTypes}
-                  group={group}
-                  groupIndex={index}
-                  readOnly={group.metadata.readOnly}
-                />
+                {group.eventTypes.length ? (
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
+                ) : (
+                  <EmptyEventTypeList group={group} />
+                )}
               </div>
             ))
           )}
@@ -936,7 +961,7 @@ const EventTypesPage = () => {
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} error={error} filters={filters} />
+      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );
 };

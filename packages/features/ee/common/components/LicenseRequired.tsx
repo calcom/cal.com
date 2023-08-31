@@ -1,10 +1,9 @@
-import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";
 
-import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import { SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, TopBanner } from "@calcom/ui";
 import { AlertTriangle } from "@calcom/ui/components/icon";
@@ -62,20 +61,17 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           Icon={AlertTriangle}
           headline={t("enterprise_license")}
           description={
-            <div
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(
-                  t("enterprise_license_description", {
-                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
-                ${APP_NAME}
-              </a>`,
-                    setupUrl: `<a href="${WEBAPP_URL}/auth/setup" class="underline">/auth/setup</a>`,
-                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
-                ${SUPPORT_MAIL_ADDRESS}</a>`,
-                  })
-                ),
-              }}
-            />
+            <Trans i18nKey="enterprise_license_description">
+              To enable this feature, have an administrator go to{" "}
+              <a href={`${WEBAPP_URL}/auth/setup`} className="underline">
+                /auth/setup
+              </a>
+              to enter a license key. If a license key is already in place, please contact{" "}
+              <a href={`mailto:${SUPPORT_MAIL_ADDRESS}`} className="underline">
+                <Trans>{{ SUPPORT_MAIL_ADDRESS }}</Trans>
+              </a>
+              for help.
+            </Trans>
           }
         />
       )}
