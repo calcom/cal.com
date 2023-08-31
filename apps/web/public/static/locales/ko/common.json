@@ -1075,7 +1075,7 @@
   "event_cancelled": "이 이벤트는 취소되었습니다",
   "emailed_information_about_cancelled_event": "귀하와 다른 참석자들에게 이메일로 알려 드렸습니다.",
   "this_input_will_shown_booking_this_event": "이 입력은 이 이벤트를 예약할 때 표시됩니다.",
-  "meeting_url_in_conformation_email": "회의 URL은 확인 이메일에 있습니다",
+  "meeting_url_in_confirmation_email": "회의 URL은 확인 이메일에 있습니다",
   "url_start_with_https": "URL은 http:// 또는 https://로 시작해야 합니다",
   "number_provided": "전화 번호는 제공됩니다",
   "before_event_trigger": "이벤트 시작 전",

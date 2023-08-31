@@ -1075,7 +1075,7 @@
   "event_cancelled": "Цей захід скасовано",
   "emailed_information_about_cancelled_event": "Ми сповістили вас та інших учасників електронною поштою.",
   "this_input_will_shown_booking_this_event": "Це поле введення буде показано під час бронювання часу для цього заходу",
-  "meeting_url_in_conformation_email": "URL-адресу наради вказано в листі з підтвердженням",
+  "meeting_url_in_confirmation_email": "URL-адресу наради вказано в листі з підтвердженням",
   "url_start_with_https": "URL-адреса має починатися з http:// або https://",
   "number_provided": "Номер телефону буде надано",
   "before_event_trigger": "до початку заходу",

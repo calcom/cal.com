@@ -1098,7 +1098,7 @@
   "event_cancelled": "This event is canceled",
   "emailed_information_about_cancelled_event": "We emailed you and the other attendees to let them know.",
   "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
-  "meeting_url_in_conformation_email": "Meeting url is in the confirmation email",
+  "meeting_url_in_confirmation_email": "Meeting url is in the confirmation email",
   "url_start_with_https": "URL needs to start with http:// or https://",
   "number_provided": "Phone number will be provided",
   "before_event_trigger": "before event starts",
