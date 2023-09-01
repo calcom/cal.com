@@ -542,7 +542,7 @@ export async function apiLogin(
     .then((json) => json.csrfToken);
   const data = {
     email: user.email ?? `${user.username}@example.com`,
-    password: user.password ?? user.username!,
+    password: user.password ?? user.username,
     callbackURL: "http://localhost:3000/",
     redirect: "false",
     json: "true",

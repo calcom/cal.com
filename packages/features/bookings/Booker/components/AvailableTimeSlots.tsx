@@ -1,17 +1,17 @@
-import { useMemo, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
-import { trpc } from "@calcom/trpc";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -28,7 +28,13 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, prefetchNextMonth, monthCount}: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  limitHeight,
+  seatsPerTimeSlot,
+  prefetchNextMonth,
+  monthCount,
+}: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -68,15 +74,19 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, p
     prefetchNextMonth,
     monthCount,
   });
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots)
-  const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter((slot)=>dayjs(selectedDate).diff(slot,'day')<=0);
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
+    (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
+  );
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
   const dates = !extraDays
-        ? [date]: nonEmptyScheduleDaysFromSelectedDate.length > 0 
-          ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays):[];
-  
+    ? [date]
+    : nonEmptyScheduleDaysFromSelectedDate.length > 0
+    ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
+    : [];
+
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
@@ -106,10 +116,13 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, p
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeSlot={seatsPerTimeSlot}
-              availableMonth={dayjs(selectedDate).format("MM")!==dayjs(slots.date).format("MM")?dayjs(slots.date).format("MMM"):undefined}
+              availableMonth={
+                dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                  ? dayjs(slots.date).format("MMM")
+                  : undefined
+              }
             />
           ))}
     </div>
   );
 };
-

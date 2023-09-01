@@ -148,9 +148,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         organization: {
           create: {
             name,
-            ...(!IS_TEAM_BILLING_ENABLED && { slug }),
+            ...(IS_TEAM_BILLING_ENABLED ? { slug } : {}),
             metadata: {
-              ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
+              ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
               isOrganization: true,
               isOrganizationVerified: false,
               isOrganizationConfigured,
@@ -161,12 +161,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
+    if (!createOwnerOrg.organizationId) throw Error("User not created");
+
     await prisma.membership.create({
       data: {
         userId: createOwnerOrg.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: createOwnerOrg.organizationId!,
+        teamId: createOwnerOrg.organizationId,
       },
     });
 
