@@ -60,6 +60,7 @@ export function InviteMemberModal(props: Props) {
         });
       }}
       teamId={orgId}
+      justEmailInvites={!!orgId}
       isLoading={inviteMemberMutation.isLoading}
       onSubmit={(values) => {
         inviteMemberMutation.mutate({

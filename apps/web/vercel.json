@@ -1,8 +1,0 @@
-{
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "https://profile-next-cold-starts.vercel.app/builder.tgz"
-    }
-  ]
-}
