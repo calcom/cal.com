@@ -49,6 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const credential = await prisma.credential.findFirst({
     where: {
       appId: "intercom",
+      key: {
+        string_contains: admin.id,
+      },
     },
   });
 

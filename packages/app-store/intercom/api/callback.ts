@@ -79,10 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   createOAuthAppCredential(
     { appId: "intercom", type: "intercom_automation" },
-    {
-      adminId,
-      access_token: responseBody.access_token,
-    },
+    JSON.stringify({ access_token: responseBody.access_token, admin_id: adminId }),
     req
   );
 

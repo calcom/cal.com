@@ -27,6 +27,7 @@ export const apiHandlers = {
   gtm: import("./gtm/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
+  intercom: import("./intercom/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
   metapixel: import("./metapixel/api"),
