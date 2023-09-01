@@ -11,7 +11,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, SettingsToggle } from "@calcom/ui";
 
 interface IUserToValue {
   id: number | null;
@@ -204,13 +204,41 @@ const ChildrenEventTypes = ({
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
 }) => {
+  const formMethods = useFormContext<FormValues>();
+  const { t } = useLocale();
+
   return (
-    <Controller<FormValues>
-      name="children"
-      render={({ field: { onChange, value } }) => (
-        <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+    <>
+      <Controller
+        name="allTeamMembers"
+        control={formMethods.control}
+        render={({ field: { value } }) => (
+          <SettingsToggle
+            title={t("automatically_add_to_all_team_members")}
+            description={t("including_people_who_join_the_team")}
+            checked={value}
+            onCheckedChange={(active) => {
+              formMethods.setValue("allTeamMembers", active);
+              if (active) {
+                formMethods.setValue("children", childrenEventTypeOptions);
+              } else {
+                formMethods.setValue("children", []);
+              }
+            }}
+          />
+        )}
+      />
+      {!formMethods.getValues("allTeamMembers") && (
+        <div className="mt-4">
+          <Controller<FormValues>
+            name="children"
+            render={({ field: { onChange, value } }) => (
+              <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+            )}
+          />
+        </div>
       )}
-    />
+    </>
   );
 };
 

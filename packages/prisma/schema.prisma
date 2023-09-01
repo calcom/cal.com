@@ -114,6 +114,7 @@ model EventType {
   bookingLimits                   Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
+  allTeamMembers                  Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

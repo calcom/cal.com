@@ -172,6 +172,7 @@ export default async function getEventTypeById({
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      allTeamMembers: true,
       webhooks: {
         select: {
           id: true,
