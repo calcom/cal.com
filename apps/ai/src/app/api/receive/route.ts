@@ -45,6 +45,7 @@ export const POST = async (request: NextRequest) => {
     select: {
       email: true,
       id: true,
+      timeZone: true,
       credentials: {
         select: {
           appId: true,
@@ -93,8 +94,8 @@ export const POST = async (request: NextRequest) => {
     fetchAvailability({
       apiKey,
       userId: user.id,
-      dateFrom: now,
-      dateTo: now,
+      dateFrom: now(user.timeZone),
+      dateTo: now(user.timeZone),
     }),
   ]);
 
@@ -120,7 +121,7 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("Error fetching event types. Please try again.", { status: 400 });
   }
 
-  const { timeZone, workingHours } = availability;
+  const { workingHours } = availability;
 
   const appHost = getHostFromHeaders(request.headers);
 
@@ -135,7 +136,7 @@ export const POST = async (request: NextRequest) => {
       user: {
         email: user.email,
         eventTypes,
-        timeZone,
+        timeZone: user.timeZone,
         workingHours,
       },
     }),
