@@ -116,6 +116,7 @@ const MembersView = () => {
     onSuccess: () => {
       utils.viewer.organizations.listOtherTeams.invalidate();
       utils.viewer.teams.list.invalidate();
+      utils.viewer.organizations.listOtherTeamMembers.invalidate();
     },
   });
 
