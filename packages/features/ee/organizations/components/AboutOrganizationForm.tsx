@@ -65,7 +65,6 @@ export const AboutOrganizationForm = () => {
                   <Avatar
                     alt=""
                     fallback={<Plus className="text-subtle h-6 w-6" />}
-                    asChild
                     className="items-center"
                     imageSrc={image}
                     size="lg"
