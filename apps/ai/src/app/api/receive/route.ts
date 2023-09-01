@@ -56,18 +56,20 @@ export const POST = async (request: NextRequest) => {
     where: { email: envelope.from },
   });
 
-  if (!signature || !user?.email || !user?.id) {
+  // User is not a cal.com user or is using an unverified email.
+  if (!signature || !user) {
     await sendEmail({
+      html: `Thanks for your interest in Cal AI! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
       subject: `Re: ${body.subject}`,
-      text: "Sorry, you are not authorized to use this service. Please verify your email address and try again.",
-      to: user?.email || "",
+      text: `Thanks for your interest in Cal AI! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
+      to: envelope.from,
       from: aiEmail,
     });
 
-    return new NextResponse();
+    return new NextResponse("ok");
   }
 
-  const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
+  const credential = user?.credentials?.find((c) => c.appId === env.APP_ID)?.key;
 
   // User has not installed the app from the app store. Direct them to install it.
   if (!(credential as { apiKey: string })?.apiKey) {
