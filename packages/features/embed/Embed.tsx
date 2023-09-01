@@ -229,8 +229,8 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
               isLoading={schedule.isLoading}
-              onChange={(date: Dayjs) => {
-                setSelectedDate(date.format("YYYY-MM-DD"));
+              onChange={(date: Dayjs | null) => {
+                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
