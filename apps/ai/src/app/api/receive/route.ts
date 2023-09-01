@@ -69,7 +69,7 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   }
 
-  const credential = user?.credentials?.find((c) => c.appId === env.APP_ID)?.key;
+  const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
 
   // User has not installed the app from the app store. Direct them to install it.
   if (!(credential as { apiKey: string })?.apiKey) {
