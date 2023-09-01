@@ -1,0 +1,13 @@
+{
+     "connected_vital_app": "Verbunden mit",
+     "vital_app_sleep_automation": "Schlaf Terminumbuchunsautomatisierung",
+     "vital_app_automation_description": "Sie können verschiedene Parameter auswählen, um die Umbuchung basierend auf Ihren Schlafmetriken auszulösen.",
+     "vital_app_parameter": "Parameter",
+     "vital_app_trigger": "Auslöser kleiner oder gleich",
+     "vital_app_save_button": "Einstellungen speichern",
+     "vital_app_total_label": "Gesamt (Gesamt= rem + leichter Schlaf + tiefer Schlaf)",
+     "vital_app_duration_label": "Dauer (Dauer = Schlafzeitende - Schlafzeit start)",
+     "vital_app_hours": "Stunden",
+     "vital_app_save_success": "Erfolgreich Ihre Vital-Konfigurationen wurden Erfolgreich gespeichert",
+     "vital_app_save_error": "Ein Fehler ist aufgetreten beim Speichern Ihrer Vital Einstellungen"
+ }

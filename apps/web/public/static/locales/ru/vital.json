@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Соединено с аккаунтом",
+    "vital_app_sleep_automation": "Автоматический перенос с учетом режима сна",
+    "vital_app_automation_description": "Вы можете настроить параметры переноса событий с учетом ваших показателей сна.",
+    "vital_app_parameter": "Параметр",
+    "vital_app_trigger": "Запускать, если меньше или равно",
+    "vital_app_save_button": "Сохранить конфигурацию",
+    "vital_app_total_label": "Всего (всего = быстрый сон + легкий сон + глубокий сон)",
+    "vital_app_duration_label": "Продолжительность (продолжительность = время окончания сна – время начала сна)",
+    "vital_app_hours": "ч.",
+    "vital_app_save_success": "Конфигурации Vital сохранены",
+    "vital_app_save_error": "Ошибка при сохранении конфигураций Vital"
+}

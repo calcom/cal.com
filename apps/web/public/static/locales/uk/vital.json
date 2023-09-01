@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Підключено до",
+    "vital_app_sleep_automation": "Автоматизація переналаштування розкладу",
+    "vital_app_automation_description": "Ви можете вибирати різні параметри, щоб виконувати переналаштування розкладу на основі показників сну.",
+    "vital_app_parameter": "Параметр",
+    "vital_app_trigger": "Ініціювати, якщо показник не перевищує",
+    "vital_app_save_button": "Зберегти конфігурацію",
+    "vital_app_total_label": "Усього (усього = швидкий сон + поверхневий сон + глибокий сон)",
+    "vital_app_duration_label": "Тривалість (тривалість = час, коли ви встали з ліжка - час, коли ви лягли в ліжко)",
+    "vital_app_hours": "год",
+    "vital_app_save_success": "Ваші показники Vital Configurations збережено",
+    "vital_app_save_error": "Сталася помилка під час збереження ваших показників Vital Configurations"
+}

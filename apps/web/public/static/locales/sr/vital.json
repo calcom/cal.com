@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Povezan sa",
+    "vital_app_sleep_automation": "Automatizacija promene termina na osnovu parametara spavanja",
+    "vital_app_automation_description": "Možete izabrati različite parametre koji će aktivirati promenu termina na osnovu vaših parametara spavanja.",
+    "vital_app_parameter": "Parametar",
+    "vital_app_trigger": "Aktiviraj kada je jednako ili manje od",
+    "vital_app_save_button": "Sačuvaj konfiguraciju",
+    "vital_app_total_label": "Ukupno (ukupno = REM + lagani san + dubok san)",
+    "vital_app_duration_label": "Trajanje (trajanje = kraj spavanja - početak spavanja)",
+    "vital_app_hours": "sati",
+    "vital_app_save_success": "Vaše konfiguracije vitalnih znakova su uspešno sačuvane",
+    "vital_app_save_error": "Došlo je do greške pri čuvanju vaših konfiguracija vitalnih znakova"
+}

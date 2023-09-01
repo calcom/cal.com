@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Connected with",
+    "vital_app_sleep_automation": "Sleeping reschedule automation",
+    "vital_app_automation_description": "You can select different parameters to trigger the reschedule based on your sleeping metrics.",
+    "vital_app_parameter": "Parameter",
+    "vital_app_trigger": "Trigger at below or equal than",
+    "vital_app_save_button": "Save configuration",
+    "vital_app_total_label": "Total (total = rem + light sleep + deep sleep)",
+    "vital_app_duration_label": "Duration (duration = bedtime end - bedtime start)",
+    "vital_app_hours": "hours",
+    "vital_app_save_success": "Success saving your Vital Configurations",
+    "vital_app_save_error": "An error ocurred saving your Vital Configurations"
+}

@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Đã kết nối với",
+    "vital_app_sleep_automation": "Tự động sắp lại lịch ngủ",
+    "vital_app_automation_description": "Bạn có thể chọn những tham số khác nhau để kích hoạt sắp lịch lại dựa trên số liệu thống kê giấc ngủ.",
+    "vital_app_parameter": "Tham số",
+    "vital_app_trigger": "Trigger ở mức dưới hoặc bằng",
+    "vital_app_save_button": "Lưu cấu hình",
+    "vital_app_total_label": "Tổng (tổng = giấc ngủ rem + ngủ nông + ngủ sâu)",
+    "vital_app_duration_label": "Thời lượng (thời lượng = giờ dậy - giờ bắt đầu ngủ)",
+    "vital_app_hours": "giờ",
+    "vital_app_save_success": "Lưu thành công cấu hình Vital của bạn",
+    "vital_app_save_error": "Có lỗi xảy ra khi lưu cấu hình Vital"
+}

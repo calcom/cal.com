@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Połączono z",
+    "vital_app_sleep_automation": "Automatyczna zmiana harmonogramu snu",
+    "vital_app_automation_description": "Możesz wybrać różne parametry, które spowodują zmianę harmonogramu w zależności od jakości Twojego snu.",
+    "vital_app_parameter": "Parametr",
+    "vital_app_trigger": "Wyzwalaj przy wartości mniejszej lub równej",
+    "vital_app_save_button": "Zapisz konfigurację",
+    "vital_app_total_label": "Łącznie (łącznie = REM + płytki sen + głęboki sen)",
+    "vital_app_duration_label": "Czas trwania (czas trwania = koniec snu - początek snu)",
+    "vital_app_hours": "godz.",
+    "vital_app_save_success": "Pomyślnie zapisano Twoje Vital Configurations",
+    "vital_app_save_error": "Podczas zapisywania ustawień parametrów życiowych wystąpił błąd"
+}

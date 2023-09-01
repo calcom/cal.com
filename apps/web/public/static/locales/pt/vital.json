@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Ligado a",
+    "vital_app_sleep_automation": "Reagendar automaticamente durante o sono",
+    "vital_app_automation_description": "Pode seleccionar diferentes parâmetros para accionar o reagendamento com base nas suas métricas de sono.",
+    "vital_app_parameter": "Parâmetro",
+    "vital_app_trigger": "Executar abaixo ou igual a",
+    "vital_app_save_button": "Guardar configuração",
+    "vital_app_total_label": "Total (total = rem + sono leve + sono profundo)",
+    "vital_app_duration_label": "Duração (duração = fim do sono - início do sono)",
+    "vital_app_hours": "horas",
+    "vital_app_save_success": "As suas configurações vitais foram guardadas com sucesso",
+    "vital_app_save_error": "Ocorreu um erro ao guardar as suas configurações vitais"
+}
