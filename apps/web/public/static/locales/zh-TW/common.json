@@ -1854,7 +1854,7 @@
   "payment_app_commission": "需付款 ({{paymentFeePercentage}}% + {{fee, currency}} 每筆交易佣金)",
   "email_invite_team": "已邀請 {{email}}",
   "email_invite_team_bulk": "已邀請 {{userCount}} 位使用者",
-  "error_collecting_card": "卡片發生錯誤",
+  "error_collecting_card": "收集卡片時發生錯誤",
   "image_size_limit_exceed": "上傳的圖片大小不得超過 5MB 限制",
   "unauthorized_workflow_error_message": "{{errorCode}}：您未獲得授權，無法啟用或停用此工作流程",
   "inline_embed": "內嵌式嵌入",

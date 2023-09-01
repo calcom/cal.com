@@ -26,9 +26,14 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
 
   const forms = await prisma.app_RoutingForms_Form.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        position: "desc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
     include: {
       team: {
         include: {
