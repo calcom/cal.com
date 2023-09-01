@@ -183,12 +183,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
-      showToast(
-        t("event_type_updated_successfully", {
-          eventTypeTitle: eventType.title,
-        }),
-        "success"
-      );
+      showToast(t("event_type_updated_successfully"), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -411,6 +406,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, ...rest } = input;
     updateMutation.mutate({
       ...rest,
@@ -495,6 +491,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
               ...rest,
