@@ -100,7 +100,15 @@ export function AvailabilityEditSheet(props: Props) {
           //     ...values,
           //   });
         }}>
-        <SheetContent>
+        <SheetContent
+          bottomActions={
+            <>
+              <Button color="secondary" className="w-full justify-center">
+                {t("cancel")}
+              </Button>
+              <Button className="w-full justify-center">{t("save")}</Button>
+            </>
+          }>
           {!data?.hasDefaultSchedule && !isLoading && (
             <div className="my-2">
               <TopBanner
