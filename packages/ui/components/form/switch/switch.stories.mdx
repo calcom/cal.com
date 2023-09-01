@@ -1,0 +1,97 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  CustomArgsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import Switch from "./Switch";
+
+<Meta title="UI/Form/Switch" component={Switch} />
+
+<Title title="Switch" suffix="Brief" subtitle="Version 1.0 — Last Update: 16 Aug 2023" />
+
+## Definition
+
+Switch is a customizable toggle switch component that allows users to change between two states.
+
+## Structure
+
+The `Switch` component can be used to create toggle switches for various purposes. It provides options for adding labels, icons, and tooltips.
+
+<CustomArgsTable of={Switch} />
+
+<Examples title="States">
+  <Example title="Default">
+    <Switch />
+  </Example>
+  <Example title="Disabled">
+    <Switch disabled />
+  </Example>
+  <Example title="Checked">
+    <Switch checked />
+  </Example>
+</Examples>
+
+<Examples title="Labels">
+  <Example title="With Label and labelOnLeading">
+    <Switch label="Enable Feature" labelOnLeading />
+  </Example>
+  <Example title="With Label">
+    <Switch label="Enable Feature" />
+  </Example>
+</Examples>
+
+<Examples title="Hover">
+  <Example title="With Tooltip (Hover me)">
+    <TooltipProvider>
+      <Switch tooltip="Toggle to enable/disable the feature" />
+    </TooltipProvider>
+  </Example>
+  <Example title="Without Tooltip (Hover me)">
+    <TooltipProvider>
+      <Switch />
+    </TooltipProvider>
+  </Example>
+</Examples>
+
+<Title offset title="Switch" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="Switch"
+    args={{
+      label: "Enable Feature",
+      tooltip: "Toggle to enable/disable the feature",
+      checked: false,
+      disabled: false,
+      fitToHeight: false,
+      labelOnLeading: false,
+    }}
+    argTypes={{
+      label: { control: { type: "text" } },
+      tooltip: { control: { type: "text" } },
+      checked: { control: { type: "boolean" } },
+      disabled: { control: { type: "boolean" } },
+      fitToHeight: { control: { type: "boolean" } },
+      labelOnLeading: { control: { type: "boolean" } },
+    }}>
+    {(props) => (
+      <TooltipProvider>
+        <VariantsTable titles={["Default"]} columnMinWidth={150}>
+          <VariantRow>
+            <Switch
+              {...props}
+              onCheckedChange={(checkedValue) => console.log("Switch value:", checkedValue)}
+            />
+          </VariantRow>
+        </VariantsTable>
+      </TooltipProvider>
+    )}
+  </Story>
+</Canvas>

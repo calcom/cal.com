@@ -116,6 +116,7 @@ export default function CreateEventTypeDialog({
       teamProfile?.membershipRole === MembershipRole.ADMIN);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
+
     onSuccess: async ({ paymentUid, name, email }) => {
       if (paymentUid) {
         const paymentLink =

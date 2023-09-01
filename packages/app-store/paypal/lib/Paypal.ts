@@ -19,7 +19,7 @@ class Paypal {
   }
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-    this.getAccessToken();
+    await this.getAccessToken();
     return fetch(`${this.url}${endpoint}`, {
       method: "get",
       ...init,

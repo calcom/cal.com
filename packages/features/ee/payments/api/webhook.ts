@@ -97,7 +97,7 @@ async function getBooking(bookingId: number) {
   });
 
   const attendeesList = await Promise.all(attendeesListPromises);
-
+  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -115,7 +115,7 @@ async function getBooking(bookingId: number) {
     },
     attendees: attendeesList,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
   };
 
@@ -150,6 +150,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+
 
   // type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   // let eventTypeRaw: EventTypeRaw | null = null;
@@ -221,7 +222,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   //   delete bookingData.status;
   // }
 
-  const paymentUpdate = prisma.payments.update({
+  const paymentUpdate = prisma.payment.update({
+
     where: {
       id: payment.id,
     },
