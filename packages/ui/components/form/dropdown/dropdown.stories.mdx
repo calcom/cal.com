@@ -1,0 +1,361 @@
+import { Canvas, Story, Meta } from "@storybook/addon-docs";
+import { Button } from "@calcom/ui";
+
+import {
+  Examples,
+  Example,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import { Plus, Trash, Copy } from "@calcom/ui/components/icon";
+import {
+  Dropdown,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "./Dropdown";
+
+<Meta title="UI/Form/Dropdown" component={Dropdown} />
+
+<Title title="Dropdown" suffix="Brief" subtitle="Version 1.0 — Last Update: 29 Aug 2023" />
+
+## Definition
+
+`Dropdown` is an element that displays a menu to the user—such as a set of actions or functions.
+
+## Structure
+
+The `Dropdown` component can be used to display a menu to the user.
+
+<CustomArgsTable of={Dropdown} />
+
+### Dropdown components that have arguments:
+
+#### DropdownMenuTrigger
+
+<CustomArgsTable of={DropdownMenuTrigger} />
+
+#### DropdownMenuContent
+
+<CustomArgsTable of={DropdownMenuContent} />
+
+#### DropdownMenuItem
+
+<CustomArgsTable of={DropdownMenuItem} />
+
+#### DropdownMenuSeparator
+
+<CustomArgsTable of={DropdownMenuSeparator} />
+
+## Examples
+
+<Examples title="Dropdown">
+  <Example title="Simple">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="No modal">
+    <Dropdown modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+</Examples>
+<Examples title="Dropdown Menu Trigger">
+  <Example title="Simple Button">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Button Icon">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button StartIcon={Plus} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Disabled">
+    <Dropdown>
+      <DropdownMenuTrigger disabled={true} asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Not as child">
+    <Dropdown>
+      <DropdownMenuTrigger>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+</Examples>
+<Examples title="Dropdown Menu Content">
+  <Example title="Custom width">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent style={{ minWidth: "200px" }}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Align start">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent style={{ minWidth: "80px" }} align={"start"}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="Align center">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent style={{ minWidth: "80px" }} align={"center"}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="With Menu Separator">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="With side offset">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent sideOffset={50}>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+  <Example title="With Some icons">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Trash}>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+</Examples>
+<Examples title="Dropdown Menu Label">
+  <Example title="Simple">
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button>more</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={"start"}>
+        <DropdownMenuLabel>Number</DropdownMenuLabel>
+        <DropdownMenuItem>
+          <DropdownItem>First</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Second</DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <DropdownItem>Third</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  </Example>
+</Examples>
+
+## Dropdown Story
+
+<Canvas>
+  <Story
+    name="Dropdown"
+    args={{
+      asChild: false,
+      align: "start",
+      disabled: false,
+      sideOffset: 0
+    }}
+    argTypes={{
+      sideOffset: {
+        control: {
+          type: "number",
+        },
+      },
+      asChild: {
+        control: {
+          type: "boolean"
+        }
+      },
+      align: {
+        control: {
+          type: "inline-radio",
+          options: ["center", "start", "end"],
+        },
+      },
+      disabled: {
+        control: {
+          type: "boolean"
+        }
+      }
+    }}>
+    {({ dir, asChild, sideOffset, align, disabled }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <Dropdown>
+            <DropdownMenuTrigger disabled={disabled} asChild>
+              <Button>more</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align={align} sideOffset={sideOffset}>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Trash}>First</DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Dropdown>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>
