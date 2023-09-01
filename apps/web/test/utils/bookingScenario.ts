@@ -4,14 +4,18 @@ import type {
   Booking as PrismaBooking,
   App as PrismaApp,
 } from "@prisma/client";
+import type { WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { expect } from "vitest";
+import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
-import type CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
+import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 type App = {
@@ -19,6 +23,15 @@ type App = {
   dirName: string;
 };
 
+type InputWebhook = {
+  appId: string | null;
+  userId?: number;
+  teamId?: number;
+  eventTypeId?: number;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  subscriberUrl: string;
+};
 /**
  * Data to be mocked
  */
@@ -37,6 +50,7 @@ type ScenarioData = {
    */
   apps?: App[];
   bookings?: InputBooking[];
+  webhooks?: InputWebhook[];
 };
 
 type InputCredential = typeof TestData.credentials.google;
@@ -193,8 +207,18 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
   });
 }
 
-async function addWebhooks() {
-  prismaMock.webhook.findMany.mockResolvedValue([]);
+async function addWebhooks(webhooks: InputWebhook[]) {
+  prismaMock.webhook.findMany.mockResolvedValue(
+    webhooks.map((webhook) => {
+      return {
+        ...webhook,
+        payloadTemplate: null,
+        secret: null,
+        id: uuidv4(),
+        createdAt: new Date(),
+      };
+    })
+  );
 }
 
 function addUsers(users: InputUser[]) {
@@ -219,9 +243,8 @@ function addUsers(users: InputUser[]) {
   );
 }
 
-export function createBookingScenario(data: ScenarioData) {
+export async function createBookingScenario(data: ScenarioData) {
   logger.silly("TestData: Creating Scenario", data);
-
   addUsers(data.users);
 
   const eventType = addEventTypes(data.eventTypes, data.users);
@@ -256,15 +279,15 @@ export function createBookingScenario(data: ScenarioData) {
   data.bookings = data.bookings || [];
   allowSuccessfulBookingCreation();
   addBookings(data.bookings, data.eventTypes);
-  mockBusyCalendarTimes([]);
-  addWebhooks();
+  // mockBusyCalendarTimes([]);
+  addWebhooks(data.webhooks || []);
   return {
     eventType,
   };
 }
 
 /**
- * This fn indents to dynamically compute day, month, year for the purpose of testing.
+ * This fn indents to /ally compute day, month, year for the purpose of testing.
  * We are not using DayJS because that's actually being tested by this code.
  * - `dateIncrement` adds the increment to current day
  * - `monthIncrement` adds the increment to current month
@@ -450,12 +473,11 @@ function allowSuccessfulBookingCreation() {
   });
 }
 
-// FIXME: This has to be per user.
-// Also, can we not mock Google Calendar Itself?
-export function mockBusyCalendarTimes(
-  busyTimes: Awaited<ReturnType<typeof CalendarManagerMock.getBusyCalendarTimes>>
-) {
-  // return CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busyTimes);
+export class MockError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MockError";
+  }
 }
 
 export function getOrganizer({
@@ -489,12 +511,14 @@ export function getScenarioData({
   eventTypes,
   usersApartFromOrganizer = [],
   apps = [],
+  webhooks,
 }: // hosts = [],
 {
   organizer: ReturnType<typeof getOrganizer>;
   eventTypes: ScenarioData["eventTypes"];
   apps: ScenarioData["apps"];
   usersApartFromOrganizer?: ScenarioData["users"];
+  webhooks?: ScenarioData["webhooks"];
   // hosts?: ScenarioData["hosts"];
 }) {
   const users = [organizer, ...usersApartFromOrganizer];
@@ -512,5 +536,135 @@ export function getScenarioData({
     eventTypes: [...eventTypes],
     users,
     apps: [...apps],
+    webhooks,
   };
+}
+
+export function mockEnableEmailFeature() {
+  prismaMock.feature.findMany.mockResolvedValue([
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    {
+      slug: "emails",
+      // It's a kill switch
+      enabled: false,
+    },
+  ]);
+}
+
+export function mockNoTranslations() {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  i18nMock.getTranslation.mockImplementation(() => {
+    return new Promise((resolve) => {
+      const identityFn = (key: string) => key;
+      resolve(identityFn);
+    });
+  });
+}
+
+export function mockCalendarToHaveNoBusySlots(metadataLookupKey: string) {
+  appStoreMock.default[metadataLookupKey].mockResolvedValue({
+    lib: {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      CalendarService: function MockCalendarService() {
+        return {
+          createEvent: () => {
+            return Promise.resolve({
+              type: "daily_video",
+              id: "dailyEventName",
+              password: "dailyvideopass",
+              url: "http://dailyvideo.example.com",
+            });
+          },
+          getAvailability: (...args): Promise<EventBusyDate[]> => {
+            return new Promise((resolve) => {
+              resolve([]);
+            });
+          },
+        };
+      },
+    },
+  });
+}
+
+export function mockSuccessfulVideoMeetingCreation({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
+    return new Promise((resolve) => {
+      resolve({
+        lib: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          VideoApiAdapter: () => ({
+            createMeeting: () => {
+              console.log("CALLING MOCKED DAILY");
+              return Promise.resolve({
+                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                id: "MOCK_ID",
+                password: "MOCK_PASS",
+                url: `http://mock-${metadataLookupKey}.example.com`,
+              });
+            },
+          }),
+        },
+      });
+    });
+  });
+}
+
+export function mockErrorOnVideoMeetingCreation({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  appStoreMock.default[appStoreLookupKey].mockImplementation(() => {
+    return new Promise((resolve) => {
+      resolve({
+        lib: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          VideoApiAdapter: () => ({
+            createMeeting: () => {
+              throw new MockError("Error creating Video meeting");
+            },
+          }),
+        },
+      });
+    });
+  });
+}
+
+export function expectWebhookToHaveBeenCalledWith(
+  subscriberUrl: string,
+  data: { metadata: any; responses: any }
+) {
+  const fetchCalls = fetchMock.mock.calls;
+  const webhookFetchCall = fetchCalls.find((call) => call[0] === subscriberUrl);
+  if (!webhookFetchCall) {
+    throw new Error(`Webhook not called with ${subscriberUrl}`);
+  }
+  expect(webhookFetchCall[0]).toBe(subscriberUrl);
+  const body = webhookFetchCall[1]?.body;
+  const parsedBody = JSON.parse((body as string) || "{}");
+  parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl.replace(
+    /\/video\/[a-zA-Z0-9]{22}/,
+    "/video/DYNAMIC_UID"
+  );
+  expect(parsedBody.payload.metadata).toContain(data.metadata);
+  expect(parsedBody.payload.responses).toEqual(data.responses);
 }

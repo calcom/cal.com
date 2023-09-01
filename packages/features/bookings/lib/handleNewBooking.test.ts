@@ -6,7 +6,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, beforeEach } from "vitest";
 
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
@@ -16,40 +16,27 @@ import {
   getOrganizer,
   getScenarioData,
   getZoomAppCredential,
+  mockEnableEmailFeature,
+  mockNoTranslations,
+  mockErrorOnVideoMeetingCreation,
+  mockSuccessfulVideoMeetingCreation,
+  mockCalendarToHaveNoBusySlots,
+  expectWebhookToHaveBeenCalledWith,
+  MockError,
 } from "@calcom/web/test/utils/bookingScenario";
-
-import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
-import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-class MockError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "MockError";
-  }
-}
-
-expect.extend({
-  toHaveSentEmail(received, expected) {
-    const { isNot } = this;
-    return {
-      // do not alter your "pass" based on isNot. Vitest does it for you
-      pass: received === "foo",
-      message: () => `${received} is${isNot ? " not" : ""} foo`,
-    };
-  },
-});
-
-describe("handleNewBooking", () => {
+describe.sequential("handleNewBooking", () => {
   beforeEach(() => {
     mockNoTranslations();
     mockEnableEmailFeature();
+    globalThis.testEmails = [];
+    fetchMock.resetMocks();
   });
 
-  describe("Frontend:", () => {
+  describe.sequential("Frontend:", () => {
     test(`should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
     1. Should send emails to the booker as well as organizer
     `, async ({ emails }) => {
@@ -72,6 +59,7 @@ describe("handleNewBooking", () => {
         method: "POST",
         body: getMockRequestDataForBooking({
           data: {
+            eventTypeId: 1,
             responses: {
               email: booker.email,
               name: booker.name,
@@ -82,7 +70,16 @@ describe("handleNewBooking", () => {
       });
 
       const scenarioData = {
-        hosts: [],
+        webhooks: [
+          {
+            userId: organizer.id,
+            eventTriggers: ["BOOKING_CREATED"],
+            subscriberUrl: "http://my-webhook.example.com",
+            active: true,
+            eventTypeId: 1,
+            appId: null,
+          },
+        ],
         eventTypes: [
           {
             id: 1,
@@ -107,7 +104,11 @@ describe("handleNewBooking", () => {
         apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
       };
 
-      mockDailyVideoToCreateSuccessfulMeeting();
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+      });
+
+      mockCalendarToHaveNoBusySlots("googlecalendar");
 
       // const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       // mockBusyCalendarTimes([
@@ -164,6 +165,7 @@ describe("handleNewBooking", () => {
         method: "POST",
         body: getMockRequestDataForBooking({
           data: {
+            eventTypeId: 1,
             responses: {
               email: booker.email,
               name: booker.name,
@@ -199,18 +201,24 @@ describe("handleNewBooking", () => {
         apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
       };
 
-      mockDailyVideoToErrorDuringMeetingCreation();
+      mockErrorOnVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+      });
+      mockCalendarToHaveNoBusySlots("googlecalendar");
+
       createBookingScenario(scenarioData);
 
       try {
         await handleNewBooking(req);
       } catch (e) {
+        console.log("TestRun1End");
         expect(e).toBeInstanceOf(MockError);
-        expect(e.message).toBe("Error creating DailyVideo meeting");
+        expect((e as { message: string }).message).toBe("Error creating Video meeting");
       }
-    });
+    }, 20000);
 
-    test.only(`should create a successful booking with Zoom if used`, async ({ emails }) => {
+    test(`should create a successful booking with Zoom if used`, async ({ emails }) => {
+      console.log("TestRun2");
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const booker = getBooker({
         email: "booker@example.com",
@@ -230,6 +238,7 @@ describe("handleNewBooking", () => {
         method: "POST",
         body: getMockRequestDataForBooking({
           data: {
+            eventTypeId: 1,
             responses: {
               email: booker.email,
               name: booker.name,
@@ -254,17 +263,29 @@ describe("handleNewBooking", () => {
           },
         ],
         apps: [TestData.apps["daily-video"]],
+        webhooks: [
+          {
+            userId: organizer.id,
+            eventTriggers: ["BOOKING_CREATED"],
+            subscriberUrl: "http://my-webhook.example.com",
+            active: true,
+            eventTypeId: 1,
+            appId: null,
+          },
+        ],
       });
 
       createBookingScenario(bookingScenario);
-      mockDailyVideoToCreateSuccessfulMeeting();
-      handleNewBooking(req);
-      const testEmails = emails.get();
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "zoomvideo",
+      });
+      await handleNewBooking(req);
+      console.log("TestRun2End");
 
+      const testEmails = emails.get();
       expect(testEmails[0]).toContain({
         to: `${organizer.email}`,
       });
-
       // TODO: Get the email HTML as DOM, so that we can get the title directly
       expect(testEmails[0].html).toContain("<title>confirmed_event_type_subject</title>");
 
@@ -272,126 +293,26 @@ describe("handleNewBooking", () => {
         to: `${booker.name} <${booker.email}>`,
       });
       expect(testEmails[1].html).toContain("<title>confirmed_event_type_subject</title>");
-    });
+      expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+        metadata: {
+          videoCallUrl: "http://mock-zoomvideo.example.com",
+        },
+        responses: {
+          name: { label: "your_name", value: "Booker" },
+          email: { label: "email_address", value: "booker@example.com" },
+          location: {
+            label: "location",
+            value: { optionValue: "", value: "integrations:zoom" },
+          },
+          title: { label: "what_is_this_meeting_about" },
+          notes: { label: "additional_notes" },
+          guests: { label: "additional_guests" },
+          rescheduleReason: { label: "reason_for_reschedule" },
+        },
+      });
+    }, 20000);
   });
 });
-
-function mockNoTranslations() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  i18nMock.getTranslation.mockImplementation(() => {
-    return new Promise((resolve) => {
-      const identityFn = (key: string) => key;
-      resolve(identityFn);
-    });
-  });
-}
-
-function mockDailyVideoToCreateSuccessfulMeeting() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default.dailyvideo.mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: () => ({
-            createMeeting: () => {
-              return Promise.resolve({
-                type: "daily_video",
-                id: "dailyEventName",
-                password: "dailyvideopass",
-                url: "http://dailyvideo.example.com",
-              });
-            },
-          }),
-        },
-      });
-    });
-  });
-
-  appStoreMock.default.googlecalendar.mockResolvedValue({
-    lib: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      CalendarService: function GoogleCalendarService() {
-        return {
-          createEvent: () => {
-            return Promise.resolve({
-              type: "daily_video",
-              id: "dailyEventName",
-              password: "dailyvideopass",
-              url: "http://dailyvideo.example.com",
-            });
-          },
-          getAvailability: (...args): Promise<EventBusyDate[]> => {
-            return new Promise((resolve) => {
-              resolve([]);
-            });
-          },
-        };
-      },
-    },
-  });
-}
-
-function mockZoomVideoToCreateSuccessfulMeeting() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default.zoomvideo.mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: () => ({
-            createMeeting: () => {
-              return Promise.resolve({
-                type: "zoom_video",
-                id: "zoomEventName",
-                password: "dailyvideopass",
-                url: "http://dailyvideo.example.com",
-              });
-            },
-          }),
-        },
-      });
-    });
-  });
-}
-
-function mockDailyVideoToErrorDuringMeetingCreation() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default.dailyvideo.mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: () => ({
-            createMeeting: () => {
-              throw new MockError("Error creating DailyVideo meeting");
-            },
-          }),
-        },
-      });
-    });
-  });
-}
-
-function mockEnableEmailFeature() {
-  prismaMock.feature.findMany.mockResolvedValue([
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    {
-      slug: "emails",
-      // It's a kill switch
-      enabled: false,
-    },
-  ]);
-}
 
 function getBooker({ name, email }: { name: string; email: string }) {
   return {
@@ -408,7 +329,6 @@ function getBasicMockRequestDataForBooking() {
   return {
     start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
     end: `${getDate({ dateIncrement: 1 }).dateString}T04:30:00.000Z`,
-    eventTypeId: 1,
     eventTypeSlug: "no-confirmation",
     timeZone: "Asia/Calcutta",
     language: "en",
@@ -424,6 +344,7 @@ function getMockRequestDataForBooking({
   data,
 }: {
   data: Partial<ReturnType<typeof getBasicMockRequestDataForBooking>> & {
+    eventTypeId: number;
     responses: {
       email: string;
       name: string;
