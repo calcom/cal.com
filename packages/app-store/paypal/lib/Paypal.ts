@@ -173,7 +173,7 @@ class Paypal {
       }
     } catch (error) {
       console.error(error);
-      return false;
+      throw error;
     }
     return false;
   }
