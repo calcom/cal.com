@@ -21,7 +21,7 @@ test.describe("Routing Forms", () => {
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
-      expect(await page.locator('[data-testid="routing-forms-list"] > li').count()).toBe(1);
+      expect(await page.locator('[data-testid="routing-forms-list"] > div').count()).toBe(1);
 
       await gotoRoutingLink({ page, formId });
       await expect(page.locator("text=Test Form Name")).toBeVisible();

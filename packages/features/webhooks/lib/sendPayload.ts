@@ -30,7 +30,9 @@ export type WebhookDataType = CalendarEvent &
     downloadLink?: string;
   };
 
-function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
+function getZapierPayload(
+  data: CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
+): string {
   const attendees = data.attendees.map((attendee) => {
     return {
       name: attendee.name,
@@ -69,6 +71,7 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
       length: data.length,
     },
     attendees: attendees,
+    createdAt: data.createdAt,
   };
   return JSON.stringify(body);
 }
@@ -112,7 +115,7 @@ const sendPayload = async (
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier") {
-    body = getZapierPayload(data);
+    body = getZapierPayload({ ...data, createdAt });
   } else if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {
