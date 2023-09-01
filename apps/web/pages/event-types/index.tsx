@@ -873,7 +873,7 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="flex flex-col" key={group.profile.slug}>
+              <div className="mt-4 flex flex-col" key={group.profile.slug}>
                 <EventTypeListHeading
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
