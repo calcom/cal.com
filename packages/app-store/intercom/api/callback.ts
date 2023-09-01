@@ -51,14 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
   }
 
-  // Find if already credentials on the database
-  await prisma.credential.deleteMany({
-    where: {
-      userId: req.session.user.id,
-      type: "intercom_automation",
-    },
-  });
-
   // Find the admin id from the accompte thanks to access_token and store it
   const admin = await fetch(`https://api.intercom.io/me`, {
     method: "GET",
@@ -76,6 +68,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const adminId = adminBody.id;
+
+  // Remove the previous credential if admin id was already linked
+  await prisma.credential.deleteMany({
+    where: {
+      type: "intercom_automation",
+      key: {
+        string_contains: adminId,
+      },
+    },
+  });
 
   createOAuthAppCredential(
     { appId: "intercom", type: "intercom_automation" },
