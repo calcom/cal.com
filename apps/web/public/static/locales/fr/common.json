@@ -2036,5 +2036,7 @@
   "team_no_event_types": "Cette équipe n'a aucun type d'événement",
   "seat_options_doesnt_multiple_durations": "L'option par place ne prend pas en charge les durées multiples",
   "include_calendar_event": "Inclure l'événement du calendrier",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "automatically_add_to_all_team_members": "Ajouter automatiquement tous les membres",
+  "including_people_who_join_the_team": "Incluant les personnes qui rejoindront la team dans le future",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
 }

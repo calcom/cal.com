@@ -1973,5 +1973,7 @@
   "requires_booker_email_verification": "Requer verificação de e-mail do reservante",
   "verify_team_or_account": "Verificar {{teamOrAccount}}",
   "verify_account": "Verificar Conta",
+  "automatically_add_to_all_team_members": "Adicionar automaticamente a todos os membros da equipe",
+  "including_people_who_join_the_team": "Incluindo pessoas que ingressarem na equipe posteriormente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

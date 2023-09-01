@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Utilizator: {{userName}}",
   "insights_subtitle": "Vizualizați date Insights cu privire la rezervări pentru toate evenimentele dvs.",
   "custom_plan": "Plan personalizat",
+  "automatically_add_to_all_team_members": "Adăugare automată la toți membrii echipei",
+  "including_people_who_join_the_team": "Inclusiv persoanele care se alătură echipei mai târziu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

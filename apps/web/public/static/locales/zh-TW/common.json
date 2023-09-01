@@ -1940,5 +1940,7 @@
   "insights_user_filter": "使用者：{{userName}}",
   "insights_subtitle": "查看所有活動的預約洞見",
   "custom_plan": "自訂方案",
+  "automatically_add_to_all_team_members": "自動新增至所有團隊成員",
+  "including_people_who_join_the_team": "包括加入團隊的人員",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

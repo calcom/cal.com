@@ -1537,5 +1537,7 @@
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
   "verify": "Bekræft",
-  "insights_all_org_filter": "Alle"
+  "insights_all_org_filter": "Alle",
+  "automatically_add_to_all_team_members": "Tilføj automatisk til alle teammedlemmer",
+  "including_people_who_join_the_team": "Herunder folk, der kommer med på holdet i fremtiden"
 }

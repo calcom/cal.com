@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Utilizador: {{userName}}",
   "insights_subtitle": "Ver informações sobre reservas nos seus eventos",
   "custom_plan": "Plano personalizado",
+  "automatically_add_to_all_team_members": "Adicionar automaticamente a todos os membros da equipa",
+  "including_people_who_join_the_team": "Incluindo pessoas que se juntem à equipa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

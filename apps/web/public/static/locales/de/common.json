@@ -1987,5 +1987,7 @@
   "attendee_last_name_variable": "Nachname des Teilnehmers",
   "my_availability": "Meine Verfügbarkeit",
   "team_availability": "Teamverfügbarkeit",
+  "automatically_add_to_all_team_members": "Automatisch zu allen Teammitgliedern hinzufügen",
+  "including_people_who_join_the_team": "Einschließlich der Personen, die dem Team in Zukunft beitreten",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

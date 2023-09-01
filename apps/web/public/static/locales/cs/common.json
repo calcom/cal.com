@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Uživatel: {{userName}}",
   "insights_subtitle": "Zobrazte si přehled o rezervacích napříč vašimi událostmi",
   "custom_plan": "Vlastní plán",
+  "automatically_add_to_all_team_members": "Automaticky přidat ke všem členům týmu",
+  "including_people_who_join_the_team": "Včetně lidí, kteří se k týmu připojí v budoucnu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

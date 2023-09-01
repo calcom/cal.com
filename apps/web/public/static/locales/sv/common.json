@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Användare: {{userName}}",
   "insights_subtitle": "Visa Insights-bokningar för dina händelser",
   "custom_plan": "Anpassad plan",
+  "automatically_add_to_all_team_members": "Lägg automatiskt till alla teammedlemmar",
+  "including_people_who_join_the_team": "Inklusive personer som går med i teamet i framtiden",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lägg till dina nya strängar här ovanför ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

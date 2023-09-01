@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Utente: {{userName}}",
   "insights_subtitle": "Visualizza insight sulle prenotazioni per tutti i tuoi eventi",
   "custom_plan": "Piano personalizzato",
+  "automatically_add_to_all_team_members": "Aggiungi automaticamente a tutti i membri del team",
+  "including_people_who_join_the_team": "Inclusi i membri che si uniscono al team in futuro",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

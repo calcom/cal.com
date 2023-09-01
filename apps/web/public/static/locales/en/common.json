@@ -2036,5 +2036,7 @@
   "team_no_event_types": "This team has no event types",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
+  "automatically_add_to_all_team_members": "Automatically add to all team members",
+  "including_people_who_join_the_team": "Including people who join the team in the future",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

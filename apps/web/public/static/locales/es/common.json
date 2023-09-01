@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Usuario: {{userName}}",
   "insights_subtitle": "Mire información de insights en todos sus eventos",
   "custom_plan": "Plan personalizado",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "automatically_add_to_all_team_members": "Agregar automáticamente a todos los miembros del equipo",
+  "including_people_who_join_the_team": "Incluyendo personas que se unan al equipo en el futuro",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
 }

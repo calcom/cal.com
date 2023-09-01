@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Kullanıcı: {{userName}}",
   "insights_subtitle": "Etkinliklerinizdeki rezervasyon insights'ı görüntüleyin",
   "custom_plan": "Özel Plan",
+  "automatically_add_to_all_team_members": "Tüm ekip üyelerine otomatik olarak ekle",
+  "including_people_who_join_the_team": "Ekibe katılan kişiler dahil",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

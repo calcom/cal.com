@@ -1952,5 +1952,7 @@
   "org_admin_other_teams": "Andere teams",
   "no_other_teams_found": "Geen andere teams gevonden",
   "no_other_teams_found_description": "Er zijn geen andere teams binnen deze organisatie.",
+  "automatically_add_to_all_team_members": "Automatisch toevoegen aan alle teamleden",
+  "including_people_who_join_the_team": "Inclusief mensen die zich bij het team voegen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

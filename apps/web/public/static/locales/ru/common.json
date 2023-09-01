@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Пользователь: {{userName}}",
   "insights_subtitle": "Insights: просматривайте информацию о бронировании по всем вашим событиям",
   "custom_plan": "Пользовательский тариф",
+  "automatically_add_to_all_team_members": "Автоматически добавлять во всех участников команды",
+  "including_people_who_join_the_team": "Включая участников, присоединившихся к команде в будущем",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

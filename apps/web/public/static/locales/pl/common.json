@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Użytkownik: {{userName}}",
   "insights_subtitle": "Wyświetl wskaźniki Insights rezerwacji z różnych wydarzeń",
   "custom_plan": "Plan niestandardowy",
+  "automatically_add_to_all_team_members": "Automatycznie dodaj do wszystkich członków zespołu",
+  "including_people_who_join_the_team": "W tym osoby, które dołączą do zespołu w przyszłości",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

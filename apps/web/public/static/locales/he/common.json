@@ -1940,5 +1940,7 @@
   "insights_user_filter": "משתמש: {{userName}}",
   "insights_subtitle": "הצגת insights לגבי ההזמנות באירועים שלך",
   "custom_plan": "חבילה בהתאמה אישית",
+  "automatically_add_to_all_team_members": "הוסף אוטומטית לכל חברי הצוות",
+  "including_people_who_join_the_team": "כולל אנשים שיצטרפו לצוות בעתיד",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1941,5 +1941,7 @@
   "insights_user_filter": "Korisnik: {{userName}}",
   "insights_subtitle": "Pogledajte insights rezervacije za vaše događaje",
   "custom_plan": "Prilagođeni plan",
+  "automatically_add_to_all_team_members": "Automatski dodajte sve članove tima",
+  "including_people_who_join_the_team": "Uključujući ljude koji se pridruže timu kasnije",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

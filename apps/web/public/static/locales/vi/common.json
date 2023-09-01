@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Người dùng: {{userName}}",
   "insights_subtitle": "Xem insights của đặt lịch ở mọi sự kiện của bạn",
   "custom_plan": "Gói Tuỳ chỉnh",
+  "automatically_add_to_all_team_members": "Tự động thêm vào tất cả thành viên nhóm",
+  "including_people_who_join_the_team": "Bao gồm những người tham gia nhóm sau này",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

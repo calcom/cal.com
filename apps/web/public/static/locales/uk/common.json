@@ -1940,5 +1940,7 @@
   "insights_user_filter": "Користувач: {{userName}}",
   "insights_subtitle": "Переглядайте аналітичні дані про бронювання для своїх заходів",
   "custom_plan": "Користувацький план",
+  "automatically_add_to_all_team_members": "Автоматично додавати до всіх учасників команди",
+  "including_people_who_join_the_team": "Включаючи учасників, які приєднаються до команди пізніше",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Додайте нові рядки вище ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

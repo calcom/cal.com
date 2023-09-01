@@ -1390,5 +1390,7 @@
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
-  "insights_all_org_filter": "Alt"
+  "insights_all_org_filter": "Alt",
+  "automatically_add_to_all_team_members": "Legg automatisk til alle team-medlemmer",
+  "including_people_who_join_the_team": "Inkludert personer som blir med i teamet senere"
 }
