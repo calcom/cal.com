@@ -82,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  if (!eventTypes || !user) return res.status(200).json(defaultCanvasData);
+  if (!eventTypes) return res.status(200).json(defaultCanvasData);
+  if (!user && !team) return res.status(200).json(defaultCanvasData);
 
   const list: ListItem[] = eventTypes.map((eventType) => {
     return {
