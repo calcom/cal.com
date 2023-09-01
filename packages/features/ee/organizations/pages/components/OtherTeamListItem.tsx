@@ -1,6 +1,5 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -38,7 +37,7 @@ export default function OtherTeamListItem(props: Props) {
 
   const orgBranding = useOrgBranding();
 
-  const isOwner = props.team.role === MembershipRole.OWNER;
+  const isOwner = true; // Based on trpc auth procedures this endpoint is only accessible to org owners|admins
 
   const { hideDropdown, setHideDropdown } = props;
 
