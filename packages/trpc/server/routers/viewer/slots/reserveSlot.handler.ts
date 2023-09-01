@@ -86,5 +86,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
     }
   }
   res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
-  return;
+  return {
+    uid: uid,
+  };
 };
