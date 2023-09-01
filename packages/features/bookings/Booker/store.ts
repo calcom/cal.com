@@ -154,6 +154,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
+    // unset selected date
+    if (!selectedDate) {
+      removeQueryParam("date");
+      return;
+    }
+
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
