@@ -10,6 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";

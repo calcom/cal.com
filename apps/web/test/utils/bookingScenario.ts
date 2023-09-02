@@ -683,7 +683,7 @@ export function expectWorkflowToBeTriggered() {
   // TODO: Implement this.
 }
 
-export function expectBookingToBeInDatabase(booking: Prisma.BookingCreateInput) {
+export function expectBookingToBeInDatabase(booking: Partial<Prisma.BookingCreateInput>) {
   const createBookingCalledWithArgs = prismaMock.booking.create.mock.calls[0];
   expect(createBookingCalledWithArgs[0].data).toEqual(expect.objectContaining(booking));
 }
@@ -708,6 +708,7 @@ expect.extend({
   toHaveEmail(
     testEmail: ReturnType<Fixtures["emails"]["get"]>[number],
     expectedEmail: {
+      //TODO: Support email HTML parsing to target specific elements
       htmlToContain?: string;
       to: string;
     }
