@@ -29,7 +29,6 @@ export const getCalendar = async (credential: CredentialPayload | null): Promise
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
   }
-
   const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
 
   if (!calendarAppImportFn) {
