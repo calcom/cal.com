@@ -121,11 +121,13 @@ export default class EventManager {
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
+      
       if (result?.createdEvent) {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
