@@ -1,13 +1,11 @@
 declare global {
   // eslint-disable-next-line no-var
-  var testEmails: Record<
-    string,
-    {
-      to: string;
-      from: string;
-      subject: string;
-    }
-  >[];
+  var testEmails: {
+    to: string;
+    from: string;
+    subject: string;
+    html: string;
+  }[];
 }
 
 export const setTestEmail = (email: (typeof globalThis.testEmails)[number]) => {

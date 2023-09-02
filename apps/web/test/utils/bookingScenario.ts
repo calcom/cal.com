@@ -4,6 +4,7 @@ import type {
   Booking as PrismaBooking,
   App as PrismaApp,
 } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { expect } from "vitest";
@@ -13,6 +14,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
@@ -25,8 +27,8 @@ type App = {
 
 type InputWebhook = {
   appId: string | null;
-  userId?: number;
-  teamId?: number;
+  userId?: number | null;
+  teamId?: number | null;
   eventTypeId?: number;
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
@@ -90,6 +92,7 @@ type InputEventType = {
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
+  requiresConfirmation?: boolean;
 };
 
 type InputBooking = {
@@ -148,6 +151,8 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   });
 
   logger.silly("TestData: Creating EventType", eventTypes);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const eventTypeMock = ({ where }) => {
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
@@ -651,7 +656,10 @@ export function mockErrorOnVideoMeetingCreation({
 
 export function expectWebhookToHaveBeenCalledWith(
   subscriberUrl: string,
-  data: { metadata: any; responses: any }
+  data: {
+    triggerEvent: WebhookTriggerEvents;
+    payload: { metadata: any; responses: any };
+  }
 ) {
   const fetchCalls = fetchMock.mock.calls;
   const webhookFetchCall = fetchCalls.find((call) => call[0] === subscriberUrl);
@@ -661,10 +669,64 @@ export function expectWebhookToHaveBeenCalledWith(
   expect(webhookFetchCall[0]).toBe(subscriberUrl);
   const body = webhookFetchCall[1]?.body;
   const parsedBody = JSON.parse((body as string) || "{}");
-  parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl.replace(
-    /\/video\/[a-zA-Z0-9]{22}/,
-    "/video/DYNAMIC_UID"
-  );
-  expect(parsedBody.payload.metadata).toContain(data.metadata);
-  expect(parsedBody.payload.responses).toEqual(data.responses);
+  console.log({ payload: parsedBody.payload });
+  expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
+  parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
+    ? parsedBody.payload.metadata.videoCallUrl.replace(/\/video\/[a-zA-Z0-9]{22}/, "/video/DYNAMIC_UID")
+    : parsedBody.payload.metadata.videoCallUrl;
+  expect(parsedBody.payload.metadata).toContain(data.payload.metadata);
+  expect(parsedBody.payload.responses).toEqual(data.payload.responses);
 }
+
+export function expectWorkflowToBeTriggered() {
+  // TODO: Implement this.
+}
+
+export function expectBookingToBeInDatabase(booking: Prisma.BookingCreateInput) {
+  const createBookingCalledWithArgs = prismaMock.booking.create.mock.calls[0];
+  expect(createBookingCalledWithArgs[0].data).toEqual(expect.objectContaining(booking));
+}
+
+export function getBooker({ name, email }: { name: string; email: string }) {
+  return {
+    name,
+    email,
+  };
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toHaveEmail(expectedEmail: { htmlToContain?: string; to: string }): R;
+    }
+  }
+}
+
+expect.extend({
+  toHaveEmail(
+    testEmail: ReturnType<Fixtures["emails"]["get"]>[number],
+    expectedEmail: {
+      htmlToContain?: string;
+      to: string;
+    }
+  ) {
+    let isHtmlContained = true;
+    let isToAddressExpected = true;
+    if (expectedEmail.htmlToContain) {
+      isHtmlContained = testEmail.html.includes(expectedEmail.htmlToContain);
+    }
+    isToAddressExpected = expectedEmail.to === testEmail.to;
+
+    return {
+      pass: isHtmlContained && isToAddressExpected,
+      message: () => {
+        if (!isHtmlContained) {
+          return `Email HTML is not as expected. Expected:"${expectedEmail.htmlToContain}" isn't contained in "${testEmail.html}"`;
+        }
+
+        return `Email To address is not as expected. Expected:${expectedEmail.to} isn't contained in ${testEmail.to}`;
+      },
+    };
+  },
+});
