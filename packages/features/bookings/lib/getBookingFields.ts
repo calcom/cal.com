@@ -253,6 +253,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "guests",
       required: false,
       hidden: disableGuests,
+      defaultPlaceholder:'Add guest',
       sources: [
         {
           label: "Default",
