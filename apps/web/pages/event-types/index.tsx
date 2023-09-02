@@ -209,6 +209,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
+  const [deleteDialogLoading, setDeleteDialogLoading] = useState(false);
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
@@ -314,6 +315,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
+      setDeleteDialogLoading(false);
     },
     onMutate: async ({ id }) => {
       await utils.viewer.eventTypes.getByViewer.cancel();
@@ -662,8 +664,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
+          isLoading={deleteDialogLoading}
           onConfirm={(e) => {
             e.preventDefault();
+            setDeleteDialogLoading(true);
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
