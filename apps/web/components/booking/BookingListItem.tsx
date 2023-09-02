@@ -269,13 +269,13 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isHostOrAdminOrOwner = () => {
     const teamMembers = booking?.eventType?.team?.members;
-    if (user?.id === booking.user?.id) {
+    if (user?.id === booking?.user?.id) {
       return true;
-    } else if (teamMembers) {
+    } else if (user?.id && teamMembers) {
       return teamMembers
         .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
         .map((member) => member.userId)
-        .includes(user?.id);
+        .includes(user.id);
     }
     return false;
   };
