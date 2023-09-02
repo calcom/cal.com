@@ -356,6 +356,7 @@ export async function handleConfirmation(args: {
         select: {
           payment: {
             select: {
+              id: true,
               success: true,
               externalId: true,
             },
@@ -383,6 +384,7 @@ export async function handleConfirmation(args: {
           eventTypeId: booking.eventType?.id,
           status: "ACCEPTED",
           smsReminderNumber: booking.smsReminderNumber || undefined,
+          paymentId: bookingWithPayment?.payment?.[0].id,
           metadata: {
             ...(paid ? paymentMetadata : {}),
           },
