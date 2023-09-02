@@ -27,6 +27,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
     const app = appImportFn ? await appImportFn() : null;
+
     if (!app) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
@@ -95,6 +96,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
     console.error("createMeeting failed", err, calEvent);
+
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {

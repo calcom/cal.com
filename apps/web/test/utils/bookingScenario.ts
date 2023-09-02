@@ -14,6 +14,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
@@ -568,8 +569,9 @@ export function mockNoTranslations() {
   });
 }
 
-export function mockCalendarToHaveNoBusySlots(metadataLookupKey: string) {
-  appStoreMock.default[metadataLookupKey].mockResolvedValue({
+export function mockCalendarToHaveNoBusySlots(metadataLookupKey: keyof typeof appStoreMetadata) {
+  const appStoreLookupKey = metadataLookupKey;
+  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
     lib: {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -583,7 +585,7 @@ export function mockCalendarToHaveNoBusySlots(metadataLookupKey: string) {
               url: "http://dailyvideo.example.com",
             });
           },
-          getAvailability: (...args): Promise<EventBusyDate[]> => {
+          getAvailability: (): Promise<EventBusyDate[]> => {
             return new Promise((resolve) => {
               resolve([]);
             });
@@ -612,7 +614,6 @@ export function mockSuccessfulVideoMeetingCreation({
           //@ts-ignore
           VideoApiAdapter: () => ({
             createMeeting: () => {
-              console.log("CALLING MOCKED DAILY");
               return Promise.resolve({
                 type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
                 id: "MOCK_ID",
@@ -658,7 +659,7 @@ export function expectWebhookToHaveBeenCalledWith(
   subscriberUrl: string,
   data: {
     triggerEvent: WebhookTriggerEvents;
-    payload: { metadata: any; responses: any };
+    payload: { metadata: Record<string, unknown>; responses: Record<string, unknown> };
   }
 ) {
   const fetchCalls = fetchMock.mock.calls;
