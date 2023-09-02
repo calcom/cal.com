@@ -13,14 +13,12 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-const log = logger.getChildLogger({ prefix: ["[stripeWebhook]"] });
 
 export const config = {
   api: {
@@ -131,7 +129,6 @@ async function getBooking(bookingId: number) {
 }
 
 async function handlePaymentSuccess(event: Stripe.Event) {
-  log.debug("Payment successful:", JSON.stringify(event));
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -269,29 +266,16 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  if (!isConfirmed) {
-    if (!eventTypeRaw?.requiresConfirmation) {
-      await handleConfirmation({
-        user: userWithCredentials,
-        evt,
-        prisma,
-        bookingId: booking.id,
-        booking,
-        paid: true,
-      });
-    } else {
-      await handleBookingRequested({
-        user: userWithCredentials,
-        evt,
-        prisma,
-        bookingId: booking.id,
-        booking,
-        paid: true,
-      });
-    }
-    log.debug("handling confirmation:", JSON.stringify(eventTypeRaw));
+  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      prisma,
+      bookingId: booking.id,
+      booking,
+      paid: true,
+    });
   } else {
-    log.debug("Sending Emails only:", JSON.stringify(eventTypeRaw));
     await sendScheduledEmails({ ...evt });
   }
 
@@ -414,7 +398,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (!event.account) {
+    // bypassing this validation for e2e tests
+    // in order to successfully confirm the payment
+    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
       throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
     }
 
