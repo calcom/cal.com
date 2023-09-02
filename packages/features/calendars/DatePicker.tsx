@@ -30,7 +30,7 @@ export type DatePickerProps = {
   /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
   excludedDates?: string[];
   /** defaults to all, which dates are bookable (inverse of excludedDates) */
-  includedDates?: string[] | null;
+  includedDates?: string[];
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
@@ -100,6 +100,40 @@ const NoAvailabilityOverlay = ({
   );
 };
 
+/**
+ * Takes care of selecting a valid date in the month if the selected date is not available in the month
+ */
+const useHandleInitialDateSelection = ({
+  daysToRenderForTheMonth,
+  selected,
+  onChange,
+}: {
+  daysToRenderForTheMonth: { day: Dayjs | null; disabled: boolean }[];
+  selected: Dayjs | Dayjs[] | null | undefined;
+  onChange: (date: Dayjs | null) => void;
+}) => {
+  // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+  if (selected instanceof Array) {
+    return;
+  }
+  const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+
+  const isSelectedDateAvailable = selected
+    ? daysToRenderForTheMonth.some(({ day, disabled }) => {
+        if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+      })
+    : false;
+
+  if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
+    // If selected date not available in the month, select the first available date of the month
+    onChange(firstAvailableDateOfTheMonth);
+  }
+
+  if (!firstAvailableDateOfTheMonth) {
+    onChange(null);
+  }
+};
+
 const Days = ({
   minDate = dayjs.utc(),
   excludedDates = [],
@@ -121,7 +155,7 @@ const Days = ({
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
-  const availableDates = (includedDates: string[] | undefined | null) => {
+  const availableDates = (includedDates: string[] | undefined) => {
     const dates = [];
     const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
     for (
@@ -147,21 +181,6 @@ const Days = ({
     const date = browsingDate.set("date", day);
     days.push(date);
   }
-
-  const daysToRenderForTheMonth = days.map((day) => {
-    if (!day) return { day: null, disabled: true };
-    return {
-      day: day,
-      disabled:
-        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
-    };
-  });
-
-  useHandleInitialDateSelection({
-    daysToRenderForTheMonth,
-    selected,
-    onChange: props.onChange,
-  });
 
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
@@ -189,6 +208,21 @@ const Days = ({
 
     return false;
   };
+
+  const daysToRenderForTheMonth = days.map((day) => {
+    if (!day) return { day: null, disabled: true };
+    return {
+      day: day,
+      disabled:
+        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+    };
+  });
+
+  useHandleInitialDateSelection({
+    daysToRenderForTheMonth,
+    selected,
+    onChange: props.onChange,
+  });
 
   return (
     <>
@@ -303,43 +337,6 @@ const DatePicker = ({
       </div>
     </div>
   );
-};
-
-/**
- * Takes care of selecting a valid date in the month if the selected date is not available in the month
- */
-const useHandleInitialDateSelection = ({
-  daysToRenderForTheMonth,
-  selected,
-  onChange,
-}: {
-  daysToRenderForTheMonth: { day: Dayjs | null; disabled: boolean }[];
-  selected: Dayjs | Dayjs[] | null | undefined;
-  onChange: (date: Dayjs | null) => void;
-}) => {
-  // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
-  if (selected instanceof Array) {
-    return;
-  }
-  const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
-
-  const isSelectedDateAvailable = selected
-    ? daysToRenderForTheMonth.some(({ day, disabled }) => {
-        if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
-      })
-    : false;
-
-  if (firstAvailableDateOfTheMonth) {
-    // If selected date not available in the month, select the first available date of the month
-    if (!isSelectedDateAvailable) {
-      onChange(firstAvailableDateOfTheMonth);
-    }
-  } else {
-    // No date is available and if we were asked to select something inform that it couldn't be selected. This would actually help in not showing the timeslots section(with No Time Available) when no date in the month is available
-    if (selected) {
-      onChange(null);
-    }
-  }
 };
 
 export default DatePicker;
