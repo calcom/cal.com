@@ -58,10 +58,10 @@
   --cal-bg-inverted: #f3f4f6;
 
   /* background -> components*/
-  --cal-bg-info: #dee9fc;
-  --cal-bg-success: #e2fbe8;
-  --cal-bg-attention: #fceed8;
-  --cal-bg-error: #f9e3e2;
+  --cal-bg-info: #263fa9;
+  --cal-bg-success: #306339;
+  --cal-bg-attention: #8e3b1f;
+  --cal-bg-error: #8c2822;
   --cal-bg-dark-error: #752522;
 
   /* Borders */
@@ -80,10 +80,10 @@
   --cal-text-inverted: #101010;
 
   /* Content/Text -> components */
-  --cal-text-info: #253985;
-  --cal-text-success: #285231;
-  --cal-text-attention: #73321b;
-  --cal-text-error: #752522;
+  --cal-text-info: #dee9fc;
+  --cal-text-success: #e2fbe8;
+  --cal-text-attention: #fceed8;
+  --cal-text-error: #f9e3e2;
 
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.

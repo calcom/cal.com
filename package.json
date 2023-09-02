@@ -30,6 +30,7 @@
     "db-studio": "yarn prisma studio",
     "deploy": "turbo run deploy",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
+    "dev:ai": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/ai\"",
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
     "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
