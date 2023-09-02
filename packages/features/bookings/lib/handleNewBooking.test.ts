@@ -36,6 +36,8 @@ const timeout = process.env.CI ? 5000 : 20000;
 
 describe.sequential("handleNewBooking", () => {
   beforeEach(() => {
+    // Required to able to generate token in email in some cases
+    process.env.CALENDSO_ENCRYPTION_KEY="abcdefghjnmkljhjklmnhjklkmnbhjui"
     mockNoTranslations();
     mockEnableEmailFeature();
     globalThis.testEmails = [];
