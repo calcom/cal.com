@@ -120,6 +120,7 @@ const TestData = {
   },
   users: {
     example: {
+      name: "Example",
       username: "example",
       defaultScheduleId: 1,
       email: "example@example.com",
@@ -175,7 +176,6 @@ describe("getSchedule", () => {
       ]);
 
       const scenarioData = {
-        hosts: [],
         eventTypes: [
           {
             id: 1,
@@ -284,7 +284,6 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T06:15:00.000Z`,
           },
         ],
-        hosts: [],
       });
 
       // Day Plus 2 is completely free - It only has non accepted bookings
@@ -383,7 +382,6 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
-        hosts: [],
       });
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -484,7 +482,6 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
-        hosts: [],
       });
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
@@ -568,7 +565,6 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        hosts: [],
         apps: [TestData.apps.googleCalendar],
       };
 
@@ -644,7 +640,6 @@ describe("getSchedule", () => {
           },
         ],
         apps: [TestData.apps.googleCalendar],
-        hosts: [],
       };
 
       createBookingScenario(scenarioData);
@@ -702,7 +697,6 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        hosts: [],
         apps: [TestData.apps.googleCalendar],
       };
 
@@ -768,7 +762,6 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHoursWithDateOverride(plus2DateString)],
           },
         ],
-        hosts: [],
       };
 
       createBookingScenario(scenarioData);
@@ -845,15 +838,6 @@ describe("getSchedule", () => {
             status: "ACCEPTED",
             startTime: `${plus2DateString}T04:00:00.000Z`,
             endTime: `${plus2DateString}T04:15:00.000Z`,
-          },
-        ],
-        hosts: [
-          // This user is a host of our Collective event
-          {
-            id: 1,
-            eventTypeId: 1,
-            userId: 101,
-            isFixed: true,
           },
         ],
       });
@@ -956,7 +940,6 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T05:45:00.000Z`,
           },
         ],
-        hosts: [],
       });
 
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule({
@@ -1096,7 +1079,6 @@ describe("getSchedule", () => {
             endTime: `${plus3DateString}T04:15:00.000Z`,
           },
         ],
-        hosts: [],
       });
       const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule({
         input: {

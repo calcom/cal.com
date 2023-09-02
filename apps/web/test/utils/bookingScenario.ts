@@ -222,6 +222,9 @@ async function addWebhooks(webhooks: InputWebhook[]) {
         secret: null,
         id: uuidv4(),
         createdAt: new Date(),
+        userId: webhook.userId || null,
+        eventTypeId: webhook.eventTypeId || null,
+        teamId: webhook.teamId || null,
       };
     })
   );
@@ -256,6 +259,8 @@ export async function createBookingScenario(data: ScenarioData) {
   const eventType = addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
     prismaMock.app.findMany.mockResolvedValue(data.apps as PrismaApp[]);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
     const appMock = ({ where: { slug: whereSlug } }) => {
       return new Promise((resolve) => {
         if (!data.apps) {
@@ -268,8 +273,11 @@ export async function createBookingScenario(data: ScenarioData) {
         resolve(
           ({
             ...foundApp,
-            ...(TestData.apps[foundApp?.slug] || {}),
+            ...(foundApp?.slug ? TestData.apps[foundApp.slug as keyof typeof TestData.apps] || {} : {}),
             enabled: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            categories: [],
           } as PrismaApp) || null
         );
       });
