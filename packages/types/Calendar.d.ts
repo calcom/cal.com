@@ -32,6 +32,9 @@ export type Person = {
   language: { translate: TFunction; locale: string };
   username?: string;
   id?: number;
+  title?: string | null;
+  company?: string | null;
+  linkedin?: string | null;
   bookingId?: number | null;
   locale?: string | null;
   timeFormat?: TimeFormat;

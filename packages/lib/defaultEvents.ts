@@ -1,4 +1,5 @@
 import type { Prisma, Credential } from "@prisma/client";
+import { v4 as uuid } from "uuid";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
@@ -74,7 +75,6 @@ const commons = {
   teamId: null,
   scheduleId: null,
   availability: [],
-  price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
@@ -103,6 +103,9 @@ const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Dynamic",
+  uid: uuid(),
+  price: 0,
+  amount: 0,
   eventName: "Dynamic Event",
   description: "",
   descriptionAsSafeHTML: "",

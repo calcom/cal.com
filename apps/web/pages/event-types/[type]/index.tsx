@@ -49,31 +49,31 @@ const EventAvailabilityTab = dynamic(() =>
   import("@components/eventtype/EventAvailabilityTab").then((mod) => mod.EventAvailabilityTab)
 );
 
-const EventTeamTab = dynamic(() =>
-  import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
-);
+// const EventTeamTab = dynamic(() =>
+//   import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
+// );
 
-const EventLimitsTab = dynamic(() =>
-  import("@components/eventtype/EventLimitsTab").then((mod) => mod.EventLimitsTab)
-);
+// const EventLimitsTab = dynamic(() =>
+//   import("@components/eventtype/EventLimitsTab").then((mod) => mod.EventLimitsTab)
+// );
 
-const EventAdvancedTab = dynamic(() =>
-  import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
-);
+// const EventAdvancedTab = dynamic(() =>
+//   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
+// );
 
-const EventRecurringTab = dynamic(() =>
-  import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
-);
+// const EventRecurringTab = dynamic(() =>
+//   import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
+// );
 
-const EventAppsTab = dynamic(() =>
-  import("@components/eventtype/EventAppsTab").then((mod) => mod.EventAppsTab)
-);
+// const EventAppsTab = dynamic(() =>
+//   import("@components/eventtype/EventAppsTab").then((mod) => mod.EventAppsTab)
+// );
 
-const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkfowsTab"));
+// const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkfowsTab"));
 
-const EventWebhooksTab = dynamic(() =>
-  import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
-);
+// const EventWebhooksTab = dynamic(() =>
+//   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
+// );
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
@@ -142,13 +142,13 @@ const querySchema = z.object({
     .enum([
       "setup",
       "availability",
-      "apps",
-      "limits",
-      "recurring",
-      "team",
-      "advanced",
-      "workflows",
-      "webhooks",
+      // "apps",
+      // "limits",
+      // "recurring",
+      // "team",
+      // "advanced",
+      // "workflows",
+      // "webhooks",
     ])
     .optional()
     .default("setup"),
@@ -338,18 +338,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: (
-      <EventWorkflowsTab
-        eventType={eventType}
-        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
-      />
-    ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
+    // team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    // limits: <EventLimitsTab eventType={eventType} />,
+    // advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    // recurring: <EventRecurringTab eventType={eventType} />,
+    // apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    // workflows: (
+    //   <EventWorkflowsTab
+    //     eventType={eventType}
+    //     workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
+    //   />
+    // ),
+    // webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
 
   const handleSubmit = async (values: FormValues) => {
@@ -442,7 +442,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        disableBorder={false}
         currentUserMembership={currentUserMembership}>
         <Form
           form={formMethods}

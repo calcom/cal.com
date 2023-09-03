@@ -27,6 +27,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   description: true,
   eventName: true,
   slug: true,
+  amount: true,
   schedulingType: true,
   length: true,
   locations: true,
@@ -124,6 +125,7 @@ export const getPublicEvent = async (
       select: {
         username: true,
         name: true,
+
         weekStart: true,
         metadata: true,
         brandColor: true,
@@ -209,6 +211,8 @@ export const getPublicEvent = async (
   const event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
+      paid: true,
+      joined: false,
       ...usersOrTeamQuery,
     },
     select: publicEventSelect,

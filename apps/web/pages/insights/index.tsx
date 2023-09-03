@@ -122,6 +122,9 @@ InsightsPage.getLayout = getLayout;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {
+  return {
+    notFound: true,
+  };
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
 

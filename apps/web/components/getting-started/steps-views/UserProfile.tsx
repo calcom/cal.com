@@ -2,17 +2,21 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { Avatar, Button, Editor, ImageUploader, Input, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
+  linkedin: string;
+  title: string;
+  company: string;
 };
 
 const UserProfile = () => {
@@ -30,7 +34,9 @@ const UserProfile = () => {
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
-
+  const linkedInProfileRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const companyRef = useRef<HTMLInputElement>(null);
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
       if (context.avatar) {
@@ -59,11 +65,25 @@ const UserProfile = () => {
   });
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
+    const linkedInProfileValue = linkedInProfileRef.current?.value;
+    const titleValue = titleRef.current?.value;
+    const companyValue = companyRef.current?.value;
 
+    if (!linkedInProfileValue || !titleValue) {
+      showToast(t("Please fill the Linkedin Profile url and Title."), "error");
+      return;
+    }
+    const linkedInProfileRegex = /^https:\/\/www\.linkedin\.com\//;
+    if (!linkedInProfileRegex.test(linkedInProfileValue)) {
+      showToast(t("LinkedIn Profile URL must start with 'https://www.linkedin.com/'."), "error");
+      return;
+    }
     telemetry.event(telemetryEventTypes.onboardingFinished);
-
     mutation.mutate({
       bio,
+      linkedin: linkedInProfileValue,
+      title: titleValue,
+      company: companyValue,
       completedOnboarding: true,
     });
   });
@@ -81,17 +101,23 @@ const UserProfile = () => {
       title: t("15min_meeting"),
       slug: "15min",
       length: 15,
+      ques: "Event Questions",
+      amount: 100,
     },
     {
       title: t("30min_meeting"),
       slug: "30min",
       length: 30,
+      ques: "Event Questions",
+      amount: 100,
     },
     {
       title: t("secret_meeting"),
       slug: "secret",
       length: 15,
       hidden: true,
+      ques: "Event Questions",
+      amount: 100,
     },
   ];
 
@@ -138,6 +164,21 @@ const UserProfile = () => {
           />
         </div>
       </div>
+
+      <fieldset className="mt-8">
+        <Label className="text-default mb-2 block text-sm font-medium">{t("LinkedIn Profile")}</Label>
+        <Input placeholder="URL" ref={linkedInProfileRef} />
+      </fieldset>
+      <fieldset className="mt-8 flex justify-between">
+        <div className="w-[45%]">
+          <Label className="text-default mb-2 block text-sm font-medium">{t("Title")}</Label>
+          <Input ref={titleRef} placeholder="CEO" />
+        </div>
+        <div className="w-[45%]">
+          <Label className="text-default mb-2 block text-sm font-medium">{t("Company")}</Label>
+          <Input ref={companyRef} placeholder="Abc Inc." />
+        </div>
+      </fieldset>
       <fieldset className="mt-8">
         <Label className="text-default mb-2 block text-sm font-medium">{t("about")}</Label>
         <Editor
@@ -157,6 +198,7 @@ const UserProfile = () => {
         {t("finish")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
+      <Toaster position="bottom-right" />
     </form>
   );
 };

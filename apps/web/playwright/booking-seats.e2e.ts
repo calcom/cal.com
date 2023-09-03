@@ -25,6 +25,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
         title: "Seated event",
         slug,
         seatsPerTimeSlot: 10,
+        uid: uuidv4(),
         requiresConfirmation: true,
         length: 30,
         disableGuests: true, // should always be true for seated events
@@ -76,6 +77,7 @@ test.describe("Booking with Seats", () => {
           title: "My 2-seated event",
           slug,
           length: 60,
+          uid: uuid(),
           seatsPerTimeSlot: 2,
           seatsShowAttendees: true,
         },

@@ -6,8 +6,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -130,125 +129,98 @@ async function getBooking(bookingId: number) {
 
 async function handlePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  const payment = await prisma.payment.findFirst({
+  const payment = await prisma.payments.findFirst({
     where: {
       externalId: paymentIntent.id,
     },
     select: {
       id: true,
-      bookingId: true,
+      eventId: true,
     },
   });
-  if (!payment?.bookingId) {
+  if (!payment?.eventId) {
     console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
   }
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.eventId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const booking = await prisma.booking.findUnique({
+  const booking = await prisma.eventType.findUnique({
     where: {
-      id: payment.bookingId,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      eventType: true,
-      smsReminderNumber: true,
-      location: true,
-      eventTypeId: true,
-      userId: true,
-      uid: true,
-      paid: true,
-      destinationCalendar: true,
-      status: true,
-      responses: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          credentials: true,
-          timeZone: true,
-          timeFormat: true,
-          email: true,
-          name: true,
-          locale: true,
-          destinationCalendar: true,
-        },
-      },
+      id: payment.eventId,
     },
   });
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+  // type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
+  // let eventTypeRaw: EventTypeRaw | null = null;
+  // if (booking.eventTypeId) {
+  //   eventTypeRaw = await getEventType(booking.eventTypeId);
+  // }
 
-  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
-  let eventTypeRaw: EventTypeRaw | null = null;
-  if (booking.eventTypeId) {
-    eventTypeRaw = await getEventType(booking.eventTypeId);
-  }
+  // const { user: userWithCredentials } = booking;
 
-  const { user: userWithCredentials } = booking;
+  // if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  // const { credentials, ...user } = userWithCredentials;
 
-  const { credentials, ...user } = userWithCredentials;
+  // const t = await getTranslation(user.locale ?? "en", "common");
+  // const attendeesListPromises = booking.attendees.map(async (attendee) => {
+  //   return {
+  //     name: attendee.name,
+  //     email: attendee.email,
+  //     timeZone: attendee.timeZone,
+  //     language: {
+  //       translate: await getTranslation(attendee.locale ?? "en", "common"),
+  //       locale: attendee.locale ?? "en",
+  //     },
+  //   };
+  // });
 
-  const t = await getTranslation(user.locale ?? "en", "common");
-  const attendeesListPromises = booking.attendees.map(async (attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  });
+  // const attendeesList = await Promise.all(attendeesListPromises);
 
-  const attendeesList = await Promise.all(attendeesListPromises);
-  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
-  const evt: CalendarEvent = {
-    type: booking.title,
-    title: booking.title,
-    description: booking.description || undefined,
-    startTime: booking.startTime.toISOString(),
-    endTime: booking.endTime.toISOString(),
-    customInputs: isPrismaObjOrUndefined(booking.customInputs),
-    ...getCalEventResponses({
-      booking: booking,
-      bookingFields: booking.eventType?.bookingFields || null,
-    }),
-    organizer: {
-      email: user.email,
-      name: user.name!,
-      timeZone: user.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-      language: { translate: t, locale: user.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    location: booking.location,
-    uid: booking.uid,
-    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
-    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
-  };
+  // const evt: CalendarEvent = {
+  //   type: booking.title,
+  //   title: booking.title,
+  //   description: booking.description || undefined,
+  //   startTime: booking.startTime.toISOString(),
+  //   endTime: booking.endTime.toISOString(),
+  //   customInputs: isPrismaObjOrUndefined(booking.customInputs),
+  //   ...getCalEventResponses({
+  //     booking: booking,
+  //     bookingFields: booking.eventType?.bookingFields || null,
+  //   }),
+  //   organizer: {
+  //     email: user.email,
+  //     name: user.name!,
+  //     timeZone: user.timeZone,
+  //     timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
+  //     language: { translate: t, locale: user.locale ?? "en" },
+  //   },
+  //   attendees: attendeesList,
+  //   location: booking.location,
+  //   uid: booking.uid,
+  //   destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+  //   recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
+  // };
 
-  if (booking.location) evt.location = booking.location;
+  // if (booking.location) evt.location = booking.location;
 
-  const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
-    status: BookingStatus.ACCEPTED,
-  };
+  // const bookingData: Prisma.BookingUpdateInput = {
+  //   paid: true,
+  //   status: BookingStatus.ACCEPTED,
+  // };
 
-  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-  if (isConfirmed) {
-    const eventManager = new EventManager(userWithCredentials);
-    const scheduleResult = await eventManager.create(evt);
-    bookingData.references = { create: scheduleResult.referencesToCreate };
-  }
+  // const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  // if (isConfirmed) {
+  //   const eventManager = new EventManager(userWithCredentials);
+  //   const scheduleResult = await eventManager.create(evt);
+  //   bookingData.references = { create: scheduleResult.referencesToCreate };
+  // }
 
-  if (eventTypeRaw?.requiresConfirmation) {
-    delete bookingData.status;
-  }
+  // if (eventTypeRaw?.requiresConfirmation) {
+  //   delete bookingData.status;
+  // }
 
-  const paymentUpdate = prisma.payment.update({
+  const paymentUpdate = prisma.payments.update({
     where: {
       id: payment.id,
     },
@@ -257,34 +229,82 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
 
-  const bookingUpdate = prisma.booking.update({
+  const bookingUpdate = prisma.eventType.update({
     where: {
       id: booking.id,
     },
-    data: bookingData,
+    data: {
+      paid: true,
+      // payment: {
+      //   connect: {
+      //     id: paymentUpdate.uid,
+      //   },
+      // },
+    },
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({
-      user: userWithCredentials,
-      evt,
-      prisma,
-      bookingId: booking.id,
-      booking,
-      paid: true,
-    });
-  } else {
-    await sendScheduledEmails({ ...evt });
-  }
-
+  // if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
+  //   await handleConfirmation({
+  //     user: userWithCredentials,
+  //     evt,
+  //     prisma,
+  //     bookingId: booking.id,
+  //     booking,
+  //     paid: true,
+  //   });
+  // } else {
+  //   await sendScheduledEmails({ ...evt });
+  // }
+  console.log("haa mene bhi pyyaaaar kiya hai");
   throw new HttpCode({
     statusCode: 200,
     message: `Booking with id '${booking.id}' was paid and confirmed.`,
   });
 }
+async function handlePaymentFailure(event: Stripe.Event) {
+  const paymentIntent = event.data.object as Stripe.PaymentIntent;
+  const payment = await prisma.payments.findFirst({
+    where: {
+      externalId: paymentIntent.id,
+    },
+    select: {
+      id: true,
+      eventId: true,
+    },
+  });
+  console.log("ppppppppp");
+  console.log(payment);
+  console.log("innnnttttt");
+  console.log(paymentIntent);
+  if (!payment?.eventId) {
+    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
+  }
+  if (!payment?.eventId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
+  const booking = await prisma.eventType.findUnique({
+    where: {
+      id: payment.eventId,
+    },
+  });
+
+  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+
+  await prisma.eventType.delete({
+    where: {
+      id: booking.id,
+    },
+  });
+  // } else {
+  //   await sendScheduledEmails({ ...evt });
+  // }
+  console.log("haa mene bhi pyyaaaar kiya hai");
+  throw new HttpCode({
+    statusCode: 200,
+    message: `Booking with id '${booking.id}' was deleted.`,
+  });
+}
 const handleSetupSuccess = async (event: Stripe.Event) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
@@ -373,6 +393,7 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
   "setup_intent.succeeded": handleSetupSuccess,
+  "payment_intent.canceled": handlePaymentFailure,
 };
 
 /**
@@ -397,12 +418,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
-
+    console.log(event);
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
-    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
-      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
-    }
+    // if (!process.env.NEXT_PUBLIC_IS_E2E) {
+    //   throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    // }
 
     const handler = webhookHandlers[event.type];
     if (handler) {

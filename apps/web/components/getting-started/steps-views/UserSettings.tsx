@@ -112,7 +112,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       </div>
       <Button
         type="submit"
-        className="mt-8 flex w-full flex-row justify-center"
+        className="text-brand bg-brand-default mt-8 flex w-full flex-row justify-center"
         disabled={mutation.isLoading}>
         {t("next_step_text")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />

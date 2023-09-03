@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
@@ -115,10 +116,25 @@ export default function CreateEventTypeDialog({
       teamProfile?.membershipRole === MembershipRole.ADMIN);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
-    onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully"), "success");
+    onSuccess: async ({ paymentUid }) => {
+      if (paymentUid) {
+        const stripe = await getStripe();
+        if (!stripe) {
+          throw new Error("Something went wrong");
+        }
+        await stripe.redirectToCheckout({ sessionId: paymentUid });
+        // const paymentLink =
+        //   `/payments/${paymentUid}?` +
+        //   stringify({
+        //     name,
+        //     email,
+        //   });
+        // // Redirect the user to the generated payment link
+        // return router.push(paymentLink);
+        // showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
+      }
     },
+
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
@@ -156,8 +172,8 @@ export default function CreateEventTypeDialog({
       <DialogContent
         type="creation"
         enableOverflow
-        title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}>
+        title={teamId ? t("add_new_team_event_type") : t("Setup a new session")}
+        description={t("Add relevant details about the session which would be later shared to the exprer")}>
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -183,6 +199,14 @@ export default function CreateEventTypeDialog({
                 }
               }}
             />
+            {/* <TextField
+              label={t("What do you want to discuss")}
+              placeholder={t("Enter what you want to ask here")}
+              {...register("ques")}
+              onChange={(e) => {
+                form.setValue("ques", e?.target.value);
+              }}
+            /> */}
 
             {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
@@ -219,6 +243,9 @@ export default function CreateEventTypeDialog({
             )}
             {!teamId && (
               <>
+                <div className="disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed">
+                  What do you want to discuss?
+                </div>
                 <Editor
                   getText={() => md.render(form.getValues("description") || "")}
                   setText={(value: string) => form.setValue("description", turndown(value))}
@@ -227,7 +254,23 @@ export default function CreateEventTypeDialog({
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
                 />
-
+                <div className="relative">
+                  <TextField
+                    label={t("Set Price")}
+                    required
+                    type="number"
+                    placeholder={t("Enter price to pay")}
+                    {...register("amount", { valueAsNumber: true })}
+                    addOnSuffix={t("USD")}
+                    min="1"
+                    onChange={(e) => {
+                      const inputValue = e?.target.value;
+                      if (inputValue === "" || !isNaN(parseFloat(inputValue))) {
+                        form.setValue("amount", inputValue === "" ? 1 : (parseFloat(inputValue) as number));
+                      }
+                    }}
+                  />
+                </div>
                 <div className="relative">
                   <TextField
                     type="number"

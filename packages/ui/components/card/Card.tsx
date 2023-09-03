@@ -171,7 +171,7 @@ export function Card({
           </p>
         )}
       </div>
-      {variant === "SidebarCard" && (
+      {/* {variant === "SidebarCard" && (
         <a
           onClick={actionButton?.onClick}
           target="_blank"
@@ -199,7 +199,7 @@ export function Card({
           </svg>
           <img alt="play feature video" src={thumbnailUrl} />
         </a>
-      )}
+      )} */}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
       <div>
@@ -210,7 +210,7 @@ export function Card({
         )}
       </div>
 
-      {variant === "SidebarCard" && (
+      {/* {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <LinkComponent
@@ -231,7 +231,7 @@ export function Card({
             </button>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

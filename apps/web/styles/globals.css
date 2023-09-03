@@ -7,7 +7,7 @@
 :root {
   /* background */
 
-  --cal-bg-emphasis: #e5e7eb;
+  --cal-bg-emphasis: #3662E3;
   --cal-bg: white;
   --cal-bg-subtle: #f3f4f6;
   --cal-bg-muted: #f9fafb;
@@ -44,9 +44,9 @@
   /* Brand shinanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: #111827;
+  --cal-brand: #3662E3;
   --cal-brand-emphasis: #101010;
-  --cal-brand-text: white;
+  --cal-brand-text: black;
 }
 .dark {
   /* background */
@@ -88,7 +88,7 @@
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: white;
+  --cal-brand: #3662E3;
   --cal-brand-emphasis: #e1e1e1;
   --cal-brand-text: black;
 }

@@ -184,6 +184,20 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
+      defaultLabel: "Paypal ID",
+      type: "email",
+      name: "Paypal ID",
+      required: true,
+      editable: "system",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
       defaultLabel: "location",
       type: "radioInput",
       name: "location",

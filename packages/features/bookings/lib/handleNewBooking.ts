@@ -1176,7 +1176,7 @@ async function handler(
     teamId,
   };
 
-  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+  await getWebhooks(subscriberOptionsMeetingEnded);
 
   const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
 
@@ -1950,7 +1950,14 @@ async function handler(
   let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
     booking = await createBooking();
-
+    if (booking?.uid) {
+      await prisma.eventType.update({
+        where: { id: eventTypeId },
+        data: {
+          joined: true,
+        },
+      });
+    }
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
     // Sync Services
     await syncServicesUpdateWebUser(

@@ -1,16 +1,14 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import { EmptyScreen, showToast } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
@@ -131,21 +129,21 @@ const WithQuery = withQuery(trpc.viewer.availability.list as any);
 
 export default function AvailabilityPage() {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
+  // const searchParams = useSearchParams();
+  //const router = useRouter();
+  // const pathname = usePathname();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
-      params.set(name, value);
+  // const createQueryString = useCallback(
+  //   (name: string, value: string) => {
+  //     const params = new URLSearchParams(searchParams ?? undefined);
+  //     params.set(name, value);
 
-      return params.toString();
-    },
-    [searchParams]
-  );
+  //     return params.toString();
+  //   },
+  //   [searchParams]
+  // );
   return (
     <div>
       <ShellMain
@@ -154,7 +152,7 @@ export default function AvailabilityPage() {
         subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
-            <ToggleGroup
+            {/* <ToggleGroup
               className="hidden md:block"
               defaultValue={searchParams?.get("type") ?? "mine"}
               onValueChange={(value) => {
@@ -163,20 +161,17 @@ export default function AvailabilityPage() {
               }}
               options={[
                 { value: "mine", label: t("my_availability") },
-                { value: "team", label: t("team_availability") },
+                // { value: "team", label: t("team_availability") },
               ]}
-            />
+            /> */}
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? (
+        {/* {searchParams?.get("type") === "team" ? (
           <AvailabilitySliderTable />
-        ) : (
-          <WithQuery
-            success={({ data }) => <AvailabilityList {...data} />}
-            customLoader={<SkeletonLoader />}
-          />
-        )}
+        ) : ( */}
+        <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
+        {/* )} */}
       </ShellMain>
     </div>
   );

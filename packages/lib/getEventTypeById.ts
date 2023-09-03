@@ -68,11 +68,13 @@ export default async function getEventTypeById({
           id: eventTypeId,
         },
       ],
+      paid: true,
     },
     select: {
       id: true,
       title: true,
       slug: true,
+      amount: true,
       description: true,
       length: true,
       offsetStart: true,
