@@ -4,6 +4,7 @@ import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
 import type {
+  AnyZodObject,
   objectInputType,
   objectOutputType,
   ZodNullableDef,
@@ -528,11 +529,13 @@ export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
  * @url https://github.com/colinhacks/zod/discussions/1655#discussioncomment-4367368
  */
 export const getParserWithGeneric =
-  <T extends z.ZodTypeAny>(valueSchema: T) =>
+  <T extends AnyZodObject>(valueSchema: T) =>
   <Data>(data: Data) => {
-    type Output = z.infer<typeof valueSchema>;
+    type Output = z.infer<T>;
+    type SimpleFormValues = string | number | null | undefined;
     return valueSchema.parse(data) as {
-      [key in keyof Data]: key extends keyof Output ? Output[key] : Data[key];
+      // TODO: Invesitage why this broke on zod 3.22.2 upgrade
+      [key in keyof Data]: Data[key] extends SimpleFormValues ? Data[key] : Output[key];
     };
   };
 export const sendDailyVideoRecordingEmailsSchema = z.object({

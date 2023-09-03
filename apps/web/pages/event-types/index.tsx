@@ -55,10 +55,9 @@ import {
   Skeleton,
   Switch,
   Tooltip,
+  ArrowButton,
 } from "@calcom/ui";
 import {
-  ArrowDown,
-  ArrowUp,
   Clipboard,
   Code,
   Copy,
@@ -393,18 +392,10 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
               <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === eventType.id) && (
-                    <button
-                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, -1)}>
-                      <ArrowUp className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}
                   {!(lastItem && lastItem.id === eventType.id) && (
-                    <button
-                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, 1)}>
-                      <ArrowDown className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                   )}
                   <MemoizedItem eventType={eventType} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
@@ -887,7 +878,7 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data} />
           ) : (
-            <div className="flex flex-col">
+            <div className="mt-4 flex flex-col" key={group.profile.slug}>
               <EventTypeListHeading
                 profile={data[0].users[0] || data[0].team}
                 membershipCount={data[0].team?.members.length || 0}

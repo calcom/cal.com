@@ -98,7 +98,7 @@ async function getBooking(bookingId: number) {
   });
 
   const attendeesList = await Promise.all(attendeesListPromises);
-
+  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -116,7 +116,7 @@ async function getBooking(bookingId: number) {
     },
     attendees: attendeesList,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
   };
 
@@ -204,7 +204,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   const attendeesList = await Promise.all(attendeesListPromises);
-
+  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -226,7 +226,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     attendees: attendeesList,
     location: booking.location,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
   };
 
