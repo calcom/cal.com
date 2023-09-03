@@ -141,6 +141,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
           address: z.string().optional(),
           hostPhoneNumber: z.string().optional(),
           type: z.any().optional(),
+          customLocationAddress: z.string().optional(),
         })
       )
       .nullable(),

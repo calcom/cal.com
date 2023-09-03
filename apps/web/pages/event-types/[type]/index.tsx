@@ -104,6 +104,7 @@ export type FormValues = {
     hostDefault?: string;
     credentialId?: number;
     teamName?: string;
+    customLocationAddress?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;

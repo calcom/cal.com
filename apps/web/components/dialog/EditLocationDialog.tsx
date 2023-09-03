@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
 import {
+  DefaultEventLocationTypeEnum,
   getEventLocationType,
   getHumanReadableLocationValue,
   getMessageForOrganizer,
@@ -177,9 +178,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const LocationOptions = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
+      let showDisplayLocationCheckbox = true;
+
       if (!eventLocationType.variable) {
         console.error("eventLocationType.variable can't be undefined");
         return null;
+      }
+
+      if (eventLocationType.type == DefaultEventLocationTypeEnum.CustomLocation || booking) {
+        showDisplayLocationCheckbox = false;
       }
 
       return (
@@ -206,7 +213,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               as="p"
             />
           </div>
-          {!booking && (
+          {showDisplayLocationCheckbox && (
             <div className="mt-3">
               <Controller
                 name="displayLocationPublicly"
@@ -276,7 +283,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   details = {
                     address: values.locationAddress,
                   };
+                } else if (newLocation == LocationType.CustomLocation) {
+                  details = {
+                    customLocationAddress: values.locationAddress,
+                  };
                 }
+
                 const eventLocationType = getEventLocationType(newLocation);
 
                 // TODO: There can be a property that tells if it is to be saved in `link`

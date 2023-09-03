@@ -26,7 +26,14 @@ export type DefaultEventLocationType = {
     | "locationPhoneNumber"
     | "phone"
     | "hostDefault";
-  defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone";
+  defaultValueVariable:
+    | "address"
+    | "attendeeAddress"
+    | "link"
+    | "hostPhoneNumber"
+    | "hostDefault"
+    | "phone"
+    | "customLocationAddress";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -78,6 +85,10 @@ export enum DefaultEventLocationTypeEnum {
   Link = "link",
   // Same as `OrganizerDefaultConferencingAppType`
   Conferencing = "conferencing",
+
+  //Custom Location
+
+  CustomLocation = "customLocation",
 }
 
 export const defaultLocations: DefaultEventLocationType[] = [
@@ -154,6 +165,17 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/phone.svg",
     category: "phone",
   },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.CustomLocation,
+    label: "Custom Location",
+    messageForOrganizer: "Please enter your custom Location",
+    organizerInputType: "text",
+    variable: "locationAddress",
+    defaultValueVariable: "customLocationAddress",
+    category: "other",
+    iconUrl: "/map-pin.svg",
+  },
 ];
 
 const translateAbleKeys = [
@@ -168,6 +190,7 @@ export type LocationObject = {
   type: string;
   address?: string;
   displayLocationPublicly?: boolean;
+  customLocationAddress?: string;
   credentialId?: number;
 } & Partial<
   Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>

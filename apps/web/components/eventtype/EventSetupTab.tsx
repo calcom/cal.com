@@ -169,6 +169,8 @@ export const EventSetupTab = (
       formMethods.getValues("locations").filter((location) => {
         if (location.type === LocationType.InPerson) {
           return location.address !== selectedLocation.address;
+        } else if (location.type === LocationType.CustomLocation) {
+          return location.customLocationAddress !== selectedLocation.customLocationAddress;
         }
         return location.type !== selectedLocation.type;
       }),
@@ -190,7 +192,8 @@ export const EventSetupTab = (
 
       formMethods.setValue("locations", [
         ...copy,
-        ...(newLocationType === LocationType.InPerson && editingLocationType === ""
+        ...((newLocationType === LocationType.InPerson || newLocationType === LocationType.CustomLocation) &&
+        editingLocationType === ""
           ? [{ ...details, type: newLocationType }]
           : []),
       ]);
