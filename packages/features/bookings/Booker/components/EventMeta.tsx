@@ -129,15 +129,27 @@ export const EventMeta = () => {
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
               <EventMetaBlock icon={User} className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
-                  <p>
-                    {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats} /{" "}
-                    {eventTotalSeats}{" "}
-                    {t("seats_available", {
+                  {seatedEventData.showAvailableSeatsCount ? (
+                    <p>
+                      {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats}{" "}
+                      / {eventTotalSeats}{" "}
+                      {t("seats_available", {
+                        count: bookingSeatAttendeesQty
+                          ? eventTotalSeats - bookingSeatAttendeesQty
+                          : eventTotalSeats,
+                      })}
+                    </p>
+                  ) : isNearlyFull ? (
+                    t("seats_nearly_full")
+                  ) : isHalfFull ? (
+                    t("seats_half_full")
+                  ) : (
+                    t("seats_available", {
                       count: bookingSeatAttendeesQty
                         ? eventTotalSeats - bookingSeatAttendeesQty
                         : eventTotalSeats,
-                    })}
-                  </p>
+                    })
+                  )}
                 </div>
               </EventMetaBlock>
             ) : null}

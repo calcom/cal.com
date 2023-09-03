@@ -24,6 +24,7 @@ type AvailableTimesProps = {
     bookingUid?: string
   ) => void;
   seatsPerTimeSlot?: number | null;
+  showAvailableSeatsCount: boolean;
   showTimeFormatToggle?: boolean;
   className?: string;
   availableMonth?: string | undefined;
@@ -35,6 +36,7 @@ export const AvailableTimes = ({
   slots,
   onTimeSelect,
   seatsPerTimeSlot,
+  showAvailableSeatsCount,
   showTimeFormatToggle = true,
   className,
   availableMonth,
@@ -92,6 +94,8 @@ export const AvailableTimes = ({
           const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
           const isNearlyFull =
             slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+          const availableSeatsCount =
+            seatsPerTimeSlot && slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot || 0;
 
           const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
           return (
@@ -110,15 +114,22 @@ export const AvailableTimes = ({
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
               {hasTimeSlots && !bookingFull && (
-                <p className="flex items-center text-sm lowercase">
+                <p className={`flex items-center text-sm ${showAvailableSeatsCount && "lowercase"}`}>
                   <span
                     className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                     aria-hidden
                   />
-                  {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot}{" "}
-                  {t("seats_available", {
-                    count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
-                  })}
+                  {showAvailableSeatsCount
+                    ? `${availableSeatsCount} ${t("seats_available", {
+                        count: availableSeatsCount,
+                      })}`
+                    : isNearlyFull
+                    ? t("seats_nearly_full")
+                    : isHalfFull
+                    ? t("seats_half_full")
+                    : t("seats_available", {
+                        count: availableSeatsCount,
+                      })}
                 </p>
               )}
             </Button>
