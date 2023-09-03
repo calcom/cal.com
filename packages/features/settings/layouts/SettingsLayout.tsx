@@ -16,16 +16,13 @@ import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
   ArrowLeft,
-  Building,
   ChevronDown,
   ChevronRight,
-  CreditCard,
   Key,
   Loader,
   Lock,
   Menu,
   Plus,
-  Terminal,
   User,
   Users,
 } from "@calcom/ui/components/icon";
@@ -55,57 +52,57 @@ const tabs: VerticalTabItemProps[] = [
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
-  {
-    name: "billing",
-    href: "/settings/billing",
-    icon: CreditCard,
-    children: [{ name: "manage_billing", href: "/settings/billing" }],
-  },
-  {
-    name: "developer",
-    href: "/settings/developer",
-    icon: Terminal,
-    children: [
-      //
-      { name: "webhooks", href: "/settings/developer/webhooks" },
-      { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: Add profile level for embeds
-      // { name: "embeds", href: "/v2/settings/developer/embeds" },
-    ],
-  },
-  {
-    name: "organization",
-    href: "/settings/organizations",
-    icon: Building,
-    children: [
-      {
-        name: "profile",
-        href: "/settings/organizations/profile",
-      },
-      {
-        name: "general",
-        href: "/settings/organizations/general",
-      },
-      {
-        name: "members",
-        href: "/settings/organizations/members",
-      },
-      {
-        name: "appearance",
-        href: "/settings/organizations/appearance",
-      },
-      {
-        name: "billing",
-        href: "/settings/organizations/billing",
-      },
-    ],
-  },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: Users,
-    children: [],
-  },
+  // {
+  //   name: "billing",
+  //   href: "/settings/billing",
+  //   icon: CreditCard,
+  //   children: [{ name: "manage_billing", href: "/settings/billing" }],
+  // },
+  // {
+  //   name: "developer",
+  //   href: "/settings/developer",
+  //   icon: Terminal,
+  //   children: [
+  //     //
+  //     { name: "webhooks", href: "/settings/developer/webhooks" },
+  //     { name: "api_keys", href: "/settings/developer/api-keys" },
+  //     // TODO: Add profile level for embeds
+  //     // { name: "embeds", href: "/v2/settings/developer/embeds" },
+  //   ],
+  // },
+  // {
+  //   name: "organization",
+  //   href: "/settings/organizations",
+  //   icon: Building,
+  //   children: [
+  //     {
+  //       name: "profile",
+  //       href: "/settings/organizations/profile",
+  //     },
+  //     {
+  //       name: "general",
+  //       href: "/settings/organizations/general",
+  //     },
+  //     {
+  //       name: "members",
+  //       href: "/settings/organizations/members",
+  //     },
+  //     {
+  //       name: "appearance",
+  //       href: "/settings/organizations/appearance",
+  //     },
+  //     {
+  //       name: "billing",
+  //       href: "/settings/organizations/billing",
+  //     },
+  //   ],
+  // },
+  // {
+  //   name: "teams",
+  //   href: "/settings/teams",
+  //   icon: Users,
+  //   children: [],
+  // },
   {
     name: "admin",
     href: "/settings/admin",
