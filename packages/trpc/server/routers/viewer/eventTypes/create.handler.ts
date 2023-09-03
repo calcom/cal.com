@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import type { App } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { v4 as uuid } from "uuid";
 
@@ -7,12 +6,11 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { handlePayments } from "@calcom/lib/payment/handlepayments";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import prisma, { userSelect } from "@calcom/prisma";
+import { userSelect } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import {
@@ -33,21 +31,21 @@ type CreateOptions = {
   };
   input: TCreateInputSchema;
 };
-interface IEventTypePaymentCredentialType {
-  appId: EventTypeAppsList;
-  app: {
-    categories: App["categories"];
-    dirName: string;
-  };
-  key: Prisma.JsonValue;
-}
-type Booking = {
-  user: { email: string | null; name: string | null; timeZone: string } | null;
-  id: number;
-  startTime?: { toISOString: () => string };
-  uid: string;
-};
-type User = Prisma.UserGetPayload<typeof userSelect>;
+// interface IEventTypePaymentCredentialType {
+//   appId: EventTypeAppsList;
+//   app: {
+//     categories: App["categories"];
+//     dirName: string;
+//   };
+//   key: Prisma.JsonValue;
+// }
+// type Booking = {
+//   user: { email: string | null; name: string | null; timeZone: string } | null;
+//   id: number;
+//   startTime?: { toISOString: () => string };
+//   uid: string;
+// };
+// type User = Prisma.UserGetPayload<typeof userSelect>;
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { schedulingType, teamId, metadata, ...rest } = input;
   const userId = ctx.user.id;
@@ -133,6 +131,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         },
         bookingFields: true,
         title: true,
+        amount: true,
         length: true,
         eventName: true,
         schedulingType: true,
@@ -224,61 +223,62 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       bookingFields: getBookingFieldsWithSystemFields(createdEvent || {}),
       isDynamic: false,
     };
-    const paymentAppData = {
-      enabled: true,
-      credentialId: 2,
-      price: 67000,
-      currency: "inr",
-      paymentOption: "ON_BOOKING",
-      TRACKING_ID: undefined,
-      appId: "stripe",
-    };
+    // const paymentAppData = {
+    //   enabled: true,
+    //   credentialId: 2,
+    //   price: 67000,
+    //   currency: "inr",
+    //   paymentOption: "ON_BOOKING",
+    //   TRACKING_ID: undefined,
+    //   appId: "stripe",
+    // };
     console.log("ddkkffkfkfkfkkf");
     // console.log(paymentAppData);
-    const credentialPaymentAppCategories = await prisma.credential.findMany({
-      where: {
-        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: 5 }),
-        app: {
-          categories: {
-            hasSome: ["payment"],
-          },
-        },
-      },
-      select: {
-        key: true,
-        appId: true,
-        app: {
-          select: {
-            categories: true,
-            dirName: true,
-          },
-        },
-      },
-    });
-    console.log("Gggggggg");
-    console.log(credentialPaymentAppCategories);
-    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
-      return credential.appId === paymentAppData.appId;
-    });
-    console.log("gggggghhhhhh");
-    console.log(eventTypePaymentAppCredential);
-    if (!eventTypePaymentAppCredential) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Missing payment credentials" });
-    }
-    if (!eventTypePaymentAppCredential?.appId) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Missing payment app id" });
-    }
+    // const credentialPaymentAppCategories = await prisma.credential.findMany({
+    //   where: {
+    //     ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: 5 }),
+    //     app: {
+    //       categories: {
+    //         hasSome: ["payment"],
+    //       },
+    //     },
+    //   },
+    //   select: {
+    //     key: true,
+    //     appId: true,
+    //     app: {
+    //       select: {
+    //         categories: true,
+    //         dirName: true,
+    //       },
+    //     },
+    //   },
+    // });
+    // console.log("Gggggggg");
+    // console.log(credentialPaymentAppCategories);
+    // const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
+    //   return credential.appId === paymentAppData.appId;
+    // });
+    // console.log("gggggghhhhhh");
+    // console.log(eventTypePaymentAppCredential);
+    // if (!eventTypePaymentAppCredential) {
+    //   throw new TRPCError({ code: "BAD_REQUEST", message: "Missing payment credentials" });
+    // }
+    // if (!eventTypePaymentAppCredential?.appId) {
+    //   throw new TRPCError({ code: "BAD_REQUEST", message: "Missing payment app id" });
+    // }
 
     const payment = await handlePayments(
       eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      // eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       {
         user: {
           email: createdEvent.users[0].email,
           name: createdEvent.users[0].name,
           timeZone: createdEvent.users[0].timeZone,
         },
-
+        title: createdEvent.title,
+        amount: createdEvent.amount,
         id: createdEvent.id,
         uid: createdEvent.uid,
       },
@@ -286,7 +286,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     );
     console.log("finnna");
     console.log(eventType);
-    if (!payment?.uid) {
+    if (!payment) {
       // Delete the created event type
       await ctx.prisma.eventType.delete({
         where: {
@@ -302,9 +302,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     // Return the payment.uid if it's created
     return {
-      name: createdEvent.users[0].name,
-      paymentUid: payment.uid,
-      email: createdEvent.users[0].email,
+      // name: createdEvent.users[0].name,
+      paymentUid: payment,
+      // email: createdEvent.users[0].email,
     };
 
     // return { eventType };

@@ -74,6 +74,7 @@ export default async function getEventTypeById({
       id: true,
       title: true,
       slug: true,
+      amount: true,
       description: true,
       length: true,
       offsetStart: true,

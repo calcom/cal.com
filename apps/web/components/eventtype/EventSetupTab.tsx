@@ -23,7 +23,6 @@ import {
   Button,
   Label,
   Select,
-  SettingsToggle,
   Skeleton,
   TextField,
   Editor,
@@ -404,7 +403,7 @@ export const EventSetupTab = (
         />
         <div>
           <Label>
-            {t("description")}
+            {t("What do you want to discuss ?")}
             {shouldLockIndicator("description")}
           </Label>
           <DescriptionEditor
@@ -504,7 +503,7 @@ export const EventSetupTab = (
             min={1}
           />
         )}
-        {!lengthLockedProps.disabled && (
+        {/* {!lengthLockedProps.disabled && (
           <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
@@ -524,7 +523,9 @@ export const EventSetupTab = (
               }}
             />
           </div>
-        )}
+        )} */}
+        <Label>{t("Price")}</Label>
+        <TextField disabled required label={t("Price")} defaultValue={"$ " + eventType.amount} />
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}

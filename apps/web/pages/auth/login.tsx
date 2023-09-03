@@ -225,7 +225,7 @@ export default function Login({
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="bg-brand-default text-brand w-full justify-center">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
             </div>

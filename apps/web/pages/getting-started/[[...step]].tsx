@@ -160,13 +160,12 @@ const OnboardingPage = () => {
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
-                  color="minimal"
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  className=" bg-brand-default mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>

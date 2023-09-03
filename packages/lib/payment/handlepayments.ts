@@ -1,42 +1,38 @@
-import type { AppCategories, Prisma } from "@prisma/client";
-
-import appStore from "@calcom/app-store";
 import { PaymentServiceEvent } from "@calcom/app-store/stripepayment/lib/PaymentServiceEvent";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { EventTypeModel } from "@calcom/prisma/zod";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 const handlePayments = async (
   selectedEventType: Pick<Zod.infer<typeof EventTypeModel>, "metadata">,
-  paymentAppCredentials: {
-    key: Prisma.JsonValue;
-    appId: EventTypeAppsList;
-    app: {
-      dirName: string;
-      categories: AppCategories[];
-    } | null;
-  },
+
+  // paymentAppCredentials: {
+  //   key: Prisma.JsonValue;
+  //   appId: EventTypeAppsList;
+  //   app: {
+  //     dirName: string;
+  //     categories: AppCategories[];
+  //   } | null;
+  // },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
     startTime?: { toISOString: () => string };
     uid: string;
+    title: string;
+    amount: number;
   },
   bookerEmail: string
 ) => {
-  const paymentApp = (await appStore[
-    paymentAppCredentials?.app?.dirName as keyof typeof appStore
-  ]()) as PaymentApp;
-  if (!paymentApp?.lib?.PaymentService) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
-    return null;
-  }
-  const PaymentService = paymentApp.lib.PaymentService as any;
-  console.log("ps");
+  // const paymentApp = (await appStore[
+  //   paymentAppCredentials?.app?.dirName as keyof typeof appStore
+  // ]()) as PaymentApp;
+  // if (!paymentApp?.lib?.PaymentService) {
+  //   console.warn(`payment App service of type ${paymentApp} is not implemented`);
+  //   return null;
+  // }
+  // const PaymentService = paymentApp.lib.PaymentService as any;
+  // console.log("ps");
 
-  const paymentInstance = new PaymentServiceEvent(paymentAppCredentials);
-  console.log(paymentInstance);
-  const paymentOption = "ON_BOOKING";
+  const paymentInstance = new PaymentServiceEvent();
 
   // if (paymentOption === "HOLD") {
   //   paymentData = await paymentInstance.collectCard(
@@ -49,14 +45,14 @@ const handlePayments = async (
   //     paymentOption
   //   );
   // } else {
+  console.log(booking.amount);
   const paymentData = await paymentInstance.create(
     {
-      amount: 5467,
-      currency: "inr",
+      amount: booking.amount,
     },
     booking.id,
     bookerEmail,
-    paymentOption
+    booking.title
   );
 
   if (!paymentData) {

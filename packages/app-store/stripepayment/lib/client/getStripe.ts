@@ -3,7 +3,9 @@ import { loadStripe } from "@stripe/stripe-js/pure";
 
 export type Maybe<T> = T | undefined | null;
 
-const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "";
+const stripePublicKey =
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY ||
+  "pk_test_51NgAzlSJTwsPG3xHboezeUwMN5qY4TuXwCPbkmS9ucFFcfqiwNhSjTLtXY3LMK5iU8vrrhurkSyaNLnx4vdXQnhK00k4SPQ6vE";
 let stripePromise: Promise<Stripe | null>;
 
 /**
@@ -12,7 +14,7 @@ let stripePromise: Promise<Stripe | null>;
 const getStripe = (userPublicKey?: string) => {
   if (!stripePromise) {
     stripePromise = loadStripe(
-      userPublicKey || stripePublicKey /* , {
+      stripePublicKey /* , {
       locale: "es-419" TODO: Handle multiple locales,
     } */
     );

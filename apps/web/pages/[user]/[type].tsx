@@ -34,6 +34,7 @@ export default function Type({
   rescheduleUid,
   entity,
   duration,
+  name,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -46,6 +47,7 @@ export default function Type({
         entity={entity}
       />
       <Booker
+        name={name}
         username={user}
         eventSlug={slug}
         bookingData={booking}
@@ -131,6 +133,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
       isSEOIndexable: true,
+      name: usernames.join("+"),
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
@@ -155,6 +158,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
+      name: true,
       away: true,
       hideBranding: true,
       allowSEOIndexing: true,
@@ -203,6 +207,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      name: user?.name?.split(" ")[0],
       isSEOIndexable: user?.allowSEOIndexing,
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,

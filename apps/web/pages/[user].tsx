@@ -190,6 +190,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
             ],
           },
         ],
+        paid: true,
+        joined: false,
       },
       orderBy: [
         {
