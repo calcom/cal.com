@@ -3,9 +3,7 @@ import { loadStripe } from "@stripe/stripe-js/pure";
 
 export type Maybe<T> = T | undefined | null;
 
-const stripePublicKey =
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY ||
-  "pk_test_51NgAzlSJTwsPG3xHboezeUwMN5qY4TuXwCPbkmS9ucFFcfqiwNhSjTLtXY3LMK5iU8vrrhurkSyaNLnx4vdXQnhK00k4SPQ6vE";
+const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "";
 let stripePromise: Promise<Stripe | null>;
 
 /**
