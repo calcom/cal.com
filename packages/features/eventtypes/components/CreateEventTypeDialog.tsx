@@ -173,7 +173,7 @@ export default function CreateEventTypeDialog({
         type="creation"
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("Setup a new session")}
-        description={t("Add relevant details about the session which would be later shared to the exprer")}>
+        description={t("Add relevant details about the session which would be later shared to the expert")}>
         <Form
           form={form}
           handleSubmit={(values) => {

@@ -82,21 +82,19 @@ export class PaymentServiceEvent {
               product_data: {
                 name: title,
               },
-              unit_amount: payment.amount,
+              unit_amount: payment.amount * 100,
             },
             quantity: 1,
           },
         ],
 
-        success_url: `http://localhost:3000/event-types/${bookingId}`,
-        cancel_url: `http://localhost:3000`,
+        success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/event-types/${bookingId}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}`,
       };
       // const paymentIntent = await this.stripe.paymentIntents.create(params, {
       //   stripeAccount: this.credentials.stripe_user_id,
       // });
       const checkoutSession: Stripe.Checkout.Session = await this.stripe.checkout.sessions.create(params);
-      console.log("cccccccccccccc");
-      console.log(checkoutSession);
       if (!checkoutSession) {
         throw new Error();
       }

@@ -165,7 +165,7 @@ const OnboardingPage = () => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className=" bg-brand-default mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  className="mt-8  cursor-pointer bg-transparent px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>
