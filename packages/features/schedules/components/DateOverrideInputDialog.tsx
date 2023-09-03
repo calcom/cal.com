@@ -8,16 +8,7 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { WorkingHours } from "@calcom/types/schedule";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogHeader,
-  DialogClose,
-  Switch,
-  Form,
-  Button,
-} from "@calcom/ui";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, Switch, Form } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
@@ -140,11 +131,7 @@ const DateOverrideForm = ({
         onClose();
       }}
       className="p-6 sm:flex sm:p-0">
-      <div
-        className={classNames(
-          selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
-          "sm:p-4 md:p-8"
-        )}>
+      <div className={classNames("sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8")}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
@@ -160,6 +147,15 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
+      {selectedDates.length <= 0 && (
+        <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
+          <div className="mb-4 flex flex-grow items-center justify-center space-y-4">
+            <div className="border-default text-bookinglighter min-h-32 text-muted flex h-full max-h-72 items-center justify-center rounded-md border border-dashed text-center text-lg">
+              Select a date to override the placeholder
+            </div>
+          </div>
+        </div>
+      )}
       {selectedDates[0] && (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
@@ -179,17 +175,6 @@ const DateOverrideForm = ({
               onCheckedChange={setDatesUnavailable}
               data-testid="date-override-mark-unavailable"
             />
-          </div>
-          <div className="mt-4 flex flex-row-reverse sm:mt-0">
-            <Button
-              className="ml-2"
-              color="primary"
-              type="submit"
-              disabled={selectedDates.length === 0}
-              data-testid="add-override-submit-btn">
-              {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
-            </Button>
-            <DialogClose onClick={onClose} />
           </div>
         </div>
       )}
