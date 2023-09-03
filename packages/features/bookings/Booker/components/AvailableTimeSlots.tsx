@@ -19,7 +19,7 @@ type AvailableTimeSlotsProps = {
   prefetchNextMonth: boolean;
   monthCount: number | undefined;
   seatsPerTimeSlot?: number | null;
-  showAvailableSeatsCount: boolean;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 /**

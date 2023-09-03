@@ -33,7 +33,7 @@ type SeatedEventData = {
   seatsPerTimeSlot?: number | null;
   attendees?: number;
   bookingUid?: string;
-  showAvailableSeatsCount: boolean;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 export type BookerStore = {

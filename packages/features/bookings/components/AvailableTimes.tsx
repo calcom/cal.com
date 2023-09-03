@@ -24,7 +24,7 @@ type AvailableTimesProps = {
     bookingUid?: string
   ) => void;
   seatsPerTimeSlot?: number | null;
-  showAvailableSeatsCount: boolean;
+  showAvailableSeatsCount?: boolean | null;
   showTimeFormatToggle?: boolean;
   className?: string;
   availableMonth?: string | undefined;
