@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Cal AI",
+  "slug": "cal-ai",
+  "type": "cal-ai_automation",
+  "logo": "icon.png",
+  "url": "https://cal.ai",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Rubric Labs",
+  "email": "hi@cal.ai",
+  "description": "Cal AI is a scheduling assistant powered by GPT. Email hi@cal.ai to chat with your calendar or book, edit and cancel meetings.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "dirName": "cal-ai"
+}

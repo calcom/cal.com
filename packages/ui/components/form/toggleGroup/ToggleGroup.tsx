@@ -49,6 +49,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
             <RadixToggleGroup.Item
               disabled={option.disabled}
               value={option.value}
+              data-testid={`toggle-group-item-${option.value}`}
               className={classNames(
                 "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
                 option.disabled

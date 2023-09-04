@@ -17,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -25,14 +26,7 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-const signupSchema = z.object({
-  username: z.string().refine((value) => !value.includes("+"), {
-    message: "String should not contain a plus symbol (+).",
-  }),
-  email: z.string().email(),
-  password: z.string().min(7),
-  language: z.string().optional(),
-  token: z.string().optional(),
+const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
 
@@ -46,6 +40,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const { t, i18n } = useLocale();
   const flags = useFlagMap();
   const methods = useForm<FormValues>({
+    mode: "onChange",
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
