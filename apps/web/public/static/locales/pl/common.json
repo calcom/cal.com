@@ -1075,7 +1075,7 @@
   "event_cancelled": "To wydarzenie zostało anulowane",
   "emailed_information_about_cancelled_event": "Wysłaliśmy wiadomość e-mail Tobie i innym uczestnikom, aby ich o tym poinformować.",
   "this_input_will_shown_booking_this_event": "To wejście zostanie wyświetlone podczas rezerwacji tego wydarzenia",
-  "meeting_url_in_conformation_email": "Adres URL spotkania znajduje się w wiadomości e-mail z potwierdzeniem",
+  "meeting_url_in_confirmation_email": "Adres URL spotkania znajduje się w wiadomości e-mail z potwierdzeniem",
   "url_start_with_https": "Adres URL musi zaczynać się od http:// lub https://",
   "number_provided": "Numer telefonu zostanie podany.",
   "before_event_trigger": "przed rozpoczęciem wydarzenia",
