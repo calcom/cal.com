@@ -179,18 +179,12 @@ async function handler(req: NextApiRequest) {
 
   /** Only admins can query other users */
   if (isAdmin) {
-    if (req.query.userId) {
-      const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
-      const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
-      const users = await prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: { email: true },
-      });
-      const userEmails = users.map((u) => u.email);
-      args.where = buildWhereClause(userId, attendeeEmails, userIds, userEmails);
-    } else if (filterByAttendeeEmails) {
-      args.where = buildWhereClause(userId, attendeeEmails, [], []);
-    }
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { email: true },
+    });
+    const userEmails = users.map((u) => u.email);
+    args.where = buildWhereClause(userId, attendeeEmails, userIds, userEmails);
   } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
