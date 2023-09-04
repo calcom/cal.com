@@ -44,7 +44,7 @@ export async function getAppRegistry() {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    app.createdAt = JSON.parse(JSON.stringify(dbapp.createdAt));
+    app.createdAt = dbapp.createdAt.toISOString();
     apps.push({
       ...app,
       category: app.category || "other",
@@ -101,7 +101,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    app.createdAt = JSON.parse(JSON.stringify(dbapp.createdAt));
+    app.createdAt = dbapp.createdAt.toISOString();
     let dependencyData: {
       name?: string;
       installed?: boolean;
