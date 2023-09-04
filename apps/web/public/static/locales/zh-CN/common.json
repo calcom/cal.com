@@ -1079,7 +1079,7 @@
   "event_cancelled": "此活动已取消",
   "emailed_information_about_cancelled_event": "我们已向您和其他参与者发送电子邮件来通知他们。",
   "this_input_will_shown_booking_this_event": "在预约此活动时将显示该输入框",
-  "meeting_url_in_conformation_email": "会议链接含在确认电子邮件中",
+  "meeting_url_in_confirmation_email": "会议链接含在确认电子邮件中",
   "url_start_with_https": "链接需要以 http:// 或 https:// 开头",
   "number_provided": "将提供电话号码",
   "before_event_trigger": "活动开始前",

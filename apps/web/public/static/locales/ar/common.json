@@ -1074,7 +1074,7 @@
   "event_cancelled": "تم إلغاء هذا الحدث",
   "emailed_information_about_cancelled_event": "لقد أرسلنا إليك وإلى الحاضرين الآخرين بريداً إلكترونياً لإعلامهم.",
   "this_input_will_shown_booking_this_event": "سيُعرَض هذا المُدخَل عند حجز هذا الحدث",
-  "meeting_url_in_conformation_email": "عنوان رابط الاجتماع موجود في رسالة التأكيد الإلكترونية",
+  "meeting_url_in_confirmation_email": "عنوان رابط الاجتماع موجود في رسالة التأكيد الإلكترونية",
   "url_start_with_https": "يجب أن يبدأ العنوان بـ http:// أو https://",
   "number_provided": "سيتم توفير رقم الهاتف",
   "before_event_trigger": "قبل بدء الحدث",

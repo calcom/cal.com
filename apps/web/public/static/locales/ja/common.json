@@ -1075,7 +1075,7 @@
   "event_cancelled": "このイベントはキャンセルされました",
   "emailed_information_about_cancelled_event": "あなたと他の出席者に電子メールでお知らせしました。",
   "this_input_will_shown_booking_this_event": "この入力は、このイベントを予約する際に表示されます",
-  "meeting_url_in_conformation_email": "ミーティングURLは確認メールに記載されています",
+  "meeting_url_in_confirmation_email": "ミーティングURLは確認メールに記載されています",
   "url_start_with_https": "URLは、http://またはhttps://で始まる必要があります",
   "number_provided": "電話番号が提供されます",
   "before_event_trigger": "イベント開始前に",
