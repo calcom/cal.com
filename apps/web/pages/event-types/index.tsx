@@ -11,10 +11,9 @@ import { z } from "zod";
 import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import { EventTypeEmbedButton } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
-import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -75,7 +74,6 @@ import {
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
-import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -773,13 +771,15 @@ const CreateFirstEventTypeView = () => {
   );
 };
 
-const CTA = ({ data }: { data: PaginateEventTypeViewer }) => {
+const CTA = () => {
   const { t } = useLocale();
 
-  if (!data) return null;
-
-  const profileOptions = [];
-
+  const profileOptions: {
+    teamId: number | null | undefined;
+    label: string | null;
+    image: string | undefined;
+    membershipRole: MembershipRole | null | undefined;
+  }[] = [];
   return (
     <CreateButton
       data-testid="new-event-type"
@@ -845,81 +845,110 @@ const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
   );
 };
 
-const Main = ({
-  status,
-  errorMessage,
-  data,
-  filters,
-}: {
-  status: string;
-  data: PaginateEventTypeViewer;
-  errorMessage?: string;
-  filters: ReturnType<typeof getTeamsFiltersFromQuery>;
-}) => {
+const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery> }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
 
-  if (!data || status === "loading") {
-    return <SkeletonLoader />;
-  }
+  // if (!data || status === "loading") {
+  //   return <SkeletonLoader />;
+  // }
 
-  if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
-  }
+  // if (status === "error") {
+  //   return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
+  // }
 
   // const isFilteredByOnlyOneItem =
   //   (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data?.eventTypeGroups.length === 1;
   const isFilteredByOnlyOneItem = false;
-  return (
-    <>
-      {data?.length > 1 || isFilteredByOnlyOneItem ? (
-        <>
-          {isMobile ? (
-            <MobileTeamsTab eventTypeGroups={data} />
-          ) : (
-            <div className="mt-4 flex flex-col" key={group.profile.slug}>
-              <EventTypeListHeading
-                profile={data[0].users[0] || data[0].team}
-                membershipCount={data[0].team?.members.length || 0}
-                teamId={data[0].teamId}
-                orgSlug={orgBranding?.slug}
-              />
 
-              {data[0].length > 0 ? (
-                <EventTypeList
-                  data={data}
-                  // group={group}
-                  // groupIndex={index}
-                  readOnly={false}
-                />
-              ) : (
-                <EmptyEventTypeList group={group} />
-              )}
-            </div>
-          )}
-        </>
-      ) : (
-        data?.length === 1 && (
-          <EventTypeList
-            data={data}
-            // group={data?.eventTypeGroups[0]}
-            // groupIndex={0}
-            readOnly={false}
-          />
-        )
-      )}
-      {/* <EventTypeList
-        data={data}
-        // group={data?.eventTypeGroups[0]}
-        // groupIndex={0}
-        readOnly={false}
-      /> */}
-      {data.length === 0 && <CreateFirstEventTypeView />}
-      <EventTypeEmbedDialog />
-      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
-    </>
+  // We first load user event types and then team event types
+  const { data, status, error } = trpc.viewer.eventTypes.paginate.useQuery(
+    {
+      page: 1,
+      pageSize: 10,
+    },
+    {
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
   );
+
+  // Then we load teams
+  const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
+    // Teams don't change that frequently
+    refetchOnWindowFocus: false,
+  });
+
+  // After teams are fetched we then load event types for each team
+  const eventTypePaginate = trpc.useQueries(
+    (t) =>
+      teams?.map((team) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [team.id] }), {
+        enabled: !!teams,
+      }) || []
+  );
+
+  if ((!!data && data.length > 1) || isFilteredByOnlyOneItem) {
+    return (
+      <>
+        {isMobile ? (
+          <MobileTeamsTab eventTypeGroups={data} />
+        ) : (
+          <div className="mt-4 flex flex-col">
+            <EventTypeListHeading
+              profile={data[0].users[0] || data[0].team}
+              membershipCount={data[0].team?.members.length || 0}
+              teamId={data[0].teamId}
+              orgSlug={orgBranding?.slug}
+            />
+
+            {data[0].length > 0 ? (
+              <EventTypeList data={data} readOnly={false} />
+            ) : (
+              <EmptyEventTypeList group={group} />
+            )}
+
+            {/* Then we list team event types */}
+
+            {eventTypePaginate.map((trpcFetch, index) => {
+              const { data, status, error } = trpcFetch;
+              const [eventTypes] = data || [];
+              if ((status !== "success" && !!data) || data?.length === 0 || !eventTypes) {
+                return null;
+              }
+              console.log("eventTypes", eventTypes);
+              return (
+                <>
+                  <EventTypeListHeading
+                    profile={eventTypes.users[0] || eventTypes.team}
+                    membershipCount={eventTypes.team?.members.length || 0}
+                    teamId={eventTypes.teamId}
+                    orgSlug={orgBranding?.slug}
+                  />
+
+                  {eventTypes.length > 0 ? (
+                    <EventTypeList data={data} readOnly={false} />
+                  ) : (
+                    <EmptyEventTypeList group={group} />
+                  )}
+                </>
+              );
+            })}
+          </div>
+        )}
+      </>
+    );
+  } else if (!!data && data.length === 1) {
+    return <EventTypeList data={data} readOnly={false} />;
+  } else if (!!data && data.length === 0) {
+    return <CreateFirstEventTypeView />;
+  }
+
+  // <EventTypeEmbedDialog />;
+  // {
+  //   searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />;
+  // }
 };
 
 const EventTypesPage = () => {
@@ -938,22 +967,33 @@ const EventTypesPage = () => {
   //   cacheTime: 1 * 60 * 60 * 1000,
   //   staleTime: 1 * 60 * 60 * 1000,
   // });
-  const { data, status, error } = trpc.viewer.eventTypes.paginate.useQuery(
-    {
-      page: 1,
-      pageSize: 10,
-      teamIds: filters?.teamIds,
-    },
-    {
-      trpc: {
-        context: { skipBatch: true },
-      },
-    }
-  );
 
-  const eventTypePaginate = trpc.useQueries((t) =>
-    filters?.teamIds.map((id) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [id] }))
-  );
+  // // We first load user event types and then team event types
+  // const { data, status, error } = trpc.viewer.eventTypes.paginate.useQuery(
+  //   {
+  //     page: 1,
+  //     pageSize: 10,
+  //   },
+  //   {
+  //     trpc: {
+  //       context: { skipBatch: true },
+  //     },
+  //   }
+  // );
+  // const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
+  //   // Teams don't change that frequently
+  //   refetchOnWindowFocus: false,
+  // });
+
+  // const eventTypePaginate = trpc.useQueries(
+  //   (t) =>
+  //     teams?.map((team) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [team.id] }), {
+  //       enabled: !!teams,
+  //       trpc: {
+  //         context: { skipBatch: true },
+  //       },
+  //     }) || []
+  // );
 
   function closeBanner() {
     setShowProfileBanner(false);
@@ -982,12 +1022,12 @@ const EventTypesPage = () => {
       subtitle={t("event_types_page_subtitle")}
       afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
       beforeCTAactions={<Actions />}
-      CTA={<CTA data={data} />}>
+      CTA={<CTA />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
+      <Main filters={filters} />
     </ShellMain>
   );
 };

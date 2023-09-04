@@ -48,10 +48,9 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
   //   },
   // };
 
-  return await prisma.eventType.findMany({
+  const result = await prisma.eventType.findMany({
     where: {
       ...whereConditional,
-      ...teamConditional,
     },
     select: {
       id: true,
@@ -86,4 +85,6 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
     skip,
     take: pageSize,
   });
+  console.log("result", result);
+  return result;
 };
