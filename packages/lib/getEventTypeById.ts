@@ -21,6 +21,7 @@ interface getEventTypeByIdProps {
   userId: number;
   prisma: PrismaClient;
   isTrpcCall?: boolean;
+  isUserOrganizationAdmin: boolean;
 }
 
 export default async function getEventTypeById({
@@ -28,6 +29,7 @@ export default async function getEventTypeById({
   userId,
   prisma,
   isTrpcCall = false,
+  isUserOrganizationAdmin,
 }: getEventTypeByIdProps) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
@@ -408,6 +410,7 @@ export default async function getEventTypeById({
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,
+    isUserOrganizationAdmin,
   };
   return finalObj;
 }
