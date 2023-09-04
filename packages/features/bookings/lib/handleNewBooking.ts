@@ -2232,10 +2232,32 @@ async function handler(
     !originalRescheduledBooking?.paid &&
     !!booking;
 
+  console.log("Booking requires payment", bookingRequiresPayment, paymentAppData);
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
+  const metadata = videoCallUrl
+    ? {
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
+      }
+    : undefined;
+  const webhookData = {
+    ...evt,
+    ...eventTypeInfo,
+    bookingId: booking?.id,
+    rescheduleUid,
+    rescheduleStartTime: originalRescheduledBooking?.startTime
+      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+      : undefined,
+    rescheduleEndTime: originalRescheduledBooking?.endTime
+      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+      : undefined,
+    metadata: { ...metadata, ...reqBody.metadata },
+    eventTypeId,
+    status: "ACCEPTED",
+    smsReminderNumber: booking?.smsReminderNumber || undefined,
+  };
 
   if (bookingRequiresPayment) {
     // Load credentials.app.categories
@@ -2276,6 +2298,17 @@ async function handler(
       booking,
       bookerEmail
     );
+    const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
+      userId: triggerForUser ? organizerUser.id : null,
+      eventTypeId,
+      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      teamId,
+    };
+    await handleWebhookTrigger({
+      subscriberOptions: subscriberOptionsPaymentInitiated,
+      eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      webhookData,
+    });
 
     req.statusCode = 201;
     return { ...booking, message: "Payment required", paymentUid: payment?.uid };
@@ -2287,28 +2320,6 @@ async function handler(
     videoCallUrl = booking.location;
   }
 
-  const metadata = videoCallUrl
-    ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
-      }
-    : undefined;
-
-  const webhookData = {
-    ...evt,
-    ...eventTypeInfo,
-    bookingId: booking?.id,
-    rescheduleUid,
-    rescheduleStartTime: originalRescheduledBooking?.startTime
-      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-      : undefined,
-    rescheduleEndTime: originalRescheduledBooking?.endTime
-      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-      : undefined,
-    metadata: { ...metadata, ...reqBody.metadata },
-    eventTypeId,
-    status: "ACCEPTED",
-    smsReminderNumber: booking?.smsReminderNumber || undefined,
-  };
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);

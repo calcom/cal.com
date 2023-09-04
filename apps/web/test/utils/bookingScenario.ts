@@ -11,6 +11,7 @@ import { expect } from "vitest";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { sendAwaitingPaymentEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -94,7 +95,7 @@ type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
-};
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
 
 type InputBooking = {
   userId?: number;
@@ -241,6 +242,18 @@ function addUsers(users: InputUser[]) {
     });
   });
 
+  const allCredentials = users.reduce((acc, { id, credentials }) => {
+    acc[id] = credentials;
+    return acc;
+  }, {});
+
+  prismaMock.credential.findMany.mockImplementation(({ where }) => {
+    return new Promise((resolve) => {
+      console.log("findManyCred", allCredentials[where.userId]);
+      resolve(allCredentials[where.userId] || []);
+    });
+  });
+
   prismaMock.user.findMany.mockResolvedValue(
     users.map((user) => {
       return {
@@ -361,6 +374,7 @@ export function getMockedCredential({
   return {
     type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
     appId: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].slug,
+    app: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata],
     key: {
       expiry_date: Date.now() + 1000000,
       token_type: "Bearer",
@@ -385,7 +399,16 @@ export function getZoomAppCredential() {
   return getMockedCredential({
     metadataLookupKey: "zoomvideo",
     key: {
-      scope: "meeting:writed",
+      scope: "meeting:write",
+    },
+  });
+}
+
+export function getStripeAppCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "stripepayment",
+    key: {
+      scope: "read_write",
     },
   });
 }
@@ -464,6 +487,21 @@ export const TestData = {
     },
     "daily-video": {
       slug: "daily-video",
+      dirName: "whatever",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        api_key: "",
+        scale_plan: "false",
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "stripe-payment": {
+      //TODO: Read from appStoreMeta
+      slug: "stripe",
       dirName: "whatever",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -636,6 +674,82 @@ export function mockSuccessfulVideoMeetingCreation({
   });
 }
 
+export function mockPaymentApp({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+  function createPaymentLink({ paymentUid, name, email, date }) {
+    return "http://mock-payment.example.com/";
+  }
+
+  const paymentUid = uuidv4();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
+    return new Promise((resolve) => {
+      resolve({
+        lib: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          PaymentService: class mockPaymentService {
+            create({ amount, currency }, bookingId, bookerEmail, paymentOption, eventTitle) {
+              return {
+                id: uuidv4(),
+                uid: paymentUid,
+                // appId
+                bookingId: 1,
+                // booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+                fee: 10,
+                success: true,
+                // refunded      Boolean
+                // data          Json
+                externalId: uuidv4(),
+                paymentOption,
+                amount,
+                currency,
+              };
+            }
+            async afterPayment(
+              event: CalendarEvent,
+              booking: {
+                user: { email: string | null; name: string | null; timeZone: string } | null;
+                id: number;
+                startTime: { toISOString: () => string };
+                uid: string;
+              },
+              paymentData: Payment
+            ): Promise<void> {
+              // TODO: App implementing PaymentService is supposed to send email by itself at the moment.
+              await sendAwaitingPaymentEmail({
+                ...event,
+                paymentInfo: {
+                  link: createPaymentLink({
+                    paymentUid: paymentData.uid,
+                    name: booking.user?.name,
+                    email: booking.user?.email,
+                    date: booking.startTime.toISOString(),
+                  }),
+                  paymentOption: paymentData.paymentOption || "ON_BOOKING",
+                  amount: paymentData.amount,
+                  currency: paymentData.currency,
+                },
+              });
+            }
+            constructor() {}
+          },
+        },
+      });
+    });
+  });
+  return {
+    paymentUid,
+  };
+}
+
 export function mockErrorOnVideoMeetingCreation({
   metadataLookupKey,
   appStoreLookupKey,
@@ -734,8 +848,7 @@ expect.extend({
         if (!isHtmlContained) {
           return `Email HTML is not as expected. Expected:"${expectedEmail.htmlToContain}" isn't contained in "${testEmail.html}"`;
         }
-
-        return `Email To address is not as expected. Expected:${expectedEmail.to} isn't contained in ${testEmail.to}`;
+        return `Email To address is not as expected. Expected:${expectedEmail.to} isn't equal to ${testEmail.to}`;
       },
     };
   },

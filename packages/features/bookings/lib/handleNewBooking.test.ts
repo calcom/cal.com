@@ -26,18 +26,19 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   expectWebhookToHaveBeenCalledWith,
+  getStripeAppCredential,
   MockError,
+  mockPaymentApp,
 } from "@calcom/web/test/utils/bookingScenario";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
-
 describe.sequential("handleNewBooking", () => {
   beforeEach(() => {
     // Required to able to generate token in email in some cases
-    process.env.CALENDSO_ENCRYPTION_KEY="abcdefghjnmkljhjklmnhjklkmnbhjui"
+    process.env.CALENDSO_ENCRYPTION_KEY = "abcdefghjnmkljhjklmnhjklkmnbhjui";
     mockNoTranslations();
     mockEnableEmailFeature();
     globalThis.testEmails = [];
@@ -281,6 +282,148 @@ describe.sequential("handleNewBooking", () => {
 
         expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
           triggerEvent: "BOOKING_REQUESTED",
+          payload: {
+            metadata: {
+              // In a Pending Booking Request, we don't send the video call url
+              videoCallUrl: undefined,
+            },
+            responses: {
+              name: { label: "your_name", value: "Booker" },
+              email: { label: "email_address", value: "booker@example.com" },
+              location: {
+                label: "location",
+                value: { optionValue: "", value: "integrations:daily" },
+              },
+              title: { label: "what_is_this_meeting_about" },
+              notes: { label: "additional_notes" },
+              guests: { label: "additional_guests" },
+              rescheduleReason: { label: "reason_for_reschedule" },
+            },
+          },
+        });
+      },
+      timeout
+    );
+
+    test.only(
+      `should submit a booking request for a paid event
+      1. Should create a booking in the database with status PENDING
+      2. Should send emails to the booker as well as organizer for Payment request and awaiting approval
+      3. Should trigger BOOKING_REQUESTED webhook
+    `,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const scenarioData = getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CREATED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 45,
+              requiresConfirmation: false,
+              metadata: {
+                apps: {
+                  stripe: {
+                    price: 100,
+                    enabled: true,
+                    currency: "inr" /*, credentialId: 57*/,
+                  },
+                },
+              },
+              length: 45,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"], TestData.apps["stripe-payment"]],
+        });
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+        });
+
+        const {paymentUid} = mockPaymentApp({
+          metadataLookupKey: "stripe",
+          appStoreLookupKey: "stripepayment"
+        })
+
+        mockCalendarToHaveNoBusySlots("googlecalendar");
+        createBookingScenario(scenarioData);
+
+        const createdBooking = await handleNewBooking(req);
+        expect(createdBooking.responses).toContain({
+          email: booker.email,
+          name: booker.name,
+        });
+
+        expect(createdBooking).toContain({
+          location: "integrations:daily",
+          paymentUid: paymentUid
+        });
+
+        expectBookingToBeInDatabase({
+          description: "",
+          eventType: {
+            connect: {
+              id: mockBookingData.eventTypeId,
+            },
+          },
+          status: BookingStatus.PENDING,
+        });
+
+        expectWorkflowToBeTriggered();
+
+        const testEmails = emails.get();
+
+        expect(testEmails[0]).toHaveEmail({
+          htmlToContain: "<title>awaiting_payment_subject</title>",
+          to: `${booker.name} <${booker.email}>`,
+        });
+
+        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+          triggerEvent: "BOOKING_PAYMENT_INITIATED",
           payload: {
             metadata: {
               // In a Pending Booking Request, we don't send the video call url
