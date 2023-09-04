@@ -2037,5 +2037,6 @@
   "team_no_event_types": "Cette équipe n'a aucun type d'événement",
   "seat_options_doesnt_multiple_durations": "L'option par place ne prend pas en charge les durées multiples",
   "include_calendar_event": "Inclure l'événement du calendrier",
+  "recently_added": "Ajouté récemment",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
