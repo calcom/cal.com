@@ -251,7 +251,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "multiemail",
       editable: "system-but-optional",
       name: "guests",
-      defaultPlaceholder: "Enter Email...",
+      defaultPlaceholder: "Email Address",
       required: false,
       hidden: disableGuests,
       sources: [
