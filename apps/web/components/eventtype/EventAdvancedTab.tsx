@@ -55,8 +55,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const { t } = useLocale();
 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
-  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
-  const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
+  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
+  const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
   const bookingFields: Prisma.JsonObject = {};
@@ -79,7 +79,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     t,
   };
 
-  const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(
+    formMethods.getValues("requiresConfirmation")
+  );
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const noShowFeeEnabled = eventType.metadata?.apps?.stripe?.paymentOption === "HOLD";
@@ -202,7 +204,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
-        metadata={eventType.metadata}
+        metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />

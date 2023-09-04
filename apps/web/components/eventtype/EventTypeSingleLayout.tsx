@@ -69,53 +69,63 @@ type Props = {
   isUserOrganizationAdmin: boolean;
 };
 
-function getNavigation(props: {
+type getNavigationProps = {
   t: TFunction;
-  eventType: Props["eventType"];
+  length: number;
+  id: number;
+  multipleDuration?: EventTypeSetupProps["eventType"]["metadata"]["multipleDuration"];
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
-}) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
-  const duration =
-    eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
+};
+
+function getNavigation({
+  length,
+  id,
+  multipleDuration,
+  t,
+  enabledAppsNumber,
+  installedAppsNumber,
+  enabledWorkflowsNumber,
+}: getNavigationProps) {
+  const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
   return [
     {
       name: "event_setup_tab_title",
-      href: `/event-types/${eventType.id}?tabName=setup`,
+      href: `/event-types/${id}?tabName=setup`,
       icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
-      href: `/event-types/${eventType.id}?tabName=limits`,
+      href: `/event-types/${id}?tabName=limits`,
       icon: Clock,
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
-      href: `/event-types/${eventType.id}?tabName=advanced`,
+      href: `/event-types/${id}?tabName=advanced`,
       icon: Sliders,
       info: `event_advanced_tab_description`,
     },
     {
       name: "recurring",
-      href: `/event-types/${eventType.id}?tabName=recurring`,
+      href: `/event-types/${id}?tabName=recurring`,
       icon: Repeat,
       info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
-      href: `/event-types/${eventType.id}?tabName=apps`,
+      href: `/event-types/${id}?tabName=apps`,
       icon: Grid,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
+      href: `/event-types/${id}?tabName=workflows`,
       icon: Zap,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
@@ -171,11 +181,17 @@ function EventTypeSingleLayout({
     t("locked_fields_member_description")
   );
 
+  const enabledWebhooks = formMethods.watch("enabledWebhooks");
+  const length = formMethods.watch("length");
+  const multipleDuration = formMethods.watch("metadata")?.multipleDuration;
+
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     const navigation = getNavigation({
       t,
-      eventType,
+      length,
+      multipleDuration,
+      id: eventType.id,
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
@@ -218,7 +234,7 @@ function EventTypeSingleLayout({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
         icon: TbWebhook,
-        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+        info: `${enabledWebhooks} ${t("active")}`,
       });
     }
     return navigation;
@@ -232,6 +248,9 @@ function EventTypeSingleLayout({
     isManagedEventType,
     isChildrenManagedEventType,
     team,
+    length,
+    multipleDuration,
+    enabledWebhooks,
     formMethods,
   ]);
 

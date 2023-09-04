@@ -284,8 +284,9 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
                     }}
                     defaultValue={
-                      slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
-                      slotIntervalOptions[0]
+                      slotIntervalOptions.find(
+                        (option) => option.value === formMethods.getValues("slotInterval")
+                      ) || slotIntervalOptions[0]
                     }
                     options={slotIntervalOptions}
                   />

@@ -2,8 +2,9 @@ import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useState } from "react";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WebhookForm } from "@calcom/features/webhooks/components";
@@ -23,6 +24,11 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
+  const enabledWebhooks = webhooks?.filter((webhook) => webhook.active).length;
+  const formMethods = useFormContext<FormValues>();
+  useEffect(() => {
+    if (enabledWebhooks !== undefined) formMethods.setValue("enabledWebhooks", enabledWebhooks);
+  }, [enabledWebhooks]);
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,

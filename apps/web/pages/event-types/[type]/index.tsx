@@ -134,6 +134,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  enabledWebhooks: number;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -260,9 +261,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
+      requiresConfirmation: eventType.requiresConfirmation,
+      slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
       hosts: eventType.hosts,
+      successRedirectUrl: eventType.successRedirectUrl,
+      enabledWebhooks: eventType.webhooks.filter((webhook) => webhook.active).length,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -412,7 +417,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, ...rest } = input;
+    const { availability, enabledWebhooks, ...rest } = input;
     updateMutation.mutate({
       ...rest,
       length,
@@ -505,7 +510,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, ...rest } = input;
+            const { availability, enabledWebhooks, ...rest } = input;
             updateMutation.mutate({
               ...rest,
               length,

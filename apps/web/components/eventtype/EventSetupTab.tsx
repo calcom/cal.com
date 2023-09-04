@@ -117,7 +117,9 @@ export const EventSetupTab = (
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
-  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const [multipleDuration, setMultipleDuration] = useState(
+    formMethods.getValues("metadata")?.multipleDuration
+  );
   const orgBranding = useOrgBranding();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
@@ -147,7 +149,7 @@ export const EventSetupTab = (
     }>
   >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
   const [defaultDuration, setDefaultDuration] = useState(
-    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
+    selectedMultipleDuration.find((opt) => opt.value === formMethods.getValues("length")) ?? null
   );
 
   const openLocationModal = (type: EventLocationType["type"], address = "") => {
@@ -498,7 +500,7 @@ export const EventSetupTab = (
               type="number"
               {...lengthLockedProps}
               label={t("duration")}
-              defaultValue={eventType.length ?? 15}
+              defaultValue={formMethods.getValues("length") ?? 15}
               {...formMethods.register("length")}
               addOnSuffix={<>{t("minutes")}</>}
               min={1}
@@ -514,7 +516,9 @@ export const EventSetupTab = (
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {
                     setMultipleDuration(undefined);
-                    formMethods.setValue("metadata.multipleDuration", undefined);
+                    setSelectedMultipleDuration([]);
+                  setDefaultDuration(null);
+                  formMethods.setValue("metadata.multipleDuration", undefined);
                     formMethods.setValue("length", eventType.length);
                   } else {
                     setMultipleDuration([]);
