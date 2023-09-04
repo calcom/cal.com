@@ -2,6 +2,7 @@ import type { GetStaticPropsContext } from "next";
 
 export const AppSetupPageMap = {
   zapier: import("../../zapier/pages/setup/_getStaticProps"),
+  make: import("../../make/pages/setup/_getStaticProps"),
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {

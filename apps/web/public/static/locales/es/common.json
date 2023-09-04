@@ -1075,7 +1075,7 @@
   "event_cancelled": "Este evento se canceló",
   "emailed_information_about_cancelled_event": "Le enviamos un correo electrónico a usted y a los demás asistentes para informarles.",
   "this_input_will_shown_booking_this_event": "Esta entrada se mostrará al reservar este evento.",
-  "meeting_url_in_conformation_email": "La URL de la reunión está en el correo de confirmación",
+  "meeting_url_in_confirmation_email": "La URL de la reunión está en el correo de confirmación",
   "url_start_with_https": "La URL debe empezar por http:// o https://",
   "number_provided": "Se proporcionará el número de teléfono",
   "before_event_trigger": "antes del inicio del evento",
