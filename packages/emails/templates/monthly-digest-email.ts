@@ -16,7 +16,7 @@ export default class MonthlyDigestEmail extends BaseEmail {
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.eventData.admin.email,
-      subject: `30 Day Digest Email`,
+      subject: `${APP_NAME}: Your monthly digest`,
       html: renderEmail("MonthlyDigestEmail", this.eventData),
       text: "",
     };
