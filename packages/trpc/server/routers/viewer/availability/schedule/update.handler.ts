@@ -38,6 +38,12 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
+  if (!userSchedule) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+
   if (userSchedule?.userId !== user.id) {
     // Check if the user is an of a membership that has access to the schedule
     const membershipOverlap = await prisma.membership.findMany({
@@ -59,12 +65,6 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
         code: "UNAUTHORIZED",
       });
     }
-  }
-
-  if (!userSchedule) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
   }
 
   let updatedUser;

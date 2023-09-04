@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -17,6 +18,7 @@ import {
   TopBanner,
   SheetTitle,
   TimezoneSelect,
+  showToast,
 } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -72,9 +74,24 @@ export function AvailabilityEditSheet(props: Props) {
   const userId = props.selectedUser?.id;
   const me = useMeQuery();
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const { data, isLoading } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
     userId: userId,
+  });
+
+  const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
+    onSuccess: async () => {
+      utils.viewer.availability.listTeam.invalidate();
+      showToast(t("availability_updated_successfully"), "success");
+      props.onOpenChange(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
   });
 
   const form = useForm<AvailabilityFormValues>({
@@ -93,12 +110,12 @@ export function AvailabilityEditSheet(props: Props) {
         form={form}
         id="availability-form"
         handleSubmit={async ({ dateOverrides, ...values }) => {
-          // scheduleId &&
-          //   updateMutation.mutate({
-          //     scheduleId,
-          //     dateOverrides: dateOverrides.flatMap((override) => override.ranges),
-          //     ...values,
-          //   });
+          data &&
+            updateMutation.mutate({
+              scheduleId: data?.id,
+              dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+              ...values,
+            });
         }}>
         <SheetContent
           bottomActions={
@@ -106,7 +123,13 @@ export function AvailabilityEditSheet(props: Props) {
               <Button color="secondary" className="w-full justify-center">
                 {t("cancel")}
               </Button>
-              <Button className="w-full justify-center">{t("save")}</Button>
+              <Button
+                className="w-full justify-center"
+                type="submit"
+                loading={updateMutation.isLoading}
+                form="availability-form">
+                {t("save")}
+              </Button>
             </>
           }>
           {!data?.hasDefaultSchedule && !isLoading && (
