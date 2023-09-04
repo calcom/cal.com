@@ -1079,7 +1079,7 @@
   "event_cancelled": "Deze gebeurtenis is geannuleerd",
   "emailed_information_about_cancelled_event": "We hebben u en de andere deelnemers een e-mail gestuurd om hen te informeren.",
   "this_input_will_shown_booking_this_event": "Deze invoer wordt getoond tijdens het boeken van dit evenement",
-  "meeting_url_in_conformation_email": "De vergader-URL wordt vermeld in de bevestigings-e-mail",
+  "meeting_url_in_confirmation_email": "De vergader-URL wordt vermeld in de bevestigings-e-mail",
   "url_start_with_https": "URL moet beginnen met http:// of https://",
   "number_provided": "Telefoonnummer wordt verstrekt",
   "before_event_trigger": "voordat de gebeurtenis begint",
