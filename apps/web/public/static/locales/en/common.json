@@ -1108,6 +1108,7 @@
   "email_attendee_action": "send email to attendees",
   "sms_attendee_action": "Send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
+  "send_reminder_sms": "Easily send meeting reminders via SMS to your attendees",
   "whatsapp_number_action": "send WhatsApp message to a specific number",
   "whatsapp_attendee_action": "send WhatsApp message to attendee",
   "workflows": "Workflows",
@@ -2036,5 +2037,6 @@
   "team_no_event_types": "This team has no event types",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
+  "recently_added":"Recently added",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
