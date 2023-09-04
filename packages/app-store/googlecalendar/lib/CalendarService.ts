@@ -144,14 +144,14 @@ export default class GoogleCalendarService implements Calendar {
       });
       // Find in calEventRaw.destinationCalendar the one with the same credentialId
 
-      const selectedCalendar = calEventRaw.destinationCalendar?.find(
-        (cal) => cal.credentialId === credentialId
-      )?.externalId;
+      const selectedCalendar =
+        calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+        "primary";
 
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: selectedCalendar || "primary",
+          calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
           sendUpdates: "none",
