@@ -5,33 +5,39 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, beforeEach } from "vitest";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
 import {
   createBookingScenario,
   getDate,
-  expectWorkflowToBeTriggered,
   getGoogleCalendarCredential,
   TestData,
   getOrganizer,
   getBooker,
   getScenarioData,
-  expectBookingToBeInDatabase,
   getZoomAppCredential,
   mockEnableEmailFeature,
   mockNoTranslations,
   mockErrorOnVideoMeetingCreation,
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
-  expectWebhookToHaveBeenCalledWith,
   getStripeAppCredential,
   MockError,
   mockPaymentApp,
-} from "@calcom/web/test/utils/bookingScenario";
+  mockPaymentSuccessWebhookFromStripe
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
+import {
+  expectWorkflowToBeTriggered,
+  expectBookingToBeInDatabase,
+  expectWebhookToHaveBeenCalledWith,
+} from "@calcom/web/test/utils/bookingScenario/expects";
+
 
 type CustomNextApiRequest = NextApiRequest & Request;
+
 type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -39,6 +45,7 @@ describe.sequential("handleNewBooking", () => {
   beforeEach(() => {
     // Required to able to generate token in email in some cases
     process.env.CALENDSO_ENCRYPTION_KEY = "abcdefghjnmkljhjklmnhjklkmnbhjui";
+    process.env.STRIPE_WEBHOOK_SECRET = "MOCK_STRIPE_WEBHOOK_SECRET";
     mockNoTranslations();
     mockEnableEmailFeature();
     globalThis.testEmails = [];
@@ -130,26 +137,23 @@ describe.sequential("handleNewBooking", () => {
 
         expectBookingToBeInDatabase({
           description: "",
-          eventType: {
-            connect: {
-              id: mockBookingData.eventTypeId,
-            },
-          },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: createdBooking.id!,
+          eventTypeId:mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
         });
 
         expectWorkflowToBeTriggered();
 
         const testEmails = emails.get();
-        expect(testEmails[0]).toHaveEmail({
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>confirmed_event_type_subject</title>",
           to: `${organizer.email}`,
-        });
-        expect(testEmails[1]).toHaveEmail({
+        }, `${organizer.email}`);
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>confirmed_event_type_subject</title>",
           to: `${booker.name} <${booker.email}>`,
-        });
-        expect(testEmails[1].html).toContain("<title>confirmed_event_type_subject</title>");
+        }, `${booker.name} <${booker.email}>`);
         expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
           triggerEvent: "BOOKING_CREATED",
           payload: {
@@ -163,10 +167,6 @@ describe.sequential("handleNewBooking", () => {
                 label: "location",
                 value: { optionValue: "", value: "integrations:daily" },
               },
-              title: { label: "what_is_this_meeting_about" },
-              notes: { label: "additional_notes" },
-              guests: { label: "additional_guests" },
-              rescheduleReason: { label: "reason_for_reschedule" },
             },
           },
         });
@@ -259,33 +259,30 @@ describe.sequential("handleNewBooking", () => {
 
         expectBookingToBeInDatabase({
           description: "",
-          eventType: {
-            connect: {
-              id: mockBookingData.eventTypeId,
-            },
-          },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: createdBooking.id!,
+          eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.PENDING,
         });
 
         expectWorkflowToBeTriggered();
 
         const testEmails = emails.get();
-        expect(testEmails[0]).toHaveEmail({
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>event_awaiting_approval_subject</title>",
           to: `${organizer.email}`,
-        });
+        }, `${organizer.email}`);
 
-        expect(testEmails[1]).toHaveEmail({
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>booking_submitted_subject</title>",
           to: `${booker.email}`,
-        });
+        }, `${booker.email}`);
 
         expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
           triggerEvent: "BOOKING_REQUESTED",
           payload: {
             metadata: {
               // In a Pending Booking Request, we don't send the video call url
-              videoCallUrl: undefined,
             },
             responses: {
               name: { label: "your_name", value: "Booker" },
@@ -294,152 +291,6 @@ describe.sequential("handleNewBooking", () => {
                 label: "location",
                 value: { optionValue: "", value: "integrations:daily" },
               },
-              title: { label: "what_is_this_meeting_about" },
-              notes: { label: "additional_notes" },
-              guests: { label: "additional_guests" },
-              rescheduleReason: { label: "reason_for_reschedule" },
-            },
-          },
-        });
-      },
-      timeout
-    );
-
-    test.only(
-      `should submit a booking request for a paid event
-      1. Should create a booking in the database with status PENDING
-      2. Should send emails to the booker as well as organizer for Payment request and awaiting approval
-      3. Should trigger BOOKING_REQUESTED webhook
-    `,
-      async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
-        const organizer = getOrganizer({
-          name: "Organizer",
-          email: "organizer@example.com",
-          id: 101,
-          schedules: [TestData.schedules.IstWorkHours],
-          credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-        });
-
-        const mockBookingData = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
-            },
-          },
-        });
-
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        const scenarioData = getScenarioData({
-          webhooks: [
-            {
-              userId: organizer.id,
-              eventTriggers: ["BOOKING_CREATED"],
-              subscriberUrl: "http://my-webhook.example.com",
-              active: true,
-              eventTypeId: 1,
-              appId: null,
-            },
-          ],
-          eventTypes: [
-            {
-              id: 1,
-              slotInterval: 45,
-              requiresConfirmation: false,
-              metadata: {
-                apps: {
-                  stripe: {
-                    price: 100,
-                    enabled: true,
-                    currency: "inr" /*, credentialId: 57*/,
-                  },
-                },
-              },
-              length: 45,
-              users: [
-                {
-                  id: 101,
-                },
-              ],
-            },
-          ],
-          organizer,
-          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"], TestData.apps["stripe-payment"]],
-        });
-
-        mockSuccessfulVideoMeetingCreation({
-          metadataLookupKey: "dailyvideo",
-        });
-
-        const {paymentUid} = mockPaymentApp({
-          metadataLookupKey: "stripe",
-          appStoreLookupKey: "stripepayment"
-        })
-
-        mockCalendarToHaveNoBusySlots("googlecalendar");
-        createBookingScenario(scenarioData);
-
-        const createdBooking = await handleNewBooking(req);
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
-
-        expect(createdBooking).toContain({
-          location: "integrations:daily",
-          paymentUid: paymentUid
-        });
-
-        expectBookingToBeInDatabase({
-          description: "",
-          eventType: {
-            connect: {
-              id: mockBookingData.eventTypeId,
-            },
-          },
-          status: BookingStatus.PENDING,
-        });
-
-        expectWorkflowToBeTriggered();
-
-        const testEmails = emails.get();
-
-        expect(testEmails[0]).toHaveEmail({
-          htmlToContain: "<title>awaiting_payment_subject</title>",
-          to: `${booker.name} <${booker.email}>`,
-        });
-
-        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-          triggerEvent: "BOOKING_PAYMENT_INITIATED",
-          payload: {
-            metadata: {
-              // In a Pending Booking Request, we don't send the video call url
-              videoCallUrl: undefined,
-            },
-            responses: {
-              name: { label: "your_name", value: "Booker" },
-              email: { label: "email_address", value: "booker@example.com" },
-              location: {
-                label: "location",
-                value: { optionValue: "", value: "integrations:daily" },
-              },
-              title: { label: "what_is_this_meeting_about" },
-              notes: { label: "additional_notes" },
-              guests: { label: "additional_guests" },
-              rescheduleReason: { label: "reason_for_reschedule" },
             },
           },
         });
@@ -579,16 +430,15 @@ describe.sequential("handleNewBooking", () => {
         await handleNewBooking(req);
 
         const testEmails = emails.get();
-
-        expect(testEmails[0]).toHaveEmail({
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>confirmed_event_type_subject</title>",
           to: `${organizer.email}`,
-        });
+        }, `${organizer.email}`);
 
-        expect(testEmails[1]).toHaveEmail({
+        expect(testEmails).toHaveEmail({
           htmlToContain: "<title>confirmed_event_type_subject</title>",
           to: `${booker.name} <${booker.email}>`,
-        });
+        }, `${booker.name} <${booker.email}>`);
 
         expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
           triggerEvent: "BOOKING_CREATED",
@@ -603,16 +453,349 @@ describe.sequential("handleNewBooking", () => {
                 label: "location",
                 value: { optionValue: "", value: "integrations:zoom" },
               },
-              title: { label: "what_is_this_meeting_about" },
-              notes: { label: "additional_notes" },
-              guests: { label: "additional_guests" },
-              rescheduleReason: { label: "reason_for_reschedule" },
             },
           },
         });
       },
       timeout
     );
+    describe("Paid Events", ()=>{
+      test(
+        `Event Type that doesn't require confirmation
+        1. Should create a booking in the database with status PENDING
+        2. Should send email to the booker for Payment request
+        3. Should trigger BOOKING_PAYMENT_INITIATED webhook
+        4. Once payment is successful, should trigger BOOKING_CREATED webhook
+      `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+  
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+  
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "integrations:daily" },
+              },
+            },
+          });
+  
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+  
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                requiresConfirmation: false,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "inr" /*, credentialId: 57*/,
+                    },
+                  },
+                },
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [
+              TestData.apps["google-calendar"],
+              TestData.apps["daily-video"],
+              TestData.apps["stripe-payment"],
+            ],
+          });
+  
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+  
+          const { paymentUid, externalId } = mockPaymentApp({
+            metadataLookupKey: "stripe",
+            appStoreLookupKey: "stripepayment",
+          });
+  
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+          createBookingScenario(scenarioData);
+  
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking.responses).toContain({
+            email: booker.email,
+            name: booker.name,
+          });
+  
+          expect(createdBooking).toContain({
+            location: "integrations:daily",
+            paymentUid: paymentUid,
+          });
+  
+          expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id:createdBooking.id!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.PENDING,
+          });
+  
+          expectWorkflowToBeTriggered();
+  
+          const testEmails = emails.get();
+  
+          expect(testEmails).toHaveEmail({
+            htmlToContain: "<title>awaiting_payment_subject</title>",
+            to: `${booker.name} <${booker.email}>`,
+          }, `${booker.name} <${booker.email}>`);
+  
+          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+            triggerEvent: "BOOKING_PAYMENT_INITIATED",
+            payload: {
+              metadata: {
+                // In a Pending Booking Request, we don't send the video call url
+              },
+              responses: {
+                name: { label: "your_name", value: "Booker" },
+                email: { label: "email_address", value: "booker@example.com" },
+                location: {
+                  label: "location",
+                  value: { optionValue: "", value: "integrations:daily" },
+                },
+              },
+            },
+          });
+          const {webhookResponse} = await mockPaymentSuccessWebhookFromStripe({externalId});
+          expect(webhookResponse?.statusCode).toBe(200)
+          expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: createdBooking.id!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.ACCEPTED,
+          });
+
+          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+            triggerEvent: "BOOKING_CREATED",
+            payload: {
+              // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
+              metadata: null,
+              location: "integrations:daily",
+              responses: {
+                name: { label: "name", value: "Booker" },
+                email: { label: "email", value: "booker@example.com" },
+                location: {
+                  label: "location",
+                  value: { optionValue: "", value: "integrations:daily" },
+                },
+              },
+            },
+          });
+        },
+        timeout
+      );
+      // TODO: We should introduce a new state BOOKING.PAYMENT_PENDING that can clearly differentiate b/w pending confirmation(stuck on Organizer) and pending payment(stuck on booker)
+      test(
+        `Event Type that requires confirmation
+        1. Should create a booking in the database with status PENDING
+        2. Should send email to the booker for Payment request
+        3. Should trigger BOOKING_PAYMENT_INITIATED webhook
+        4. Once payment is successful, should trigger BOOKING_REQUESTED webhook
+        5. Booking should still stay in pending state
+      `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+  
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                requiresConfirmation: true,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "inr" /*, credentialId: 57*/,
+                    },
+                  },
+                },
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [
+              TestData.apps["google-calendar"],
+              TestData.apps["daily-video"],
+              TestData.apps["stripe-payment"],
+            ],
+          });
+          createBookingScenario(scenarioData);
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "integrations:daily" },
+              },
+            },
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+  
+          const { paymentUid, externalId } = mockPaymentApp({
+            metadataLookupKey: "stripe",
+            appStoreLookupKey: "stripepayment",
+          });
+  
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+  
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+  
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking.responses).toContain({
+            email: booker.email,
+            name: booker.name,
+          });
+  
+          expect(createdBooking).toContain({
+            location: "integrations:daily",
+            paymentUid: paymentUid,
+          });
+  
+          expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: createdBooking.id!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.PENDING,
+          });
+  
+          expectWorkflowToBeTriggered();
+  
+          const testEmails = emails.get();
+  
+          expect(testEmails).toHaveEmail({
+            htmlToContain: "<title>awaiting_payment_subject</title>",
+            to: `${booker.name} <${booker.email}>`,
+          }, `${booker.name} <${booker.email}>`);
+  
+          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+            triggerEvent: "BOOKING_PAYMENT_INITIATED",
+            payload: {
+              metadata: {
+                // In a Pending Booking Request, we don't send the video call url
+              },
+              responses: {
+                name: { label: "your_name", value: "Booker" },
+                email: { label: "email_address", value: "booker@example.com" },
+                location: {
+                  label: "location",
+                  value: { optionValue: "", value: "integrations:daily" },
+                },
+              },
+            },
+          });
+
+
+          const {webhookResponse} = await mockPaymentSuccessWebhookFromStripe({externalId});
+          expect(webhookResponse?.statusCode).toBe(200)
+
+          expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: createdBooking.id!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.PENDING,
+          });
+
+          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+            triggerEvent: "BOOKING_REQUESTED",
+            payload: {
+              // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
+              metadata: null,
+              location: "integrations:daily",
+              responses: {
+                name: { label: "name", value: "Booker" },
+                email: { label: "email", value: "booker@example.com" },
+                location: {
+                  label: "location",
+                  value: { optionValue: "", value: "integrations:daily" },
+                },
+              },
+            },
+          });
+        },
+        timeout
+      );
+    })
   });
 });
 

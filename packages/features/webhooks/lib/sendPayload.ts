@@ -106,7 +106,6 @@ const sendPayload = async (
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ) => {
   const { appId, payloadTemplate: template } = webhook;
-
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 

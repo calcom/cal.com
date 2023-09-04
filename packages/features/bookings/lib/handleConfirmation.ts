@@ -7,7 +7,6 @@ import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/i
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -314,19 +313,9 @@ export async function handleConfirmation(args: {
       });
     });
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
-    };
-
     const promises = subscribersBookingCreated.map((sub) =>
       sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
         ...evt,
-        ...eventTypeInfo,
         bookingId,
         eventTypeId: booking.eventType?.id,
         status: "ACCEPTED",
