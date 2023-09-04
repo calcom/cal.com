@@ -33,7 +33,7 @@ export default function OIDCConnection({
         </div>
         {!connection && (
           <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
-            <Button color="secondary" onClick={() => setOpenModal(true)}>
+            <Button data-testid="sso-oidc-configure" color="secondary" onClick={() => setOpenModal(true)}>
               {t("configure")}
             </Button>
           </div>
@@ -100,6 +100,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="clientId"
                   label="Client id"
+                  data-testid="sso-oidc-client-id"
                   value={value}
                   onChange={(e) => {
                     form.setValue("clientId", e?.target.value);
@@ -116,6 +117,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="clientSecret"
                   label="Client secret"
+                  data-testid="sso-oidc-client-secret"
                   value={value}
                   onChange={(e) => {
                     form.setValue("clientSecret", e?.target.value);
