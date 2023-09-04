@@ -122,24 +122,37 @@ const sendPayload = async (
     });
   }
 
-  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, contentType);
+  return _sendPayload(secretKey, webhook, body, contentType);
 };
 
-export const sendGenericWebhookPayload = async (
-  secretKey: string | null,
-  triggerEvent: string,
-  createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Record<string, unknown>
-) => {
-  const body = JSON.stringify(data);
-  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, "application/json");
+export const sendGenericWebhookPayload = async ({
+  secretKey,
+  triggerEvent,
+  createdAt,
+  webhook,
+  data,
+  rootData,
+}: {
+  secretKey: string | null;
+  triggerEvent: string;
+  createdAt: string;
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  data: Record<string, unknown>;
+  rootData?: Record<string, unknown>;
+}) => {
+  const body = JSON.stringify({
+    // Added rootData props first so that using the known(i.e. triggerEvent, createdAt, payload) properties in rootData doesn't override the known properties
+    ...rootData,
+    triggerEvent: triggerEvent,
+    createdAt: createdAt,
+    payload: data,
+  });
+
+  return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
 const _sendPayload = async (
   secretKey: string | null,
-  triggerEvent: string,
-  createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"
