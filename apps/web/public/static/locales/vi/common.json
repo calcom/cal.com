@@ -1075,7 +1075,7 @@
   "event_cancelled": "Sự kiện này bị huỷ",
   "emailed_information_about_cancelled_event": "Chúng tôi đã gửi email cho bạn và những người tham dự khác để cho họ biết.",
   "this_input_will_shown_booking_this_event": "Trường này sẽ được hiển thị khi đặt sự kiện này",
-  "meeting_url_in_conformation_email": "Url cuộc họp nằm trong email xác nhận",
+  "meeting_url_in_confirmation_email": "Url cuộc họp nằm trong email xác nhận",
   "url_start_with_https": "URL cần bắt đầu bằng http:// hoặc https://",
   "number_provided": "Số điện thoại sẽ được cung ứng",
   "before_event_trigger": "trước khi sự kiện bắt đầu",

@@ -2,16 +2,13 @@ import type { GetStaticPropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { i18n } = require("@calcom/config/next-i18next.config");
-
-// TODO: Consolidate this constant
-// eslint-disable-next-line turbo/no-undeclared-env-vars
-const CalComVersion = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "NA";
 
 /**
  * Initialize static site rendering tRPC helpers.
@@ -41,7 +38,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   });
 
   // always preload i18n
-  await ssg.viewer.public.i18n.fetch({ locale, CalComVersion });
+  await ssg.viewer.public.i18n.fetch({ locale, CalComVersion: CALCOM_VERSION });
 
   return ssg;
 }

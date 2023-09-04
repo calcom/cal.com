@@ -246,7 +246,7 @@ test.describe("BOOKING_REJECTED", async () => {
           },
         ],
         location: "[redacted/dynamic]",
-        destinationCalendar: null,
+        destinationCalendar: [],
         // hideCalendarNotes: false,
         requiresConfirmation: "[redacted/dynamic]",
         eventTypeId: "[redacted/dynamic]",

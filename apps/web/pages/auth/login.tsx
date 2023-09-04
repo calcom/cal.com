@@ -21,7 +21,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-import { ArrowLeft } from "@calcom/ui/components/icon";
+import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -29,6 +29,7 @@ import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
+import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -39,6 +40,7 @@ interface LoginValues {
   email: string;
   password: string;
   totpCode: string;
+  backupCode: string;
   csrfToken: string;
 }
 export default function Login({
@@ -50,6 +52,8 @@ export default function Login({
   totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const searchParams = useSearchParams();
+  const isTeamInvite = searchParams.get("teamInvite");
+
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -65,6 +69,7 @@ export default function Login({
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
+  const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
@@ -92,21 +97,43 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <a
+      href={callbackUrl !== "" ? `${WEBSITE_URL}/signup?callbackUrl=${callbackUrl}` : `${WEBSITE_URL}/signup`}
+      className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
   );
 
   const TwoFactorFooter = (
-    <Button
-      onClick={() => {
-        setTwoFactorRequired(false);
-        methods.setValue("totpCode", "");
-      }}
-      StartIcon={ArrowLeft}
-      color="minimal">
-      {t("go_back")}
-    </Button>
+    <>
+      <Button
+        onClick={() => {
+          if (twoFactorLostAccess) {
+            setTwoFactorLostAccess(false);
+            methods.setValue("backupCode", "");
+          } else {
+            setTwoFactorRequired(false);
+            methods.setValue("totpCode", "");
+          }
+          setErrorMessage(null);
+        }}
+        StartIcon={ArrowLeft}
+        color="minimal">
+        {t("go_back")}
+      </Button>
+      {!twoFactorLostAccess ? (
+        <Button
+          onClick={() => {
+            setTwoFactorLostAccess(true);
+            setErrorMessage(null);
+            methods.setValue("totpCode", "");
+          }}
+          StartIcon={Lock}
+          color="minimal">
+          {t("lost_access")}
+        </Button>
+      ) : null}
+    </>
   );
 
   const ExternalTotpFooter = (
@@ -130,8 +157,9 @@ export default function Login({
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
     // we're logged in! let's do a hard refresh to the desired url
     else if (!res.error) router.push(callbackUrl);
-    // reveal two factor input if required
     else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
+    else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
@@ -160,6 +188,9 @@ export default function Login({
             ? LoginFooter
             : null
         }>
+        {isTeamInvite && (
+          <Alert severity="info" message={t("signin_or_signup_to_accept_invite")} className="mb-4 mt-4" />
+        )}
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
@@ -194,7 +225,7 @@ export default function Login({
                 </div>
               </div>
 
-              {twoFactorRequired && <TwoFactor center />}
+              {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
 
               {errorMessage && <Alert severity="error" title={errorMessage} />}
               <Button

@@ -63,11 +63,8 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getMembers"), () => import("./getMembers.handler"));
     return handler(opts);
   }),
-  adminGetUnverified: authedAdminProcedure.query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("adminGetUnverified"),
-      () => import("./adminGetUnverified.handler")
-    );
+  adminGetAll: authedAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("adminGetAll"), () => import("./adminGetAll.handler"));
     return handler(opts);
   }),
   adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async (opts) => {
