@@ -9,12 +9,11 @@
     "langchain": "^0.0.131",
     "mailparser": "^3.6.5",
     "next": "^13.4.6",
-    "zod": "^3.20.2"
+    "supports-color": "8.1.1",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@types/mailparser": "^3.4.0",
-    "@types/node": "^20.5.1",
-    "typescript": "^4.9.4"
+    "@types/mailparser": "^3.4.0"
   },
   "scripts": {
     "build": "next build",
