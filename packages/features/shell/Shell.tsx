@@ -369,7 +369,7 @@ function UserDropdown({ small }: UserDropdownProps) {
           <span
             className={classNames(
               small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full bg-gray-300"
+              "relative flex-shrink-0 rounded-full "
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}

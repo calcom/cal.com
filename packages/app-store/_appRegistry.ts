@@ -34,7 +34,7 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 export async function getAppRegistry() {
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
-    select: { dirName: true, slug: true, categories: true, enabled: true },
+    select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true },
   });
   const apps = [] as App[];
   const installCountPerApp = await getInstallCountPerApp();
@@ -44,7 +44,7 @@ export async function getAppRegistry() {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-
+    app.createdAt = dbapp.createdAt.toISOString();
     apps.push({
       ...app,
       category: app.category || "other",
@@ -101,6 +101,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
+    app.createdAt = dbapp.createdAt.toISOString();
     let dependencyData: {
       name?: string;
       installed?: boolean;

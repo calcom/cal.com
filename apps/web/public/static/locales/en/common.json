@@ -1102,7 +1102,7 @@
   "event_cancelled": "This event is canceled",
   "emailed_information_about_cancelled_event": "We emailed you and the other attendees to let them know.",
   "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
-  "meeting_url_in_conformation_email": "Meeting url is in the confirmation email",
+  "meeting_url_in_confirmation_email": "Meeting url is in the confirmation email",
   "url_start_with_https": "URL needs to start with http:// or https://",
   "number_provided": "Phone number will be provided",
   "before_event_trigger": "before event starts",
@@ -1112,6 +1112,7 @@
   "email_attendee_action": "send email to attendees",
   "sms_attendee_action": "Send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
+  "send_reminder_sms": "Easily send meeting reminders via SMS to your attendees",
   "whatsapp_number_action": "send WhatsApp message to a specific number",
   "whatsapp_attendee_action": "send WhatsApp message to attendee",
   "workflows": "Workflows",
@@ -2040,5 +2041,6 @@
   "team_no_event_types": "This team has no event types",
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
+  "recently_added":"Recently added",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
