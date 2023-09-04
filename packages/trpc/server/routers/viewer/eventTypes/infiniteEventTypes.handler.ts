@@ -26,31 +26,24 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
   }
 
   let teamConditional: Prisma.EventTypeWhereInput = {};
+
+  const whereConditional: Prisma.EventTypeWhereInput = {
+    userId,
+  };
+
   if (teamIds && teamIds.length === 1) {
+    whereConditional.userId = null;
     teamConditional = { teamId: teamIds[0] };
   } else if (teamIds && teamIds.length > 1) {
     teamConditional = { teamId: { in: teamIds } };
   }
 
-  const whereConditional: Prisma.EventTypeWhereInput = {
-    userId,
-    ...teamConditional,
-  };
-
   const skip = (page - 1) * pageSize;
-
-  // const selectWithTeam: Prisma.EventTypeSelect = {
-  //   team: {
-  //     select: {
-  //       id: true,
-  //       name: true,
-  //     },
-  //   },
-  // };
 
   const result = await prisma.eventType.findMany({
     where: {
       ...whereConditional,
+      ...teamConditional,
     },
     select: {
       id: true,
@@ -73,6 +66,7 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
         select: {
           id: true,
           slug: true,
+          name: true,
           members: {
             select: {
               userId: true,

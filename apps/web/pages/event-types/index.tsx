@@ -11,9 +11,10 @@ import { z } from "zod";
 import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
-import { EventTypeEmbedButton } from "@calcom/features/embed/EventTypeEmbed";
+import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -74,17 +75,15 @@ import {
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
+import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 type PaginateEventTypeViewer = RouterOutputs["viewer"]["eventTypes"]["paginate"];
 
 interface EventTypeListHeadingProps {
-  profile: {
-    name: string | null;
-    slug?: string | null;
-    username?: string | null;
-  };
+  teamSlugOrUsername: string;
+  teamNameOrUserName: string;
   membershipCount: number;
   teamId?: number | null;
   orgSlug?: string;
@@ -698,7 +697,8 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
 };
 
 const EventTypeListHeading = ({
-  profile,
+  teamSlugOrUsername,
+  teamNameOrUserName,
   membershipCount,
   teamId,
 }: EventTypeListHeadingProps): JSX.Element => {
@@ -707,7 +707,7 @@ const EventTypeListHeading = ({
   const orgBranding = useOrgBranding();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
-    onSuccess(data) {
+    onSuccess(data: { url: string }) {
       router.push(data.url);
     },
     onError: (error) => {
@@ -715,11 +715,11 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
-  const slug = profile?.slug || profile?.username;
+  const slug = teamSlugOrUsername;
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
-        alt={profile?.name || ""}
+        alt={teamNameOrUserName}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
         imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${slug}/avatar.png` || undefined}
         size="md"
@@ -729,7 +729,7 @@ const EventTypeListHeading = ({
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
           className="text-emphasis font-bold">
-          {profile?.name || ""}
+          {teamNameOrUserName}
         </Link>
         {membershipCount >= 0 && teamId && (
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
@@ -827,15 +827,24 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+const EmptyEventTypeList = ({
+  teamSlugOrUsername,
+  teamId,
+}: {
+  teamSlugOrUsername: string | null;
+  teamId?: number | null;
+}) => {
   const { t } = useLocale();
+  if (!teamSlugOrUsername && !teamId) {
+    return null;
+  }
   return (
     <>
       <EmptyScreen
         headline={t("team_no_event_types")}
         buttonRaw={
           <Button
-            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
+            href={`?dialog=new&eventPage=${teamSlugOrUsername}${teamId ? `&teamId=${teamId}` : ""}`}
             variant="button"
             className="mt-5">
             {t("create")}
@@ -850,14 +859,6 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
-
-  // if (!data || status === "loading") {
-  //   return <SkeletonLoader />;
-  // }
-
-  // if (status === "error") {
-  //   return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
-  // }
 
   // const isFilteredByOnlyOneItem =
   //   (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data?.eventTypeGroups.length === 1;
@@ -882,13 +883,22 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
     refetchOnWindowFocus: false,
   });
 
+  console.log({ teams });
+
   // After teams are fetched we then load event types for each team
   const eventTypePaginate = trpc.useQueries(
     (t) =>
       teams?.map((team) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [team.id] }), {
-        enabled: !!teams,
+        enabled: teams.length > 0,
       }) || []
   );
+
+  if (status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={error.message} />;
+  }
+  if (!data || status === "loading") {
+    return <SkeletonLoader />;
+  }
 
   if ((!!data && data.length > 1) || isFilteredByOnlyOneItem) {
     return (
@@ -898,46 +908,59 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
         ) : (
           <div className="mt-4 flex flex-col">
             <EventTypeListHeading
-              profile={data[0].users[0] || data[0].team}
+              teamSlugOrUsername={data[0].users[0].username || ""}
+              teamNameOrUserName={data[0].users[0].name || ""}
               membershipCount={data[0].team?.members.length || 0}
               teamId={data[0].teamId}
               orgSlug={orgBranding?.slug}
             />
 
             {data[0].length > 0 ? (
-              <EventTypeList data={data} readOnly={false} />
+              <EventTypeList data={data} />
             ) : (
-              <EmptyEventTypeList group={group} />
+              <EmptyEventTypeList teamSlugOrUsername={data[0].users[0].username ?? ""} />
             )}
 
             {/* Then we list team event types */}
-
             {eventTypePaginate.map((trpcFetch, index) => {
-              const { data, status, error } = trpcFetch;
+              const { data, status } = trpcFetch;
               const [eventTypes] = data || [];
               if ((status !== "success" && !!data) || data?.length === 0 || !eventTypes) {
                 return null;
               }
-              console.log("eventTypes", eventTypes);
+
+              // Type safety
+              if (!!!eventTypes.team) {
+                return null;
+              }
+
               return (
                 <>
                   <EventTypeListHeading
-                    profile={eventTypes.users[0] || eventTypes.team}
+                    key={index}
+                    teamSlugOrUsername={eventTypes.team.slug || ""}
+                    teamNameOrUserName={eventTypes.team.name || ""}
                     membershipCount={eventTypes.team?.members.length || 0}
                     teamId={eventTypes.teamId}
                     orgSlug={orgBranding?.slug}
                   />
 
                   {eventTypes.length > 0 ? (
-                    <EventTypeList data={data} readOnly={false} />
+                    <EventTypeList data={data} readOnly={false} key={index} />
                   ) : (
-                    <EmptyEventTypeList group={group} />
+                    <EmptyEventTypeList
+                      teamId={eventTypes.teamId}
+                      teamSlugOrUsername={eventTypes.team.slug || ""}
+                      key={index}
+                    />
                   )}
                 </>
               );
             })}
           </div>
         )}
+        <EventTypeEmbedDialog />
+        {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
       </>
     );
   } else if (!!data && data.length === 1) {
@@ -945,11 +968,6 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
   } else if (!!data && data.length === 0) {
     return <CreateFirstEventTypeView />;
   }
-
-  // <EventTypeEmbedDialog />;
-  // {
-  //   searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />;
-  // }
 };
 
 const EventTypesPage = () => {
@@ -961,40 +979,6 @@ const EventTypesPage = () => {
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
-
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  // const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
-  //   refetchOnWindowFocus: false,
-  //   cacheTime: 1 * 60 * 60 * 1000,
-  //   staleTime: 1 * 60 * 60 * 1000,
-  // });
-
-  // // We first load user event types and then team event types
-  // const { data, status, error } = trpc.viewer.eventTypes.paginate.useQuery(
-  //   {
-  //     page: 1,
-  //     pageSize: 10,
-  //   },
-  //   {
-  //     trpc: {
-  //       context: { skipBatch: true },
-  //     },
-  //   }
-  // );
-  // const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
-  //   // Teams don't change that frequently
-  //   refetchOnWindowFocus: false,
-  // });
-
-  // const eventTypePaginate = trpc.useQueries(
-  //   (t) =>
-  //     teams?.map((team) => t.viewer.eventTypes.paginate({ page: 1, pageSize: 10, teamIds: [team.id] }), {
-  //       enabled: !!teams,
-  //       trpc: {
-  //         context: { skipBatch: true },
-  //       },
-  //     }) || []
-  // );
 
   function closeBanner() {
     setShowProfileBanner(false);
