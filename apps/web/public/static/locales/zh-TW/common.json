@@ -1075,7 +1075,7 @@
   "event_cancelled": "此活動已取消",
   "emailed_information_about_cancelled_event": "我們已給您和其他與會者發送通知電子郵件。",
   "this_input_will_shown_booking_this_event": "輸入欄會在預約此活動的時候顯示",
-  "meeting_url_in_conformation_email": "會議網址請參見確認電子郵件",
+  "meeting_url_in_confirmation_email": "會議網址請參見確認電子郵件",
   "url_start_with_https": "URL 需要以 http:// 或 https:// 開頭",
   "number_provided": "將提供電話號碼",
   "before_event_trigger": "活動開始前",

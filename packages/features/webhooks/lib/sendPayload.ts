@@ -77,11 +77,7 @@ function getZapierPayload(
 }
 
 function applyTemplate(template: string, data: WebhookDataType, contentType: ContentType) {
-  const organizer = JSON.stringify(data.organizer);
-  const attendees = JSON.stringify(data.attendees);
-  const formattedData = { ...data, metadata: JSON.stringify(data.metadata), organizer, attendees };
-
-  const compiled = compile(template)(formattedData).replace(/&quot;/g, '"');
+  const compiled = compile(template)(data).replace(/&quot;/g, '"');
 
   if (contentType === "application/json") {
     return JSON.stringify(jsonParse(compiled));

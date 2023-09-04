@@ -24,6 +24,7 @@ type CreateOptions = {
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { schedulingType, teamId, metadata, ...rest } = input;
+
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   // Get Users default conferencing app
@@ -68,7 +69,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
+    const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+
+    if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

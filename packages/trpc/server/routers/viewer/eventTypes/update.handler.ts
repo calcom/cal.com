@@ -260,6 +260,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
       data.currency = default_currency;
     }
+    if (paymentCredential?.type === "paypal_payment" && input.metadata?.apps?.paypal?.currency) {
+      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
+    }
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
