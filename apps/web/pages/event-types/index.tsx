@@ -674,6 +674,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
+          isLoading={deleteMutation.isLoading}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
