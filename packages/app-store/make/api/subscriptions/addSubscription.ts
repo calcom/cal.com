@@ -11,7 +11,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "No API key provided" });
   }
 
-  const validKey = await findValidApiKey(apiKey, "zapier");
+  const validKey = await findValidApiKey(apiKey, "make");
 
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
@@ -23,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     appApiKey: validKey,
     triggerEvent: triggerEvent,
     subscriberUrl: subscriberUrl,
-    appId: "zapier",
+    appId: "make",
   });
 
   if (!createAppSubscription) {
