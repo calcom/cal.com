@@ -638,7 +638,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center md:max-w-4xl">
+        <div className="mx-auto max-w-full justify-center  md:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>
@@ -681,12 +681,12 @@ type SidebarContainerElementProps = {
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
-function ShellHeader() {
+export function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="border-subtle mb-8 flex w-full items-center border-b pb-6">
+    <header className="border-subtle mx-auto block justify-between border px-2 py-6 sm:flex lg:px-6">
+      <div className="flex w-full items-center">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <ArrowLeft className="mr-7" />

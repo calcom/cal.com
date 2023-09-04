@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
-import type { BaseSyntheticEvent } from "react";
+import type { BaseSyntheticEvent, ReactNode } from "react";
 import React, { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -255,11 +255,13 @@ const ProfileView = () => {
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-        <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
-            {t("delete_account")}
-          </Button>
-        </DialogTrigger>
+        <CommonBox>
+          <DialogTrigger asChild>
+            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
+              {t("delete_account")}
+            </Button>
+          </DialogTrigger>
+        </CommonBox>
         <DialogContent
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
@@ -399,53 +401,66 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   return (
-    <Form form={formMethods} handleSubmit={onSubmit}>
-      <div className="flex items-center">
-        <Controller
-          control={formMethods.control}
-          name="avatar"
-          render={({ field: { value } }) => (
-            <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
-              <div className="ms-4">
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("change_avatar")}
-                  handleAvatarChange={(newAvatar) => {
-                    formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
-                  }}
-                  imageSrc={value || undefined}
-                />
-              </div>
-            </>
-          )}
-        />
-      </div>
-      {extraField}
-      <div className="mt-8">
-        <TextField label={t("full_name")} {...formMethods.register("name")} />
-      </div>
-      <div className="mt-8">
-        <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
-      </div>
-      <div className="mt-8">
-        <Label>{t("about")}</Label>
-        <Editor
-          getText={() => md.render(formMethods.getValues("bio") || "")}
-          setText={(value: string) => {
-            formMethods.setValue("bio", turndown(value), { shouldDirty: true });
-          }}
-          excludedToolbarItems={["blockType"]}
-          disableLists
-          firstRender={firstRender}
-          setFirstRender={setFirstRender}
-        />
-      </div>
-      <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
-        {t("update")}
-      </Button>
-    </Form>
+    <div>
+      <Form
+        className="border-subtle border border-b-0 border-t-0 px-6 pb-10 pt-8"
+        form={formMethods}
+        handleSubmit={onSubmit}>
+        <div className="flex items-center">
+          <Controller
+            control={formMethods.control}
+            name="avatar"
+            render={({ field: { value } }) => (
+              <>
+                <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+                <div className="ms-4">
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("change_avatar")}
+                    handleAvatarChange={(newAvatar) => {
+                      formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
+                    }}
+                    imageSrc={value || undefined}
+                  />
+                </div>
+              </>
+            )}
+          />
+        </div>
+        {extraField}
+        <div className="mt-8">
+          <TextField label={t("full_name")} {...formMethods.register("name")} />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        </div>
+        <div className="mt-8">
+          <Label>{t("about")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("bio") || "")}
+            setText={(value: string) => {
+              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+            }}
+            excludedToolbarItems={["blockType"]}
+            disableLists
+            firstRender={firstRender}
+            setFirstRender={setFirstRender}
+          />
+        </div>
+      </Form>
+      <CommonBox>
+        <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
+          {t("update")}
+        </Button>
+      </CommonBox>
+    </div>
+  );
+};
+
+const CommonBox = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="border-subtle bg-muted flex justify-end rounded-b-xl border px-6 py-4">{children}</div>
   );
 };
 
