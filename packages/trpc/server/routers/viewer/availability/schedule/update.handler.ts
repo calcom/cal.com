@@ -38,9 +38,30 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
-  if (userSchedule?.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (userSchedule?.userId !== user.id) {
+    // Check if the user is an of a membership that has access to the schedule
+    const membershipOverlap = await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        team: {
+          members: {
+            some: { id: userSchedule?.userId },
+          },
+        },
+        role: {
+          in: ["OWNER", "ADMIN"],
+        },
+      },
+    });
 
-  if (!userSchedule || userSchedule.userId !== user.id) {
+    if (!membershipOverlap.length) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+  }
+
+  if (!userSchedule) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
