@@ -46,7 +46,7 @@
     "embed-tests-quick": "turbo run embed-tests-quick",
     "embed-tests": "turbo run embed-tests",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
-    "env-check:common": "dotenv-checker --schema .env.example --env .env",
+    "env-check:common": "dotenv-checker --schema .env --env .env",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint:fix": "turbo run lint:fix",
