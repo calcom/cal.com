@@ -163,8 +163,32 @@ export async function getEventType(
   const userIdsRecords =
     await prisma.$queryRaw`SELECT "_user_eventtype"."B" FROM "_user_eventtype" WHERE "_user_eventtype"."A" = ${eventTypeId}`;
 
+  const hosts = await prisma.host.findMany({
+    where: {
+      eventTypeId,
+    },
+    select: {
+      isFixed: true,
+      user: {
+        select: {
+          id: true,
+          credentials: true,
+          timeZone: true,
+          bufferTime: true,
+          startTime: true,
+          username: true,
+          endTime: true,
+          timeFormat: true,
+          defaultScheduleId: true,
+          availability: true,
+          selectedCalendars: true,
+        },
+      },
+    },
+  });
+
   const userIds = userIdsRecords.map((r) => r.B);
-  const [availability, schedule, hosts, users, schedules] = await Promise.all([
+  const [availability, schedule, users, schedules] = await Promise.all([
     prisma.availability.findFirst({
       where: {
         eventTypeId,
@@ -183,20 +207,6 @@ export async function getEventType(
       select: {
         availability: true,
         timeZone: true,
-      },
-    }),
-    prisma.host.findMany({
-      where: {
-        eventTypeId,
-      },
-      select: {
-        isFixed: true,
-        user: {
-          select: {
-            credentials: true,
-            ...availabilityUserSelect,
-          },
-        },
       },
     }),
     prisma.user.findMany({
@@ -222,7 +232,7 @@ export async function getEventType(
     prisma.schedule.findMany({
       where: {
         userId: {
-          in: userIds,
+          in: userIds.concat(hosts.map((h) => h.userId)),
         },
       },
       select: {
@@ -249,6 +259,12 @@ export async function getEventType(
   for (let i = 0; i < eventType.users.length; i++) {
     eventType.users[i].schedules = groupedSchedules.hasOwnProperty(eventType.users[i].id)
       ? groupedSchedules[eventType.users[i].id]
+      : [];
+  }
+
+  for (let i = 0; i < eventType.hosts.length; i++) {
+    eventType.hosts[i].user.schedules = groupedSchedules.hasOwnProperty(eventType.hosts[i].userId)
+      ? groupedSchedules[eventType.hosts[i].userId]
       : [];
   }
 
