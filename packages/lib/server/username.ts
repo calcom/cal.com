@@ -5,6 +5,7 @@ import prisma from "@calcom/prisma";
 
 import notEmpty from "../../../apps/website/lib/utils/notEmpty";
 import { wordlist } from "../../../apps/website/lib/utils/wordlist/wordlist";
+import { IS_CALCOM } from "../constants";
 
 export type RequestWithUsernameStatus = NextApiRequest & {
   usernameStatus: {
@@ -47,6 +48,20 @@ const usernameHandler =
   (handler: CustomNextApiHandler) =>
   async (req: RequestWithUsernameStatus, res: NextApiResponse): Promise<void> => {
     const username = slugify(req.body.username);
+    // If we're not in Calcom, we don't need to check for premium usernames
+    if (!IS_CALCOM) {
+      req.usernameStatus = {
+        statusCode: 200,
+        requestedUserName: username,
+        json: {
+          available: true,
+          premium: false,
+          message: "Username is available",
+        },
+      };
+      return handler(req, res);
+    }
+
     const check = await usernameCheck(username);
 
     req.usernameStatus = {

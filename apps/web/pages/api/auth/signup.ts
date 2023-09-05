@@ -33,7 +33,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     ensurePostMethod(req);
     throwIfSignupIsDisabled();
     const { email, password, language, token, username } = parseSignupData(req.body);
-    await findExistingUser(username, email);
     const hashedPassword = await hashPassword(password);
 
     const customer = await createStripeCustomer({
@@ -47,6 +46,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
 
     if (!token) {
+      await findExistingUser(username, email);
+
       // Create the user
       const user = await createUser({
         username,
@@ -107,7 +108,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
     return res.status(201).json({ message: "Created user" });
   } catch (e) {
-    console.log(e);
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
     }
