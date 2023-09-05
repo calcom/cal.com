@@ -134,7 +134,6 @@ export async function getEventType(
   }
 
   const startSecondPrismaEventTypeGet = performance.now();
-  const queries = [];
   const eventType = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
@@ -249,6 +248,11 @@ export async function getEventType(
       },
     }),
   ]);
+
+  console.log("availability", availability);
+  console.log("schedule", schedule);
+  console.log("hosts", hosts);
+  console.log("users", users);
 
   const queriesEnd = performance.now();
   console.log("queries", queriesEnd - queriesStart);
