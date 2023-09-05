@@ -133,7 +133,6 @@ export async function getEventType(
     return null;
   }
 
-  const startSecondPrismaEventTypeGet = performance.now();
   const eventType = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
@@ -158,29 +157,13 @@ export async function getEventType(
       periodCountCalendarDays: true,
       periodDays: true,
       metadata: true,
-      // THIS IS SUPER SLOW - Adds around 600ms on QA database
-      // users: {
-      //   select: {
-      //     id: true,
-      //     credentials: true,
-      //     //...availabilityUserSelect,
-      //   },
-      // },
     },
   });
 
-  const endSecondPrismaEventTypeGet = performance.now();
-  console.log("secondGetEventType", endSecondPrismaEventTypeGet - startSecondPrismaEventTypeGet);
-
-  const startUserEventTypeGet = performance.now();
   const userIdsRecords =
     await prisma.$queryRaw`SELECT "_user_eventtype"."B" FROM "_user_eventtype" WHERE "_user_eventtype"."A" = ${eventTypeId}`;
-  const endUserEventTypeGet = performance.now();
-  console.log("_user_eventtype", endUserEventTypeGet - startUserEventTypeGet);
 
   const userIds = userIdsRecords.map((r) => r.B);
-
-  const queriesStart = performance.now();
   const [availability, schedule, hosts, users, schedules] = await Promise.all([
     prisma.availability.findFirst({
       where: {
@@ -259,13 +242,7 @@ export async function getEventType(
     }),
   ]);
 
-  const queriesEnd = performance.now();
-  console.log("queries", queriesEnd - queriesStart);
-
-  if (!eventType.users || eventType.users.length == 0) {
-    eventType.users = users;
-  }
-
+  eventType.users = users;
   eventType.hosts = hosts;
   eventType.availability = availability;
   eventType.schedule = schedule;
