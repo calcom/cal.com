@@ -402,7 +402,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           )}
                         />
                       )}
-                      {isManagedEventType && type.children && (
+                      {isManagedEventType && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"

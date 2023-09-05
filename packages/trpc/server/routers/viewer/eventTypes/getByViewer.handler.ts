@@ -32,10 +32,11 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
 });
 
-const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
   position: true,
   hashedLink: true,
+  locations: true,
   destinationCalendar: true,
   userId: true,
   team: {
@@ -52,7 +53,6 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
-  // Temporarily putting this back for testing
   children: {
     include: {
       users: {
@@ -70,17 +70,6 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   seatsPerTimeSlot: true,
   ...baseEventTypeSelect,
-});
-
-const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  ...userEventTypeSelect,
-  // children: {
-  //   include: {
-  //     users: {
-  //       select: userSelect,
-  //     },
-  //   },
-  // },
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
@@ -129,7 +118,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 },
               },
               eventTypes: {
-                select: teamEventTypeSelect,
+                select: eventTypeSelect,
                 orderBy: [
                   {
                     position: "desc",
@@ -145,12 +134,10 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       },
       eventTypes: {
         where: {
-          teamId: null,
+          team: null,
           userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
         },
-        select: {
-          ...userEventTypeSelect,
-        },
+        select: eventTypeSelect,
         orderBy: [
           {
             position: "desc",

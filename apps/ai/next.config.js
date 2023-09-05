@@ -8,11 +8,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: "/",
-        destination: "https://cal.com/ai",
+        source: '/',
+        destination: 'https://cal.com/ai',
         permanent: true,
       },
-    ];
+    ]
   },
   i18n: {
     defaultLocale: "en",
@@ -22,3 +22,4 @@ const nextConfig = {
 };
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+
