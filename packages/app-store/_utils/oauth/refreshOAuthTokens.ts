@@ -12,7 +12,6 @@ const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, u
         appSlug,
       }),
     });
-    console.log("🚀 ~ file: refreshOAuthTokens.ts:15 ~ refreshOAuthTokens ~ response:", response);
     return response;
   } else {
     const response = await refreshFunction();
