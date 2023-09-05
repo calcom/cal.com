@@ -1375,7 +1375,6 @@ async function handler(
           }
 
           if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
-            console.log("NO_EMAIL_RESCHEDULE", requiresConfirmation, isOrganizerRescheduling);
             const copyEvent = cloneDeep(evt);
             await sendRescheduledEmails({
               ...copyEvent,
@@ -1496,7 +1495,6 @@ async function handler(
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
           if (!requiresConfirmation || isOrganizerRescheduling) {
-            console.log("SEND_RESCHEDULED", requiresConfirmation, isOrganizerRescheduling);
             // TODO send reschedule emails to attendees of the old booking
             await sendRescheduledEmails({
               ...copyEvent,
@@ -2102,7 +2100,6 @@ async function handler(
         }
       }
       if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
-        console.log("TEST_SEND_RESCHEDULED", requiresConfirmation, isOrganizerRescheduling);
         const copyEvent = cloneDeep(evt);
         await sendRescheduledEmails({
           ...copyEvent,
