@@ -134,6 +134,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="wellKnownUrl"
                   label="Well-Known URL"
+                  data-testid="sso-oidc-well-known-url"
                   value={value}
                   onChange={(e) => {
                     form.setValue("wellKnownUrl", e?.target.value);
@@ -154,7 +155,7 @@ const CreateConnectionDialog = ({
               tabIndex={-1}>
               {t("cancel")}
             </Button>
-            <Button type="submit" loading={form.formState.isSubmitting}>
+            <Button type="submit" data-testid="sso-oidc-save" loading={form.formState.isSubmitting}>
               {t("save")}
             </Button>
           </DialogFooter>
