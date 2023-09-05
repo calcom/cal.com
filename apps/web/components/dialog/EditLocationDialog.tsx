@@ -111,9 +111,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             const sampleUrl = eventLocationType.organizerInputPlaceholder;
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: `Invalid URL for ${eventLocationType.label}. ${
-                sampleUrl ? "Sample URL: " + sampleUrl : ""
-              }`,
+              message: `Invalid URL for ${eventLocationType.label}. ${sampleUrl ? "Sample URL: " + sampleUrl : ""
+                }`,
             });
           }
           return;
