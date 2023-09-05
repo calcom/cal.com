@@ -82,7 +82,7 @@ export async function acceptAllInvitesWithTeamId(userId: number, teamId: number)
   return membership;
 }
 
-export async function joinOrgAndAcceptChildInivtes(userId: number, orgId: number) {
+export async function joinOrgAndAcceptChildInvites(userId: number, orgId: number) {
   // Join ORG
   await prisma.user.update({
     where: {

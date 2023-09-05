@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 
+import { PREMIUM_MONTHLY_PLAN_PRICE } from "@calcom/app-store/stripepayment/lib";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { IS_CALCOM, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -67,6 +68,7 @@ export function parseSignupData(data: unknown) {
 export async function createStripeCustomer({ email, username }: { email: string; username: string }) {
   // Create the customer in Stripe
   if (!IS_STRIPE_ENABLED) return;
+  console.log("Creating Stripe customer");
   const customer = await stripe.customers.create({
     email,
     metadata: {
@@ -74,7 +76,6 @@ export async function createStripeCustomer({ email, username }: { email: string;
       username,
     },
   });
-
   return customer;
 }
 
@@ -85,8 +86,7 @@ export async function handlePremiumUsernameFlow({
   premiumUsernameStatusCode: number;
   customer?: Stripe.Customer;
 }) {
-  if (!IS_CALCOM) return;
-  if (!IS_STRIPE_ENABLED) return;
+  if (!IS_STRIPE_ENABLED || !PREMIUM_MONTHLY_PLAN_PRICE || !IS_CALCOM) return;
 
   if (!customer) {
     throw new HttpError({
@@ -94,6 +94,11 @@ export async function handlePremiumUsernameFlow({
       message: "Missing customer",
     });
   }
+
+  const metadata: {
+    stripeCustomerId?: string;
+    checkoutSessionId?: string;
+  } = {};
 
   const returnUrl = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/auth/verify?sessionId={CHECKOUT_SESSION_ID}`;
 

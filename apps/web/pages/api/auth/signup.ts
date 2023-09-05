@@ -16,7 +16,7 @@ import {
   acceptAllInvitesWithTeamId,
   findTeam,
   upsertUsersPasswordAndVerify,
-  joinOrgAndAcceptChildInivtes,
+  joinOrgAndAcceptChildInvites,
   cleanUpInviteToken,
 } from "@calcom/feature-auth/lib/signup/teamInviteUtils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -87,7 +87,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
           const membership = await acceptAllInvitesWithTeamId(user.id, team.id);
           closeComUpsertTeamUser(team, user, membership.role);
           if (team.parentId) {
-            await joinOrgAndAcceptChildInivtes(user.id, team.parentId);
+            await joinOrgAndAcceptChildInvites(user.id, team.parentId);
           }
           await cleanUpInviteToken(foundToken.id);
         }
@@ -108,6 +108,9 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
     return res.status(201).json({ message: "Created user" });
   } catch (e) {
+    console.log({
+      e,
+    });
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
     }
