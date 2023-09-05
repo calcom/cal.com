@@ -7,6 +7,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -52,7 +53,17 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
-      throw new Error(err.message);
+      if (err.checkoutSessionId) {
+        const stripe = await getStripe();
+        if (stripe) {
+          const { error } = await stripe.redirectToCheckout({
+            sessionId: err.checkoutSessionId,
+          });
+          console.warn(error.message);
+        }
+      } else {
+        throw new Error(err.message);
+      }
     }
   };
 
