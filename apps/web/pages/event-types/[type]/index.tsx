@@ -444,7 +444,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
         disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
-        currentUserMembership={currentUserMembership}>
+        currentUserMembership={currentUserMembership}
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}
           id="event-type-form"
