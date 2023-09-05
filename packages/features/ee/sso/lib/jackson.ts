@@ -4,6 +4,7 @@ import type {
   IOAuthController,
   JacksonOption,
   ISPSAMLConfig,
+  IDirectorySyncController,
 } from "@boxyhq/saml-jackson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -31,20 +32,28 @@ declare global {
   var connectionController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
   var samlSPConfig: ISPSAMLConfig | undefined;
+  var dsyncController: IDirectorySyncController | undefined;
   /* eslint-enable no-var */
 }
 
 export default async function init() {
-  if (!globalThis.connectionController || !globalThis.oauthController || !globalThis.samlSPConfig) {
+  if (
+    !globalThis.connectionController ||
+    !globalThis.oauthController ||
+    !globalThis.samlSPConfig ||
+    !globalThis.dsyncController
+  ) {
     const ret = await jackson(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.samlSPConfig = ret.spConfig;
+    globalThis.dsyncController = ret.directorySyncController;
   }
 
   return {
     connectionController: globalThis.connectionController,
     oauthController: globalThis.oauthController,
     samlSPConfig: globalThis.samlSPConfig,
+    dsyncController: globalThis.dsyncController,
   };
 }

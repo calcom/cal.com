@@ -32,6 +32,7 @@ const ENDPOINTS = [
   "payments",
   "public",
   "saml",
+  "dsync",
   "slots",
   "teams",
   "organizations",
