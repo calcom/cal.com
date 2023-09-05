@@ -45,7 +45,7 @@ type BookEventFormProps = {
 type DefaultValues = Record<string, unknown>;
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
-  let uid = "";
+  const uid = useRef("");
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
       context: {
@@ -55,7 +55,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     onSuccess: (data) => {
       // uid is required to pass as input to removeSelectedSlotMark endpoint
       // as in case of embed, uid is not passed in cookie
-      uid = data?.uid;
+      uid.current = data?.uid;
     },
   });
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
@@ -92,7 +92,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     return () => {
       if (eventType) {
-        removeSelectedSlot.mutate({ uid: uid });
+        removeSelectedSlot.mutate({ uid: uid.current });
       }
       clearInterval(interval);
     };
