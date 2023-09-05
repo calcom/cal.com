@@ -159,7 +159,7 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
-    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
 
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
@@ -205,7 +205,7 @@ const SettingsSidebarContainer = ({
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
