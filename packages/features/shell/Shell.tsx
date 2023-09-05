@@ -12,7 +12,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -21,8 +20,14 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -79,7 +84,6 @@ import {
 import { Discord } from "@calcom/ui/components/icon/Discord";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
-import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
@@ -791,14 +795,11 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
-  const orgBranding = useOrgBranding();
-  const isOrgBrandingDataFetched = orgBranding !== undefined;
 
   const publicPageUrl = useMemo(() => {
-    if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
-    return publicPageUrl;
-  }, [orgBranding?.slug, user?.organizationId, user?.username]);
+    if (!user?.org || !user?.org?.url) return `${WEBSITE_URL}/${user?.username}`;
+    return user.org.url;
+  }, [user?.org, user?.username]);
 
   const bottomNavItems: NavigationItemType[] = [
     {
@@ -819,7 +820,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     },
     {
       name: "settings",
-      href: user?.organizationId ? `/settings/organizations/profile` : "/settings/my-account/profile",
+      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: Settings,
     },
   ];
@@ -830,16 +831,16 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
-            {!isOrgBrandingDataFetched ? null : orgBranding ? (
+            {user?.org ? (
               <Link href="/settings/organizations/profile" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
-                    alt={`${orgBranding.name} logo`}
-                    imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
+                    alt={`${user?.org.name} logo`}
+                    imageSrc={`${user.org.url ?? WEBAPP_URL}/avatar.png`}
                     size="xsm"
                   />
                   <p className="text line-clamp-1 text-sm">
-                    <span>{orgBranding.name}</span>
+                    <span>{user?.org?.name}</span>
                   </p>
                 </div>
               </Link>
@@ -866,7 +867,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
-              {!!orgBranding && (
+              {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
                   <UserDropdown small />
                 </div>

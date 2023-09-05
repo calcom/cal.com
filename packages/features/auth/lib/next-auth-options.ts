@@ -8,6 +8,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,7 +18,7 @@ import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -51,6 +52,17 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
     const metadata = teamMetadataSchema.safeParse(m.team.metadata);
 
     return metadata.success && metadata.data?.subscriptionId;
+  });
+
+export const checkIfUserIsOrgAdmin = <T extends UserTeams>(user: T) =>
+  user.teams.some((m: { team: { metadata: unknown }; role: MembershipRole }) => {
+    const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+
+    return (
+      metadata.success &&
+      metadata.data?.isOrganization &&
+      (m.role === MembershipRole.ADMIN || m.role === MembershipRole.OWNER)
+    );
   });
 
 const providers: Provider[] = [
@@ -402,7 +414,15 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
-            organizationId: true,
+            organization: {
+              select: {
+                id: true,
+                logo: true,
+                name: true,
+                slug: true,
+                metadata: true,
+              },
+            },
             role: true,
             locale: true,
             teams: {
@@ -419,12 +439,26 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
+
+        // Check if existingUser is org admin
+        const isOrgAdmin = checkIfUserIsOrgAdmin(existingUser);
+        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
+          org: organization
+            ? {
+                id: organization.id,
+                slug: organization.slug,
+                name: organization.name,
+                requestedSlug: parsedOrgMetadata?.requestedSlug,
+                url: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug),
+                isOrgAdmin,
+              }
+            : undefined,
         };
       };
       if (!user) {
@@ -448,7 +482,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
-          organizationId: user?.organizationId,
+          org: user?.org,
           locale: user?.locale,
         };
       }
@@ -487,7 +521,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: existingUser.locale,
         };
       }
@@ -507,7 +541,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: token.locale,
         },
       };

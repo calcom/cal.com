@@ -2,7 +2,6 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
@@ -54,7 +53,7 @@ export const AddNewTeamMembersForm = ({
 
   const router = useRouter();
   const utils = trpc.useContext();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
@@ -67,7 +66,7 @@ export const AddNewTeamMembersForm = ({
       distinctUser: true,
     },
     {
-      enabled: orgBranding !== null,
+      enabled: !!session?.user.org,
     }
   );
 
@@ -172,18 +171,18 @@ export const AddNewTeamMembersForm = ({
       )}
       <hr className="border-subtle my-6" />
       <Button
-        EndIcon={!orgBranding ? ArrowRight : undefined}
+        EndIcon={!session?.user.org ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
-          if (orgBranding) {
+          if (session?.user.org) {
             router.push("/settings/teams");
           } else {
             publishTeamMutation.mutate({ teamId });
           }
         }}>
-        {t(orgBranding ? "finish" : "team_publish")}
+        {t(session?.user.org ? "finish" : "team_publish")}
       </Button>
     </>
   );
@@ -215,7 +214,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const session = useSession();
   const bookerUrl = useBookerUrl();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {

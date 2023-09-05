@@ -1,3 +1,6 @@
+import { useSession } from "next-auth/react";
+
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -15,8 +18,6 @@ import {
 } from "@calcom/ui";
 import { Edit2, ExternalLink, Link as LinkIcon, MoreHorizontal } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../../organizations/context/provider";
-
 interface Props {
   team: RouterOutputs["viewer"]["organizations"]["listOtherTeams"][number];
   key: number;
@@ -31,9 +32,9 @@ export default function OtherTeamListItem(props: Props) {
 
   const team = props.team;
 
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
-  const { hideDropdown, setHideDropdown } = props;
+  const { hideDropdown } = props;
 
   if (!team) return <></>;
 
@@ -48,11 +49,7 @@ export default function OtherTeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug
-            ? orgBranding
-              ? `${orgBranding.fullDomain}/${team.slug}`
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
-            : "Unpublished team"}
+          {team.slug ? `${session?.user.org?.url ?? `${WEBSITE_URL}/team`}/${team.slug}` : "Unpublished team"}
         </span>
       </div>
     </div>
@@ -71,11 +68,7 @@ export default function OtherTeamListItem(props: Props) {
                     color="secondary"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        `${
-                          orgBranding
-                            ? `${orgBranding.fullDomain}`
-                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
-                        }/${team.slug}`
+                        `${session?.user.org?.url ?? `${WEBSITE_URL}/team`}/${team.slug}`
                       );
                       showToast(t("link_copied"), "success");
                     }}
@@ -109,11 +102,7 @@ export default function OtherTeamListItem(props: Props) {
                       <DropdownItem
                         type="button"
                         target="_blank"
-                        href={`${
-                          orgBranding
-                            ? `${orgBranding.fullDomain}`
-                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
-                        }/${team.slug}`}
+                        href={`${session?.user.org?.url ?? WEBSITE_URL}/team/other/${team.slug}`}
                         StartIcon={ExternalLink}>
                         {t("preview_team") as string}
                       </DropdownItem>

@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -6,6 +7,7 @@ import { useState } from "react";
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -40,7 +42,6 @@ import {
   X,
 } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
 import { TeamRole } from "./TeamPill";
 
 interface Props {
@@ -84,7 +85,7 @@ export default function TeamListItem(props: Props) {
 
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
@@ -104,11 +105,7 @@ export default function TeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug
-            ? orgBranding
-              ? `${orgBranding.fullDomain}/${team.slug}`
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
-            : "Unpublished team"}
+          {team.slug ? `${session?.user.org?.url ?? `${WEBSITE_URL}/team`}/${team.slug}` : "Unpublished team"}
         </span>
       </div>
     </div>
@@ -238,11 +235,7 @@ export default function TeamListItem(props: Props) {
                       color="secondary"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `${
-                            orgBranding
-                              ? `${orgBranding.fullDomain}`
-                              : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
-                          }/${team.slug}`
+                          `${session?.user.org?.url ?? `${WEBSITE_URL}/team`}/${team.slug}`
                         );
                         showToast(t("link_copied"), "success");
                       }}
@@ -278,11 +271,7 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           target="_blank"
-                          href={`${
-                            orgBranding
-                              ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
-                          }/${team.slug}`}
+                          href={`${session?.user.org?.url ?? `${WEBSITE_URL}/team`}/${team.slug}`}
                           StartIcon={ExternalLink}>
                           {t("preview_team") as string}
                         </DropdownItem>

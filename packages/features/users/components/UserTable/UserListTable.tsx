@@ -9,7 +9,6 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
 
-import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
@@ -112,7 +111,6 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
 
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -126,7 +124,7 @@ export function UserListTable() {
     );
 
   const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
-  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
+  const domain = session?.user.org?.url ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {

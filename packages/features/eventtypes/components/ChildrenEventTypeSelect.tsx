@@ -1,8 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useSession } from "next-auth/react";
 import type { Props } from "react-select";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +35,7 @@ export const ChildrenEventTypeSelect = ({
   onChange: (value: readonly ChildrenEventType[]) => void;
 }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
@@ -63,9 +62,7 @@ export const ChildrenEventTypeSelect = ({
               <Avatar
                 size="mdLg"
                 className="overflow-visible"
-                imageSrc={`${orgBranding ? getOrgFullDomain(orgBranding.slug) : CAL_URL}/${
-                  children.owner.username
-                }/avatar.png`}
+                imageSrc={`${session?.user.org?.url ?? CAL_URL}/${children.owner.username}/avatar.png`}
                 alt={children.owner.name || children.owner.email || ""}
               />
               <div className="flex w-full flex-row justify-between">
