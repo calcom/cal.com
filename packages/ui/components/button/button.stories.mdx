@@ -1,4 +1,6 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
 import {
   Examples,
   Example,
@@ -8,31 +10,33 @@ import {
   VariantColumn,
   RowTitles,
   CustomArgsTable,
-  VariantRow
+  VariantRow,
 } from "@calcom/storybook/components";
-import { Plus, X } from '../icon';
-import { Button } from './Button';
+
+import { Plus, X } from "../icon";
+import { Button } from "./Button";
 
 <Meta title="UI/Button" component={Button} />
 
-<Title title="Buttons" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
-
+<Title title="Buttons" suffix="Brief" subtitle="Version 2.1 — Last Update: 24 Aug 2023" />
 
 ## Definition
+
 Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
 
 ## Structure
 
 <CustomArgsTable of={Button} />
 
-
-<Examples title="Button style" footnote={
-  <ul>
-  <li>Primary: Signals most important actions at any given point in the application.</li>
-  <li>Secondary: Gives visual weight to actions that are important</li>
-  <li>Minimal: Used for actions that we want to give very little significane to</li>
-  </ul>
-}>
+<Examples
+  title="Button style"
+  footnote={
+    <ul>
+      <li>Primary: Signals most important actions at any given point in the application.</li>
+      <li>Secondary: Gives visual weight to actions that are important</li>
+      <li>Minimal: Used for actions that we want to give very little significane to</li>
+    </ul>
+  }>
   <Example title="Primary">
     <Button className="sb-fake-pseudo--focus">Button text</Button>
   </Example>
@@ -49,7 +53,7 @@ Button are clickable elements that initiates user actions. Labels in the button 
     <Button>Button text</Button>
   </Example>
   <Example title="Hover">
-      <Button className="sb-pseudo--hover">Button text</Button>
+    <Button className="sb-pseudo--hover">Button text</Button>
   </Example>
   <Example title="Focus">
     <Button className="sb-pseudo--focus">Button text</Button>
@@ -67,7 +71,7 @@ Button are clickable elements that initiates user actions. Labels in the button 
     <Button>Button text</Button>
   </Example>
   <Example title="Icon left">
-      <Button StartIcon={Plus}>Button text</Button>
+    <Button StartIcon={Plus}>Button text</Button>
   </Example>
   <Example title="Icon right">
     <Button EndIcon={Plus}>Button text</Button>
@@ -76,30 +80,34 @@ Button are clickable elements that initiates user actions. Labels in the button 
 
 <Examples title="Icons">
   <Example title="Icon Normal">
-      <Button StartIcon={X} variant="icon" size="base" color="minimal"></Button>
+    <Button StartIcon={X} variant="icon" size="base" color="minimal"></Button>
   </Example>
   <Example title="Icon Small">
-      <Button StartIcon={X} variant="icon" size="sm" color="minimal"></Button>
+    <Button StartIcon={X} variant="icon" size="sm" color="minimal"></Button>
   </Example>
-   <Example title="Icon Loading">
-      <Button StartIcon={X} variant="icon" size="sm" color="minimal" loading></Button>
+  <Example title="Icon Loading">
+    <Button StartIcon={X} variant="icon" size="sm" color="minimal" loading></Button>
   </Example>
 </Examples>
 
 ## Anatomy
+
 Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
 
 ## Usage
 
 <Note>In general, there should be only one Primary button in any application context</Note>
-<Note>Aim to use maximum 2 words for the button label. Button size can be flexible based on the visual hierarchy and devices. </Note>
+<Note>
+  Aim to use maximum 2 words for the button label. Button size can be flexible based on the visual hierarchy
+  and devices.{" "}
+</Note>
 <Note>Hover state variant for Mobile button is an option for assistive device.</Note>
 
 <Title offset title="Buttons" suffix="Variants" />
 
 <Canvas>
   <Story name="All variants">
-    <VariantsTable titles={['Primary', 'Secondary', 'Minimal', 'Destructive',"Icon"]} columnMinWidth={150}>
+    <VariantsTable titles={["Primary", "Secondary", "Minimal", "Destructive", "Icon"]} columnMinWidth={150}>
       <VariantRow variant="Default">
         <Button>Button text</Button>
         <Button color="secondary">Button text</Button>
@@ -109,94 +117,128 @@ Button are clickable elements that initiates user actions. Labels in the button 
       </VariantRow>
       <VariantRow variant="Hover">
         <Button className="sb-pseudo--hover">Button text</Button>
-        <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
-        <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
-        <Button className="sb-pseudo--hover" color="destructive">Button text</Button>
+        <Button className="sb-pseudo--hover" color="secondary">
+          Button text
+        </Button>
+        <Button className="sb-pseudo--hover" color="minimal">
+          Button text
+        </Button>
+        <Button className="sb-pseudo--hover" color="destructive">
+          Button text
+        </Button>
         <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={X}></Button>
       </VariantRow>
       <VariantRow variant="Focus">
         <Button className="sb-pseudo--focus">Button text</Button>
-        <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
-        <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
-        <Button className="sb-pseudo--focus" color="destructive">Button text</Button>
+        <Button className="sb-pseudo--focus" color="secondary">
+          Button text
+        </Button>
+        <Button className="sb-pseudo--focus" color="minimal">
+          Button text
+        </Button>
+        <Button className="sb-pseudo--focus" color="destructive">
+          Button text
+        </Button>
         <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={X}></Button>
       </VariantRow>
       <VariantRow variant="Loading">
         <Button loading>Button text</Button>
-        <Button loading color="secondary">Button text</Button>
-        <Button loading color="minimal">Button text</Button>
-        <Button loading color="destructive">Button text</Button>
+        <Button loading color="secondary">
+          Button text
+        </Button>
+        <Button loading color="minimal">
+          Button text
+        </Button>
+        <Button loading color="destructive">
+          Button text
+        </Button>
         <Button loading color="destructive" variant="icon" StartIcon={X}></Button>
       </VariantRow>
       <VariantRow variant="Disabled">
         <Button disabled>Button text</Button>
-        <Button disabled color="secondary">Button text</Button>
-        <Button disabled color="minimal">Button text</Button>
-        <Button disabled color="destructive">Button text</Button>
+        <Button disabled color="secondary">
+          Button text
+        </Button>
+        <Button disabled color="minimal">
+          Button text
+        </Button>
+        <Button disabled color="destructive">
+          Button text
+        </Button>
         <Button disabled color="minimal" variant="icon" StartIcon={X}></Button>
       </VariantRow>
     </VariantsTable>
   </Story>
-  <Story name="Button Playground"
-         args={{
-           color: 'primary',
-           size: 'base',
-           loading: false,
-           disabled: false,
-           children: 'Button text',
-           className: ''
-         }}
-         argTypes={{
-            color: {
-              control: {
-                type: 'inline-radio',
-                options: ['primary', 'secondary', 'minimal', 'destructive']
-              }
-            },
-            size: {
-              control: {
-                type: 'inline-radio',
-                options: ['base', 'sm']
-              }
-            },
-            loading: {
-              control: {
-                type: 'boolean'
-              }
-            },
-            disabled: {
-              control: {
-                type: 'boolean'
-              }
-            },
-            children: {
-              control: {
-                type: 'text'
-              }
-            },
-            className: {
-              control: {
-                type: 'inline-radio',
-                options: ['', 'sb-pseudo--hover', 'sb-pseudo--focus']
-              }
-            }
-      }}
-  >
-    {({ color, size, loading, disabled, children, className }) => (
-  <VariantsTable titles={["Light & Dark Modes"]} columnMinWidth={150}>
-    <VariantRow variant="Button">
-      <Button
-        color={color}
-        size={size}
-        variant="default"
-        loading={loading}
-        disabled={disabled}
-        className={className}
-      >
-        {children}
-      </Button>
-    </VariantRow>
-  </VariantsTable>
+  <Story
+    name="Button Playground"
+     play={({ canvasElement }) => {
+      const darkVariantContainer = canvasElement.querySelector('[data-mode="dark"]');
+      const buttonElement = darkVariantContainer.querySelector("button");
+      buttonElement?.addEventListener("mouseover", () => {
+        setTimeout(() => {
+          document.querySelector('[data-testid="tooltip"]').classList.add("dark");
+        }, 55);
+      });
+    }}
+    args={{
+      color: "primary",
+      size: "base",
+      loading: false,
+      disabled: false,
+      children: "Button text",
+      className: "",
+      tooltip: "tooltip",
+    }}
+    argTypes={{
+      color: {
+        control: {
+          type: "inline-radio",
+          options: ["primary", "secondary", "minimal", "destructive"],
+        },
+      },
+      size: {
+        control: {
+          type: "inline-radio",
+          options: ["base", "sm"],
+        },
+      },
+      loading: {
+        control: {
+          type: "boolean",
+        },
+      },
+      disabled: {
+        control: {
+          type: "boolean",
+        },
+      },
+      children: {
+        control: {
+          type: "text",
+        },
+      },
+      className: {
+        control: {
+          type: "inline-radio",
+          options: ["", "sb-pseudo--hover", "sb-pseudo--focus"],
+        },
+      },
+      tooltip: {
+        control: {
+          type: "text",
+        },
+      },
+    }}>
+    {({ children, ...args }) => (
+      <VariantsTable titles={["Light & Dark Modes"]} columnMinWidth={150}>
+        <VariantRow variant="Button">
+          <TooltipProvider>
+            <Button variant="default" {...args}>
+              {children}
+            </Button>
+          </TooltipProvider>
+        </VariantRow>
+      </VariantsTable>
     )}
   </Story>
 </Canvas>

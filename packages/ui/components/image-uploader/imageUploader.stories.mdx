@@ -1,0 +1,57 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Title, VariantRow, VariantsTable, CustomArgsTable } from "@calcom/storybook/components";
+
+import ImageUploader from "./ImageUploader";
+
+<Meta title="UI/ImageUploader" component={ImageUploader} />
+
+<Title title="ImageUploader" suffix="Brief" subtitle="Version 1.0 — Last Update: 21 Aug 2023" />
+
+## Definitions
+
+`ImageUploader` is used to upload images of all image types
+
+## Structure
+
+Below are the props for `Image uploader`
+
+<CustomArgsTable of={ImageUploader} />
+
+## ImageUploader Story
+
+<Canvas>
+  <Story
+    name="ImageUploader"
+    play={({ canvasElement }) => {
+      const darkVariantContainer = canvasElement.querySelector("#dark-variant");
+      const imageUploaderElement = darkVariantContainer.querySelector("button");
+      imageUploaderElement?.addEventListener("click", () => {
+        setTimeout(() => {
+          document.querySelector('[role="dialog"]')?.classList.add("dark");
+        }, 1);
+      });
+    }}
+    args={{
+      id: "image-1",
+      buttonMsg: "upload",
+      target: "target",
+      handleAvatarChange: (src) => {
+        console.debug(src);
+      },
+    }}>
+    {({ id, buttonMsg, handleAvatarChange, imageSrc, target }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <ImageUploader
+            id={id}
+            buttonMsg={buttonMsg}
+            handleAvatarChange={handleAvatarChange}
+            imageSrc={imageSrc}
+            target={target}
+          />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

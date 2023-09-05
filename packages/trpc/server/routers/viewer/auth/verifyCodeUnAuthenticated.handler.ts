@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
-import { totp } from "otplib";
 
+import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -18,8 +18,7 @@ export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOpt
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
     .digest("hex");
 
-  totp.options = { step: 900 };
-  const isValidToken = totp.check(code, secret);
+  const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
   if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 

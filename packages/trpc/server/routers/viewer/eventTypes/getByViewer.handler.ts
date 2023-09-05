@@ -1,4 +1,5 @@
-import { type PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
@@ -6,6 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -165,17 +167,18 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const baseMapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+  const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
     ...eventType,
     safeDescription: markdownToSafeHTML(eventType.description),
     users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
   });
 
-  const userEventTypes = user.eventTypes.map(baseMapEventType);
+  const userEventTypes = user.eventTypes.map(mapEventType);
 
   type EventTypeGroup = {
     teamId?: number | null;
+    parentId?: number | null;
     membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof user)["username"];
@@ -191,9 +194,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   let eventTypeGroups: EventTypeGroup[] = [];
 
-  const nonManagedEventTypes = userEventTypes
-    .map((eventType) => eventType)
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+  const unmanagedEventTypes = userEventTypes.filter(
+    (evType) => evType.schedulingType !== SchedulingType.MANAGED
+  );
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
@@ -205,7 +208,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       name: user.name,
       image,
     },
-    eventTypes: orderBy(nonManagedEventTypes, ["position", "id"], ["desc", "asc"]),
+    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
       membershipCount: 1,
       readOnly: false,
@@ -217,7 +220,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     membershipRole: membership.role,
   }));
 
-  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof baseMapEventType>) => {
+  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
@@ -237,6 +240,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         )?.membershipRole;
         return {
           teamId: membership.team.id,
+          parentId: membership.team.parentId,
           membershipRole:
             orgMembership && compareMembership(orgMembership, membership.role)
               ? orgMembership
@@ -261,7 +265,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 : MembershipRole.MEMBER),
           },
           eventTypes: membership.team.eventTypes
-            .map(baseMapEventType)
+            .map(mapEventType)
             .filter(filterTeamsEventTypesBasedOnInput)
             .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
             .filter((evType) =>
@@ -276,14 +280,14 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   const bookerUrl = await getBookerUrl(user);
   return {
     // don't display event teams without event types,
-    eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
+    eventTypeGroups: eventTypeGroups.filter((groupBy) => groupBy.parentId || !!groupBy.eventTypes?.length),
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
       ...group.profile,
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${bookerUrl}${group.teamId ? "/team" : ""}/${group.profile.slug}/avatar.png`,
+      image: `${bookerUrl}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

@@ -40,6 +40,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           description: true,
           title: true,
           startTime: true,
+          endTime: true,
           attendees: {
             select: {
               email: true,
@@ -96,10 +97,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!_booking) return { notFound: true };
 
-  const { startTime, eventType, ...restBooking } = _booking;
+  const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
     ...restBooking,
     startTime: startTime.toString(),
+    endTime: endTime.toString(),
   };
 
   if (!eventType) return { notFound: true };
