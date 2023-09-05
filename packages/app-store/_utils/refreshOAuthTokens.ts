@@ -4,6 +4,7 @@ const refreshOAuthTokens = async (refreshFunction: () => any, userId: number, ap
   // Check that app syncing is enabled
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
     // Customize the payload based on what your endpoint requires
+    // The response should only contain the access token and expiry date
     const response = await fetch(process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT, {
       method: "POST",
       body: new URLSearchParams({

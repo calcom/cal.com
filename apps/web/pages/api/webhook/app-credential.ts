@@ -3,14 +3,21 @@ import z from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
+
+// https://github.com/colinhacks/zod/discussions/839#discussioncomment-6488540
+const [firstAppKey, ...otherAppKeys] = Object.keys(appStoreMetadata) as (keyof typeof appStoreMetadata)[];
+
+const appMetadataEnum = z.enum([firstAppKey, ...otherAppKeys]);
 
 const appCredentialWebhookRequestBodySchema = z.object({
   // UserId of the cal.com user
   userId: z.number().int(),
-  //   The dirname of the app under packages/app-store
-  appDirName: z.string(),
-  keys: z.record(z.any()),
+  // The dirname of the app under packages/app-store
+  appDirName: appMetadataEnum,
+  // Keys should be AES256 encrypted with the CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
+  keys: z.string(),
 });
 /** */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -20,7 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Check that the webhook secret matches
-  if (req.headers["calcom-webhook-secret"] !== process.env.CALCOM_WEBHOOK_SECRET) {
+  if (
+    req.headers[process.env.CALCOM_WEBHOOK_HEADER_NAME || "calcom-webhook-secret"] !==
+    process.env.CALCOM_WEBHOOK_SECRET
+  ) {
     return res.status(403).json({ message: "Invalid webhook secret" });
   }
 
@@ -40,6 +50,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "App not found. Ensure that you have the correct appDir" });
   }
 
+  // Decrypt the keys
+  const keys = JSON.parse(
+    symmetricDecrypt(reqBody.keys, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
+  );
+
   // Can't use prisma upsert as we don't know the id of the credential
   const appCredential = await prisma.credential.findFirst({
     where: {
@@ -57,14 +72,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: appCredential.id,
       },
       data: {
-        key: reqBody.keys,
+        key: keys,
       },
     });
     return res.status(200).json({ message: `Credentials updated for userId: ${reqBody.userId}` });
   } else {
     await prisma.credential.create({
       data: {
-        key: reqBody.keys,
+        key: keys,
         userId: reqBody.userId,
         appId: appMetadata.slug,
         type: appMetadata.type,
