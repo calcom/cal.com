@@ -193,17 +193,8 @@ export async function getEventType(
         isFixed: true,
         user: {
           select: {
-            id: true,
             credentials: true,
-            timeZone: true,
-            bufferTime: true,
-            startTime: true,
-            username: true,
-            endTime: true,
-            timeFormat: true,
-            defaultScheduleId: true,
-            availability: true,
-            selectedCalendars: true,
+            ...availabilityUserSelect,
           },
         },
       },
