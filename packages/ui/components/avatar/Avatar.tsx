@@ -17,7 +17,6 @@ export type AvatarProps = {
   title?: string;
   alt: string;
   href?: string;
-  gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
@@ -35,7 +34,7 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size = "md", alt, title, href } = props;
+  const { imageSrc, size = "md", alt, title, href } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
