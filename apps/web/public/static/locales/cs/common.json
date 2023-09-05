@@ -1075,7 +1075,7 @@
   "event_cancelled": "Tato událost je zrušena",
   "emailed_information_about_cancelled_event": "Poslali jsme vám a ostatním účastníkům informační e-mail.",
   "this_input_will_shown_booking_this_event": "Toto pole se zobrazí při rezervaci této události",
-  "meeting_url_in_conformation_email": "Adresa URL schůzky je v potvrzovacím e-mailu",
+  "meeting_url_in_confirmation_email": "Adresa URL schůzky je v potvrzovacím e-mailu",
   "url_start_with_https": "Adresa URL musí začínat http:// nebo https://",
   "number_provided": "Bude uvedeno telefonní číslo",
   "before_event_trigger": "před zahájením události",

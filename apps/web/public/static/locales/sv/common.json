@@ -1075,7 +1075,7 @@
   "event_cancelled": "Den här händelsen är inställd",
   "emailed_information_about_cancelled_event": "Vi mejlade dig och de andra deltagarna för att informera om detta.",
   "this_input_will_shown_booking_this_event": "Detta visas vid bokning av denna händelse",
-  "meeting_url_in_conformation_email": "Mötets webbadress finns i bekräftelsemejlet",
+  "meeting_url_in_confirmation_email": "Mötets webbadress finns i bekräftelsemejlet",
   "url_start_with_https": "Webbadress behöver inledas med http:// eller https://",
   "number_provided": "Telefonnummer kommer att anges",
   "before_event_trigger": "innan händelsen startar",

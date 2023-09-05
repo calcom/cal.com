@@ -82,7 +82,11 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
       location,
       conferenceCredentialId: details?.credentialId,
-      destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
+      destinationCalendar: booking?.destinationCalendar
+        ? [booking?.destinationCalendar]
+        : booking?.user?.destinationCalendar
+        ? [booking?.user?.destinationCalendar]
+        : [],
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
