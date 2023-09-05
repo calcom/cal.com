@@ -1,4 +1,4 @@
-import { sendEmailVerification } from "auth/lib/verifyEmail";
+import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -8,6 +8,8 @@ import type { RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+
+import { sendEmailVerification } from "../verifyEmail";
 
 export async function findExistingUser(username: string, email: string) {
   const user = await prisma.user.findFirst({
@@ -62,22 +64,7 @@ export function parseSignupData(data: unknown) {
     username: slugify(parsedSchema.data.username),
   };
 }
-
-export async function handlePremiumUsernameFlow({
-  email,
-  username,
-  premiumUsernameStatusCode,
-}: {
-  email: string;
-  username: string;
-  premiumUsernameStatusCode: number;
-}) {
-  if (!IS_CALCOM) return;
-  const metadata: {
-    stripeCustomerId?: string;
-    checkoutSessionId?: string;
-  } = {};
-
+export async function createStripeCustomer({ email, username }: { email: string; username: string }) {
   // Create the customer in Stripe
   const customer = await stripe.customers.create({
     email,
@@ -86,6 +73,25 @@ export async function handlePremiumUsernameFlow({
       username,
     },
   });
+
+  return customer;
+}
+
+export async function handlePremiumUsernameFlow({
+  customer,
+  premiumUsernameStatusCode,
+}: {
+  premiumUsernameStatusCode: number;
+  customer?: Stripe.Customer;
+}) {
+  if (!IS_CALCOM) return;
+
+  if (!customer) {
+    throw new HttpError({
+      statusCode: 500,
+      message: "Missing customer",
+    });
+  }
 
   const returnUrl = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/auth/verify?sessionId={CHECKOUT_SESSION_ID}`;
 
@@ -150,7 +156,6 @@ export function sendVerificationEmail({
   language: string;
   username: string;
 }) {
-  if (!IS_CALCOM) return;
   return sendEmailVerification({
     email,
     language,
