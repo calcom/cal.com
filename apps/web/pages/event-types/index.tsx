@@ -12,8 +12,10 @@ import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
-import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
-import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import {
+  CreateEventTypeDialog,
+  EventTypeDescriptionLazy as EventTypeDescription,
+} from "@calcom/features/eventtypes/components";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -38,7 +40,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  CreateButton,
   Dialog,
   Dropdown,
   DropdownItem,
@@ -56,6 +57,7 @@ import {
   Switch,
   Tooltip,
   ArrowButton,
+  CreateButtonWithTeamsList,
 } from "@calcom/ui";
 import {
   Clipboard,
@@ -77,10 +79,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
-type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
-type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type PaginateEventTypeViewer = RouterOutputs["viewer"]["eventTypes"]["paginate"];
-
 interface EventTypeListHeadingProps {
   teamSlugOrUsername: string;
   teamNameOrUserName: string;
@@ -97,23 +95,35 @@ interface EventTypeListProps {
 }
 
 interface MobileTeamsTabProps {
-  eventTypeGroups: EventTypeGroups;
+  teamEventTypes: EventTypeList[];
 }
 
 const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
 
-const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
-  const { eventTypeGroups } = props;
+const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => {
+  const { teamEventTypes } = props;
   const orgBranding = useOrgBranding();
-  const tabs = eventTypeGroups.map((item) => ({
-    name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
-  }));
+  const tabs = teamEventTypes
+    .filter((item) => item !== undefined)
+    .map((item) => {
+      const [firstElement] = item;
+
+      const teamSlugOrUsername = firstElement?.team?.slug || firstElement?.users[0].username || "";
+      const teamNameOrUserName = firstElement?.team?.name || firstElement?.users[0].name || "";
+      const teamId = firstElement?.team?.id;
+      return {
+        name: teamNameOrUserName,
+        href: teamId ? `/event-types?teamId=${teamId}` : "/event-types",
+        avatar: teamId
+          ? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamSlugOrUsername}/avatar.png`
+          : `${WEBAPP_URL}/${teamSlugOrUsername}/avatar.png`,
+      };
+    });
   const { data } = useTypedQuery(querySchema);
-  // const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
+  const eventsIndex = teamEventTypes.findIndex((item) => item[0]?.team?.id === data?.teamId);
+  const events = teamEventTypes[eventsIndex];
 
   return (
     <div>
@@ -775,19 +785,15 @@ const CreateFirstEventTypeView = () => {
 const CTA = () => {
   const { t } = useLocale();
 
-  const profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string | undefined;
-    membershipRole: MembershipRole | null | undefined;
-  }[] = [];
   return (
-    <CreateButton
-      data-testid="new-event-type"
-      subtitle={t("create_event_on").toUpperCase()}
-      options={profileOptions}
-      createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
-    />
+    <>
+      <CreateButtonWithTeamsList
+        data-testid="new-event-type"
+        subtitle={t("create_event_on").toUpperCase()}
+        createDialog={() => <CreateEventTypeDialog profileOptions={[]} />}
+      />
+      <CreateEventTypeDialog profileOptions={[]} />
+    </>
   );
 };
 
@@ -883,8 +889,6 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
     refetchOnWindowFocus: false,
   });
 
-  console.log({ teams });
-
   // After teams are fetched we then load event types for each team
   const eventTypePaginate = trpc.useQueries(
     (t) =>
@@ -896,41 +900,47 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={error.message} />;
   }
-  if (!data || status === "loading") {
+  if (status === "loading") {
     return <SkeletonLoader />;
   }
 
   if ((!!data && data.length > 1) || isFilteredByOnlyOneItem) {
+    const [firstElementPersonalEventTypes] = data;
+    const [mainUser] = firstElementPersonalEventTypes?.users || [];
+
+    const teamEventTypesForTabs = eventTypePaginate
+      .filter((item) => item !== undefined)
+      .map((trpcFetch) => {
+        const { data } = trpcFetch;
+        return data ?? [];
+      });
+
     return (
       <>
         {isMobile ? (
-          <MobileTeamsTab eventTypeGroups={data} />
+          <MobileTeamsTab teamEventTypes={[data, teamEventTypesForTabs]} />
         ) : (
           <div className="mt-4 flex flex-col">
             <EventTypeListHeading
-              teamSlugOrUsername={data[0].users[0].username || ""}
-              teamNameOrUserName={data[0].users[0].name || ""}
-              membershipCount={data[0].team?.members.length || 0}
-              teamId={data[0].teamId}
+              teamSlugOrUsername={mainUser.username || ""}
+              teamNameOrUserName={mainUser.name || ""}
+              membershipCount={firstElementPersonalEventTypes.team?.members.length || 0}
+              teamId={firstElementPersonalEventTypes.teamId}
               orgSlug={orgBranding?.slug}
             />
 
-            {data[0].length > 0 ? (
+            {data.length > 0 ? (
               <EventTypeList data={data} />
             ) : (
-              <EmptyEventTypeList teamSlugOrUsername={data[0].users[0].username ?? ""} />
+              <EmptyEventTypeList teamSlugOrUsername={mainUser.username ?? ""} />
             )}
 
             {/* Then we list team event types */}
             {eventTypePaginate.map((trpcFetch, index) => {
-              const { data, status } = trpcFetch;
-              const [eventTypes] = data || [];
-              if ((status !== "success" && !!data) || data?.length === 0 || !eventTypes) {
-                return null;
-              }
+              const { data: teamEventTypes } = trpcFetch;
+              const [firstElementTeamEventTypes] = data || [];
 
-              // Type safety
-              if (!!!eventTypes.team) {
+              if (!teamEventTypes || teamEventTypes.length === 0 || !firstElementTeamEventTypes.team) {
                 return null;
               }
 
@@ -938,19 +948,19 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
                 <>
                   <EventTypeListHeading
                     key={index}
-                    teamSlugOrUsername={eventTypes.team.slug || ""}
-                    teamNameOrUserName={eventTypes.team.name || ""}
-                    membershipCount={eventTypes.team?.members.length || 0}
-                    teamId={eventTypes.teamId}
+                    teamSlugOrUsername={firstElementTeamEventTypes.team.slug || ""}
+                    teamNameOrUserName={firstElementTeamEventTypes.team.name || ""}
+                    membershipCount={firstElementTeamEventTypes.team?.members.length || 0}
+                    teamId={firstElementTeamEventTypes.teamId}
                     orgSlug={orgBranding?.slug}
                   />
 
-                  {eventTypes.length > 0 ? (
-                    <EventTypeList data={data} readOnly={false} key={index} />
+                  {teamEventTypes.length > 0 ? (
+                    <EventTypeList data={teamEventTypes} key={index} />
                   ) : (
                     <EmptyEventTypeList
-                      teamId={eventTypes.teamId}
-                      teamSlugOrUsername={eventTypes.team.slug || ""}
+                      teamId={firstElementTeamEventTypes.teamId}
+                      teamSlugOrUsername={firstElementTeamEventTypes.team.slug || ""}
                       key={index}
                     />
                   )}
@@ -964,9 +974,11 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
       </>
     );
   } else if (!!data && data.length === 1) {
-    return <EventTypeList data={data} readOnly={false} />;
+    return <EventTypeList data={data} />;
   } else if (!!data && data.length === 0) {
     return <CreateFirstEventTypeView />;
+  } else {
+    return <></>;
   }
 };
 
