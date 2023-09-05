@@ -104,6 +104,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
+    allTeamMembers: false,
     ...eventType,
   };
 };
