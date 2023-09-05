@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -8,7 +9,6 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayout";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -82,7 +82,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
-  orgSlug?: string;
+  orgSlug?: string | null;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -105,11 +105,11 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image ?? `${session?.user.org?.url ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -205,7 +205,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -368,7 +368,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+          const calLink = `${session?.user.org?.url ?? CAL_URL}/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -394,7 +394,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           items={type.users.map(
                             (organizer: { name: string | null; username: string | null }) => ({
                               alt: organizer.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                              image: `${session?.user.org?.url ?? WEBAPP_URL}/${
                                 organizer.username
                               }/avatar.png`,
                               title: organizer.name || "",
@@ -411,7 +411,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
+                              image: `${session?.user.org?.url ?? WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
                             }))}
                         />
@@ -692,7 +692,7 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -708,7 +708,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={`${session?.user.org?.url ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -730,7 +730,7 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link
-            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+            href={`${session?.user.org?.url ?? CAL_URL}/${profile.slug}`}
             className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
@@ -796,14 +796,14 @@ const Actions = () => {
 
 const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   return (
     <Alert
       className="my-4"
       severity="info"
       title={t("set_up_your_profile")}
-      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
+      message={t("set_up_your_profile_description", { orgName: session?.user.org?.name })}
       CustomIcon={UserIcon}
       actions={
         <div className="flex gap-1">
@@ -854,7 +854,7 @@ const Main = ({
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   if (!data || status === "loading") {
     return <SkeletonLoader />;
@@ -879,7 +879,7 @@ const Main = ({
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
                   teamId={group.teamId}
-                  orgSlug={orgBranding?.slug}
+                  orgSlug={session?.user.org?.slug}
                 />
 
                 {group.eventTypes.length ? (
@@ -919,7 +919,7 @@ const EventTypesPage = () => {
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
   const [showProfileBanner, setShowProfileBanner] = useState(false);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
@@ -945,9 +945,11 @@ const EventTypesPage = () => {
 
   useEffect(() => {
     setShowProfileBanner(
-      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+      !!session?.user.org &&
+        !document.cookie.includes("calcom-profile-banner=1") &&
+        !user?.completedOnboarding
     );
-  }, [orgBranding, user]);
+  }, [session?.user.org, user]);
 
   return (
     <ShellMain

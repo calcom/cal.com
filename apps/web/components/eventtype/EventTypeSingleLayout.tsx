@@ -1,4 +1,5 @@
 import { Webhook as TbWebhook } from "lucide-react";
+import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
@@ -7,7 +8,6 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
@@ -235,9 +235,9 @@ function EventTypeSingleLayout({
     formMethods,
   ]);
 
-  const orgBranding = useOrgBranding();
-  const isOrgEvent = orgBranding?.fullDomain;
-  const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
+  const { data: session } = useSession();
+  const isOrgEvent = session?.user.org;
+  const permalink = `${session?.user.org?.url ?? CAL_URL}/${
     team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 

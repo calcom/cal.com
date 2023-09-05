@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { LinkIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -28,7 +29,6 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
-import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
@@ -41,7 +41,7 @@ const OrgProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -88,7 +88,8 @@ const OrgProfileView = () => {
     !currentOrganisation.bio ||
     !currentOrganisation.bio.replace("<p><br></p>", "").length;
 
-  if (!orgBranding) return null;
+  if (!session?.user.org || !session?.user.org?.url) return null;
+  const orgUrl = session.user.org.url;
 
   return (
     <LicenseRequired>
@@ -203,11 +204,11 @@ const OrgProfileView = () => {
                   </>
                 )}
               </div>
-              <div className="">
+              <div>
                 <LinkIconButton
                   Icon={LinkIcon}
                   onClick={() => {
-                    navigator.clipboard.writeText(orgBranding.fullDomain);
+                    navigator.clipboard.writeText(orgUrl);
                     showToast("Copied to clipboard", "success");
                   }}>
                   {t("copy_link_org")}

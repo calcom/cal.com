@@ -1,8 +1,8 @@
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   TeamsFilter,
   FilterCheckboxFieldsContainer,
@@ -29,7 +29,7 @@ import { EventTypeFilter } from "./EventTypeFilter";
 
 const PeopleFilter = () => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
@@ -75,7 +75,7 @@ const PeopleFilter = () => {
                 alt={`${member?.id} avatar`}
                 imageSrc={
                   member.username
-                    ? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${member.username}/avatar.png`
+                    ? `${session?.user.org?.url ?? WEBAPP_URL}/${member.username}/avatar.png`
                     : undefined
                 }
                 size="xs"

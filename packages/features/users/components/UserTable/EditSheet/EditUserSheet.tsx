@@ -1,7 +1,7 @@
+import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 import { shallow } from "zustand/shallow";
 
-import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -16,13 +16,13 @@ import { useEditMode } from "./store";
 export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
   const { t } = useLocale();
   const { user: selectedUser } = state.editSheet;
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isLoading } = trpc.viewer.organizations.getUser.useQuery({
     userId: selectedUser?.id,
   });
 
-  const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
+  const avatarURL = `${session?.user.org?.url ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
 
   const schedulesNames = loadedUser?.schedules && loadedUser?.schedules.map((s) => s.name);
   const teamNames =
@@ -55,7 +55,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     </Skeleton>
                     <Skeleton loading={isLoading} as="p" waitForTranslation={false}>
                       <p className="subtle text-sm font-normal">
-                        {orgBranding?.fullDomain ?? WEBAPP_URL}/{loadedUser?.username}
+                        {session?.user.org?.url ?? WEBAPP_URL}/{loadedUser?.username}
                       </p>
                     </Skeleton>
                   </div>
@@ -92,7 +92,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                 <EditForm
                   selectedUser={loadedUser}
                   avatarUrl={avatarURL}
-                  domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
+                  domainUrl={session?.user.org?.url ?? WEBAPP_URL}
                   dispatch={dispatch}
                 />
               </div>

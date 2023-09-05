@@ -47,7 +47,8 @@ export function subdomainSuffix() {
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
-export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
+export function getOrgFullDomain(slug?: string | null, options: { protocol: boolean } = { protocol: true }) {
+  if (!slug) return undefined;
   return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}`;
 }
 

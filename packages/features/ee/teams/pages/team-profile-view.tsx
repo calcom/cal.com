@@ -7,8 +7,6 @@ import { useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -63,7 +61,6 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -227,9 +224,8 @@ const ProfileView = () => {
                       label={t("team_url")}
                       value={value}
                       addOnLeading={
-                        team.parent && orgBranding
-                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false }) + "/"
-                          : `${WEBAPP_URL}/team/`
+                        `${session?.data?.user.org?.url?.replace("https://", "")?.replace("http://", "")}/` ??
+                        `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {
                         form.clearErrors("slug");

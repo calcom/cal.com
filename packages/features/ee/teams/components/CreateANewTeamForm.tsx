@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -13,7 +14,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField, Alert, Label } from "@calcom/ui";
 import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
 import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
@@ -28,7 +28,7 @@ export const CreateANewTeamForm = () => {
   const params = useParamsWithFallback();
   const parsedQuery = querySchema.safeParse(params);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
   const returnToParam =
     (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/settings/teams") ||
@@ -111,9 +111,8 @@ export const CreateANewTeamForm = () => {
                 placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${
-                  orgBranding
-                    ? orgBranding.fullDomain.replace("https://", "").replace("http://", "") + "/"
-                    : `${extractDomainFromWebsiteUrl}/team/`
+                  session?.user.org?.url?.replace("https://", "").replace("http://", "") + "/" ??
+                  `${extractDomainFromWebsiteUrl}/team/`
                 }`}
                 value={value}
                 defaultValue={value}

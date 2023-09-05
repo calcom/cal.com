@@ -1,9 +1,9 @@
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -41,11 +41,10 @@ export const UsernameAvailabilityField = ({
   });
 
   const UsernameAvailability = getUsernameAvailabilityComponent(!IS_SELF_HOSTED && !user.organization?.id);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
 
-  const usernamePrefix = orgBranding
-    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
+  const usernamePrefix =
+    session?.user.org?.url?.replace(/^(https?:|)\/\//, "") ?? `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <Controller

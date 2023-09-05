@@ -8,18 +8,6 @@ vi.mock("next-auth/react", () => ({
   },
 }));
 
-vi.mock("@calcom/features/ee/organizations/hooks", () => ({
-  useOrgBrandingValues() {
-    return {};
-  },
-}));
-
-vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
-  useOrgBranding() {
-    return {};
-  },
-}));
-
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {},
 }));

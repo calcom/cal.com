@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -12,7 +13,6 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -117,7 +117,7 @@ export const EventSetupTab = (
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
-  const orgBranding = useOrgBranding();
+  const { data: session } = useSession();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const locationOptions = props.locationOptions.map((locationOption) => {
@@ -388,9 +388,8 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
-  const urlPrefix = orgBranding
-    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
+  const urlPrefix =
+    session?.user.org?.url?.replace(/^(https?:|)\/\//, "") ?? `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -422,7 +421,7 @@ export const EventSetupTab = (
               {urlPrefix}/
               {!isManagedEventType
                 ? team
-                  ? (orgBranding ? "" : "team/") + team.slug
+                  ? (session?.user.org ? "" : "team/") + team.slug
                   : eventType.users[0].username
                 : t("username_placeholder")}
               /
