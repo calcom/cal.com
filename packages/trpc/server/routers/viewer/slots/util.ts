@@ -335,7 +335,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
-  console.log(
+  logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
       input.eventTypeId
     }`
