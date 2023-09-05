@@ -1075,7 +1075,7 @@
   "event_cancelled": "Bu etkinlik iptal edildi",
   "emailed_information_about_cancelled_event": "Sizi ve diğer katılımcıları bilgilendirmek için bir e-posta gönderdik.",
   "this_input_will_shown_booking_this_event": "Bu girdi, bu etkinlik için rezervasyon yapılırken gösterilecek",
-  "meeting_url_in_conformation_email": "Toplantı URL'si onay e-postasında mevcut",
+  "meeting_url_in_confirmation_email": "Toplantı URL'si onay e-postasında mevcut",
   "url_start_with_https": "URL'nin http:// veya https:// ile başlaması gerekiyor",
   "number_provided": "Telefon numarası sağlanacaktır",
   "before_event_trigger": "etkinlik başlamadan önce",
