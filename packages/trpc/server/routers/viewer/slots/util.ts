@@ -235,9 +235,10 @@ export async function getEventType(
         },
       },
       select: {
+        id: true,
+        userId: true,
         availability: true,
         timeZone: true,
-        id: true,
       },
     }),
   ]);
@@ -247,8 +248,17 @@ export async function getEventType(
   eventType.availability = availability;
   eventType.schedule = schedule;
 
+  const groupedSchedules = schedules.reduce((group, schedule) => {
+    const { userId } = schedule;
+    group[userId] = group[userId] ?? [];
+    group[userId].push(schedule);
+    return group;
+  }, {});
+
   for (let i = 0; i < eventType.users.length; i++) {
-    eventType.users[i].schedules = schedules.filter((s) => (s.userId = eventType.users[i].id));
+    eventType.users[i].schedules = groupedSchedules.hasOwnProperty(eventType.users[i].id)
+      ? groupedSchedules[eventType.users[i].id]
+      : [];
   }
 
   if (!eventType) {
