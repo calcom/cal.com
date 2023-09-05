@@ -54,7 +54,7 @@ export const slotsRouter = router({
     .input(ZRemoveSelectedSlotInputSchema)
     .mutation(async ({ input, ctx }) => {
       const { req, prisma } = ctx;
-      const uid = req?.cookies?.uid || input?.uid;
+      const uid = req?.cookies?.uid || input.uid;
       if (uid) {
         await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
       }

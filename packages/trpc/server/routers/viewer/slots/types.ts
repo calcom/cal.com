@@ -59,5 +59,5 @@ export type Slot = {
 };
 
 export const removeSelectedSlotSchema = z.object({
-  uid: z.string().optional().nullable(),
+  uid: z.string().nullable(),
 });
