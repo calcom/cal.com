@@ -181,108 +181,75 @@ export async function getEventType(
 
   const userIds = userIdsRecords.map((r) => r.B);
 
-  let schedule;
-  let availability;
-  let hosts;
-  let users;
   let schedules;
 
-  queries.push(
-    async () =>
-      (availability = await prisma.availability.findFirst({
-        where: {
-          eventTypeId,
-        },
-        select: {
-          date: true,
-          startTime: true,
-          endTime: true,
-          days: true,
-        },
-      }))
-  );
-
-  queries.push(
-    async () =>
-      (schedule = await prisma.schedule.findFirst({
-        where: {
-          id: eventType.scheduleId,
-        },
-        select: {
-          availability: true,
-          timeZone: true,
-        },
-      }))
-  );
-
-  queries.push(
-    async () =>
-      (hosts = await prisma.host.findMany({
-        where: {
-          eventTypeId,
-        },
-        select: {
-          isFixed: true,
-          user: {
-            select: {
-              id: true,
-              credentials: true,
-              timeZone: true,
-              bufferTime: true,
-              startTime: true,
-              username: true,
-              endTime: true,
-              timeFormat: true,
-              defaultScheduleId: true,
-              availability: true,
-              selectedCalendars: true,
-            },
-          },
-        },
-      }))
-  );
-
-  queries.push(
-    async () =>
-      (users = await prisma.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: {
-          id: true,
-          credentials: true,
-          timeZone: true,
-          bufferTime: true,
-          startTime: true,
-          username: true,
-          endTime: true,
-          timeFormat: true,
-          defaultScheduleId: true,
-          availability: true,
-          selectedCalendars: true,
-        },
-      }))
-  );
-
-  queries.push(async () => {
-    schedules = await prisma.schedule.findMany({
+  const queriesStart = performance.now();
+  const [availability, schedule, hosts, users] = await Promise.all([
+    prisma.availability.findFirst({
       where: {
-        userId: {
-          in: userIds,
-        },
+        eventTypeId,
+      },
+      select: {
+        date: true,
+        startTime: true,
+        endTime: true,
+        days: true,
+      },
+    }),
+    prisma.schedule.findFirst({
+      where: {
+        id: eventType.scheduleId,
       },
       select: {
         availability: true,
         timeZone: true,
-        id: true,
       },
-    });
-  });
+    }),
+    prisma.host.findMany({
+      where: {
+        eventTypeId,
+      },
+      select: {
+        isFixed: true,
+        user: {
+          select: {
+            id: true,
+            credentials: true,
+            timeZone: true,
+            bufferTime: true,
+            startTime: true,
+            username: true,
+            endTime: true,
+            timeFormat: true,
+            defaultScheduleId: true,
+            availability: true,
+            selectedCalendars: true,
+          },
+        },
+      },
+    }),
+    prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        credentials: true,
+        timeZone: true,
+        bufferTime: true,
+        startTime: true,
+        username: true,
+        endTime: true,
+        timeFormat: true,
+        defaultScheduleId: true,
+        availability: true,
+        selectedCalendars: true,
+      },
+    }),
+  ]);
 
-  const queriesStart = performance.now();
-  await Promise.all(queries.map(async (q) => await q()));
   const queriesEnd = performance.now();
   console.log("queries", queriesEnd - queriesStart);
 
