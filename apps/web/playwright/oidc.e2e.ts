@@ -43,5 +43,17 @@ test.describe("OIDC", () => {
       await page.click('[data-testid="sso-oidc-save"]');
       await page.waitForSelector('[data-testid="toast-success"]');
     });
+    await samlAdminUser.logout();
+    await test.step("Login using the OIDC provider", async () => {
+      // Login a user using the OIDC provider.
+      // The credentials are handled by the provider, so we don't need to create a user in the db.
+      await page.goto("/auth/login");
+      await page.click('[data-testid="saml"]');
+      await page.waitForURL(/https:\/\/[^/]+\/oauth2\/v1\/authorize\?.*/);
+      await page.getByRole("textbox", { name: "Username" }).fill(OIDC_USER_EMAIL);
+      await page.getByRole("textbox", { name: "Password" }).fill(OIDC_USER_PASSWORD);
+      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.waitForURL("getting-started", { waitUntil: "load" });
+    });
   });
 });
