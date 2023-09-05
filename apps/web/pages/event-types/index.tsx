@@ -110,8 +110,9 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => 
     .map((item) => {
       const [firstElement] = item;
 
-      const teamSlugOrUsername = firstElement?.team?.slug || firstElement?.users[0].username || "";
-      const teamNameOrUserName = firstElement?.team?.name || firstElement?.users[0].name || "";
+      const [mainUser] = firstElement?.users ?? [];
+      const teamSlugOrUsername = firstElement?.team?.slug || mainUser?.username || "";
+      const teamNameOrUserName = firstElement?.team?.name || mainUser?.name || "";
       const teamId = firstElement?.team?.id;
       return {
         name: teamNameOrUserName,
@@ -123,12 +124,13 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => 
     });
   const { data } = useTypedQuery(querySchema);
   const eventsIndex = teamEventTypes.findIndex((item) => item[0]?.team?.id === data?.teamId);
-  const events = teamEventTypes[eventsIndex];
+
+  const events = teamEventTypes[eventsIndex > -1 ? eventsIndex : 0];
 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events.length && <EventTypeList data={events} />}
+      {events && events.length && <EventTypeList data={events} />}
     </div>
   );
 };
@@ -909,16 +911,15 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
     const [mainUser] = firstElementPersonalEventTypes?.users || [];
 
     const teamEventTypesForTabs = eventTypePaginate
-      .filter((item) => item !== undefined)
       .map((trpcFetch) => {
         const { data } = trpcFetch;
-        return data ?? [];
-      });
-
+        return data;
+      })
+      .filter((item) => item && item.length > 0);
     return (
       <>
         {isMobile ? (
-          <MobileTeamsTab teamEventTypes={[data, teamEventTypesForTabs]} />
+          <MobileTeamsTab teamEventTypes={[data, ...teamEventTypesForTabs]} />
         ) : (
           <div className="mt-4 flex flex-col">
             <EventTypeListHeading
