@@ -45,6 +45,7 @@
   "invite_team_individual_segment": "Inviter une personne",
   "invite_team_bulk_segment": "Importation multiple",
   "invite_team_notifcation_badge": "Inv.",
+  "signin_or_signup_to_accept_invite": "Vous devez vous connecter ou vous inscrire pour voir l'invitation d'équipe.",
   "your_event_has_been_scheduled": "Votre événement a été planifié",
   "your_event_has_been_scheduled_recurring": "Votre événement récurrent a été planifié",
   "accept_our_license": "Acceptez notre licence en changeant la variable .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> en « {{agree}} ».",
@@ -2042,5 +2043,6 @@
   "seat_options_doesnt_multiple_durations": "L'option par place ne prend pas en charge les durées multiples",
   "include_calendar_event": "Inclure l'événement du calendrier",
   "recently_added": "Ajouté récemment",
+  "no_members_found": "Aucun membre trouvé",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
