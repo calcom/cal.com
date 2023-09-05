@@ -1,170 +1,29 @@
 import type { NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import dayjs from "@calcom/dayjs";
+import {
+  createUser,
+  findExistingUser,
+  ensurePostMethod,
+  handlePremiumUsernameFlow,
+  parseSignupData,
+  sendVerificationEmail,
+  syncServicesCreateUser,
+  throwIfSignupIsDisabled,
+} from "@calcom/feature-auth/lib/signup/signupUtils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RequestWithUsernameStatus } from "@calcom/lib/server/username";
-import slugify from "@calcom/lib/slugify";
-import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import { signupSchema } from "@calcom/prisma/zod-utils";
-
-export async function findExistingUser(username: string, email: string) {
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        {
-          username,
-        },
-        {
-          email,
-        },
-      ],
-    },
-  });
-  if (user) {
-    throw new HttpError({
-      statusCode: 442,
-      message: "A user exists with that email address",
-    });
-  }
-}
-
-function ensurePostMethod(req: RequestWithUsernameStatus, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    throw new HttpError({
-      statusCode: 405,
-      message: "Method not allowed",
-    });
-  }
-}
-
-function throwIfSignupIsDisabled() {
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
-    throw new HttpError({
-      statusCode: 403,
-      message: "Signup is disabled",
-    });
-  }
-}
-
-function parseSignupData(data: unknown) {
-  const parsedSchema = signupSchema.safeParse(data);
-  if (!parsedSchema.success) {
-    throw new HttpError({
-      statusCode: 422,
-      message: "Invalid input",
-    });
-  }
-  return {
-    ...parsedSchema.data,
-    email: parsedSchema.data.email.toLowerCase(),
-    username: slugify(parsedSchema.data.username),
-  };
-}
-
-async function handlePremiumUsernameFlow({
-  email,
-  username,
-  premiumUsernameStatusCode,
-}: {
-  email: string;
-  username: string;
-  premiumUsernameStatusCode: number;
-}) {
-  if (!IS_CALCOM) return;
-  const metadata: {
-    stripeCustomerId?: string;
-    checkoutSessionId?: string;
-  } = {};
-
-  // Create the customer in Stripe
-  const customer = await stripe.customers.create({
-    email,
-    metadata: {
-      email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
-      username,
-    },
-  });
-
-  const returnUrl = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/auth/verify?sessionId={CHECKOUT_SESSION_ID}`;
-
-  if (premiumUsernameStatusCode === 402) {
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer: customer.id,
-      line_items: [
-        {
-          price: getPremiumMonthlyPlanPriceId(),
-          quantity: 1,
-        },
-      ],
-      success_url: returnUrl,
-      cancel_url: returnUrl,
-      allow_promotion_codes: true,
-    });
-
-    /** We create a username-less user until he pays */
-    metadata["stripeCustomerId"] = customer.id;
-    metadata["checkoutSessionId"] = checkoutSession.id;
-  }
-
-  return metadata;
-}
-
-function createUser({
-  username,
-  email,
-  hashedPassword,
-  metadata,
-}: {
-  username: string;
-  email: string;
-  hashedPassword: string;
-  metadata?: {
-    stripeCustomerId?: string;
-    checkoutSessionId?: string;
-  };
-}) {
-  return prisma.user.create({
-    data: {
-      username,
-      email,
-      password: hashedPassword,
-      metadata,
-    },
-  });
-}
-
-function syncServicesCreateUser(user: Awaited<ReturnType<typeof createUser>>) {
-  return IS_CALCOM && syncServicesCreateWebUser(user);
-}
-
-function sendVerificationEmail({
-  email,
-  language,
-  username,
-}: {
-  email: string;
-  language: string;
-  username: string;
-}) {
-  if (!IS_CALCOM) return;
-  return sendEmailVerification({
-    email,
-    language,
-    username: username || "",
-  });
-}
+import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
+import { validateUsernameInTeam } from "@calcom/lib/validateUsername";
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   try {
-    ensurePostMethod(req, res);
+    ensurePostMethod(req);
     throwIfSignupIsDisabled();
     const { email, password, language, token, username } = parseSignupData(req.body);
     await findExistingUser(username, email);
@@ -175,19 +34,141 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
       premiumUsernameStatusCode: req.usernameStatus.statusCode,
     });
 
-    // Create the user
-    const user = await createUser({
-      username,
-      email,
-      hashedPassword,
-      metadata: premiumUsernameMetadata,
-    });
-    await sendEmailVerification({
-      email,
-      language: await getLocaleFromRequest(req),
-      username: username || "",
-    });
-    await syncServicesCreateUser(user);
+    if (!token) {
+      // Create the user
+      const user = await createUser({
+        username,
+        email,
+        hashedPassword,
+        metadata: premiumUsernameMetadata,
+      });
+      await sendVerificationEmail({
+        email,
+        language: language || (await getLocaleFromRequest(req)),
+        username: username || "",
+      });
+      await syncServicesCreateUser(user);
+    }
+    {
+      const foundToken = await prisma.verificationToken.findFirst({
+        where: {
+          token,
+        },
+        select: {
+          id: true,
+          expires: true,
+          teamId: true,
+        },
+      });
+      if (!foundToken) {
+        return res.status(401).json({ message: "Invalid Token" });
+      }
+
+      if (dayjs(foundToken?.expires).isBefore(dayjs())) {
+        return res.status(401).json({ message: "Token expired" });
+      }
+      if (foundToken?.teamId) {
+        const teamUserValidation = await validateUsernameInTeam(username, email, foundToken?.teamId);
+        if (!teamUserValidation.isValid) {
+          return res.status(409).json({ message: "Username or email is already taken" });
+        }
+
+        const team = await prisma.team.findUnique({
+          where: {
+            id: foundToken.teamId,
+          },
+        });
+
+        if (team) {
+          const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
+          const user = await prisma.user.upsert({
+            where: { email },
+            update: {
+              username,
+              password: hashedPassword,
+              emailVerified: new Date(Date.now()),
+              identityProvider: IdentityProvider.CAL,
+            },
+            create: {
+              username,
+              email: email,
+              password: hashedPassword,
+              identityProvider: IdentityProvider.CAL,
+            },
+          });
+
+          if (teamMetadata?.isOrganization) {
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                organizationId: team.id,
+              },
+            });
+          }
+
+          const membership = await prisma.membership.update({
+            where: {
+              userId_teamId: { userId: user.id, teamId: team.id },
+            },
+            data: {
+              accepted: true,
+            },
+          });
+          closeComUpsertTeamUser(team, user, membership.role);
+
+          // Accept any child team invites for orgs.
+          if (team.parentId) {
+            // Join ORG
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                organizationId: team.parentId,
+              },
+            });
+
+            /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
+            await prisma.membership.updateMany({
+              where: {
+                userId: user.id,
+                team: {
+                  id: team.parentId,
+                },
+                accepted: false,
+              },
+              data: {
+                accepted: true,
+              },
+            });
+
+            // Join any other invites
+            await prisma.membership.updateMany({
+              where: {
+                userId: user.id,
+                team: {
+                  parentId: team.parentId,
+                },
+                accepted: false,
+              },
+              data: {
+                accepted: true,
+              },
+            });
+          }
+
+          // Cleanup token after use
+          await prisma.verificationToken.delete({
+            where: {
+              id: foundToken.id,
+            },
+          });
+        }
+      }
+    }
 
     if (IS_CALCOM && premiumUsernameMetadata) {
       if (premiumUsernameMetadata.checkoutSessionId) {
@@ -200,6 +181,8 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
         .status(201)
         .json({ message: "Created user", stripeCustomerId: premiumUsernameMetadata.stripeCustomerId });
     }
+
+    return res.status(201).json({ message: "Created user" });
   } catch (e) {
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
