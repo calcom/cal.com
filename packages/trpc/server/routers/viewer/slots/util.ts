@@ -180,10 +180,8 @@ export async function getEventType(
 
   const userIds = userIdsRecords.map((r) => r.B);
 
-  let schedules;
-
   const queriesStart = performance.now();
-  const [availability, schedule, hosts, users] = await Promise.all([
+  const [availability, schedule, hosts, users, schedules] = await Promise.all([
     prisma.availability.findFirst({
       where: {
         eventTypeId,
@@ -247,12 +245,19 @@ export async function getEventType(
         selectedCalendars: true,
       },
     }),
+    prisma.schedule.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      select: {
+        availability: true,
+        timeZone: true,
+        id: true,
+      },
+    }),
   ]);
-
-  console.log("availability", availability);
-  console.log("schedule", schedule);
-  console.log("hosts", hosts);
-  console.log("users", users);
 
   const queriesEnd = performance.now();
   console.log("queries", queriesEnd - queriesStart);
