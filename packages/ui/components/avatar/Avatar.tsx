@@ -3,7 +3,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 
 import type { Maybe } from "@trpc/server";
 
@@ -55,15 +55,7 @@ export function Avatar(props: AvatarProps) {
           asChild={props.asChild}
           className="flex h-full items-center justify-center">
           <>
-            {props.fallback ? (
-              props.fallback
-            ) : (
-              <img
-                src={defaultAvatarSrc({ md5: gravatarFallbackMd5 ?? "fallback" })}
-                alt={alt}
-                className={rootClass}
-              />
-            )}
+            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (
