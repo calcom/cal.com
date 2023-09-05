@@ -22,7 +22,7 @@ export function EmptyScreen({
   Icon?: SVGComponent | IconType;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
-  description: string | React.ReactElement;
+  description?: string | React.ReactElement;
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   buttonRaw?: ReactNode; // Used incase you want to provide your own button.
@@ -49,9 +49,11 @@ export function EmptyScreen({
         )}
         <div className="flex max-w-[420px] flex-col items-center">
           <h2 className="text-semibold font-cal text-emphasis mt-6 text-center text-xl">{headline}</h2>
-          <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
-            {description}
-          </div>
+          {description && (
+            <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
+              {description}
+            </div>
+          )}
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
           {buttonRaw}
         </div>

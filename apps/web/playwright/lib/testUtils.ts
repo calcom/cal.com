@@ -4,6 +4,7 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
+import type { API, Messages } from "mailhog";
 
 import { test } from "./fixtures";
 
@@ -190,4 +191,40 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
   await page.waitForURL("/apps/apple-calendar");
   await page.click('[data-testid="install-app-button"]');
+}
+export async function getEmailsReceivedByUser({
+  emails,
+  userEmail,
+}: {
+  emails?: API;
+  userEmail: string;
+}): Promise<Messages | null> {
+  if (!emails) return null;
+  return emails.search(userEmail, "to");
+}
+
+export async function expectEmailsToHaveSubject({
+  emails,
+  organizer,
+  booker,
+  eventTitle,
+}: {
+  emails?: API;
+  organizer: { name?: string | null; email: string };
+  booker: { name: string; email: string };
+  eventTitle: string;
+}) {
+  if (!emails) return null;
+  const emailsOrganizerReceived = await getEmailsReceivedByUser({ emails, userEmail: organizer.email });
+  const emailsBookerReceived = await getEmailsReceivedByUser({ emails, userEmail: booker.email });
+
+  expect(emailsOrganizerReceived?.total).toBe(1);
+  expect(emailsBookerReceived?.total).toBe(1);
+
+  const [organizerFirstEmail] = (emailsOrganizerReceived as Messages).items;
+  const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
+  const emailSubject = `${eventTitle} between ${organizer.name ?? "Nameless"} and ${booker.name}`;
+
+  expect(organizerFirstEmail.subject).toBe(emailSubject);
+  expect(bookerFirstEmail.subject).toBe(emailSubject);
 }
