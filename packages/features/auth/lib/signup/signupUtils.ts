@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
@@ -66,6 +66,7 @@ export function parseSignupData(data: unknown) {
 }
 export async function createStripeCustomer({ email, username }: { email: string; username: string }) {
   // Create the customer in Stripe
+  if (!IS_STRIPE_ENABLED) return;
   const customer = await stripe.customers.create({
     email,
     metadata: {
@@ -85,6 +86,7 @@ export async function handlePremiumUsernameFlow({
   customer?: Stripe.Customer;
 }) {
   if (!IS_CALCOM) return;
+  if (!IS_STRIPE_ENABLED) return;
 
   if (!customer) {
     throw new HttpError({

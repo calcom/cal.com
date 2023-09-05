@@ -24,10 +24,11 @@ import { IS_CALCOM } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RequestWithUsernameStatus } from "@calcom/lib/server/username";
+import { usernameHandler } from "@calcom/lib/server/username";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsernameInTeam } from "@calcom/lib/validateUsername";
 
-export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   try {
     ensurePostMethod(req);
     throwIfSignupIsDisabled();
@@ -120,3 +121,5 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
   //   return await selfHostedHandler(req, res);
   // }
 }
+
+export default usernameHandler(handler);
