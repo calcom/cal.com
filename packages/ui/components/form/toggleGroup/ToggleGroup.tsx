@@ -40,7 +40,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {...props}
         onValueChange={onValueChange}
         className={classNames(
-          "min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1",
+          "min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1 rtl:flex-row-reverse",
           props.className,
           isFullWidth && "w-full"
         )}>
@@ -49,6 +49,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
             <RadixToggleGroup.Item
               disabled={option.disabled}
               value={option.value}
+              data-testid={`toggle-group-item-${option.value}`}
               className={classNames(
                 "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
                 option.disabled

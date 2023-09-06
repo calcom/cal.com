@@ -30,6 +30,7 @@ import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
+import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -436,9 +437,6 @@ function FieldEditDialog({
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
-              classNames={{
-                menuList: () => "min-h-[27.25rem]",
-              }}
             />
             {(() => {
               if (!variantsConfig) {
@@ -448,6 +446,9 @@ function FieldEditDialog({
                       required
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
+                      onChange={(e) => {
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                      }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||
                         fieldForm.getValues("editable") === "system-but-optional"
@@ -530,6 +531,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
   const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
   const variantsConfig = field.variantsConfig;
+  const variantsConfigVariants = variantsConfig?.variants;
   const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
   if (!fieldTypeConfigVariants || !variantsConfig) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
@@ -551,7 +553,9 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
     );
   }
-  return <span>{t(fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label)}</span>;
+  const label =
+    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+  return <span>{t(label)}</span>;
 }
 
 function VariantSelector() {

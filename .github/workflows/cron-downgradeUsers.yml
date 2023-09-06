@@ -5,7 +5,7 @@ on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
-    # Runs “Every month at 1st (see https://crontab.guru)
+    # Runs "At 00:00 on day-of-month 1." (see https://crontab.guru)
     - cron: "0 0 1 * *"
 jobs:
   cron-downgradeUsers:
@@ -21,4 +21,4 @@ jobs:
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
-            --fail
+            -sSf

@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
@@ -8,6 +7,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -259,6 +259,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (paymentCredential?.type === "stripe_payment") {
       const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
       data.currency = default_currency;
+    }
+    if (paymentCredential?.type === "paypal_payment" && input.metadata?.apps?.paypal?.currency) {
+      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
     }
   }
 

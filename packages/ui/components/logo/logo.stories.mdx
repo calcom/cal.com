@@ -1,25 +1,54 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
-import Logo from './Logo';
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import Logo from "./Logo";
 
 <Meta title="UI/Logo" component={Logo} />
 
-<Title title="Logo" suffix="Brief" subtitle="Version 2.0 — Last Update: 02 Jan 2023"/>
+<Title title="Logo" suffix="Brief" subtitle="Version 2.0 — Last Update: 28 Aug 2023" />
 
 ## Definition
+
 Main Cal.com brand logo
 
 <CustomArgsTable of={Logo} />
 
+## Examples
+
+<Examples>
+  <Example title="Default">
+    <Logo src={"https://app.cal.com/api/logo"} />
+  </Example>
+  <Example title="Small">
+    <Logo src={"https://app.cal.com/api/logo"} small />
+  </Example>
+  <Example title="As an Icon">
+    <Logo src={"https://app.cal.com/api/logo"} icon />
+  </Example>
+</Examples>
+
 <Canvas>
-  <Story name="Logo">
-    <VariantsTable titles={['']} columnMinWidth={150}>
-      <VariantRow variant="Small">
-        <Logo small />
-      </VariantRow>
-      <VariantRow variant="Default">
-        <Logo  />
-      </VariantRow>
-    </VariantsTable>
+  <Story
+    name="Logo"
+    args={{
+      icon: false,
+      src: "https://app.cal.com/api/logo",
+      small: false,
+    }}>
+    {(args) => (
+      <VariantsTable titles={[""]} columnMinWidth={150}>
+        <VariantRow>
+          <Logo {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

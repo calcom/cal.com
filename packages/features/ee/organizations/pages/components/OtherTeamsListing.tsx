@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import SkeletonLoaderTeamList from "@calcom/ee/teams/components/SkeletonloaderTeamList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,13 +12,11 @@ export function OtherTeamsListing() {
 
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data, isLoading } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+  const { data: teams, isLoading } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     onError: (e) => {
       setErrorMessage(e.message);
     },
   });
-
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
 
   if (isLoading) {
     return <SkeletonLoaderTeamList />;
@@ -28,7 +26,7 @@ export function OtherTeamsListing() {
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
 
-      {teams.length > 0 ? (
+      {teams && teams.length > 0 ? (
         <OtherTeamList teams={teams} />
       ) : (
         <EmptyScreen

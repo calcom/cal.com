@@ -960,7 +960,7 @@
   "reschedule_placeholder": "Lad andre vide, hvorfor du har brug for at omlægge",
   "emailed_information_about_cancelled_event": "Vi har sendt en e-mail til dig og de andre deltagere for at give dem besked.",
   "this_input_will_shown_booking_this_event": "Dette input vil blive vist ved booking af denne begivenhed",
-  "meeting_url_in_conformation_email": "Møde-url er i bekræftelses-mailen",
+  "meeting_url_in_confirmation_email": "Møde-url er i bekræftelses-mailen",
   "url_start_with_https": "URL'en skal starte med http:// eller https://",
   "number_provided": "Telefonnummer vil blive angivet",
   "before_event_trigger": "før begivenheden starter",
