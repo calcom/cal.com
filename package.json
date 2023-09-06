@@ -89,7 +89,8 @@
     "prettier": "^2.8.6",
     "tsc-absolute": "^1.0.0",
     "typescript": "^4.9.4",
-    "vitest": "^0.31.1",
+    "vitest": "^0.34.3",
+    "vitest-fetch-mock": "^0.2.2",
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
