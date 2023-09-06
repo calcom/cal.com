@@ -28,3 +28,5 @@ export const cityTimezonesHandler = async () => {
 
   return uniqueCities;
 };
+
+export default cityTimezonesHandler;

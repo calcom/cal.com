@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -403,7 +403,7 @@ export function getSuccessPageLocationMessage(
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay =
-        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_conformation_email");
+        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_confirmation_email");
     } else {
       locationToDisplay = t("web_conferencing_details_to_follow");
     }

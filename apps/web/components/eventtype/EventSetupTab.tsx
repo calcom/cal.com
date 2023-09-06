@@ -118,6 +118,7 @@ export const EventSetupTab = (
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
   const orgBranding = useOrgBranding();
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -305,7 +306,7 @@ export const EventSetupTab = (
                           "h-4 w-4",
                           // invert all the icons except app icons
                           eventLocationType.iconUrl &&
-                            !eventLocationType.iconUrl.startsWith("/app-store") &&
+                            eventLocationType.iconUrl.includes("-dark") &&
                             "dark:invert"
                         )}
                         alt={`${eventLocationType.label} logo`}
@@ -508,6 +509,8 @@ export const EventSetupTab = (
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
               checked={multipleDuration !== undefined}
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
               onCheckedChange={() => {
                 if (multipleDuration !== undefined) {
                   setMultipleDuration(undefined);

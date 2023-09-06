@@ -150,7 +150,9 @@ const DateOverrideForm = ({
           excludedDates={excludedDates}
           weekStart={0}
           selected={selectedDates}
-          onChange={(day) => onDateChange(day)}
+          onChange={(day) => {
+            if (day) onDateChange(day);
+          }}
           onMonthChange={(newMonth) => {
             setBrowsingDate(newMonth);
           }}
