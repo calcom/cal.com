@@ -185,7 +185,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   prismaMock.eventType.findUniqueOrThrow.mockImplementation(eventTypeMock);
 }
 
-async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
+function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
   logger.silly("TestData: Creating Bookings", bookings);
   const allBookings = (MOCK_DB.bookings = [...bookings].map((booking, index) => {
     return {
@@ -282,7 +282,7 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
   });
 }
 
-async function addWebhooks(webhooks: InputWebhook[]) {
+function addWebhooks(webhooks: InputWebhook[]) {
   logger.silly("TestData: Creating Webhooks", webhooks);
   // TODO: Improve it to actually consider where clause in prisma query.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -396,7 +396,7 @@ function addUsers(users: InputUser[]) {
   );
 }
 
-export async function createBookingScenario(data: ScenarioData) {
+export function createBookingScenario(data: ScenarioData) {
   logger.silly("TestData: Creating Scenario", data);
   addUsers(data.users);
 
