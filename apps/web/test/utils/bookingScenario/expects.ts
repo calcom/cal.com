@@ -232,3 +232,36 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
     });
   }
 }
+
+export function expectBookingCreatedWebhookToHaveBeenFired({
+  organizer,
+  booker,
+  location,
+  subscriberUrl,
+  paidEvent,
+  videoCallUrl,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  paidEvent?: boolean;
+  videoCallUrl: string;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_CREATED",
+    payload: {
+      metadata: {
+        videoCallUrl,
+      },
+      responses: {
+        name: { label: "your_name", value: booker.name },
+        email: { label: "email_address", value: booker.email },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
+        },
+      },
+    },
+  });
+}

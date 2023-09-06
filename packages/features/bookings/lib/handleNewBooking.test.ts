@@ -37,6 +37,7 @@ import {
   expectAwaitingPaymentEmails,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingCreatedWebhookToHaveBeenFired,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -148,23 +149,13 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered();
 
         expectSuccessfulBookingCreationEmails({booker, organizer, emails})
-
-        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-          triggerEvent: "BOOKING_CREATED",
-          payload: {
-            metadata: {
-              videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
-            },
-            responses: {
-              name: { label: "your_name", value: "Booker" },
-              email: { label: "email_address", value: "booker@example.com" },
-              location: {
-                label: "location",
-                value: { optionValue: "", value: "integrations:daily" },
-              },
-            },
-          },
-        });
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:daily",
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+        })
       },
       timeout
     );
@@ -292,6 +283,7 @@ describe('Event Type that requires confirmation', () => {
           email: "booker@example.com",
           name: "Booker",
         });
+        const subscriberUrl = "http://my-webhook.example.com"
 
         const organizer = getOrganizer({
           name: "Organizer",
@@ -307,7 +299,7 @@ describe('Event Type that requires confirmation', () => {
             {
               userId: organizer.id,
               eventTriggers: ["BOOKING_CREATED"],
-              subscriberUrl: "http://my-webhook.example.com",
+              subscriberUrl,
               active: true,
               eventTypeId: 1,
               appId: null,
@@ -380,22 +372,14 @@ describe('Event Type that requires confirmation', () => {
 
         expectSuccessfulBookingCreationEmails({booker, organizer, emails})
 
-        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-          triggerEvent: "BOOKING_CREATED",
-          payload: {
-            metadata: {
-              videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
-            },
-            responses: {
-              name: { label: "your_name", value: "Booker" },
-              email: { label: "email_address", value: "booker@example.com" },
-              location: {
-                label: "location",
-                value: { optionValue: "", value: "integrations:daily" },
-              },
-            },
-          },
-        });
+        
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:daily",
+          subscriberUrl,
+          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+        })
       },
       timeout
     );
@@ -582,6 +566,7 @@ describe('Event Type that requires confirmation', () => {
       `should create a successful booking with Zoom if used`,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const subscriberUrl = "http://my-webhook.example.com"
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -614,7 +599,7 @@ describe('Event Type that requires confirmation', () => {
             {
               userId: organizer.id,
               eventTriggers: ["BOOKING_CREATED"],
-              subscriberUrl: "http://my-webhook.example.com",
+              subscriberUrl,
               active: true,
               eventTypeId: 1,
               appId: null,
@@ -642,22 +627,13 @@ describe('Event Type that requires confirmation', () => {
 
         expectSuccessfulBookingCreationEmails({booker, organizer, emails})
 
-        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-          triggerEvent: "BOOKING_CREATED",
-          payload: {
-            metadata: {
-              videoCallUrl: "http://mock-zoomvideo.example.com",
-            },
-            responses: {
-              name: { label: "your_name", value: "Booker" },
-              email: { label: "email_address", value: "booker@example.com" },
-              location: {
-                label: "location",
-                value: { optionValue: "", value: "integrations:zoom" },
-              },
-            },
-          },
-        });
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:zoom",
+          subscriberUrl,
+          videoCallUrl: "http://mock-zoomvideo.example.com",
+        })
       },
       timeout
     );
