@@ -13,6 +13,7 @@ const appStore = {
   larkcalendar: () => import("./larkcalendar"),
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
+  mercadopago: () => import("./mercadopago"),
   plausible: () => import("./plausible"),
   paypal: () => import("./paypal"),
   salesforce: () => import("./salesforce"),

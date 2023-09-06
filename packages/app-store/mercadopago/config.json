@@ -1,5 +1,4 @@
 {
-  "/*": "Don't modify slug - If required, do it using cli edit command",
   "name": "MercadoPago",
   "slug": "mercadopago",
   "type": "mercadopago_payment",
@@ -10,8 +9,9 @@
   "publisher": "ubinatus",
   "email": "ja.castrocabrera@gmail.com",
   "description": "Mercado Pago is a leading digital payment platform in Latin America. Currently, it’s available in seven countries: Argentina, Brazil, Chile, Colombia, Mexico, Uruguay, and Peru. It’s widely used by businesses and consumers in all the above countries, and it surpassed $20 billion payment volume in 2019.",
+  "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "basic",
+  "__template": "event-type-app-card",
   "dirName": "mercadopago"
 }
