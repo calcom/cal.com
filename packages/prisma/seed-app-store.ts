@@ -340,7 +340,7 @@ export default async function main() {
 
   await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
 
-  // Payment apps
+  // Stripe (Payment apps)
   if (
     process.env.STRIPE_CLIENT_ID &&
     process.env.STRIPE_PRIVATE_KEY &&
@@ -356,6 +356,18 @@ export default async function main() {
       payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    });
+  }
+  // MercadoPago (Payment apps)
+  if (
+    process.env.MERCADOPAGO_CLIENT_ID &&
+    process.env.MERCADOPAGO_CLIENT_SECRET &&
+    process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY
+  ) {
+    await createApp("mercadopago", "mercadopago", ["payment"], "mercadopago_payment", {
+      client_id: process.env.MERCADOPAGO_CLIENT_ID,
+      client_secret: process.env.MERCADOPAGO_CLIENT_SECRET,
+      public_key: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
     });
   }
 
