@@ -5,7 +5,7 @@
   "type": "whatsapp_video",
   "logo": "icon.svg",
   "url": "https://cal.com/",
-  "variant": "conferencing",
+  "variant": "messaging",
   "categories": ["messaging"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
