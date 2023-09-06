@@ -1,9 +1,12 @@
 import { defineConfig } from "vitest/config";
 
+process.env.INTEGRATION_TEST_MODE = "true";
+
 export default defineConfig({
   test: {
     coverage: {
-      provider: "c8",
+      provider: "v8",
     },
+    testTimeout: 500000,
   },
 });
