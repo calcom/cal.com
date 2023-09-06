@@ -17,6 +17,7 @@ const opts: JacksonOption = {
   samlPath,
   samlAudience,
   oidcPath,
+  scimPath: "/api/scim/v2.0",
   db: {
     engine: "sql",
     type: "postgres",
