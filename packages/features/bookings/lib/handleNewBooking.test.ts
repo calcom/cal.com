@@ -496,6 +496,7 @@ describe('Event Type that requires confirmation', () => {
     );
 })
 
+    // FIXME: We shouldn't throw error here, the behaviour should be fixed.
     test(
       `if booking with Cal Video(Daily Video) fails, booking creation fails with uncaught error`,
       async ({}) => {
