@@ -76,11 +76,6 @@ export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
     noLabel?: boolean;
   };
 
-export type FileUploadLikeComponentPropsRAQB<TVal extends string | boolean = string> =
-  TextLikeComponentProps<TVal> & {
-    customProps?: object;
-  };
-
 export const FileUploadWidget = (props: DropZoneProps) => {
   return <DropZone {...props} />;
 };
