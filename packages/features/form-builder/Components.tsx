@@ -19,6 +19,7 @@ import {
   InputField,
   CheckboxField,
 } from "@calcom/ui";
+import type { DropZoneProps } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
@@ -34,9 +35,14 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  fileUpload: (val) => typeof val === "object",
 };
 
 type Component =
+  | {
+      propsType: "fileUpload";
+      factory: (props: DropZoneProps) => JSX.Element;
+    }
   | {
       propsType: "text";
       factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
@@ -93,6 +99,10 @@ type Component =
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
 // Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
 export const Components: Record<FieldType, Component> = {
+  fileUpload: {
+    propsType: propsTypes.fileUpload,
+    factory: (props) => <Widgets.FileUploadWidget {...props} />,
+  },
   text: {
     propsType: propsTypes.text,
     factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,

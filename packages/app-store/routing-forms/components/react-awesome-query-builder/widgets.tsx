@@ -8,7 +8,8 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
+import type { DropZoneProps } from "@calcom/ui";
+import { Button as CalButton, TextField, TextArea, DropZone } from "@calcom/ui";
 import { Trash, Plus } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -74,6 +75,15 @@ export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
     maxLength?: number;
     noLabel?: boolean;
   };
+
+export type FileUploadLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+  TextLikeComponentProps<TVal> & {
+    customProps?: object;
+  };
+
+export const FileUploadWidget = (props: DropZoneProps) => {
+  return <DropZone {...props} />;
+};
 
 const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
   const { value, setValue, readOnly, placeholder, maxLength, customProps, ...remainingProps } = props;
@@ -356,6 +366,7 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
+  FileUploadWidget,
 };
 
 export default widgets;

@@ -473,6 +473,24 @@ function FieldEditDialog({
                         placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                       />
                     ) : null}
+
+                    {fieldType?.propsType === "fileUpload" ? (
+                      <>
+                        <InputField
+                          {...fieldForm.register("mimeType")}
+                          containerClassName="mt-6"
+                          label="Mime type"
+                          placeholder={t(fieldForm.getValues("mimeType") || "")}
+                        />
+                        <InputField
+                          {...fieldForm.register("maxUploadSize")}
+                          containerClassName="mt-6"
+                          label="Max upload size"
+                          placeholder={t(fieldForm.getValues("maxUploadSize") || "")}
+                          type="number"
+                        />
+                      </>
+                    ) : null}
                     {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
                       <Controller
                         name="options"

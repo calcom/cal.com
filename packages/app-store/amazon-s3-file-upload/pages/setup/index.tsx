@@ -51,7 +51,7 @@ export default function Amazons3FileUploadSetup() {
                 credentialId,
                 key: {
                   client_id: newClientId,
-                  secret_key: newSecretKey,
+                  client_secret: newSecretKey,
                 },
               });
             }}

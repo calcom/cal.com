@@ -148,6 +148,11 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     value: "boolean",
     isTextType: false,
   },
+  fileUpload: {
+    label: "File Upload",
+    value: "fileUpload",
+    isTextType: false,
+  },
 };
 
 export const fieldTypesConfigMap = configMap as Record<FieldType, z.infer<typeof fieldTypeConfigSchema>>;

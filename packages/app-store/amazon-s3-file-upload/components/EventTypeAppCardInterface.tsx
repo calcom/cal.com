@@ -29,12 +29,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <TextField
             name="S3 Region"
             value={s3Region}
-            onChange={(e) => setAppData("s3Region", e.target.value)}
+            onChange={(e) => setAppData("s3Region", e.target.value.trim())}
           />
           <TextField
             name="S3 Bucket"
             value={s3Bucket}
-            onChange={(e) => setAppData("s3Bucket", e.target.value)}
+            onChange={(e) => setAppData("s3Bucket", e.target.value.trim())}
           />
         </form>
 

@@ -12,7 +12,7 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import { getFileUploadAccept, getVariantsConfig } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -248,6 +248,22 @@ export const ComponentForField = ({
           setValue={setValue as (arg: typeof value) => void}
           placeholder={field.placeholder}
         />
+      </WithLabel>
+    );
+  }
+
+  if (componentConfig.propsType === "fileUpload") {
+    const accept = getFileUploadAccept(field.mimeType);
+
+    const onDrop = (acceptedFiles: Array<File>) => {
+      if (acceptedFiles.length > 0) {
+        // @ts-expect-error: fix me
+        setValue(acceptedFiles[0]);
+      }
+    };
+    return (
+      <WithLabel field={field} readOnly={readOnly}>
+        <componentConfig.factory onDrop={onDrop} maxSize={Number(field.maxUploadSize)} accept={accept} />
       </WithLabel>
     );
   }

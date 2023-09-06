@@ -9,6 +9,7 @@ import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { checkForFileUploads } from "@calcom/app-store/amazon-s3-file-upload/lib/utils";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
@@ -292,8 +293,14 @@ export const BookEventFormChild = ({
       />
     );
 
-  const bookEvent = (values: BookingFormValues) => {
+  const bookEvent = async (values: BookingFormValues) => {
     // Clears form values stored in store, so old values won't stick around.
+
+    if (values.responses) {
+      const newResponses = await checkForFileUploads(values.responses, eventType);
+      values.responses = newResponses;
+    }
+
     setFormValues({});
     bookingForm.clearErrors();
 

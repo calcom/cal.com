@@ -20,6 +20,7 @@ const fieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "boolean",
+  "fileUpload",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
@@ -80,6 +81,16 @@ const baseFieldSchema = z.object({
       })
     )
     .optional(),
+
+  /**
+   * For `fileUpload` type of questions.
+   */
+  mimeType: z.string().optional(),
+
+  /**
+   * For `fileUpload` type of questions.
+   */
+  maxUploadSize: z.string().optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -121,6 +132,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "fileUpload",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
