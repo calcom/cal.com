@@ -164,8 +164,6 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  console.log("MEMEBER.connectedApps", members.connectedApps);
-
   const eventTypes = team.eventTypes.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
