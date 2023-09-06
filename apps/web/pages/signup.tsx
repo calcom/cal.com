@@ -13,6 +13,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -33,6 +34,23 @@ const signupSchema = apiSignupSchema.extend({
 type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
+
+const getSafeCallbackUrl = (url: string | null) => {
+  if (!url) return null;
+
+  let callbackUrl = url;
+
+  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
+
+  // If not absolute URL, make it absolute
+  if (!/^https?:\/\//.test(callbackUrl)) {
+    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
+  }
+
+  const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
+
+  return safeCallbackUrl;
+};
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const searchParams = useSearchParams();
@@ -55,6 +73,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       throw new Error(err.message);
     }
   };
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
@@ -72,13 +91,10 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: `${
-            searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }?from=signup`,
+          callbackUrl: `${callbackUrl ? callbackUrl : `${WEBAPP_URL}/${verifyOrGettingStarted}`}?from=signup`,
         });
       })
       .catch((err) => {
@@ -157,9 +173,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-                            : `${WEBAPP_URL}/getting-started`,
+                          callbackUrl: callbackUrl ? callbackUrl : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
                       {t("login_instead")}
