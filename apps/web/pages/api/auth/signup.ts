@@ -1,128 +1,44 @@
 import type { NextApiResponse } from "next";
 
-import {
-  createUser,
-  findExistingUser,
-  ensurePostMethod,
-  handlePremiumUsernameFlow,
-  parseSignupData,
-  sendVerificationEmail,
-  syncServicesCreateUser,
-  throwIfSignupIsDisabled,
-  createStripeCustomer,
-} from "@calcom/feature-auth/lib/signup/signupUtils";
-import {
-  checkIfTokenExistsAndValid,
-  acceptAllInvitesWithTeamId,
-  findTeam,
-  upsertUsersPasswordAndVerify,
-  joinOrgAndAcceptChildInvites,
-  cleanUpInviteToken,
-} from "@calcom/feature-auth/lib/signup/teamInviteUtils";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
+import selfhostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
+import type { RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
-import type { RequestWithUsernameStatus } from "@calcom/lib/server/username";
-import { usernameHandler } from "@calcom/lib/server/username";
-import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsernameInTeam } from "@calcom/lib/validateUsername";
 
-async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+function ensureReqIsPost(req: RequestWithUsernameStatus) {
+  if (req.method !== "POST") {
+    throw new HttpError({
+      statusCode: 405,
+      message: "Method not allowed",
+    });
+  }
+}
+
+function ensureSignupIsEnabled() {
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+    throw new HttpError({
+      statusCode: 403,
+      message: "Signup is disabled",
+    });
+  }
+}
+
+export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+  // Use a try catch instead of returning res every time
   try {
-    ensurePostMethod(req);
-    throwIfSignupIsDisabled();
-    const { email, password, language, token, username } = parseSignupData(req.body);
-    const hashedPassword = await hashPassword(password);
+    ensureReqIsPost(req);
+    ensureSignupIsEnabled();
 
-    const customer = await createStripeCustomer({
-      email,
-      username,
-    });
-
-    const premiumUsernameMetadata = await handlePremiumUsernameFlow({
-      customer,
-      premiumUsernameStatusCode: req.usernameStatus.statusCode,
-    });
-
-    if (!token) {
-      await findExistingUser(username, email);
-
-      // Create the user
-      const user = await createUser({
-        username,
-        email,
-        hashedPassword,
-        metadata: premiumUsernameMetadata,
-      });
-      await sendVerificationEmail({
-        email,
-        language: language || (await getLocaleFromRequest(req)),
-        username: username || "",
-      });
-      await syncServicesCreateUser(user);
-    } else {
-      const foundToken = await checkIfTokenExistsAndValid(token);
-      if (foundToken?.teamId) {
-        const teamUserValidation = await validateUsernameInTeam(username, email, foundToken?.teamId);
-        if (!teamUserValidation.isValid) {
-          return res.status(409).json({ message: "Username or email is already taken" });
-        }
-
-        const team = await findTeam(foundToken.teamId);
-
-        if (team) {
-          const teamMetadata = team.metadata;
-          const user = await upsertUsersPasswordAndVerify(email, username, hashedPassword);
-          if (teamMetadata?.isOrganization) {
-            await prisma.user.update({
-              where: {
-                id: user.id,
-              },
-              data: {
-                organizationId: team.id,
-              },
-            });
-          }
-          const membership = await acceptAllInvitesWithTeamId(user.id, team.id);
-          closeComUpsertTeamUser(team, user, membership.role);
-          if (team.parentId) {
-            await joinOrgAndAcceptChildInvites(user.id, team.parentId);
-          }
-          await cleanUpInviteToken(foundToken.id);
-        }
-      }
+    if (IS_CALCOM) {
+      return calcomSignupHandler(req, res);
     }
 
-    if (IS_CALCOM && premiumUsernameMetadata) {
-      if (premiumUsernameMetadata.checkoutSessionId) {
-        return res.status(402).json({
-          message: "Created user but missing payment",
-          checkoutSessionId: premiumUsernameMetadata.checkoutSessionId,
-        });
-      }
-      return res
-        .status(201)
-        .json({ message: "Created user", stripeCustomerId: premiumUsernameMetadata.stripeCustomerId });
-    }
-
-    return res.status(201).json({ message: "Created user" });
+    return selfhostedSignupHandler(req, res);
   } catch (e) {
-    console.log({
-      e,
-    });
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
     }
-
-    return res.status(500).json({ message: "Internal server error" });
+    throw e;
   }
-
-  // if (IS_CALCOM) {
-  //   // return await hostedHandler(req, res);
-  // } else {
-  //   return await selfHostedHandler(req, res);
-  // }
 }
-
-export default usernameHandler(handler);
