@@ -3746,6 +3746,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/make@workspace:packages/app-store/make":
+  version: 0.0.0-use.local
+  resolution: "@calcom/make@workspace:packages/app-store/make"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+    "@types/node-schedule": ^2.1.0
+  languageName: unknown
+  linkType: soft
+
 "@calcom/metapixel@workspace:packages/app-store/metapixel":
   version: 0.0.0-use.local
   resolution: "@calcom/metapixel@workspace:packages/app-store/metapixel"

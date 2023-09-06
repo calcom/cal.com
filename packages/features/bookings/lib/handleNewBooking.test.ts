@@ -164,9 +164,9 @@ describe("handleNewBooking", () => {
 describe('Event Type that requires confirmation', () => {
     test(
       `should create a booking request for event that requires confirmation
-        1. Should create a booking in the database with status PENDING
-        2. Should send emails to the booker as well as organizer for booking request and awaiting approval
-        3. Should trigger BOOKING_REQUESTED webhook
+            1. Should create a booking in the database with status PENDING
+            2. Should send emails to the booker as well as organizer for booking request and awaiting approval
+            3. Should trigger BOOKING_REQUESTED webhook
     `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -273,9 +273,9 @@ describe('Event Type that requires confirmation', () => {
 
     test(
       `should create a booking for event that requires confirmation based on a booking notice duration threshold, if threshold is not met
-        1. Should create a booking in the database with status ACCEPTED
-        2. Should send emails to the booker as well as organizer
-        3. Should trigger BOOKING_CREATED webhook
+            1. Should create a booking in the database with status ACCEPTED
+            2. Should send emails to the booker as well as organizer
+            3. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -386,9 +386,9 @@ describe('Event Type that requires confirmation', () => {
 
     test(
       `should create a booking for event that requires confirmation based on a booking notice duration threshold, if threshold IS MET
-      1. Should create a booking in the database with status PENDING
-      2. Should send emails to the booker as well as organizer for booking request and awaiting approval
-      3. Should trigger BOOKING_REQUESTED webhook
+            1. Should create a booking in the database with status PENDING
+            2. Should send emails to the booker as well as organizer for booking request and awaiting approval
+            3. Should trigger BOOKING_REQUESTED webhook
     `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -641,10 +641,10 @@ describe('Event Type that requires confirmation', () => {
     describe("Paid Events", ()=>{
       test(
         `Event Type that doesn't require confirmation
-        1. Should create a booking in the database with status PENDING
-        2. Should send email to the booker for Payment request
-        3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-        4. Once payment is successful, should trigger BOOKING_CREATED webhook
+            1. Should create a booking in the database with status PENDING
+            2. Should send email to the booker for Payment request
+            3. Should trigger BOOKING_PAYMENT_INITIATED webhook
+            4. Once payment is successful, should trigger BOOKING_CREATED webhook
       `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -794,11 +794,11 @@ describe('Event Type that requires confirmation', () => {
       // TODO: We should introduce a new state BOOKING.PAYMENT_PENDING that can clearly differentiate b/w pending confirmation(stuck on Organizer) and pending payment(stuck on booker)
       test(
         `Event Type that requires confirmation
-        1. Should create a booking in the database with status PENDING
-        2. Should send email to the booker for Payment request
-        3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-        4. Once payment is successful, should trigger BOOKING_REQUESTED webhook
-        5. Booking should still stay in pending state
+            1. Should create a booking in the database with status PENDING
+            2. Should send email to the booker for Payment request
+            3. Should trigger BOOKING_PAYMENT_INITIATED webhook
+            4. Once payment is successful, should trigger BOOKING_REQUESTED webhook
+            5. Booking should still stay in pending state
       `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

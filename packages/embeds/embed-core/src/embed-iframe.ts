@@ -179,7 +179,7 @@ function isValidNamespace(ns: string | null | undefined) {
 
 /**
  * It handles any URL change done through Web history API as well
- * History API is currenty being used by Booker/utils/query-param
+ * History API is currently being used by Booker/utils/query-param
  */
 const useUrlChange = (callback: (newUrl: string) => void) => {
   const currentFullUrl = isBrowser ? new URL(document.URL) : null;
