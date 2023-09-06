@@ -21,6 +21,7 @@ import {
   DropdownMenuLabel,
   DropdownItem,
   Avatar,
+  Badge,
 } from "@calcom/ui";
 
 import { Button } from "../button";
@@ -154,15 +155,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appInstalled ? (
-          <span className="bg-success rounded-md px-2 py-1 text-sm font-normal text-green-800">
-            {t("installed", { count: appAdded })}
-          </span>
-        ) : null}
+        {appInstalled ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
-
         {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
           <span className="bg-subtle text-emphasis flex items-center rounded-md px-2 py-1 text-sm font-normal">
             {t("default")}

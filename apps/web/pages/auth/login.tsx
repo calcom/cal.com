@@ -52,6 +52,8 @@ export default function Login({
   totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const searchParams = useSearchParams();
+  const isTeamInvite = searchParams.get("teamInvite");
+
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -95,7 +97,9 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <a
+      href={callbackUrl !== "" ? `${WEBSITE_URL}/signup?callbackUrl=${callbackUrl}` : `${WEBSITE_URL}/signup`}
+      className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
   );
@@ -184,6 +188,9 @@ export default function Login({
             ? LoginFooter
             : null
         }>
+        {isTeamInvite && (
+          <Alert severity="info" message={t("signin_or_signup_to_accept_invite")} className="mb-4 mt-4" />
+        )}
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>

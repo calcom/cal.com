@@ -56,6 +56,7 @@ model EventType {
   position                        Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations                       Json?
+  /// @zod.min(1)
   length                          Int
   offsetStart                     Int                     @default(0)
   hidden                          Boolean                 @default(false)
