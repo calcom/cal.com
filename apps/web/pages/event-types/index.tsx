@@ -402,7 +402,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           )}
                         />
                       )}
-                      {isManagedEventType && (
+                      {isManagedEventType && type.children && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
@@ -662,6 +662,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
+          isLoading={deleteMutation.isLoading}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
