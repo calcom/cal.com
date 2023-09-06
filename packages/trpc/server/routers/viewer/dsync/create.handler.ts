@@ -1,7 +1,7 @@
 import type { DirectoryType } from "@boxyhq/saml-jackson";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 
@@ -28,8 +28,10 @@ export const createHandler = async ({ ctx, input }: Options) => {
     });
   }
 
+  const tenant = input.teamId ? `${tenantPrefix}${input.teamId}` : (samlTenantID as string);
+
   const { data, error } = await dsyncController.directories.create({
-    tenant: samlTenantID,
+    tenant,
     product: samlProductID,
     name: input.name,
     type: input.provider as DirectoryType,

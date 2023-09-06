@@ -10,12 +10,11 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
   return (
     <div className="space-y-8">
       <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
-        Your Identity Provider will ask for the following information to configure SCIM. Follow the
-        instructions to finish the setup.
+        {t("directory_sync_info_description")}
       </p>
       <div className="flex flex-col">
         <div className="flex">
-          <Label>SCIM Base URL</Label>
+          <Label>{t("directory_scim_url")}</Label>
         </div>
         <div className="flex">
           <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
@@ -25,7 +24,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(`${directory.scim.endpoint}`);
-                showToast("SCIM Base URL copied", "success");
+                showToast(t("directory_scim_url_copied"), "success");
               }}
               type="button"
               className="rounded-l-none text-base"
@@ -37,7 +36,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
       </div>
       <div className="flex flex-col">
         <div className="flex">
-          <Label>SCIM Bearer Token</Label>
+          <Label>{t("directory_scim_token")}</Label>
         </div>
         <div className="flex">
           <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
@@ -47,7 +46,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(`${directory.scim.secret}`);
-                showToast("SCIM Bearer Token copied", "success");
+                showToast(t("directory_scim_token_copied"), "success");
               }}
               type="button"
               className="rounded-l-none text-base"

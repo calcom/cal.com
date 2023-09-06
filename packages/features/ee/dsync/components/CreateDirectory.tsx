@@ -29,7 +29,7 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
 
   const mutation = trpc.viewer.dsync.create.useMutation({
     async onSuccess() {
-      showToast("Directory sync connection created.", "success");
+      showToast(t("directory_sync_created"), "success");
       await utils.viewer.dsync.invalidate();
       setOpenModal(false);
     },
@@ -40,12 +40,12 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
       <div className="flex flex-col sm:flex-row">
         <div>
           <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
-            Configure an identity provider to get started with SCIM.
+            {t("directory_sync_title")}
           </p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
           <Button color="primary" onClick={() => setOpenModal(true)}>
-            Configure
+            {t("configure")}
           </Button>
         </div>
       </div>
@@ -62,11 +62,9 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
             }}>
             <div className="mb-5 mt-1">
               <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
-                Configure Directory Sync
+                {t("directory_sync_configure")}
               </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Choose an identity provider to configure directory for your team.
-              </p>
+              <p className="mt-1 text-sm text-gray-500">{t("directory_sync_configure_description")}</p>
             </div>
             <fieldset className="space-y-6">
               <Controller
@@ -75,7 +73,7 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
                 render={({ field: { value } }) => (
                   <TextField
                     name="title"
-                    label="Directory Name"
+                    label={t("directory_name")}
                     value={value}
                     onChange={(e) => {
                       form.setValue("name", e?.target.value);
@@ -91,7 +89,7 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
                 render={() => (
                   <SelectField
                     name="provider"
-                    label="Directory Provider"
+                    label={t("directory_provider")}
                     options={directoryProviders}
                     placeholder={t("choose_directory_provider")}
                     defaultValue={directoryProviders[0]}

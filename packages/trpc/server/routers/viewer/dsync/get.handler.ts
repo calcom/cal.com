@@ -1,5 +1,5 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,10 +26,9 @@ export const getHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const { data, error } = await dsyncController.directories.getByTenantAndProduct(
-    samlTenantID,
-    samlProductID
-  );
+  const tenant = input.teamId ? `${tenantPrefix}${input.teamId}` : (samlTenantID as string);
+
+  const { data, error } = await dsyncController.directories.getByTenantAndProduct(tenant, samlProductID);
 
   if (error) {
     console.error("Error fetching directory sync connection", error);

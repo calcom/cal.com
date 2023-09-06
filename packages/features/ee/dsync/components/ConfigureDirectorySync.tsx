@@ -34,7 +34,7 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
 
   const deleteMutation = trpc.viewer.dsync.delete.useMutation({
     async onSuccess() {
-      showToast("Directory sync connection deleted.", "success");
+      showToast(t("directory_sync_deleted"), "success");
       await utils.viewer.dsync.invalidate();
       setDeleteDirectoryOpen(false);
     },
@@ -71,24 +71,22 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
           <Dialog open={deleteDirectoryOpen} onOpenChange={setDeleteDirectoryOpen}>
             <DialogTrigger asChild>
               <Button color="destructive" className="mt-1" StartIcon={Trash2}>
-                Delete Connection
+                {t("delete_connection")}
               </Button>
             </DialogTrigger>
             <DialogContent
-              title="Delete Directory Sync Connection"
-              description="Are you sure you want to delete this directory sync connection?"
+              title={t("directory_sync_delete_title")}
+              description={t("directory_sync_delete_description")}
               type="creation"
               Icon={AlertTriangle}>
               <>
                 <div className="mb-10">
-                  <p className="text-default mb-4">
-                    This action cannot be undone. This will permanently delete the directory sync connection.
-                  </p>
+                  <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>
                 </div>
                 <DialogFooter showDivider>
                   <DialogClose />
                   <Button color="primary" data-testid="delete-account-confirm" onClick={onDeleteConfirmation}>
-                    Delete Connection
+                    {t("delete_connection")}
                   </Button>
                 </DialogFooter>
               </>

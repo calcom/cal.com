@@ -429,12 +429,20 @@ const SettingsSidebarContainer = ({
                                           disableChevron
                                         />
                                         {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/teams/${team.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
+                                          <>
+                                            <VerticalTabItem
+                                              name={t("saml_config")}
+                                              href={`/settings/teams/${team.id}/sso`}
+                                              textClassNames="px-3 text-emphasis font-medium text-sm"
+                                              disableChevron
+                                            />
+                                            <VerticalTabItem
+                                              name={t("directory_sync")}
+                                              href={`/settings/teams/${team.id}/dsync`}
+                                              textClassNames="px-3 text-emphasis font-medium text-sm"
+                                              disableChevron
+                                            />
+                                          </>
                                         )}
                                       </>
                                     ) : null}
