@@ -12,6 +12,7 @@ import { Button, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
 import { useTimePreferences } from "../lib";
+import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 import { TimeFormatToggle } from "./TimeFormatToggle";
 
 type AvailableTimesProps = {
@@ -94,8 +95,6 @@ export const AvailableTimes = ({
           const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
           const isNearlyFull =
             slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
-          const availableSeatsCount =
-            seatsPerTimeSlot && slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot || 0;
 
           const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
           return (
@@ -114,22 +113,16 @@ export const AvailableTimes = ({
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
               {hasTimeSlots && !bookingFull && (
-                <p className={`flex items-center text-sm ${showAvailableSeatsCount && "lowercase"}`}>
+                <p className="flex items-center text-sm">
                   <span
                     className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                     aria-hidden
                   />
-                  {showAvailableSeatsCount
-                    ? `${availableSeatsCount} ${t("seats_available", {
-                        count: availableSeatsCount,
-                      })}`
-                    : isNearlyFull
-                    ? t("seats_nearly_full")
-                    : isHalfFull
-                    ? t("seats_half_full")
-                    : t("seats_available", {
-                        count: availableSeatsCount,
-                      })}
+                  <SeatsAvailabilityText
+                    showExact={!!showAvailableSeatsCount}
+                    totalSeats={seatsPerTimeSlot}
+                    bookedSeats={slot.attendees || 0}
+                  />
                 </p>
               )}
             </Button>
