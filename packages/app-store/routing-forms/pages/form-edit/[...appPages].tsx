@@ -66,7 +66,6 @@ function Field({
   hookForm,
   hookFieldNamespace,
   deleteField,
-  fieldIndex,
   moveUp,
   moveDown,
   appUrl,

@@ -45,6 +45,18 @@
       "cache": false,
       "dependsOn": []
     },
+    "@calcom/ai#build": {
+      "env": [
+        "BACKEND_URL",
+        "APP_ID",
+        "APP_URL",
+        "PARSE_KEY",
+        "NODE_ENV",
+        "OPENAI_API_KEY",
+        "SENDGRID_API_KEY",
+        "DATABASE_URL"
+      ]
+    },
     "@calcom/website#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
@@ -198,6 +210,7 @@
     "DEBUG",
     "E2E_TEST_APPLE_CALENDAR_EMAIL",
     "E2E_TEST_APPLE_CALENDAR_PASSWORD",
+    "E2E_TEST_MAILHOG_ENABLED",
     "EMAIL_FROM",
     "EMAIL_SERVER_HOST",
     "EMAIL_SERVER_PASSWORD",

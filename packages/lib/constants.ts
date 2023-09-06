@@ -58,6 +58,7 @@ export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES |
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
 export const LOGO = "/calcom-logo-white-word.svg";
 export const LOGO_ICON = "/cal-com-icon-white.svg";
+export const AVATAR_FALLBACK = "/avatar.svg";
 export const FAVICON_16 = "/favicon-16x16.png";
 export const FAVICON_32 = "/favicon-32x32.png";
 export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
@@ -94,4 +95,7 @@ export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES ||
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
 export const ORGANIZATION_MIN_SEATS = 30;
+
+// Needed for emails in E2E
+export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
 export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;
