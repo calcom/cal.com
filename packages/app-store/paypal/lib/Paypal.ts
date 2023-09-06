@@ -53,7 +53,7 @@ class Paypal {
         const { access_token, expires_in } = await response.json();
         this.accessToken = access_token;
         this.expiresAt = Date.now() + expires_in;
-      } else {
+      } else if (response?.status) {
         console.error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
@@ -128,6 +128,7 @@ class Paypal {
       if (captureResult.ok) {
         const result = await captureResult.json();
         if (result.body.status === "COMPLETED") {
+        if (result?.status === "COMPLETED") {
           // Get payment reference id
 
           const payment = await prisma.payment.findFirst({
@@ -153,7 +154,7 @@ class Paypal {
               success: true,
               data: Object.assign(
                 {},
-                { ...(payment?.data as Record<string, string | number>), capture: result.body.id }
+                { ...(payment?.data as Record<string, string | number>), capture: result.id }
               ) as unknown as Prisma.InputJsonValue,
             },
           });
