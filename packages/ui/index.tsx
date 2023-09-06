@@ -164,3 +164,5 @@ export {
 } from "./components/command";
 
 export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
+
+export * from "./components/dropzone";
