@@ -8,6 +8,7 @@ export const AppSetupPageMap = {
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const { slug } = ctx.params || {};
   if (typeof slug !== "string") return { notFound: true } as const;
+  console.log({ slug });
 
   if (!(slug in AppSetupPageMap)) return { props: {} };
 

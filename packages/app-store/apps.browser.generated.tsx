@@ -20,6 +20,9 @@ export const AppSettingsComponentsMap = {
   zapier: dynamic(() => import("./zapier/components/AppSettingsInterface")),
 };
 export const EventTypeAddonMap = {
+  "amazon-s3-file-upload": dynamic(() =>
+    import("./amazon-s3-file-upload/components/EventTypeAppCardInterface")
+  ),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),

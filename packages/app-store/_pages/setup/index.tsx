@@ -13,6 +13,7 @@ export const AppSetupMap = {
   closecom: dynamic(() => import("../../closecom/pages/setup")),
   sendgrid: dynamic(() => import("../../sendgrid/pages/setup")),
   paypal: dynamic(() => import("../../paypal/pages/setup")),
+  "amazon-s3-file-upload": dynamic(() => import("../../amazon-s3-file-upload/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
