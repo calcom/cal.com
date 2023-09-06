@@ -391,23 +391,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map(
-                            (organizer: { name: string | null; username: string | null }) => ({
-                              alt: organizer.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                organizer.username
-                              }/avatar.png`,
-                              title: organizer.name || "",
-                            })
-                          )}
+                          items={
+                            type?.users
+                              ? type.users.map(
+                                  (organizer: { name: string | null; username: string | null }) => ({
+                                    alt: organizer.name || "",
+                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                      organizer.username
+                                    }/avatar.png`,
+                                    title: organizer.name || "",
+                                  })
+                                )
+                              : []
+                          }
                         />
                       )}
-                      {isManagedEventType && type.children && (
+                      {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.children
+                          items={type?.children
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
