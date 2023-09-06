@@ -551,7 +551,7 @@
   "team_description": "Кілька речень про вашу команду. Ця інформація з’явиться на сторінці за URL-адресою вашої команди.",
   "org_description": "Кілька речень про вашу організацію. Ця інформація з’явиться на сторінці за URL-адресою вашої організації.",
   "members": "Учасники",
-  "organization_members": "Учасники організації",
+  "organization_members": "Учасники Organization",
   "member": "Учасник",
   "number_member_one": "{{count}} учасник",
   "number_member_other": "Учасників: {{count}}",
@@ -1936,7 +1936,7 @@
   "insights_all_org_filter": "Усі",
   "insights_team_filter": "Команда: {{teamName}}",
   "insights_user_filter": "Користувач: {{userName}}",
-  "insights_subtitle": "Переглядайте аналітичні дані про бронювання для своїх заходів",
+  "insights_subtitle": "Переглядайте дані Insights про бронювання для своїх заходів",
   "custom_plan": "Користувацький план",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Додайте нові рядки вище ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

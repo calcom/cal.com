@@ -1,0 +1,59 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+import { useRouter } from "next/router";
+
+import { CustomArgsTable, Title, VariantsTable, VariantRow } from "@calcom/storybook/components";
+
+import WizardForm from "./WizardForm";
+
+<Meta title="UI/Form/WizardForm" component={WizardForm} />
+
+<Title title="WizardForm" subtitle="Version 1.0 — Last Update: 5 Sep 2023" />
+
+## Definition
+
+The `WizardForm` component provides a structure for creating multi-step forms or wizards.
+
+## Structure
+
+<CustomArgsTable of={WizardForm} />
+
+## Note on Navigation
+
+Please be aware that the steps navigation is managed internally within the `WizardForm` component. As such, when viewing this component in Storybook, clicking the "Next" button will not showcase the transition to the subsequent step.
+
+To observe the actual step navigation behavior, please refer to the Storybook stories for the individual `Steps` component.
+
+## WizardForm Story
+
+<Canvas>
+  <Story
+    name="Basic"
+    args={{
+      href: "/wizard",
+      steps: [
+        { title: "Step 1", description: "Description for Step 1" },
+        { title: "Step 2", description: "Description for Step 2" },
+        { title: "Step 3", description: "Description for Step 3" },
+      ],
+    }}
+    argTypes={{
+      href: {
+        control: {
+          type: "text",
+        },
+      },
+      steps: {
+        control: {
+          type: "object",
+        },
+      },
+    }}>
+    {({ href, steps }) => (
+      <VariantsTable titles={["Basic Wizard Form"]} columnMinWidth={150}>
+        <VariantRow>
+          <WizardForm href={href} steps={steps} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>
