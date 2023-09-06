@@ -237,6 +237,7 @@ model User {
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  accessCodes          AccessCode[]
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -895,6 +896,22 @@ model SelectedSlots {
   isSeat           Boolean  @default(false)
 
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
+}
+
+model OAuthClient {
+  id           Int    @id @default(autoincrement())
+  redirectUri  String
+  clientId     String
+  clientSecret String
+  name         String
+}
+
+model AccessCode {
+  id      Int      @id @default(autoincrement())
+  code    String
+  timeOut DateTime
+  userId  Int?
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 view BookingTimeStatus {

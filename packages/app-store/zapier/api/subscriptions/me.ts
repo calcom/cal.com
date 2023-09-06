@@ -4,8 +4,6 @@ import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("test test ");
-
   const apiKey = req.query.apiKey as string;
 
   if (!apiKey) {

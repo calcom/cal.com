@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("test test ");
-
   const user = await prisma.user.findFirst({
     select: {
       username: true,
