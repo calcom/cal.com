@@ -44,7 +44,7 @@ const agent = async (input: string, user: User, apiKey: string, userId: number) 
             Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
             Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
 
-            Current UTC time is: ${now}
+            The current time in the user's timezone is: ${now(user.timeZone)}
             The user's time zone is: ${user.timeZone}
             The user's event types are: ${user.eventTypes
               .map((e: EventType) => `ID: ${e.id}, Title: ${e.title}, Length: ${e.length}`)
