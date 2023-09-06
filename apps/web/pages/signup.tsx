@@ -56,6 +56,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       if (err.checkoutSessionId) {
         const stripe = await getStripe();
         if (stripe) {
+          console.log("Redirecting to stripe checkout");
           const { error } = await stripe.redirectToCheckout({
             sessionId: err.checkoutSessionId,
           });

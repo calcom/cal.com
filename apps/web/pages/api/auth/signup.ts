@@ -2,7 +2,7 @@ import type { NextApiResponse } from "next";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfhostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
-import type { RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
+import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 

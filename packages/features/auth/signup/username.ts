@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import notEmpty from "@calcom/lib/notEmpty";
 import slugify from "@calcom/lib/slugify";
@@ -25,6 +26,16 @@ export type RequestWithUsernameStatus = NextApiRequest & {
     };
   };
 };
+export const usernameStatusSchema = z.object({
+  statusCode: z.union([z.literal(200), z.literal(402), z.literal(418)]),
+  requestedUserName: z.string(),
+  json: z.object({
+    available: z.boolean(),
+    premium: z.boolean(),
+    message: z.string().optional(),
+    suggestion: z.string().optional(),
+  }),
+});
 
 type CustomNextApiHandler<T = unknown> = (
   req: RequestWithUsernameStatus,

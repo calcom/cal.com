@@ -1,17 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import dayjs from "@calcom/dayjs";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsernameInTeam, validateUsername } from "@calcom/lib/validateUsername";
+import { validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import { joinAnyChildTeamOnOrgInvite, joinOrganization } from "../utils/organization";
+import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const data = req.body;
@@ -27,30 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
-    foundToken = await prisma.verificationToken.findFirst({
-      where: {
-        token,
-      },
-      select: {
-        id: true,
-        expires: true,
-        teamId: true,
-      },
-    });
-
-    if (!foundToken) {
-      return res.status(401).json({ message: "Invalid Token" });
-    }
-
-    if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    if (foundToken?.teamId) {
-      const teamUserValidation = await validateUsernameInTeam(username, userEmail, foundToken?.teamId);
-      if (!teamUserValidation.isValid) {
-        return res.status(409).json({ message: "Username or email is already taken" });
-      }
-    }
+    foundToken = await findTokenByToken({ token });
+    throwIfTokenExpired(foundToken?.expires);
+    validateUsernameForTeam({ username, email: userEmail, teamId: foundToken?.teamId });
   } else {
     const userValidation = await validateUsername(username, userEmail);
     if (!userValidation.isValid) {
@@ -69,16 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-      if (IS_CALCOM && (!teamMetadata?.isOrganization || !!team.parentId)) {
-        const checkUsername = await checkPremiumUsername(username);
-        if (checkUsername.premium) {
-          // This signup page is ONLY meant for team invites and local setup. Not for every day users.
-          // In singup redesign/refactor coming up @sean will tackle this to make them the same API/page instead of two.
-          return res.status(422).json({
-            message: "Sign up from https://cal.com/signup to claim your premium username",
-          });
-        }
-      }
+      // if (IS_CALCOM && (!teamMetadata?.isOrganization || !!team.parentId)) {
+      //   const checkUsername = await checkPremiumUsername(username);
+      //   if (checkUsername.premium) {
+      //     // This signup page is ONLY meant for team invites and local setup. Not for every day users.
+      //     // In singup redesign/refactor coming up @sean will tackle this to make them the same API/page instead of two.
+      //     return res.status(422).json({
+      //       message: "Sign up from https://cal.com/signup to claim your premium username",
+      //     });
+      //   }
+      // }
 
       const user = await prisma.user.upsert({
         where: { email: userEmail },
@@ -97,13 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (teamMetadata?.isOrganization) {
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            organizationId: team.id,
-          },
+        await joinOrganization({
+          organizationId: team.id,
+          userId: user.id,
         });
       }
 
@@ -119,42 +96,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Accept any child team invites for orgs.
       if (team.parentId) {
-        // Join ORG
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            organizationId: team.parentId,
-          },
-        });
-
-        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
-        await prisma.membership.updateMany({
-          where: {
-            userId: user.id,
-            team: {
-              id: team.parentId,
-            },
-            accepted: false,
-          },
-          data: {
-            accepted: true,
-          },
-        });
-
-        // Join any other invites
-        await prisma.membership.updateMany({
-          where: {
-            userId: user.id,
-            team: {
-              parentId: team.parentId,
-            },
-            accepted: false,
-          },
-          data: {
-            accepted: true,
-          },
+        await joinAnyChildTeamOnOrgInvite({
+          userId: user.id,
+          orgId: team.parentId,
         });
       }
     }

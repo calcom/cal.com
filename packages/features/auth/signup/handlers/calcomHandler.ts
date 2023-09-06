@@ -7,12 +7,28 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
+import { validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { usernameHandler, type RequestWithUsernameStatus } from "../username";
+import { joinOrganization, joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
 
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
-  const { email: _email, password } = req.body;
+  const {
+    email: _email,
+    password,
+    token,
+  } = signupSchema
+    .pick({
+      email: true,
+      password: true,
+      token: true,
+    })
+    .parse(req.body);
   let username: string | null = req.usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 
@@ -27,36 +43,18 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     return;
   }
 
-  if (typeof _email !== "string" || !_email.includes("@")) {
-    res.status(422).json({ message: "Invalid email" });
-    return;
-  }
-
   const email = _email.toLowerCase();
 
-  if (!password || password.trim().length < 7) {
-    res.status(422).json({
-      message: "Invalid input - password should be at least 7 characters long.",
-    });
-    return;
-  }
-
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [
-        {
-          username,
-        },
-        {
-          email,
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    res.status(422).json({ message: "A user exists with that email address" });
-    return;
+  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+  if (token) {
+    foundToken = await findTokenByToken({ token });
+    throwIfTokenExpired(foundToken?.expires);
+    validateUsernameForTeam({ username, email, teamId: foundToken?.teamId });
+  } else {
+    const userValidation = await validateUsername(username, email);
+    if (!userValidation.isValid) {
+      return res.status(409).json({ message: "Username or email is already taken" });
+    }
   }
 
   // Create the customer in Stripe
@@ -95,37 +93,94 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   // Hash the password
   const hashedPassword = await hashPassword(password);
 
-  // Create the user
-  const user = await prisma.user.create({
-    data: {
-      username,
-      email,
-      password: hashedPassword,
-      metadata: {
-        stripeCustomerId: customer.id,
-        checkoutSessionId,
+  if (foundToken && foundToken?.teamId) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: foundToken.teamId,
       },
-    },
-  });
+    });
+    if (team) {
+      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-  sendEmailVerification({
-    email,
-    language: await getLocaleFromRequest(req),
-    username: username || "",
-  });
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: {
+          username,
+          password: hashedPassword,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+        },
+        create: {
+          username,
+          email,
+          password: hashedPassword,
+          identityProvider: IdentityProvider.CAL,
+        },
+      });
 
-  // Sync Services
-  await syncServicesCreateWebUser(user);
+      if (teamMetadata?.isOrganization) {
+        await joinOrganization({
+          organizationId: team.id,
+          userId: user.id,
+        });
+      }
+
+      const membership = await prisma.membership.update({
+        where: {
+          userId_teamId: { userId: user.id, teamId: team.id },
+        },
+        data: {
+          accepted: true,
+        },
+      });
+      closeComUpsertTeamUser(team, user, membership.role);
+
+      // Accept any child team invites for orgs.
+      if (team.parentId) {
+        await joinAnyChildTeamOnOrgInvite({
+          userId: user.id,
+          orgId: team.parentId,
+        });
+      }
+    }
+
+    // Cleanup token after use
+    await prisma.verificationToken.delete({
+      where: {
+        id: foundToken.id,
+      },
+    });
+  } else {
+    // Create the user
+    const user = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        metadata: {
+          stripeCustomerId: customer.id,
+          checkoutSessionId,
+        },
+      },
+    });
+
+    sendEmailVerification({
+      email,
+      language: await getLocaleFromRequest(req),
+      username: username || "",
+    });
+    // Sync Services
+    await syncServicesCreateWebUser(user);
+  }
 
   if (checkoutSessionId) {
-    res.status(402).json({
+    return res.status(402).json({
       message: "Created user but missing payment",
       checkoutSessionId,
     });
-    return;
   }
 
-  res.status(201).json({ message: "Created user", stripeCustomerId: customer.id });
+  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.id });
 }
 
 export default usernameHandler(handler);
