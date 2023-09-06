@@ -46,7 +46,6 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
                     imageSrc={avatarURL}
-                    gravatarFallbackMd5="fallback"
                   />
                   <div className="space-between flex flex-col leading-none">
                     <Skeleton loading={isLoading} as="p" waitForTranslation={false}>
