@@ -27,3 +27,5 @@ export const handler = async () => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Fetching SSO connections failed." });
   }
 };
+
+export default handler;
