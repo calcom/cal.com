@@ -19,7 +19,7 @@ declare global {
 
 expect.extend({
   toHaveEmail(
-    testEmails: ReturnType<Fixtures["emails"]["get"]>,
+    emails: Fixtures["emails"],
     expectedEmail: {
       //TODO: Support email HTML parsing to target specific elements
       htmlToContain?: string;
@@ -27,7 +27,7 @@ expect.extend({
     },
     to: string
   ) {
-    const testEmail = testEmails.find((email) => email.to === to);
+    const testEmail = emails.get().find((email) => email.to.includes(to));
     if (!testEmail) {
       return {
         pass: false,
@@ -110,4 +110,125 @@ export function expectBookingToBeInDatabase(booking: Partial<Booking> & Pick<Boo
     },
   });
   expect(actualBooking).toEqual(expect.objectContaining(booking));
+}
+
+export function expectSuccessfulBookingCreationEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>confirmed_event_type_subject</title>",
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>confirmed_event_type_subject</title>",
+      to: `${booker.name} <${booker.email}>`,
+    },
+    `${booker.name} <${booker.email}>`
+  );
+}
+
+export function expectAwaitingPaymentEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>awaiting_payment_subject</title>",
+      to: `${booker.name} <${booker.email}>`,
+    },
+    `${booker.email}`
+  );
+}
+
+export function expectBookingRequestedEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>event_awaiting_approval_subject</title>",
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>booking_submitted_subject</title>",
+      to: `${booker.email}`,
+    },
+    `${booker.email}`
+  );
+}
+
+export function expectBookingRequestedWebhookToHaveBeenFired({
+  organizer,
+  booker,
+  location,
+  subscriberUrl,
+  paidEvent,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  paidEvent?: boolean;
+}) {
+  // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
+  if (!paidEvent) {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+      triggerEvent: "BOOKING_REQUESTED",
+      payload: {
+        metadata: {
+          // In a Pending Booking Request, we don't send the video call url
+        },
+        responses: {
+          name: { label: "your_name", value: booker.name },
+          email: { label: "email_address", value: booker.email },
+          location: {
+            label: "location",
+            value: { optionValue: "", value: location },
+          },
+        },
+      },
+    });
+  } else {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+      triggerEvent: "BOOKING_REQUESTED",
+      payload: {
+        metadata: {
+          // In a Pending Booking Request, we don't send the video call url
+        },
+        responses: {
+          name: { label: "name", value: booker.name },
+          email: { label: "email", value: booker.email },
+          location: {
+            label: "location",
+            value: { optionValue: "", value: location },
+          },
+        },
+      },
+    });
+  }
 }
