@@ -356,7 +356,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </div>
           <DialogFooter showDivider>
             {!disableCopyLink && (
-              <div className="relative right-40">
+              <div className="flex-grow">
                 <Button
                   type="button"
                   color="minimal"
@@ -369,7 +369,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
                   <Link className="text-default h-4 w-4" aria-hidden="true" />
-                  {t("copy_invite_link")}
+                  <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
             )}

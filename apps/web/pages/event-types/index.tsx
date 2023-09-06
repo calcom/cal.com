@@ -425,7 +425,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                           )}
                         />
                       )}
-                      {isManagedEventType && (
+                      {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
