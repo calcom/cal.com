@@ -13,15 +13,16 @@ import {
   Label,
   Meta,
   Select,
-  SettingsToggle,
   showToast,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   TimezoneSelect,
+  NewToggle,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+import SectionBottomActions from "@components/settings/SectionBottomActions";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -128,85 +129,94 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         });
       }}>
       <Meta title={t("general")} description={t("general_description")} />
-      <Controller
-        name="locale"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <Label className="text-emphasis">
-              <>{t("language")}</>
-            </Label>
-            <Select<{ label: string; value: string }>
-              className="capitalize"
-              options={localeOptions}
-              value={value}
-              onChange={onChange}
-            />
-          </>
-        )}
-      />
-      <Controller
-        name="timeZone"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("timezone")}</>
-            </Label>
-            <TimezoneSelect
-              id="timezone"
-              value={value}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <Controller
-        name="timeFormat"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("time_format")}</>
-            </Label>
-            <Select
-              value={value}
-              options={timeFormatOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <div className="text-gray text-default mt-2 flex items-center text-sm">
-        {t("timeformat_profile_hint")}
+      <div className="border-subtle border-x border-y-0 px-6 py-8">
+        <Controller
+          name="locale"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <Label className="text-emphasis">
+                <>{t("language")}</>
+              </Label>
+              <Select<{ label: string; value: string }>
+                className="capitalize"
+                options={localeOptions}
+                value={value}
+                onChange={onChange}
+              />
+            </>
+          )}
+        />
+        <Controller
+          name="timeZone"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis mt-8">
+                <>{t("timezone")}</>
+              </Label>
+              <TimezoneSelect
+                id="timezone"
+                value={value}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
+        <Controller
+          name="timeFormat"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis mt-8">
+                <>{t("time_format")}</>
+              </Label>
+              <Select
+                value={value}
+                options={timeFormatOptions}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
+        <div className="text-gray text-default mt-2 flex items-center text-sm">
+          {t("timeformat_profile_hint")}
+        </div>
+        <Controller
+          name="weekStart"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis mt-8">
+                <>{t("start_of_week")}</>
+              </Label>
+              <Select
+                value={value}
+                options={weekStartOptions}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
       </div>
-      <Controller
-        name="weekStart"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("start_of_week")}</>
-            </Label>
-            <Select
-              value={value}
-              options={weekStartOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <div className="mt-8">
+
+      <SectionBottomActions align="end">
+        <Button loading={mutation.isLoading} disabled={isDisabled} color="primary" type="submit">
+          <>{t("update")}</>
+        </Button>
+      </SectionBottomActions>
+
+      <div className="border-subtle mt-6 rounded-xl border p-6">
         <Controller
           name="allowDynamicBooking"
           control={formMethods.control}
           render={() => (
-            <SettingsToggle
+            <NewToggle
               title={t("dynamic_booking")}
               description={t("allow_dynamic_booking")}
               checked={formMethods.getValues("allowDynamicBooking")}
@@ -218,12 +228,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         />
       </div>
 
-      <div className="mt-8">
+      <div className="border-subtle mt-6 rounded-xl border p-6">
         <Controller
           name="allowSEOIndexing"
           control={formMethods.control}
           render={() => (
-            <SettingsToggle
+            <NewToggle
               title={t("seo_indexing")}
               description={t("allow_seo_indexing")}
               checked={formMethods.getValues("allowSEOIndexing")}
@@ -234,15 +244,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           )}
         />
       </div>
-
-      <Button
-        loading={mutation.isLoading}
-        disabled={isDisabled}
-        color="primary"
-        type="submit"
-        className="mt-8">
-        <>{t("update")}</>
-      </Button>
     </Form>
   );
 };

@@ -44,4 +44,4 @@ export {
   DropdownMenuTrigger,
   DropdownMenuTriggerItem,
 } from "./dropdown";
-export { SettingsToggle, Switch } from "./switch";
+export { SettingsToggle, Switch, NewToggle } from "./switch";

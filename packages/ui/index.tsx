@@ -57,6 +57,7 @@ export {
   Steps,
   WizardForm,
   SettingsToggle,
+  NewToggle,
   Stepper,
   Switch,
   NumberInput,

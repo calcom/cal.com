@@ -288,6 +288,7 @@
   "when": "When",
   "where": "Where",
   "add_to_calendar": "Add to calendar",
+  "add_to_calendar_description":"Select where to add events when you’re booked.",
   "add_another_calendar": "Add another calendar",
   "other": "Other",
   "email_sign_in_subject": "Your sign-in link for {{appName}}",

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
-import type { BaseSyntheticEvent, ReactNode } from "react";
+import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -41,6 +41,7 @@ import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
+import SectionBottomActions from "@components/settings/SectionBottomActions";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -250,18 +251,18 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="border-subtle my-6" />
-
-      <Label>{t("danger_zone")}</Label>
+      <div className="border-subtle mt-6 rounded-xl rounded-b-none border border-b-0 p-6">
+        <Label className="text-xl font-semibold text-red-700">{t("danger_zone")}</Label>
+      </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-        <CommonBox>
+        <SectionBottomActions align="end">
           <DialogTrigger asChild>
             <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
-        </CommonBox>
+        </SectionBottomActions>
         <DialogContent
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
@@ -449,18 +450,12 @@ const ProfileForm = ({
           />
         </div>
       </Form>
-      <CommonBox>
+      <SectionBottomActions align="end">
         <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
           {t("update")}
         </Button>
-      </CommonBox>
+      </SectionBottomActions>
     </div>
-  );
-};
-
-const CommonBox = ({ children }: { children: ReactNode }) => {
-  return (
-    <div className="border-subtle bg-muted flex justify-end rounded-b-xl border px-6 py-4">{children}</div>
   );
 };
 
