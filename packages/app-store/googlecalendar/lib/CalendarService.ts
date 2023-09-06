@@ -87,8 +87,7 @@ export default class GoogleCalendarService implements Calendar {
     return {
       getToken: async () => {
         const myGoogleAuth = await getGoogleAuth();
-        // const isExpired = () => myGoogleAuth.isTokenExpiring();
-        const isExpired = () => true;
+        const isExpired = () => myGoogleAuth.isTokenExpiring();
         return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
       },
     };
