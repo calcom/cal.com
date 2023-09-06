@@ -10,6 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -436,7 +437,14 @@ export default class EventManager {
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
      * @todo remove location from event types that has missing credentials
      * */
-    if (!videoCredential) videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+    if (!videoCredential) {
+      logger.warn(
+        'Falling back to "daily" video integration for event with location: ' +
+          event.location +
+          " because credential is missing for the app"
+      );
+      videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+    }
 
     return videoCredential;
   }
