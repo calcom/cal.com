@@ -35,7 +35,7 @@ export default class BaseEmail {
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
 
-    if (process.env.NEXT_PUBLIC_UNIT_TESTS) {
+    if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
       setTestEmail(this.getNodeMailerPayload());

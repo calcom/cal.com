@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 
-process.env.NEXT_PUBLIC_UNIT_TESTS = 1;
+process.env.INTEGRATION_TEST_MODE = "true";
+
 export default defineConfig({
   test: {
     coverage: {
