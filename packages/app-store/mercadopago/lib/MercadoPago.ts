@@ -1,3 +1,5 @@
+import prisma from "@calcom/prisma";
+
 import { mercadoPagoOAuthTokenSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
 
 class MercadoPago {
@@ -99,6 +101,80 @@ class MercadoPago {
 
     return credentials;
   }
+
+  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+    if (!this.userCredentials) throw new Error("Missing user credentials");
+
+    let accessToken = this.userCredentials.key.access_token;
+
+    if (Date.now() >= this.userCredentials.key.expires_at) {
+      const refreshedOAuth = await this.getOAuthToken({
+        refreshToken: this.userCredentials.key.refresh_token,
+      });
+
+      await prisma.credential.update({
+        where: { id: this.userCredentials.id },
+        data: {
+          key: refreshedOAuth,
+        },
+      });
+
+      accessToken = refreshedOAuth.access_token;
+    }
+
+    return fetch(`${this.url}${endpoint}`, {
+      method: "get",
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        ...init?.headers,
+      },
+    });
+  };
+
+  async createPreference({
+    amount,
+    currency,
+    paymentUid,
+    bookingId,
+    eventTypeId,
+    bookerEmail,
+    eventName,
+  }: CreatePreferenceArg) {
+    const body: PreferenceCreateBody = {
+      items: [
+        {
+          id: String(eventTypeId),
+          title: eventName,
+          quantity: 1,
+          unit_price: amount,
+          category_id: "services",
+          currency_id: currency,
+        },
+      ],
+      external_reference: paymentUid,
+      marketplace: this.clientId,
+      marketplace_fee: 0,
+      metadata: {
+        identifier: "cal.com",
+        bookingId,
+        bookerEmail,
+        eventName,
+      },
+    };
+    const response = await this.fetcher(`${this.url}/v1/payments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data: CreatedPreference = await response.json();
+
+    return data;
+  }
 }
 
 export type MercadoPagoUserCredential = {
@@ -109,5 +185,81 @@ export type MercadoPagoUserCredential = {
 type GetOAuthTokenArg =
   | { code: string; refreshToken?: undefined }
   | { refreshToken: string; code?: undefined };
+
+type PreferenceItem = {
+  /** Identifier of the item (Required) */
+  id: string;
+
+  /** This is the title of the item, which will be displayed during the payment process, in the checkout, activities, and emails (Required) */
+  title: string;
+
+  /** Description of the item (Optional) */
+  description?: string;
+
+  /** URL of the item image (Optional) */
+  picture_url?: string;
+
+  /** This is a free string where the item category can be added. (Optional) */
+  category_id?: string;
+
+  /** Quantity of items. This property is used to calculate the total cost (Required) */
+  quantity: number;
+
+  /** Unique ID to identify the currency. ISO_4217 code. Some sites allow local currency and USD, but it is important to note that the amount is converted to local currency when the preference is created, since the checkout always processes transactions in local currency. If you use USD, keep in mind that this value is not automatically updated if the value of the local currency changes in relation to USD. (Optional) */
+  currency_id?: "USD" | "ARS" | "BRL" | "CLP" | "MXN" | "COP" | "PEN" | "UYU" | string;
+
+  /** Unit price of the item. This property is used along with the 'quantity' property to determine the cost of the order (Required) */
+  unit_price: number;
+};
+
+interface PreferenceCreateBody {
+  /** Information about the items */
+  items: PreferenceItem[];
+
+  /** External reference to sync with Cal.com ayments (`uid` property in `Payment` model). */
+  external_reference?: string;
+
+  marketplace?: string;
+  marketplace_fee?: 0; // TODO: Add config to allow Cal.com to take a fee.
+
+  /**
+   *  Set of key-value pairs that you can attach to the preference. This can be useful for storing additional information about the object in a structured format.
+   */
+  metadata: Record<string, string | number>;
+}
+
+type CreatePreferenceArg = {
+  /** Price expressed as currency units (e.g. 10 = $10, not $0.1) */
+  amount: number;
+
+  currency: PreferenceItem["currency_id"];
+
+  /** Payment UID */
+  paymentUid: string;
+
+  /** EventType ID */
+  eventTypeId: number;
+
+  /** Booking ID */
+  bookingId: number;
+
+  /** Booker email address */
+  bookerEmail: string;
+
+  /** Event Type title */
+  eventName: string;
+};
+
+type CreatedPreference = {
+  collector_id: number;
+  items: PreferenceItem[];
+  client_id: number;
+  marketplace: string;
+  marketplace_fee: number;
+  date_created: string;
+  id: string;
+  init_point: string;
+  sandbox_init_point: string;
+};
 
 export default MercadoPago;
