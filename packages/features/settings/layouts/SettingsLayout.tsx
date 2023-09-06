@@ -119,6 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
       { name: "kyc_verification", href: "/settings/admin/kycVerification" },
+      { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
 ];
