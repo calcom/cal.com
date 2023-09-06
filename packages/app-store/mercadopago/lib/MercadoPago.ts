@@ -1,14 +1,16 @@
-import { mercadoPagoCredentialSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
+import { mercadoPagoOAuthTokenSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
 
 class MercadoPago {
   readonly authUrl = "https://auth.mercadopago.com";
   readonly url = "https://api.mercadopago.com";
   clientId: string;
   clientSecret: string;
+  userCredentials?: MercadoPagoUserCredential;
 
-  constructor(opts: { clientId: string; clientSecret: string }) {
+  constructor(opts: { clientId: string; clientSecret: string; userCredentials?: MercadoPagoUserCredential }) {
     this.clientId = opts.clientId;
     this.clientSecret = opts.clientSecret;
+    this.userCredentials = opts.userCredentials;
   }
 
   /**
@@ -16,6 +18,7 @@ class MercadoPago {
    */
   private getRedirectUri() {
     const NGROK_TUNNEL = "https://5fc518aa5ef9.ngrok.app";
+    // TODO: Uncomment and remove ngrok tunnel before creating PR.
     // const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/mercadopago/callback");
     const redirectUri = encodeURI(NGROK_TUNNEL + "/api/integrations/mercadopago/callback");
     return redirectUri;
@@ -90,9 +93,18 @@ class MercadoPago {
       throw new Error(error);
     }
 
-    return mercadoPagoCredentialSchema.parse(data);
+    const credentials = mercadoPagoOAuthTokenSchema
+      .transform((val) => ({ ...val, expires_at: Date.now() + val.expires_in * 1000 }))
+      .parse(data);
+
+    return credentials;
   }
 }
+
+export type MercadoPagoUserCredential = {
+  id: number;
+  key: MercadoPagoCredentialSchema;
+};
 
 type GetOAuthTokenArg =
   | { code: string; refreshToken?: undefined }
