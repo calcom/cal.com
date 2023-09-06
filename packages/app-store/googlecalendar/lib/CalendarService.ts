@@ -17,6 +17,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
 
@@ -47,11 +49,18 @@ export default class GoogleCalendarService implements Calendar {
 
     const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
       try {
-        const { res } = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
+        const res = await refreshOAuthTokens(
+          async () => {
+            const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
+            return fetchTokens.res;
+          },
+          "google-calendar",
+          credential.userId
+        );
         const token = res?.data;
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
-        const key = googleCredentialSchema.parse(googleCredentials);
+        const key = parseRefreshTokenResponse(googleCredentials, googleCredentialSchema);
         await prisma.credential.update({
           where: { id: credential.id },
           data: { key },
@@ -78,7 +87,8 @@ export default class GoogleCalendarService implements Calendar {
     return {
       getToken: async () => {
         const myGoogleAuth = await getGoogleAuth();
-        const isExpired = () => myGoogleAuth.isTokenExpiring();
+        // const isExpired = () => myGoogleAuth.isTokenExpiring();
+        const isExpired = () => true;
         return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
       },
     };

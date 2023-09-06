@@ -9,7 +9,8 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import refreshOAuthTokens from "../../_utils/refreshOAuthTokens";
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
@@ -76,8 +77,8 @@ const zoomAuth = (credential: CredentialPayload) => {
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
 
     const response = await refreshOAuthTokens(
-      () =>
-        fetch("https://zoom.us/oauth/token", {
+      async () =>
+        await fetch("https://zoom.us/oauth/token", {
           method: "POST",
           headers: {
             Authorization: authHeader,
@@ -88,21 +89,9 @@ const zoomAuth = (credential: CredentialPayload) => {
             grant_type: "refresh_token",
           }),
         }),
-      credential.userId,
-      "zoomvideo"
+      "zoomvideo",
+      credential.userId
     );
-
-    // const response = await fetch("https://zoom.us/oauth/token", {
-    //   method: "POST",
-    //   headers: {
-    //     Authorization: authHeader,
-    //     "Content-Type": "application/x-www-form-urlencoded",
-    //   },
-    //   body: new URLSearchParams({
-    //     refresh_token: refreshToken,
-    //     grant_type: "refresh_token",
-    //   }),
-    // });
 
     const responseBody = await handleZoomResponse(response, credential.id);
 
@@ -112,7 +101,7 @@ const zoomAuth = (credential: CredentialPayload) => {
       }
     }
     // We check the if the new credentials matches the expected response structure
-    const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
+    const parsedToken = parseRefreshTokenResponse(responseBody, zoomRefreshedTokenSchema);
 
     // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
     // Expanding on this we can use server-to-server app and create meeting from admin calcom account
