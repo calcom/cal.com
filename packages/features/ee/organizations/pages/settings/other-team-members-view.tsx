@@ -38,6 +38,11 @@ function MembersList(props: MembersListProps) {
           })}
         </ul>
       ) : null}
+      {members?.length === 0 && (
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-default text-sm font-bold">{t("no_members_found")}</p>
+        </div>
+      )}
       {displayLoadMore && (
         <button
           className="text-primary-500 hover:text-primary-600"
@@ -107,7 +112,13 @@ const MembersView = () => {
 
   const isLoading = isTeamLoading || isLoadingMembers || isOrgListLoading;
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    onSuccess: () => {
+      utils.viewer.organizations.listOtherTeams.invalidate();
+      utils.viewer.teams.list.invalidate();
+      utils.viewer.organizations.listOtherTeamMembers.invalidate();
+    },
+  });
 
   const isOrgAdminOrOwner =
     currentOrg &&

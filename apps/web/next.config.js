@@ -454,6 +454,13 @@ const nextConfig = {
       },
       {
         source: "/support",
+        missing: [
+          {
+            type: "header",
+            key: "host",
+            value: orgHostPath,
+          },
+        ],
         destination: "/event-types?openIntercom=true",
         permanent: true,
       },

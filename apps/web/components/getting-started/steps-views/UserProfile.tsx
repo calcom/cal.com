@@ -102,7 +102,6 @@ const UserProfile = () => {
         {user && (
           <OrganizationAvatar
             alt={user.username || "user avatar"}
-            gravatarFallbackMd5={user.emailMd5}
             size="lg"
             imageSrc={imageSrc}
             organizationSlug={user.organization?.slug}

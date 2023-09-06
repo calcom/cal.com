@@ -413,7 +413,6 @@ const ProfileForm = ({
               <OrganizationAvatar
                 alt={formMethods.getValues("username")}
                 imageSrc={value}
-                gravatarFallbackMd5="fallback"
                 size="lg"
                 organizationSlug={userOrganization.slug}
               />
