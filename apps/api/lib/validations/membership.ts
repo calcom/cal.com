@@ -13,16 +13,18 @@ const schemaMembershipRequiredParams = z.object({
   teamId: z.number(),
 });
 
-export const membershipCreateBodySchema = Membership.partial({
-  accepted: true,
-  role: true,
-  disableImpersonation: true,
-}).transform((v) => ({
-  accepted: false,
-  role: MembershipRole.MEMBER,
-  disableImpersonation: false,
-  ...v,
-}));
+export const membershipCreateBodySchema = Membership.omit({ id: true })
+  .partial({
+    accepted: true,
+    role: true,
+    disableImpersonation: true,
+  })
+  .transform((v) => ({
+    accepted: false,
+    role: MembershipRole.MEMBER,
+    disableImpersonation: false,
+    ...v,
+  }));
 
 export const membershipEditBodySchema = Membership.omit({
   /** To avoid complication, let's avoid updating these, instead you can delete and create a new invite */

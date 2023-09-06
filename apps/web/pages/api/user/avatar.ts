@@ -1,12 +1,10 @@
-import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
-
-import { defaultAvatarSrc } from "@lib/profile";
 
 const querySchema = z
   .object({
@@ -75,12 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("x-cal-org", identity.org);
     }
     res.writeHead(302, {
-      Location: defaultAvatarSrc({
-        md5: crypto
-          .createHash("md5")
-          .update(identity?.email || "guest@example.com")
-          .digest("hex"),
-      }),
+      Location: AVATAR_FALLBACK,
     });
 
     return res.end();

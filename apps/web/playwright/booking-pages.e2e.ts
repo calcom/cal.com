@@ -268,3 +268,60 @@ test.describe("prefill", () => {
     });
   });
 });
+
+test.describe("Booking on different layouts", () => {
+  test.beforeEach(async ({ page, users }) => {
+    const user = await users.create();
+    await page.goto(`/${user.username}`);
+  });
+
+  test("Book on week layout", async ({ page }) => {
+    // Click first event type
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="toggle-group-item-week_view"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    await page.locator('[data-testid="calendar-empty-cell"]').nth(0).click();
+
+    // Fill what is this meeting about? name email and notes
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+    await page.locator('[name="notes"]').fill("Test notes");
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    // expect page to be booking page
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
+  test("Book on column layout", async ({ page }) => {
+    // Click first event type
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="toggle-group-item-column_view"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    await page.locator('[data-testid="time"]').nth(0).click();
+
+    // Fill what is this meeting about? name email and notes
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+    await page.locator('[name="notes"]').fill("Test notes");
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    // expect page to be booking page
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+});

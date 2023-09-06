@@ -52,10 +52,9 @@ import {
   Skeleton,
   Switch,
   Tooltip,
+  ArrowButton,
 } from "@calcom/ui";
 import {
-  ArrowDown,
-  ArrowUp,
   Clipboard,
   Code,
   Copy,
@@ -378,19 +377,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
-                    <button
-                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, -1)}>
-                      <ArrowUp className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}
 
                   {!(lastItem && lastItem.id === type.id) && (
-                    <button
-                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, 1)}>
-                      <ArrowDown className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                   )}
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
@@ -411,7 +402,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           )}
                         />
                       )}
-                      {isManagedEventType && (
+                      {isManagedEventType && type.children && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
@@ -671,6 +662,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
+          isLoading={deleteMutation.isLoading}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
@@ -830,6 +822,25 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <EmptyScreen
+        headline={t("team_no_event_types")}
+        buttonRaw={
+          <Button
+            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
+            variant="button"
+            className="mt-5">
+            {t("create")}
+          </Button>
+        }
+      />
+    </>
+  );
+};
+
 const Main = ({
   status,
   errorMessage,
@@ -863,7 +874,7 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="flex flex-col" key={group.profile.slug}>
+              <div className="mt-4 flex flex-col" key={group.profile.slug}>
                 <EventTypeListHeading
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
@@ -871,12 +882,16 @@ const Main = ({
                   orgSlug={orgBranding?.slug}
                 />
 
-                <EventTypeList
-                  types={group.eventTypes}
-                  group={group}
-                  groupIndex={index}
-                  readOnly={group.metadata.readOnly}
-                />
+                {group.eventTypes.length ? (
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
+                ) : (
+                  <EmptyEventTypeList group={group} />
+                )}
               </div>
             ))
           )}
