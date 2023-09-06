@@ -104,6 +104,7 @@ const schemaUserEditParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional().nullable(),
+  avatar: z.string().optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -125,6 +126,7 @@ const schemaUserCreateParams = z.object({
     .nullable(),
   locale: z.nativeEnum(locales).optional(),
   createdDate: iso8601.optional(),
+  avatar: z.string().optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
