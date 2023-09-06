@@ -33,6 +33,8 @@ declare namespace NodeJS {
     readonly TANDEM_CLIENT_SECRET: string | undefined;
     readonly TANDEM_BASE_URL: string | undefined;
     readonly WEBSITE_BASE_URL: string | undefined;
+    readonly NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: string | undefined;
+    readonly MERCADOPAGO_ACCESS_TOKEN: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBSITE_URL` */
     readonly NEXT_PUBLIC_WEBSITE_BASE_URL: string;
     readonly NEXT_PUBLIC_WEBSITE_URL: string;
