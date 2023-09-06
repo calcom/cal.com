@@ -11,7 +11,6 @@ type MeOptions = {
 export const meHandler = async ({ ctx }: MeOptions) => {
   const crypto = await import("crypto");
   const { user } = ctx;
-  const userOrgDomain = getUserOrgDomain(user.organization);
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
