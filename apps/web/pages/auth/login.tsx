@@ -95,6 +95,7 @@ export default function Login({
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
+
   const LoginFooter = (
     <a
       href={callbackUrl !== "" ? `${WEBSITE_URL}/signup?callbackUrl=${callbackUrl}` : `${WEBSITE_URL}/signup`}
