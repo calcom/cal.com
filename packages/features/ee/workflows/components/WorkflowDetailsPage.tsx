@@ -61,7 +61,9 @@ export default function WorkflowDetailsPage(props: Props) {
           ...options,
           ...group.eventTypes.map((eventType) => ({
             value: String(eventType.id),
-            label: `${eventType.title} ${eventType.children.length ? `(+${eventType.children.length})` : ``}`,
+            label: `${eventType.title} ${
+              eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+            }`,
           })),
         ];
       }, [] as Option[]) || [],
@@ -113,6 +115,7 @@ export default function WorkflowDetailsPage(props: Props) {
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
+      includeCalendarEvent: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);

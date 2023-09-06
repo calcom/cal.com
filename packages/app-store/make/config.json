@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Make",
+  "slug": "make",
+  "type": "make_automation",
+  "logo": "icon.svg",
+  "url": "https://cal.com/apps/make",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "aa2dee2",
+  "email": "support@cal.com",
+  "description": "Automate workflows",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "imageSrc": "icon.svg",
+  "dirName": "make"
+}

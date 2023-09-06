@@ -4,7 +4,6 @@ import { components } from "react-select";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { classNames } from "@calcom/lib";
-import cx from "@calcom/lib/classNames";
 import { Select } from "@calcom/ui";
 
 export type LocationOption = {
@@ -28,7 +27,7 @@ const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
           src={icon}
           alt="cover"
           // invert all the icons except app icons
-          className={cx("h-3.5 w-3.5", icon && !icon.startsWith("/app-store") && "dark:invert")}
+          className={classNames(icon.includes("-dark") && "dark:invert", "h-3.5 w-3.5")}
         />
       )}
       <span className={classNames("text-sm font-medium")}>{label}</span>
@@ -57,7 +56,13 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       }}
       formatOptionLabel={(e) => (
         <div className="flex items-center gap-3">
-          {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
+          {e.icon && (
+            <img
+              src={e.icon}
+              alt="app-icon"
+              className={classNames(e.icon.includes("-dark") && "dark:invert", "h-5 w-5")}
+            />
+          )}
           <span>{e.label}</span>
         </div>
       )}

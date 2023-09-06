@@ -66,6 +66,7 @@ type Props = {
   formMethods: UseFormReturn<FormValues>;
   isUpdateMutationLoading?: boolean;
   availability?: AvailabilityOption;
+  isUserOrganizationAdmin: boolean;
 };
 
 function getNavigation(props: {
@@ -133,6 +134,7 @@ function EventTypeSingleLayout({
   isUpdateMutationLoading,
   formMethods,
   availability,
+  isUserOrganizationAdmin,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -142,7 +144,8 @@ function EventTypeSingleLayout({
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
-    eventType.schedulingType === SchedulingType.MANAGED;
+    eventType.schedulingType === SchedulingType.MANAGED ||
+    isUserOrganizationAdmin;
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
