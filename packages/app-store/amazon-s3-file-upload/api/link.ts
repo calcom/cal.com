@@ -3,11 +3,19 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { uuid } from "short-uuid";
 import { z } from "zod";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 
 import { appKeysSchema, queryParamSchema } from "../zod";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const userIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "forcedSlowMode",
+    identifier: userIp,
+  });
   const queryParams = queryParamSchema.extend({ credentialId: z.string() }).parse(req.query);
 
   const credentials = await prisma?.credential.findFirst({
