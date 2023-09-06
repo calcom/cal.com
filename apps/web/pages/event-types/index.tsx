@@ -363,7 +363,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }, []);
 
   if (!types.length) {
-    console.log({ teamId: group.teamId });
     return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
   }
 
