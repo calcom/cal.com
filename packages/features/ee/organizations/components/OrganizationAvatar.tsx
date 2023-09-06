@@ -6,20 +6,12 @@ type OrganizationAvatarProps = AvatarProps & {
   organizationSlug: string | null | undefined;
 };
 
-const OrganizationAvatar = ({
-  size,
-  imageSrc,
-  alt,
-  gravatarFallbackMd5,
-  organizationSlug,
-  ...rest
-}: OrganizationAvatarProps) => {
+const OrganizationAvatar = ({ size, imageSrc, alt, organizationSlug, ...rest }: OrganizationAvatarProps) => {
   return (
     <Avatar
       size={size}
       imageSrc={imageSrc}
       alt={alt}
-      gravatarFallbackMd5={gravatarFallbackMd5}
       indicator={
         organizationSlug ? (
           <div
