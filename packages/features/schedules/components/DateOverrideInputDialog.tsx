@@ -160,7 +160,7 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {selectedDates[0] ? (
+      {selectedDates[0] && (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
             <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
@@ -192,29 +192,6 @@ const DateOverrideForm = ({
             <DialogClose onClick={onClose} />
           </div>
         </div>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginLeft: "7rem",
-            border: "2px dashed #999",
-            filter: "brightness(50%)",
-            borderRadius: "8px",
-            width: "35%",
-            margin: "50px 20px",
-          }}>
-          <div
-            style={{
-              padding: "10px",
-              color: "#999",
-              textAlign: "center",
-              fontWeight: "bold",
-            }}>
-            <h3>Select a date to edit the timeslots</h3>
-          </div>
-        </div>
       )}
     </Form>
   );
@@ -232,6 +209,7 @@ const DateOverrideInputDialog = ({
   value?: TimeRange[];
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const classes = isMobile ? "p-0 w-full" : "p-0";
   const [open, setOpen] = useState(false);
   {
     /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
@@ -243,7 +221,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
+      <DialogContent enableOverflow={enableOverflow} size="md" className={classes}>
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

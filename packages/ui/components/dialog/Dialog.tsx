@@ -89,7 +89,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
+            "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"
               ? "px-8 pt-8 sm:max-w-[90rem]"
               : props.size == "lg"
