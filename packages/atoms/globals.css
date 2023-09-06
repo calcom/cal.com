@@ -3,8 +3,8 @@
  * When using this component in any Cal project, the globals are automatically imported
  * in that project.
  */
+@import "../ui/styles/shared-globals.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "../ui/styles/shared-globals.css";
