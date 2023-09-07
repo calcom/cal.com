@@ -899,19 +899,23 @@ model SelectedSlots {
 }
 
 model OAuthClient {
-  id           Int    @id @default(autoincrement())
+  clientId     String       @id @unique
   redirectUri  String
-  clientId     String
   clientSecret String
   name         String
+  accessCodes  AccessCode[]
 }
 
 model AccessCode {
-  id      Int      @id @default(autoincrement())
-  code    String
-  timeOut DateTime
-  userId  Int?
-  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int          @id @default(autoincrement())
+  code      String
+  clientId  String?
+  client    OAuthClient? @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt DateTime
+  userId    Int?
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, userId]) // a user can only have one active access code per client
 }
 
 view BookingTimeStatus {

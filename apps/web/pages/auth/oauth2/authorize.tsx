@@ -1,46 +1,41 @@
-import crypto from "crypto";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { getLayout } from "@calcom/features/NoShellLayout";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
 export default function Authorize() {
   const router = useRouter();
 
-  const { state, client_id, client_secrect } = router.query;
+  const { state, client_id } = router.query;
 
-  const authorizationCode = generateAuthorizationCode();
-
-  const { data: client, isLoading } = trpc.viewer.oAuth.getClient.useQuery({
+  const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery({
     clientId: client_id,
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
+    onSuccess: (data) => {
+      window.location.href = `${client.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+    },
+  });
+
+  if (isLoadingGetClient) return <div>Loading...</div>;
 
   if (!client) return <div>Unauthorized</div>;
 
   return (
     <div className="m-5">
-      <Link href={`${client.redirectUri}?code=${authorizationCode}&state=${state}`}>
+      <Button
+        onClick={() => {
+          generateAuthCodeMutation.mutate({ clientId: client_id });
+        }}>
         Allow {client.name} access
-      </Link>
+      </Button>
     </div>
   );
 }
 
 Authorize.PageWrapper = PageWrapper;
 Authorize.getLayout = getLayout;
-
-function generateAuthorizationCode() {
-  const codeLength = 40;
-  const randomBytes = crypto.randomBytes(codeLength);
-  const authorizationCode = randomBytes
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-  return authorizationCode;
-}
