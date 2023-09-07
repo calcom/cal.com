@@ -5,6 +5,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
+  prisma,
   availabilityUserSelect: vi.fn(),
   userSelect: vi.fn(),
 }));
