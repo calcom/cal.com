@@ -2045,5 +2045,6 @@
   "recently_added": "Ajouté récemment",
   "no_members_found": "Aucun membre trouvé",
   "event_setup_length_error": "Configuration de l'événement : la durée doit être d'au moins 1 minute.",
+  "availability_schedules": "Horaires de disponibilité",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
