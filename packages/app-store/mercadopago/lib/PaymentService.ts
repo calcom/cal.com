@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import MercadoPago from "@calcom/app-store/mercadopago/lib/MercadoPago";
 import { mercadoPagoCredentialSchema } from "@calcom/app-store/mercadopago/lib/mercadoPagoCredentialSchema";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -63,6 +64,8 @@ export class PaymentService implements IAbstractPaymentService {
         eventTypeId: booking.eventTypeId,
         bookerEmail,
         eventName: eventTitle || "",
+        returnUrl: `${WEBAPP_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
+        cancelUrl: `${WEBAPP_URL}/payment/${uid}`,
       });
 
       const paymentData = await prisma.payment.create({

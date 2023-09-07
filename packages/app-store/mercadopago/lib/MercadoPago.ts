@@ -1,4 +1,3 @@
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { mercadoPagoOAuthTokenSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
@@ -142,6 +141,8 @@ class MercadoPago {
     eventTypeId,
     bookerEmail,
     eventName,
+    returnUrl,
+    cancelUrl,
   }: CreatePreferenceArg) {
     const body: PreferenceCreateBody = {
       items: [
@@ -166,10 +167,15 @@ class MercadoPago {
       payer: {
         email: bookerEmail,
       },
+      payment_methods: {
+        excluded_payment_methods: [],
+        excluded_payment_types: [{ id: "atm" }, { id: "ticket" }],
+      },
+      auto_return: "approved",
       back_urls: {
-        success: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
-        pending: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
-        failure: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=failure`,
+        success: returnUrl,
+        pending: cancelUrl,
+        failure: cancelUrl,
       },
     };
 
@@ -243,6 +249,22 @@ interface PreferenceCreateBody {
     email: string;
   };
 
+  /** Payment methods settings for the preference */
+  payment_methods?: {
+    excluded_payment_methods?: { id: string }[];
+    excluded_payment_types?: { id: string }[];
+  };
+
+  /**
+   * Handles the post-purchase redirection for the user.
+   *
+   * Redirection behaviors:
+   * - `approved`: The user is redirected only if the payment is approved.
+   * - `all`: The user is redirected for approved payments, but this
+   *    behavior is subject to change to include other statuses (forward compatibility).
+   */
+  auto_return: "all" | "approved";
+
   /** URL to return the customer */
   back_urls?: {
     /** Return URL after success payment */
@@ -279,8 +301,14 @@ type CreatePreferenceArg = {
   /** Booker email address */
   bookerEmail: string;
 
-  /** Event Type title */
+  /** Event title */
   eventName: string;
+
+  /** Return URL after success payment */
+  returnUrl: string;
+
+  /** Return URL after cancelled action */
+  cancelUrl: string;
 };
 
 type CreatedPreference = {
