@@ -980,6 +980,7 @@
   "set_location": "Définir le lieu",
   "update_location": "Mettre à jour le lieu",
   "location_updated": "Lieu mis à jour",
+  "location_added": "Emplacement ajouté",
   "email_validation_error": "Ceci ne ressemble pas à une adresse e-mail",
   "place_where_cal_widget_appear": "Placez ce code dans votre HTML à l'endroit où vous souhaitez que votre widget {{appName}} apparaisse.",
   "create_update_react_component": "Créez ou mettez à jour un composant React existant comme indiqué ci-dessous.",
