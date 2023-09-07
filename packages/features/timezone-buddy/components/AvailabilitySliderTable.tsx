@@ -76,12 +76,7 @@ export function AvailabilitySliderTable() {
           const { username, email, timeZone } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
-              <Avatar
-                size="sm"
-                alt={username || email}
-                imageSrc={"/" + username + "/avatar.png"}
-                gravatarFallbackMd5="fallback"
-              />
+              <Avatar size="sm" alt={username || email} imageSrc={"/" + username + "/avatar.png"} />
               <div className="">
                 <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}
