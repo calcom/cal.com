@@ -275,8 +275,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   const bookerUrl = await getBookerUrl(user);
   return {
-    // don't display event teams without event types,
-    eventTypeGroups: eventTypeGroups.filter((groupBy) => groupBy.parentId || !!groupBy.eventTypes?.length),
+    eventTypeGroups,
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
       ...group.profile,
