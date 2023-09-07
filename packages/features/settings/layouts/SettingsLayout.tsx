@@ -520,23 +520,9 @@ const SettingsSidebarContainer = ({
                                     alt={otherTeam.name || "Team logo"}
                                   />
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
-                                  {!otherTeam.accepted && otherTeam.userId === session.data?.user.id && (
-                                    <Badge className="ms-3" variant="orange">
-                                      Inv.
-                                    </Badge>
-                                  )}
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
-                                {((otherTeam.accepted && otherTeam.userId === session.data?.user.id) ||
-                                  isOrgAdminOrOwner) && (
-                                  <VerticalTabItem
-                                    name={t("profile")}
-                                    href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}

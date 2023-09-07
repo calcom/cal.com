@@ -139,8 +139,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       eventType={props.eventType}
                       user={props.user}
                       location={props.booking.location}
-                      bookingId={props.booking.id}
-                      bookingUid={props.booking.uid}
+                      booking={props.booking}
                     />
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (

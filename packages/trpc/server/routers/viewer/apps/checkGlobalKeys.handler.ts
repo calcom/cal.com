@@ -10,7 +10,7 @@ type checkForGlobalKeys = {
   input: CheckGlobalKeysSchemaType;
 };
 
-export const checkForGlobalKeysHandler = async ({ ctx, input }: checkForGlobalKeys) => {
+export const checkForGlobalKeysHandler = async ({ input }: checkForGlobalKeys) => {
   const appIsGloballyInstalled = await prisma.app.findUnique({
     where: {
       slug: input.slug,

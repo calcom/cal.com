@@ -3,11 +3,14 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
 
+import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
 import { TimeDial } from "./TimeDial";
 
@@ -18,6 +21,32 @@ export interface SliderUser {
   timeZone: string;
   role: MembershipRole;
   dateRanges: DateRange[];
+}
+
+function UpgradeTeamTip() {
+  const { t } = useLocale();
+
+  return (
+    <UpgradeTip
+      title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
+      description="add_your_team_members"
+      background="/tips/teams"
+      features={[]}
+      buttons={
+        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+          <ButtonGroup>
+            <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+              {t("create_team")}
+            </Button>
+            <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+              {t("learn_more")}
+            </Button>
+          </ButtonGroup>
+        </div>
+      }>
+      <></>
+    </UpgradeTip>
+  );
 }
 
 export function AvailabilitySliderTable() {
@@ -47,12 +76,7 @@ export function AvailabilitySliderTable() {
           const { username, email, timeZone } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
-              <Avatar
-                size="sm"
-                alt={username || email}
-                imageSrc={"/" + username + "/avatar.png"}
-                gravatarFallbackMd5="fallback"
-              />
+              <Avatar size="sm" alt={username || email} imageSrc={"/" + username + "/avatar.png"} />
               <div className="">
                 <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}
@@ -142,6 +166,9 @@ export function AvailabilitySliderTable() {
   useEffect(() => {
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
+
+  // This means they are not apart of any teams so we show the upgrade tip
+  if (!flatData.length) return <UpgradeTeamTip />;
 
   return (
     <TBContext.Provider

@@ -1,5 +1,7 @@
 export { Avatar, AvatarGroup } from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
+export { ArrowButton } from "./components/arrow-button";
+export type { ArrowButtonProps } from "./components/arrow-button";
 export { Badge, UpgradeTeamsBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
@@ -67,6 +69,7 @@ export {
   SkeletonLoader,
   Slider,
   PopularAppsSlider,
+  RecentAppsSlider,
   useShouldShowArrows,
   AppStoreCategories,
 } from "./components/apps";
