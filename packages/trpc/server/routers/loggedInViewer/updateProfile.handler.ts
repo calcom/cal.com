@@ -14,7 +14,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -31,11 +31,10 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
-  const { metadata: metadataFromInput } = input;
-  const cleanMetadata = cleanMetadataAllowedUpdateKeys(metadataFromInput);
+  const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
-    metadata: cleanMetadata,
+    metadata: userMetadata,
   };
 
   // some actions can invalidate a user session.
@@ -65,26 +64,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.avatar = await resizeBase64Image(input.avatar);
   }
 
-  const fetchUserCurrentMetadata = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      metadata: true,
-    },
-  });
-
-  const metadata = userMetadata.parse(fetchUserCurrentMetadata?.metadata);
-
-  // Required so we don't override and delete saved values
-  data.metadata = {
-    ...metadata,
-    cleanMetadata,
-  };
-
-  const isPremium = metadata?.isPremium;
   if (isPremiumUsername) {
-    const stripeCustomerId = metadata?.stripeCustomerId;
+    const stripeCustomerId = userMetadata?.stripeCustomerId;
+    const isPremium = userMetadata?.isPremium;
     if (!isPremium || !stripeCustomerId) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
     }
@@ -199,12 +181,21 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
 const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {
   if (!metadata) {
-    return {} as Prisma.InputJsonValue;
+    return {};
   }
   const cleanedMetadata = updateUserMetadataAllowedKeys.safeParse(metadata);
   if (!cleanedMetadata.success) {
     logger.error("Error cleaning metadata", cleanedMetadata.error);
+    return {};
   }
 
-  return cleanedMetadata as Prisma.InputJsonValue;
+  return cleanedMetadata.data;
+};
+
+const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
+  const { user } = ctx;
+  const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
+  const userMetadata = userMetadataSchema.parse(user.metadata);
+  // Required so we don't override and delete saved values
+  return { ...userMetadata, ...cleanMetadata };
 };

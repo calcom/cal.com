@@ -31,7 +31,7 @@ export const useSchedule = ({
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
-  // no satisfy typscript.
+  // no satisfy typescript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
