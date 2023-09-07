@@ -93,6 +93,14 @@
   --cal-brand-text: black;
 }
 
+@layer base {
+  *,
+  ::before,
+  ::after {
+    @apply border-default;
+  }
+}
+
 ::-moz-selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
