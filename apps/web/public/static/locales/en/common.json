@@ -1916,6 +1916,7 @@
   "install_app_on": "Install app on",
   "create_for": "Create for",
   "currency": "Currency",
+  "payment_option": "Payment option",
   "organization_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
   "organization_banner_title": "Manage organizations with multiple teams",
   "set_up_your_organization": "Set up your organization",

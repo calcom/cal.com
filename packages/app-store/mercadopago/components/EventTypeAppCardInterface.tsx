@@ -94,7 +94,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
               <div className="w-60">
                 <label className="text-default block text-sm font-medium" htmlFor="currency">
-                  Payment option
+                  {t("payment_option")}
                 </label>
                 <Select<Option>
                   defaultValue={
