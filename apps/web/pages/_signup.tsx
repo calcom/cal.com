@@ -1,21 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ShieldCheckIcon } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { classNames } from "@calcom/lib";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -23,7 +20,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form } from "@calcom/ui";
+import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -42,17 +39,16 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
-  const router = useRouter();
   const flags = useFlagMap();
-  const formMethods = useForm<FormValues>({
+  const methods = useForm<FormValues>({
     mode: "onChange",
     resolver: zodResolver(signupSchema),
-    defaultValues: prepopulateFormValues satisfies FormValues,
+    defaultValues: prepopulateFormValues,
   });
   const {
     register,
     formState: { errors, isSubmitting },
-  } = formMethods;
+  } = methods;
 
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
@@ -98,14 +94,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         });
       })
       .catch((err) => {
-        formMethods.setError("apiError", { message: err.message });
+        methods.setError("apiError", { message: err.message });
       });
   };
 
   return (
     <>
       <div
-        className="bg-muted grid min-h-screen grid-cols-1 grid-rows-1 lg:grid-cols-2 "
+        className="bg-muted flex min-h-screen flex-col justify-center "
         style={
           {
             "--cal-brand": "#111827",
@@ -113,133 +109,12 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             "--cal-brand-text": "white",
             "--cal-brand-subtle": "#9CA3AF",
           } as CSSProperties
-        }>
+        }
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-28 pt-16">
-          {/* Header */}
-          <div className="flex flex-col gap-3 ">
-            <h1 className="font-cal text-[28px] ">Create your Cal.com account</h1>
-            <p className="text-subtle text-base font-medium leading-none">
-              Free for individuals. Team plans for collaborative features.
-            </p>
-          </div>
-          {/* Form Container */}
-          <div className="mt-10">
-            <Form
-              className="flex flex-col gap-5"
-              form={formMethods}
-              onSubmit={(values) => console.log(values)}>
-              {/* Username */}
-              <TextField
-                {...register("username")}
-                label={t("username")}
-                addOnLeading={
-                  orgSlug
-                    ? getOrgFullDomain(orgSlug, { protocol: true })
-                    : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
-                }
-              />
-              {/* Email */}
-              <TextField {...register("email")} label={t("email")} type="email" />
-
-              {/* Password */}
-              <PasswordField
-                label={t("password")}
-                {...register("password")}
-                hintErrors={["caplow", "min", "num"]}
-              />
-              <Button type="submit" className="w-full justify-center">
-                {t("create_account")}
-              </Button>
-            </Form>
-            {/* Continue with Social Logins */}
-            <div className="mt-6">
-              <div className="relative flex items-center">
-                <div className="border-subtle flex-grow border-t" />
-                <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
-                  Or continue with
-                </span>
-                <div className="border-subtle flex-grow border-t" />
-              </div>
-            </div>
-            {/* Social Logins */}
-            <div className="mt-6 grid gap-2 lg:grid-cols-2">
-              <Button
-                color="secondary"
-                disabled={!!formMethods.formState.errors.username}
-                className={classNames(
-                  "w-full justify-center rounded-md text-center",
-                  formMethods.formState.errors.username ? "opacity-50" : ""
-                )}
-                onClick={async () => {
-                  if (!formMethods.getValues("username")) {
-                    formMethods.trigger("username");
-                    return;
-                  }
-                  const username = formMethods.getValues("username");
-                  const searchQueryParams = new URLSearchParams();
-                  searchQueryParams.set("username", formMethods.getValues("username"));
-                  const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                  localStorage.setItem("username", username);
-                  // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                  const googleAuthUrl = `${baseUrl}/auth/sso/google?${searchQueryParams.toString()}`;
-
-                  router.push(googleAuthUrl);
-                }}>
-                <img className="mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
-                Google
-              </Button>
-              <Button
-                color="secondary"
-                disabled={!!formMethods.formState.errors.username || !!formMethods.formState.errors.email}
-                className={classNames(
-                  "w-full justify-center rounded-md text-center",
-                  formMethods.formState.errors.username && formMethods.formState.errors.email
-                    ? "opacity-50"
-                    : ""
-                )}
-                onClick={() => {
-                  if (!formMethods.getValues("username")) {
-                    formMethods.trigger("username");
-                  }
-                  if (!formMethods.getValues("email")) {
-                    formMethods.trigger("email");
-                    return;
-                  }
-                  const username = formMethods.getValues("username");
-                  localStorage.setItem("username", username);
-                  const sp = new URLSearchParams();
-                  // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                  sp.set("username", formMethods.getValues("username"));
-                  sp.set("email", formMethods.getValues("email"));
-                  router.push(process.env.NEXT_PUBLIC_WEBAPP_URL + "/auth/sso/saml" + "?" + sp.toString());
-                }}>
-                <ShieldCheckIcon className="mr-2 h-5 w-5" />
-                {t("saml_sso")}
-              </Button>
-            </div>
-          </div>
-          {/* Already have an account & T&C */}
-          <div className="mb-6 mt-auto">
-            <div className="flex flex-col text-sm">
-              <Link href="/auth/login" className="text-emphasis hover:underline">
-                I already have an account.
-              </Link>
-              <p className="text-subtle">
-                By signing up, you agree to our <span className="text-emphasis">Terms of Service</span> and{" "}
-                <span className="text-emphasis">Privacy Policy</span>.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div
-          className="my-6 w-full rounded-l-lg"
-          style={{
-            background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
-          }}>
-          <></>
-        </div>
-        {/* <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
             {t("create_your_account")}
           </h2>
@@ -306,7 +181,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               </form>
             </FormProvider>
           </div>
-        </div> */}
+        </div>
       </div>
     </>
   );
