@@ -2,16 +2,20 @@ import crypto from "crypto";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { getLayout } from "@calcom/features/NoShellLayout";
 import { trpc } from "@calcom/trpc/react";
+
+import PageWrapper from "@components/PageWrapper";
 
 export default function Authorize() {
   const router = useRouter();
 
   const { state, client_id, client_secrect } = router.query;
+
   const authorizationCode = generateAuthorizationCode();
 
   const { data: client, isLoading } = trpc.viewer.oAuth.getClient.useQuery({
-    clientId: "7A1B4F8D2E6C9A3F0B7E5D1C6A2F3C8E",
+    clientId: client_id,
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -26,6 +30,9 @@ export default function Authorize() {
     </div>
   );
 }
+
+Authorize.PageWrapper = PageWrapper;
+Authorize.getLayout = getLayout;
 
 function generateAuthorizationCode() {
   const codeLength = 40;
