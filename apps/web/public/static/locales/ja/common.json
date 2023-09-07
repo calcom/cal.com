@@ -1936,7 +1936,7 @@
   "insights_all_org_filter": "すべて",
   "insights_team_filter": "チーム: {{teamName}}",
   "insights_user_filter": "ユーザー: {{userName}}",
-  "insights_subtitle": "イベント全体での予約に関する分析情報を表示する",
+  "insights_subtitle": "イベント全体での予約に関する Insights を表示する",
   "custom_plan": "カスタムプラン",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
