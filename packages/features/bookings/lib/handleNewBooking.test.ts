@@ -33,11 +33,11 @@ import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
-  expectWebhookToHaveBeenCalledWith,
   expectAwaitingPaymentEmails,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
   expectBookingCreatedWebhookToHaveBeenFired,
+  expectBookingPaymentIntiatedWebhookToHaveBeenFired,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -184,8 +184,7 @@ describe('Event Type that requires confirmation', () => {
           credentials: [getGoogleCalendarCredential()],
           selectedCalendars: [TestData.selectedCalendars.google],
         });
-
-        createBookingScenario(getScenarioData({
+        const scenarioData = getScenarioData({
           webhooks: [
             {
               userId: organizer.id,
@@ -211,7 +210,8 @@ describe('Event Type that requires confirmation', () => {
           ],
           organizer,
           apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-        }));
+        });
+        createBookingScenario(scenarioData);
 
         mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
@@ -265,7 +265,8 @@ describe('Event Type that requires confirmation', () => {
           booker,
           organizer,
           location: "integrations:daily",
-          subscriberUrl
+          subscriberUrl,
+          eventType: scenarioData.eventTypes[0],
         })
       },
       timeout
@@ -406,8 +407,7 @@ describe('Event Type that requires confirmation', () => {
           credentials: [getGoogleCalendarCredential()],
           selectedCalendars: [TestData.selectedCalendars.google],
         });
-
-        createBookingScenario(getScenarioData({
+        const scenarioData = getScenarioData({
           webhooks: [
             {
               userId: organizer.id,
@@ -439,7 +439,9 @@ describe('Event Type that requires confirmation', () => {
           ],
           organizer,
           apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-        }));
+        })
+
+        createBookingScenario(scenarioData);
 
         mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
@@ -489,7 +491,8 @@ describe('Event Type that requires confirmation', () => {
           booker,
           organizer,
           location: "integrations:daily",
-          subscriberUrl
+          subscriberUrl,
+          eventType: scenarioData.eventTypes[0],
         })
       },
       timeout
@@ -662,8 +665,7 @@ describe('Event Type that requires confirmation', () => {
             credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
             selectedCalendars: [TestData.selectedCalendars.google],
           });
-  
-          createBookingScenario(getScenarioData({
+          const scenarioData = getScenarioData({
             webhooks: [
               {
                 userId: organizer.id,
@@ -677,6 +679,8 @@ describe('Event Type that requires confirmation', () => {
             eventTypes: [
               {
                 id: 1,
+                title: "Paid Event",
+                description: "It's a test Paid Event",
                 slotInterval: 45,
                 requiresConfirmation: false,
                 metadata: {
@@ -703,7 +707,8 @@ describe('Event Type that requires confirmation', () => {
               TestData.apps["daily-video"],
               TestData.apps["stripe-payment"],
             ],
-          }));
+          })
+          createBookingScenario(scenarioData);
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
@@ -746,23 +751,15 @@ describe('Event Type that requires confirmation', () => {
           });
           expectWorkflowToBeTriggered();
           expectAwaitingPaymentEmails({organizer, booker, emails})
-          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-            triggerEvent: "BOOKING_PAYMENT_INITIATED",
-            payload: {
-              paymentUid,
-              metadata: {
-                // In a Pending Booking Request, we don't send the video call url
-              },
-              responses: {
-                name: { label: "your_name", value: "Booker" },
-                email: { label: "email_address", value: "booker@example.com" },
-                location: {
-                  label: "location",
-                  value: { optionValue: "", value: "integrations:daily" },
-                },
-              },
-            },
-          });
+         
+          expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: "integrations:daily",
+            subscriberUrl: "http://my-webhook.example.com",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            paymentId: createdBooking.paymentId!,
+          })
           
           const {webhookResponse} = await mockPaymentSuccessWebhookFromStripe({externalId});
           
@@ -774,22 +771,15 @@ describe('Event Type that requires confirmation', () => {
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
           });
-          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-            triggerEvent: "BOOKING_CREATED",
-            payload: {
-              // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
-              metadata: null,
-              location: "integrations:daily",
-              responses: {
-                name: { label: "name", value: "Booker" },
-                email: { label: "email", value: "booker@example.com" },
-                location: {
-                  label: "location",
-                  value: { optionValue: "", value: "integrations:daily" },
-                },
-              },
-            },
-          });
+          
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: "integrations:daily",
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            paidEvent: true
+          })
         },
         timeout
       );
@@ -819,7 +809,7 @@ describe('Event Type that requires confirmation', () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           });
 
-          createBookingScenario(getScenarioData({
+          const scenarioData = getScenarioData({
             webhooks: [
               {
                 userId: organizer.id,
@@ -858,7 +848,8 @@ describe('Event Type that requires confirmation', () => {
               TestData.apps["daily-video"],
               TestData.apps["stripe-payment"],
             ],
-          }));
+          });
+          createBookingScenario(scenarioData);
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
@@ -902,23 +893,14 @@ describe('Event Type that requires confirmation', () => {
           });
           expectWorkflowToBeTriggered();
           expectAwaitingPaymentEmails({organizer, booker, emails})
-          expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-            triggerEvent: "BOOKING_PAYMENT_INITIATED",
-            payload: {
-              paymentUid,
-              metadata: {
-                // In a Pending Booking Request, we don't send the video call url
-              },
-              responses: {
-                name: { label: "your_name", value: "Booker" },
-                email: { label: "email_address", value: "booker@example.com" },
-                location: {
-                  label: "location",
-                  value: { optionValue: "", value: "integrations:daily" },
-                },
-              },
-            },
-          });
+          expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: "integrations:daily",
+            subscriberUrl: "http://my-webhook.example.com",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            paymentId: createdBooking.paymentId!,
+          })
 
           const {webhookResponse} = await mockPaymentSuccessWebhookFromStripe({externalId});
           
@@ -935,7 +917,8 @@ describe('Event Type that requires confirmation', () => {
             organizer,
             location: "integrations:daily",
             subscriberUrl,
-            paidEvent: true
+            paidEvent: true,
+            eventType: scenarioData.eventTypes[0]
           })
         },
         timeout

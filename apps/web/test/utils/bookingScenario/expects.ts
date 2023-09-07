@@ -8,6 +8,8 @@ import "vitest-fetch-mock";
 import logger from "@calcom/lib/logger";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
+import type { InputEventType } from "./bookingScenario";
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
@@ -188,18 +190,22 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
   location,
   subscriberUrl,
   paidEvent,
+  eventType,
 }: {
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
+  eventType: InputEventType;
 }) {
   // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_REQUESTED",
       payload: {
+        eventTitle: eventType.title,
+        eventDescription: eventType.description,
         metadata: {
           // In a Pending Booking Request, we don't send the video call url
         },
@@ -217,6 +223,8 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_REQUESTED",
       payload: {
+        eventTitle: eventType.title,
+        eventDescription: eventType.description,
         metadata: {
           // In a Pending Booking Request, we don't send the video call url
         },
@@ -248,11 +256,61 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   paidEvent?: boolean;
   videoCallUrl: string;
 }) {
+  if (!paidEvent) {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+      triggerEvent: "BOOKING_CREATED",
+      payload: {
+        metadata: {
+          videoCallUrl,
+        },
+        responses: {
+          name: { label: "your_name", value: booker.name },
+          email: { label: "email_address", value: booker.email },
+          location: {
+            label: "location",
+            value: { optionValue: "", value: location },
+          },
+        },
+      },
+    });
+  } else {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+      triggerEvent: "BOOKING_CREATED",
+      payload: {
+        // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
+        metadata: null,
+        responses: {
+          name: { label: "name", value: booker.name },
+          email: { label: "email", value: booker.email },
+          location: {
+            label: "location",
+            value: { optionValue: "", value: location },
+          },
+        },
+      },
+    });
+  }
+}
+
+export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+  organizer,
+  booker,
+  location,
+  subscriberUrl,
+  paymentId,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  paymentId: number;
+}) {
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-    triggerEvent: "BOOKING_CREATED",
+    triggerEvent: "BOOKING_PAYMENT_INITIATED",
     payload: {
+      paymentId: paymentId,
       metadata: {
-        videoCallUrl,
+        // In a Pending Booking Request, we don't send the video call url
       },
       responses: {
         name: { label: "your_name", value: booker.name },

@@ -1187,6 +1187,7 @@ async function handler(
           seatReferenceUid?: string;
           paymentUid?: string;
           message?: string;
+          paymentId?: number;
         })
       | null = null;
 
@@ -1726,6 +1727,7 @@ async function handler(
         resultBooking = { ...foundBooking };
         resultBooking["message"] = "Payment required";
         resultBooking["paymentUid"] = payment?.uid;
+        resultBooking["id"] = payment?.id;
       } else {
         resultBooking = { ...foundBooking };
       }
@@ -2311,12 +2313,12 @@ async function handler(
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       webhookData: {
         ...webhookData,
-        paymentUid: payment?.uid,
+        paymentId: payment?.id,
       },
     });
 
     req.statusCode = 201;
-    return { ...booking, message: "Payment required", paymentUid: payment?.uid };
+    return { ...booking, message: "Payment required", paymentUid: payment?.uid, paymentId: payment?.id };
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);

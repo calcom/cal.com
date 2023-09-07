@@ -27,7 +27,7 @@ export function getMockPaymentService() {
       bookerEmail: string,
       paymentOption: PaymentOption
     ) {
-      const paymentData = {
+      const paymentCreateData = {
         id: 1,
         uid: paymentUid,
         appId: null,
@@ -42,12 +42,11 @@ export function getMockPaymentService() {
         amount: payment.amount,
         currency: payment.currency,
       };
-      logger.silly("Creating mock payment", paymentData);
 
-      const paymentCreateData = paymentData;
-      prismaMock.payment.create({
+      const paymentData = prismaMock.payment.create({
         data: paymentCreateData,
       });
+      logger.silly("Created mock payment", { paymentData });
 
       return paymentData;
     }

@@ -238,13 +238,14 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
         booking,
         paid: true,
       });
+      log.debug("handling confirmation:", JSON.stringify(eventTypeRaw));
     } else {
       await handleBookingRequested({
         evt,
         booking,
       });
+      log.debug("handling booking request:", JSON.stringify(eventTypeRaw));
     }
-    log.debug("handling confirmation:", JSON.stringify(eventTypeRaw));
   } else {
     log.debug("Sending Emails only:", JSON.stringify(eventTypeRaw));
     await sendScheduledEmails({ ...evt });

@@ -89,7 +89,7 @@ type InputUser = typeof TestData.users.example & { id: number } & {
   }[];
 };
 
-type InputEventType = {
+export type InputEventType = {
   id: number;
   title?: string;
   length?: number;
@@ -300,7 +300,7 @@ function addWebhooks(webhooks: InputWebhook[]) {
         teamId: webhook.teamId || null,
       };
     });
-    logger.silly("webhook.findMany.mock", { webhooks: retWebhooks, where });
+    logger.silly("webhook.findMany.mock", { webhooks: retWebhooks });
     return retWebhooks;
   });
 }
@@ -457,7 +457,12 @@ function addPaymentMock() {
   // @ts-ignore
   prismaMock.payment.create.mockImplementation(({ data }) => {
     logger.silly("Creating a mock payment", data);
-    payments.push(data);
+    const payment = {
+      ...data,
+      id: payments.length + 1,
+    };
+    payments.push(payment);
+    return payment;
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -759,7 +764,13 @@ export function getScenarioData({
   });
   return {
     // hosts: [...hosts],
-    eventTypes: [...eventTypes],
+    eventTypes: eventTypes.map((eventType, index) => {
+      return {
+        ...eventType,
+        title: `Test Event Type - ${index + 1}`,
+        description: `It's a test event type - ${index + 1}`,
+      };
+    }),
     users,
     apps: [...apps],
     webhooks,
