@@ -1,15 +1,23 @@
 import prisma from "@calcom/prisma";
 
-import { mercadoPagoOAuthTokenSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
+import {
+  mercadoPagoOAuthTokenSchema,
+  type MercadoPagoCredentialSchema,
+  type MercadoPagoUserCredentialSchema,
+} from "./mercadoPagoCredentialSchema";
 
 class MercadoPago {
   readonly authUrl = "https://auth.mercadopago.com";
   readonly url = "https://api.mercadopago.com";
   clientId: string;
   clientSecret: string;
-  userCredentials?: MercadoPagoUserCredential;
+  userCredentials?: MercadoPagoUserCredentialSchema;
 
-  constructor(opts: { clientId: string; clientSecret: string; userCredentials?: MercadoPagoUserCredential }) {
+  constructor(opts: {
+    clientId: string;
+    clientSecret: string;
+    userCredentials?: MercadoPagoUserCredentialSchema;
+  }) {
     this.clientId = opts.clientId;
     this.clientSecret = opts.clientSecret;
     this.userCredentials = opts.userCredentials;
@@ -141,6 +149,7 @@ class MercadoPago {
     eventTypeId,
     bookerEmail,
     eventName,
+    notificationUrl,
     returnUrl,
     cancelUrl,
   }: CreatePreferenceArg) {
@@ -172,6 +181,7 @@ class MercadoPago {
         excluded_payment_types: [{ id: "atm" }, { id: "ticket" }],
       },
       auto_return: "approved",
+      notification_url: notificationUrl,
       back_urls: {
         success: returnUrl,
         pending: cancelUrl,
@@ -181,9 +191,6 @@ class MercadoPago {
 
     const response = await this.fetcher("/checkout/preferences", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(body),
     });
 
@@ -191,17 +198,12 @@ class MercadoPago {
       const data: CreatedPreference = await response.json();
       return data;
     } else {
-      const error: CreatedPreferenceError = await response.json();
+      const error: MPError = await response.json();
       console.error(`Request failed with status ${response.status}:`, error);
       throw new Error(error.message);
     }
   }
 }
-
-export type MercadoPagoUserCredential = {
-  id: number;
-  key: MercadoPagoCredentialSchema;
-};
 
 type GetOAuthTokenArg =
   | { code: string; refreshToken?: undefined }
@@ -265,6 +267,9 @@ interface PreferenceCreateBody {
    */
   auto_return: "all" | "approved";
 
+  /** Webhook Notification URL (should be the same as the MercadoPago app integration) */
+  notification_url?: string;
+
   /** URL to return the customer */
   back_urls?: {
     /** Return URL after success payment */
@@ -304,6 +309,9 @@ type CreatePreferenceArg = {
   /** Event title */
   eventName: string;
 
+  /** Webhook Notification URL for the payment */
+  notificationUrl: string;
+
   /** Return URL after success payment */
   returnUrl: string;
 
@@ -323,7 +331,7 @@ type CreatedPreference = {
   sandbox_init_point: string;
 };
 
-type CreatedPreferenceError = {
+type MPError = {
   message: string;
   error: string;
   status: number;

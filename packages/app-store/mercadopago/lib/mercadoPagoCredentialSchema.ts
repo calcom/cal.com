@@ -16,3 +16,10 @@ export const mercadoPagoCredentialSchema = mercadoPagoOAuthTokenSchema.extend({
 });
 
 export type MercadoPagoCredentialSchema = z.infer<typeof mercadoPagoCredentialSchema>;
+
+export const mercadoPagoUserCredentialSchema = z.object({
+  id: z.number().int(),
+  key: mercadoPagoCredentialSchema,
+});
+
+export type MercadoPagoUserCredentialSchema = z.infer<typeof mercadoPagoUserCredentialSchema>;

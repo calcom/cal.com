@@ -14,12 +14,17 @@ export class PaymentService implements IAbstractPaymentService {
   private mercadoPago: MercadoPago;
 
   constructor(credentials: { id: number; key: Prisma.JsonValue }) {
+    const parse = mercadoPagoCredentialSchema.safeParse(credentials.key);
+    if (!parse.success) {
+      throw new Error("Invalid `credentials`");
+    }
+
     this.mercadoPago = new MercadoPago({
       clientId: process.env.MERCADOPAGO_CLIENT_ID || "",
       clientSecret: process.env.MERCADOPAGO_CLIENT_SECRET || "",
       userCredentials: {
         id: credentials.id,
-        key: mercadoPagoCredentialSchema.parse(credentials.key),
+        key: parse.data,
       },
     });
   }
@@ -64,6 +69,7 @@ export class PaymentService implements IAbstractPaymentService {
         eventTypeId: booking.eventTypeId,
         bookerEmail,
         eventName: eventTitle || "",
+        notificationUrl: `${WEBAPP_URL}/api/integrations/mercadopago/webhook?external_reference=${uid}`,
         returnUrl: `${WEBAPP_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
         cancelUrl: `${WEBAPP_URL}/payment/${uid}`,
       });
