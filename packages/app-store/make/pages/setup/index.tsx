@@ -112,7 +112,7 @@ export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof
               </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
-                <Trans i18nKey="invite_link_make">
+                <Trans i18nKey="make_setup_instructions">
                   <li>
                     Go to
                     <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
@@ -120,9 +120,6 @@ export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof
                     </a>
                     and install the Cal.com app.
                   </li>
-                </Trans>
-
-                <Trans i18nKey="make_setup_instructions">
                   <li>Log into your Make account and create a new Scenario.</li>
                   <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
                   <li>Choose your account and then enter your Unique API Key.</li>
