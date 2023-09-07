@@ -1,3 +1,4 @@
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { mercadoPagoOAuthTokenSchema, type MercadoPagoCredentialSchema } from "./mercadoPagoCredentialSchema";
@@ -166,9 +167,9 @@ class MercadoPago {
         email: bookerEmail,
       },
       back_urls: {
-        success: `/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
-        pending: `/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
-        failure: `/booking/${bookingId}?mercadoPagoPaymentStatus=failure`,
+        success: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
+        pending: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
+        failure: `${WEBSITE_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=failure`,
       },
     };
 
