@@ -334,9 +334,11 @@ export default class GoogleCalendarService implements Calendar {
     const key = JSON.stringify(args);
     const cached = await prisma.calendarCache.findUnique({
       where: {
-        credentialId: this.credential.id,
-        key,
-        expiresAt: { gte: new Date() },
+        credentialId_key: {
+          credentialId: this.credential.id,
+          key,
+        },
+        expiresAt: { gte: new Date(Date.now()) },
       },
     });
 

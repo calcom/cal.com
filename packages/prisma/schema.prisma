@@ -922,9 +922,12 @@ view BookingTimeStatus {
 
 model CalendarCache {
   // The key would be the unique URL that is requested by the user
-  key          String      @unique
+  key          String
   value        Json
   expiresAt    DateTime
   credentialId Int
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@id([credentialId, key])
+  @@unique([credentialId, key])
 }
