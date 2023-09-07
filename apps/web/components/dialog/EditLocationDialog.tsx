@@ -278,7 +278,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     displayLocationPublicly,
                   };
                 }
-                showToast(t("location_added"), "success")
+                
+                if(modalDisplayText === "add_location"){
+                  showToast(t("location_added"), "success")
+                } else {
+                  showToast(t("location_updated"), "success")
+                }
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
