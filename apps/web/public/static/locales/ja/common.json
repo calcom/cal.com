@@ -1840,7 +1840,7 @@
   "invite_link_copied": "招待リンクをコピーしました",
   "invite_link_deleted": "招待リンクを削除しました",
   "invite_link_updated": "招待リンクの設定を保存しました",
-  "link_expires_after": "リンクが期限切れとなるまで、あと...",
+  "link_expires_after": "リンクの期限切れまで...",
   "one_day": "1 日",
   "seven_days": "7 日",
   "thirty_days": "30 日",
