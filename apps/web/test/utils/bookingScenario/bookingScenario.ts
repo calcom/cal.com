@@ -300,7 +300,7 @@ function addWebhooks(webhooks: InputWebhook[]) {
         teamId: webhook.teamId || null,
       };
     });
-    logger.silly("webhook.findMany.mock", webhooks);
+    logger.silly("webhook.findMany.mock", { webhooks: retWebhooks, where });
     return retWebhooks;
   });
 }

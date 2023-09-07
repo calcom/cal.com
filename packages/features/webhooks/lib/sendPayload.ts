@@ -28,6 +28,7 @@ export type WebhookDataType = CalendarEvent &
     triggerEvent: string;
     createdAt: string;
     downloadLink?: string;
+    paymentUid?: string;
   };
 
 function getZapierPayload(

@@ -423,6 +423,7 @@
   "booking_created": "Booking Created",
   "booking_rejected": "Booking Rejected",
   "booking_requested": "Booking Requested",
+  "booking_payment_initiated": "Booking Payment Initiated",
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "booking_paid": "Booking Paid",

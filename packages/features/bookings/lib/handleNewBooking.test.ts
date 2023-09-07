@@ -749,6 +749,7 @@ describe('Event Type that requires confirmation', () => {
           expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
             triggerEvent: "BOOKING_PAYMENT_INITIATED",
             payload: {
+              paymentUid,
               metadata: {
                 // In a Pending Booking Request, we don't send the video call url
               },
@@ -904,6 +905,7 @@ describe('Event Type that requires confirmation', () => {
           expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
             triggerEvent: "BOOKING_PAYMENT_INITIATED",
             payload: {
+              paymentUid,
               metadata: {
                 // In a Pending Booking Request, we don't send the video call url
               },

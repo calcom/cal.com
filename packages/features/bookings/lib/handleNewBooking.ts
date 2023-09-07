@@ -2309,7 +2309,10 @@ async function handler(
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      webhookData,
+      webhookData: {
+        ...webhookData,
+        paymentUid: payment?.uid,
+      },
     });
 
     req.statusCode = 201;
