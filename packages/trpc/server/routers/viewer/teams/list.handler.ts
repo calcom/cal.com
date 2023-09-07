@@ -59,6 +59,17 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     orderBy: { role: "desc" },
   });
 
+  // This can be optimized by using a custom view between membership and team and teamMemberCount
+  const membershipCount = await prisma.teamMemberCount.findMany({
+    where: {
+      id: {
+        in: memberships.map((m) => m.teamId),
+      },
+    },
+  });
+
+  console.log({ membershipCount });
+
   return memberships
     .filter((mmship) => {
       const metadata = teamMetadataSchema.parse(mmship.team.metadata);
@@ -70,5 +81,6 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       ..._team,
       /** To prevent breaking we only return non-email attached token here, if we have one */
       inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      membershipCount: membershipCount.find((m) => m.id === _team.id)?.count || 0,
     }));
 };

@@ -29,7 +29,6 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -92,10 +91,12 @@ type EventType = EventTypeList[number];
 
 interface EventTypeListProps {
   data: EventTypeList;
+  readonly?: boolean;
 }
 
 interface MobileTeamsTabProps {
   teamEventTypes: EventTypeList[];
+  readonly?: boolean;
 }
 
 const querySchema = z.object({
@@ -103,7 +104,7 @@ const querySchema = z.object({
 });
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => {
-  const { teamEventTypes } = props;
+  const { teamEventTypes, readonly } = props;
   const orgBranding = useOrgBranding();
   const tabs = teamEventTypes
     .filter((item) => item !== undefined)
@@ -130,7 +131,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events && events.length && <EventTypeList data={events} />}
+      {events && events.length && <EventTypeList data={events} readonly={readonly} />}
     </div>
   );
 };
@@ -147,9 +148,8 @@ const getEventTypeSlug = (eventType: EventType, t: TFunction) => {
   }
 };
 
-const Item = ({ eventType }: { eventType: EventType }) => {
+const Item = ({ eventType, readonly }: { eventType: EventType; readonly?: boolean }) => {
   const { t } = useLocale();
-  const readOnly = false;
 
   const content = () => (
     <div>
@@ -165,7 +165,7 @@ const Item = ({ eventType }: { eventType: EventType }) => {
         {getEventTypeSlug(eventType, t)}
       </small>
 
-      {readOnly && (
+      {readonly && (
         <Badge variant="gray" className="ml-2">
           {t("readonly")}
         </Badge>
@@ -173,7 +173,7 @@ const Item = ({ eventType }: { eventType: EventType }) => {
     </div>
   );
 
-  return readOnly ? (
+  return readonly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
       <EventTypeDescription
@@ -200,7 +200,7 @@ const Item = ({ eventType }: { eventType: EventType }) => {
           {getEventTypeSlug(eventType, t)}
         </small>
 
-        {readOnly && (
+        {readonly && (
           <Badge variant="gray" className="ml-2">
             {t("readonly")}
           </Badge>
@@ -220,7 +220,7 @@ const Item = ({ eventType }: { eventType: EventType }) => {
 
 const MemoizedItem = memo(Item);
 
-export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ data, readonly }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -391,11 +391,10 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
           const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
 
           const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-          const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
-          const isChildrenManagedEventType =
-            eventTypeMetadata.success &&
-            eventTypeMetadata.data?.managedEventConfig !== undefined &&
-            eventType.schedulingType !== SchedulingType.MANAGED;
+
+          const isChildrenManagedEventType = !!eventType.parentId;
+          const isReadOnly = readonly || isChildrenManagedEventType;
+
           return (
             <li key={eventType.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between">
@@ -406,7 +405,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                   {!(lastItem && lastItem.id === eventType.id) && (
                     <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                   )}
-                  <MemoizedItem eventType={eventType} />
+                  <MemoizedItem eventType={eventType} readonly={isReadOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {eventType.team && !isManagedEventType && (
@@ -425,16 +424,20 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                           )}
                         />
                       )}
-                      {isManagedEventType && type?.children && type.children?.length > 0 && (
+                      {isManagedEventType && eventType.children?.length > 0 && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={eventType.users.map((user: Pick<User, "name" | "username">) => ({
-                            alt: user.name || "",
-                            image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
-                            title: user.name || "",
-                          }))}
+                          items={eventType.children.map(
+                            ({ users }: { users: Pick<User, "name" | "username">[] }) => ({
+                              alt: users[0].name || "",
+                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                users[0].username
+                              }/avatar.png`,
+                              title: users[0].name || "",
+                            })
+                          )}
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
@@ -485,7 +488,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                               </Tooltip>
                             </>
                           )}
-                          <Dropdown modal={false}>
+                          <Dropdown modal={isReadOnly}>
                             <DropdownMenuTrigger asChild data-testid={"event-type-options-" + eventType.id}>
                               <Button
                                 type="button"
@@ -496,7 +499,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              {!false && (
+                              {!isReadOnly && (
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
@@ -534,8 +537,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                                 </DropdownMenuItem>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                              {/* @TODO: */}
-                              {false && !isChildrenManagedEventType && (
+                              {isReadOnly && !isChildrenManagedEventType && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem>
@@ -612,7 +614,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                             </DropdownItem>
                           </DropdownMenuItem>
                         ) : null}
-                        {!false && (
+                        {!isReadOnly && (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => router.push("/event-types/" + eventType.id)}
@@ -633,8 +635,7 @@ export const EventTypeList = ({ data }: EventTypeListProps): JSX.Element => {
                           </DropdownMenuItem>
                         )}
                         {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                        {/* Readonly @TODO: */}
-                        {false && !isChildrenManagedEventType && (
+                        {isReadOnly && !isChildrenManagedEventType && (
                           <>
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
@@ -913,7 +914,7 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
     const teamEventTypesForTabs = eventTypePaginate
       .map((trpcFetch) => {
         const { data } = trpcFetch;
-        return data;
+        return data || [];
       })
       .filter((item) => item && item.length > 0);
     return (
@@ -925,7 +926,8 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
             <EventTypeListHeading
               teamSlugOrUsername={mainUser.username || ""}
               teamNameOrUserName={mainUser.name || ""}
-              membershipCount={firstElementPersonalEventTypes.team?.members.length || 0}
+              // Single event types have no teamMembershipCount
+              membershipCount={0}
               teamId={firstElementPersonalEventTypes.teamId}
               orgSlug={orgBranding?.slug}
             />
@@ -939,11 +941,13 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
             {/* Then we list team event types */}
             {eventTypePaginate.map((trpcFetch, index) => {
               const { data: teamEventTypes } = trpcFetch;
-              const [firstElementTeamEventTypes] = data || [];
+              const [firstElementTeamEventTypes] = teamEventTypes || [];
 
               if (!teamEventTypes || teamEventTypes.length === 0 || !firstElementTeamEventTypes.team) {
                 return null;
               }
+              const teamDataMatchWithEventType = teams && teams.length > 0 && teams[index];
+              const membershipCount = teamDataMatchWithEventType?.membershipCount || 0;
 
               return (
                 <>
@@ -951,13 +955,17 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
                     key={index}
                     teamSlugOrUsername={firstElementTeamEventTypes.team.slug || ""}
                     teamNameOrUserName={firstElementTeamEventTypes.team.name || ""}
-                    membershipCount={firstElementTeamEventTypes.team?.members.length || 0}
+                    membershipCount={membershipCount}
                     teamId={firstElementTeamEventTypes.teamId}
                     orgSlug={orgBranding?.slug}
                   />
 
                   {teamEventTypes.length > 0 ? (
-                    <EventTypeList data={teamEventTypes} key={index} />
+                    <EventTypeList
+                      data={teamEventTypes}
+                      key={index}
+                      readonly={"MEMBER" === teamDataMatchWithEventType.role}
+                    />
                   ) : (
                     <EmptyEventTypeList
                       teamId={firstElementTeamEventTypes.teamId}

@@ -900,6 +900,7 @@ model SelectedSlots {
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
 
+// Let's keep views at the bottom of the schema
 view BookingTimeStatus {
   id            Int            @unique
   uid           String?
@@ -918,4 +919,9 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+}
+
+view TeamMemberCount {
+  id    Int @unique
+  count Int
 }

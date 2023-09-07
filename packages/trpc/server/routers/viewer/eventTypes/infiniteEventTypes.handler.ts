@@ -55,6 +55,7 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
       hidden: true,
       metadata: true,
       teamId: true,
+      parentId: true,
       users: {
         select: {
           id: true,
@@ -62,23 +63,29 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
           name: true,
         },
       },
+      children: {
+        select: {
+          id: true,
+          users: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,
           slug: true,
           name: true,
-          members: {
-            select: {
-              userId: true,
-              role: true,
-            },
-          },
         },
       },
     },
     skip,
     take: pageSize,
   });
-  console.log("result", result);
+
   return result;
 };
