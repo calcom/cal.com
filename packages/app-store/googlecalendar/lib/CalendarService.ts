@@ -109,199 +109,190 @@ export default class GoogleCalendarService implements Calendar {
         displayName: m.name,
         responseStatus: "accepted",
       })) || [];
-    return new Promise(async (resolve, reject) => {
-      const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
-        (cal) => cal.credentialId === credentialId
-      );
-      const payload: calendar_v3.Schema$Event = {
-        summary: calEventRaw.title,
-        description: getRichDescription(calEventRaw),
-        start: {
-          dateTime: calEventRaw.startTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        end: {
-          dateTime: calEventRaw.endTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...calEventRaw.organizer,
-            id: String(calEventRaw.organizer.id),
-            responseStatus: "accepted",
-            organizer: true,
-            email: selectedHostDestinationCalendar?.externalId
-              ? selectedHostDestinationCalendar.externalId
-              : calEventRaw.organizer.email,
-          },
-          ...eventAttendees,
-          ...teamMembers,
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
-      };
-
-      if (calEventRaw.location) {
-        payload["location"] = getLocation(calEventRaw);
-      }
-
-      if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
-        payload["conferenceData"] = calEventRaw.conferenceData;
-      }
-      const calendar = await this.authedCalendar();
-      // Find in calEventRaw.destinationCalendar the one with the same credentialId
-
-      const selectedCalendar =
-        calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-        "primary";
-
-      calendar.events.insert(
+    const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
+      (cal) => cal.credentialId === credentialId
+    );
+    const payload: calendar_v3.Schema$Event = {
+      summary: calEventRaw.title,
+      description: getRichDescription(calEventRaw),
+      start: {
+        dateTime: calEventRaw.startTime,
+        timeZone: calEventRaw.organizer.timeZone,
+      },
+      end: {
+        dateTime: calEventRaw.endTime,
+        timeZone: calEventRaw.organizer.timeZone,
+      },
+      attendees: [
         {
-          calendarId: selectedCalendar,
-          requestBody: payload,
-          conferenceDataVersion: 1,
-          sendUpdates: "none",
+          ...calEventRaw.organizer,
+          id: String(calEventRaw.organizer.id),
+          responseStatus: "accepted",
+          organizer: true,
+          email: selectedHostDestinationCalendar?.externalId
+            ? selectedHostDestinationCalendar.externalId
+            : calEventRaw.organizer.email,
         },
-        function (error, event) {
-          if (error || !event?.data) {
-            console.error("There was an error contacting google calendar service: ", error);
-            return reject(error);
-          }
+        ...eventAttendees,
+        ...teamMembers,
+      ],
+      reminders: {
+        useDefault: true,
+      },
+      guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
+    };
 
-          if (event && event.data.id && event.data.hangoutLink) {
-            calendar.events.patch({
-              // Update the same event but this time we know the hangout link
-              calendarId: selectedCalendar,
-              eventId: event.data.id || "",
-              requestBody: {
-                description: getRichDescription({
-                  ...calEventRaw,
-                  additionalInformation: { hangoutLink: event.data.hangoutLink },
-                }),
-              },
-            });
-          }
-          return resolve({
-            uid: "",
-            ...event.data,
-            id: event.data.id || "",
-            additionalInfo: {
-              hangoutLink: event.data.hangoutLink || "",
-            },
-            type: "google_calendar",
-            password: "",
-            url: "",
-            iCalUID: event.data.iCalUID,
-          });
-        }
-      );
-    });
+    if (calEventRaw.location) {
+      payload["location"] = getLocation(calEventRaw);
+    }
+
+    if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
+      payload["conferenceData"] = calEventRaw.conferenceData;
+    }
+    const calendar = await this.authedCalendar();
+    // Find in calEventRaw.destinationCalendar the one with the same credentialId
+
+    const selectedCalendar =
+      calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+      "primary";
+
+    try {
+      const event = await calendar.events.insert({
+        calendarId: selectedCalendar,
+        requestBody: payload,
+        conferenceDataVersion: 1,
+        sendUpdates: "none",
+      });
+
+      if (event && event.data.id && event.data.hangoutLink) {
+        await calendar.events.patch({
+          // Update the same event but this time we know the hangout link
+          calendarId: selectedCalendar,
+          eventId: event.data.id || "",
+          requestBody: {
+            description: getRichDescription({
+              ...calEventRaw,
+              additionalInformation: { hangoutLink: event.data.hangoutLink },
+            }),
+          },
+        });
+      }
+
+      return {
+        uid: "",
+        ...event.data,
+        id: event.data.id || "",
+        additionalInfo: {
+          hangoutLink: event.data.hangoutLink || "",
+        },
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: event.data.iCalUID,
+      };
+    } catch (error) {
+      console.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const [mainHostDestinationCalendar] =
-        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
-      const eventAttendees = event.attendees.map(({ ...rest }) => ({
-        ...rest,
+    const [mainHostDestinationCalendar] =
+      event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
+    const eventAttendees = event.attendees.map(({ ...rest }) => ({
+      ...rest,
+      responseStatus: "accepted",
+    }));
+    const teamMembers =
+      event.team?.members.map((m) => ({
+        email: m.email,
+        displayName: m.name,
         responseStatus: "accepted",
-      }));
-      const teamMembers =
-        event.team?.members.map((m) => ({
-          email: m.email,
-          displayName: m.name,
-          responseStatus: "accepted",
-        })) || [];
-      const payload: calendar_v3.Schema$Event = {
-        summary: event.title,
-        description: getRichDescription(event),
-        start: {
-          dateTime: event.startTime,
-          timeZone: event.organizer.timeZone,
-        },
-        end: {
-          dateTime: event.endTime,
-          timeZone: event.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...event.organizer,
-            id: String(event.organizer.id),
-            organizer: true,
-            responseStatus: "accepted",
-            email: mainHostDestinationCalendar?.externalId
-              ? mainHostDestinationCalendar.externalId
-              : event.organizer.email,
-          },
-          ...(eventAttendees as any),
-          ...(teamMembers as any),
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
-      };
-
-      if (event.location) {
-        payload["location"] = getLocation(event);
-      }
-
-      if (event.conferenceData && event.location === MeetLocationType) {
-        payload["conferenceData"] = event.conferenceData;
-      }
-
-      const calendar = await this.authedCalendar();
-
-      const selectedCalendar = externalCalendarId
-        ? externalCalendarId
-        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
-
-      calendar.events.update(
+      })) || [];
+    const payload: calendar_v3.Schema$Event = {
+      summary: event.title,
+      description: getRichDescription(event),
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: [
         {
-          calendarId: selectedCalendar,
-          eventId: uid,
-          sendNotifications: true,
-          sendUpdates: "none",
-          requestBody: payload,
-          conferenceDataVersion: 1,
+          ...event.organizer,
+          id: String(event.organizer.id),
+          organizer: true,
+          responseStatus: "accepted",
+          email: mainHostDestinationCalendar?.externalId
+            ? mainHostDestinationCalendar.externalId
+            : event.organizer.email,
         },
-        function (err, evt) {
-          if (err) {
-            console.error("There was an error contacting google calendar service: ", err);
-            return reject(err);
-          }
+        ...(eventAttendees as any),
+        ...(teamMembers as any),
+      ],
+      reminders: {
+        useDefault: true,
+      },
+      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+    };
 
-          if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-            calendar.events.patch({
-              // Update the same event but this time we know the hangout link
-              calendarId: selectedCalendar,
-              eventId: evt.data.id || "",
-              requestBody: {
-                description: getRichDescription({
-                  ...event,
-                  additionalInformation: { hangoutLink: evt.data.hangoutLink },
-                }),
-              },
-            });
-            return resolve({
-              uid: "",
-              ...evt.data,
-              id: evt.data.id || "",
-              additionalInfo: {
-                hangoutLink: evt.data.hangoutLink || "",
-              },
-              type: "google_calendar",
-              password: "",
-              url: "",
-              iCalUID: evt.data.iCalUID,
-            });
-          }
-          return resolve(evt?.data);
-        }
-      );
-    });
+    if (event.location) {
+      payload["location"] = getLocation(event);
+    }
+
+    if (event.conferenceData && event.location === MeetLocationType) {
+      payload["conferenceData"] = event.conferenceData;
+    }
+
+    const calendar = await this.authedCalendar();
+
+    const selectedCalendar = externalCalendarId
+      ? externalCalendarId
+      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+
+    try {
+      const evt = await calendar.events.update({
+        calendarId: selectedCalendar,
+        eventId: uid,
+        sendNotifications: true,
+        sendUpdates: "none",
+        requestBody: payload,
+        conferenceDataVersion: 1,
+      });
+
+      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+        calendar.events.patch({
+          // Update the same event but this time we know the hangout link
+          calendarId: selectedCalendar,
+          eventId: evt.data.id || "",
+          requestBody: {
+            description: getRichDescription({
+              ...event,
+              additionalInformation: { hangoutLink: evt.data.hangoutLink },
+            }),
+          },
+        });
+        return {
+          uid: "",
+          ...evt.data,
+          id: evt.data.id || "",
+          additionalInfo: {
+            hangoutLink: evt.data.hangoutLink || "",
+          },
+          type: "google_calendar",
+          password: "",
+          url: "",
+          iCalUID: evt.data.iCalUID,
+        };
+      }
+      return evt?.data;
+    } catch (error) {
+      console.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
