@@ -36,10 +36,6 @@ export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
     return targetUsersTeams.some((targetTeam) => targetTeam.teamId === authedTeam.teamId);
   });
 
-  console.log({
-    teamIdOverlaps,
-  });
-
   return teamIdOverlaps;
   // return teamIdOverlaps;
 }
