@@ -2236,7 +2236,6 @@ async function handler(
     !originalRescheduledBooking?.paid &&
     !!booking;
 
-  console.log("Booking requires payment", bookingRequiresPayment, paymentAppData);
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);

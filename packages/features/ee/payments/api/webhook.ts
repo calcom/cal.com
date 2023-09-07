@@ -44,9 +44,6 @@ async function getEventType(id: number) {
 }
 
 async function getBooking(bookingId: number) {
-  log.silly("getBooking", {
-    bookingId,
-  });
   const booking = await prisma.booking.findUnique({
     where: {
       id: bookingId,
@@ -228,7 +225,6 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
   if (!isConfirmed) {
-    //TODO: Test an event that requires confirmation conditionally
     if (!requiresConfirmation) {
       await handleConfirmation({
         user: userWithCredentials,
