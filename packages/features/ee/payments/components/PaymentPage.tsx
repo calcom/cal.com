@@ -31,6 +31,13 @@ const PaypalPaymentComponent = dynamic(
   }
 );
 
+const MercadoPagoPaymentComponent = dynamic(
+  () => import("@calcom/app-store/mercadopago/components/MercadoPagoPaymentComponent"),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -144,6 +151,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (
                     <PaypalPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "mercadopago" && !props.payment.success && (
+                    <MercadoPagoPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
