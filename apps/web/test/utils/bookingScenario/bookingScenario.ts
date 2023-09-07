@@ -403,7 +403,7 @@ export function createBookingScenario(data: ScenarioData) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.$transaction.mockImplementation(() => {
-    console.log("Mock Noop - $transaction");
+    logger.silly("Mock Noop - $transaction");
   });
 
   const eventType = addEventTypes(data.eventTypes, data.users);
@@ -452,6 +452,7 @@ export function createBookingScenario(data: ScenarioData) {
 }
 
 function addPaymentMock() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payments: any[] = (MOCK_DB.payments = []);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore

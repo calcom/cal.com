@@ -511,7 +511,6 @@ describe('Event Type that requires confirmation', () => {
         const organizer = TestData.users.example;
 
         createBookingScenario( {
-          hosts: [],
           eventTypes: [
             {
               id: 1,
