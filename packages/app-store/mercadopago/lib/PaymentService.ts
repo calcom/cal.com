@@ -55,8 +55,8 @@ export class PaymentService implements IAbstractPaymentService {
 
       const uid = uuidv4();
 
-      const orderResult = await this.mercadoPago.createPreference({
-        amount: payment.amount,
+      const preferenceResult = await this.mercadoPago.createPreference({
+        amount: payment.amount / 100,
         currency: payment.currency,
         paymentUid: uid,
         bookingId,
@@ -79,9 +79,9 @@ export class PaymentService implements IAbstractPaymentService {
             },
           },
           amount: payment.amount,
-          externalId: orderResult.id,
+          externalId: preferenceResult.id,
           currency: payment.currency,
-          data: Object.assign({}, { order: orderResult }) as unknown as Prisma.InputJsonValue,
+          data: Object.assign({}, { preference: preferenceResult }) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,
