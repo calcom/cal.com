@@ -3,12 +3,13 @@ import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
@@ -98,7 +99,14 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <Avatar alt={user.username || "user avatar"} size="lg" imageSrc={imageSrc} />}
+        {user && (
+          <OrganizationAvatar
+            alt={user.username || "user avatar"}
+            size="lg"
+            imageSrc={imageSrc}
+            organizationSlug={user.organization?.slug}
+          />
+        )}
         <input
           ref={avatarRef}
           type="hidden"
