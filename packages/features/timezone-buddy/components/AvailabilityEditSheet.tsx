@@ -83,7 +83,7 @@ export function AvailabilityEditSheet(props: Props) {
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async () => {
       utils.viewer.availability.listTeam.invalidate();
-      showToast(t("availability_updated_successfully"), "success");
+      showToast(t("success"), "success");
       props.onOpenChange(false);
     },
     onError: (err) => {
