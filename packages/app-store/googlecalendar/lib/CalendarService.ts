@@ -328,7 +328,6 @@ export default class GoogleCalendarService implements Calendar {
     timeMax: string;
     items: { id: string }[];
   }): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    console.log("args", args);
     const calendar = await this.authedCalendar();
     const { timeMin, timeMax, items } = args;
     const key = JSON.stringify(args);
