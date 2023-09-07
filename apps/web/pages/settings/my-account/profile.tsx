@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,10 +15,10 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
-  Avatar,
   Button,
   Dialog,
   DialogClose,
@@ -223,6 +224,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
+        userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -364,11 +366,13 @@ const ProfileForm = ({
   onSubmit,
   extraField,
   isLoading = false,
+  userOrganization,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
+  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -406,7 +410,12 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} size="lg" />
+              <OrganizationAvatar
+                alt={formMethods.getValues("username")}
+                imageSrc={value}
+                size="lg"
+                organizationSlug={userOrganization.slug}
+              />
               <div className="ms-4">
                 <ImageUploader
                   target="avatar"

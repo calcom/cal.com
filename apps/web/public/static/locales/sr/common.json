@@ -130,7 +130,7 @@
   "team_upgrade_banner_description": "Hvala vam što isprobavate naš novi plan za timove. Primetili smo da vaš tim „{{teamName}}“ treba da se nadogradi.",
   "upgrade_banner_action": "Nadogradite ovde",
   "team_upgraded_successfully": "Vaš tim je uspešno pretplaćen!",
-  "org_upgrade_banner_description": "Hvala što isprobavate plan naše organizacije. Primetili smo da tim vaše organizacije „{{teamName}}” treba da se nadogradi.",
+  "org_upgrade_banner_description": "Hvala što isprobavate naš Organization plan. Primetili smo da vaš Organization „{{teamName}}” treba da se nadogradi.",
   "org_upgraded_successfully": "Vaš Organization je uspešno nadograđen!",
   "use_link_to_reset_password": "Resetujte lozinku koristeći link ispod",
   "hey_there": "Zdravo,",

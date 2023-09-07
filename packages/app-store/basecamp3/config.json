@@ -2,7 +2,7 @@
   "name": "Basecamp3",
   "slug": "basecamp3",
   "type": "basecamp3_other_calendar",
-  "logo": "logo.svg",
+  "logo": "icon-dark.svg",
   "url": "https://basecamp.com/",
   "variant": "other",
   "categories": ["other"],

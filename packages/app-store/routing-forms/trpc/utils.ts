@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
+import type { OrderedResponses } from "../types/types";
 import type { Response, SerializableForm } from "../types/types";
 
 export async function onFormSubmission(
@@ -61,23 +62,28 @@ export async function onFormSubmission(
   });
 
   await Promise.all(promises);
+  const orderedResponses = form.fields.reduce((acc, field) => {
+    acc.push(response[field.id]);
+    return acc;
+  }, [] as OrderedResponses);
+
   if (form.settings?.emailOwnerOnSubmission) {
     logger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
-    await sendResponseEmail(form, response, form.user.email);
+    await sendResponseEmail(form, orderedResponses, form.user.email);
   }
 }
 
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name">,
-  response: Response,
+  orderedResponses: OrderedResponses,
   ownerEmail: string
 ) => {
   try {
     if (typeof window === "undefined") {
       const { default: ResponseEmail } = await import("../emails/templates/response-email");
-      const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], response: response });
+      const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], orderedResponses });
       await email.sendEmail();
     }
   } catch (e) {

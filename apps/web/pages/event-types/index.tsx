@@ -108,8 +108,10 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    avatar: orgBranding
+      ? `${orgBranding.fullDomain}${item.teamId ? "/team" : ""}/${item.profile.slug}/avatar.png`
+      : item.profile.image ?? `${WEBAPP_URL + (item.teamId && "/team")}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -117,13 +119,15 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events.length && (
+      {events.length > 0 ? (
         <EventTypeList
           types={events[0].eventTypes}
           group={events[0]}
           groupIndex={0}
           readOnly={events[0].metadata.readOnly}
         />
+      ) : (
+        <CreateFirstEventTypeView />
       )}
     </div>
   );
@@ -357,6 +361,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       setNativeShare(false);
     }
   }, []);
+
+  if (!types.length) {
+    return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
+  }
 
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
@@ -712,7 +720,10 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          `${orgBranding?.fullDomain ?? WEBAPP_URL}${teamId ? "/team" : ""}/${profile.slug}/avatar.png` ||
+          undefined
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -759,6 +770,12 @@ const CreateFirstEventTypeView = () => {
       Icon={LinkIcon}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
+      className="mb-16"
+      buttonRaw={
+        <Button href="?dialog=new" variant="button">
+          {t("create")}
+        </Button>
+      }
     />
   );
 };
@@ -893,8 +910,10 @@ const Main = ({
                     groupIndex={index}
                     readOnly={group.metadata.readOnly}
                   />
-                ) : (
+                ) : group.teamId ? (
                   <EmptyEventTypeList group={group} />
+                ) : (
+                  <CreateFirstEventTypeView />
                 )}
               </div>
             ))
