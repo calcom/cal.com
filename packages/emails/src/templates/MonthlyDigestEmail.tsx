@@ -113,7 +113,6 @@ export const MonthlyDigestEmail = (
             lineHeight: "38px",
             width: "100%",
             marginBottom: "30px",
-            fontFamily: "Cal Sans",
           }}>
           {props.language("your_monthly_digest")}
         </p>
