@@ -11,17 +11,16 @@ it("correctly handles 1 day", async () => {
     startTime: new Date(Date.UTC(1970, 1, 1, 9, 0, 0, 0)),
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
-    scheduleId: 1
+    scheduleId: 1,
   };
 
   const result = availabilityAsString(availability, {
-    locale: 'en',
-    hour12: true
+    locale: "en",
+    hour12: true,
   });
 
   expect(replaceUnicodeSpace(result)).toBe("Mon, 9:00 AM - 5:00 PM");
 });
-
 
 it("correctly handles all days", async () => {
   const availability = {
@@ -32,12 +31,12 @@ it("correctly handles all days", async () => {
     startTime: new Date(Date.UTC(1970, 1, 1, 9, 0, 0, 0)),
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
-    scheduleId: 1
+    scheduleId: 1,
   };
 
   const result = availabilityAsString(availability, {
-    locale: 'en',
-    hour12: true
+    locale: "en",
+    hour12: true,
   });
 
   expect(replaceUnicodeSpace(result)).toBe("Mon - Sun, 9:00 AM - 5:00 PM");
@@ -52,12 +51,12 @@ it("correctly handles staggered days", async () => {
     startTime: new Date(Date.UTC(1970, 1, 1, 9, 0, 0, 0)),
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
-    scheduleId: 1
+    scheduleId: 1,
   };
 
   const result = availabilityAsString(availability, {
-    locale: 'en',
-    hour12: true
+    locale: "en",
+    hour12: true,
   });
 
   expect(replaceUnicodeSpace(result)).toBe("Mon, Wed, Fri, Sun, 9:00 AM - 5:00 PM");
@@ -72,12 +71,12 @@ it("correctly produces days and times - 12 hours", async () => {
     startTime: new Date(Date.UTC(1970, 1, 1, 9, 0, 0, 0)),
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
-    scheduleId: 1
+    scheduleId: 1,
   };
 
   const result = availabilityAsString(availability, {
-    locale: 'en',
-    hour12: true
+    locale: "en",
+    hour12: true,
   });
 
   expect(replaceUnicodeSpace(result)).toBe("Mon - Wed, 9:00 AM - 5:00 PM");
@@ -92,12 +91,12 @@ it("correctly produces days and times - 24 hours", async () => {
     startTime: new Date(Date.UTC(1970, 1, 1, 9, 0, 0, 0)),
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
-    scheduleId: 1
+    scheduleId: 1,
   };
 
   const result = availabilityAsString(availability, {
-    locale: 'en',
-    hour12: false
+    locale: "en",
+    hour12: false,
   });
 
   expect(replaceUnicodeSpace(result)).toBe("Mon - Wed, 09:00 - 17:00");
@@ -107,5 +106,5 @@ it("correctly produces days and times - 24 hours", async () => {
 // produces Unicode characters. Instead of using line for line code from the
 // availability.ts file, opted for this instead.
 const replaceUnicodeSpace = (string: string) => {
-  return string.replace(/\u202f/g, ' ');
-}
+  return string.replace(/\u202f/g, " ");
+};

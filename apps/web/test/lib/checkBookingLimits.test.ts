@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
+import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { validateIntervalLimitOrder } from "@calcom/lib";

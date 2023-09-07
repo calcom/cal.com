@@ -1,6 +1,6 @@
-import { expect, it } from "vitest";
-
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
+import { expect, it } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser } from "@calcom/lib/test/builder";
