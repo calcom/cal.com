@@ -41,10 +41,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
       ...schedule,
       hasDefaultSchedule: true,
     };
-
-    console.log({ schedule });
   } catch (e) {
-    console.log("error", e);
     return {
       id: -1,
       name: "Working Hourse",
