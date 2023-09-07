@@ -22,7 +22,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[stripeWebhook]"] });
+const log = logger.getChildLogger({ prefix: ["[paymentWebhook]"] });
 
 export const config = {
   api: {
