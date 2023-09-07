@@ -1,4 +1,5 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -45,22 +46,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
   }
 
   if (userSchedule?.userId !== user.id) {
-    // Check if the user is an of a membership that has access to the schedule
-    const membershipOverlap = await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        team: {
-          members: {
-            some: { id: userSchedule?.userId },
-          },
-        },
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-
-    if (!membershipOverlap.length) {
+    if (!hasEditPermissionForUserID({ ctx, input: { memberId: userSchedule.userId } })) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });

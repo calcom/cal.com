@@ -6,7 +6,6 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -38,7 +37,7 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -60,7 +59,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+            <Button color="secondary" StartIcon={Plus} data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }
@@ -71,13 +70,22 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 };
 
 export function AvailabilityEditSheet(props: Props) {
-  const userId = props.selectedUser?.id;
-  const me = useMeQuery();
+  // This sheet will not be rendered without a selected user
+  const userId = props.selectedUser?.id as number;
   const { t } = useLocale();
   const utils = trpc.useContext();
 
+  const { data: hasEditPermission, isLoading: loadingPermissions } =
+    trpc.viewer.teams.hasEditPermissionForUser.useQuery({
+      memberId: userId,
+    });
+
   const { data, isLoading } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
     userId: userId,
+  });
+
+  console.log({
+    data,
   });
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
@@ -97,7 +105,7 @@ export function AvailabilityEditSheet(props: Props) {
   const form = useForm<AvailabilityFormValues>({
     values: data && {
       ...data,
-      timeZone: data?.timeZone || me.data?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timeZone: data?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
       schedule: data?.availability || [],
     },
   });
@@ -110,6 +118,8 @@ export function AvailabilityEditSheet(props: Props) {
         form={form}
         id="availability-form"
         handleSubmit={async ({ dateOverrides, ...values }) => {
+          // Just blocking on a UI side -> Backend will also do the validation
+          if (!hasEditPermission) return;
           data &&
             updateMutation.mutate({
               scheduleId: data?.id,
@@ -124,6 +134,7 @@ export function AvailabilityEditSheet(props: Props) {
                 {t("cancel")}
               </Button>
               <Button
+                disabled={!hasEditPermission}
                 className="w-full justify-center"
                 type="submit"
                 loading={updateMutation.isLoading}
@@ -132,14 +143,23 @@ export function AvailabilityEditSheet(props: Props) {
               </Button>
             </>
           }>
-          {!data?.hasDefaultSchedule && !isLoading && (
+          {!data?.hasDefaultSchedule && !isLoading && hasEditPermission && (
             <div className="my-2">
               <TopBanner
                 variant="warning"
-                text="This user has not completed onboarding. You can set their default availaiblity for them below. "
+                text="This user has not completed onboarding. You will not be able to set their availability until they have completed onboarding. "
               />
             </div>
           )}
+          {!hasEditPermission && !loadingPermissions && (
+            <div className="my-2">
+              <TopBanner
+                variant="warning"
+                text="You are viewing this user's availability. You can only edit your own availability."
+              />
+            </div>
+          )}
+
           <SheetHeader>
             <SheetTitle>Edit Users Availability : {props.selectedUser?.username}</SheetTitle>
           </SheetHeader>
@@ -151,6 +171,7 @@ export function AvailabilityEditSheet(props: Props) {
               </Label>
               <TimezoneSelect
                 id="timezone"
+                isDisabled={!hasEditPermission}
                 value={watchTimezone ?? "Europe/London"}
                 onChange={(event) => {
                   if (event) form.setValue("timeZone", event.value, { shouldDirty: true });
@@ -161,21 +182,18 @@ export function AvailabilityEditSheet(props: Props) {
               <Label className="text-emphasis">{t("members_default_schedule")}</Label>
               {/* Remove padding from schedule without touching the component */}
               <div className="[&>*:first-child]:!p-0">
-                {typeof me.data?.weekStart === "string" && (
-                  <Schedule
-                    control={form.control}
-                    name="schedule"
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        me.data?.weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                  />
-                )}
+                <Schedule
+                  control={form.control}
+                  name="schedule"
+                  weekStart={0}
+                  disabled={!hasEditPermission}
+                />
               </div>
             </div>
             <div className="mt-4">
-              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+              {data?.workingHours && (
+                <DateOverride workingHours={data.workingHours} disabled={!hasEditPermission} />
+              )}
             </div>
           </>
         </SheetContent>

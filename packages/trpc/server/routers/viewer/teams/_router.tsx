@@ -9,6 +9,7 @@ import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
@@ -41,6 +42,7 @@ type TeamsRouterHandlerCache = {
   setInviteExpiration?: typeof import("./setInviteExpiration.handler").setInviteExpirationHandler;
   deleteInvite?: typeof import("./deleteInvite.handler").deleteInviteHandler;
   inviteMemberByToken?: typeof import("./inviteMemberByToken.handler").inviteMemberByTokenHandler;
+  hasEditPermissionForUser?: typeof import("./hasEditPermissionForUser.handler").hasEditPermissionForUser;
 };
 
 const UNSTABLE_HANDLER_CACHE: TeamsRouterHandlerCache = {};
@@ -429,6 +431,25 @@ export const viewerTeamsRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.inviteMemberByToken({
+        ctx,
+        input,
+      });
+    }),
+  hasEditPermissionForUser: authedProcedure
+    .input(ZHasEditPermissionForUserSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.hasEditPermissionForUser) {
+        UNSTABLE_HANDLER_CACHE.hasEditPermissionForUser = await import(
+          "./hasEditPermissionForUser.handler"
+        ).then((mod) => mod.hasEditPermissionForUser);
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.hasEditPermissionForUser) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.hasEditPermissionForUser({
         ctx,
         input,
       });

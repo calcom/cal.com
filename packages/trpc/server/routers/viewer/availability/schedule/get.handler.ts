@@ -46,6 +46,10 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     eventType.team?.members.some((teamMember) => teamMember.userId === user.id)
   );
 
+  console.log({
+    isCurrentUserPartOfTeam,
+  });
+
   const isCurrentUserOwner = schedule?.userId === user.id;
 
   if (!schedule || (!isCurrentUserOwner && !isCurrentUserPartOfTeam)) {
