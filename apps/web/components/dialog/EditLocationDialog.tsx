@@ -33,6 +33,7 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
+  modalDisplayText?: string;
   isTeamEvent?: boolean;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -80,6 +81,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
+    modalDisplayText,
     setEditingLocationType,
   } = props;
   const { t } = useLocale();
@@ -221,7 +223,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
               <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-                {t("add_location")}
+                {t(modalDisplayText!)}
               </h3>
               {!booking && (
                 <p className="text-default text-sm">
@@ -350,7 +352,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   </Button>
 
                   <Button data-testid="update-location" type="submit">
-                    {t("Add")}
+                    {modalDisplayText === "add_location" ? t("Add"): t("edit")}
                   </Button>
                 </div>
               </DialogFooter>

@@ -113,6 +113,7 @@ export const EventSetupTab = (
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [modalDisplayText, setModelDisplayText] = useState<string>("")
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
@@ -299,6 +300,7 @@ export const EventSetupTab = (
                           locationFormMethods.setValue("locationType", location.type);
                           locationFormMethods.unregister("locationLink");
                           locationFormMethods.unregister("locationAddress");
+                          setModelDisplayText("edit_location")
                           locationFormMethods.unregister("locationPhoneNumber");
                           setEditingLocationType(location.type);
                           openLocationModal(location.type);
@@ -348,7 +350,10 @@ export const EventSetupTab = (
                   data-testid="add-location"
                   StartIcon={Plus}
                   color="minimal"
-                  onClick={() => setShowLocationModal(true)}>
+                  onClick={() => {
+                    setShowLocationModal(true)
+                    setModelDisplayText("add_location")
+                    }}>
                   {t("add_location")}
                 </Button>
               </li>
@@ -511,6 +516,7 @@ export const EventSetupTab = (
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog
         isTeamEvent={!!team}
+        modalDisplayText={modalDisplayText}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
         saveLocation={saveLocation}
