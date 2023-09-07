@@ -150,7 +150,7 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: selectedCalendar || "primary",
+          calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
           sendUpdates: "none",
