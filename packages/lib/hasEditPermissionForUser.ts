@@ -14,30 +14,34 @@ type InputOptions = {
 
 export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
   const { user } = ctx;
-  const memberships = await prisma.membership.findMany({
+
+  const authedUsersTeams = await prisma.membership.findMany({
     where: {
-      OR: [
-        {
-          userId: user.id,
-          accepted: true,
-          role: {
-            in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-          },
-        },
-        {
-          userId: input.memberId,
-          accepted: true,
-        },
-      ],
+      userId: user.id,
+      accepted: true,
+      role: {
+        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
     },
   });
 
-  const hasEditPermission = memberships.some(
-    (m) =>
-      (m.userId === user.id && ROLES_WITH_EDIT_PERMISSION.includes(m.role)) || m.userId === input.memberId
-  );
+  const targetUsersTeams = await prisma.membership.findMany({
+    where: {
+      userId: input.memberId,
+      accepted: true,
+    },
+  });
 
-  return hasEditPermission;
+  const teamIdOverlaps = authedUsersTeams.some((authedTeam) => {
+    return targetUsersTeams.some((targetTeam) => targetTeam.teamId === authedTeam.teamId);
+  });
+
+  console.log({
+    teamIdOverlaps,
+  });
+
+  return teamIdOverlaps;
+  // return teamIdOverlaps;
 }
 
 export async function hasReadPermissionsForUserId({ ctx, input }: InputOptions) {
