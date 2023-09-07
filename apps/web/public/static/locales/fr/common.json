@@ -1060,7 +1060,7 @@
   "your_unique_api_key": "Votre clé API unique",
   "copy_safe_api_key": "Copiez cette clé API et conservez-la dans un endroit sûr. Si vous perdez cette clé, vous devrez en générer une nouvelle.",
   "zapier_setup_instructions": "<0>Connectez-vous à votre compte Zapier et créez un nouveau Zap.</0><1>Sélectionnez Cal.com comme application déclencheur. Choisissez également un événement déclencheur.</1><2>Choisissez votre compte, puis saisissez votre clé API unique.</2><3>Testez votre déclencheur.</3><4>Vous êtes prêt !</4>",
-  "make_setup_instructions": "<0>Connectez-vous à votre compte Make et créez un nouveau Scénario.</0><1>Sélectionnez Cal.com comme application déclencheur. Choisissez également un événement déclencheur.</1><2>Choisissez votre compte, puis saisissez votre clé API unique.</2><3>Testez votre déclencheur.</3><4>Vous êtes prêt !</4>",
+  "make_setup_instructions": "<0>Accédez au <1><0>lien d'invitation Make</0></1> et installez l'application Cal.com.</0><1>Connectez-vous à votre compte Make et créez un nouveau scénario.</1><2>Sélectionnez Cal.com comme application déclencheur. Choisissez également un événement déclencheur.</2><3>Choisissez votre compte, puis saisissez votre clé API unique.</3><4>Testez votre déclencheur.</4><5>Vous êtes prêt !</5>",
   "install_zapier_app": "Veuillez d'abord installer l'application Zapier dans l'App Store.",
   "install_make_app": "Veuillez d'abord installer l'application Make dans l'App Store.",
   "connect_apple_server": "Se connecter au serveur d'Apple",
@@ -1688,8 +1688,11 @@
   "delete_sso_configuration_confirmation_description": "Voulez-vous vraiment supprimer la configuration {{connectionType}} ? Les membres de votre équipe utilisant la connexion {{connectionType}} ne pourront plus accéder à Cal.com.",
   "organizer_timezone": "Fuseau horaire de l'organisateur",
   "email_user_cta": "Voir l'invitation",
+  "email_no_user_invite_heading_team": "Vous avez été invité à rejoindre une équipe {{appName}}",
+  "email_no_user_invite_heading_org": "Vous avez été invité à rejoindre une organisation {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} vous a invité à rejoindre son équipe sur {{appName}}. {{appName}} est le planificateur d'événements qui vous permet à vous et à votre équipe d'organiser des rendez-vous sans échanges d'e-mails.",
   "email_user_invite_subheading_team": "{{invitedBy}} vous a invité à rejoindre son équipe « {{teamName}} » sur {{appName}}. {{appName}} est le planificateur d'événements qui vous permet à vous et à votre équipe d'organiser des rendez-vous sans échanges d'e-mails.",
+  "email_user_invite_subheading_org": "{{invitedBy}} vous a invité à rejoindre son organisation « {{teamName}} » sur {{appName}}. {{appName}} est le planificateur d'événements qui vous permet à vous et à votre organisation d'organiser des rendez-vous sans échanges d'e-mails.",
   "email_no_user_invite_steps_intro": "Nous vous guiderons à travers quelques étapes courtes et vous profiterez d'une planification sans stress avec votre {{entity}} en un rien de temps.",
   "email_no_user_step_one": "Choisissez votre nom d'utilisateur",
   "email_no_user_step_two": "Connectez votre compte de calendrier",
@@ -2041,5 +2044,6 @@
   "include_calendar_event": "Inclure l'événement du calendrier",
   "recently_added": "Ajouté récemment",
   "no_members_found": "Aucun membre trouvé",
+  "event_setup_length_error": "Configuration de l'événement : la durée doit être d'au moins 1 minute.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
