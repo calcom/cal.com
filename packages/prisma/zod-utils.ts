@@ -334,7 +334,7 @@ export const teamMetadataSchema = z
     orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
-  .nullable();
+  .nullish();
 
 export const bookingMetadataSchema = z
   .object({
