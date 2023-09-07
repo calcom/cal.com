@@ -256,13 +256,12 @@ test.describe("pro user", () => {
     await Promise.all([
       page.goto("/bookings/unconfirmed"),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/get")),
-      page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypes/getByViewer")),
     ]);
 
     // Confirm second booking
     await page.click('[data-testid="confirm"]');
-    const response = await page.waitForResponse((response) =>
-      response.url().includes("/api/trpc/bookings/confirm")
+    const response = await page.waitForResponse(
+      (response) => response.url().includes("/api/trpc/bookings/confirm") && response.status() !== 200
     );
     const responseObj = await response.json();
 
