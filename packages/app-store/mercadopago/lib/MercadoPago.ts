@@ -203,6 +203,44 @@ class MercadoPago {
       throw new Error(error.message);
     }
   }
+
+  async getApprovedPayment(externalReference: string) {
+    const params = new URLSearchParams();
+    params.set("sort", "date_approved");
+    params.set("criteria", "desc");
+    params.set("external_reference", externalReference);
+    params.set("range", "date_approved");
+    params.set("begin_date", "NOW-7DAYS");
+    params.set("end_date", "NOW");
+
+    const response = await this.fetcher(`/v1/payments/search${params}`);
+    if (response.ok) {
+      const data: SearchedPayment = await response.json();
+
+      if (data.length > 0 && data[0].results.length > 0) {
+        return data[0].results[0];
+      }
+
+      return null;
+    } else {
+      const error: MPError = await response.json();
+      console.error(`Request failed with status ${response.status}:`, error);
+      throw new Error(error.message);
+    }
+  }
+
+  async getPayment(paymentId: string) {
+    const response = await this.fetcher(`/v1/payments/${paymentId}`);
+    if (response.ok) {
+      const data: MercadoPagoPayment = await response.json();
+
+      return data;
+    } else {
+      const error: MPError = await response.json();
+      console.error(`Request failed with status ${response.status}:`, error);
+      throw new Error(error.message);
+    }
+  }
 }
 
 type GetOAuthTokenArg =
@@ -341,5 +379,90 @@ type MPError = {
     data: string;
   }[];
 };
+
+/**
+ * Represents the type of payment method.
+ */
+type PaymentTypeId =
+  | "account_money"
+  | "ticket"
+  | "bank_transfer"
+  | "atm"
+  | "credit_card"
+  | "debit_card"
+  | "prepaid_card"
+  | "digital_currency"
+  | "digital_wallet"
+  | "voucher_card"
+  | "crypto_transfer";
+
+/**
+ * Represents the current status of the payment.
+ */
+type PaymentStatus =
+  | "pending"
+  | "approved"
+  | "authorized"
+  | "in_process"
+  | "in_mediation"
+  | "rejected"
+  | "cancelled"
+  | "refunded"
+  | "charged_back";
+
+/**
+ * Represents the detailed status of the payment.
+ */
+type PaymentStatusDetail =
+  | "Accredited"
+  | "pending_contingency"
+  | "pending_review_manual"
+  | "cc_rejected_bad_filled_date"
+  | "cc_rejected_bad_filled_other"
+  | "cc_rejected_bad_filled_security_code"
+  | "cc_rejected_blacklist"
+  | "cc_rejected_call_for_authorize"
+  | "cc_rejected_card_disabled"
+  | "cc_rejected_duplicated_payment"
+  | "cc_rejected_high_risk"
+  | "cc_rejected_insufficient_amount"
+  | "cc_rejected_invalid_installments"
+  | "cc_rejected_max_attempts"
+  | "cc_rejected_other_reason";
+
+type MercadoPagoPayment = {
+  id: number;
+  date_created: string;
+  date_approved: string;
+  date_last_updated: string;
+  money_release_date: string;
+  payment_method_id: string;
+  payment_type_id: PaymentTypeId;
+  status: PaymentStatus;
+  status_detail: PaymentStatusDetail;
+  currency_id: string;
+  description: string;
+  collector_id: number;
+  payer: {
+    id: number;
+    email: string;
+    identification: {
+      type: string;
+      number: number;
+    };
+  };
+  metadata: Record<string, string | number>;
+};
+
+type SearchedPayment = [
+  {
+    paging: {
+      total: number;
+      limit: number;
+      offset: number;
+    };
+    results: MercadoPagoPayment[];
+  }
+];
 
 export default MercadoPago;
