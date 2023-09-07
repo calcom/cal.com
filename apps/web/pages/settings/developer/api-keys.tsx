@@ -57,7 +57,7 @@ const ApiKeysView = () => {
           <div>
             {isLoading ? null : data?.length ? (
               <>
-                <div className="border-subtle mb-8 mt-6 rounded-md border">
+                <div className="border-subtle rounded-b-md border border-t-0">
                   {data.map((apiKey, index) => (
                     <ApiKeyListItem
                       key={apiKey.id}
@@ -70,7 +70,7 @@ const ApiKeysView = () => {
                     />
                   ))}
                 </div>
-                <NewApiKeyButton />
+                {/* <NewApiKeyButton /> */}
               </>
             ) : (
               <EmptyScreen
@@ -78,6 +78,7 @@ const ApiKeysView = () => {
                 headline={t("create_first_api_key")}
                 description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}
+                className="mt-6"
               />
             )}
           </div>
