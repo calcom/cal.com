@@ -162,8 +162,17 @@ class MercadoPago {
         bookerEmail,
         eventName,
       },
+      payer: {
+        email: bookerEmail,
+      },
+      back_urls: {
+        success: `/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
+        pending: `/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
+        failure: `/booking/${bookingId}?mercadoPagoPaymentStatus=failure`,
+      },
     };
-    const response = await this.fetcher(`${this.url}/v1/payments`, {
+
+    const response = await this.fetcher("/checkout/preferences", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,9 +180,14 @@ class MercadoPago {
       body: JSON.stringify(body),
     });
 
-    const data: CreatedPreference = await response.json();
-
-    return data;
+    if (response.ok) {
+      const data: CreatedPreference = await response.json();
+      return data;
+    } else {
+      const error: CreatedPreferenceError = await response.json();
+      console.error(`Request failed with status ${response.status}:`, error);
+      throw new Error(error.message);
+    }
   }
 }
 
@@ -222,6 +236,24 @@ interface PreferenceCreateBody {
   marketplace?: string;
   marketplace_fee?: 0; // TODO: Add config to allow Cal.com to take a fee.
 
+  /** Payer information */
+  payer?: {
+    /** Payer email address */
+    email: string;
+  };
+
+  /** URL to return the customer */
+  back_urls?: {
+    /** Return URL after success payment */
+    success?: string;
+
+    /** Return URL after pending payment */
+    pending?: string;
+
+    /** Return URL after cancelled checkout */
+    failure?: string;
+  };
+
   /**
    *  Set of key-value pairs that you can attach to the preference. This can be useful for storing additional information about the object in a structured format.
    */
@@ -260,6 +292,17 @@ type CreatedPreference = {
   id: string;
   init_point: string;
   sandbox_init_point: string;
+};
+
+type CreatedPreferenceError = {
+  message: string;
+  error: string;
+  status: number;
+  cause: {
+    code: number;
+    description: string;
+    data: string;
+  }[];
 };
 
 export default MercadoPago;

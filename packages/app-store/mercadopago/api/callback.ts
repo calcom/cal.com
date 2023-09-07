@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import MercadoPago from "@calcom/app-store/mercadopago/lib/MercadoPago";
+import { getMercadoPagoAppKeys } from "@calcom/app-store/mercadopago/lib/getMercadoPagoAppKeys";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
-import MercadoPago from "../lib/MercadoPago";
-import { getMercadoPagoAppKeys } from "../lib/getMercadoPagoAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;

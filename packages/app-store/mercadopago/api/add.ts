@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import MercadoPago from "../lib/MercadoPago";
-import { getMercadoPagoAppKeys } from "../lib/getMercadoPagoAppKeys";
+import MercadoPago from "@calcom/app-store/mercadopago/lib/MercadoPago";
+import { getMercadoPagoAppKeys } from "@calcom/app-store/mercadopago/lib/getMercadoPagoAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {

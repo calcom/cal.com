@@ -1,8 +1,8 @@
 import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
-import MercadoPago from "mercadopago/lib/MercadoPago";
-import { mercadoPagoCredentialSchema } from "mercadopago/lib/mercadoPagoCredentialSchema";
 import { v4 as uuidv4 } from "uuid";
 
+import MercadoPago from "@calcom/app-store/mercadopago/lib/MercadoPago";
+import { mercadoPagoCredentialSchema } from "@calcom/app-store/mercadopago/lib/mercadoPagoCredentialSchema";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -56,7 +56,7 @@ export class PaymentService implements IAbstractPaymentService {
       const uid = uuidv4();
 
       const orderResult = await this.mercadoPago.createPreference({
-        amount: payment.amount * 100,
+        amount: payment.amount,
         currency: payment.currency,
         paymentUid: uid,
         bookingId,
