@@ -190,45 +190,6 @@ export async function gotoRoutingLink({
   await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-// this method is not used anywhere else
-// but I'm keeping it here in case we need in the future
-async function createUserWithSeatedEvent(users: Fixtures["users"]) {
-  const slug = "seats";
-  const user = await users.create({
-    eventTypes: [
-      {
-        title: "Seated event",
-        slug,
-        seatsPerTimeSlot: 10,
-        requiresConfirmation: true,
-        length: 30,
-        disableGuests: true, // should always be true for seated events
-      },
-    ],
-  });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const eventType = user.eventTypes.find((e) => e.slug === slug)!;
-  return { user, eventType };
-}
-
-export async function createUserWithSeatedEventAndAttendees(
-  fixtures: Pick<Fixtures, "users" | "bookings">,
-  attendees: Prisma.AttendeeCreateManyBookingInput[]
-) {
-  const { user, eventType } = await createUserWithSeatedEvent(fixtures.users);
-
-  const booking = await fixtures.bookings.create(user.id, user.username, eventType.id, {
-    status: BookingStatus.ACCEPTED,
-    // startTime with 1 day from now and endTime half hour after
-    startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    attendees: {
-      createMany: {
-        data: attendees,
-      },
-    },
-  });
-  return { user, eventType, booking };
 export async function installAppleCalendar(page: Page) {
   await page.goto("/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
@@ -271,4 +232,45 @@ export async function expectEmailsToHaveSubject({
 
   expect(organizerFirstEmail.subject).toBe(emailSubject);
   expect(bookerFirstEmail.subject).toBe(emailSubject);
+}
+
+// this method is not used anywhere else
+// but I'm keeping it here in case we need in the future
+async function createUserWithSeatedEvent(users: Fixtures["users"]) {
+  const slug = "seats";
+  const user = await users.create({
+    eventTypes: [
+      {
+        title: "Seated event",
+        slug,
+        seatsPerTimeSlot: 10,
+        requiresConfirmation: true,
+        length: 30,
+        disableGuests: true, // should always be true for seated events
+      },
+    ],
+  });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const eventType = user.eventTypes.find((e) => e.slug === slug)!;
+  return { user, eventType };
+}
+
+export async function createUserWithSeatedEventAndAttendees(
+  fixtures: Pick<Fixtures, "users" | "bookings">,
+  attendees: Prisma.AttendeeCreateManyBookingInput[]
+) {
+  const { user, eventType } = await createUserWithSeatedEvent(fixtures.users);
+
+  const booking = await fixtures.bookings.create(user.id, user.username, eventType.id, {
+    status: BookingStatus.ACCEPTED,
+    // startTime with 1 day from now and endTime half hour after
+    startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+    attendees: {
+      createMany: {
+        data: attendees,
+      },
+    },
+  });
+  return { user, eventType, booking };
 }
