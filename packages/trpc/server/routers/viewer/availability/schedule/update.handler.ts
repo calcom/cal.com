@@ -46,7 +46,12 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
   }
 
   if (userSchedule?.userId !== user.id) {
-    if (!hasEditPermissionForUserID({ ctx, input: { memberId: userSchedule.userId } })) {
+    const hasEditPermission = await hasEditPermissionForUserID({
+      ctx,
+      input: { memberId: userSchedule.userId },
+    });
+    console.log("hasEditPermission", hasEditPermission);
+    if (!hasEditPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });

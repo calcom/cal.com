@@ -84,10 +84,6 @@ export function AvailabilityEditSheet(props: Props) {
     userId: userId,
   });
 
-  console.log({
-    data,
-  });
-
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async () => {
       utils.viewer.availability.listTeam.invalidate();

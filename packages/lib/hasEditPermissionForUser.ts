@@ -3,17 +3,16 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 const ROLES_WITH_EDIT_PERMISSION = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
 
-export async function hasEditPermissionForUserID({
-  ctx,
-  input,
-}: {
+type InputOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
   input: {
     memberId: number;
   };
-}) {
+};
+
+export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
   const { user } = ctx;
   const memberships = await prisma.membership.findMany({
     where: {
@@ -39,4 +38,26 @@ export async function hasEditPermissionForUserID({
   );
 
   return hasEditPermission;
+}
+
+export async function hasReadPermissionsForUserId({ ctx, input }: InputOptions) {
+  const { user } = ctx;
+  const memberships = await prisma.membership.findMany({
+    where: {
+      OR: [
+        {
+          userId: user.id,
+          accepted: true,
+        },
+        {
+          userId: input.memberId,
+          accepted: true,
+        },
+      ],
+    },
+  });
+
+  const hasReadPermission = memberships.some((m) => m.userId === user.id || m.userId === input.memberId);
+
+  return hasReadPermission;
 }
