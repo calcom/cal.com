@@ -480,14 +480,15 @@ function FieldEditDialog({
                           {...fieldForm.register("mimeType")}
                           containerClassName="mt-6"
                           label="Mime type"
-                          placeholder={t(fieldForm.getValues("mimeType") || "")}
+                          placeholder=".jpg,.jpeg,.png"
+                          hint="values should be comma separated"
                         />
                         <InputField
-                          {...fieldForm.register("maxUploadSize")}
+                          {...fieldForm.register("maxUploadSize", { min: 1 })}
                           containerClassName="mt-6"
                           label="Max upload size"
-                          placeholder={t(fieldForm.getValues("maxUploadSize") || "")}
                           type="number"
+                          addOnSuffix="MB"
                         />
                       </>
                     ) : null}
