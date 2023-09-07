@@ -1756,6 +1756,7 @@ async function handler(
     const webhookData = {
       ...evt,
       ...eventTypeInfo,
+      uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime

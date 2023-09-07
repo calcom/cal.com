@@ -1,5 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
+
+import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/client";
 
 import { test } from "./lib/fixtures";
 import {
@@ -8,12 +12,36 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   waitFor,
   gotoRoutingLink,
+  createUserWithSeatedEventAndAttendees,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
 const dynamic = "[redacted/dynamic]";
 
 test.afterEach(({ users }) => users.deleteAll());
+
+async function createWebhookReceiver(page: Page) {
+  const webhookReceiver = createHttpServer();
+
+  await page.goto(`/settings/developer/webhooks`);
+
+  // --- add webhook
+  await page.click('[data-testid="new_webhook"]');
+
+  await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+  await page.fill('[name="secret"]', "secret");
+
+  await Promise.all([
+    page.click("[type=submit]"),
+    page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+  ]);
+
+  // page contains the url
+  expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+  return webhookReceiver;
+}
 
 test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
@@ -385,6 +413,147 @@ test.describe("BOOKING_REQUESTED", async () => {
     });
 
     webhookReceiver.close();
+  });
+});
+
+test.describe("BOOKING_RESCHEDULED", async () => {
+  test("can reschedule a booking and get a booking rescheduled event", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+
+    await user.apiLogin();
+
+    const webhookReceiver = await createWebhookReceiver(page);
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+
+    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } })!;
+    expect(newBooking).not.toBeNull();
+
+    // --- check that webhook was called
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
+
+    const [request] = webhookReceiver.requestList;
+
+    expect(request.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        uid: newBooking?.uid,
+      },
+    });
+  });
+
+  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existant booking uid", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, eventType, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    await prisma.eventType.update({
+      where: { id: eventType.id },
+      data: { requiresConfirmation: false },
+    });
+
+    await user.apiLogin();
+
+    const webhookReceiver = await createWebhookReceiver(page);
+
+    const bookingAttendees = await prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+    }));
+
+    await prisma.bookingSeat.createMany({
+      data: bookingSeats,
+    });
+
+    const references = await prisma.bookingSeat.findMany({
+      where: { bookingId: booking.id },
+      include: { attendee: true },
+    });
+
+    await page.goto(`/reschedule/${references[0].referenceUid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    const newBooking = await prisma.booking.findFirst({
+      where: {
+        attendees: {
+          some: {
+            email: bookingAttendees[0].email,
+          },
+        },
+      },
+    });
+
+    // --- ensuring that new booking was created
+    expect(newBooking).not.toBeNull();
+
+    // --- check that webhook was called
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
+
+    const [firstRequest] = webhookReceiver.requestList;
+
+    expect(firstRequest?.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        uid: newBooking?.uid,
+      },
+    });
+
+    await page.goto(`/reschedule/${references[1].referenceUid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(2);
+    });
+
+    const [_, secondRequest] = webhookReceiver.requestList;
+
+    expect(secondRequest?.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        // in the current implementation, it is the same as the first booking
+        uid: newBooking?.uid,
+      },
+    });
   });
 });
 
