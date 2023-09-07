@@ -5,6 +5,8 @@
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
+import basecamp3_config_json from "./basecamp3/config.json";
+import cal_ai_config_json from "./cal-ai/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -12,6 +14,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
+import element_call_config_json from "./element-call/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -26,11 +29,13 @@ import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import make_config_json from "./make/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
+import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -71,6 +76,8 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
+  basecamp3: basecamp3_config_json,
+  "cal-ai": cal_ai_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   closecom: closecom_config_json,
@@ -78,6 +85,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
+  "element-call": element_call_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -92,11 +100,13 @@ export const appStoreMetadata = {
   huddle01video: huddle01video__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  make: make_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
+  paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
   plausible: plausible_config_json,

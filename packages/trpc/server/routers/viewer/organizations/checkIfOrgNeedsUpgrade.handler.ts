@@ -40,3 +40,5 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
 
   return teams;
 }
+
+export default checkIfOrgNeedsUpgradeHandler;

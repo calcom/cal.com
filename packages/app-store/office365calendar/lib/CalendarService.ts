@@ -70,9 +70,10 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     try {
-      const eventsUrl = event.destinationCalendar?.externalId
-        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+      const eventsUrl = mainHostDestinationCalendar?.externalId
+        ? `/me/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : "/me/calendar/events";
 
       const response = await this.fetcher(eventsUrl, {
@@ -133,6 +134,8 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
+    const calendarSelectParams = "$select=showAs,start,end";
+
     try {
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
@@ -149,7 +152,7 @@ export default class Office365CalendarService implements Calendar {
       const requests = ids.map((calendarId, id) => ({
         id,
         method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
+        url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
@@ -181,8 +184,10 @@ export default class Office365CalendarService implements Calendar {
     const officeCalendars: OfficeCalendar[] = [];
     // List calendars from MS are paginated
     let finishedParsingCalendars = false;
+    const calendarFilterParam = "$select=id,name,isDefaultCalendar,canEdit";
+
     // Store @odata.nextLink if in response
-    let requestLink = "/me/calendars";
+    let requestLink = `/me/calendars?${calendarFilterParam}`;
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);

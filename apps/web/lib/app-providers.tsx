@@ -1,7 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -18,10 +17,10 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
-import usePublicPage from "@lib/hooks/usePublicPage";
+import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithNonceProps } from "@lib/withNonce";
 
-import { useViewerI18n } from "@components/I18nLanguageHandler";
+import { useClientViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -69,11 +68,9 @@ type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
 const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   * We intend to not cache i18n query
    **/
-  const { i18n, locale } = useViewerI18n().data ?? {
-    locale: "en",
-  };
+  const clientViewerI18n = useClientViewerI18n(props.router.locales || []);
+  const { i18n, locale } = clientViewerI18n.data || {};
 
   const passedProps = {
     ...props,
@@ -247,7 +244,7 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   // No need to have intercom on public pages - Good for Page Performance
-  const isPublicPage = usePublicPage();
+  const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
   const { _nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
@@ -267,7 +264,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
               themeBasis={props.pageProps.themeBasis}
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage}
+              isBookingPage={props.Component.isBookingPage || isBookingPage}
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
@@ -281,7 +278,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     </EventCollectionProvider>
   );
 
-  if (isPublicPage) {
+  if (isBookingPage) {
     return RemainingProviders;
   }
 

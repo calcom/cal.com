@@ -13,9 +13,12 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -24,14 +27,7 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-const signupSchema = z.object({
-  username: z.string().refine((value) => !value.includes("+"), {
-    message: "String should not contain a plus symbol (+).",
-  }),
-  email: z.string().email(),
-  password: z.string().min(7),
-  language: z.string().optional(),
-  token: z.string().optional(),
+const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
 
@@ -39,12 +35,30 @@ type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
+const getSafeCallbackUrl = (url: string | null) => {
+  if (!url) return null;
+
+  let callbackUrl = url;
+
+  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
+
+  // If not absolute URL, make it absolute
+  if (!/^https?:\/\//.test(callbackUrl)) {
+    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
+  }
+
+  const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
+
+  return safeCallbackUrl;
+};
+
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const flags = useFlagMap();
   const methods = useForm<FormValues>({
+    mode: "onChange",
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
@@ -59,6 +73,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       throw new Error(err.message);
     }
   };
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
@@ -76,13 +91,10 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: `${
-            searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }?from=signup`,
+          callbackUrl: `${callbackUrl ? callbackUrl : `${WEBAPP_URL}/${verifyOrGettingStarted}`}?from=signup`,
         });
       })
       .catch((err) => {
@@ -130,10 +142,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                   <TextField
                     addOnLeading={
                       orgSlug
-                        ? getOrgFullDomain(orgSlug, { protocol: false })
+                        ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
                         : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                     }
                     {...register("username")}
+                    disabled={!!orgSlug}
                     required
                   />
                   <EmailField
@@ -160,9 +173,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-                            : `${WEBAPP_URL}/getting-started`,
+                          callbackUrl: callbackUrl ? callbackUrl : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
                       {t("login_instead")}
@@ -192,8 +203,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
-    console.log({ flag: flags["disable-signup"] });
-
     return {
       notFound: true,
     };
@@ -209,6 +218,20 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token,
+    },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          slug: true,
+        },
+      },
     },
   });
 
@@ -249,23 +272,20 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
-  const orgInfo = await prisma.user.findFirst({
-    where: {
-      email: verificationToken?.identifier,
-    },
-    select: {
-      organization: {
-        select: {
-          slug: true,
-          metadata: true,
-        },
-      },
-    },
-  });
+  const tokenTeam = {
+    ...verificationToken?.team,
+    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+  };
 
-  const userOrgMetadata = teamMetadataSchema.parse(orgInfo?.organization?.metadata ?? {});
+  // Detect if the team is an org by either the metadata flag or if it has a parent team
+  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  // If we are dealing with an org, the slug may come from the team itself or its parent
+  const orgSlug = isOrganization
+    ? tokenTeam.slug || tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug
+    : null;
 
-  if (!IS_SELF_HOSTED) {
+  // Org context shouldn't check if a username is premium
+  if (!IS_SELF_HOSTED && !isOrganization) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
@@ -278,9 +298,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       token,
       prepopulateFormValues: {
         email: verificationToken.identifier,
-        username,
+        username: slugify(username),
       },
-      orgSlug: (orgInfo?.organization?.slug || userOrgMetadata?.requestedSlug) ?? null,
+      orgSlug,
     },
   };
 };

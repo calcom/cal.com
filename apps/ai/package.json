@@ -1,0 +1,26 @@
+{
+  "name": "@calcom/ai",
+  "version": "1.0.1",
+  "private": true,
+  "author": "Cal.com Inc.",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@t3-oss/env-nextjs": "^0.6.1",
+    "langchain": "^0.0.131",
+    "mailparser": "^3.6.5",
+    "next": "^13.4.6",
+    "supports-color": "8.1.1",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "@types/mailparser": "^3.4.0"
+  },
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 3005",
+    "format": "npx prettier . --write",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "start": "next start"
+  }
+}

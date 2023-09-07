@@ -4,6 +4,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
 import { schemaUsersReadPublic } from "~/lib/validations/user";
 
 /**
@@ -19,6 +20,17 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
  *         schema:
  *           type: string
  *         description: Your API key
+ *       - in: query
+ *         name: email
+ *         required: false
+ *         schema:
+ *          type: array
+ *          items:
+ *            type: string
+ *            format: email
+ *         style: form
+ *         explode: true
+ *         description: The email address or an array of email addresses to filter by
  *     tags:
  *     - users
  *     responses:
@@ -39,8 +51,16 @@ export async function getHandler(req: NextApiRequest) {
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
+
+  if (req.query.email) {
+    const validationResult = schemaQuerySingleOrMultipleUserEmails.parse(req.query);
+    where.email = {
+      in: Array.isArray(validationResult.email) ? validationResult.email : [validationResult.email],
+    };
+  }
+
   const [total, data] = await prisma.$transaction([
-    prisma.user.count(),
+    prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),
   ]);
   const users = schemaUsersReadPublic.parse(data);

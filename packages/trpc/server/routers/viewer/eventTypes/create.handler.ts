@@ -4,7 +4,8 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import type { PrismaClient } from "@calcom/prisma/client";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -23,6 +24,7 @@ type CreateOptions = {
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { schedulingType, teamId, metadata, ...rest } = input;
+
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   // Get Users default conferencing app
@@ -41,7 +43,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = ctx.user.credentials;
+    const credentials = await getUsersCredentials(ctx.user.id);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
@@ -67,7 +69,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
+    const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+
+    if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

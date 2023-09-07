@@ -132,6 +132,7 @@ export type FormValues = {
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
+  multipleDurationEnabled: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -182,12 +183,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
-      showToast(
-        t("event_type_updated_successfully", {
-          eventTypeTitle: eventType.title,
-        }),
-        "success"
-      );
+      showToast(t("event_type_updated_successfully"), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -258,6 +254,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
@@ -277,6 +274,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               .filter((slug) => slug !== eventType.slug) ?? [],
         },
       })),
+      seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
     };
   }, [eventType, periodDates, metadata]);
 
@@ -374,9 +372,15 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       minimumBookingNoticeInDurationType,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       bookerLayouts,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      multipleDurationEnabled,
+      length,
       ...input
     } = values;
+
+    if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -395,7 +399,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
-        if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+        if (!length && !metadata?.multipleDuration?.includes(length)) {
           throw new Error(t("event_setup_multiple_duration_default_error"));
         }
       }
@@ -405,9 +409,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, ...rest } = input;
     updateMutation.mutate({
       ...rest,
+      length,
       locations,
       recurringEvent,
       periodStartDate: periodDates.startDate,
@@ -441,7 +447,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
         disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
-        currentUserMembership={currentUserMembership}>
+        currentUserMembership={currentUserMembership}
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}
           id="event-type-form"
@@ -462,8 +469,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // We don't need to send send these values to the backend
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               seatsPerTimeSlotEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              multipleDurationEnabled,
+              length,
               ...input
             } = values;
+
+            if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -482,14 +494,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+                if (!length && !metadata?.multipleDuration?.includes(length)) {
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
               ...rest,
+              length,
               locations,
               recurringEvent,
               periodStartDate: periodDates.startDate,

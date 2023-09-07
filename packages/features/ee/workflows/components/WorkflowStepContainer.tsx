@@ -47,6 +47,7 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
   getWhatsappTemplateForAction,
+  isTextMessageToAttendeeAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -66,6 +67,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
+  setKYCVerificationDialogOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -118,6 +120,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
+
+  const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
+    isTextMessageToAttendeeAction(step?.action)
+  );
+
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action);
@@ -331,6 +338,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsUpgrade: false,
+      needsVerification: false,
+      verificationAction: () => props.setKYCVerificationDialogOpen(true),
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -448,6 +457,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
+                            if (isTextMessageToAttendeeAction(val.value)) {
+                              setIsRequiresConfirmationNeeded(true);
+                            } else {
+                              setIsRequiresConfirmationNeeded(false);
+                            }
+
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
@@ -513,16 +528,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions}
+                        options={actionOptions?.map((option) => ({
+                          ...option,
+                          verificationAction: () => props.setKYCVerificationDialogOpen(true),
+                        }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
                           needsUpgrade: boolean;
-                        }) => option.needsUpgrade}
+                          needsVerification: boolean;
+                        }) => option.needsUpgrade || option.needsVerification}
                       />
                     );
                   }}
                 />
+                {isRequiresConfirmationNeeded ? (
+                  <div className="text-attention mb-3 mt-2 flex">
+                    <Info className="mr-1 mt-0.5 h-4 w-4" />
+                    <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">
@@ -834,6 +861,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                     </p>
                   )}
+                {isEmailSubjectNeeded && (
+                  <div className="mt-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                          }
+                          description={t("include_calendar_event")}
+                          onChange={(e) =>
+                            form.setValue(
+                              `steps.${step.stepNumber - 1}.includeCalendarEvent`,
+                              e.target.checked
+                            )
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                )}
                 {!props.readOnly && (
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>

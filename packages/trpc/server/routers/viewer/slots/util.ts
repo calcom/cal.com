@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
@@ -6,6 +7,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -18,6 +20,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
+import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 
 export const checkIfIsAvailable = ({
@@ -69,10 +72,70 @@ export const checkIfIsAvailable = ({
   });
 };
 
-export async function getEventType(input: TGetScheduleInputSchema) {
+async function getEventTypeId({
+  slug,
+  eventTypeSlug,
+  isTeamEvent,
+  organizationDetails,
+}: {
+  slug?: string;
+  eventTypeSlug?: string;
+  isTeamEvent: boolean;
+  organizationDetails?: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+}) {
+  if (!eventTypeSlug || !slug) return null;
+
+  let teamId;
+  let userId;
+  if (isTeamEvent) {
+    teamId = await getTeamIdFromSlug(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
+  } else {
+    userId = await getUserIdFromUsername(
+      slug,
+      organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
+    );
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      slug: eventTypeSlug,
+      ...(teamId ? { teamId } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return eventType?.id;
+}
+
+export async function getEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const eventTypeId =
+    input.eventTypeId ||
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await getEventTypeId({
+      slug: usernameList?.[0],
+      eventTypeSlug: eventTypeSlug,
+      isTeamEvent,
+      organizationDetails,
+    }));
+
+  if (!eventTypeId) {
+    return null;
+  }
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: input.eventTypeId,
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -128,7 +191,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
     },
   });
   if (!eventType) {
-    return eventType;
+    return null;
   }
 
   return {
@@ -174,12 +237,17 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   });
 }
 
-export function getRegularOrDynamicEventType(input: TGetScheduleInputSchema) {
-  const isDynamicBooking = !input.eventTypeId;
-  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input);
+export function getRegularOrDynamicEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
+  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
 }
 
-export async function getAvailableSlots(input: TGetScheduleInputSchema) {
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -187,7 +255,7 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await getRegularOrDynamicEventType(input);
+  const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -237,16 +305,12 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
+          eventTypeId: eventType.id,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        {
-          user: currentUser,
-          eventType,
-          currentSeats,
-        }
+        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
@@ -445,4 +509,38 @@ export async function getAvailableSlots(input: TGetScheduleInputSchema) {
   return {
     slots: computedAvailableSlots,
   };
+}
+
+async function getUserIdFromUsername(
+  username: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
+  const user = await prisma.user.findFirst({
+    where: {
+      username,
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return user?.id;
+}
+
+async function getTeamIdFromSlug(
+  slug: string,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
+  const team = await prisma.team.findFirst({
+    where: {
+      slug,
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return team?.id;
 }

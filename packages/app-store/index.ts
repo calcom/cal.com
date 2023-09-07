@@ -14,6 +14,7 @@ const appStore = {
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
+  paypal: () => import("./paypal"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
@@ -25,12 +26,14 @@ const appStore = {
   webexvideo: () => import("./webex"),
   giphy: () => import("./giphy"),
   zapier: () => import("./zapier"),
+  make: () => import("./make"),
   exchange2013calendar: () => import("./exchange2013calendar"),
   exchange2016calendar: () => import("./exchange2016calendar"),
   exchangecalendar: () => import("./exchangecalendar"),
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
   "zoho-bigin": () => import("./zoho-bigin"),
+  basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
 };
 

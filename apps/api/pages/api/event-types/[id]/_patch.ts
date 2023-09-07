@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
@@ -52,6 +52,9 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
+ *               scheduleId:
+ *                 type: number
+ *                 description: The ID of the schedule for this event type
  *               hosts:
  *                 type: array
  *                 items:
@@ -199,10 +202,17 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const { hosts = [], ...parsedBody } = schemaEventTypeEditBodyParams.parse(body);
+  const {
+    hosts = [],
+    bookingLimits,
+    durationLimits,
+    ...parsedBody
+  } = schemaEventTypeEditBodyParams.parse(body);
 
   const data: Prisma.EventTypeUpdateArgs["data"] = {
     ...parsedBody,
+    bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
+    durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
   if (hosts) {
