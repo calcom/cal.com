@@ -781,6 +781,12 @@ const CreateFirstEventTypeView = () => {
       Icon={LinkIcon}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
+      className="mb-16"
+      buttonRaw={
+        <Button href="?dialog=new" variant="button">
+          {t("create")}
+        </Button>
+      }
     />
   );
 };
