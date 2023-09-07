@@ -261,9 +261,14 @@ export const ComponentForField = ({
         setValue(acceptedFiles[0]);
       }
     };
+    const megabytesToBytes = (megabytes: number) => megabytes * 1000000;
+
+    const maxSize = isNaN(Number(field.maxUploadSize))
+      ? undefined
+      : megabytesToBytes(Number(field.maxUploadSize));
     return (
       <WithLabel field={field} readOnly={readOnly}>
-        <componentConfig.factory onDrop={onDrop} maxSize={Number(field.maxUploadSize)} accept={accept} />
+        <componentConfig.factory onDrop={onDrop} maxSize={maxSize} accept={accept} />
       </WithLabel>
     );
   }
