@@ -58,7 +58,7 @@ const ConferencingLayout = () => {
   const utils = trpc.useContext();
 
   const { data: defaultConferencingApp, isLoading: defaultConferencingAppLoading } =
-    trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+    trpc.viewer.getUsersDefaultConferencingApp.useQuery(undefined, { refetchOnWindowFocus: false });
 
   const { data: apps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
@@ -108,7 +108,7 @@ const ConferencingLayout = () => {
         description={t("conferencing_description")}
         CTA={<AddConferencingButton />}
       />
-      <List>
+      <List className="rounded-xl rounded-t-none border-t-0">
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
