@@ -42,22 +42,24 @@ export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
 
 export async function hasReadPermissionsForUserId({ ctx, input }: InputOptions) {
   const { user } = ctx;
-  const memberships = await prisma.membership.findMany({
+
+  const authedUsersTeams = await prisma.membership.findMany({
     where: {
-      OR: [
-        {
-          userId: user.id,
-          accepted: true,
-        },
-        {
-          userId: input.memberId,
-          accepted: true,
-        },
-      ],
+      userId: user.id,
+      accepted: true,
     },
   });
 
-  const hasReadPermission = memberships.some((m) => m.userId === user.id || m.userId === input.memberId);
+  const targetUsersTeams = await prisma.membership.findMany({
+    where: {
+      userId: input.memberId,
+      accepted: true,
+    },
+  });
 
-  return hasReadPermission;
+  const teamIdOverlaps = authedUsersTeams.some((authedTeam) => {
+    return targetUsersTeams.some((targetTeam) => targetTeam.teamId === authedTeam.teamId);
+  });
+
+  return teamIdOverlaps;
 }
