@@ -13,6 +13,9 @@ export interface IAbstractPaymentService {
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string | null,
     bookerEmail: string,
     paymentOption: PaymentOption,
     eventTitle?: string

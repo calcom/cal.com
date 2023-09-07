@@ -49,6 +49,9 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string,
     bookerEmail: string,
     paymentOption: PaymentOption,
     eventTitle?: string
@@ -82,6 +85,9 @@ export class PaymentService implements IAbstractPaymentService {
         metadata: {
           identifier: "cal.com",
           bookingId,
+          calAccountId: userId,
+          calUsername: username,
+          bookerName,
           bookerEmail,
           eventName: eventTitle || "",
         },
