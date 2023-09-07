@@ -137,7 +137,6 @@ const DateOverrideForm = ({
               })
             : datesInRanges
         );
-        onClose();
       }}
       className="p-6 sm:flex sm:p-0">
       <div
@@ -166,7 +165,7 @@ const DateOverrideForm = ({
             <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
               {datesUnavailable ? (
-                <p className="text-subtle border-default rounded border p-2 text-sm">
+                <p className="text-red border-default rounded border p-2 text-sm">
                   {t("date_overrides_unavailable")}
                 </p>
               ) : (
