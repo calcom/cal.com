@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -65,11 +66,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
       {webhookGroups && (
         <>
           {!!webhookGroups.length && (
-            <>
+            <div className={classNames("mt-0", hasTeams && "mt-6")}>
               {webhookGroups.map((group) => (
                 <div key={group.teamId}>
                   {hasTeams && (
-                    <div className="items-centers flex ">
+                    <div className="items-centers flex">
                       <Avatar
                         alt={group.profile.image || ""}
                         imageSrc={group.profile.image || `${bookerUrl}/${group.profile.name}/avatar.png`}
@@ -82,7 +83,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                     </div>
                   )}
                   <div className="flex flex-col" key={group.profile.slug}>
-                    <div className="border-subtle mb-8 mt-3 rounded-md border">
+                    <div
+                      className={classNames(
+                        "border-subtle rounded-md rounded-t-none border border-t-0",
+                        hasTeams && "mb-8 mt-3 rounded-t-md border-t"
+                      )}>
                       {group.webhooks.map((webhook, index) => (
                         <WebhookListItem
                           key={webhook.id}
@@ -98,13 +103,14 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                   </div>
                 </div>
               ))}
-            </>
+            </div>
           )}
           {!webhookGroups.length && (
             <EmptyScreen
               Icon={LinkIcon}
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
+              className="mt-6"
               buttonRaw={
                 <CreateButtonWithTeamsList
                   subtitle={t("create_for").toUpperCase()}
