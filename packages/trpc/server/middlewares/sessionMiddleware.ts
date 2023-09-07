@@ -160,23 +160,6 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
   });
 });
 
-// use(async ({ ctx, next, rawInput }) => {
-//   const { prisma } = ctx;
-//   const parsed = userIdSchema.safeParse(rawInput);
-//   if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
-//   const { userId: id } = parsed.data;
-//   const user = await prisma.user.findUnique({ where: { id } });
-//   if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-//   return next({
-//     ctx: {
-//       user: ctx.user,
-//       requestedUser:
-//         /** Don't leak the password */
-//         exclude(user, ["password"]),
-//     },
-//   });
-// });
-
 export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   const { user } = ctx;
   if (user?.role !== "ADMIN") {
