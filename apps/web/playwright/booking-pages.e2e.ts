@@ -230,7 +230,10 @@ test.describe("pro user", () => {
     expect(firstSlotAvailableText).toContain("9:00");
   });
 
-  test("double booking cannot be done for same slot", async ({ page, users }) => {
+  test("Cannot confirm booking for a slot, if another confirmed booking already exists for same slot.", async ({
+    page,
+    users,
+  }) => {
     // First booking done for first available time slot in next month
     await bookOptinEvent(page);
 
@@ -242,21 +245,29 @@ test.describe("pro user", () => {
 
     await pro.apiLogin();
 
-    // Confirm first booking
-    await Promise.all([
-      page.goto("/bookings/unconfirmed"),
-      page.waitForResponse((response) => response.url().includes("/api/trpc/public/slots")),
-    ]);
+    await page.goto("/bookings/unconfirmed");
 
+    // Confirm first booking
     await Promise.all([
       page.click('[data-testid="confirm"]'),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
     ]);
 
-    await page.goto("/bookings/unconfirmed");
-    // The only confirm button available in the page would be for second booking,
-    // expect it to be disabled
-    await expect(page.locator('[data-testid="confirm"]')).toBeDisabled();
+    await Promise.all([
+      page.goto("/bookings/unconfirmed"),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/get")),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypes/getByViewer")),
+    ]);
+
+    // Confirm second booking
+    await page.click('[data-testid="confirm"]');
+    const response = await page.waitForResponse((response) =>
+      response.url().includes("/api/trpc/bookings/confirm")
+    );
+    const responseObj = await response.json();
+
+    expect(responseObj[0]?.error?.json?.data?.code).toEqual("BAD_REQUEST");
+    expect(responseObj[0]?.error?.json?.message).toEqual("Slot already confirmed for other booking");
   });
 });
 

@@ -9,7 +9,6 @@ import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,38 +115,6 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
-  // Check user's availability/slots for the current booking request,
-  const isSlotAvailable = () => {
-    const resp = trpc.viewer.public.slots.getSchedule.useQuery(
-      {
-        startTime: booking?.startTime,
-        endTime: booking?.endTime,
-        eventTypeId: booking?.eventType?.id,
-        eventTypeSlug: booking?.eventType?.slug,
-        timeZone: user?.timeZone,
-        usernameList: getUsernameList(user?.username ?? ""),
-      },
-      {
-        trpc: {
-          context: {
-            skipBatch: true,
-          },
-        },
-        refetchOnWindowFocus: false,
-        enabled: true,
-      }
-    );
-
-    if (resp?.data?.slots) {
-      if (Object.keys(resp?.data?.slots).length > 0) {
-        return true;
-      } else {
-        return false; // No slots are available
-      }
-    }
-    return true; // On any other error return true, to avoid disabling confirm button
-  };
-
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -169,7 +136,7 @@ function BookingListItem(booking: BookingItemProps) {
               bookingConfirm(true);
             },
             icon: Check,
-            disabled: mutation.isLoading || !isSlotAvailable(),
+            disabled: mutation.isLoading,
           },
         ]
       : []),

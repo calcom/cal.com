@@ -119,13 +119,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   // Check for user's slot availability for current booking start and end time
   if (confirmed) {
     const slotsAvailable = await getAvailableSlots({
-      startTime: booking?.startTime.toISOString(),
-      endTime: booking?.endTime.toISOString(),
-      eventTypeId: booking?.eventType?.id,
-      eventTypeSlug: booking?.eventType?.slug,
-      timeZone: user?.timeZone,
-      usernameList: getUsernameList(user?.username ?? ""),
-      isTeamEvent: false,
+      input: {
+        startTime: booking?.startTime.toISOString(),
+        endTime: booking?.endTime.toISOString(),
+        eventTypeId: booking?.eventType?.id,
+        eventTypeSlug: booking?.eventType?.slug,
+        timeZone: user?.timeZone,
+        usernameList: getUsernameList(user?.username ?? ""),
+        isTeamEvent: !!booking?.eventType?.teamId || false,
+      },
     });
 
     // If no free slot available with current booking request's start time and
