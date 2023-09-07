@@ -94,10 +94,8 @@
 }
 
 @layer base {
-  *,
-  ::before,
-  ::after {
-    @apply border-default;
+  * {
+    @apply border-default 
   }
 }
 
