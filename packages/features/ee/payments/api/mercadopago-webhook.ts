@@ -58,6 +58,7 @@ export async function handlePaymentSuccess(payload: z.infer<typeof eventSchema>)
       id: true,
       bookingId: true,
       success: true,
+      data: true,
     },
   });
 
@@ -103,7 +104,7 @@ export async function handlePaymentSuccess(payload: z.infer<typeof eventSchema>)
     });
   }
 
-  // TODO: All of the code below is the same as stripe/paypal/mercadopago, could be centralized in a helper to avoid code duplication.
+  // TODO: Most of the code below is the same as stripe/paypal/mercadopago, could be centralized in a helper to avoid code duplication.
   type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
@@ -172,25 +173,26 @@ export async function handlePaymentSuccess(payload: z.infer<typeof eventSchema>)
     delete bookingData.status;
   }
 
-  if (!payment?.success) {
-    await prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        success: true,
-      },
-    });
-  }
+  const paymentUpdate = prisma.payment.update({
+    where: {
+      id: payment.id,
+    },
+    data: {
+      success: true,
+      data: Object.assign({}, payment.data, {
+        paymentId: mercadoPagoPayment.id,
+      }) as unknown as Prisma.InputJsonValue,
+    },
+  });
 
-  if (booking.status === "PENDING") {
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: bookingData,
-    });
-  }
+  const bookingUpdate = prisma.booking.update({
+    where: {
+      id: booking.id,
+    },
+    data: bookingData,
+  });
+
+  await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
   if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
     await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
