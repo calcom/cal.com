@@ -10,6 +10,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
+import { loadEventDataFromLocalStorage, saveEventDataToLocalStorage } from "@calcom/lib/eventDatefromStorage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -84,7 +85,7 @@ export default function CreateEventTypeDialog({
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
   const orgBranding = useOrgBranding();
-
+  const [defaultdesc, setdefaultdesc] = useState<string | undefined>(undefined);
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
@@ -107,7 +108,21 @@ export default function CreateEventTypeDialog({
       form.setValue("metadata", null);
     }
   }, [schedulingTypeWatch]);
+  useEffect(() => {
+    const prevData = loadEventDataFromLocalStorage();
 
+    if (prevData) {
+      form.setValue("description", prevData?.desc);
+      form.setValue("slug", slugify(prevData?.slug));
+      form.setValue("title", prevData?.title);
+      setdefaultdesc(prevData?.desc);
+
+      form.setValue("amount", prevData?.price);
+      form.setValue("length", prevData?.duration);
+    } else {
+      setdefaultdesc("");
+    }
+  }, [defaultdesc]);
   const { register } = form;
 
   const isAdmin =
@@ -122,15 +137,18 @@ export default function CreateEventTypeDialog({
         if (!stripe) {
           throw new Error("Something went wrong");
         }
+        const formData = form.getValues();
+
+        const localEventData = {
+          title: formData.title,
+          slug: formData.slug,
+          desc: formData?.description || "",
+          duration: formData.length,
+          price: formData.amount,
+        };
+        saveEventDataToLocalStorage(localEventData);
         await stripe.redirectToCheckout({ sessionId: paymentUid });
-        // const paymentLink =
-        //   `/payments/${paymentUid}?` +
-        //   stringify({
-        //     name,
-        //     email,
-        //   });
-        // // Redirect the user to the generated payment link
-        // return router.push(paymentLink);
+        return;
         // showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
       }
     },
@@ -146,6 +164,10 @@ export default function CreateEventTypeDialog({
         showToast(message, "error");
       }
 
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        const message = `${err.data.code}: ${t("INTERNAL SERVER ERROR")}`;
+        showToast(message, "error");
+      }
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
         showToast(message, "error");
@@ -246,14 +268,17 @@ export default function CreateEventTypeDialog({
                 <div className="disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed">
                   What do you want to discuss?
                 </div>
-                <Editor
-                  getText={() => md.render(form.getValues("description") || "")}
-                  setText={(value: string) => form.setValue("description", turndown(value))}
-                  excludedToolbarItems={["blockType", "link"]}
-                  placeholder={t("quick_video_meeting")}
-                  firstRender={firstRender}
-                  setFirstRender={setFirstRender}
-                />
+
+                {defaultdesc !== undefined && (
+                  <Editor
+                    getText={() => md.render(defaultdesc || "")}
+                    setText={(value: string) => form.setValue("description", turndown(value))}
+                    excludedToolbarItems={["blockType", "link"]}
+                    placeholder={t("quick_video_meeting")}
+                    firstRender={firstRender}
+                    setFirstRender={setFirstRender}
+                  />
+                )}
                 <div className="relative">
                   <TextField
                     label={t("Set Price")}

@@ -15,7 +15,7 @@ export const metadata = {
   category: "conferencing",
   slug: "daily-video",
   title: "Cal Video",
-  isGlobal: true,
+  isGlobal: false,
   email: "help@cal.com",
   appData: {
     location: {

@@ -52,7 +52,7 @@ model EventType {
   /// @zod.min(1)
   title                           String
   /// @zod.custom(imports.eventTypeSlug)
-  slug                            String
+  slug                            String                 @default("")
   description                     String?
   ques                            String?
   position                        Int                    @default(0)

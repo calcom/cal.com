@@ -1,13 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import EventManager from "@calcom/core/EventManager";
-import dayjs from "@calcom/dayjs";
-import { sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
-import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -15,7 +10,6 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma, bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -139,7 +133,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
   if (!payment?.eventId) {
-    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
   }
   if (!payment?.eventId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
@@ -228,13 +221,13 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       success: true,
     },
   });
-
   const bookingUpdate = prisma.eventType.update({
     where: {
       id: booking.id,
     },
     data: {
       paid: true,
+      slug: paymentIntent.metadata.secret,
       // payment: {
       //   connect: {
       //     id: paymentUpdate.uid,
@@ -244,20 +237,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
-
-  // if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-  //   await handleConfirmation({
-  //     user: userWithCredentials,
-  //     evt,
-  //     prisma,
-  //     bookingId: booking.id,
-  //     booking,
-  //     paid: true,
-  //   });
-  // } else {
   //   await sendScheduledEmails({ ...evt });
-  // }
-  console.log("haa mene bhi pyyaaaar kiya hai");
   throw new HttpCode({
     statusCode: 200,
     message: `Booking with id '${booking.id}' was paid and confirmed.`,
@@ -274,12 +254,8 @@ async function handlePaymentFailure(event: Stripe.Event) {
       eventId: true,
     },
   });
-  console.log("ppppppppp");
-  console.log(payment);
-  console.log("innnnttttt");
-  console.log(paymentIntent);
+
   if (!payment?.eventId) {
-    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
   }
   if (!payment?.eventId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
@@ -296,103 +272,16 @@ async function handlePaymentFailure(event: Stripe.Event) {
       id: booking.id,
     },
   });
-  // } else {
-  //   await sendScheduledEmails({ ...evt });
-  // }
-  console.log("haa mene bhi pyyaaaar kiya hai");
   throw new HttpCode({
     statusCode: 200,
     message: `Booking with id '${booking.id}' was deleted.`,
   });
 }
-const handleSetupSuccess = async (event: Stripe.Event) => {
-  const setupIntent = event.data.object as Stripe.SetupIntent;
-  const payment = await prisma.payment.findFirst({
-    where: {
-      externalId: setupIntent.id,
-    },
-  });
-
-  if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
-
-  const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
-
-  const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
-  };
-
-  const userWithCredentials = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      email: true,
-      name: true,
-      locale: true,
-      destinationCalendar: true,
-      credentials: true,
-    },
-  });
-
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  let requiresConfirmation = eventType?.requiresConfirmation;
-  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
-  if (rcThreshold) {
-    if (dayjs(dayjs(booking.startTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
-      requiresConfirmation = false;
-    }
-  }
-
-  if (!requiresConfirmation) {
-    const eventManager = new EventManager(userWithCredentials);
-    const scheduleResult = await eventManager.create(evt);
-    bookingData.references = { create: scheduleResult.referencesToCreate };
-    bookingData.status = BookingStatus.ACCEPTED;
-  }
-
-  await prisma.payment.update({
-    where: {
-      id: payment.id,
-    },
-    data: {
-      data: {
-        ...(payment.data as Prisma.JsonObject),
-        setupIntent: setupIntent as unknown as Prisma.JsonObject,
-      },
-      booking: {
-        update: {
-          ...bookingData,
-        },
-      },
-    },
-  });
-
-  // If the card information was already captured in the same customer. Delete the previous payment method
-
-  if (!requiresConfirmation) {
-    await handleConfirmation({
-      user: userWithCredentials,
-      evt,
-      prisma,
-      bookingId: booking.id,
-      booking,
-      paid: true,
-    });
-  } else {
-    await sendOrganizerRequestEmail({ ...evt });
-    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
-  }
-};
 
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "setup_intent.succeeded": handleSetupSuccess,
   "payment_intent.canceled": handlePaymentFailure,
 };
 
@@ -418,7 +307,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log(event);
+
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
     // if (!process.env.NEXT_PUBLIC_IS_E2E) {

@@ -185,7 +185,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
     {
       defaultLabel: "Paypal ID",
-      type: "email",
+      type: "text",
       name: "Paypal ID",
       required: true,
       editable: "system",
