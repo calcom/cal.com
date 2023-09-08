@@ -52,7 +52,7 @@ model EventType {
   /// @zod.min(1)
   title                           String
   /// @zod.custom(imports.eventTypeSlug)
-  slug                            String                 @default("")
+  slug                            String
   description                     String?
   ques                            String?
   position                        Int                    @default(0)
@@ -120,8 +120,6 @@ model EventType {
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits       Json?
 
-  @@unique([userId, slug])
-  @@unique([teamId, slug])
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])

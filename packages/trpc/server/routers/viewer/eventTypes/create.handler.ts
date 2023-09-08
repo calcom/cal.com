@@ -28,8 +28,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   // Get Users default conferencing app
   const uid = uuid();
-  console.log("user meta");
-  console.log(ctx.user);
   const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
   const appKeys = await getAppKeysFromSlug("daily-video");
 
@@ -97,8 +95,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     if (oldEvent) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
     } else {
-      console.log(data.slug);
-      delete data.slug;
+      //console.log(data.slug);
+      data.slug = "";
     }
 
     const createdEvent = await ctx.prisma.eventType.create({
