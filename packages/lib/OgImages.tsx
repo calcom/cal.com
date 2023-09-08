@@ -139,7 +139,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
           <img src={`${CAL_URL}/${LOGO}`} width="350" alt="Logo" />
-          {avatars.length > 0 && <div tw="font-bold text-emphasis text-[92px] mx-8 bottom-2">/</div>}
+          {avatars.length > 0 && <div tw="font-bold text-[92px] mx-8 bottom-2">/</div>}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
               <img
