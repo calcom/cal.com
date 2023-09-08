@@ -30,6 +30,7 @@ import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadat
 import intercom_config_json from "./intercom/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import make_config_json from "./make/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import n8n_config_json from "./n8n/config.json";
@@ -101,6 +102,7 @@ export const appStoreMetadata = {
   intercom: intercom_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  make: make_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
   n8n: n8n_config_json,
