@@ -57,8 +57,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
         if (variable === bookingField) {
           let fieldValue;
           if (eventNameObj.bookingFields) {
-            fieldValue =
-              eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields]?.toString();
+            const field = eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields];
+            if (field && typeof field === "object" && "value" in field) {
+              fieldValue = field?.value?.toString();
+            } else {
+              fieldValue = field?.toString();
+            }
           }
           dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
         }
