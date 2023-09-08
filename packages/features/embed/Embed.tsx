@@ -8,6 +8,7 @@ import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -38,7 +39,7 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
-import { ArrowDown, ArrowLeft, ArrowUp, Sun } from "@calcom/ui/components/icon";
+import { ArrowLeft, Sun } from "@calcom/ui/components/icon";
 
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -228,8 +229,10 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
               isLoading={schedule.isLoading}
-              onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : date)}
-              onMonthChange={(date) => {
+              onChange={(date: Dayjs | null) => {
+                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+              }}
+              onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
                 setSelectedDate(date.format("YYYY-MM-DD"));
               }}
@@ -245,36 +248,25 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       </div>
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
-          <Collapsible open>
-            <CollapsibleContent>
-              <div
-                className="text-default mb-[9px] flex cursor-pointer items-center justify-between text-sm"
-                onClick={() => setSelectTime((prev) => !prev)}>
-                <p>{t("select_time")}</p>{" "}
-                <>
-                  {!selectedDate || !selectTime ? <ArrowDown className="w-4" /> : <ArrowUp className="w-4" />}
-                </>
-              </div>
-              {selectTime && selectedDate ? (
-                <div className="flex h-full w-full flex-row gap-4">
-                  <AvailableTimes
-                    className="w-full"
-                    date={dayjs(selectedDate)}
-                    selectedSlots={
-                      eventType.slug &&
-                      selectedDatesAndTimes &&
-                      selectedDatesAndTimes[eventType.slug] &&
-                      selectedDatesAndTimes[eventType.slug][selectedDate as string]
-                        ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
-                        : undefined
-                    }
-                    onTimeSelect={onTimeSelect}
-                    slots={slots}
-                  />
-                </div>
-              ) : null}
-            </CollapsibleContent>
-          </Collapsible>
+          {selectTime && selectedDate ? (
+            <div className="flex h-full w-full flex-row gap-4">
+              <AvailableTimes
+                className="w-full"
+                date={dayjs(selectedDate)}
+                selectedSlots={
+                  eventType.slug &&
+                  selectedDatesAndTimes &&
+                  selectedDatesAndTimes[eventType.slug] &&
+                  selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    : undefined
+                }
+                onTimeSelect={onTimeSelect}
+                slots={slots}
+                showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
       <div className="mb-[9px] font-medium ">

@@ -8,7 +8,7 @@ export const metadata = {
   installed: true,
   category: "automation",
   categories: ["automation"],
-  logo: "icon.svg",
+  logo: "icon-dark.svg",
   label: "Vital",
   publisher: "Vital",
   slug: "vital-automation",

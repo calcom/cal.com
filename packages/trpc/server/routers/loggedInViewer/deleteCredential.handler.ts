@@ -206,6 +206,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   bookingFields: true,
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
+                  seatsShowAvailabilityCount: true,
                   eventName: true,
                 },
               },
@@ -287,10 +288,15 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 uid: booking.uid,
                 recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
                 location: booking.location,
-                destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                destinationCalendar: booking.destinationCalendar
+                  ? [booking.destinationCalendar]
+                  : booking.user?.destinationCalendar
+                  ? [booking.user?.destinationCalendar]
+                  : [],
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+                seatsShowAvailabilityCount: booking.eventType?.seatsShowAvailabilityCount,
               },
               {
                 eventName: booking?.eventType?.eventName,
