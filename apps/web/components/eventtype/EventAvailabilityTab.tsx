@@ -118,10 +118,12 @@ const EventTypeScheduleDetails = memo(
                     {filterDays(index).map((dayRange, i) => (
                       <div key={i} className="text-default flex items-center leading-4">
                         <span className="w-16 sm:w-28 sm:text-left">
-                          {format(dayRange.startTime, timeFormat === 12)}
+                          {format(dayRange.startTime, timeFormat === 12).replace(/24(?=:)/g, "00")}
                         </span>
                         <span className="ms-4">-</span>
-                        <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+                        <div className="ml-6 sm:w-28">
+                          {format(dayRange.endTime, timeFormat === 12).replace(/24(?=:)/g, "00")}
+                        </div>
                       </div>
                     ))}
                   </div>

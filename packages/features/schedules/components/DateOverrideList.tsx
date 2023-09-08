@@ -76,7 +76,7 @@ const DateOverrideList = ({
             ) : (
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
-                  {timeSpan(range)}
+                  {timeSpan(range).replace(/24(?=:)/g, "00")}
                 </p>
               ))
             )}
