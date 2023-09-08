@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -106,8 +107,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
-      allowDynamicBooking: user.allowDynamicBooking ?? true,
-      allowSEOIndexing: user.allowSEOIndexing ?? true,
     },
   });
   const {
@@ -116,135 +115,131 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
+  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
+    user.allowDynamicBooking ?? true
+  );
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(user.allowSEOIndexing ?? true);
 
   return (
-    <Form
-      form={formMethods}
-      handleSubmit={(values) => {
-        mutation.mutate({
-          ...values,
-          locale: values.locale.value,
-          timeFormat: values.timeFormat.value,
-          weekStart: values.weekStart.value,
-        });
-      }}>
-      <Meta title={t("general")} description={t("general_description")} />
-      <div className="border-subtle border-x border-y-0 px-6 py-8">
-        <Controller
-          name="locale"
-          render={({ field: { value, onChange } }) => (
-            <>
-              <Label className="text-emphasis">
-                <>{t("language")}</>
-              </Label>
-              <Select<{ label: string; value: string }>
-                className="capitalize"
-                options={localeOptions}
-                value={value}
-                onChange={onChange}
-              />
-            </>
-          )}
-        />
-        <Controller
-          name="timeZone"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis mt-8">
-                <>{t("timezone")}</>
-              </Label>
-              <TimezoneSelect
-                id="timezone"
-                value={value}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
-                }}
-              />
-            </>
-          )}
-        />
-        <Controller
-          name="timeFormat"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis mt-8">
-                <>{t("time_format")}</>
-              </Label>
-              <Select
-                value={value}
-                options={timeFormatOptions}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-                }}
-              />
-            </>
-          )}
-        />
-        <div className="text-gray text-default mt-2 flex items-center text-sm">
-          {t("timeformat_profile_hint")}
+    <div>
+      <Form
+        form={formMethods}
+        handleSubmit={(values) => {
+          mutation.mutate({
+            ...values,
+            locale: values.locale.value,
+            timeFormat: values.timeFormat.value,
+            weekStart: values.weekStart.value,
+          });
+        }}>
+        <Meta title={t("general")} description={t("general_description")} />
+        <div className="border-subtle border-x border-y-0 px-6 py-8">
+          <Controller
+            name="locale"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <Label className="text-emphasis">
+                  <>{t("language")}</>
+                </Label>
+                <Select<{ label: string; value: string }>
+                  className="capitalize"
+                  options={localeOptions}
+                  value={value}
+                  onChange={onChange}
+                />
+              </>
+            )}
+          />
+          <Controller
+            name="timeZone"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-8">
+                  <>{t("timezone")}</>
+                </Label>
+                <TimezoneSelect
+                  id="timezone"
+                  value={value}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+          <Controller
+            name="timeFormat"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-8">
+                  <>{t("time_format")}</>
+                </Label>
+                <Select
+                  value={value}
+                  options={timeFormatOptions}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+          <div className="text-gray text-default mt-2 flex items-center text-sm">
+            {t("timeformat_profile_hint")}
+          </div>
+          <Controller
+            name="weekStart"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-8">
+                  <>{t("start_of_week")}</>
+                </Label>
+                <Select
+                  value={value}
+                  options={weekStartOptions}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
         </div>
-        <Controller
-          name="weekStart"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis mt-8">
-                <>{t("start_of_week")}</>
-              </Label>
-              <Select
-                value={value}
-                options={weekStartOptions}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-                }}
-              />
-            </>
-          )}
-        />
-      </div>
 
-      <SectionBottomActions align="end">
-        <Button loading={mutation.isLoading} disabled={isDisabled} color="primary" type="submit">
-          <>{t("update")}</>
-        </Button>
-      </SectionBottomActions>
-
+        <SectionBottomActions align="end">
+          <Button loading={mutation.isLoading} disabled={isDisabled} color="primary" type="submit">
+            <>{t("update")}</>
+          </Button>
+        </SectionBottomActions>
+      </Form>
       <div className="border-subtle mt-6 rounded-xl border p-6">
-        <Controller
-          name="allowDynamicBooking"
-          control={formMethods.control}
-          render={() => (
-            <NewToggle
-              title={t("dynamic_booking")}
-              description={t("allow_dynamic_booking")}
-              checked={formMethods.getValues("allowDynamicBooking")}
-              onCheckedChange={(checked) => {
-                formMethods.setValue("allowDynamicBooking", checked, { shouldDirty: true });
-              }}
-            />
-          )}
+        <NewToggle
+          title={t("dynamic_booking")}
+          description={t("allow_dynamic_booking")}
+          checked={isAllowDynamicBookingChecked}
+          defaultValue={user.allowDynamicBooking ?? true}
+          onCheckedChange={(checked) => {
+            setIsAllowDynamicBookingChecked(checked);
+            mutation.mutate({ allowDynamicBooking: checked });
+          }}
         />
       </div>
 
       <div className="border-subtle mt-6 rounded-xl border p-6">
-        <Controller
-          name="allowSEOIndexing"
-          control={formMethods.control}
-          render={() => (
-            <NewToggle
-              title={t("seo_indexing")}
-              description={t("allow_seo_indexing")}
-              checked={formMethods.getValues("allowSEOIndexing")}
-              onCheckedChange={(checked) => {
-                formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
-              }}
-            />
-          )}
+        <NewToggle
+          title={t("seo_indexing")}
+          description={t("allow_seo_indexing")}
+          checked={isAllowSEOIndexingChecked}
+          onCheckedChange={(checked) => {
+            setIsAllowSEOIndexingChecked(checked);
+            mutation.mutate({ isAllowSEOIndexingChecked: checked });
+          }}
         />
       </div>
-    </Form>
+    </div>
   );
 };
 

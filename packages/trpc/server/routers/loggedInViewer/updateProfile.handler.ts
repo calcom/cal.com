@@ -32,6 +32,7 @@ type UpdateProfileOptions = {
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const { metadata: metadataFromInput } = input;
+  console.log("updateProfileHandler", input);
   const cleanMetadata = cleanMetadataAllowedUpdateKeys(metadataFromInput);
   const data: Prisma.UserUpdateInput = {
     ...input,
@@ -63,6 +64,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
+  }
+  if (input.avatar === null) {
+    data.avatar = null;
   }
 
   const fetchUserCurrentMetadata = await prisma.user.findUnique({

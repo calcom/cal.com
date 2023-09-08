@@ -594,9 +594,8 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export default function SettingsLayout({
   children,
-  isBorder,
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell> & { isBorder?: boolean }) {
+}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -680,15 +679,17 @@ type SidebarContainerElementProps = {
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const getLayout = (page: React.ReactElement, isBorder = false) => (
-  <SettingsLayout isBorder={isBorder}>{page}</SettingsLayout>
-);
+export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
 export function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="border-subtle mx-auto block justify-between rounded-t-xl border px-2 py-6 sm:flex lg:px-6">
+    <header
+      className={classNames(
+        "mx-auto block justify-between sm:flex ",
+        meta.borderInShellHeader && "border-subtle rounded-t-xl border px-2 py-6 lg:px-6"
+      )}>
       <div className="flex w-full items-center">
         {meta.backButton && (
           <a href="javascript:history.back()">

@@ -1,7 +1,7 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, React } from "react";
+import { Fragment, React, useState, useEffect } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
@@ -66,6 +66,21 @@ const CalendarsView = () => {
   const utils = trpc.useContext();
 
   const query = trpc.viewer.connectedCalendars.useQuery();
+
+  const [selectedDestinationCalendarOption, setSelectedDestinationCalendar] = useState<{
+    integration: string;
+    externalId: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (query?.data?.destinationCalendar) {
+      setSelectedDestinationCalendar({
+        integration: query.data.destinationCalendar.integration,
+        externalId: query.data.destinationCalendar.externalId,
+      });
+    }
+  }, [query?.isLoading]);
+
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
@@ -80,11 +95,18 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta title={t("calendars")} description={t("calendars_description")} CTA={<AddCalendarButton />} />
+      <Meta
+        title={t("calendars")}
+        description={t("calendars_description")}
+        CTA={<AddCalendarButton />}
+        borderInShellHeader={false}
+      />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}
         success={({ data }) => {
+          const isDestinationUpdateBtnDisabled =
+            selectedDestinationCalendarOption?.externalId === query?.data?.destinationCalendar?.externalId;
           return data.connectedCalendars.length ? (
             <div>
               <div className="border-subtle mt-8 rounded-t-xl border p-6">
@@ -96,13 +118,23 @@ const CalendarsView = () => {
               <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 p-6">
                 <DestinationCalendarSelector
                   hidePlaceholder
-                  value={data.destinationCalendar?.externalId}
-                  onChange={mutation.mutate}
+                  value={selectedDestinationCalendarOption?.externalId}
+                  onChange={(option) => {
+                    setSelectedDestinationCalendar(option);
+                  }}
                   isLoading={mutation.isLoading}
                 />
               </div>
               <SectionBottomActions align="end">
-                <Button color="primary">{t("update")}</Button>
+                <Button
+                  loading={mutation.isLoading}
+                  disabled={isDestinationUpdateBtnDisabled}
+                  color="primary"
+                  onClick={() => {
+                    mutation.mutate(selectedDestinationCalendarOption);
+                  }}>
+                  {t("update")}
+                </Button>
               </SectionBottomActions>
 
               <div className="border-subtle mt-8 rounded-t-xl border p-6">
@@ -231,7 +263,7 @@ const CalendarsView = () => {
   );
 };
 
-CalendarsView.getLayout = (page: React.ReactElement) => getLayout(page, true);
+CalendarsView.getLayout = getLayout;
 CalendarsView.PageWrapper = PageWrapper;
 
 export default CalendarsView;

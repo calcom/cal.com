@@ -69,10 +69,14 @@ interface DeleteAccountValues {
 
 type FormValues = {
   username: string;
-  avatar: string;
+  avatar: string | null;
   name: string;
   email: string;
   bio: string;
+};
+
+const checkGravatarImage = (fetchedImgSrc: string) => {
+  return fetchedImgSrc.startsWith("https://www.gravatar.com/avatar");
 };
 
 const ProfileView = () => {
@@ -80,7 +84,15 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const { update } = useSession();
 
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>();
+
+  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
+    onSuccess: (userData) => {
+      fetch(userData.avatar).then((res) => {
+        if (res.url) setFetchedImgSrc(res.url);
+      });
+    },
+  });
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -204,7 +216,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user)
+  if (isLoading || !user || !fetchedImgSrc)
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
@@ -224,6 +236,8 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
+        isGravatarImg={checkGravatarImage(fetchedImgSrc)}
+        userAvatar={user.avatar}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -362,23 +376,31 @@ const ProfileView = () => {
   );
 };
 
+// const checkIfAvatarValueIsNotDefault = (avatar)=>{
+//   return
+// }
+
 const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
   isLoading = false,
+  isGravatarImg,
+  userAvatar,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
+  isGravatarImg: boolean;
+  userAvatar: string;
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string(),
+    avatar: z.string().nullable(),
     name: z
       .string()
       .trim()
@@ -402,31 +424,44 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   return (
-    <div>
-      <Form
-        className="border-subtle border border-b-0 border-t-0 px-6 pb-10 pt-8"
-        form={formMethods}
-        handleSubmit={onSubmit}>
+    <Form form={formMethods} handleSubmit={onSubmit}>
+      <div className="border-subtle border-x px-6 pb-10 pt-8">
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
             name="avatar"
-            render={({ field: { value } }) => (
-              <>
-                <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
-                <div className="ms-4">
-                  <ImageUploader
-                    target="avatar"
-                    id="avatar-upload"
-                    buttonMsg={t("change_avatar")}
-                    handleAvatarChange={(newAvatar) => {
-                      formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
-                    }}
-                    imageSrc={value || undefined}
-                  />
-                </div>
-              </>
-            )}
+            render={({ field: { value } }) => {
+              const showRemoveAvatarButton = !isGravatarImg || (value && userAvatar !== value);
+              return (
+                <>
+                  <Avatar alt="user-avatar" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+                  <div className="ms-4">
+                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                    <div className="flex gap-2">
+                      <ImageUploader
+                        target="avatar"
+                        id="avatar-upload"
+                        buttonMsg={t("upload_avatar")}
+                        handleAvatarChange={(newAvatar) => {
+                          formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
+                        }}
+                        imageSrc={value || undefined}
+                      />
+
+                      {showRemoveAvatarButton && (
+                        <Button
+                          color="secondary"
+                          onClick={() => {
+                            formMethods.setValue("avatar", null, { shouldDirty: true });
+                          }}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
           />
         </div>
         {extraField}
@@ -449,13 +484,13 @@ const ProfileForm = ({
             setFirstRender={setFirstRender}
           />
         </div>
-      </Form>
+      </div>
       <SectionBottomActions align="end">
         <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
           {t("update")}
         </Button>
       </SectionBottomActions>
-    </div>
+    </Form>
   );
 };
 
