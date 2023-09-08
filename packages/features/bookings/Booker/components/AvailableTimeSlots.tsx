@@ -19,6 +19,7 @@ type AvailableTimeSlotsProps = {
   prefetchNextMonth: boolean;
   monthCount: number | undefined;
   seatsPerTimeSlot?: number | null;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 /**
@@ -32,6 +33,7 @@ export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
   seatsPerTimeSlot,
+  showAvailableSeatsCount,
   prefetchNextMonth,
   monthCount,
 }: AvailableTimeSlotsProps) => {
@@ -60,6 +62,7 @@ export const AvailableTimeSlots = ({
         seatsPerTimeSlot,
         attendees,
         bookingUid,
+        showAvailableSeatsCount,
       });
 
       if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
@@ -116,6 +119,7 @@ export const AvailableTimeSlots = ({
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeSlot={seatsPerTimeSlot}
+              showAvailableSeatsCount={showAvailableSeatsCount}
               availableMonth={
                 dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
                   ? dayjs(slots.date).format("MMM")
