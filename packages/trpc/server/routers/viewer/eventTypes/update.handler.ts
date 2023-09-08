@@ -241,28 +241,36 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input?.price || input.metadata?.apps?.stripe?.price) {
-    data.price = input.price || input.metadata?.apps?.stripe?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
+  if (input.metadata?.apps) {
+    // TODO: This could be a function to abstract the payment setters in the eventType as only one is allowed.
+    const paymentAppIds = ["stripe", "paypal", "mercadopago"];
+    const paymentCredentials = await ctx.prisma.credential.findMany({
       where: {
         userId: ctx.user.id,
-        type: {
-          contains: "_payment",
+        appId: {
+          in: paymentAppIds,
         },
       },
       select: {
         type: true,
+        appId: true,
         key: true,
       },
     });
 
-    if (paymentCredential?.type === "stripe_payment") {
-      const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-      data.currency = default_currency;
-    }
-    if (paymentCredential?.type === "paypal_payment" && input.metadata?.apps?.paypal?.currency) {
-      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
-    }
+    paymentCredentials.forEach((paymentCredential) => {
+      const appId = paymentCredential.appId! as keyof typeof input.metadata.apps;
+      const appMetadata = input.metadata?.apps ? input.metadata?.apps[appId] : null;
+      if (appMetadata?.enabled) {
+        data.price = input.price || appMetadata.price;
+        if (appId === "stripe") {
+          const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
+          data.currency = default_currency;
+        } else {
+          data.currency = appMetadata.currency.toLowerCase();
+        }
+      }
+    });
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
