@@ -23,15 +23,11 @@ import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
 const DateOverrideForm = ({
   value,
   workingHours,
   excludedDates,
   onChange,
-  onClose = noop,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -137,6 +133,7 @@ const DateOverrideForm = ({
               })
             : datesInRanges
         );
+        setSelectedDates([]);
       }}
       className="p-6 sm:flex sm:p-0">
       <div
@@ -188,7 +185,7 @@ const DateOverrideForm = ({
               data-testid="add-override-submit-btn">
               {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
             </Button>
-            <DialogClose onClick={onClose} />
+            <DialogClose />
           </div>
         </div>
       )}
@@ -208,7 +205,6 @@ const DateOverrideInputDialog = ({
   value?: TimeRange[];
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [open, setOpen] = useState(false);
   {
     /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
        ref:- https://github.com/calcom/cal.com/pull/6215
@@ -216,15 +212,11 @@ const DateOverrideInputDialog = ({
   }
   const enableOverflow = isMobile;
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
       <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
-        <DateOverrideForm
-          excludedDates={excludedDates}
-          {...passThroughProps}
-          onClose={() => setOpen(false)}
-        />
+        <DateOverrideForm excludedDates={excludedDates} {...passThroughProps} />
       </DialogContent>
     </Dialog>
   );
