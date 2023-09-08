@@ -3,15 +3,15 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import { BaseEmailHtml, Info } from "@calcom/emails/src/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import type { Response } from "../../types/types";
+import type { OrderedResponses } from "../../types/types";
 
 export const ResponseEmail = ({
   form,
-  response,
+  orderedResponses,
   ...props
 }: {
   form: Pick<App_RoutingForms_Form, "id" | "name">;
-  response: Response;
+  orderedResponses: OrderedResponses;
   subject: string;
 } & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
   return (
@@ -36,11 +36,11 @@ export const ResponseEmail = ({
       title={form.name}
       subtitle="New Response Received"
       {...props}>
-      {Object.entries(response).map(([fieldId, fieldResponse]) => {
+      {orderedResponses.map((fieldResponse, index) => {
         return (
           <Info
             withSpacer
-            key={fieldId}
+            key={index}
             label={fieldResponse.label}
             description={
               fieldResponse.value instanceof Array ? fieldResponse.value.join(",") : fieldResponse.value

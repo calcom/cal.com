@@ -117,6 +117,29 @@ describe("buildDateRanges", () => {
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });
   });
+  it("should handle day shifts correctly", () => {
+    const item = [
+      {
+        date: new Date(Date.UTC(2023, 7, 15)),
+        startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)), // 9 AM
+        endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      },
+      {
+        date: new Date(Date.UTC(2023, 7, 15)),
+        startTime: new Date(Date.UTC(2023, 5, 12, 19, 0)), // 7 PM
+        endTime: new Date(Date.UTC(2023, 5, 12, 21, 0)), // 9 PM
+      },
+    ];
+
+    const timeZone = "Pacific/Honolulu";
+
+    const dateFrom = dayjs.tz("2023-08-15", "Europe/Brussels").startOf("day");
+    const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day");
+
+    const result = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo });
+    // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
+    expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
+  });
   it("should return correct date ranges with full day unavailable date override", () => {
     const items = [
       {

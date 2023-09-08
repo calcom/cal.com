@@ -159,7 +159,7 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
-    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
 
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
@@ -205,7 +205,7 @@ const SettingsSidebarContainer = ({
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
@@ -244,7 +244,10 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  if (currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role)) {
+  const isOrgAdminOrOwner =
+    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+
+  if (isOrgAdminOrOwner) {
     const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
 
     tabsWithPermissions.splice(teamsIndex + 1, 0, {
@@ -270,7 +273,7 @@ const SettingsSidebarContainer = ({
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (
-            <>
+            <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
@@ -325,7 +328,7 @@ const SettingsSidebarContainer = ({
                           as="p"
                           className="truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(tab.name)}
+                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
                         </Skeleton>
                       </div>
                     </Link>
@@ -517,22 +520,9 @@ const SettingsSidebarContainer = ({
                                     alt={otherTeam.name || "Team logo"}
                                   />
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
-                                  {!otherTeam.accepted && (
-                                    <Badge className="ms-3" variant="orange">
-                                      Inv.
-                                    </Badge>
-                                  )}
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
-                                {otherTeam.accepted && (
-                                  <VerticalTabItem
-                                    name={t("profile")}
-                                    href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
@@ -556,7 +546,7 @@ const SettingsSidebarContainer = ({
                   </div>
                 </React.Fragment>
               )}
-            </>
+            </React.Fragment>
           );
         })}
       </>

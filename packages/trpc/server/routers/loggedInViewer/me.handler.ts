@@ -1,3 +1,4 @@
+import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -24,7 +25,9 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+    avatar: `${user.organization?.slug ? getOrgFullDomain(user.organization.slug) : WEBAPP_URL}/${
+      user.username
+    }/avatar.png`,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,
@@ -42,6 +45,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     metadata: user.metadata,
     defaultBookerLayouts: user.defaultBookerLayouts,
     allowDynamicBooking: user.allowDynamicBooking,
+    allowSEOIndexing: user.allowSEOIndexing,
     organizationId: user.organizationId,
     organization: user.organization,
   };

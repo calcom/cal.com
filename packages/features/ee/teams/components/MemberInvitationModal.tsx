@@ -32,6 +32,7 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
+  justEmailInvites?: boolean;
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
@@ -206,7 +207,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 render={({ field: { onChange }, fieldState: { error } }) => (
                   <>
                     <TextField
-                      label={t("email_or_username")}
+                      label={props.justEmailInvites ? t("email") : t("email_or_username")}
                       id="inviteUser"
                       name="inviteUser"
                       placeholder="email@example.com"
@@ -355,7 +356,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </div>
           <DialogFooter showDivider>
             {!disableCopyLink && (
-              <div className="relative right-40">
+              <div className="flex-grow">
                 <Button
                   type="button"
                   color="minimal"
@@ -368,7 +369,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
                   <Link className="text-default h-4 w-4" aria-hidden="true" />
-                  {t("copy_invite_link")}
+                  <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
             )}

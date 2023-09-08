@@ -45,3 +45,5 @@ export type SerializableRoute =
       isFallback?: LocalRoute["isFallback"];
     })
   | GlobalRoute;
+
+export type OrderedResponses = Response[string][];
