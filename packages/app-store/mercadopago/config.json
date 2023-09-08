@@ -3,7 +3,7 @@
   "slug": "mercadopago",
   "type": "mercadopago_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://mercadopago.com",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "ubinatus",
