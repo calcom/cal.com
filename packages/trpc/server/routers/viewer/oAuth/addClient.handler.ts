@@ -1,19 +1,15 @@
 import { randomBytes, createHash } from "crypto";
 
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
 
 type AddClientOptions = {
-  ctx: {
-    user: NonNullable<TrpcSessionUser>;
-  };
   input: TAddClientInputSchema;
 };
 
-export const addClientHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { name, redirectUri } = input;
+export const addClientHandler = async ({ input }: AddClientOptions) => {
+  const { name, redirectUri, logo } = input;
 
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
@@ -25,6 +21,7 @@ export const addClientHandler = async ({ ctx, input }: AddClientOptions) => {
       redirectUri,
       clientId,
       clientSecret: hashedSecret,
+      logo,
     },
   });
 

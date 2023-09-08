@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { trpc } from "@calcom/trpc";
-import { Meta, Form, Button, TextField, showToast, Tooltip } from "@calcom/ui";
+import { Meta, Form, Button, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 type FormValues = {
   name: string;
   redirectUri: string;
+  logo: string;
 };
 
 //to help setting up OAuth I could also add the other endpoints as info her
@@ -16,6 +18,7 @@ export default function OAuthView() {
   const oAuthForm = useForm<FormValues>();
   const [clientSecret, setClientSecret] = useState("");
   const [clientId, setClientId] = useState("");
+  const [logo, setLogo] = useState("");
 
   const mutation = trpc.viewer.oAuth.addClient.useMutation({
     onSuccess: async (data) => {
@@ -35,10 +38,10 @@ export default function OAuthView() {
         <Form
           form={oAuthForm}
           handleSubmit={(values) => {
-            console.log(values);
             mutation.mutate({
               name: values.name,
               redirectUri: values.redirectUri,
+              logo: values.logo,
             });
           }}>
           <div className="">
@@ -59,10 +62,29 @@ export default function OAuthView() {
               placeholder=""
               required
             />
-            <Button type="submit" className="mt-3">
-              Add Client
-            </Button>
+            <div className="mb-5 mt-5 flex items-center">
+              <Avatar
+                alt=""
+                fallback={<Plus className="text-subtle h-6 w-6" />}
+                className="mr-5 items-center"
+                imageSrc={logo}
+                size="lg"
+              />
+              <ImageUploader
+                target="avatar"
+                id="avatar-upload"
+                buttonMsg="Upload Logo"
+                handleAvatarChange={(newLogo: string) => {
+                  setLogo(newLogo);
+                  oAuthForm.setValue("logo", newLogo);
+                }}
+                imageSrc={logo}
+              />
+            </div>
           </div>
+          <Button type="submit" className="mt-3">
+            Add Client
+          </Button>
         </Form>
       ) : (
         <div>
@@ -115,7 +137,13 @@ export default function OAuthView() {
           ) : (
             <></>
           )}
-          <Button onClick={() => setClientId("")} className="mt-5">
+          <Button
+            onClick={() => {
+              setClientId("");
+              setLogo("");
+              oAuthForm.reset();
+            }}
+            className="mt-5">
             Add new Client
           </Button>
         </div>

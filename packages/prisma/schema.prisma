@@ -907,6 +907,7 @@ model OAuthClient {
   redirectUri  String
   clientSecret String
   name         String
+  logo         String?
   accessCodes  AccessCode[]
 }
 
