@@ -337,6 +337,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     select: {
       id: true,
       uid: true,
+      userId: true,
       startTime: true,
       endTime: true,
       title: true,
@@ -358,8 +359,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       }),
     },
   });
-
-  console.log("currentBookingsWithAllUsers", currentBookingsAllUsers);
 
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
@@ -386,7 +385,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           currentSeats,
           rescheduleUid: input.rescheduleUid,
           currentBookings: currentBookingsAllUsers.filter(
-            (b) => b.userId === currentUser.Id || b.attendees.some((a) => a.email === currentUser.email)
+            (b) => b.userId === currentUser.id || b.attendees.some((a) => a.email === currentUser.email)
           ),
         }
       );
