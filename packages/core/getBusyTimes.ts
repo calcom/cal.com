@@ -1,4 +1,4 @@
-import type { Credential } from "@prisma/client";
+import type { Booking, Credential } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -24,6 +24,7 @@ export async function getBusyTimes(params: {
   seatedEvent?: boolean;
   rescheduleUid?: string | null;
   duration?: number | null;
+  currentBookings?: Booking[] | null;
 }) {
   const {
     credentials,
@@ -39,6 +40,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    currentBookings,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -76,49 +78,54 @@ export async function getBusyTimes(params: {
       in: [BookingStatus.ACCEPTED],
     },
   };
-  // Find bookings that block this user from hosting further bookings.
-  const bookings = await prisma.booking.findMany({
-    where: {
-      OR: [
-        // User is primary host (individual events, or primary organizer)
-        {
-          ...sharedQuery,
-          userId,
-        },
-        // The current user has a different booking at this time he/she attends
-        {
-          ...sharedQuery,
-          attendees: {
-            some: {
-              email: userEmail,
+
+  // INFO: Refactor allow this method to take in a list of current bookings for the user.
+  // Keeping support for calling this if the value passed in is null.
+  let bookings = currentBookings;
+  if (!currentBookings) {
+    bookings = await prisma.booking.findMany({
+      where: {
+        OR: [
+          // User is primary host (individual events, or primary organizer)
+          {
+            ...sharedQuery,
+            userId,
+          },
+          // The current user has a different booking at this time he/she attends
+          {
+            ...sharedQuery,
+            attendees: {
+              some: {
+                email: userEmail,
+              },
             },
           },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      uid: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      eventType: {
-        select: {
-          id: true,
-          afterEventBuffer: true,
-          beforeEventBuffer: true,
-          seatsPerTimeSlot: true,
-        },
+        ],
       },
-      ...(seatedEvent && {
-        _count: {
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        eventType: {
           select: {
-            seatsReferences: true,
+            id: true,
+            afterEventBuffer: true,
+            beforeEventBuffer: true,
+            seatsPerTimeSlot: true,
           },
         },
-      }),
-    },
-  });
+        ...(seatedEvent && {
+          _count: {
+            select: {
+              seatsReferences: true,
+            },
+          },
+        }),
+      },
+    });
+  }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
