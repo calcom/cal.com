@@ -153,12 +153,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+
       // We create the event directly on iCal
       const responses = await Promise.all(
         calendars
           .filter((c) =>
-            event.destinationCalendar?.externalId
-              ? c.externalId === event.destinationCalendar.externalId
+            mainHostDestinationCalendar?.externalId
+              ? c.externalId === mainHostDestinationCalendar.externalId
               : true
           )
           .map((calendar) =>
@@ -504,13 +506,13 @@ export default abstract class BaseCalendarService implements Calendar {
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
         if (!calendar.components?.includes("VEVENT")) return newCalendars;
-
+        const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
         newCalendars.push({
           externalId: calendar.url,
           /** @url https://github.com/calcom/cal.com/issues/7186 */
           name: typeof calendar.displayName === "string" ? calendar.displayName : "",
-          primary: event?.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId === calendar.url
+          primary: mainHostDestinationCalendar?.externalId
+            ? mainHostDestinationCalendar.externalId === calendar.url
             : false,
           integration: this.integrationName,
           email: this.credentials.username ?? "",

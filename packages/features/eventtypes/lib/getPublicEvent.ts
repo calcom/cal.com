@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   seatsPerTimeSlot: true,
+  seatsShowAvailabilityCount: true,
   bookingFields: true,
   team: {
     select: {
@@ -285,7 +286,7 @@ function getProfileFromEvent(event: Event) {
 function getUsersFromEvent(event: Event) {
   const { team, hosts, owner } = event;
   if (team) {
-    return (hosts || []).map(mapHostsToUsers);
+    return (hosts || []).filter((host) => host.user.username).map(mapHostsToUsers);
   }
   if (!owner) {
     return null;

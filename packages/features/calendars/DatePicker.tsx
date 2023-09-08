@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -16,7 +17,7 @@ export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Dayjs) => void;
+  onChange: (date: Dayjs | null) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date or dates are currently selected (not tracked from here) */
@@ -175,9 +176,47 @@ const Days = ({
     return false;
   };
 
+  const daysToRenderForTheMonth = days.map((day) => {
+    if (!day) return { day: null, disabled: true };
+    return {
+      day: day,
+      disabled:
+        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+    };
+  });
+
+  /**
+   * Takes care of selecting a valid date in the month if the selected date is not available in the month
+   */
+
+  const useHandleInitialDateSelection = () => {
+    // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+    if (selected instanceof Array) {
+      return;
+    }
+    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+
+    const isSelectedDateAvailable = selected
+      ? daysToRenderForTheMonth.some(({ day, disabled }) => {
+          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+        })
+      : false;
+
+    if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
+      // If selected date not available in the month, select the first available date of the month
+      props.onChange(firstAvailableDateOfTheMonth);
+    }
+
+    if (!firstAvailableDateOfTheMonth) {
+      props.onChange(null);
+    }
+  };
+
+  useEffect(useHandleInitialDateSelection);
+
   return (
     <>
-      {days.map((day, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -194,10 +233,7 @@ const Days = ({
               onClick={() => {
                 props.onChange(day);
               }}
-              disabled={
-                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
-                excludedDates.includes(yyyymmdd(day))
-              }
+              disabled={disabled}
               active={isActive(day)}
             />
           )}

@@ -1,0 +1,138 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+import { Fragment } from "react";
+
+import { FilterCheckboxFieldsContainer } from "@calcom/features/filters/components/TeamsFilter";
+import {
+  CustomArgsTable,
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+import { Button, CheckboxField } from "@calcom/ui";
+
+import { List, ListItem } from "../list";
+import { AnimatedPopover } from "./AnimatedPopover";
+
+<Meta title="UI/Popover" component={AnimatedPopover} />
+
+<Title title="Popover" suffix="Brief" subtitle="Version 1.0 — Last Update: 29 Aug 2023" />
+
+## Definition
+
+The `Popover` component is used to display rich content in a portal.
+
+## Structure
+
+The `Popover` component can be used to display a rich content in a portal.
+
+<CustomArgsTable of={AnimatedPopover} />
+
+## Examples
+
+<Examples>
+  <Example title="Default">
+    <TooltipProvider>
+      <AnimatedPopover text="Go">
+        <FilterCheckboxFieldsContainer>
+          {["First", "Second", "Third"]?.map((eventType) => (
+            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+              <CheckboxField
+                checked={false}
+                onChange={(e) => {
+                  console.log("changed ", e);
+                }}
+                description={eventType}
+              />
+            </div>
+          ))}
+        </FilterCheckboxFieldsContainer>
+      </AnimatedPopover>
+    </TooltipProvider>
+  </Example>
+  <Example title="With Trigger">
+    <TooltipProvider>
+      <AnimatedPopover text="Go" Trigger={<button>click here</button>}>
+        <FilterCheckboxFieldsContainer>
+          {["First", "Second", "Third"]?.map((eventType) => (
+            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+              <CheckboxField
+                checked={false}
+                onChange={(e) => {
+                  console.log("changed ", e);
+                }}
+                description={eventType}
+              />
+            </div>
+          ))}
+        </FilterCheckboxFieldsContainer>
+      </AnimatedPopover>
+    </TooltipProvider>
+  </Example>
+  <Example title="With count">
+    <TooltipProvider>
+      <AnimatedPopover text="Go here" count={1}>
+        <FilterCheckboxFieldsContainer>
+          {["First", "Second", "Third"]?.map((eventType) => (
+            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+              <CheckboxField
+                checked={false}
+                onChange={(e) => {
+                  console.log("changed ", e);
+                }}
+                description={eventType}
+              />
+            </div>
+          ))}
+        </FilterCheckboxFieldsContainer>
+      </AnimatedPopover>
+    </TooltipProvider>
+  </Example>
+</Examples>
+
+## Popover Story
+
+<Canvas>
+  <Story
+    name="Popover"
+    args={{
+      text: "Go",
+      childrenText: "Here is it",
+      defaultOpen: false,
+    }}
+    argTypes={{
+      count: {
+        control: {
+          type: "number",
+        },
+      },
+    }}>
+    {({ text, childrenText, count, defaultOpen }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={50}>
+        <VariantRow>
+          <TooltipProvider>
+            <AnimatedPopover text={text} count={count} defaultOpen={defaultOpen}>
+              <FilterCheckboxFieldsContainer>
+                {["First", "Second", "Third"]?.map((eventType) => (
+                  <div
+                    key={eventType.value}
+                    className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+                    <CheckboxField
+                      checked={false}
+                      onChange={(e) => {
+                        console.log("changed ", e);
+                      }}
+                      description={eventType}
+                    />
+                  </div>
+                ))}
+              </FilterCheckboxFieldsContainer>
+            </AnimatedPopover>
+          </TooltipProvider>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

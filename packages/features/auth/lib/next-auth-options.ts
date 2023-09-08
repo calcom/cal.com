@@ -8,10 +8,11 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
+import { getOrgFullDomain, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
@@ -62,6 +63,7 @@ const providers: Provider[] = [
       email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
       password: { label: "Password", type: "password", placeholder: "Your super secure password" },
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+      backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
     async authorize(credentials) {
       if (!credentials) {
@@ -85,6 +87,7 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          backupCodes: true,
           locale: true,
           organization: {
             select: {
@@ -126,7 +129,33 @@ const providers: Provider[] = [
         }
       }
 
-      if (user.twoFactorEnabled) {
+      if (user.twoFactorEnabled && credentials.backupCode) {
+        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+          console.error("Missing encryption key; cannot proceed with backup code login.");
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+
+        const backupCodes = JSON.parse(
+          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
+        );
+
+        // check if user-supplied code matches one
+        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
+        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
+
+        // delete verified backup code and re-encrypt remaining
+        backupCodes[index] = null;
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+          },
+        });
+      } else if (user.twoFactorEnabled) {
         if (!credentials.totpCode) {
           throw new Error(ErrorCode.SecondFactorRequired);
         }
@@ -359,7 +388,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
-          locale: session?.locale ?? token.locale,
+          locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
@@ -374,7 +403,14 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
-            organizationId: true,
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                metadata: true,
+              },
+            },
             role: true,
             locale: true,
             teams: {
@@ -391,12 +427,23 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
+
+        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
+          org: organization
+            ? {
+                id: organization.id,
+                name: organization.name,
+                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
+                fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                domainSuffix: subdomainSuffix(),
+              }
+            : undefined,
         };
       };
       if (!user) {
@@ -420,7 +467,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
-          organizationId: user?.organizationId,
+          org: user?.org,
           locale: user?.locale,
         };
       }
@@ -459,7 +506,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: existingUser.locale,
         };
       }
@@ -479,7 +526,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: token.locale,
         },
       };
