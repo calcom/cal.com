@@ -1,4 +1,4 @@
-import { afterEach, test, vi, expect } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 import CalendarService from "./CalendarService";
@@ -25,6 +25,12 @@ const testCredential = {
   teamId: 1,
 };
 
+const testSelectedCalendar = {
+  userId: 1,
+  integration: "google_calendar",
+  externalId: "example@cal.com",
+};
+
 vi.mock("./getGoogleAppKeys", () => ({
   getGoogleAppKeys: vi.fn().mockResolvedValue({
     client_id: "xxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
@@ -33,17 +39,55 @@ vi.mock("./getGoogleAppKeys", () => ({
   }),
 }));
 
-test("Calendar Cache is being called", async () => {
-  prismaMock.calendarCache.findUnique.mockResolvedValue(null);
-  const calendarService = new CalendarService(testCredential);
-
-  const availability = calendarService.getAvailability(new Date().toISOString(), new Date().toISOString(), [
-    {
-      userId: 4,
-      integration: "google_calendar",
-      externalId: "example@cal.com",
+const testFreeBusyResponse = {
+  kind: "calendar#freeBusy",
+  timeMax: "2024-01-01T20:59:59.000Z",
+  timeMin: "2023-11-30T20:00:00.000Z",
+  calendars: {
+    "example@cal.com": {
+      busy: [
+        { end: "2023-12-01T19:00:00Z", start: "2023-12-01T18:00:00Z" },
+        { end: "2023-12-04T19:00:00Z", start: "2023-12-04T18:00:00Z" },
+      ],
     },
+    "xxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com": { busy: [] },
+  },
+};
+
+const calendarCacheResponse = {
+  key: "dummy",
+  expiresAt: new Date(),
+  credentialId: 1,
+  value: testFreeBusyResponse,
+};
+
+test("Calendar Cache is being called", async () => {
+  prismaMock.calendarCache.findUnique
+    // First call won't have a cache
+    .mockResolvedValueOnce(null)
+    // Second call will have a cache
+    .mockResolvedValueOnce(calendarCacheResponse);
+
+  // prismaMock.calendarCache.create.mock.
+  const calendarService = new CalendarService(testCredential);
+  // @ts-expect-error authedCalendar is a private method, hence the TS error
+  vi.spyOn(calendarService, "authedCalendar").mockReturnValue(
+    // @ts-expect-error trust me bro
+    {
+      freebusy: {
+        query: vi.fn().mockReturnValue({
+          data: testFreeBusyResponse,
+        }),
+      },
+    }
+  );
+
+  await calendarService.getAvailability(new Date().toISOString(), new Date().toISOString(), [
+    testSelectedCalendar,
   ]);
-  console.log("availability", availability);
+  await calendarService.getAvailability(new Date().toISOString(), new Date().toISOString(), [
+    testSelectedCalendar,
+  ]);
   expect(prismaMock.calendarCache.findUnique).toHaveBeenCalled();
+  expect(prismaMock.calendarCache.create).toHaveBeenCalledOnce();
 });

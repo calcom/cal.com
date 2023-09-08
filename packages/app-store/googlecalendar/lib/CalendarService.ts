@@ -341,7 +341,7 @@ export default class GoogleCalendarService implements Calendar {
       },
     });
 
-    if (cached) return cached as unknown as calendar_v3.Schema$FreeBusyResponse;
+    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
 
     const apires = await calendar.freebusy.query({
       requestBody: { timeMin, timeMax, items },
