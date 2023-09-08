@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import MercadoPago from "@calcom/app-store/mercadopago/lib/MercadoPago";
 import { mercadoPagoCredentialSchema } from "@calcom/app-store/mercadopago/lib/mercadoPagoCredentialSchema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -27,6 +28,18 @@ export class PaymentService implements IAbstractPaymentService {
         key: parse.data,
       },
     });
+  }
+
+  private async getPayment(where: Prisma.PaymentWhereInput) {
+    const payment = await prisma.payment.findFirst({ where });
+    if (!payment) throw new Error("Payment not found");
+    if (!payment.externalId) throw new Error("Payment externalId not found");
+    if (!payment.data) throw new Error("Payment `data` not set");
+    return {
+      ...payment,
+      externalId: payment.externalId,
+      mercadoPagoPaymentId: (payment.data as { paymentId: string }).paymentId,
+    };
   }
 
   async create(
@@ -112,9 +125,36 @@ export class PaymentService implements IAbstractPaymentService {
   async update(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  async refund(_paymentId: Payment["id"]): Promise<Payment> {
-    throw new Error("Method not implemented.");
+
+  async refund(paymentId: Payment["id"]): Promise<Payment> {
+    try {
+      const payment = await this.getPayment({
+        id: paymentId,
+        success: true,
+        refunded: false,
+      });
+
+      const refund = await this.mercadoPago.refundPayment(payment.mercadoPagoPaymentId);
+
+      if (refund.status === "cancelled" || refund.status === "rejected") {
+        throw new Error("Refund failed");
+      }
+
+      const updatedPayment = await prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          refunded: true,
+        },
+      });
+      return updatedPayment;
+    } catch (e) {
+      const err = getErrorFromUnknown(e);
+      throw err;
+    }
   }
+
   async collectCard(
     _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     _bookingId: number,
@@ -123,18 +163,22 @@ export class PaymentService implements IAbstractPaymentService {
   ): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
+
   chargeCard(
     _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     _bookingId: number
   ): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
+
   getPaymentPaidStatus(): Promise<string> {
     throw new Error("Method not implemented.");
   }
+
   getPaymentDetails(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
+
   afterPayment(
     _event: CalendarEvent,
     _booking: {
@@ -147,6 +191,7 @@ export class PaymentService implements IAbstractPaymentService {
   ): Promise<void> {
     return Promise.resolve();
   }
+
   deletePayment(_paymentId: number): Promise<boolean> {
     return Promise.resolve(false);
   }

@@ -249,6 +249,22 @@ class MercadoPago {
       throw new Error(error.message);
     }
   }
+
+  async refundPayment(paymentId: string) {
+    const response = await this.fetcher(`/v1/payments/${paymentId}/refunds`, {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      const data: MercadoPagoRefund = await response.json();
+
+      return data;
+    } else {
+      const error: MPError = await response.json();
+      console.error(`Request failed with status ${response.status}:`, error);
+      throw new Error(error.message);
+    }
+  }
 }
 
 type GetOAuthTokenArg =
@@ -474,5 +490,30 @@ type SearchedPayment = [
     results: MercadoPagoPayment[];
   }
 ];
+
+/**
+ * Represents the current status of the payment refund.
+ */
+type RefundStatus = "approved" | "in_process" | "rejected" | "cancelled" | "authorized";
+
+type MercadoPagoRefund = {
+  id: number;
+  payment_id: number;
+  amount: number;
+  metadata: Record<string, string | number>[];
+  source: [
+    {
+      name: string;
+      id: string;
+      type: string;
+    }
+  ];
+  date_created: string;
+  unique_sequence_number: number | null;
+  refund_mode: string;
+  adjustment_amount: number;
+  status: RefundStatus;
+  reason: string | null;
+};
 
 export default MercadoPago;
