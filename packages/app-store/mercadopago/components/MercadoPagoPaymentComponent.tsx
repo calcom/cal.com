@@ -31,7 +31,7 @@ export default function MercadoPagoPaymentComponent({ payment }: Props) {
   return (
     <div className="mt-4 flex h-full w-full flex-col items-center justify-center">
       <Link
-        href={`${parsedData.data.preference.sandbox_init_point}`}
+        href={`${parsedData.data.preference.init_point}`}
         className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent bg-[#009ee3] px-6 py-2 text-base
         font-medium text-white shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
         <img src="/api/app-store/mercadopago/icon.svg" alt="MercadoPago" className="mr-2 w-10" />
