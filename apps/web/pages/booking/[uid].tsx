@@ -90,6 +90,7 @@ const querySchema = z.object({
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  mercadoPagoPaymentStatus: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -105,6 +106,7 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
+    mercadoPagoPaymentStatus,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
@@ -225,6 +227,21 @@ export default function Success(props: SuccessProps) {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (mercadoPagoPaymentStatus === "success") {
+      router.push(
+        {
+          query: {
+            uid: props.bookingInfo.uid,
+          },
+        },
+        undefined,
+        { shallow: true }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mercadoPagoPaymentStatus]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
