@@ -7,6 +7,20 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
+vi.mock("@calcom/features/flags/server/utils", () => ({
+  getFeatureFlagMap: vi.fn().mockResolvedValue({
+    "calendar-cache": true,
+  }),
+}));
+
+vi.mock("./getGoogleAppKeys", () => ({
+  getGoogleAppKeys: vi.fn().mockResolvedValue({
+    client_id: "xxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
+    client_secret: "xxxxxxxxxxxxxxxxxx",
+    redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
+  }),
+}));
+
 const googleTestCredential = {
   scope: "https://www.googleapis.com/auth/calendar.events",
   token_type: "Bearer",
@@ -30,14 +44,6 @@ const testSelectedCalendar = {
   integration: "google_calendar",
   externalId: "example@cal.com",
 };
-
-vi.mock("./getGoogleAppKeys", () => ({
-  getGoogleAppKeys: vi.fn().mockResolvedValue({
-    client_id: "xxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
-    client_secret: "xxxxxxxxxxxxxxxxxx",
-    redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
-  }),
-}));
 
 const testFreeBusyResponse = {
   kind: "calendar#freeBusy",
@@ -89,5 +95,5 @@ test("Calendar Cache is being called", async () => {
     testSelectedCalendar,
   ]);
   expect(prismaMock.calendarCache.findUnique).toHaveBeenCalled();
-  expect(prismaMock.calendarCache.create).toHaveBeenCalledOnce();
+  expect(prismaMock.calendarCache.upsert).toHaveBeenCalledOnce();
 });

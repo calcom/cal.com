@@ -4,6 +4,7 @@ import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
@@ -26,6 +27,34 @@ interface GoogleCalError extends Error {
 
 const ONE_MINUTE_MS = 60 * 1000;
 const CACHING_TIME = ONE_MINUTE_MS;
+
+/** Expand the start date to the start of the month */
+function getTimeMin(timeMin: string) {
+  const dateMin = new Date(timeMin);
+  return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
+}
+
+/** Expand the end date to the end of the month */
+function getTimeMax(timeMax: string) {
+  const dateMax = new Date(timeMax);
+  return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
+}
+
+/**
+ * Enable or disable the expanded cache
+ * TODO: Make this configurable
+ * */
+const ENABLE_EXPANDED_CACHE = true;
+
+/**
+ * By expanding the cache to whole months, we can save round trips to the third party APIs.
+ * In this case we already have the data in the database, so we can just return it.
+ */
+function handleMinMax(min: string, max: string) {
+  if (!ENABLE_EXPANDED_CACHE) return { timeMin: min, timeMax: max };
+  return { timeMin: getTimeMin(min), timeMax: getTimeMax(max) };
+}
+
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
@@ -329,8 +358,18 @@ export default class GoogleCalendarService implements Calendar {
     items: { id: string }[];
   }): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const calendar = await this.authedCalendar();
-    const { timeMin, timeMax, items } = args;
-    const key = JSON.stringify(args);
+    const flags = await getFeatureFlagMap(prisma);
+    if (!flags["calendar-cache"]) {
+      this.log.warn("Calendar Cache is disabled - Skipping");
+      const { timeMin, timeMax, items } = args;
+      const apires = await calendar.freebusy.query({
+        requestBody: { timeMin, timeMax, items },
+      });
+      return apires.data;
+    }
+    const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
+    const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
+    const key = JSON.stringify({ timeMin, timeMax, items });
     const cached = await prisma.calendarCache.findUnique({
       where: {
         credentialId_key: {
@@ -347,8 +386,18 @@ export default class GoogleCalendarService implements Calendar {
       requestBody: { timeMin, timeMax, items },
     });
 
-    await prisma.calendarCache.create({
-      data: {
+    await prisma.calendarCache.upsert({
+      where: {
+        credentialId_key: {
+          credentialId: this.credential.id,
+          key,
+        },
+      },
+      update: {
+        value: JSON.parse(JSON.stringify(apires.data)),
+        expiresAt: new Date(Date.now() + CACHING_TIME),
+      },
+      create: {
         value: JSON.parse(JSON.stringify(apires.data)),
         credentialId: this.credential.id,
         key,
