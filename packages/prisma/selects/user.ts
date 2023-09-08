@@ -23,7 +23,6 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
-  email: true,
   name: true,
   destinationCalendar: true,
   locale: true,
@@ -36,7 +35,6 @@ export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
 
 export const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
-    email: true,
     name: true,
     allowDynamicBooking: true,
     destinationCalendar: true,
