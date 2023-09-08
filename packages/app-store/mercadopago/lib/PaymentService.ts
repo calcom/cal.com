@@ -52,6 +52,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
+
       if (!booking) {
         throw new Error("Booking not found");
       }
@@ -59,24 +60,24 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Booking not related to an EventType");
       }
 
-      const uid = uuidv4();
+      const paymentUid = uuidv4();
 
       const preferenceResult = await this.mercadoPago.createPreference({
         amount: payment.amount / 100,
         currency: payment.currency,
-        paymentUid: uid,
+        paymentUid,
         bookingId,
         eventTypeId: booking.eventTypeId,
         bookerEmail,
         eventName: eventTitle || "",
-        notificationUrl: `${WEBAPP_URL}/api/integrations/mercadopago/webhook?external_reference=${uid}`,
-        returnUrl: `${WEBAPP_URL}/booking/${bookingId}?mercadoPagoPaymentStatus=success`,
-        cancelUrl: `${WEBAPP_URL}/payment/${uid}`,
+        notificationUrl: `${WEBAPP_URL}/api/integrations/mercadopago/webhook?external_reference=${paymentUid}`,
+        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}?mercadoPagoPaymentStatus=success`,
+        cancelUrl: `${WEBAPP_URL}/payment/${paymentUid}`,
       });
 
       const paymentData = await prisma.payment.create({
         data: {
-          uid,
+          uid: paymentUid,
           app: {
             connect: {
               slug: "mercadopago",
@@ -94,6 +95,7 @@ export class PaymentService implements IAbstractPaymentService {
           fee: 0,
           refunded: false,
           success: false,
+          paymentOption: paymentOption || "ON_BOOKING",
         },
       });
 

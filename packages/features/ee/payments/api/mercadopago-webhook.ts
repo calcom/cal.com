@@ -38,11 +38,21 @@ async function getEventType(id: number) {
   });
 }
 
-export async function handlePaymentSuccess(payload: z.infer<typeof extendedEventSchema>) {
-  // We have the payment ID
+export async function handlePaymentSuccess(payload: z.infer<typeof eventSchema>) {
+  // We have MercadoPago payment id from the payload
+  const { client_id, client_secret } = await getMercadoPagoAppKeys();
+
+  const mercadoPago = new MercadoPago({ clientId: client_id, clientSecret: client_secret });
+  const mercadoPagoPayment = await mercadoPago.getPayment(payload.data.id);
+
+  if (!mercadoPagoPayment) throw new HttpCode({ statusCode: 204, message: "No payment found" });
+  if (!mercadoPagoPayment.external_reference)
+    throw new HttpCode({ statusCode: 204, message: "Payment without `external_reference` found" });
+
+  // Search the Payment from the MP payment's external_reference
   const payment = await prisma.payment.findFirst({
     where: {
-      externalId: payload.external_reference,
+      uid: mercadoPagoPayment.external_reference,
     },
     select: {
       id: true,
@@ -85,16 +95,7 @@ export async function handlePaymentSuccess(payload: z.infer<typeof extendedEvent
   });
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
-  if (!booking.userId) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  const userCredentials = await findPaymentCredentials(booking.userId);
-  if (!userCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
-
-  const { client_id, client_secret } = await getMercadoPagoAppKeys();
-
-  const mercadoPago = new MercadoPago({ clientId: client_id, clientSecret: client_secret, userCredentials });
-  const mercadoPagoPayment = await mercadoPago.getPayment(payload.data.id);
-
+  if (!booking.user) throw new HttpCode({ statusCode: 204, message: "No user found" });
   if (mercadoPagoPayment.status !== "approved") {
     throw new HttpCode({
       statusCode: 200,
@@ -102,6 +103,7 @@ export async function handlePaymentSuccess(payload: z.infer<typeof extendedEvent
     });
   }
 
+  // TODO: All of the code below is the same as stripe/paypal/mercadopago, could be centralized in a helper to avoid code duplication.
   type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
@@ -109,8 +111,6 @@ export async function handlePaymentSuccess(payload: z.infer<typeof extendedEvent
   }
 
   const { user } = booking;
-
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
   const t = await getTranslation(user.locale ?? "en", "common");
   const attendeesListPromises = booking.attendees.map(async (attendee) => {
@@ -212,8 +212,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const bodyRaw = await getRawBody(req);
     const bodyAsString = bodyRaw.toString();
+    console.log("bodyAsString", JSON.parse(bodyAsString));
 
-    const parse = extendedEventSchema.safeParse(JSON.parse(bodyAsString));
+    const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
       console.error(parse.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
@@ -221,8 +222,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data: parsedPayload } = parse;
 
+    console.log("parsedPayload", parsedPayload);
+
     if (parsedPayload.type === "payment" && parsedPayload.action === "payment.created") {
       return await handlePaymentSuccess(parsedPayload);
+    } else {
+      throw new HttpCode({
+        statusCode: 202,
+        message: `Unhandled MercadoPago Webhook event type ${parsedPayload.type} (${parsedPayload.action})`,
+      });
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
@@ -239,21 +247,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 const eventSchema = z.object({
-  id: z.number(),
-  live_mode: z.boolean(),
-  type: z.enum(["payment"]),
-  date_created: z.string().datetime(),
-  user_id: z.number(),
-  api_version: z.string(),
   action: z.enum(["payment.created", "payment.updated"]),
+  api_version: z.string(),
   data: z.object({
     id: z.preprocess(String, z.string()),
   }),
-});
-
-const extendedEventSchema = eventSchema.extend({
-  // Added when set the `notification_url` in `PaymentService`.
-  external_reference: z.string().uuid(),
+  date_created: z.string().datetime(),
+  id: z.preprocess(Number, z.number()),
+  live_mode: z.boolean(),
+  type: z.enum(["payment"]),
+  user_id: z.string(),
 });
 
 export const findPaymentCredentials = async (

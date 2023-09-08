@@ -1,3 +1,4 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import {
@@ -27,10 +28,7 @@ class MercadoPago {
    * @returns Redirect uri to MercadoPago's callback in Cal.com
    */
   private getRedirectUri() {
-    const NGROK_TUNNEL = "https://5fc518aa5ef9.ngrok.app";
-    // TODO: Uncomment and remove ngrok tunnel before creating PR.
-    // const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/mercadopago/callback");
-    const redirectUri = encodeURI(NGROK_TUNNEL + "/api/integrations/mercadopago/callback");
+    const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/mercadopago/callback");
     return redirectUri;
   }
 
@@ -230,7 +228,17 @@ class MercadoPago {
   }
 
   async getPayment(paymentId: string) {
-    const response = await this.fetcher(`/v1/payments/${paymentId}`);
+    const endpoint = `/v1/payments/${paymentId}`;
+
+    const response = this.userCredentials
+      ? await this.fetcher(endpoint)
+      : await fetch(`${this.url}${endpoint}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.clientSecret}`,
+          },
+        });
+
     if (response.ok) {
       const data: MercadoPagoPayment = await response.json();
 
@@ -451,6 +459,8 @@ type MercadoPagoPayment = {
       number: number;
     };
   };
+  /** External reference to sync with Cal.com ayments (`uid` property in `Payment` model). */
+  external_reference?: string;
   metadata: Record<string, string | number>;
 };
 
