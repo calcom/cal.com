@@ -1,7 +1,6 @@
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
 
-import dayjs from "@calcom/dayjs";
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -150,7 +149,6 @@ export async function createNewUserConnectToOrgIfExists({
     data: {
       email: usernameOrEmail,
       invitedTo: input.teamId,
-      emailVerified: dayjs().toISOString(),
       organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
         create: {

@@ -26,6 +26,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
+import dayjs from "@calcom/dayjs";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -255,6 +256,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       ],
     },
   });
+
+  if (existingUser?.organizationId){
+    await prisma.user.update({
+      where: {
+        email: verificationToken?.identifier,
+      },
+      data: {
+        emailVerified: dayjs().toISOString()
+      },
+    })
+  }
 
   if (existingUser) {
     return {
