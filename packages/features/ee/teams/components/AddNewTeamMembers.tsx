@@ -215,7 +215,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const session = useSession();
   const bookerUrl = useBookerUrl();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
