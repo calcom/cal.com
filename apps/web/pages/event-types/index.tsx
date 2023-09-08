@@ -715,12 +715,17 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={profile?.image || undefined}
+        imageSrc={
+          orgBranding?.fullDomain
+            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
+            : profile.image
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />
