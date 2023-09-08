@@ -83,7 +83,7 @@ export class PaymentService implements IAbstractPaymentService {
         eventTypeId: booking.eventTypeId,
         bookerEmail,
         eventName: eventTitle || "",
-        notificationUrl: `${WEBAPP_URL}/api/integrations/mercadopago/webhook?external_reference=${paymentUid}`,
+        notificationUrl: `${WEBAPP_URL}/api/integrations/mercadopago/webhook`,
         returnUrl: `${WEBAPP_URL}/booking/${booking.uid}?mercadoPagoPaymentStatus=success`,
         cancelUrl: `${WEBAPP_URL}/payment/${paymentUid}`,
       });
