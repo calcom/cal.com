@@ -175,8 +175,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  console.log("initialData?.currentBookings", initialData?.currentBookings);
-
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
     startTime: getBusyTimesStart,
