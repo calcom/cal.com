@@ -180,6 +180,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     endTime: getBusyTimesEnd,
     eventTypeId,
     userId: user.id,
+    userEmail: user.email,
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,

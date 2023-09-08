@@ -148,7 +148,7 @@
   "app_is_connected": "{{dependencyName}} இணைக்கப்பட்டுள்ளது",
   "requires_app": "{{dependencyName}} தேவை",
   "verification_code": "சரிபார்ப்பு குறியீடு",
-  "can_you_try_again": "வேறு நேரத்தில் மீண்டும் முயற்சிக்க முடியுமா?",
+  "can_you_try_again": "இந்த பதிவு முடிந்துவிட்டது.",
   "verify": "சரிபார்க்கவும்",
   "invalid_event_name_variables": "உங்கள் நிகழ்வின் பெயரில் பிழை உள்ளது",
   "select_all": "அனைத்தையும் தேர்வுசெய்",
