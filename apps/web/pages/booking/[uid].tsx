@@ -917,6 +917,7 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       periodStartDate: true,
       periodEndDate: true,
     },
@@ -940,6 +941,7 @@ const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
+    seatsShowAvailabilityCount: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<

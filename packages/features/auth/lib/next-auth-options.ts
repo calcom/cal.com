@@ -8,6 +8,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
+import { getOrgFullDomain, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -402,7 +403,14 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
-            organizationId: true,
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                metadata: true,
+              },
+            },
             role: true,
             locale: true,
             teams: {
@@ -419,12 +427,23 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
+
+        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
+          org: organization
+            ? {
+                id: organization.id,
+                name: organization.name,
+                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
+                fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                domainSuffix: subdomainSuffix(),
+              }
+            : undefined,
         };
       };
       if (!user) {
@@ -448,7 +467,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
-          organizationId: user?.organizationId,
+          org: user?.org,
           locale: user?.locale,
         };
       }
@@ -487,7 +506,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: existingUser.locale,
         };
       }
@@ -507,7 +526,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token?.organizationId,
+          org: token?.org,
           locale: token.locale,
         },
       };
