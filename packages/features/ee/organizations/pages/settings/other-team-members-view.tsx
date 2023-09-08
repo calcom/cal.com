@@ -69,7 +69,7 @@ const MembersView = () => {
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState<boolean>(false);
   const [members, setMembers] = useState<Members>([]);
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
   const { data: team, isLoading: isTeamLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId },
