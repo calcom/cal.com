@@ -9,7 +9,7 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Editor, ImageUploader, Input, Label, showToast } from "@calcom/ui";
+import { Avatar, Button, Editor, ImageUploader, Input, InputField, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
@@ -71,11 +71,6 @@ const UserProfile = () => {
 
     if (!linkedInProfileValue || !titleValue) {
       showToast(t("Please fill the Linkedin Profile url and Title."), "error");
-      return;
-    }
-    const linkedInProfileRegex = /^https:\/\/www\.linkedin\.com\//;
-    if (!linkedInProfileRegex.test(linkedInProfileValue)) {
-      showToast(t("LinkedIn Profile URL must start with 'https://www.linkedin.com/'."), "error");
       return;
     }
     telemetry.event(telemetryEventTypes.onboardingFinished);
@@ -167,7 +162,7 @@ const UserProfile = () => {
 
       <fieldset className="mt-8">
         <Label className="text-default mb-2 block text-sm font-medium">{t("LinkedIn Profile")}</Label>
-        <Input placeholder="URL" ref={linkedInProfileRef} />
+        <InputField addOnLeading={<>https://linkedin.com/</>} ref={linkedInProfileRef} />
       </fieldset>
       <fieldset className="mt-8 flex justify-between">
         <div className="w-[45%]">

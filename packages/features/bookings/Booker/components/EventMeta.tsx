@@ -80,7 +80,7 @@ export const EventMeta = () => {
               <div dangerouslySetInnerHTML={{ __html: "💰 Session Reward : " + event.amount + " USD" }} />
               <div
                 className=" pt-2 font-extralight"
-                dangerouslySetInnerHTML={{ __html: "Settled immediately after payment completion" }}
+                dangerouslySetInnerHTML={{ __html: "Settled immediately after session completion" }}
               />
             </EventMetaBlock>
           )}

@@ -1,80 +1,37 @@
 import type { Booking, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
-import z from "zod";
 
 import prisma from "@calcom/prisma";
 
-//import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
-
-const stripeCredentialKeysSchema = z.object({
-  stripe_user_id: z.string(),
-  default_currency: z.string(),
-  stripe_publishable_key: z.string(),
-});
-
-// const stripeAppKeysSchema = z.object({
-//   client_id: z.string(),
-//   payment_fee_fixed: z.number(),
-//   payment_fee_percentage: z.number(),
-// });
-
 export class PaymentServiceEvent {
   private stripe: Stripe;
-  //private credentials: z.infer<typeof stripeCredentialKeysSchema>;
-
   constructor() {
-    console.log(process.env.STRIPE_PRIVATE_KEY);
-    // parse credentials key
-    //this.credentials = stripeCredentialKeysSchema.parse(credentials.key);
     this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
       apiVersion: "2020-08-27",
     });
   }
-
-  // private async getPayment(where: Prisma.PaymentWhereInput) {
-  //   const payment = await prisma.payment.findFirst({ where });
-  //   if (!payment) throw new Error("Payment not found");
-  //   if (!payment.externalId) throw new Error("Payment externalId not found");
-  //   return { ...payment, externalId: payment.externalId };
-  // }
-
-  /* This method is for creating charges at the time of booking */
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount">,
     bookingId: Booking["id"],
     bookerEmail: string,
-    title: string
+    title: string,
+    slug: string,
+    username: string
   ) {
     try {
-      // Ensure that the payment service can support the passed payment option
-      // Load stripe keys
-      // const stripeAppKeys = await prisma.app.findFirst({
-      //   select: {
-      //     keys: true,
-      //   },
-      //   where: {
-      //     slug: "stripe",
-      //   },
-      // });
-
-      // const customer = await retrieveOrCreateStripeCustomerByEmail(
-      //   bookerEmail,
-      //   this.credentials.stripe_user_id
-      // );
-
-      // const params: Stripe.PaymentIntentCreateParams = {
-      //   amount: payment.amount,
-      //   currency: this.credentials.default_currency,
-      //   payment_method_types: ["card"],
-      //   customer: customer.id,
-      // };
       const params: Stripe.Checkout.SessionCreateParams = {
         submit_type: "pay",
         payment_method_types: ["card"],
         mode: "payment",
         allow_promotion_codes: true,
         client_reference_id: bookingId.toString(),
+        customer_email: bookerEmail,
+        payment_intent_data: {
+          metadata: {
+            secret: slug,
+          },
+        },
         line_items: [
           {
             price_data: {
@@ -88,12 +45,10 @@ export class PaymentServiceEvent {
           },
         ],
 
-        success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/event-types/${bookingId}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}`,
+        success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/event-types/${bookingId}?payment=success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/event-types/?dialog=new&eventPage=${username}`,
       };
-      // const paymentIntent = await this.stripe.paymentIntents.create(params, {
-      //   stripeAccount: this.credentials.stripe_user_id,
-      // });
+
       const checkoutSession: Stripe.Checkout.Session = await this.stripe.checkout.sessions.create(params);
       if (!checkoutSession) {
         throw new Error();
