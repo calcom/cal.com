@@ -13,6 +13,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
+  userEmail: string;
   username: string;
   eventTypeId?: number;
   startTime: string;
@@ -27,6 +28,7 @@ export async function getBusyTimes(params: {
   const {
     credentials,
     userId,
+    userEmail,
     username,
     eventTypeId,
     startTime,
@@ -45,15 +47,6 @@ export async function getBusyTimes(params: {
       status: BookingStatus.ACCEPTED,
     })}`
   );
-  // get user email for attendee checking.
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
-    select: {
-      email: true,
-    },
-  });
 
   /**
    * A user is considered busy within a given time period if there
@@ -97,7 +90,7 @@ export async function getBusyTimes(params: {
           ...sharedQuery,
           attendees: {
             some: {
-              email: user.email,
+              email: userEmail,
             },
           },
         },
