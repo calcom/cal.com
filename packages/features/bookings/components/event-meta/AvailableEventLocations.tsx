@@ -22,9 +22,8 @@ function RenderIcon({
     <img
       src={eventLocationType.iconUrl}
       className={classNames(
-        "me-[10px]  h-4 w-4 opacity-70 dark:opacity-100",
-        !eventLocationType.iconUrl?.startsWith("/app-store") ? "dark:invert-[.65]" : "",
-        !eventLocationType.iconUrl?.startsWith("/app-store") && isTooltip && "invert"
+        eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
+        "me-[10px] h-4 w-4"
       )}
       alt={`${eventLocationType.label} icon`}
     />

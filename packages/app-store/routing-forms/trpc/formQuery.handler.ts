@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";

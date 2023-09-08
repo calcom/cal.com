@@ -9,9 +9,10 @@ import type { PublicEvent } from "../../types";
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
-  const [selectedDuration, setSelectedDuration] = useBookerStore((state) => [
+  const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
+    state.state,
   ]);
 
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
@@ -30,14 +31,16 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {durations.map((duration) => (
-        <Badge
-          variant="gray"
-          className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
-          size="md"
-          key={duration}
-          onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
-      ))}
+      {durations
+        .filter((dur) => state !== "booking" || dur === selectedDuration)
+        .map((duration) => (
+          <Badge
+            variant="gray"
+            className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
+            size="md"
+            key={duration}
+            onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
+        ))}
     </div>
   );
 };
