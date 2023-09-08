@@ -50,14 +50,20 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback
-          delayMs={600}
-          asChild={props.asChild}
-          className="flex h-full items-center justify-center">
-          <>
-            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
-          </>
-        </AvatarPrimitive.Fallback>
+        {!imageSrc && (
+          <AvatarPrimitive.Fallback
+            delayMs={600}
+            asChild={props.asChild}
+            className="flex h-full items-center justify-center">
+            <>
+              {props.fallback ? (
+                props.fallback
+              ) : (
+                <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />
+              )}
+            </>
+          </AvatarPrimitive.Fallback>
+        )}
         {indicator}
       </>
     </AvatarPrimitive.Root>
