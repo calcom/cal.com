@@ -85,7 +85,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const oldEvent = await prisma.eventType.findFirst({
+    const oldEvent = await ctx.prisma.eventType.findFirst({
       where: {
         userId: userId,
         slug: data.slug,
