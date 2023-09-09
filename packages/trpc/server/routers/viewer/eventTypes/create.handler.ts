@@ -133,6 +133,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       paymentUid: payment,
     };
   } catch (e) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
+    throw new TRPCError({ code: "BAD_REQUEST", message: e });
   }
 };

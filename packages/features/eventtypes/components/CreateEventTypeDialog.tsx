@@ -155,12 +155,12 @@ export default function CreateEventTypeDialog({
 
     onError: (err) => {
       if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
+        const message = `${err.statusCode}: ${err}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
+        const message = `${err.data.code}: ${err.message}`;
         showToast(message, "error");
       }
 
