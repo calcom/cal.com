@@ -33,6 +33,7 @@ type SeatedEventData = {
   seatsPerTimeSlot?: number | null;
   attendees?: number;
   bookingUid?: string;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 export type BookerStore = {
@@ -206,6 +207,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     seatsPerTimeSlot: undefined,
     attendees: undefined,
     bookingUid: undefined,
+    showAvailableSeatsCount: true,
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });
