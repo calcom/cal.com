@@ -41,7 +41,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps
-              .sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
+              ?.sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
               .map((app) => {
                 return <AppCard key={app.slug} app={app} />;
               })}
