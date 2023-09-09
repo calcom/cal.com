@@ -160,6 +160,13 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
+      {!selectedDates[0] && (
+        <div className="border-default mx-8 my-8 w-2/5 rounded-2xl border-2 border-dotted">
+          <p className=" text-default my-[50%] text-center align-middle text-sm ">
+            Select the dates to <br /> edit time slots
+          </p>
+        </div>
+      )}
       {selectedDates[0] && (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
