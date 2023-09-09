@@ -161,8 +161,8 @@ const DateOverrideForm = ({
         />
       </div>
       {!selectedDates[0] && (
-        <div className="border-default mx-8 my-8 w-2/5 rounded-2xl border-2 border-dotted">
-          <p className=" text-default my-[50%] text-center align-middle text-sm ">
+        <div className="border-default mx-12 my-3 w-2/3 rounded-2xl border-2 border-dotted md:mx-8 md:my-8 md:w-2/5">
+          <p className=" text-default my-5 text-center align-middle text-sm md:my-[50%] ">
             Select the dates to <br /> edit time slots
           </p>
         </div>
