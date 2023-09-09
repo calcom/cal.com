@@ -244,37 +244,28 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const existingUser = await prisma.user.findFirst({
     where: {
-      AND: [
-        {
-          email: verificationToken?.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
+      email: verificationToken?.identifier,
     },
   });
 
-  if (existingUser?.organizationId) {
-    await prisma.user.update({
-      where: {
-        email: verificationToken?.identifier,
-      },
-      data: {
-        emailVerified: dayjs().toISOString(),
-      },
-    });
-  }
-
   if (existingUser) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
-      },
-    };
+    if (existingUser.emailVerified) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        },
+      };
+    } else if (existingUser.organizationId) {
+      await prisma.user.update({
+        where: {
+          email: verificationToken?.identifier,
+        },
+        data: {
+          emailVerified: dayjs().toISOString(),
+        },
+      });
+    }
   }
 
   const guessUsernameFromEmail = (email: string) => {
