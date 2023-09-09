@@ -46,9 +46,9 @@ export function InviteMemberModal(props: Props) {
     },
   });
 
-  if (!session?.user.organizationId) return null;
+  if (!session?.user.org?.id) return null;
 
-  const orgId = session.user.organizationId;
+  const orgId = session.user.org.id;
 
   return (
     <MemberInvitationModal
