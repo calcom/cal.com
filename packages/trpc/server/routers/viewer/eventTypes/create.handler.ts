@@ -85,7 +85,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const oldEvent = await prisma.eventType.findFirst({
+    const oldEvent = await ctx.prisma.eventType.findFirst({
       where: {
         userId: userId,
         slug: data.slug,
@@ -133,6 +133,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       paymentUid: payment,
     };
   } catch (e) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
+    throw new TRPCError({ code: "BAD_REQUEST", message: e });
   }
 };
