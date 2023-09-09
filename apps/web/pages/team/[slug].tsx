@@ -153,11 +153,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
     ) : (
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-          <div className="text-muted dark:text-inverted p-8 text-center">
-            <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
-              {" " + t("org_no_teams_yet")}
-            </h2>
-            <p className="mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
+          <div className="text-muted p-8 text-center">
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
+            <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
       </div>
