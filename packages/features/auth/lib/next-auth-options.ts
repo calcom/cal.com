@@ -18,7 +18,7 @@ import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -31,6 +31,8 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
+const ORGANIZATIONS_AUTOLINK =
+  process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
 
@@ -53,6 +55,35 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
     return metadata.success && metadata.data?.subscriptionId;
   });
+
+const checkIfUserShouldBelongToOrg = async (
+  email: string
+): Promise<[string | undefined, number | undefined]> => {
+  if (!email || !ORGANIZATIONS_AUTOLINK) return [undefined, undefined];
+  const [username, apexDomain] = email.split("@");
+  const existingOrg = await prisma.team.findFirst({
+    where: {
+      AND: [
+        {
+          metadata: {
+            path: ["isOrganizationVerified"],
+            equals: true,
+          },
+        },
+        {
+          metadata: {
+            path: ["orgAutoAcceptEmail"],
+            equals: apexDomain,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+    },
+  });
+  return [username, existingOrg?.id];
+};
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -735,16 +766,25 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=use-identity-login";
         }
 
+        // Associate with organization if enabled by flag
+        const [orgUsername, orgId] = await checkIfUserShouldBelongToOrg(user.email);
+
         const newUser = await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: usernameSlug(user.name),
+            username: orgId ? orgUsername : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
+            ...(orgId && {
+              organization: { connect: { id: orgId } },
+              teams: {
+                create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+              },
+            }),
           },
         });
 
