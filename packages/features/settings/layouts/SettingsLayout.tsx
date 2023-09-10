@@ -524,6 +524,12 @@ const SettingsSidebarContainer = ({
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
                                 <VerticalTabItem
+                                  name={t("profile")}
+                                  href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
