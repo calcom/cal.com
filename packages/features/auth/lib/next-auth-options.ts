@@ -773,7 +773,8 @@ export const AUTH_OPTIONS: AuthOptions = {
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: orgId ? orgUsername : usernameSlug(user.name),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            username: orgId ? slugify(orgUsername!) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
             email: user.email,
