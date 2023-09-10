@@ -206,6 +206,7 @@ const DateOverrideInputDialog = ({
   value?: TimeRange[];
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [open, setOpen] = useState(false);
   {
     /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
        ref:- https://github.com/calcom/cal.com/pull/6215
@@ -213,11 +214,15 @@ const DateOverrideInputDialog = ({
   }
   const enableOverflow = isMobile;
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
       <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
-        <DateOverrideForm excludedDates={excludedDates} {...passThroughProps} />
+        <DateOverrideForm
+          excludedDates={excludedDates}
+          {...passThroughProps}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
