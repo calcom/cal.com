@@ -142,8 +142,8 @@ const DateOverrideForm = ({
       className="p-6 sm:flex sm:p-0">
       <div
         className={classNames(
-          selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
-          "sm:p-4 md:p-8"
+          selectedDates[0] && "sm:border-subtle w-full sm:pr-6",
+          "sm:border-r sm:p-4 md:p-8"
         )}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
@@ -160,7 +160,8 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {selectedDates[0] && (
+
+      {selectedDates[0] ? (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
             <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
@@ -191,6 +192,12 @@ const DateOverrideForm = ({
             </Button>
             <DialogClose onClick={onClose} />
           </div>
+        </div>
+      ) : (
+        <div className="mx-12 my-3 hidden w-2/3 sm:block md:mx-8 md:my-8 md:w-[42%]">
+          <p className="my-5 text-center align-middle text-sm text-[#484848] md:my-[50%]">
+            Select the dates to <br /> edit time slots
+          </p>
         </div>
       )}
     </Form>
