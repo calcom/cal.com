@@ -14,7 +14,7 @@ From the [Original RFC](https://github.com/calcom/cal.com/issues/7142):
    4. **`NEXTAUTH_COOKIE_DOMAIN`**: In case of local development, this variable should be set to `.cal.local` to be able to accept session cookies in subdomains as well otherwise it should be set to the corresponding environment such as `.cal.dev`, `.cal.qa` or `.cal.com`. If you choose another subdomain, the value for this should match the apex domain of `NEXT_PUBLIC_WEBAPP_URL` with a leading dot (`.`)
    5. **`ORGANIZATIONS_ENABLED`**: Should be set to `1` or `true`
    6. **`STRIPE_ORG_MONTHLY_PRICE_ID`**: For dev and all testing should be set to your own testing key. Or ask for the shared key if you're a core member.
-   7. **`ORGANIZATIONS_AUTOLINK`**: Optional. Should be set to `1` or `true` to let new signed-up users using external providers such as Google join the corresponding organization based on the email domain name.
+   7. **`ORGANIZATIONS_AUTOLINK`**: Optional. Set to `1` or `true` to let new signed-up users using external providers such as Google join the corresponding organization based on the email domain name.
 4. Add `app.cal.local` to your host file, either:  
    a. `sudo npx hostile app.cal.local`  
    b. Add it yourself
