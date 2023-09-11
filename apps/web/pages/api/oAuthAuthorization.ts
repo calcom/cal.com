@@ -8,6 +8,8 @@ export default async function isAuthorized(req: NextApiRequest) {
   const token = req.headers.authorization?.split(" ")[1];
   const decoded = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY);
 
+  if (!decoded) return null;
+
   const user = await prisma.user.findFirst({
     where: {
       id: decoded.userId,

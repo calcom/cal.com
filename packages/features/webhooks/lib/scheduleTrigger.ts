@@ -123,16 +123,31 @@ export async function deleteSubscription({
   }
 }
 
-export async function listBookings(appApiKey: ApiKey) {
+export async function listBookings(
+  appApiKey: ApiKey,
+  user?: {
+    id: number;
+    username: string | null;
+  } | null
+) {
   try {
     const where: Prisma.BookingWhereInput = {};
-    if (appApiKey.teamId) {
-      where.eventType = {
-        OR: [{ teamId: appApiKey.teamId }, { parent: { teamId: appApiKey.teamId } }],
-      };
+    if (!user) {
+      if (appApiKey.teamId) {
+        where.eventType = {
+          OR: [{ teamId: appApiKey.teamId }, { parent: { teamId: appApiKey.teamId } }],
+        };
+      } else {
+        where.userId = appApiKey.userId;
+      }
     } else {
-      where.userId = appApiKey.userId;
+      where.userId = user.id;
+      // how are we handling team access with OAuth?
+      where.eventType = {
+        teamId: null,
+      };
     }
+
     const bookings = await prisma.booking.findMany({
       take: 3,
       where: where,

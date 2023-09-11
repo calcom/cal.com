@@ -3,21 +3,31 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { listBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import isAuthorized from "@calcom/web/pages/api/oAuthAuthorization";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
 
+  let validKey: any = null;
+
+  if (apiKey) {
+    validKey = await findValidApiKey(apiKey, "zapier");
+
+    if (!validKey) {
+      return res.status(401).json({ message: "API key not valid" });
+    }
+  }
+
+  let authorizedUser: {
+    id: number;
+    username: string | null;
+  } | null = null;
+
   if (!apiKey) {
-    return res.status(401).json({ message: "No API key provided" });
+    authorizedUser = await isAuthorized(req);
   }
 
-  const validKey = await findValidApiKey(apiKey, "zapier");
-
-  if (!validKey) {
-    return res.status(401).json({ message: "API key not valid" });
-  }
-
-  const bookings = await listBookings(validKey);
+  const bookings = await listBookings(validKey, authorizedUser);
 
   if (!bookings) {
     return res.status(500).json({ message: "Unable to get bookings." });
