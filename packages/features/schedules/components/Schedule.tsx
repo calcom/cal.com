@@ -262,7 +262,7 @@ const TimeRangeField = ({
     <div className={classNames("flex flex-row gap-1", className)}>
       <LazySelect
         className="inline-block w-[100px]"
-        disabled={disabled}
+        isDisabled={disabled}
         value={value.start}
         max={value.end}
         onChange={(option) => {
@@ -272,7 +272,7 @@ const TimeRangeField = ({
       <span className="text-default mx-2 w-2 self-center"> - </span>
       <LazySelect
         className="inline-block w-[100px] rounded-md"
-        disabled={disabled}
+        isDisabled={disabled}
         value={value.end}
         min={value.start}
         onChange={(option) => {
