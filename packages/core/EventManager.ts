@@ -262,6 +262,7 @@ export default class EventManager {
           select: {
             seatsPerTimeSlot: true,
             seatsShowAttendees: true,
+            seatsShowAvailabilityCount: true,
           },
         },
       },
