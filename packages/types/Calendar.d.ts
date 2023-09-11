@@ -177,6 +177,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  seatsShowAvailabilityCount?: boolean | null;
   attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
   schedulingType?: SchedulingType | null;

@@ -275,6 +275,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
       parentId: true,
@@ -1071,6 +1072,7 @@ async function handler(
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
   };
 
@@ -1374,7 +1376,7 @@ async function handler(
             }
           }
 
-          if (noEmail !== true) {
+          if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
             const copyEvent = cloneDeep(evt);
             await sendRescheduledEmails({
               ...copyEvent,
@@ -1494,12 +1496,14 @@ async function handler(
             ? calendarResult?.updatedEvent[0]?.iCalUID
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-          // TODO send reschedule emails to attendees of the old booking
-          await sendRescheduledEmails({
-            ...copyEvent,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
-          });
+          if (!requiresConfirmation || isOrganizerRescheduling) {
+            // TODO send reschedule emails to attendees of the old booking
+            await sendRescheduledEmails({
+              ...copyEvent,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
+            });
+          }
 
           // Update the old booking with the cancelled status
           await prisma.booking.update({
@@ -1754,6 +1758,7 @@ async function handler(
     const webhookData = {
       ...evt,
       ...eventTypeInfo,
+      uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
@@ -2097,7 +2102,7 @@ async function handler(
           videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
-      if (noEmail !== true) {
+      if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
         const copyEvent = cloneDeep(evt);
         await sendRescheduledEmails({
           ...copyEvent,

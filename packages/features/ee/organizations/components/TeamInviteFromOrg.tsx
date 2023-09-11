@@ -80,7 +80,6 @@ function UserToInviteItem({
           alt="Users avatar"
           asChild
           imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
-          gravatarFallbackMd5="hash"
         />
         <label
           htmlFor={`${member.user.id}`}
