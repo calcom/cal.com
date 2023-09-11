@@ -37,7 +37,6 @@ export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
   });
 
   return teamIdOverlaps;
-  // return teamIdOverlaps;
 }
 
 export async function hasReadPermissionsForUserId({ ctx, input }: InputOptions) {
