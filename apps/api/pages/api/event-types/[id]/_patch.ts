@@ -146,6 +146,9 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *               seatsShowAttendees:
  *                 type: boolean
  *                 description: 'Share Attendee information in seats'
+ *               seatsShowAvailabilityCount:
+ *                 type: boolean
+ *                 description: 'Show the number of available seats'
  *               locations:
  *                 type: array
  *                 description: A list of all available locations for the event type
