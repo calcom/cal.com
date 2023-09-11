@@ -206,7 +206,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   bookingFields: true,
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
-                  seatsShowAvailabilityCount: true,
                   eventName: true,
                 },
               },
@@ -296,7 +295,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-                seatsShowAvailabilityCount: booking.eventType?.seatsShowAvailabilityCount,
               },
               {
                 eventName: booking?.eventType?.eventName,
@@ -317,18 +315,18 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
       if (calendars && calendars.length > 0) {
         calendars.map(async (cal) => {
-          await prisma.selectedCalendar.delete({
+          await prisma.selectedCalendar.deleteMany({
             where: {
-              userId_integration_externalId: {
-                userId: user.id,
-                externalId: cal.externalId,
-                integration: cal.integration as string,
-              },
+              userId: user.id,
+              externalId: cal.externalId,
             },
           });
         });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+        console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
+      }
       console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
     }
   }
