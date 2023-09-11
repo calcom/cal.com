@@ -94,6 +94,9 @@ import { defaultResponder } from "@calcom/lib/server";
  *               seatsShowAttendees:
  *                 type: boolean
  *                 description: 'Share Attendee information in seats'
+ *               seatsShowAvailabilityCount:
+ *                 type: boolean
+ *                 description: 'Show the number of available seats'
  *               smsReminderNumber:
  *                 type: number
  *                 description: 'SMS reminder number'
