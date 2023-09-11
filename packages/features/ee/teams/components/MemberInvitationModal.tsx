@@ -233,7 +233,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       {/* TODO: Make this a fancy email input that styles on a successful email. */}
                       <TextAreaField
                         name="emails"
-                        label="Invite via email"
+                        label={t("invite_via_email")}
                         rows={4}
                         autoCorrect="off"
                         placeholder="john@doe.com, alex@smith.com"
@@ -269,7 +269,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  Upload a .csv file
+                  {t("upload_csv_file")}
                 </Button>
                 <input
                   ref={importRef}
