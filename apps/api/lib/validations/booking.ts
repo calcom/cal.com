@@ -58,6 +58,7 @@ export const schemaBookingReadPublic = Booking.extend({
       })
     )
     .optional(),
+  responses: z.record(z.any()),
 }).pick({
   id: true,
   userId: true,
