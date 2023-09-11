@@ -52,9 +52,8 @@ const createBooking = async ({
     method: "POST",
   });
 
-  if (response.status === 401) {
-    throw new Error("Unauthorized");
-  }
+  // Let GPT handle this. This will happen when wrong event type id is used.
+  // if (response.status === 401) throw new Error("Unauthorized");
 
   const data = await response.json();
 

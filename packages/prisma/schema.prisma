@@ -56,6 +56,7 @@ model EventType {
   position                        Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations                       Json?
+  /// @zod.min(1)
   length                          Int
   offsetStart                     Int                     @default(0)
   hidden                          Boolean                 @default(false)
@@ -97,6 +98,7 @@ model EventType {
   afterEventBuffer                Int                     @default(0)
   seatsPerTimeSlot                Int?
   seatsShowAttendees              Boolean?                @default(false)
+  seatsShowAvailabilityCount      Boolean?                @default(true)
   schedulingType                  SchedulingType?
   schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId                      Int?
