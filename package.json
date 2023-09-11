@@ -7,8 +7,7 @@
     "packages/*",
     "packages/embeds/*",
     "packages/features/*",
-    "packages/app-store/*",
-    "packages/app-store/ee/*"
+    "packages/app-store/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
