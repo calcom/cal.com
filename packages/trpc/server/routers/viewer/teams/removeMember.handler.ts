@@ -59,6 +59,9 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       where: { id: input.memberId },
       select: {
         email: true,
+        password: true,
+        username: true,
+        completedOnboarding: true,
       },
     });
 
@@ -85,6 +88,12 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         // This should cascade delete all memberships and hosts etc
         return;
       }
+    } else if ((!foundUser.username || !foundUser.password) && !foundUser.completedOnboarding) {
+      await ctx.prisma.user.delete({
+        where: { id: input.memberId },
+      });
+      // This should cascade delete all memberships and hosts etc
+      return;
     }
 
     await ctx.prisma.membership.deleteMany({
