@@ -5,11 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
@@ -156,7 +158,6 @@ const useTabs = () => {
     }
     return tab;
   });
-
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
     if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
@@ -196,6 +197,7 @@ const SettingsSidebarContainer = ({
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
+  const flags = useFlagMap();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
       teamId: number | undefined;
@@ -258,6 +260,10 @@ const SettingsSidebarContainer = ({
     });
   }
 
+  function shouldDisplayTab(tabName: string) {
+    if (isKeyInObject(tabName, flags)) return flags[tabName];
+    return true;
+  }
   return (
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
@@ -274,7 +280,7 @@ const SettingsSidebarContainer = ({
         {tabsWithPermissions.map((tab) => {
           return (
             <React.Fragment key={tab.href}>
-              {!["teams", "other_teams"].includes(tab.name) && (
+              {shouldDisplayTab(tab.name) && !["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
@@ -298,24 +304,26 @@ const SettingsSidebarContainer = ({
                     </div>
                   </div>
                   <div className="my-3 space-y-0.5">
-                    {tab.children?.map((child, index) => (
-                      <VerticalTabItem
-                        key={child.href}
-                        name={t(child.name)}
-                        isExternalLink={child.isExternalLink}
-                        href={child.href || "/"}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className={`my-0.5 me-5 h-7 ${
-                          tab.children && index === tab.children?.length - 1 && "!mb-3"
-                        }`}
-                        disableChevron
-                      />
-                    ))}
+                    {tab.children?.map((child, index) =>
+                      shouldDisplayTab(child.name) ? (
+                        <VerticalTabItem
+                          key={child.href}
+                          name={t(child.name)}
+                          isExternalLink={child.isExternalLink}
+                          href={child.href || "/"}
+                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                          className={`my-0.5 me-5 h-7 ${
+                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          }`}
+                          disableChevron
+                        />
+                      ) : null
+                    )}
                   </div>
                 </React.Fragment>
               )}
 
-              {tab.name === "teams" && (
+              {shouldDisplayTab(tab.name) && tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
@@ -457,7 +465,7 @@ const SettingsSidebarContainer = ({
                 </React.Fragment>
               )}
 
-              {tab.name === "other_teams" && (
+              {shouldDisplayTab("teams") && tab.name === "other_teams" && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>

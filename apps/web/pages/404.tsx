@@ -85,8 +85,8 @@ export default function Custom404() {
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
    **/
-  const isInsights = pathname?.startsWith("/insights");
-  if (isInsights) {
+  const isDisabled = pathname?.startsWith("/insights") || pathname?.startsWith("/teams");
+  if (isDisabled) {
     return (
       <>
         <HeadSeo

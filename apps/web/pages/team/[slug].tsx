@@ -251,13 +251,17 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const flags = await getFeatureFlagMap(prisma);
+  if (flags["teams"] !== true) {
+    return { notFound: true } as const;
+  }
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
-  const flags = await getFeatureFlagMap(prisma);
+
   const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   console.warn("gSSP, team/[slug] - ", {

@@ -11,3 +11,18 @@ export async function getFeatureFlagMap(prisma: PrismaClient) {
     return acc;
   }, {} as AppFlags);
 }
+
+export const checkFeatureFlag = async (flagName: keyof AppFlags) => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (flags[flagName] === false) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {},
+  };
+};

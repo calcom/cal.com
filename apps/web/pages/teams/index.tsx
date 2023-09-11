@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -41,6 +42,12 @@ function Teams() {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const flags = await getFeatureFlagMap(prisma);
+  if (flags.teams === false) {
+    return {
+      notFound: true,
+    } as const;
+  }
   const ssr = await ssrInit(context);
   await ssr.viewer.me.prefetch();
   const session = await getServerSession({ req: context.req, res: context.res });
