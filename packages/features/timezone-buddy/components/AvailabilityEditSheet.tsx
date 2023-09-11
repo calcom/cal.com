@@ -141,23 +141,21 @@ export function AvailabilityEditSheet(props: Props) {
           }>
           {!data?.hasDefaultSchedule && !isLoading && hasEditPermission && (
             <div className="my-2">
-              <TopBanner
-                variant="warning"
-                text="This user has not completed onboarding. You will not be able to set their availability until they have completed onboarding. "
-              />
+              <TopBanner variant="warning" text={t("view_only_edit_availability_not_onboarded")} />
             </div>
           )}
           {!hasEditPermission && !loadingPermissions && (
             <div className="my-2">
-              <TopBanner
-                variant="warning"
-                text="You are viewing this user's availability. You can only edit your own availability."
-              />
+              <TopBanner variant="warning" text={t("view_only_edit_availability")} />
             </div>
           )}
 
           <SheetHeader>
-            <SheetTitle>Edit Users Availability: {props.selectedUser?.username}</SheetTitle>
+            <SheetTitle>
+              {t("edit_users_availability", {
+                username: props.selectedUser?.username ?? "Nameless user",
+              })}
+            </SheetTitle>
           </SheetHeader>
 
           <>
