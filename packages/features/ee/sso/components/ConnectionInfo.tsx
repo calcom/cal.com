@@ -57,7 +57,11 @@ export default function ConnectionInfo({
         <Dialog>
           <div>
             <DialogTrigger asChild>
-              <Button color="destructive">{t("delete_sso_configuration", { connectionType })}</Button>
+              <Button
+                color="destructive"
+                data-testid={`delete-${connectionType === "OIDC" ? "oidc" : "saml"}-sso-connection`}>
+                {t("delete_sso_configuration", { connectionType })}
+              </Button>
             </DialogTrigger>
           </div>
           <ConfirmationDialogContent

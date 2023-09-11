@@ -22,8 +22,8 @@ const SHOULD_SKIP_TESTS =
   !OIDC_USER_EMAIL ||
   !OIDC_USER_PASSWORD;
 
-test.afterAll(({ users }) => users.deleteAll());
-// TODO: Delete OIDC provider at the end of the test
+test.afterEach(({ users }) => users.deleteAll());
+// TODO: Cleanup the OIDC connection after the tests with fixtures
 test.describe("OIDC", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(SHOULD_SKIP_TESTS, "Skipping due to missing the testing variables");
@@ -43,17 +43,29 @@ test.describe("OIDC", () => {
       await page.click('[data-testid="sso-oidc-save"]');
       await page.waitForSelector('[data-testid="toast-success"]');
     });
+    // Logout the SAML Admin
     await samlAdminUser.logout();
     await test.step("Login using the OIDC provider", async () => {
       // Login a user using the OIDC provider.
       // The credentials are handled by the provider, so we don't need to create a user in the db.
       await page.goto("/auth/login");
       await page.click('[data-testid="saml"]');
+      // Redirected outide of the app, the user would be redirected to the OIDC provider.
       await page.waitForURL(/https:\/\/[^/]+\/oauth2\/v1\/authorize\?.*/);
       await page.getByRole("textbox", { name: "Username" }).fill(OIDC_USER_EMAIL);
       await page.getByRole("textbox", { name: "Password" }).fill(OIDC_USER_PASSWORD);
       await page.getByRole("button", { name: "Sign in" }).click();
+      // The user is redirected back to the app.
       await page.waitForURL("getting-started", { waitUntil: "load" });
+    });
+    // Logout the user.
+    await page.goto("/auth/logout");
+    await test.step("Disconnect OIDC Provider", async () => {
+      samlAdminUser.apiLogin();
+      await page.goto("/settings/security/sso", { waitUntil: "load" });
+      await page.getByTestId("delete-oidc-sso-connection").click();
+      await page.getByRole("button", { name: "Yes, delete OIDC configuration" }).click();
+      await page.waitForSelector('[data-testid="toast-success"]');
     });
   });
 });
