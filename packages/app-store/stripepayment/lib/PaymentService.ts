@@ -54,7 +54,8 @@ export class PaymentService implements IAbstractPaymentService {
     bookerName: string,
     bookerEmail: string,
     paymentOption: PaymentOption,
-    eventTitle?: string
+    eventTitle?: string,
+    boookingTitle?: string
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
@@ -89,7 +90,8 @@ export class PaymentService implements IAbstractPaymentService {
           calUsername: username,
           bookerName,
           bookerEmail,
-          eventName: eventTitle || "",
+          eventTitle: eventTitle || "",
+          bookingTitle: bookingTitle || "",
         },
       };
 
