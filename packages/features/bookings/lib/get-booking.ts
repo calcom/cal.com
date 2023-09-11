@@ -1,8 +1,9 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
 type BookingSelect = {
@@ -119,8 +120,8 @@ export const getBookingForReschedule = async (uid: string) => {
     },
   });
 
-  // If no booking is found via the uid, it's probably a booking seat,
-  // which we query next.
+  // If no booking is found via the uid, it's probably a booking seat
+  // that its being rescheduled, which we query next.
   let attendeeEmail: string | null = null;
   if (!theBooking) {
     const bookingSeat = await prisma.bookingSeat.findFirst({

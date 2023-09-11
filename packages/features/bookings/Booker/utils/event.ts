@@ -1,4 +1,4 @@
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
@@ -45,6 +45,7 @@ export const useScheduleForEvent = ({
   eventId,
   month,
   duration,
+  monthCount,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -52,6 +53,7 @@ export const useScheduleForEvent = ({
   eventId?: number | null;
   month?: string | null;
   duration?: number | null;
+  monthCount?: number;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -59,8 +61,10 @@ export const useScheduleForEvent = ({
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
-  const serachParams = useSearchParams();
-  const rescheduleUid = serachParams.get("rescheduleUid");
+  const searchParams = useSearchParams();
+  const rescheduleUid = searchParams.get("rescheduleUid");
+
+  const pathname = usePathname();
 
   return useSchedule({
     username: usernameFromStore ?? username,
@@ -68,8 +72,10 @@ export const useScheduleForEvent = ({
     eventId: event.data?.id ?? eventId,
     timezone,
     prefetchNextMonth,
+    monthCount,
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
+    isTeamEvent: pathname.indexOf("/team/") !== -1,
   });
 };

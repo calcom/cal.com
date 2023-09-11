@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -16,11 +17,11 @@ export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Dayjs) => void;
+  onChange: (date: Dayjs | null) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
-  /** which date is currently selected (not tracked from here) */
-  selected?: Dayjs | null;
+  /** which date or dates are currently selected (not tracked from here) */
+  selected?: Dayjs | Dayjs[] | null;
   /** defaults to current date. */
   minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -69,7 +70,11 @@ export const Day = ({
       {...props}>
       {date.date()}
       {date.isToday() && (
-        <span className="absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full bg-white align-middle sm:translate-y-[12px]">
+        <span
+          className={classNames(
+            "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
+            active && "invert"
+          )}>
           <span className="sr-only">{t("today")}</span>
         </span>
       )}
@@ -147,11 +152,16 @@ const Days = ({
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
+    // for selecting a range of dates
+    if (Array.isArray(selected)) {
+      return Array.isArray(selected) && selected?.some((e) => yyyymmdd(e) === yyyymmdd(day));
+    }
+
     if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
       return true;
     }
 
-    // for multiple dates select
+    // for selecting multiple dates for an event
     if (
       eventSlug &&
       selectedDatesAndTimes &&
@@ -166,9 +176,47 @@ const Days = ({
     return false;
   };
 
+  const daysToRenderForTheMonth = days.map((day) => {
+    if (!day) return { day: null, disabled: true };
+    return {
+      day: day,
+      disabled:
+        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+    };
+  });
+
+  /**
+   * Takes care of selecting a valid date in the month if the selected date is not available in the month
+   */
+
+  const useHandleInitialDateSelection = () => {
+    // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+    if (selected instanceof Array) {
+      return;
+    }
+    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+
+    const isSelectedDateAvailable = selected
+      ? daysToRenderForTheMonth.some(({ day, disabled }) => {
+          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+        })
+      : false;
+
+    if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
+      // If selected date not available in the month, select the first available date of the month
+      props.onChange(firstAvailableDateOfTheMonth);
+    }
+
+    if (!firstAvailableDateOfTheMonth) {
+      props.onChange(null);
+    }
+  };
+
+  useEffect(useHandleInitialDateSelection);
+
   return (
     <>
-      {days.map((day, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -185,10 +233,7 @@ const Days = ({
               onClick={() => {
                 props.onChange(day);
               }}
-              disabled={
-                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
-                excludedDates.includes(yyyymmdd(day))
-              }
+              disabled={disabled}
               active={isActive(day)}
             />
           )}
@@ -241,7 +286,7 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100",
+                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
                 !browsingDate.isAfter(dayjs()) &&
                   "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
               )}
@@ -253,7 +298,7 @@ const DatePicker = ({
               StartIcon={ChevronLeft}
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100"
+              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"

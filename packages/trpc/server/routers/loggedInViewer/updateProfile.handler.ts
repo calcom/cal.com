@@ -5,6 +5,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -13,12 +14,12 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TUpdateProfileInputSchema } from "./updateProfile.schema";
+import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 type UpdateProfileOptions = {
   ctx: {
@@ -30,9 +31,10 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
+  const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
-    metadata: input.metadata as Prisma.InputJsonValue,
+    metadata: userMetadata,
   };
 
   // some actions can invalidate a user session.
@@ -61,11 +63,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
   }
-  const metadata = userMetadata.parse(user.metadata);
 
-  const isPremium = metadata?.isPremium;
   if (isPremiumUsername) {
-    const stripeCustomerId = metadata?.stripeCustomerId;
+    const stripeCustomerId = userMetadata?.stripeCustomerId;
+    const isPremium = userMetadata?.isPremium;
     if (!isPremium || !stripeCustomerId) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
     }
@@ -176,4 +177,25 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .catch((e) => console.error(e));
   }*/
   return { ...input, signOutUser, passwordReset };
+};
+
+const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {
+  if (!metadata) {
+    return {};
+  }
+  const cleanedMetadata = updateUserMetadataAllowedKeys.safeParse(metadata);
+  if (!cleanedMetadata.success) {
+    logger.error("Error cleaning metadata", cleanedMetadata.error);
+    return {};
+  }
+
+  return cleanedMetadata.data;
+};
+
+const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
+  const { user } = ctx;
+  const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
+  const userMetadata = userMetadataSchema.parse(user.metadata);
+  // Required so we don't override and delete saved values
+  return { ...userMetadata, ...cleanMetadata };
 };

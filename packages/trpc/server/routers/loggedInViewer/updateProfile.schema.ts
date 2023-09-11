@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+
+export const updateUserMetadataAllowedKeys = z.object({
+  sessionTimeout: z.number().optional(), // Minutes
+  defaultBookerLayouts: bookerLayouts.optional(),
+});
 
 export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
@@ -13,6 +18,7 @@ export const ZUpdateProfileInputSchema = z.object({
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),
   allowDynamicBooking: z.boolean().optional(),
+  allowSEOIndexing: z.boolean().optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),

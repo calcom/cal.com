@@ -1,6 +1,7 @@
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -69,9 +70,14 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
       ],
     },
     include: includedFields,
-    orderBy: {
-      id: "asc",
-    },
+    orderBy: [
+      {
+        position: "desc",
+      },
+      {
+        id: "asc",
+      },
+    ],
   });
 
   if (!filtered) {

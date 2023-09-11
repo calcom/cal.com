@@ -22,9 +22,8 @@ function RenderIcon({
     <img
       src={eventLocationType.iconUrl}
       className={classNames(
-        "me-[10px]  h-4 w-4 opacity-70 dark:opacity-100",
-        !eventLocationType.iconUrl?.startsWith("/app-store") ? "dark:invert-[.65]" : "",
-        !eventLocationType.iconUrl?.startsWith("/app-store") && isTooltip && "invert"
+        eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
+        "me-[10px] h-4 w-4"
       )}
       alt={`${eventLocationType.label} icon`}
     />
@@ -112,7 +111,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       </Tooltip>
     </div>
   ) : filteredLocations.length === 1 ? (
-    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm">
+    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm rtl:mr-2">
       {filteredLocations}
     </div>
   ) : null;

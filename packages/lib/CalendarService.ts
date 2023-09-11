@@ -60,6 +60,30 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
+// for Apple's Travel Time feature only (for now)
+const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) => {
+  const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
+  if (!travelDuration) return 0;
+
+  // we can't rely on this being a valid duration and it's painful to check, so just try and catch if anything throws
+  try {
+    const travelSeconds = travelDuration.toSeconds();
+    // integer validation as we can never be sure with ical.js
+    if (!Number.isInteger(travelSeconds)) return 0;
+    return travelSeconds;
+  } catch (e) {
+    log.error("invalid travelDuration?", e);
+    return 0;
+  }
+};
+
+const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
+  if (seconds <= 0) return event;
+  // move event start date back by the specified travel time
+  event.startDate.second -= seconds;
+  return event;
+};
+
 const convertDate = (date: string): DateArray =>
   dayjs(date)
     .utc()
@@ -129,12 +153,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+
       // We create the event directly on iCal
       const responses = await Promise.all(
         calendars
           .filter((c) =>
-            event.destinationCalendar?.externalId
-              ? c.externalId === event.destinationCalendar.externalId
+            mainHostDestinationCalendar?.externalId
+              ? c.externalId === mainHostDestinationCalendar.externalId
               : true
           )
           .map((calendar) =>
@@ -387,6 +413,9 @@ export default abstract class BaseCalendarService implements Calendar {
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
+        // mutate event to consider travel time
+        applyTravelDuration(event, getTravelDurationInSeconds(vevent, this.log));
+
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
@@ -477,13 +506,13 @@ export default abstract class BaseCalendarService implements Calendar {
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
         if (!calendar.components?.includes("VEVENT")) return newCalendars;
-
+        const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
         newCalendars.push({
           externalId: calendar.url,
           /** @url https://github.com/calcom/cal.com/issues/7186 */
           name: typeof calendar.displayName === "string" ? calendar.displayName : "",
-          primary: event?.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId === calendar.url
+          primary: mainHostDestinationCalendar?.externalId
+            ? mainHostDestinationCalendar.externalId === calendar.url
             : false,
           integration: this.integrationName,
           email: this.credentials.username ?? "",

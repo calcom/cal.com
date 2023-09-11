@@ -221,6 +221,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+   > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
    docker pull mailhog/mailhog
@@ -422,7 +423,7 @@ yarn seed-app-store
 ```
 
 You will need to complete a few more steps to activate Google Calendar App.
-Make sure to complete section "Obtaining the Google API Credentials". After the do the
+Make sure to complete section "Obtaining the Google API Credentials". After that do the
 following
 
 1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
@@ -448,8 +449,8 @@ following
 7. Click "Create".
 8. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
 9. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
-10. Also add the redirect URL given above as a allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
+10. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
+11. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
@@ -460,6 +461,18 @@ following
 3. Copy your API key.
 4. Now paste the API key to your `.env` file into the `DAILY_API_KEY` field in your `.env` file.
 5. If you have the [Daily Scale Plan](https://daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
+
+### Obtaining Basecamp Client ID and Secret
+
+1. Visit the [37 Signals Integrations Dashboard](launchpad.37signals.com/integrations) and sign in.
+2. Register a new application by clicking the Register one now link.
+3. Fill in your company details.
+4. Select Basecamp 4 as the product to integrate with.
+5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
+6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
+For example, `Cal.com (support@cal.com)`.
+
 
 ### Obtaining HubSpot Client ID and Secret
 
@@ -513,7 +526,7 @@ following
 3. Copy Account SID to your `.env` file into the `TWILIO_SID` field
 4. Copy Auth Token to your `.env` file into the `TWILIO_TOKEN` field
 5. Copy your Twilio phone number to your `.env` file into the `TWILIO_PHONE_NUMBER` field
-6. Add your own sender id to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
+6. Add your own sender ID to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
 7. Create a messaging service (Develop -> Messaging -> Services)
 8. Choose any name for the messaging service
 9. Click 'Add Senders'

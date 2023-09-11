@@ -1,0 +1,68 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  CustomArgsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { Editor } from "./Editor";
+
+<Meta title="UI/Editor" component={Editor} />
+
+<Title title="Editor" suffix="Brief" subtitle="Version 1.0 — Last Update: 16 Aug 2023" />
+
+## Definition
+
+The `Editor` component is a versatile rich text editor that provides a customizable environment for creating and editing content with various formatting options and plugins.
+
+## Structure
+
+The `Editor` component offers a flexible rich text editing interface, complete with a configurable toolbar
+
+<CustomArgsTable of={Editor} />
+
+<Examples title="States">
+  <Example title="Default">
+    <Editor setText={() => {}} getText={() => "Text"} />
+  </Example>
+  <Example title="With placeholder">
+    <Editor setText={() => {}} getText={() => ""} placeholder="placeholder" />
+  </Example>
+  <Example title="With variables">
+    <Editor setText={() => {}} getText={() => "Text"} variables={["variable1", "variable2", "variable3"]} />
+  </Example>
+</Examples>
+
+<Title offset title="Editor" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="Editor"
+    args={{
+      setText: () => {},
+      getText: () => "Text",
+      editable: true,
+    }}
+    argTypes={{
+      excludedToolbarItems: { control: { type: "check", options: ["blockType", "bold", "italic", "link"] } },
+      variables: { control: { type: "check", options: ["variable1", "variable2", "variable3"] } },
+      height: { control: { type: "text" } },
+      placeholder: { control: { type: "text" } },
+      disableLists: { control: { type: "boolean" } },
+      updateTemplate: { control: { type: "boolean" } },
+      firstRender: { control: { type: "boolean" } },
+      editable: { control: { type: "boolean" } },
+    }}>
+    {(props) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <Editor {...props} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

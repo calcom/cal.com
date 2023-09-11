@@ -114,3 +114,5 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     message: `Verified Organization - Auto accepted all members ending in ${acceptedEmailDomain}`,
   };
 };
+
+export default adminVerifyHandler;
