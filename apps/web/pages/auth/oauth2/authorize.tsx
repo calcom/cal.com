@@ -46,7 +46,7 @@ export default function Authorize() {
           </div>
         </div>
         <h1 className="p-5 text-center text-2xl font-bold tracking-tight">
-          {client.name} would like to access to your Cal.com account
+          {client.name} would like access to your Cal.com account
         </h1>
         <div className="mb-4 mt-2 font-medium">This will allow {client.name} to</div>
         <ul className="space-y-4 text-sm">
