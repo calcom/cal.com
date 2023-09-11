@@ -58,10 +58,10 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
           eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, [`${limitType}Limits`]: limit }],
         });
 
-        let dayUrl = "";
         let slotUrl = "";
 
-        await page.goto(`/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`);
+        const monthUrl = `/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`;
+        await page.goto(monthUrl);
 
         const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
         const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
@@ -76,8 +76,6 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
           for (let i = 0; i < bookingLimit; i++) {
             await bookingDay.click();
 
-            dayUrl = page.url();
-
             await page.getByTestId("time").nth(0).click();
             await bookTimeSlot(page);
 
@@ -85,7 +83,7 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
 
             await expect(page.getByTestId("success-page")).toBeVisible();
 
-            await page.goto(`/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`);
+            await page.goto(monthUrl);
           }
         });
 
@@ -97,11 +95,11 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
         };
 
         await test.step("but not over", async () => {
-          await page.goto(dayUrl);
+          // should already have navigated to monthUrl - just ensure days are rendered
+          await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
           // ensure the day we just booked is now blocked
-          await expect(page.getByTestId("day").nth(0)).toBeVisible();
-          await expect(page.getByTestId("time")).toBeHidden();
+          await expect(bookingDay).toBeHidden();
 
           const availableDaysAfter = await availableDays.count();
 
@@ -145,7 +143,6 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
         eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, [`${limitType}Limits`]: limits }],
       });
 
-      let dayUrl = "";
       let slotUrl = "";
 
       let bookingDate = firstMondayInBookingMonth;
@@ -154,7 +151,8 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
       let bookingCount = 0;
 
       for (const [limitUnit, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
-        await page.goto(`/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`);
+        const monthUrl = `/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`;
+        await page.goto(monthUrl);
 
         const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
         const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
@@ -168,8 +166,6 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
           for (let i = 0; i + bookingCount < limitValue; i++) {
             await bookingDay.click();
 
-            dayUrl = page.url();
-
             await page.getByTestId("time").nth(0).click();
             await bookTimeSlot(page);
             bookingCount++;
@@ -178,7 +174,7 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
 
             await expect(page.getByTestId("success-page")).toBeVisible();
 
-            await page.goto(`/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`);
+            await page.goto(monthUrl);
           }
         });
 
@@ -190,11 +186,11 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
         };
 
         await test.step("but not over", async () => {
-          await page.goto(dayUrl);
+          // should already have navigated to monthUrl - just ensure days are rendered
+          await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
           // ensure the day we just booked is now blocked
-          await expect(page.getByTestId("day").nth(0)).toBeVisible();
-          await expect(page.getByTestId("time")).toBeHidden();
+          await expect(bookingDay).toBeHidden();
 
           const availableDaysAfter = await availableDays.count();
 
