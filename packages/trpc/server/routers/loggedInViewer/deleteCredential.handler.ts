@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -315,7 +316,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
       if (calendars && calendars.length > 0) {
         calendars.map(async (cal) => {
-          await prisma.selectedCalendar.deleteMany({
+          prisma.selectedCalendar.deleteMany({
             where: {
               userId: user.id,
               externalId: cal.externalId,
@@ -324,7 +325,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         });
       }
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
         console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
       }
       console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
