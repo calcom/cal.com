@@ -79,6 +79,7 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
+  seatsShowAvailabilityCount: null,
   id: 0,
   hideCalendarNotes: false,
   recurringEvent: null,

@@ -153,6 +153,8 @@ export interface App {
   dependencies?: string[];
   /** Enables video apps to be used for team events. Non Video/Conferencing apps don't honor this as they support team installation always. */
   concurrentMeetings?: boolean;
+
+  createdAt?: string;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
