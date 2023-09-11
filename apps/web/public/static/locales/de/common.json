@@ -1681,7 +1681,7 @@
   "email_user_cta": "Einladung anzeigen",
   "email_no_user_invite_subheading": "{{invitedBy}} hat Sie eingeladen, dem Team in {{appName}} beizutreten. {{appName}} ist der Event-Planer, der es Ihnen und Ihrem Team ermöglicht, Meetings ohne ständiges hin und her zu planen.",
   "email_user_invite_subheading_team": "{{invitedBy}} hat Sie eingeladen, dem Team „{{teamName}}“ beizutreten. {{appName}} ist der Event-Planer, der es Ihnen und Ihrem Team ermöglicht, Meetings ohne Hin und Her zu planen.",
-  "email_no_user_invite_steps_intro": "Wir begleiten Sie durch ein paar Schritte, danach können Sie in kürzester Zeit stressfreie Planung mit Ihrem {{entity}} genießen.",
+  "email_no_user_invite_steps_intro": "Wir begleiten Sie durch ein paar Schritte, danach können Sie in kürzester Zeit stressfreie Planung mit Ihrer {{entity}} genießen.",
   "email_no_user_step_one": "Wählen Sie Ihren Benutzernamen",
   "email_no_user_step_two": "Verbinden Sie Ihr Kalenderkonto",
   "email_no_user_step_three": "Legen Sie Ihre Verfügbarkeit fest",

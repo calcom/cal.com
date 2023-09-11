@@ -212,7 +212,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <EventTypes />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {(!team.hideBookATeamMember || team.isPrivate) && (
+                {!team.hideBookATeamMember && !team.isPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
