@@ -592,6 +592,8 @@
   "invite_new_member": "Invite a new team member",
   "invite_new_member_description": "Note: This will <1>cost an extra seat ($15/m)</1> on your subscription.",
   "invite_new_team_member": "Invite someone to your team.",
+  "upload_csv_file": "Upload a .csv file",
+  "invite_via_email": "Invite via email",
   "change_member_role": "Change team member role",
   "disable_cal_branding": "Disable {{appName}} branding",
   "disable_cal_branding_description": "Hide all {{appName}} branding from your public pages.",
