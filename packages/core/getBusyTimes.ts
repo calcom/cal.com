@@ -79,8 +79,10 @@ export async function getBusyTimes(params: {
     },
   };
 
-  // INFO: Refactor allow this method to take in a list of current bookings for the user.
-  // Keeping support for calling this if the value passed in is null.
+  // INFO: Refactored to allow this method to take in a list of current bookings for the user.
+  // Will keep support for retrieving a user's bookings if the caller does not already supply them.
+  // This function is called from multiple places but we aren't refactoring all of them at this moment
+  // to avoid potential side effects.
   let bookings: Booking[] = [];
   if (!currentBookings) {
     bookings = await prisma.booking.findMany({
