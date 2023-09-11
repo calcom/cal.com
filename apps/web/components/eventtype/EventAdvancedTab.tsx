@@ -377,6 +377,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         defaultChecked={!!eventType.seatsShowAttendees}
                       />
                     </div>
+                    <div className="mt-2">
+                      <CheckboxField
+                        description={t("show_available_seats_count")}
+                        disabled={seatsLocked.disabled}
+                        onChange={(e) => formMethods.setValue("seatsShowAvailabilityCount", e.target.checked)}
+                        defaultChecked={!!eventType.seatsShowAvailabilityCount}
+                      />
+                    </div>
                   </div>
                 )}
               />
