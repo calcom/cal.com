@@ -35,6 +35,15 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
     const isOrgAdmin = !!(await isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)); // Org id exists here as we're inside a conditional TS complaining for some reason
 
+    // This can be optimized by using a custom view between membership and team and teamMemberCount
+    const membershipCount = await prisma.teamMemberCount.findMany({
+      where: {
+        id: {
+          in: membershipsWithoutParent.map((m) => m.teamId),
+        },
+      },
+    });
+
     return membershipsWithoutParent.map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
@@ -42,6 +51,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       ..._team,
       /** To prevent breaking we only return non-email attached token here, if we have one */
       inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      membershipCount: membershipCount.find((m) => m.id === _team.id)?.count || 0,
     }));
   }
 
@@ -67,8 +77,6 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       },
     },
   });
-
-  console.log({ membershipCount });
 
   return memberships
     .filter((mmship) => {

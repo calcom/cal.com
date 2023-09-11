@@ -896,6 +896,9 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
   const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
+    trpc: {
+      context: { skipBatch: true },
+    },
   });
 
   // After teams are fetched we then load event types for each team
@@ -952,8 +955,10 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
               if (!teamEventTypes || teamEventTypes.length === 0 || !firstElementTeamEventTypes.team) {
                 return null;
               }
-              const teamDataMatchWithEventType = teams && teams.length > 0 && teams[index];
-              const membershipCount = teamDataMatchWithEventType?.membershipCount || 0;
+              const teamDataMatchWithEventType = teams && teams.length > 0 ? teams[index] : null;
+              const membershipCount = teamDataMatchWithEventType
+                ? teamDataMatchWithEventType?.membershipCount
+                : 0;
 
               return (
                 <>
@@ -970,7 +975,9 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
                     <EventTypeList
                       data={teamEventTypes}
                       key={index}
-                      readonly={"MEMBER" === teamDataMatchWithEventType.role}
+                      readonly={
+                        teamDataMatchWithEventType ? "MEMBER" === teamDataMatchWithEventType.role : false
+                      }
                     />
                   ) : (
                     <EmptyEventTypeList
