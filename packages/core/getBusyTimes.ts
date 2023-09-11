@@ -1,4 +1,4 @@
-import type { Booking, Credential } from "@prisma/client";
+import type { Booking, Credential, EventType } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -24,7 +24,17 @@ export async function getBusyTimes(params: {
   seatedEvent?: boolean;
   rescheduleUid?: string | null;
   duration?: number | null;
-  currentBookings?: Booking[] | null;
+  currentBookings?:
+    | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+        eventType: Pick<
+          EventType,
+          "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+        > | null;
+        _count: {
+          seatsReferences: number;
+        };
+      })[]
+    | null;
 }) {
   const {
     credentials,
@@ -81,7 +91,7 @@ export async function getBusyTimes(params: {
 
   // INFO: Refactor allow this method to take in a list of current bookings for the user.
   // Keeping support for calling this if the value passed in is null.
-  let bookings: Booking[] = [];
+  let bookings: typeof currentBookings = [];
   if (!currentBookings) {
     bookings = await prisma.booking.findMany({
       where: {
@@ -105,6 +115,7 @@ export async function getBusyTimes(params: {
       select: {
         id: true,
         uid: true,
+        userId: true,
         startTime: true,
         endTime: true,
         title: true,

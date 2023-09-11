@@ -296,12 +296,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   const startTimeDate =
     input.rescheduleUid && durationToUse
-      ? dayjs(startTime).subtract(durationToUse, "minute").toDate()
-      : new Date(startTime);
+      ? startTime.subtract(durationToUse, "minute").toDate()
+      : startTime.toDate();
   const endTimeDate =
-    input.rescheduleUid && durationToUse
-      ? dayjs(endTime).add(durationToUse, "minute").toDate()
-      : new Date(endTime);
+    input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
   const sharedQuery = {
     startTime: { gte: startTimeDate },
@@ -384,9 +382,14 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           eventType,
           currentSeats,
           rescheduleUid: input.rescheduleUid,
-          currentBookings: currentBookingsAllUsers.filter(
-            (b) => b.userId === currentUser.id || b.attendees.some((a) => a.email === currentUser.email)
-          ),
+          currentBookings: currentBookingsAllUsers
+            .filter(
+              (b) => b.userId === currentUser.id || b.attendees.some((a) => a.email === currentUser.email)
+            )
+            .map((bookings) => {
+              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+              return bookingWithoutAttendees;
+            }),
         }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
