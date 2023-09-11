@@ -1,5 +1,3 @@
-import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../trpc";
@@ -12,6 +10,8 @@ type GetOptions = {
   };
   input: TGetByUserIdInputSchema;
 };
+
+const EMPTY_SCHEDULE = [[], [], [], [], [], [], []];
 
 export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => {
   const foundUserDefaultId = await prisma.user.findUnique({
@@ -45,7 +45,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
     return {
       id: -1,
       name: "Working Hourse",
-      availability: DEFAULT_SCHEDULE,
+      availability: EMPTY_SCHEDULE,
       dateOverrides: [],
       timeZone: ctx.user.timeZone || "Europe/London",
       workingHours: [],

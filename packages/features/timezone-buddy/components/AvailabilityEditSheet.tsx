@@ -130,7 +130,7 @@ export function AvailabilityEditSheet(props: Props) {
                 {t("cancel")}
               </Button>
               <Button
-                disabled={!hasEditPermission}
+                disabled={!hasEditPermission || !data?.hasDefaultSchedule}
                 className="w-full justify-center"
                 type="submit"
                 loading={updateMutation.isLoading}
@@ -167,7 +167,7 @@ export function AvailabilityEditSheet(props: Props) {
               </Label>
               <TimezoneSelect
                 id="timezone"
-                isDisabled={!hasEditPermission}
+                isDisabled={!hasEditPermission || !data?.hasDefaultSchedule}
                 value={watchTimezone ?? "Europe/London"}
                 onChange={(event) => {
                   if (event) form.setValue("timeZone", event.value, { shouldDirty: true });
@@ -188,7 +188,10 @@ export function AvailabilityEditSheet(props: Props) {
             </div>
             <div className="mt-4">
               {data?.workingHours && (
-                <DateOverride workingHours={data.workingHours} disabled={!hasEditPermission} />
+                <DateOverride
+                  workingHours={data.workingHours}
+                  disabled={!hasEditPermission || !data.hasDefaultSchedule}
+                />
               )}
             </div>
           </>
