@@ -781,6 +781,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
             ...(orgId && {
+              verified: true,
               organization: { connect: { id: orgId } },
               teams: {
                 create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
