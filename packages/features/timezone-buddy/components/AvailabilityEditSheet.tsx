@@ -182,7 +182,7 @@ export function AvailabilityEditSheet(props: Props) {
                   control={form.control}
                   name="schedule"
                   weekStart={0}
-                  disabled={!hasEditPermission}
+                  disabled={!hasEditPermission || !data?.hasDefaultSchedule}
                 />
               </div>
             </div>
