@@ -1,5 +1,3 @@
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../../trpc";
 import { getHandler } from "./get.handler";
 import type { TGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
@@ -26,9 +24,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
   try {
     // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
     if (!foundUserDefaultId?.defaultScheduleId) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-      });
+      throw new Error("NOT_FOUND");
     }
     const schedule = await getHandler({
       ctx,
