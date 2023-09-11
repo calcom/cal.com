@@ -51,11 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const payload = {
     userId: accessCode.userId,
-    //scope:
+    scope: accessCode.scopes,
   };
 
   const access_token = jwt.sign(payload, secretKey, {
-    // expiresIn: "1h",  // implement refresh token endpoint first
+    expiresIn: 1800, // 30 min
   });
 
   res.status(200).json({ access_token });

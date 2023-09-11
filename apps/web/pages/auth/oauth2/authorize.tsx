@@ -10,7 +10,9 @@ import PageWrapper from "@components/PageWrapper";
 export default function Authorize() {
   const router = useRouter();
 
-  const { state, client_id } = router.query;
+  const { state, client_id, scope } = router.query;
+  if (!router.isReady) return null;
+  const scopes = scope ? scope.toString().split(",") : [];
 
   const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery({
     clientId: client_id,
@@ -99,7 +101,7 @@ export default function Authorize() {
           </Button>
           <Button
             onClick={() => {
-              generateAuthCodeMutation.mutate({ clientId: client_id });
+              generateAuthCodeMutation.mutate({ clientId: client_id, scopes });
             }}>
             Allow
           </Button>

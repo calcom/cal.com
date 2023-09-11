@@ -24,7 +24,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   } | null = null;
 
   if (!apiKey) {
-    authorizedUser = await isAuthorized(req);
+    authorizedUser = await isAuthorized(req, ["READ_BOOKING"]);
   }
 
   const bookings = await listBookings(validKey, authorizedUser);
