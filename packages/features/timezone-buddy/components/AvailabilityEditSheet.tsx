@@ -157,7 +157,7 @@ export function AvailabilityEditSheet(props: Props) {
           )}
 
           <SheetHeader>
-            <SheetTitle>Edit Users Availability : {props.selectedUser?.username}</SheetTitle>
+            <SheetTitle>Edit Users Availability: {props.selectedUser?.username}</SheetTitle>
           </SheetHeader>
 
           <>
