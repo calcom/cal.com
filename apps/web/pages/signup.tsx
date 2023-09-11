@@ -142,7 +142,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                   <TextField
                     addOnLeading={
                       orgSlug
-                        ? getOrgFullDomain(orgSlug, { protocol: true })
+                        ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
                         : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                     }
                     {...register("username")}
