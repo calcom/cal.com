@@ -127,7 +127,6 @@ class Paypal {
       });
       if (captureResult.ok) {
         const result = await captureResult.json();
-        if (result.body.status === "COMPLETED") {
         if (result?.status === "COMPLETED") {
           // Get payment reference id
 
