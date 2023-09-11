@@ -1,6 +1,7 @@
 import Head from "next/head";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
+import { checkFeatureFlag } from "@calcom/features/flags/server/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
 
@@ -28,3 +29,6 @@ OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
 OnboardTeamMembersPage.PageWrapper = PageWrapper;
 
 export default OnboardTeamMembersPage;
+export const getServerSideProps = async () => {
+  return checkFeatureFlag("teams");
+};
