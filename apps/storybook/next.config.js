@@ -1,4 +1,8 @@
 const withBundleAnalyzer = require("@next/bundle-analyzer");
+const million = require("million/compiler");
+const millionConfig = {
+  auto: true,
+};
 
 const plugins = [];
 plugins.push(withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" }));
@@ -39,4 +43,8 @@ const nextConfig = {
   },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+module.exports = () =>
+  million.next(
+    plugins.reduce((acc, next) => next(acc), nextConfig),
+    millionConfig
+  );

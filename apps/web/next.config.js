@@ -11,6 +11,11 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
+const million = require("million/compiler");
+
+const millionConfig = {
+  auto: true,
+};
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -519,6 +524,11 @@ const nextConfig = {
 
     return redirects;
   },
+  reactStrictMode: true,
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+module.exports = () =>
+  million.next(
+    plugins.reduce((acc, next) => next(acc), nextConfig),
+    millionConfig
+  );
