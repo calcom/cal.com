@@ -133,7 +133,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
         PrismaEventType,
         "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
       > | null;
-      _count: {
+      _count?: {
         seatsReferences: number;
       };
     })[];
