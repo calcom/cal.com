@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { getLayout } from "@calcom/features/NoShellLayout";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus, Info } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -48,7 +48,7 @@ export default function Authorize() {
         <h1 className="p-5 text-center text-2xl font-bold tracking-tight">
           {client.name} would like to access to your Cal.com account
         </h1>
-        <div className="mb-4 mt-2 font-medium">This will allow {client.name}</div>
+        <div className="mb-4 mt-2 font-medium">This will allow {client.name} to</div>
         <ul className="space-y-4 text-sm">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span> Associate you with your personal info from
@@ -74,13 +74,18 @@ export default function Authorize() {
             <span className="absolute left-0">&#10003;</span> Read, edit, delete your bookings
           </li>
         </ul>
-        <div className="bg-subtle mb-8 mt-8 rounded-md p-3">
-          <div className="text-sm font-medium">Allow {client.name} to do this?</div>
-          <div className="text-sm">
-            By clicking allow, you allow this app to use your information in accordance with thei terms of
-            service and privacy policy. You can view or remove access in the Cal.com App Store.
-          </div>{" "}
-          {/* How can access be viewed? Access can be removed by uninstalling app */}
+        <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
+          <div>
+            <Info className="mr-1 mt-0.5 h-4 w-4" />
+          </div>
+          <div className="ml-1 ">
+            <div className="text-sm font-medium">Allow {client.name} to do this?</div>
+            <div className="text-sm">
+              By clicking allow, you allow this app to use your information in accordance with thei terms of
+              service and privacy policy. You can view or remove access in the Cal.com App Store.
+            </div>{" "}
+            {/* How can access be viewed? Access can be removed by uninstalling app */}
+          </div>
         </div>
         <div className="border-subtle border- -mx-9 mb-4 border-b" />
         <div className="flex justify-end">
