@@ -22,7 +22,6 @@ import AdminPasswordBanner from "@calcom/features/users/components/AdminPassword
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -792,13 +791,12 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
-  const isOrgBrandingDataFetched = orgBranding !== undefined;
 
   const publicPageUrl = useMemo(() => {
-    if (!user?.organizationId) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
+    if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
     const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
     return publicPageUrl;
-  }, [orgBranding?.slug, user?.organizationId, user?.username]);
+  }, [orgBranding?.slug, user?.username, user?.org?.id]);
 
   const bottomNavItems: NavigationItemType[] = [
     {
@@ -819,7 +817,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     },
     {
       name: "settings",
-      href: user?.organizationId ? `/settings/organizations/profile` : "/settings/my-account/profile",
+      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: Settings,
     },
   ];
@@ -830,12 +828,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
-            {!isOrgBrandingDataFetched ? null : orgBranding ? (
+            {orgBranding ? (
               <Link href="/settings/organizations/profile" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
-                    imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
+                    imageSrc={`${orgBranding.fullDomain}/avatar.png`}
                     size="xsm"
                   />
                   <p className="text line-clamp-1 text-sm">
