@@ -240,9 +240,9 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         index !== 0 && "border-subtle border-t"
       )}
       data-testid="pending-member-item">
-      <div className="flex space-x-2 rtl:space-x-reverse">
+      <div className="flex w-[85%] space-x-2 rtl:space-x-reverse">
         <Avatar size="mdLg" imageSrc={bookerUrl + "/" + member.username + "/avatar.png"} alt="owner-avatar" />
-        <div>
+        <div className="w-[82%] sm:w-[95%]">
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>
             {/* Assume that the first member of the team is the creator */}
@@ -252,7 +252,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
           </div>
           {member.username ? (
-            <p className="text-default">{`${WEBAPP_URL}/${member.username}`}</p>
+            <p className="text-default overflow-hidden text-ellipsis whitespace-nowrap">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
             <p className="text-default">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
