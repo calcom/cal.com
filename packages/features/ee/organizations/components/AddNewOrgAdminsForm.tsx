@@ -71,7 +71,7 @@ export const AddNewOrgAdminsForm = () => {
             <>
               <TextAreaField
                 name="emails"
-                label="Invite via email"
+                label={t("invite_via_email")}
                 rows={4}
                 autoCorrect="off"
                 placeholder="john@doe.com, alex@smith.com"
