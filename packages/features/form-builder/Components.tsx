@@ -392,7 +392,7 @@ export const Components: Record<FieldType, Component> = {
         if (!value) {
           setValue({
             value: options[0]?.value,
-            optionValue: options[0]?.label,
+            optionValue: options[0]?.value === "inPerson" ? options[0]?.label : "",
           });
         }
       }, [options, setValue, value]);
@@ -414,10 +414,13 @@ export const Components: Record<FieldType, Component> = {
                         onChange={(e) => {
                           setValue({
                             value: e.target.value,
-                            optionValue: option.label,
+                            optionValue: e.target.value === "inPerson" ? option.label : "",
                           });
                         }}
-                        checked={value?.value === option.value && value.optionValue === option.label}
+                        checked={
+                          value?.value === option.value &&
+                          (value?.value !== "inPerson" || value?.optionValue === option.label)
+                        }
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
                     </label>
