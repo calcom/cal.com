@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
-    expiresIn: 90 * 24 * 60 * 60, // 90 days
+    expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
   res.status(200).json({ access_token, refresh_token });

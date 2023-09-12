@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await isAuthorized(req, requriedScopes);
 
     return res.status(201).json(user);
-  } catch (error) {
-    res.status(401).json({ message: error.message });
+  } catch {
+    res.status(401).json({ message: "Unauthorized" });
   }
 }
