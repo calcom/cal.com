@@ -1,9 +1,9 @@
-import { BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 import { z, ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { Reschedule } from "../lib";
 
@@ -63,9 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   return res.status(200).json({ success: true });
 };
 
-function validate(
-  handler: (req: NextApiRequest, res: NextApiResponse) => Promise<any | NextApiResponse | void>
-) {
+function validate(handler: (req: NextApiRequest, res: NextApiResponse) => Promise<NextApiResponse | void>) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "POST") {
       try {

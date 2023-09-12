@@ -31,6 +31,22 @@ export const formatTime = (
 };
 
 /**
+ * Checks if a provided timeZone string is recognized as a valid timezone by dayjs.
+ *
+ * @param {string} timeZone - The timezone string to be verified.
+ * @returns {boolean} - Returns 'true' if the provided timezone string is recognized as a valid timezone by dayjs. Otherwise, returns 'false'.
+ *
+ */
+export const isSupportedTimeZone = (timeZone: string) => {
+  try {
+    dayjs().tz(timeZone);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
  * Returns a localized and translated date or time, based on the native
  * Intl.DateTimeFormat available to JS. Undefined values mean the browser's
  * locale will be used.
@@ -128,6 +144,21 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
   // If it is 09:00, does timezoneA come before or after timezoneB in GMT?
   const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
   return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
+};
+
+const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+type WeekDays = (typeof weekDays)[number];
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/**
+ * Turns weekday string (eg "Monday") into a number (eg 1).
+ * Also accepts a number as parameter (and straight returns that), and accepts
+ * undefined as a parameter; returns 0 in that case.
+ */
+export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefined) => {
+  if (typeof weekday === "undefined") return 0;
+  if (typeof weekday === "number") return weekday >= 0 && weekday >= 6 ? (weekday as WeekDayIndex) : 0;
+  return (weekDays.indexOf(weekday as WeekDays) as WeekDayIndex) || 0;
 };
 
 /**

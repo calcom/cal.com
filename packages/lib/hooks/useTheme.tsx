@@ -2,35 +2,55 @@ import { useTheme as useNextTheme } from "next-themes";
 import { useEffect } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
-import type { Maybe } from "@calcom/trpc/server";
 
 /**
- * It should be called once per route and only if you want to use app configured theme. System only theme works automatically by using ThemeProvider
- * Calling it without a theme will just returns the current theme.
- * It handles embed configured theme as well.
+ * It should be called once per route if you intend to use a theme different from `system` theme. `system` theme is automatically supported using <ThemeProvider />
+ * If needed you can also set system theme by passing 'system' as `themeToSet`
+ * It handles embed configured theme automatically
+ * To just read the values pass `getOnly` as `true` and `themeToSet` as `null`
  */
-export default function useTheme(themeToSet?: Maybe<string>) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export default function useTheme(themeToSet: "system" | (string & {}) | undefined | null, getOnly = false) {
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
 
   useEffect(() => {
-    // If themeToSet is not provided the purpose is to just return the current the current values
-    if (themeToSet === undefined) return;
+    // Undefined themeToSet allow the hook to be used where the theme is fetched after calling useTheme hook
+    if (getOnly || themeToSet === undefined) {
+      return;
+    }
 
-    // Embed theme takes precedence over theme configured in app. This allows embeds to be themed differently
-    const finalThemeToSet = embedTheme || themeToSet || "system";
+    // Embed theme takes precedence over theme configured in app.
+    // If embedTheme isn't set i.e. it's not explicitly configured with a theme, then it would use the theme configured in appearance.
+    // If embedTheme is set to "auto" then we consider it as null which then uses system theme.
+    const finalThemeToSet = embedTheme ? (embedTheme === "auto" ? "system" : embedTheme) : themeToSet;
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 
-    console.log("Setting theme", { resolvedTheme, finalThemeToSet, activeTheme, forcedTheme });
     setTheme(finalThemeToSet);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
-  }, [themeToSet, setTheme]);
+    // We must not add `activeTheme` to the dependency list as it can cause an infinite loop b/w dark and theme switches
+    // because there might be another booking page with conflicting theme.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeToSet, setTheme, embedTheme]);
 
-  return {
-    resolvedTheme,
-    setTheme,
-    forcedTheme,
-    activeTheme,
-  };
+  if (getOnly) {
+    return {
+      resolvedTheme,
+      forcedTheme,
+      activeTheme,
+    };
+  }
+
+  return;
+}
+
+/**
+ * Returns the currently set theme values.
+ */
+export function useGetTheme() {
+  const theme = useTheme(null, true);
+  if (!theme) {
+    throw new Error("useTheme must have a return value here");
+  }
+  return theme;
 }

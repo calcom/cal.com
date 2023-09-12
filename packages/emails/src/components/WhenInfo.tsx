@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { TimeFormat } from "@calcom/lib/timeFormat";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
@@ -31,10 +31,14 @@ export function getRecurringWhen({
   return "";
 }
 
-export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {
-  const { timeZone, t, calEvent: { recurringEvent } = {} } = props;
-  const timeFormat = props.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
-  const locale = props.calEvent.organizer.language.locale;
+export function WhenInfo(props: {
+  calEvent: CalendarEvent;
+  timeZone: string;
+  t: TFunction;
+  locale: string;
+  timeFormat: TimeFormat;
+}) {
+  const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);

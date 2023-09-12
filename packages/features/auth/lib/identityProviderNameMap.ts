@@ -1,4 +1,4 @@
-import { IdentityProvider } from "@prisma/client";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
   [IdentityProvider.CAL]: "Cal",

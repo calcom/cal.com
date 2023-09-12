@@ -16,12 +16,14 @@ const EditableHeading = function EditableHeading({
   const [isEditing, setIsEditing] = useState(false);
   const enableEditing = () => setIsEditing(true);
   return (
-    <div className="group relative cursor-pointer" onClick={enableEditing}>
-      <div className="flex items-center">
+    <div
+      className="group pointer-events-none relative truncate sm:pointer-events-auto"
+      onClick={enableEditing}>
+      <div className="flex cursor-pointer items-center">
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           {!isEditing && isReady && (
-            <Edit2 className=" text-subtle group-hover:text-subtle ml-1 -mt-px inline  h-3 w-3" />
+            <Edit2 className=" text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
           )}
           <input
             {...passThroughProps}
@@ -29,7 +31,7 @@ const EditableHeading = function EditableHeading({
             value={value}
             required
             className={classNames(
-              "text-emphasis hover:text-default focus:text-emphasis absolute top-0 left-0 w-full cursor-pointer border-none bg-transparent p-0 align-top text-xl focus:outline-none focus:ring-0"
+              "text-emphasis hover:text-default focus:text-emphasis absolute left-0 top-0 w-full cursor-pointer truncate border-none bg-transparent p-0 align-top text-xl focus:outline-none focus:ring-0"
             )}
             onFocus={(e) => {
               setIsEditing(true);

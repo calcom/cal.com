@@ -1,7 +1,7 @@
 ---
 description: Salesforce (Sales Cloud) is a cloud-based application designed to help your salespeople sell smarter and faster by centralizing customer information, logging their interactions with your company, and automating many of the tasks salespeople do every day.
 items:
-  - /api/app-store/salesforce/1.png
+  - 1.png
 ---
 
 Salesforce (Sales Cloud) is a cloud-based application designed to help your salespeople sell smarter and faster by centralizing customer information, logging their interactions with your company, and automating many of the tasks salespeople do every day.

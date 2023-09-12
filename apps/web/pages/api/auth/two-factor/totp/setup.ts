@@ -1,4 +1,4 @@
-import { IdentityProvider } from "@prisma/client";
+import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
@@ -8,6 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -56,11 +57,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // bytes without updating the sanity checks in the enable and login endpoints.
   const secret = authenticator.generateSecret(20);
 
+  // generate backup codes with 10 character length
+  const backupCodes = Array.from(Array(10), () => crypto.randomBytes(5).toString("hex"));
+
   await prisma.user.update({
     where: {
       id: session.user.id,
     },
     data: {
+      backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
       twoFactorEnabled: false,
       twoFactorSecret: symmetricEncrypt(secret, process.env.CALENDSO_ENCRYPTION_KEY),
     },
@@ -70,5 +75,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const keyUri = authenticator.keyuri(name, "Cal", secret);
   const dataUri = await qrcode.toDataURL(keyUri);
 
-  return res.json({ secret, keyUri, dataUri });
+  return res.json({ secret, keyUri, dataUri, backupCodes });
 }

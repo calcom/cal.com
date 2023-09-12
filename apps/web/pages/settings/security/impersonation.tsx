@@ -6,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
@@ -48,6 +50,7 @@ const ProfileImpersonationView = () => {
     setValue,
     reset,
     getValues,
+    watch,
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
@@ -61,11 +64,11 @@ const ProfileImpersonationView = () => {
         }}>
         <div className="flex space-x-3">
           <Switch
-            defaultChecked={!user?.disableImpersonation}
             onCheckedChange={(e) => {
               setValue("disableImpersonation", !e, { shouldDirty: true });
             }}
             fitToHeight={true}
+            checked={!watch("disableImpersonation")}
           />
           <div className="flex flex-col">
             <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">
@@ -76,7 +79,12 @@ const ProfileImpersonationView = () => {
             </Skeleton>
           </div>
         </div>
-        <Button color="primary" className="mt-8" type="submit" disabled={isDisabled}>
+        <Button
+          color="primary"
+          loading={mutation.isLoading}
+          className="mt-8"
+          type="submit"
+          disabled={isDisabled}>
           {t("update")}
         </Button>
       </Form>
@@ -85,6 +93,7 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+ProfileImpersonationView.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);

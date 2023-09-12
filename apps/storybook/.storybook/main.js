@@ -4,6 +4,7 @@ module.exports = {
   stories: [
     "../intro.stories.mdx",
     "../../../packages/ui/components/**/*.stories.mdx",
+    "../../../packages/atoms/**/*.stories.mdx",
     "../../../packages/features/**/*.stories.mdx",
     "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
   ],
@@ -14,6 +15,7 @@ module.exports = {
     "storybook-addon-rtl-direction",
     "storybook-react-i18next",
     "storybook-addon-next",
+    "storybook-addon-next-router",
     /*{
       name: "storybook-addon-next",
       options: {
@@ -70,4 +72,5 @@ module.exports = {
 
     return config;
   },
+  typescript: { reactDocgen: "react-docgen" },
 };

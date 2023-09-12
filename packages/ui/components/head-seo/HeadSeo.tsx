@@ -1,13 +1,11 @@
-import { merge } from "lodash";
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
-import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
-import { APP_NAME } from "@calcom/lib/constants";
-import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
+import { APP_NAME, WEBSITE_URL, IS_CALCOM } from "@calcom/lib/constants";
+import { seoConfig, getSeoImage, buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 
 export type HeadSeoProps = {
@@ -32,7 +30,7 @@ const buildSeoMeta = (pageProps: {
   siteName?: string;
   url?: string;
   canonical?: string;
-}): NextSeoProps => {
+}) => {
   const { title, description, image, canonical, siteName = seoConfig.headSeo.siteName } = pageProps;
   return {
     title: title,
@@ -70,19 +68,14 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
+  const path = usePathname();
   // The below code sets the defaultUrl for our canonical tags
-
-  // Get the current URL from the window object
-  const url = getBrowserInfo()?.url;
-  // Check if the URL is from cal.com
-  const isCalcom =
-    url && (new URL(url).hostname.endsWith("cal.com") || new URL(url).hostname.endsWith("cal.dev"));
   // Get the router's path
-  const path = useRouter().asPath;
-  // Build the canonical URL using the router's path, without query parameters. Note: on homepage it omits the trailing slash
-  const calcomCanonical = `https://cal.com${path === "/" ? "" : path}`.split("?")[0];
+  const selfHostedOrigin = WEBSITE_URL || "https://cal.com";
   // Set the default URL to either the current URL (if self-hosted) or https://cal.com canonical URL
-  const defaultUrl = isCalcom ? calcomCanonical : url;
+  const defaultUrl = IS_CALCOM
+    ? buildCanonical({ path, origin: "https://cal.com" })
+    : buildCanonical({ path, origin: selfHostedOrigin });
 
   const {
     title,
@@ -129,7 +122,18 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     });
   }
 
-  const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);
+  // Instead of doing a blackbox deep merge which can be tricky implementation wise and need a good implementation, we should generate the object manually as we know the properties
+  // Goal is to avoid big dependency
+  const seoProps: NextSeoProps = {
+    ...nextSeoProps,
+    ...seoObject,
+    openGraph: {
+      ...nextSeoProps.openGraph,
+      ...seoObject.openGraph,
+      images: [...(nextSeoProps.openGraph?.images || []), ...seoObject.openGraph.images],
+    },
+    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || [])],
+  };
 
   return <NextSeo {...seoProps} />;
 };

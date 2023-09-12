@@ -23,9 +23,17 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    const app = await appStore[appName as keyof typeof appStore];
+    const appImportFn = appStore[appName as keyof typeof appStore];
 
-    if (app && "lib" in app && "VideoApiAdapter" in app.lib) {
+    // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
+    const app = appImportFn ? await appImportFn() : null;
+
+    if (!app) {
+      log.error(`Couldn't get adapter for ${appName}`);
+      continue;
+    }
+
+    if ("lib" in app && "VideoApiAdapter" in app.lib) {
       const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       videoAdapters.push(videoAdapter);
@@ -59,6 +67,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     originalEvent: CalendarEvent;
     success: boolean;
     createdEvent: VideoCallData | undefined;
+    credentialId: number;
   } = {
     appName: credential.appName,
     type: credential.type,
@@ -66,6 +75,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     originalEvent: calEvent,
     success: false,
     createdEvent: undefined,
+    credentialId: credential.id,
   };
   try {
     // Check to see if video app is enabled
@@ -142,6 +152,7 @@ const updateMeeting = async (
 const deleteMeeting = async (credential: CredentialPayload, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
+    logger.debug("videoAdapter inside deleteMeeting", { credential, uid });
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
@@ -165,6 +176,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },
@@ -188,6 +200,7 @@ const getRecordingsOfCalVideoByRoomName = async (
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },
@@ -209,6 +222,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      teamId: null,
       key: dailyAppKeys,
       invalid: false,
     },

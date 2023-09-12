@@ -11,19 +11,28 @@ import { KPICard } from "./KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId } = filter;
+  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll } = filter;
   const [startDate, endDate] = dateRange;
 
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.eventsByStatus.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-    memberUserId: selectedMemberUserId ?? undefined,
-    userId: selectedUserId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.eventsByStatus.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
+      memberUserId: selectedMemberUserId ?? undefined,
+      userId: selectedUserId ?? undefined,
+      isAll,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const categories: {
     title: string;

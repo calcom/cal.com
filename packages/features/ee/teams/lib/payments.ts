@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -28,10 +29,17 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
 
-export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; userId: number }) => {
-  const { teamId, seats, userId } = input;
+export const purchaseTeamSubscription = async (input: {
+  teamId: number;
+  seats: number;
+  userId: number;
+  isOrg?: boolean;
+}) => {
+  const { teamId, seats, userId, isOrg } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
+  // For orgs, enforce minimum of 30 seats
+  const quantity = isOrg ? (seats < 30 ? 30 : seats) : seats;
   const customer = await getStripeCustomerIdFromUserId(userId);
   const session = await stripe.checkout.sessions.create({
     customer,
@@ -42,8 +50,8 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
-        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
-        quantity: seats,
+        price: isOrg ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        quantity: quantity,
       },
     ],
     customer_update: {
@@ -67,7 +75,7 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
 const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { metadata: true, members: true },
+    select: { metadata: true, members: true, _count: { select: { orgUsers: true } } },
   });
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
@@ -95,8 +103,22 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
     const { subscriptionId, subscriptionItemId } = team.metadata;
+    const membershipCount = team.members.length;
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscriptionQuantity = subscription.items.data.find(
+      (sub) => sub.id === subscriptionItemId
+    )?.quantity;
+    if (!subscriptionQuantity) throw new Error("Subscription not found");
+
+    if (!!team._count.orgUsers && membershipCount < ORGANIZATION_MIN_SEATS) {
+      console.info(
+        `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
+      );
+      return;
+    }
+
     await stripe.subscriptions.update(subscriptionId, {
-      items: [{ quantity: team.members.length, id: subscriptionItemId }],
+      items: [{ quantity: membershipCount, id: subscriptionItemId }],
     });
     console.info(
       `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`

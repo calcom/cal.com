@@ -1,6 +1,7 @@
 {
   "name": "@calcom/trpc",
   "sideEffects": false,
+  "private": true,
   "description": "Shared tRPC library for Cal.com",
   "authors": "zomars",
   "version": "1.0.0",
@@ -16,6 +17,6 @@
     "@trpc/react-query": "^10.13.0",
     "@trpc/server": "^10.13.0",
     "superjson": "1.9.1",
-    "zod": "^3.20.2"
+    "zod": "^3.22.2"
   }
 }

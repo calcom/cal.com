@@ -2,7 +2,7 @@
 # If no project name is given
 if [ $# -eq 0 ]; then
   # Display usage and stop
-  echo "Usage: git-setup.sh <api,console,website>"
+  echo "Usage: git-setup.sh <console,website>"
   exit 1
 fi
 # Get remote url to support either https or ssh
@@ -23,15 +23,14 @@ for module in "$@"; do
     git submodule add --force $project "apps/$module"
     # Set the default branch to main
     git config -f .gitmodules --add "submodule.apps/$module.branch" main
-    # Adding the subdmoule ignores the `.gitignore` so a reset is needed
-    git reset
+    
+    # Update to the latest from main in that submodule
+    cd apps/$module && git pull origin main && cd ../..
+
+    # We forcefully added the subdmoule which was in .gitignore, so unstage it.
+    git restore --staged apps/$module
   else
-    # If the module is the API, display a link to request access
-    if [ "$module" = "api" ]; then
-      echo "You don't have access to: '${module}' module. You can request access in: https://console.cal.com"
-    else
-      # If the module is not the API, display normal message
-      echo "You don't have access to: '${module}' module."
-    fi
+    echo "You don't have access to: '${module}' module."
   fi
 done
+git restore --staged .gitmodules

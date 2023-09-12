@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { MembershipRole } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
@@ -35,6 +35,8 @@ export default function TeamInviteList(props: Props) {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
     },
     async onError(err) {
       showToast(err.message, "error");

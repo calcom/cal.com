@@ -1,18 +1,20 @@
-import { SchedulingType } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Button,
@@ -50,7 +52,7 @@ import {
   Loader,
 } from "@calcom/ui/components/icon";
 
-import { EmbedButton, EmbedDialog } from "@components/Embed";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -63,6 +65,8 @@ type Props = {
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
   isUpdateMutationLoading?: boolean;
+  availability?: AvailabilityOption;
+  isUserOrganizationAdmin: boolean;
 };
 
 function getNavigation(props: {
@@ -71,6 +75,7 @@ function getNavigation(props: {
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
+  availability: AvailabilityOption | undefined;
 }) {
   const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   const duration =
@@ -128,6 +133,8 @@ function EventTypeSingleLayout({
   enabledWorkflowsNumber,
   isUpdateMutationLoading,
   formMethods,
+  availability,
+  isUserOrganizationAdmin,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -137,13 +144,14 @@ function EventTypeSingleLayout({
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
-    eventType.schedulingType === SchedulingType.MANAGED;
+    eventType.schedulingType === SchedulingType.MANAGED ||
+    isUserOrganizationAdmin;
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
-      await router.push("/event-types");
+      router.push("/event-types");
       setDeleteDialogOpen(false);
     },
     onError: (err) => {
@@ -165,13 +173,15 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    let navigation = getNavigation({
+    const navigation = getNavigation({
       t,
       eventType,
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
+      availability,
     });
+
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
@@ -179,7 +189,7 @@ function EventTypeSingleLayout({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
-            ? "Member's default schedule"
+            ? "members_default_schedule"
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
@@ -187,7 +197,7 @@ function EventTypeSingleLayout({
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+          : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -202,10 +212,8 @@ function EventTypeSingleLayout({
         }`,
       });
     }
-    if (isManagedEventType || isChildrenManagedEventType) {
-      // Removing apps and workflows for manageg event types by admins v1
-      navigation = navigation.slice(0, -2);
-    } else {
+    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
+    if (showWebhooks) {
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
@@ -214,11 +222,24 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [
+    t,
+    eventType,
+    enabledAppsNumber,
+    installedAppsNumber,
+    enabledWorkflowsNumber,
+    availability,
+    isManagedEventType,
+    isChildrenManagedEventType,
+    team,
+    formMethods,
+  ]);
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const orgBranding = useOrgBranding();
+  const isOrgEvent = orgBranding?.fullDomain;
+  const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
+    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
+  }/${eventType.slug}`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
   const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
@@ -230,22 +251,36 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata.managedEventConfig && (
+          {!eventType.metadata?.managedEventConfig && (
             <>
-              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
-                <Skeleton
-                  as={Label}
-                  htmlFor="hiddenSwitch"
-                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-                  {t("hide_from_profile")}
-                </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  checked={formMethods.watch("hidden")}
-                  onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", e);
-                  }}
-                />
+              <div
+                className={classNames(
+                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
+                  formMethods.watch("hidden") ? "px-2" : "",
+                  "lg:flex"
+                )}>
+                {formMethods.watch("hidden") && (
+                  <Skeleton
+                    as={Label}
+                    htmlFor="hiddenSwitch"
+                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                    {t("hidden")}
+                  </Skeleton>
+                )}
+                <Tooltip
+                  content={
+                    formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                  }>
+                  <div className="self-center rounded-md p-2">
+                    <Switch
+                      id="hiddenSwitch"
+                      checked={!formMethods.watch("hidden")}
+                      onCheckedChange={(e) => {
+                        formMethods.setValue("hidden", !e);
+                      }}
+                    />
+                  </div>
+                </Tooltip>
               </div>
               <VerticalDivider className="hidden lg:block" />
             </>
@@ -278,12 +313,13 @@ function EventTypeSingleLayout({
                     showToast("Link copied!", "success");
                   }}
                 />
-                <EmbedButton
+                <EventTypeEmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
                   StartIcon={Code}
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
+                  eventId={eventType.id}
                 />
               </>
             )}
@@ -338,18 +374,18 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="sm:hover:bg-subtle flex h-9 flex-row items-center justify-between py-2 px-4">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
                   className="mt-2 inline cursor-pointer self-center pr-2 ">
-                  {t("hide_from_profile")}
+                  {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
-                  checked={formMethods.watch("hidden")}
+                  checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", e);
+                    formMethods.setValue("hidden", !e);
                   }}
                 />
               </div>
@@ -359,7 +395,7 @@ function EventTypeSingleLayout({
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
-            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
+            loading={isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
@@ -373,11 +409,13 @@ function EventTypeSingleLayout({
               className="primary-navigation"
               tabs={EventTypeTabs}
               sticky
-              linkProps={{ shallow: true }}
+              linkShallow
+              itemClassname="items-start"
+              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} linkProps={{ shallow: true }} />
+            <HorizontalTabs tabs={EventTypeTabs} linkShallow />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
@@ -415,7 +453,7 @@ function EventTypeSingleLayout({
           </p>
         </ConfirmationDialogContent>
       </Dialog>
-      <EmbedDialog />
+      <EventTypeEmbedDialog />
     </Shell>
   );
 }

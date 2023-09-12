@@ -3,13 +3,12 @@
   "name": "Typeform",
   "slug": "typeform",
   "type": "typeform_other",
-  "logo": "/api/app-store/typeform/icon-dark.svg",
-  "url": "https://cal.com/apps/typeform",
+  "logo": "icon-dark.svg",
+  "url": "https://cal.com/",
   "variant": "other",
-  "categories": ["other"],
-  "publisher": "Cal.com",
+  "categories": ["automation"],
+  "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "description": "Adds a link to copy Typeform Redirect URL",
-  "__createdUsingCli": true,
-  "dependencies": ["routing-forms"]
+  "__createdUsingCli": true
 }

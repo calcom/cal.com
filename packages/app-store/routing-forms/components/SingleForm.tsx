@@ -1,9 +1,10 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -34,10 +35,18 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Download, Code, Trash } from "@calcom/ui/components/icon";
+import {
+  ExternalLink,
+  Link as LinkIcon,
+  Download,
+  Code,
+  Trash,
+  MessageCircle,
+} from "@calcom/ui/components/icon";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
+import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
 import type { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
@@ -47,6 +56,10 @@ import RoutingNavBar from "./RoutingNavBar";
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type RoutingFormWithResponseCount = RoutingForm & {
+  team: {
+    slug: Team["slug"];
+    name: Team["name"];
+  } | null;
   _count: {
     responses: number;
   };
@@ -66,8 +79,10 @@ const Actions = ({
 
   return (
     <div className="flex items-center">
-      <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
-      <VerticalDivider />
+      <div className="hidden items-center sm:inline-flex">
+        <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
+        <VerticalDivider />
+      </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
         <Tooltip content={t("preview")}>
           <FormAction
@@ -122,7 +137,7 @@ const Actions = ({
           tooltip={t("delete")}
         />
         {typeformApp?.isInstalled ? (
-          <FormActionsDropdown form={form}>
+          <FormActionsDropdown>
             <FormAction
               data-testid="copy-redirect-url"
               routingForm={form}
@@ -137,7 +152,7 @@ const Actions = ({
       </ButtonGroup>
 
       <div className="flex md:hidden">
-        <FormActionsDropdown form={form}>
+        <FormActionsDropdown>
           <FormAction
             routingForm={form}
             color="minimal"
@@ -186,7 +201,7 @@ const Actions = ({
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"
             routingForm={form}
@@ -196,6 +211,16 @@ const Actions = ({
             StartIcon={Trash}>
             {t("delete")}
           </FormAction>
+          <div className="block sm:hidden">
+            <DropdownMenuSeparator />
+            <FormAction
+              data-testid="toggle-form"
+              action="toggle"
+              routingForm={form}
+              label="Disable Form"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+            />
+          </div>
         </FormActionsDropdown>
       </div>
       <VerticalDivider />
@@ -223,23 +248,43 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
+  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
 
   function testRouting() {
     const action = processRoute({ form, response });
     setDecidedAction(action);
   }
 
-  const hookForm = useForm({
-    defaultValues: form,
-  });
+  const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
-    hookForm.reset(form);
-  }, [form, hookForm]);
+    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
+    // and then it is considered the source of truth.
+
+    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
+
+    // 1 - When we change the edited form.
+
+    // 2 - When the form is saved elsewhere (such as in another browser tab)
+
+    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
+    // because each time a tab changes, a new component is created and another useEffect is executed.
+    // An update from the form always occurs after the first useEffect execution.
+    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
+      hookForm.reset(form);
+    }
+
+    if (skipFirstUpdate) {
+      setSkipFirstUpdate(false);
+    } else {
+      hookForm.reset(form);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
-      showToast("Form updated successfully.", "success");
+      showToast(t("form_updated_successfully"), "success");
     },
     onError(e) {
       if (e.message) {
@@ -268,12 +313,21 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         <FormActionsProvider appUrl={appUrl}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
-            heading={form.name}
+            heading={
+              <div className="flex">
+                <div>{form.name}</div>
+                {form.team && (
+                  <Badge className="ml-4 mt-1" variant="gray">
+                    {form.team.name}
+                  </Badge>
+                )}
+              </div>
+            }
             subtitle={form.description || ""}
             backPath={`/${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
-            <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-              <div className="flex flex-col items-center md:flex-row md:items-start">
+            <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
+              <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
                 <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
                   <TextField
                     type="text"
@@ -319,7 +373,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         {form.routers.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
-                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <Link href={`${appUrl}/route-builder/${router.id}`}>
                                 <Badge variant="gray">{router.name}</Badge>
                               </Link>
                             </div>
@@ -341,7 +395,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         {connectedForms.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
-                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <Link href={`${appUrl}/route-builder/${router.id}`}>
                                 <Badge variant="default">{router.name}</Badge>
                               </Link>
                             </div>
@@ -359,18 +413,26 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       {t("test_preview")}
                     </Button>
                   </div>
+                  {form.routes?.every(isFallbackRoute) && (
+                    <Alert
+                      className="mt-6 !bg-orange-100 font-semibold text-orange-900"
+                      iconClassName="!text-orange-900"
+                      severity="neutral"
+                      title={t("no_routes_defined")}
+                    />
+                  )}
                   {!form._count?.responses && (
                     <>
                       <Alert
-                        className="mt-6"
+                        className="mt-2 px-4 py-3"
                         severity="neutral"
                         title={t("no_responses_yet")}
-                        message={t("responses_collection_waiting_description")}
+                        CustomIcon={MessageCircle}
                       />
                     </>
                   )}
                 </div>
-                <div className="border-subtle w-full rounded-md border p-8">
+                <div className="border-subtle bg-muted w-full rounded-md border p-8">
                   <RoutingNavBar appUrl={appUrl} form={form} />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
@@ -479,7 +541,11 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   if (!form) {
     throw new Error(t("something_went_wrong"));
   }
-  return <SingleForm form={form} {...props} />;
+  return (
+    <LicenseRequired>
+      <SingleForm form={form} {...props} />
+    </LicenseRequired>
+  );
 }
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
@@ -511,8 +577,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
-  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
+  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
+  if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
       notFound: true,
     };
@@ -523,6 +589,12 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       id: formId,
     },
     include: {
+      team: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
       _count: {
         select: {
           responses: true,
@@ -539,7 +611,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: await getSerializableForm(form),
+      form: await getSerializableForm({ form }),
     },
   };
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -17,6 +17,8 @@ import {
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
 import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
+
+import PageWrapper from "@components/PageWrapper";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -55,7 +57,7 @@ const ApiKeysView = () => {
           <div>
             {isLoading ? null : data?.length ? (
               <>
-                <div className="mt-6 mb-8 rounded-md border">
+                <div className="border-subtle mb-8 mt-6 rounded-md border">
                   {data.map((apiKey, index) => (
                     <ApiKeyListItem
                       key={apiKey.id}
@@ -92,5 +94,6 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
+ApiKeysView.PageWrapper = PageWrapper;
 
 export default ApiKeysView;

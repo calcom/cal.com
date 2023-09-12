@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
 
-  const redirect_uri = WEBAPP_URL + "/api/integrations/googlecalendar/callback";
+  const redirect_uri = WEBAPP_URL_FOR_OAUTH + "/api/integrations/googlecalendar/callback";
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 

@@ -3,12 +3,12 @@
     "short_name": "Cal.com",
     "icons": [
         {
-            "src": "/android-chrome-192x192.png",
+            "src": "/api/logo?type=android-chrome-192",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/android-chrome-256x256.png",
+            "src": "/api/logo?type=android-chrome-256",
             "sizes": "256x256",
             "type": "image/png"
         }

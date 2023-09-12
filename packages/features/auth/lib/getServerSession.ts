@@ -72,6 +72,8 @@ export async function getServerSession(options: {
       image: `${CAL_URL}/${user.username}/avatar.png`,
       impersonatedByUID: token.impersonatedByUID ?? undefined,
       belongsToActiveTeam: token.belongsToActiveTeam,
+      org: token.org,
+      locale: user.locale ?? undefined,
     },
   };
 

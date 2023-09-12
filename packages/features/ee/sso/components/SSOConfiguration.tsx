@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import ConnectionInfo from "@calcom/ee/sso/components/ConnectionInfo";
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
 import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,7 +28,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   if (errorMessage) {
     return (
       <>
-        <Meta title={t("saml_config")} description={t("saml_description")} />
+        <Meta title={t("sso_configuration")} description={t("saml_description")} />
         <Alert severity="warning" message={t(errorMessage)} className="mb-4 " />
       </>
     );

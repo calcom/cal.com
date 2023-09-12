@@ -14,7 +14,7 @@ export type Response = Record<
   // Field ID
   string,
   {
-    value: string | string[];
+    value: number | string | string[];
     label: string;
   }
 >;
@@ -45,3 +45,5 @@ export type SerializableRoute =
       isFallback?: LocalRoute["isFallback"];
     })
   | GlobalRoute;
+
+export type OrderedResponses = Response[string][];

@@ -1,5 +1,4 @@
 import type { Booking, BookingReference, User } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
@@ -10,6 +9,7 @@ import { sendRequestRescheduleEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
@@ -121,17 +121,19 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
     const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
       (ref) => !!credentialsMap.get(ref.type)
     );
+
+    const promises = bookingRefsFiltered.map(async (bookingRef) => {
+      if (!bookingRef.uid) return;
+
+      if (bookingRef.type.endsWith("_calendar")) {
+        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+      } else if (bookingRef.type.endsWith("_video")) {
+        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+      }
+    });
     try {
-      bookingRefsFiltered.forEach(async (bookingRef) => {
-        if (bookingRef.uid) {
-          if (bookingRef.type.endsWith("_calendar")) {
-            const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
-            return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
-          } else if (bookingRef.type.endsWith("_video")) {
-            return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
-          }
-        }
-      });
+      await Promise.all(promises);
     } catch (error) {
       if (error instanceof Error) {
         logger.error(error.message);

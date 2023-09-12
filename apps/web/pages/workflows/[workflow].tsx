@@ -1,7 +1,10 @@
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
-export { default } from "@calcom/features/ee/workflows/pages/workflow";
+import Workflow from "@calcom/features/ee/workflows/pages/workflow";
+
+import PageWrapper from "@components/PageWrapper";
+import type { CalPageWrapper } from "@components/PageWrapper";
 
 const querySchema = z.object({
   workflow: z.string(),
@@ -26,3 +29,8 @@ export const getStaticPaths: GetStaticPaths = () => {
     fallback: "blocking",
   };
 };
+
+const WorkflowsPage = Workflow as CalPageWrapper;
+WorkflowsPage.PageWrapper = PageWrapper;
+
+export default WorkflowsPage;

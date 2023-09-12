@@ -1,4 +1,4 @@
-import { CalendarSwitch } from "./CalendarSwitch";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;
@@ -53,6 +53,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
         <ul className="p-4">
           {calendars?.map((calendar, i) => (
             <CalendarSwitch
+              credentialId={calendar.credentialId}
               key={calendar.externalId}
               externalId={calendar.externalId}
               title={calendar.name || "Nameless Calendar"}

@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SchedulingType } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +15,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
@@ -29,6 +30,7 @@ import {
   showToast,
   TextField,
   Editor,
+  DialogFooter,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -79,6 +81,8 @@ export default function CreateEventTypeDialog({
 }) {
   const { t } = useLocale();
   const router = useRouter();
+  const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBranding();
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -113,7 +117,7 @@ export default function CreateEventTypeDialog({
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
+      showToast(t("event_type_created_successfully"), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -122,18 +126,19 @@ export default function CreateEventTypeDialog({
       }
 
       if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: URL already exists.`;
+        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
         showToast(message, "error");
       }
     },
   });
 
   const flags = useFlagMap();
+  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog
@@ -158,7 +163,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="mt-3 space-y-6 pb-11">
             {teamId && (
               <TextField
                 type="hidden"
@@ -179,11 +184,10 @@ export default function CreateEventTypeDialog({
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
                 <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
@@ -203,8 +207,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}
@@ -221,6 +224,8 @@ export default function CreateEventTypeDialog({
                   setText={(value: string) => form.setValue("description", turndown(value))}
                   excludedToolbarItems={["blockType", "link"]}
                   placeholder={t("quick_video_meeting")}
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
                 />
 
                 <div className="relative">
@@ -229,7 +234,7 @@ export default function CreateEventTypeDialog({
                     required
                     min="10"
                     placeholder="15"
-                    label={t("length")}
+                    label={t("duration")}
                     className="pr-4"
                     {...register("length", { valueAsNumber: true })}
                     addOnSuffix={t("minutes")}
@@ -251,6 +256,9 @@ export default function CreateEventTypeDialog({
                   />
                 )}
                 <RadioArea.Group
+                  onValueChange={(val: SchedulingType) => {
+                    form.setValue("schedulingType", val);
+                  }}
                   className={classNames(
                     "mt-1 flex gap-4",
                     isAdmin && flags["managed-event-types"] && "flex-col"
@@ -287,12 +295,12 @@ export default function CreateEventTypeDialog({
               </div>
             )}
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider>
+            <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose />
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

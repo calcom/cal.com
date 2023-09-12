@@ -1,9 +1,10 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -28,12 +29,12 @@ import { Plus, Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { CalendarSwitch } from "@components/settings/CalendarSwitch";
+import PageWrapper from "@components/PageWrapper";
 
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -177,15 +178,18 @@ const CalendarsView = () => {
                         </div>
                         <div className="border-subtle w-full border-t">
                           <p className="text-subtle px-2 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 p-4">
+                          <ul className="space-y-4 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
+                                credentialId={cal.credentialId}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
+                                name={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                isSelected={cal.isSelected}
-                                defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
+                                isChecked={
+                                  cal.isSelected || cal.externalId === data?.destinationCalendar?.externalId
+                                }
                               />
                             ))}
                           </ul>
@@ -228,5 +232,6 @@ const CalendarsView = () => {
 };
 
 CalendarsView.getLayout = getLayout;
+CalendarsView.PageWrapper = PageWrapper;
 
 export default CalendarsView;

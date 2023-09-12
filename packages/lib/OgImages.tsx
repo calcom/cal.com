@@ -4,6 +4,7 @@ import { CAL_URL, LOGO } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface HTMLAttributes<T> {
     tw?: string;
   }
@@ -61,7 +62,7 @@ export const constructMeetingImage = (
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
     `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(profile.image)}`,
+    profile.image && `&meetingImage=${encodeURIComponent(CAL_URL + profile.image)}`,
     `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.
@@ -138,7 +139,11 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
           <img src={`${CAL_URL}/${LOGO}`} width="350" alt="Logo" />
-          {avatars.length > 0 && <div tw="font-bold text-emphasis text-[92px] mx-8 bottom-2">/</div>}
+          {avatars.length > 0 && (
+            <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
+              /
+            </div>
+          )}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
               <img
@@ -156,7 +161,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
             )}
           </div>
         </div>
-        <div tw="relative flex text-[54px] w-full flex-col text-emphasis mt-auto">
+        <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
           <div
             tw="flex w-[1040px] overflow-hidden"
             style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
@@ -216,7 +221,7 @@ export const App = ({ name, description, slug }: AppImageProps) => (
         <img src={`${CAL_URL}${slug}`} alt="App icon" width="172" />
       </div>
     </div>
-    <div tw="flex mt-auto w-full flex-col text-emphasis">
+    <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
       <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
         {name}
       </div>
@@ -234,7 +239,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
         <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
       </div>
 
-      <div tw="relative flex text-[54px] w-full flex-col text-emphasis mt-auto">
+      <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
         <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
           {title}
         </div>

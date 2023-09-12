@@ -9,7 +9,7 @@ test.describe.configure({ mode: "parallel" });
 test.describe("Availablity tests", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
-    await user.login();
+    await user.apiLogin();
     await page.goto("/availability");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="schedules"]');
@@ -33,7 +33,7 @@ test.describe("Availablity tests", () => {
     });
 
     await test.step("Date override is displayed in troubleshooter", async () => {
-      const response = await page.waitForResponse("**/api/trpc/viewer.availability.schedule.update?batch=1");
+      const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
       const json = await response.json();
       // @ts-expect-error trust me bro
       const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);

@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,21 +9,27 @@ import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
+import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const NewWebhookView = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
+  const session = useSession();
+
+  const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
+
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: router.isReady,
+      enabled: session.status === "authenticated",
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: router.isReady,
+    enabled: session.status === "authenticated",
   });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
@@ -36,14 +43,16 @@ const NewWebhookView = () => {
     },
   });
 
-  const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
-    return !!webhooks?.find(
-      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
-    );
-  };
-
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
+    if (
+      subscriberUrlReserved({
+        subscriberUrl: values.subscriberUrl,
+        id: values.id,
+        webhooks,
+        teamId,
+        userId: session.data?.user.id,
+      })
+    ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
@@ -58,6 +67,7 @@ const NewWebhookView = () => {
       active: values.active,
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
+      teamId,
     });
   };
 
@@ -70,8 +80,11 @@ const NewWebhookView = () => {
         description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
-
-      <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
+      <WebhookForm
+        noRoutingFormTriggers={false}
+        onSubmit={onCreateWebhook}
+        apps={installedApps?.items.map((app) => app.slug)}
+      />
     </>
   );
 };

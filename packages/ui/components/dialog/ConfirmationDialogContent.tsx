@@ -41,7 +41,7 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-100" />
               </div>
             )}
             {variety === "warning" && (
@@ -57,13 +57,15 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="font-cal text-emphasis text-xl">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
+            {title}
+          </DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-subtle text-sm">
             {children}
           </DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
+      <div className="my-5 flex flex-row-reverse gap-x-2 sm:my-8">
         {confirmBtn ? (
           confirmBtn
         ) : (

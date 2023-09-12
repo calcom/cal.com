@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta, TextField } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 
 function AdminView() {
@@ -37,5 +38,6 @@ function AdminView() {
 }
 
 AdminView.getLayout = getLayout;
+AdminView.PageWrapper = PageWrapper;
 
 export default AdminView;

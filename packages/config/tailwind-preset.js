@@ -10,6 +10,7 @@ module.exports = {
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
+    "../../packages/atoms/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -24,11 +25,13 @@ module.exports = {
         success: "var(--cal-bg-success)",
         attention: "var(--cal-bg-attention)",
         error: "var(--cal-bg-error)",
+        darkerror: "var(--cal-bg-dark-error)",
         black: "#111111",
         brand: {
-          default: "var(--cal-brand,'#111827')",
-          emphasis: "var(--cal-brand-emphasis,'#101010')",
-          subtle: "var(--cal-brand-subtle,'#9CA3AF')",
+          default: "var(--cal-brand,#111827)",
+          emphasis: "var(--cal-brand-emphasis,#101010)",
+          subtle: "var(--cal-brand-subtle,#9CA3AF)",
+          accent: "var(--cal-brand-accent,white)",
         },
         gray: {
           50: "#F9FAFB",
@@ -61,6 +64,7 @@ module.exports = {
         subtle: `var(--cal-border-subtle, ${subtleColor})`,
         muted: "var(--cal-border-muted, #F3F4F6)",
         booker: `var(--cal-border-booker, ${subtleColor})`,
+        error: "var(--cal-border-error, #AA2E26)",
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -91,18 +95,16 @@ module.exports = {
       },
       keyframes: {
         "fade-in-up": {
-          "0%": {
-            opacity: 0.75,
-            transform: "translateY(20px)",
-          },
-          "100%": {
-            opacity: 1,
-            transform: "translateY(0)",
-          },
+          from: { opacity: 0, transform: "translateY(10px)" },
+          to: { opacity: 1, transform: "none" },
+        },
+        spinning: {
+          "100%": { transform: "rotate(360deg)" },
         },
       },
       animation: {
-        "fade-in-up": "fade-in-up 0.35s cubic-bezier(.21,1.02,.73,1)",
+        "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        spinning: "spinning 0.75s linear infinite",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
@@ -149,8 +151,9 @@ module.exports = {
   plugins: [
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
-    require("tailwind-scrollbar"),
+    require("tailwind-scrollbar")({ nocompatible: true }),
     require("tailwindcss-radix")(),
+    require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
       addVariant("mac", ".mac &");
       addVariant("windows", ".windows &");
@@ -165,6 +168,6 @@ module.exports = {
     }),
   ],
   variants: {
-    scrollbar: ["rounded", "dark"],
+    scrollbar: ["dark"],
   },
 };

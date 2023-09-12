@@ -10,11 +10,22 @@ export interface NavTabProps {
   children?: React.ReactNode;
   className?: string;
   sticky?: boolean;
-  linkProps?: VerticalTabItemProps["linkProps"];
+  linkShallow?: boolean;
+  linkScroll?: boolean;
   itemClassname?: string;
+  iconClassName?: string;
 }
 
-const NavTabs = function ({ tabs, className = "", sticky, linkProps, itemClassname, ...props }: NavTabProps) {
+const NavTabs = function ({
+  tabs,
+  className = "",
+  sticky,
+  linkShallow,
+  linkScroll,
+  itemClassname,
+  iconClassName,
+  ...props
+}: NavTabProps) {
   return (
     <nav
       className={classNames(
@@ -27,7 +38,14 @@ const NavTabs = function ({ tabs, className = "", sticky, linkProps, itemClassna
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} className={itemClassname} />
+        <VerticalTabItem
+          {...tab}
+          key={idx}
+          linkShallow={linkShallow}
+          linkScroll={linkScroll}
+          className={itemClassname}
+          iconClassName={iconClassName}
+        />
       ))}
     </nav>
   );

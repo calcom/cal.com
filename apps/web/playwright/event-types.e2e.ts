@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -12,7 +13,7 @@ test.describe("Event Types tests", () => {
   test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
       await page.goto("/event-types");
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
@@ -68,7 +69,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      if (!href) throw new Error("No href found for event type");
+      expect(href).toBeTruthy();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
@@ -76,6 +77,8 @@ test.describe("Event Types tests", () => {
 
       await page.click(`[data-testid=event-type-options-${eventTypeId}]`);
       await page.click(`[data-testid=event-type-duplicate-${eventTypeId}]`);
+      // Wait for the dialog to appear so we can get the URL
+      await page.waitForSelector('[data-testid="dialog-title"]');
 
       const url = page.url();
       const params = new URLSearchParams(url);
@@ -89,17 +92,16 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
     });
+
     test("edit first event", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        },
+      await page.waitForURL((url) => {
+        return !!url.pathname.match(/\/event-types\/.+/);
       });
       await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
       expect(toast).toBeTruthy();
     });
 
@@ -107,10 +109,8 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        },
+      await page.waitForURL((url) => {
+        return !!url.pathname.match(/\/event-types\/.+/);
       });
 
       const locationData = ["location 1", "location 2", "location 3"];
@@ -146,13 +146,6 @@ test.describe("Event Types tests", () => {
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
-      // Navigate to book page
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/book");
-        },
-      });
-
       for (const location of locationData) {
         await page.locator(`span:has-text("${location}")`).click();
       }
@@ -161,5 +154,46 @@ test.describe("Event Types tests", () => {
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
+
+    test.describe("Different Locations Tests", () => {
+      test("can add Attendee Phone Number location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+        await selectAttendeePhoneNumber(page);
+        await saveEventType(page);
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator(`[data-fob-field-name="location"] input`).fill("9199999999");
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
+      });
+    });
   });
 });
+
+const selectAttendeePhoneNumber = async (page: Page) => {
+  const locationOptionText = "Attendee Phone Number";
+  await page.locator("#location-select").click();
+  await page.locator(`text=${locationOptionText}`).click();
+};
+
+async function gotoFirstEventType(page: Page) {
+  const $eventTypes = page.locator("[data-testid=event-types] > li a");
+  const firstEventTypeElement = $eventTypes.first();
+  await firstEventTypeElement.click();
+  await page.waitForURL((url) => {
+    return !!url.pathname.match(/\/event-types\/.+/);
+  });
+}
+
+async function saveEventType(page: Page) {
+  await page.locator("[data-testid=update-eventtype]").click();
+}
+
+async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}

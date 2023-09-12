@@ -5,7 +5,7 @@ runs:
   steps:
     - name: Cache playwright binaries
       id: playwright-cache
-      uses: actions/cache@v2
+      uses: buildjet/cache@v2
       with:
         path: |
           ~/Library/Caches/ms-playwright

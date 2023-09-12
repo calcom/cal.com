@@ -31,13 +31,17 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-start space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-10 w-10" />
-          <div className="space-y-2">
-            <SkeletonText className="h-4 w-32" />
-            <SkeletonText className="h-4 w-16" />
+          <div className="space-y-1">
+            <div>
+              <SkeletonText className="h-4 w-16" />
+            </div>
+            <div>
+              <SkeletonText className="h-4 w-32" />
+            </div>
           </div>
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
+      <div className="mt-4 hidden flex-shrink-0 sm:ml-5 sm:mt-0 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-11 w-32" />
         </div>

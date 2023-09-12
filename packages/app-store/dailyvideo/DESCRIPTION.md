@@ -1,8 +1,8 @@
 ---
 items:
-  - /api/app-store/dailyvideo/1.jpg
-  - /api/app-store/dailyvideo/2.jpg
-  - /api/app-store/dailyvideo/3.jpg
+  - 1.jpg
+  - 2.jpg
+  - 3.jpg
 ---
 
 - **Recordings require a team plan**

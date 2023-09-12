@@ -1,5 +1,4 @@
-import { SchedulingType } from "@prisma/client";
-
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { WorkingHours } from "@calcom/types/schedule";
 
 /**
@@ -9,7 +8,7 @@ import type { WorkingHours } from "@calcom/types/schedule";
 export const getAggregateWorkingHours = (
   usersWorkingHoursAndBusySlots: (Omit<
     Awaited<ReturnType<Awaited<typeof import("./getUserAvailability")>["getUserAvailability"]>>,
-    "currentSeats"
+    "currentSeats" | "dateRanges"
   > & { user?: { isFixed?: boolean } })[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schedulingType: SchedulingType | null

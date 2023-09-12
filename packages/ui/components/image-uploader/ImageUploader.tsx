@@ -5,7 +5,8 @@ import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../..";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
+import { showToast } from "../toast";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
 
@@ -134,7 +135,15 @@ export default function ImageUploader({
     if (!e.target.files?.length) {
       return;
     }
-    setFile(e.target.files[0]);
+
+    const limit = 5 * 1000000; // max limit 5mb
+    const file = e.target.files[0];
+
+    if (file.size > limit) {
+      showToast(t("image_size_limit_exceed"), "error");
+    } else {
+      setFile(file);
+    }
   };
 
   const showCroppedImage = useCallback(
@@ -164,14 +173,7 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="mb-4 sm:flex sm:items-start">
-          <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-emphasis text-lg leading-6" id="modal-title">
-              {t("upload_target", { target })}
-            </h3>
-          </div>
-        </div>
+      <DialogContent title={t("upload_target", { target })}>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
@@ -201,12 +203,12 @@ export default function ImageUploader({
             </label>
           </div>
         </div>
-        <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
-          <DialogClose color="secondary" onClick={() => showCroppedImage(croppedAreaPixels)}>
+        <DialogFooter className="relative">
+          <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

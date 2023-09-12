@@ -3,8 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -38,14 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
-  await prisma.credential.create({
-    data: {
-      type: "salesforce_other_calendar",
-      key: salesforceTokenInfo as any,
-      userId: req.session.user.id,
-      appId: "salesforce",
-    },
-  });
+  await createOAuthAppCredential(
+    { appId: "salesforce", type: "salesforce_other_calendar" },
+    salesforceTokenInfo,
+    req
+  );
 
   const state = decodeOAuthState(req);
   res.redirect(

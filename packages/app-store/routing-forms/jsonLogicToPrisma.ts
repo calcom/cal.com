@@ -43,6 +43,22 @@ const OPERATOR_MAP = {
     operator: "NOT.equals",
     secondaryOperand: "",
   },
+  ">": {
+    operator: "gt",
+    secondaryOperand: null,
+  },
+  ">=": {
+    operator: "gte",
+    secondaryOperand: null,
+  },
+  "<": {
+    operator: "lt",
+    secondaryOperand: null,
+  },
+  "<=": {
+    operator: "lte",
+    secondaryOperand: null,
+  },
   all: {
     operator: "array_contains",
     secondaryOperand: null,
@@ -58,6 +74,7 @@ const GROUP_OPERATOR_MAP = {
   "!": "NOT",
 } as const;
 
+const NumberOperators = [">", ">=", "<", "<="];
 const convertSingleQueryToPrismaWhereClause = (
   operatorName: keyof typeof OPERATOR_MAP,
   logicData: LogicData,
@@ -71,13 +88,56 @@ const convertSingleQueryToPrismaWhereClause = (
     logicData[operatorName] instanceof Array ? logicData[operatorName] : [logicData[operatorName]];
 
   const mainOperand = operatorName !== "in" ? operands[0].var : operands[1].var;
+
   let secondaryOperand = staticSecondaryOperand || (operatorName !== "in" ? operands[1] : operands[0]) || "";
   if (operatorName === "all") {
     secondaryOperand = secondaryOperand.in[1];
   }
-  const prismaWhere = {
-    response: { path: [mainOperand, "value"], [`${prismaOperator}`]: secondaryOperand },
-  };
+
+  const isNumberOperator = NumberOperators.includes(operatorName);
+  const secondaryOperandAsNumber = typeof secondaryOperand === "string" ? Number(secondaryOperand) : null;
+
+  let prismaWhere;
+  if (secondaryOperandAsNumber) {
+    // We know that it's number operator so Prisma should query number
+    // Note that if we get string values in DB(e.g. '100'), those values can't be filtered with number operators.
+    if (isNumberOperator) {
+      prismaWhere = {
+        response: {
+          path: [mainOperand, "value"],
+          [`${prismaOperator}`]: secondaryOperandAsNumber,
+        },
+      };
+    } else {
+      // We know that it's not number operator but the input field might have been a number and thus stored value in DB as number.
+      // Also, even for input type=number we might accidentally get string value(e.g. '100'). So, let reporting do it's best job with both number and string.
+      prismaWhere = {
+        OR: [
+          {
+            response: {
+              path: [mainOperand, "value"],
+              // Query as string e.g. equals '100'
+              [`${prismaOperator}`]: secondaryOperand,
+            },
+          },
+          {
+            response: {
+              path: [mainOperand, "value"],
+              // Query as number e.g. equals 100
+              [`${prismaOperator}`]: secondaryOperandAsNumber,
+            },
+          },
+        ],
+      };
+    }
+  } else {
+    prismaWhere = {
+      response: {
+        path: [mainOperand, "value"],
+        [`${prismaOperator}`]: secondaryOperand,
+      },
+    };
+  }
 
   if (isNegation) {
     return {

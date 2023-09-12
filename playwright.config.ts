@@ -11,12 +11,12 @@ const outputDir = path.join(__dirname, "test-results");
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
-const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 15000 : 50000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 10000 : 50000;
+const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 30000 : 120000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
-const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 120000;
+const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
@@ -25,7 +25,8 @@ const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@ca
 
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
-    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
+    command:
+      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
@@ -33,6 +34,8 @@ const webServer: PlaywrightTestConfig["webServer"] = [
 ];
 
 if (IS_EMBED_TEST) {
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
+
   webServer.push({
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
@@ -42,6 +45,8 @@ if (IS_EMBED_TEST) {
 }
 
 if (IS_EMBED_REACT_TEST) {
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
+
   webServer.push({
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
@@ -53,7 +58,9 @@ if (IS_EMBED_REACT_TEST) {
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: os.cpus().length,
+  // While debugging it should be focussed mode
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
@@ -66,7 +73,7 @@ const config: PlaywrightTestConfig = {
   outputDir: path.join(outputDir, "results"),
   webServer,
   use: {
-    baseURL: "http://localhost:3000/",
+    baseURL: process.env.NEXT_PUBLIC_WEBAPP_URL,
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
@@ -81,6 +88,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
@@ -94,6 +102,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
@@ -101,25 +110,37 @@ const config: PlaywrightTestConfig = {
     {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
-      testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
+      testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
-      testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      testMatch: /.*\.e2e\.tsx?/,
+      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3101/" },
     },
     {
       name: "@calcom/embed-core--firefox",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "@calcom/embed-core--webkit",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Safari"] },
     },
   ],
@@ -246,3 +267,11 @@ expect.extend({
 });
 
 export default config;
+
+function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: string }) {
+  // We should't depend on an embed dependency for App's tests. So, conditionally modify App webServer.
+  // Only one of port or url can be specified, so remove port.
+  delete webServer.port;
+  webServer.url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;
+  console.log("Ensuring that /embed/embed.js is 200 before starting tests");
+}

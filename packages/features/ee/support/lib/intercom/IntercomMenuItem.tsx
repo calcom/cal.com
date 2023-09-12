@@ -15,8 +15,8 @@ export default function IntercomMenuItem(props: IntercomMenuItemProps) {
 
   return (
     <button
-      onClick={() => {
-        open();
+      onClick={async () => {
+        await open();
         onHelpItemSelect();
       }}
       className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium">

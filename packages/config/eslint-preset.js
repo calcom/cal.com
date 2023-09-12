@@ -1,7 +1,13 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   root: true,
-  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended", "turbo"],
+  extends: [
+    "plugin:playwright/playwright-test",
+    "next",
+    "plugin:prettier/recommended",
+    "turbo",
+    "plugin:you-dont-need-lodash-underscore/compatible-warn",
+  ],
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
@@ -16,6 +22,7 @@ module.exports = {
     "@next/next/no-img-element": "off",
     "@next/next/no-html-link-for-pages": "off",
     "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
+    "playwright/no-page-pause": "error",
     "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
     "react/self-closing-comp": ["error", { component: true, html: true }],
     "@typescript-eslint/no-unused-vars": [
@@ -29,6 +36,12 @@ module.exports = {
       },
     ],
     "unused-imports/no-unused-imports": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["lodash"],
+      },
+    ],
   },
   overrides: [
     {

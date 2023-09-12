@@ -2,6 +2,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { X, ArrowRight } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function NoMeetingFound() {
   const { t } = useLocale();
 
@@ -23,3 +25,5 @@ export default function NoMeetingFound() {
     </>
   );
 }
+
+NoMeetingFound.PageWrapper = PageWrapper;

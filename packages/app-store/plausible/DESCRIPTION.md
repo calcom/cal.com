@@ -1,6 +1,6 @@
 ---
 items:
-  - /api/app-store/plausible/1.jpg
+  - 1.jpg
 ---
 
 Simple, privacy-friendly Google Analytics alternative.

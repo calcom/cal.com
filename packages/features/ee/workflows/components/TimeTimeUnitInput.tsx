@@ -17,6 +17,7 @@ import type { FormValues } from "../pages/workflow";
 
 type Props = {
   form: UseFormReturn<FormValues>;
+  disabled: boolean;
 };
 
 export const TimeTimeUnitInput = (props: Props) => {
@@ -33,13 +34,14 @@ export const TimeTimeUnitInput = (props: Props) => {
           type="number"
           min="1"
           label=""
+          disabled={props.disabled}
           defaultValue={form.getValues("time") || 24}
           className="-mt-2 rounded-r-none text-sm focus:ring-0"
           {...form.register("time", { valueAsNumber: true })}
           addOnSuffix={
             <Dropdown>
               <DropdownMenuTrigger asChild>
-                <button className="flex">
+                <button className="flex items-center">
                   <div className="mr-1 w-3/4">
                     {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                   </div>

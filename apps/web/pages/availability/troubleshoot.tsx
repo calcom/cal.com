@@ -7,6 +7,8 @@ import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
+import PageWrapper from "@components/PageWrapper";
+
 type User = RouterOutputs["viewer"]["me"];
 
 export interface IBusySlot {
@@ -24,7 +26,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
-      username: user.username!,
+      username: user.username || "",
       dateFrom: selectedDate.startOf("day").utc().format(),
       dateTo: selectedDate.endOf("day").utc().format(),
       withSource: true,
@@ -51,7 +53,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         {t("overview_of_day")}{" "}
         <input
           type="date"
-          className="inline h-8 border-none p-0"
+          className="inline h-8 border-none bg-inherit p-0"
           defaultValue={formattedSelectedDate}
           onChange={(e) => {
             if (e.target.value) setSelectedDate(e.target.value);
@@ -120,12 +122,13 @@ export default function Troubleshoot() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
+      <Shell heading={t("troubleshoot")} hideHeadingOnMobile subtitle={t("troubleshoot_description")}>
         {!isLoading && data && <AvailabilityView user={data} />}
       </Shell>
     </div>
   );
 }
+Troubleshoot.PageWrapper = PageWrapper;
 
 function convertMinsToHrsMins(mins: number) {
   const h = Math.floor(mins / 60);

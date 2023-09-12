@@ -9,6 +9,12 @@ export const AttendeeScheduledEmail = (
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   return (
-    <BaseScheduledEmail timeZone={props.attendee.timeZone} t={props.attendee.language.translate} {...props} />
+    <BaseScheduledEmail
+      locale={props.attendee.language.locale}
+      timeZone={props.attendee.timeZone}
+      t={props.attendee.language.translate}
+      timeFormat={props.attendee?.timeFormat}
+      {...props}
+    />
   );
 };

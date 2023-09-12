@@ -1,11 +1,12 @@
 import type { EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
-import type { CompleteEventType } from "@calcom/prisma/zod";
+import type { Prisma } from "@calcom/prisma/client";
+import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
-import { prismaMock } from "../../../../tests/config/singleton";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
@@ -13,13 +14,13 @@ const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   return eventType;
 };
 
-jest.mock("@calcom/emails/email-manager", () => {
+vi.mock("@calcom/emails/email-manager", () => {
   return {
     sendSlugReplacementEmail: () => ({}),
   };
 });
 
-jest.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => key,
   };
@@ -95,7 +96,8 @@ describe("handleChildrenEventTypes", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -130,7 +132,8 @@ describe("handleChildrenEventTypes", () => {
     it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, ...evType } =
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId,requiresBookerEmailVerification, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -214,7 +217,8 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -250,7 +254,8 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for old users updated", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId, ...evType } =
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId,requiresBookerEmailVerification, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -285,6 +290,97 @@ describe("handleChildrenEventTypes", () => {
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
       expect(result.deletedExistentEventTypes).toEqual([123]);
+    });
+  });
+
+  describe("Workflows", () => {
+    it("Links workflows to new and existing assigned members", async () => {
+      const {
+        schedulingType: _schedulingType,
+        id: _id,
+        teamId: _teamId,
+        locations: _locations,
+        timeZone: _timeZone,
+        parentId: _parentId,
+        userId: _userId,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        requiresBookerEmailVerification,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+        workflows: [
+          {
+            workflowId: 11,
+          } as CompleteWorkflowsOnEventTypes,
+        ],
+      });
+      prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [
+          { hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 5, name: "", email: "", eventTypeSlugs: [] } },
+        ],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
+        prisma: prismaMock,
+      });
+      expect(prismaMock.eventType.create).toHaveBeenCalledWith({
+        data: {
+          ...evType,
+          bookingLimits: undefined,
+          durationLimits: undefined,
+          recurringEvent: undefined,
+          hashedLink: undefined,
+          locations: [],
+          parentId: 1,
+          userId: 5,
+          users: {
+            connect: [
+              {
+                id: 5,
+              },
+            ],
+          },
+          workflows: {
+            create: [{ workflowId: 11 }],
+          },
+        },
+      });
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith({
+        data: {
+          ...evType,
+          bookingLimits: undefined,
+          durationLimits: undefined,
+          recurringEvent: undefined,
+          hashedLink: undefined,
+          workflows: undefined,
+          scheduleId: undefined,
+        },
+        where: {
+          userId_parentId: {
+            userId: 4,
+            parentId: 1,
+          },
+        },
+      });
+      expect(prismaMock.workflowsOnEventTypes.upsert).toHaveBeenCalledWith({
+        create: {
+          eventTypeId: 2,
+          workflowId: 11,
+        },
+        update: {},
+        where: {
+          workflowId_eventTypeId: {
+            eventTypeId: 2,
+            workflowId: 11,
+          },
+        },
+      });
     });
   });
 });

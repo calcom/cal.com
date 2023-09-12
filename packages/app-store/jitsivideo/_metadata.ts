@@ -7,18 +7,13 @@ export const metadata = {
   description: _package.description,
   installed: true,
   type: "jitsi_video",
-  imageSrc: "/api/app-store/jitsivideo/icon.svg",
   variant: "conferencing",
-  categories: ["video"],
-  logo: "/api/app-store/jitsivideo/icon.svg",
+  categories: ["conferencing"],
+  logo: "icon.svg",
   publisher: "Cal.com",
   url: "https://jitsi.org/",
-  verified: true,
-  rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
-  reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   slug: "jitsi",
   title: "Jitsi Meet",
-  trending: true,
   isGlobal: false,
   email: "help@cal.com",
   appData: {
@@ -29,6 +24,7 @@ export const metadata = {
     },
   },
   dirName: "jitsivideo",
+  concurrentMeetings: true,
 } as AppMeta;
 
 export default metadata;

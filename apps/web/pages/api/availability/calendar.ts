@@ -1,10 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
-import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
+
+const selectedCalendarSelectSchema = z.object({
+  integration: z.string(),
+  externalId: z.string(),
+  credentialId: z.number().optional(),
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession({ req, res });
@@ -14,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const user = await prisma.user.findUnique({
+  const userWithCredentials = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
@@ -25,25 +31,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       selectedCalendars: true,
     },
   });
-
-  if (!user) {
+  if (!userWithCredentials) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
+  const { credentials, ...user } = userWithCredentials;
 
   if (req.method === "POST") {
+    const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
     await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
           userId: user.id,
-          integration: req.body.integration,
-          externalId: req.body.externalId,
+          integration,
+          externalId,
         },
       },
       create: {
         userId: user.id,
-        integration: req.body.integration,
-        externalId: req.body.externalId,
+        integration,
+        externalId,
+        credentialId,
       },
       // already exists
       update: {},
@@ -52,21 +60,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "DELETE") {
+    const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
     await prisma.selectedCalendar.delete({
       where: {
         userId_integration_externalId: {
           userId: user.id,
-          externalId: req.body.externalId,
-          integration: req.body.integration,
+          externalId,
+          integration,
         },
       },
     });
 
     res.status(200).json({ message: "Calendar Selection Saved" });
-  }
-
-  if (["DELETE", "POST"].includes(req.method)) {
-    await revalidateCalendarCache(res.revalidate, `${session?.user?.username}`);
   }
 
   if (req.method === "GET") {
@@ -80,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials);
+    const calendarCredentials = getCalendarCredentials(credentials);
     // get all the connected integrations' calendars (from third party)
     const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
     const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);

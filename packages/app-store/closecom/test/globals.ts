@@ -1,14 +1,16 @@
-jest.mock("@calcom/lib/logger", () => ({
+import { vi } from "vitest";
+
+vi.mock("@calcom/lib/logger", () => ({
   default: {
     getChildLogger: () => ({
-      debug: jest.fn(),
-      error: jest.fn(),
-      log: jest.fn(),
+      debug: vi.fn(),
+      error: vi.fn(),
+      log: vi.fn(),
     }),
   },
 }));
 
-jest.mock("@calcom/lib/crypto", () => ({
+vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: () => `{
       "userApiKey": "test"
     }`,

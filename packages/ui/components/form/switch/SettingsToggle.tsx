@@ -31,7 +31,7 @@ function SettingsToggle({
 
   return (
     <>
-      <div className="flex w-full flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+      <div className="flex w-full flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
         <fieldset className="block w-full flex-col sm:flex">
           <div className="flex space-x-3">
             <Switch

@@ -4,9 +4,9 @@ import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import React, { useEffect, useState } from "react";
 
-import { AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { getSlugFromAppName, BaseAppFork, Seed, generateAppFiles, getAppDirPath } from "../core";
+import { getSlugFromAppName, BaseAppFork, generateAppFiles, getAppDirPath } from "../core";
 import { getApp } from "../utils/getApp";
 import Templates from "../utils/templates";
 import Label from "./Label";
@@ -82,14 +82,17 @@ export const AppForm = ({
       label: "Category of App",
       name: "category",
       type: "select",
+
+      // TODO: Refactor and reuse getAppCategories or type as Record<AppCategories,> to enforce consistency
       options: [
-        { label: "Calendar", value: "calendar" },
-        { label: "Video", value: "video" },
-        { label: "Payment", value: "payment" },
-        { label: "Messaging", value: "messaging" },
-        { label: "Web3", value: "web3" },
-        { label: "Automation", value: "automation" },
+        // Manually sorted alphabetically
         { label: "Analytics", value: "analytics" },
+        { label: "Automation", value: "automation" },
+        { label: "Calendar", value: "calendar" },
+        { label: "Conferencing", value: "conferencing" },
+        { label: "CRM", value: "crm" },
+        { label: "Messaging", value: "messaging" },
+        { label: "Payment", value: "payment" },
         { label: "Other", value: "other" },
       ],
       defaultValue: "",
@@ -147,8 +150,6 @@ export const AppForm = ({
           isTemplate,
           oldSlug: givenSlug,
         });
-
-        await Seed.update({ slug, category: category, oldSlug: givenSlug, isTemplate });
 
         await generateAppFiles();
 
@@ -242,6 +243,10 @@ export const AppForm = ({
                 <Text color="green">Publisher Email: </Text>
                 <Text>{email}</Text>
               </Box>
+              <Text bold>
+                Next Step: Enable the app from http://localhost:3000/settings/admin/apps as admin user (Email:
+                admin@example.com, Pass: ADMINadmin2022!)
+              </Text>
             </Box>
           </Box>
         )}

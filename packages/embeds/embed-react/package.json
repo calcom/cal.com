@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-react",
   "sideEffects": false,
-  "version": "1.0.10",
+  "version": "1.3.0",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -11,23 +11,24 @@
   },
   "scripts": {
     "dev": "vite --port=3101 --open",
-    "build": "vite build && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "rm -rf dist && vite build && cp ./dist/Cal.es.js ./dist/Cal.es.mjs && tsc --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
-    "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com'  yarn build",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
+    "packaged:tests": "cd test/packaged && yarn tsc --noEmit && yarn run -T test -- --packaged-embed-tests-only",
+    "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
+    "prepack": "yarn ../../../ lint --filter='@calcom/embed-react' && yarn withEmbedPublishEnv build && yarn packaged:tests",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "publish-prod:patch": "yarn publish --access public --patch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "main": "./dist/Cal.umd.js",
-  "module": "./dist/Cal.es.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/Cal.es.mjs",
+  "types": "./dist/embed-react/src/index.d.ts",
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -37,15 +38,15 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/Cal.es.js",
+      "import": "./dist/Cal.es.mjs",
       "require": "./dist/Cal.umd.js"
     }
   },
   "devDependencies": {
     "@playwright/test": "^1.31.2",
     "@types/react": "18.0.26",
-    "@types/react-dom": "18.0.9",
-    "@vitejs/plugin-react": "1.3.2",
+    "@types/react-dom": "^18.0.9",
+    "@vitejs/plugin-react": "^2.2.0",
     "eslint": "^8.34.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^4.9.4",

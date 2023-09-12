@@ -1,4 +1,5 @@
 import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { DefaultBodyType } from "msw";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -32,11 +33,17 @@ interface ISettledResponse {
     "Retry-After": string;
     "Content-Type": string;
   };
-  body: Record<string, any>;
+  body: Record<string, DefaultBodyType>;
 }
 
 interface IBatchResponse {
   responses: ISettledResponse[];
+}
+interface BodyValue {
+  showAs: string;
+  end: { dateTime: string };
+  evt: { showAs: string };
+  start: { dateTime: string };
 }
 
 const refreshTokenResponseSchema = z.object({
@@ -63,9 +70,10 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     try {
-      const eventsUrl = event.destinationCalendar?.externalId
-        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+      const eventsUrl = mainHostDestinationCalendar?.externalId
+        ? `/me/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : "/me/calendar/events";
 
       const response = await this.fetcher(eventsUrl, {
@@ -83,7 +91,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
       const response = await this.fetcher(`/me/calendar/events/${uid}`, {
         method: "PATCH",
@@ -126,6 +134,8 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
+    const calendarSelectParams = "$select=showAs,start,end";
+
     try {
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
@@ -142,7 +152,7 @@ export default class Office365CalendarService implements Calendar {
       const requests = ids.map((calendarId, id) => ({
         id,
         method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
+        url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
@@ -174,8 +184,10 @@ export default class Office365CalendarService implements Calendar {
     const officeCalendars: OfficeCalendar[] = [];
     // List calendars from MS are paginated
     let finishedParsingCalendars = false;
+    const calendarFilterParam = "$select=id,name,isDefaultCalendar,canEdit";
+
     // Store @odata.nextLink if in response
-    let requestLink = "/me/calendars";
+    let requestLink = `/me/calendars?${calendarFilterParam}`;
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);
@@ -326,7 +338,7 @@ export default class Office365CalendarService implements Calendar {
         alreadySuccess.push(response);
       } else {
         const nextLinkUrl = response.body["@odata.nextLink"]
-          ? response.body["@odata.nextLink"].replace(this.apiGraphUrl, "")
+          ? String(response.body["@odata.nextLink"]).replace(this.apiGraphUrl, "")
           : "";
         if (nextLinkUrl) {
           // Saving link for later use
@@ -406,16 +418,12 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private apiGraphBatchCall = async (requests: IRequest[]): Promise<Response> => {
-    try {
-      const response = await this.fetcher(`/$batch`, {
-        method: "POST",
-        body: JSON.stringify({ requests }),
-      });
+    const response = await this.fetcher(`/$batch`, {
+      method: "POST",
+      body: JSON.stringify({ requests }),
+    });
 
-      return response;
-    } catch (error: any) {
-      throw new Error(error);
-    }
+    return response;
   };
 
   private handleTextJsonResponseWithHtmlInBody = (response: string): IBatchResponse => {
@@ -443,7 +451,7 @@ export default class Office365CalendarService implements Calendar {
 
   private processBusyTimes = (responses: ISettledResponse[]) => {
     return responses.reduce(
-      (acc: BufferedBusyTime[], subResponse: { body: { value?: any[]; error?: any[] } }) => {
+      (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
         return acc.concat(
           subResponse.body.value

@@ -5,4 +5,4 @@
   exit 0
 }
 
-./git-setup.sh api website console
+./git-setup.sh website console

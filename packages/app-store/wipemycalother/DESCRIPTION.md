@@ -1,6 +1,6 @@
 ---
 items:
-  - /api/app-store/wipemycalother/1.jpg
+  - 1.jpg
 ---
 
 <iframe class="w-full aspect-video" width="560" height="315" src="https://www.youtube.com/embed/lPO6SAjkKrQ?start=235" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

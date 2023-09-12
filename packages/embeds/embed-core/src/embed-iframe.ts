@@ -1,23 +1,32 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 type Theme = "dark" | "light";
 
+export type BookerLayouts = "month_view" | "week_view" | "column_view";
+
+export type EmbedThemeConfig = Theme | "auto";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
-  theme?: Theme | "auto";
+  // If theme not provided we would get null
+  theme?: EmbedThemeConfig | null;
   styles?: EmbedStyles & EmbedNonStylesConfig;
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
+  layout?: BookerLayouts;
+  colorScheme?: string | null;
 };
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
 
+/**
+ * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
+ */
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
@@ -29,10 +38,13 @@ const embedStore = {
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
-  setTheme: undefined as ((arg0: string) => void) | undefined,
+  setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
+  /**
+   * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
+   */
+  setUiConfig: [] as ((arg0: UiConfig) => void)[],
 };
 
 declare global {
@@ -40,12 +52,12 @@ declare global {
     CalEmbed: {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
+      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
     CalComPageStatus: string;
-    isEmbed: () => boolean;
-    resetEmbedStatus: () => void;
+    isEmbed?: () => boolean;
     getEmbedNamespace: () => string | null;
-    getEmbedTheme: () => "dark" | "light" | null;
+    getEmbedTheme: () => EmbedThemeConfig | null;
   }
 }
 
@@ -165,21 +177,54 @@ function isValidNamespace(ns: string | null | undefined) {
   return typeof ns !== "undefined" && ns !== null;
 }
 
-export const useEmbedTheme = () => {
-  const router = useRouter();
-  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as string));
+/**
+ * It handles any URL change done through Web history API as well
+ * History API is currently being used by Booker/utils/query-param
+ */
+const useUrlChange = (callback: (newUrl: string) => void) => {
+  const currentFullUrl = isBrowser ? new URL(document.URL) : null;
+  const pathname = currentFullUrl?.pathname ?? "";
+  const searchParams = currentFullUrl?.searchParams ?? null;
+  const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
   useEffect(() => {
-    router.events.on("routeChangeComplete", () => {
-      sdkActionManager?.fire("__routeChanged", {});
-    });
-  }, [router.events]);
-  embedStore.setTheme = setTheme;
-  return theme === "auto" ? null : theme;
+    const newUrl = `${pathname}?${searchParams}`;
+    if (lastKnownUrl.current !== newUrl) {
+      lastKnownUrl.current = newUrl;
+      callback(newUrl);
+    }
+  }, [pathname, searchParams, callback]);
 };
 
+export const useEmbedTheme = () => {
+  const searchParams = useSearchParams();
+  const [theme, setTheme] = useState(
+    embedStore.theme || (searchParams?.get("theme") as typeof embedStore.theme)
+  );
+
+  const onUrlChange = useCallback(() => {
+    sdkActionManager?.fire("__routeChanged", {});
+  }, []);
+  useUrlChange(onUrlChange);
+
+  embedStore.setTheme = setTheme;
+  return theme;
+};
+
+/**
+ * It serves following purposes
+ * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component get's the correct value of ui config
+ * - Ensures that all the components using useEmbedUiConfig are updated when ui config changes. It is done by maintaining a list of all non-stale setters.
+ */
 export const useEmbedUiConfig = () => {
   const [uiConfig, setUiConfig] = useState(embedStore.uiConfig || {});
-  embedStore.setUiConfig = setUiConfig;
+  embedStore.setUiConfig.push(setUiConfig);
+  useEffect(() => {
+    return () => {
+      const foundAtIndex = embedStore.setUiConfig.findIndex((item) => item === setUiConfig);
+      // Keep removing the setters that are stale
+      embedStore.setUiConfig.splice(foundAtIndex, 1);
+    };
+  });
   return uiConfig;
 };
 
@@ -232,7 +277,7 @@ function getNamespace() {
     return embedStore.namespace;
   }
   if (isBrowser) {
-    const namespace = window?.getEmbedNamespace?.() || null;
+    const namespace = window?.getEmbedNamespace?.() ?? null;
     embedStore.namespace = namespace;
     return namespace;
   }
@@ -285,7 +330,7 @@ const methods = {
 
     if (stylesConfig) {
       console.warn(
-        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect"
+        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19"
       );
     }
 
@@ -301,10 +346,22 @@ const methods = {
       }
     }
 
-    // Set the value here so that if setUiConfig state isn't available and later it's defined,it uses this value
-    embedStore.uiConfig = uiConfig;
+    // Merge new values over the old values
+    uiConfig = {
+      ...embedStore.uiConfig,
+      ...uiConfig,
+    };
+
+    if (uiConfig.cssVarsPerTheme) {
+      window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
+    }
+
+    if (uiConfig.colorScheme) {
+      actOnColorScheme(uiConfig.colorScheme);
+    }
+
     if (embedStore.setUiConfig) {
-      embedStore.setUiConfig(uiConfig);
+      runAllUiSetters(uiConfig);
     }
 
     setEmbedStyles(stylesConfig || {});
@@ -327,7 +384,6 @@ const methods = {
 };
 
 export type InterfaceWithParent = {
-  // Ensure that only one argument is read by the method
   [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
 };
 
@@ -424,7 +480,16 @@ function keepParentInformedAboutDimensionChanges() {
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   const url = new URL(document.URL);
-  embedStore.theme = (window?.getEmbedTheme?.() || "auto") as UiConfig["theme"];
+  embedStore.theme = window?.getEmbedTheme?.();
+
+  embedStore.uiConfig = {
+    // TODO: Add theme as well here
+    colorScheme: url.searchParams.get("ui.color-scheme"),
+    layout: url.searchParams.get("layout") as BookerLayouts,
+  };
+
+  actOnColorScheme(embedStore.uiConfig.colorScheme);
+
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
@@ -476,4 +541,17 @@ if (isBrowser) {
         },
       });
   }
+}
+
+function runAllUiSetters(uiConfig: UiConfig) {
+  // Update EmbedStore so that when a new react component mounts, useEmbedUiConfig can get the persisted value from embedStore.uiConfig
+  embedStore.uiConfig = uiConfig;
+  embedStore.setUiConfig.forEach((setUiConfig) => setUiConfig(uiConfig));
+}
+
+function actOnColorScheme(colorScheme: string | null | undefined) {
+  if (!colorScheme) {
+    return;
+  }
+  document.documentElement.style.colorScheme = colorScheme;
 }

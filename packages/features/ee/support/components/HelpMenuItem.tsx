@@ -187,12 +187,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <p className="">{t("specific_issue")}</p>
         <button
           className="hover:text-emphasis text-defualt font-medium underline"
-          onClick={() => {
+          onClick={async () => {
             setActive(true);
             if (isFreshChatEnabled) {
               setFreshChat(true);
             } else if (isInterComEnabled) {
-              open();
+              await open();
             } else {
               loadChat({ open: true });
             }

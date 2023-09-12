@@ -12,17 +12,26 @@ import { LoadingInsight } from "./LoadingInsights";
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId } = filter;
+  const { dateRange, selectedMemberUserId, isAll } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId, selectedUserId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.averageEventDuration.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId: teamId ?? undefined,
-    memberUserId: selectedMemberUserId ?? undefined,
-    userId: selectedUserId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.averageEventDuration.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId: teamId ?? undefined,
+      memberUserId: selectedMemberUserId ?? undefined,
+      userId: selectedUserId ?? undefined,
+      isAll,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 

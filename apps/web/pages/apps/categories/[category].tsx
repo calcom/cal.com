@@ -1,18 +1,21 @@
-import { AppCategories } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
+  const searchParams = useSearchParams();
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
-  const { category } = router.query;
+  const category = searchParams?.get("category");
 
   return (
     <>
@@ -37,9 +40,11 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
         }>
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
-            {apps.map((app) => {
-              return <AppCard key={app.slug} app={app} />;
-            })}
+            {apps
+              .sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
+              .map((app) => {
+                return <AppCard key={app.slug} app={app} />;
+              })}
           </div>
         </div>
       </Shell>
@@ -47,8 +52,24 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
   );
 }
 
+Apps.PageWrapper = PageWrapper;
+
 export const getStaticPaths = async () => {
   const paths = Object.keys(AppCategories);
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time. Make sure we fall back to building these pages on demand
+      return {
+        paths: [],
+        fallback: "blocking",
+      };
+    } else {
+      throw e;
+    }
+  }
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

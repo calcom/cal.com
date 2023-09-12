@@ -19,28 +19,32 @@ const Switch = (
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
+    labelOnLeading?: boolean;
     classNames?: {
       container?: string;
       thumb?: string;
     };
+    LockedIcon?: React.ReactNode;
   }
 ) => {
-  const { label, fitToHeight, classNames, ...primitiveProps } = props;
+  const { label, fitToHeight, classNames, labelOnLeading, LockedIcon, ...primitiveProps } = props;
   const id = useId();
-
+  const isChecked = props.checked || props.defaultChecked;
   return (
     <Wrapper tooltip={props.tooltip}>
       <div
         className={cx(
           "flex h-auto w-auto flex-row items-center",
           fitToHeight && "h-fit",
+          labelOnLeading && "flex-row-reverse",
           classNames?.container
         )}>
+        {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
         <PrimitiveSwitch.Root
           className={cx(
-            props.checked || props.defaultChecked ? "bg-inverted" : "bg-emphasis",
+            isChecked ? "bg-brand-default" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
-            "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
+            "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
             props.className
           )}
           {...primitiveProps}>
@@ -48,7 +52,7 @@ const Switch = (
             id={id}
             className={cx(
               "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
-              props.checked || props.defaultChecked ? "bg-default shadow-inner" : "bg-inverted",
+              isChecked ? "bg-brand-accent shadow-inner" : "bg-default",
               classNames?.thumb
             )}
           />
@@ -58,7 +62,8 @@ const Switch = (
             htmlFor={id}
             className={cx(
               "text-emphasis ms-2 align-text-top text-sm font-medium",
-              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
+              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
+              labelOnLeading && "flex-1"
             )}>
             {label}
           </Label.Root>

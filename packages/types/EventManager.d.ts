@@ -22,6 +22,8 @@ export interface EventResult<T> {
   originalEvent: CalendarEvent;
   calError?: string;
   calWarnings?: string[];
+  credentialId?: number;
+  externalId?: string | null;
 }
 
 export interface CreateUpdateResult {

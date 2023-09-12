@@ -18,6 +18,7 @@ export function VariantsTable({
   const columns = React.Children.toArray(children) as ReactElement<RowProps>[];
   return (
     <div
+      id="light-variant"
       className={classNames(
         isDark &&
           "relative py-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#1C1C1C]"
@@ -26,15 +27,15 @@ export function VariantsTable({
         <table>
           <RowTitles titles={titles} />
           {columns.map((column) => (
-            <tr className="p-2 pr-6 pb-6" key={column.props.variant}>
+            <tr className="p-2 pb-6 pr-6" key={column.props.variant}>
               <th
-                className="p-2 pr-6 pb-6 text-left text-sm font-normal text-[#8F8F8F]"
+                className="p-2 pb-6 pr-6 text-left text-sm font-normal text-[#8F8F8F]"
                 key={column.props.variant}>
                 {column.props.variant}
               </th>
               {React.Children.count(column.props.children) &&
                 React.Children.map(column.props.children, (cell) => (
-                  <td className="p-2 pr-6 pb-6" style={{ minWidth: `${columnMinWidth}px` }}>
+                  <td className="p-2 pb-6 pr-6" style={{ minWidth: `${columnMinWidth}px` }}>
                     {cell}
                   </td>
                 ))}
@@ -43,7 +44,7 @@ export function VariantsTable({
         </table>
       </div>
       {!isDark && (
-        <div data-mode="dark" className="dark">
+        <div id="dark-variant" data-mode="dark" className="dark">
           <VariantsTable titles={titles} isDark columnMinWidth={columnMinWidth}>
             {children}
           </VariantsTable>
@@ -70,9 +71,9 @@ export function VariantRow({ children }: RowProps) {
 export function RowTitles({ titles }: { titles: string[] }) {
   return (
     <tr>
-      <th className="p-2 pr-6 pb-6 text-left text-sm font-normal text-[#8F8F8F]" />
+      <th className="p-2 pb-6 pr-6 text-left text-sm font-normal text-[#8F8F8F]" />
       {titles.map((title) => (
-        <th className="p-2 pr-6 pb-6 text-left text-sm font-normal text-[#8F8F8F]" key={title}>
+        <th className="p-2 pb-6 pr-6 text-left text-sm font-normal text-[#8F8F8F]" key={title}>
           {title}
         </th>
       ))}

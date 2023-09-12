@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 513 342">
+<style type="text/css">
+	.st0{fill:#FFDA44;}
+	.st1{fill:#0052B4;}
+	.st2{fill:#D80027;}
+	.st3{fill:none;stroke:#D80027;stroke-width:7;stroke-miterlimit:10;}
+	.st4{fill:none;stroke:#D80027;stroke-width:4;stroke-miterlimit:10;}
+	.st5{fill:#BC8B00;}
+</style>
+<rect fill="#FFDA44" width="513" height="342"/>
+<rect fill="#0052B4" width="171" height="342"/>
+<rect x="342" fill="#D80027" width="171" height="342"/>
+<rect x="198.9" y="113.6" fill="#D80027" width="57.1" height="64.8"/>
+<g stroke="#D80027" stroke-width="7">
+  <line x1="267.6" y1="113.6" x2="267.6" y2="178.3"/>
+  <line x1="284.2" y1="113.6" x2="284.2" y2="178.3"/>
+  <line x1="300.8" y1="113.6" x2="300.8" y2="178.3"/>
+</g>
+<g stroke="#D80027" stroke-width="5">
+  <line x1="247.4" y1="178.4" x2="247.4" y2="243.1"/>
+  <line x1="234.1" y1="178.4" x2="234.1" y2="243.1"/>
+  <line x1="220.8" y1="178.5" x2="220.8" y2="232.4"/>
+  <line x1="207.1" y1="178.5" x2="207.1" y2="225.6"/>
+</g>
+<polygon fill="#FFDA44" points="199.9,146 227.5,113.6 256,145.9 227.9,178.3 "/>
+<path fill="#BC8B00" d="M182.2,95.9v92.2c0,34.3,27.3,54.2,48.6,64.5c-0.8,1.4,25.1,8.3,25.1,8.3s25.9-6.9,25.1-8.3
+	c21.4-10.3,48.6-30.1,48.6-64.5V95.9H182.2z M312.1,188.1c0,16.9-10,29.4-32.8,43.9c-8.6,5.5-17.5,9-23.3,11
+	c-5.8-2-14.7-5.5-23.3-11c-22.8-14.5-32.8-28-32.8-43.9v-74.5h112.2L312.1,188.1z"/>
+<rect x="264.4" y="188.9" fill="#D80027" width="29.5" height="8.6"/>
+<rect x="264.4" y="206.5" fill="#D80027" width="29.5" height="8.6"/>
+</svg>

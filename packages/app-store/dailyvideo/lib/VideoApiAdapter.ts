@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -29,7 +30,6 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
-    enable_new_call_ui: z.boolean(),
   }),
 });
 
@@ -56,12 +56,13 @@ const meetingTokenSchema = z.object({
 
 /** @deprecated use metadata on index file */
 export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
-  id: +new Date().getTime(),
+  id: 0,
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
-  userId: +new Date().getTime(),
+  userId: 0,
   appId: "daily-video",
   invalid: false,
+  teamId: null,
 };
 
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
@@ -77,7 +78,7 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
   }).then(handleErrorsJson);
 };
 
-function postToDailyAPI(endpoint: string, body: Record<string, any>) {
+function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   return fetcher(endpoint, {
     method: "POST",
     body: JSON.stringify(body),
@@ -92,7 +93,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, is_owner: true },
+      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -108,12 +109,20 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
-
-    if (scalePlan === "true") {
+    const hasTeamPlan = await prisma.membership.findFirst({
+      where: {
+        userId: event.organizer.id,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+    if (scalePlan === "true" && !!hasTeamPlan === true) {
       return {
         privacy: "public",
         properties: {
-          enable_new_call_ui: true,
           enable_prejoin_ui: true,
           enable_knocking: true,
           enable_screenshare: true,
@@ -126,7 +135,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     return {
       privacy: "public",
       properties: {
-        enable_new_call_ui: true,
         enable_prejoin_ui: true,
         enable_knocking: true,
         enable_screenshare: true,

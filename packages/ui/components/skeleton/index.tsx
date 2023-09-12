@@ -14,7 +14,7 @@ interface SkeletonContainer {
 }
 
 const SkeletonAvatar: React.FC<SkeletonBaseProps> = ({ className }) => {
-  return <div className={classNames(`bg-emphasis mt-1 rounded-full ltr:mr-2 rtl:ml-2`, className)} />;
+  return <div className={classNames(`bg-emphasis me-3 mt-1 rounded-full`, className)} />;
 };
 
 type SkeletonProps<T> = {
@@ -52,7 +52,7 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
     <Component
       className={classNames(
         loading
-          ? classNames("font-size-0 bg-subtle animate-pulse rounded-md text-transparent", loadingClassName)
+          ? classNames("font-size-0 bg-emphasis animate-pulse rounded-md text-transparent", loadingClassName)
           : "",
         className
       )}
@@ -62,14 +62,16 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   );
 };
 
-const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean }> = ({
+const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean; style?: React.CSSProperties }> = ({
   className = "",
   invisible = false,
+  style,
 }) => {
   return (
     <span
+      style={style}
       className={classNames(
-        `font-size-0 bg-subtle inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
+        `font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
         className,
         invisible ? "invisible" : ""
       )}

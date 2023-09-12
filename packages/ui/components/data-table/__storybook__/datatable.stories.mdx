@@ -1,0 +1,67 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { DataTable } from "../";
+import { columns, filterableItems } from "./columns";
+import { dataTableDemousers, dataTableSelectionActions } from "./data";
+
+<Meta title="UI/table/DataTable" component={DataTable} />
+
+<Title title="DataTable" suffix="Brief" subtitle="Version 3.0 — Last Update: 28 Aug 2023" />
+
+## Definition
+
+The `DataTable` component facilitates tabular data display with configurable columns, virtual scrolling, filtering, and interactive features for seamless dynamic table creation.
+
+## Structure
+
+The `DataTable` setup for tabular data, with columns, virtual scroll, sticky headers, and interactive features like filtering and row selection.
+
+<CustomArgsTable of={DataTable} />
+
+## Dialog Story
+
+<Canvas>
+  <Story
+    name="DataTable"
+    args={{
+      columns: columns,
+      data: dataTableDemousers,
+      isLoading: false,
+      searchKey: "username",
+      filterableItems: filterableItems,
+      tableContainerRef: { current: null },
+      selectionOptions: dataTableSelectionActions,
+    }}
+    argTypes={{
+      tableContainerRef: { table: { disable: true } },
+      searchKey: {
+        control: {
+          type: "select",
+          options: ["username", "email"],
+        },
+      },
+      selectionOptions: { control: { type: "object" } },
+      onScroll: { table: { disable: true } },
+      tableOverlay: { table: { disable: true } },
+      CTA: { table: { disable: true } },
+      tableCTA: { table: { disable: true } },
+    }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={1000}>
+        <VariantRow>
+          <DataTable {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

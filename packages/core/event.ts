@@ -7,6 +7,7 @@ export type EventNameObjectType = {
   attendeeName: string;
   eventType: string;
   eventName?: string | null;
+  teamName?: string | null;
   host: string;
   location?: string;
   bookingFields?: Prisma.JsonObject;
@@ -17,7 +18,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
-      host: eventNameObj.host,
+      host: eventNameObj.teamName || eventNameObj.host,
       attendeeName: eventNameObj.attendeeName,
       interpolation: {
         escapeValue: false,
@@ -56,8 +57,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
         if (variable === bookingField) {
           let fieldValue;
           if (eventNameObj.bookingFields) {
-            fieldValue =
-              eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields]?.toString();
+            const field = eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields];
+            if (field && typeof field === "object" && "value" in field) {
+              fieldValue = field?.value?.toString();
+            } else {
+              fieldValue = field?.toString();
+            }
           }
           dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
         }
