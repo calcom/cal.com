@@ -4,11 +4,10 @@
   "slug": "bigbluebutton",
   "type": "bigbluebutton_video",
   "logo": "icon.svg",
-  "url": "https://example.com/bbb",
+  "url": "https://github.com/nicktrn",
   "variant": "conferencing",
   "categories": ["conferencing"],
-  "publisher": "bbb",
-  "email": "bbb@example.com",
+  "publisher": "nicktrn",
   "appData": {
     "location": {
       "linkType": "dynamic",
@@ -16,7 +15,7 @@
       "label": "BigBlueButton"
     }
   },
-  "description": "This app uses BigBlueButton and is not endorsed or certified by BigBlueButton Inc. BigBlueButton and the BigBlueButton Logo are trademarks of BigBlueButton Inc.",
+  "description": "Turn your meetings into fully-fledged virtual classrooms!",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-location-video-static",
