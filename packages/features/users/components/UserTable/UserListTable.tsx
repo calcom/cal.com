@@ -189,7 +189,7 @@ export function UserListTable() {
             <Badge
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
-                table.getColumn("role")?.setFilterValue(role);
+                table.getColumn("role")?.setFilterValue([role]);
               }}>
               {role}
             </Badge>
