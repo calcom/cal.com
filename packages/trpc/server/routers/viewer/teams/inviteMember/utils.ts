@@ -151,6 +151,7 @@ export async function createNewUserConnectToOrgIfExists({
     data: {
       username: emailHandle,
       email: usernameOrEmail,
+      verified: true,
       invitedTo: input.teamId,
       organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
