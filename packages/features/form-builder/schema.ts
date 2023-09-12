@@ -58,7 +58,19 @@ const baseFieldSchema = z.object({
    * It is the list of options that is valid for a certain type of fields.
    *
    */
-  options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        /**
+         * This is the type of the option. This is useful when we use label as the value for the option and thus loose the type information for the location
+         * We should actually plan to provide ID to every location used in an event type and thus use that ID as the value. It would allow us to use any location type multiple times in a single event type event
+         */
+        _type: z.string().optional(),
+      })
+    )
+    .optional(),
   /**
    * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
    * This allows keeping a single source of truth in DB.
