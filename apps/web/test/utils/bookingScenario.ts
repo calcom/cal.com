@@ -194,6 +194,9 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const statusIn = where.OR[0].status?.in || [];
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const userIdIn = where.OR[0].userId?.in || [];
             const firstConditionMatches =
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
