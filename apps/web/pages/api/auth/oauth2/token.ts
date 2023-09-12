@@ -49,14 +49,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // can I use the CALENDSO_ENCRYPTION_KEY here?
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
 
-  const payload = {
+  const payloadAuthToken = {
     userId: accessCode.userId,
     scope: accessCode.scopes,
+    tokenType: "Access Token",
   };
 
-  const access_token = jwt.sign(payload, secretKey, {
+  const payloadRefreshToken = {
+    userId: accessCode.userId,
+    scope: accessCode.scopes,
+    tokenType: "Refresh Token",
+  };
+
+  const access_token = jwt.sign(payloadAuthToken, secretKey, {
     expiresIn: 1800, // 30 min
   });
 
-  res.status(200).json({ access_token });
+  const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
+    expiresIn: 90 * 24 * 60 * 60, // 90 days
+  });
+
+  res.status(200).json({ access_token, refresh_token });
 }

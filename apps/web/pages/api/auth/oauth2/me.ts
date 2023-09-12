@@ -3,16 +3,12 @@ import isAuthorized from "pages/api/oAuthAuthorization";
 
 // add middleware function with scrope to authorize JWT token
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const scopes = ["READ_PROFILE"];
+  const scopes = ["READ_PROFILE"];
 
-    const user = await isAuthorized(req, scopes);
+  const user = await isAuthorized(req, res, scopes);
 
-    if (!user) {
-      return res.status(401).json("Unauthorized");
-    }
-    return res.status(201).json(user);
-  } catch (error) {
-    return res.status(400).json("Verification failed");
+  if (!user) {
+    return res.status(400).send({ message: "User not found" });
   }
+  return res.status(201).json(user);
 }
