@@ -9,6 +9,7 @@ import type {
 } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -37,6 +38,21 @@ export const bookingsProcedure = authedProcedure
                   users: {
                     some: {
                       id: ctx.user.id,
+                    },
+                  },
+                },
+              },
+              {
+                eventType: {
+                  schedulingType: SchedulingType.ROUND_ROBIN,
+                  team: {
+                    members: {
+                      some: {
+                        AND: [
+                          { OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }] },
+                          { userId: ctx.user.id },
+                        ],
+                      },
                     },
                   },
                 },

@@ -13,7 +13,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
@@ -267,6 +267,19 @@ function BookingListItem(booking: BookingItemProps) {
     router.push(`/booking/${booking.uid}?${urlSearchParams.toString()}`);
   };
 
+  const isHostOrAdminOrOwner = () => {
+    const teamMembers = booking?.eventType?.team?.members;
+    if (user?.id === booking?.user?.id) {
+      return true;
+    } else if (user?.id && teamMembers) {
+      return teamMembers
+        .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+        .map((member) => member.userId)
+        .includes(user.id);
+    }
+    return false;
+  };
+
   const title = booking.title;
   // To be used after we run query on legacy bookings
   // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
@@ -459,7 +472,7 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && isHostOrAdminOrOwner() && <TableActions actions={pendingActions} />}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
