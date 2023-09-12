@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import type Prisma from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
@@ -553,6 +554,50 @@ test.describe("BOOKING_RESCHEDULED", async () => {
         // in the current implementation, it is the same as the first booking
         uid: newBooking?.uid,
       },
+    });
+  });
+});
+
+test.describe("BOOKING_PAID", async () => {
+  const IS_STRIPE_ENABLED = !!(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+    process.env.STRIPE_CLIENT_ID &&
+    process.env.STRIPE_PRIVATE_KEY &&
+    process.env.PAYMENT_FEE_FIXED &&
+    process.env.PAYMENT_FEE_PERCENTAGE
+  );
+
+  // Stripe needs to be installed to pay a booking
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(!IS_STRIPE_ENABLED, "It should only run if has Stripe credentials");
+
+  test("should send a booking paid event when the payment is confirmed by Stripe", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({ name: "name" });
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+
+    await user.apiLogin();
+
+    // installing Stripe
+    await user.getPaymentCredential();
+
+    const webhookReceiver = await createWebhookReceiver(page);
+
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPayEvent(eventType);
+    await user.confirmPendingPayment();
+
+    // --- check that webhook was called
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(2);
+    });
+
+    const [, request] = webhookReceiver.requestList;
+
+    expect(request.body).toMatchObject({
+      triggerEvent: "BOOKING_PAID",
     });
   });
 });
