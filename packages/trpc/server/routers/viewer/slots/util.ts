@@ -306,6 +306,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   };
 
+  const getBookingsSpan = tracer.startSpan("getBookingsAllUsers", undefined, context.active());
+
   const currentBookingsAllUsers = await prisma.booking.findMany({
     where: {
       OR: [
@@ -354,6 +356,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       }),
     },
   });
+
+  getBookingsSpan.end();
 
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
