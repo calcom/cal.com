@@ -46,7 +46,7 @@ const AddConferencingButton = () => {
 
   return (
     <>
-      <Button color="secondary" StartIcon={Plus} href="/apps/categories/video">
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
         {t("add_conferencing_app")}
       </Button>
     </>
