@@ -85,15 +85,15 @@
     <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
     <span style="display: block"
-      ><a href="?only=prerender-test">Go to Pre-render test page only</a><small></small
+      ><a href="?only=preload-test">Go to Pre-render test page only</a><small></small
     ></span>
     <button onclick="document.documentElement.style.colorScheme='dark'">Toggle Dark Scheme</button>
     <button onclick="document.documentElement.style.colorScheme='light'">Toggle Light Scheme</button>
     <div>
       <script>
-        if (only === "all" || only === "prerender-test") {
+        if (only === "all" || only === "preload-test") {
           document.write(`
-          <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+          <button data-cal-namespace="preloadtestLightTheme" data-cal-preload-id="preload-test-1" data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
           <i
             >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
             as you are reading this text, it would open up super fast[If you are running a production build on

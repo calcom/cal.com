@@ -57,9 +57,9 @@ test.describe("Popup Tests", () => {
   }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
 
-    const calNamespace = "prerendertestLightTheme";
+    const calNamespace = "preloadtestLightTheme";
     await addEmbedListeners(calNamespace);
-    await page.goto("/?only=prerender-test");
+    await page.goto("/?only=preload-test");
     let embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
     expect(embedIframe).toBeFalsy();
 
@@ -115,7 +115,7 @@ test.describe("Popup Tests", () => {
 
     const calNamespace = "routingFormAuto";
     await addEmbedListeners(calNamespace);
-    await page.goto("/?only=prerender-test");
+    await page.goto("/?only=preload-test");
     let embedIframe = await getEmbedIframe({
       calNamespace,
       page,

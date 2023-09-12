@@ -21,7 +21,9 @@ export type EventDataMap = {
       url: string;
     };
   };
-  linkReady: Record<string, never>;
+  linkReady: {
+    isPreloading?: boolean;
+  };
   bookingSuccessful: {
     // TODO: Shouldn't send the entire booking and eventType objects, we should send specific fields from them.
     booking: unknown;

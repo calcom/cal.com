@@ -211,13 +211,15 @@ if (only === "all" || only === "ns:fifth") {
     callback,
   });
 }
-if (only === "all" || only === "prerender-test") {
-  Cal("init", "prerendertestLightTheme", {
+if (only === "all" || only === "preload-test") {
+  Cal("init", "preloadtestLightTheme", {
     debug: true,
     origin: "http://localhost:3000",
   });
-  Cal.ns.prerendertestLightTheme("preload", {
+  Cal.ns.preloadtestLightTheme("preload", {
     calLink: "free",
+    id: "preload-test-1",
+    type: "modal",
   });
 }
 
