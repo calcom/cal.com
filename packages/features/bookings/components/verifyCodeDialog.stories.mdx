@@ -1,0 +1,55 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import { StorybookTrpcProvider } from "../../../ui/components/mocks/trpc.tsx";
+import { VerifyCodeDialog } from "./VerifyCodeDialog";
+
+<Meta title="Features/VerifyCodeDialog" component={VerifyCodeDialog} />
+
+<Title title="VerifyCodeDialog" suffix="Brief" subtitle="Version 1.0 — Last Update: 11 Sep 2023" />
+
+## Definition
+
+The `VerifyCodeDialog` component allows users to enter a verification code sent to their email. The component provides feedback in case of an error and can handle different verification processes depending on whether the user session is required.
+
+## Structure
+
+This component contains an input form to capture a 6-digit verification code, error handling UI, and action buttons.
+
+<CustomArgsTable of={VerifyCodeDialog} />
+
+## VerifyCodeDialog Story
+
+<Canvas>
+  <Story
+    name="VerifyCodeDialog"
+    args={{
+      isOpenDialog: true,
+      setIsOpenDialog: () => {},
+      email: "example@email.com",
+      onSuccess: () => {},
+      onError: (err) => {
+        if (err.message === "invalid_code") {
+          alert("Code provided is invalid");
+        }
+      },
+    }}
+    argTypes={{
+      isOpenDialog: { control: "boolean", description: "Indicates whether the dialog is open or not." },
+      setIsOpenDialog: { action: "setIsOpenDialog", description: "Function to set the dialog state." },
+      email: { control: "text", description: "Email to which the verification code was sent." },
+      onSuccess: { action: "onSuccess", description: "Callback function when verification succeeds." },
+      onError: { action: "onError", description: "Callback function when verification fails." },
+      isUserSessionRequiredToVerify: {
+        control: "boolean",
+        description: "Indicates if user session is required for verification.",
+      },
+    }}>
+    {(args) => (
+      <StorybookTrpcProvider>
+        <VerifyCodeDialog {...args} />
+      </StorybookTrpcProvider>
+    )}
+  </Story>
+</Canvas>
