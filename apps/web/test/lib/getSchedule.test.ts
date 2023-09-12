@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { getDate, getGoogleCalendarCredential, createBookingScenario} from "../utils/bookingScenario";
+import { getDate, getGoogleCalendarCredential, createBookingScenario } from "../utils/bookingScenario";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
@@ -1139,4 +1139,3 @@ describe("getSchedule", () => {
     });
   });
 });
-
