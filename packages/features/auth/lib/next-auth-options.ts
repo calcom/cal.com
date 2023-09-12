@@ -56,9 +56,9 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
     return metadata.success && metadata.data?.subscriptionId;
   });
 
-const checkIfUserShouldBelongToOrg = async (email: string) => {
+const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
   const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK) return { orgUsername, orgId: undefined };
+  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
       AND: [
@@ -765,7 +765,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         // Associate with organization if enabled by flag
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(user.email);
+        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         const newUser = await prisma.user.create({
           data: {
