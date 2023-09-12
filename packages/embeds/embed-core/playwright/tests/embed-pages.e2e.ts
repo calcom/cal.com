@@ -132,4 +132,24 @@ test.describe("Embed Pages", () => {
 
     expect(embedTheme).toBe(theme);
   });
+
+  test("should return theme from query param on getEmbedTheme when window.name is changed to cal-embed= and window.CalEmbed.embedStore.theme is not available", async ({
+    page,
+  }) => {
+    const theme = "dark";
+
+    await page.goto(`http://localhost:3000/free/30min?theme=${theme}`);
+
+    await page.evaluate(() => {
+      window.name = "cal-embed=";
+    });
+
+    await page.reload();
+
+    const embedTheme = await page.evaluate(() => {
+      return window?.getEmbedTheme?.();
+    });
+
+    expect(embedTheme).toBe(theme);
+  });
 });
