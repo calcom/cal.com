@@ -920,8 +920,6 @@ model AccessCode {
   userId    Int?
   scopes    AccessScope[]
   user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([clientId, userId]) // a user can only have one active access code per client
 }
 
 enum AccessScope {

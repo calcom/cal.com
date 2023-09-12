@@ -34,21 +34,13 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
   }
   const authorizationCode = generateAuthorizationCode();
 
-  // a user can only have one active access code per client (unique constraint)
-  await prisma.accessCode.deleteMany({
-    where: {
-      clientId,
-      userId: ctx.user.id,
-    },
-  });
-
   await prisma.accessCode.create({
     data: {
       code: authorizationCode,
       clientId,
       userId: ctx.user.id,
       expiresAt: dayjs().add(10, "minutes").toDate(),
-      scopes: scopes as [AccessScope], //check before that we only have valid scopes
+      scopes: scopes as [AccessScope],
     },
   });
   return { client, authorizationCode };

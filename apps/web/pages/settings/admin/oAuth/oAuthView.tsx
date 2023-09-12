@@ -12,8 +12,6 @@ type FormValues = {
   logo: string;
 };
 
-//to help setting up OAuth I could also add the other endpoints as info her
-
 export default function OAuthView() {
   const oAuthForm = useForm<FormValues>();
   const [clientSecret, setClientSecret] = useState("");

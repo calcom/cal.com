@@ -83,7 +83,7 @@ export default function Authorize() {
           <div className="ml-1 ">
             <div className="text-sm font-medium">Allow {client.name} to do this?</div>
             <div className="text-sm">
-              By clicking allow, you allow this app to use your information in accordance with thei terms of
+              By clicking allow, you allow this app to use your information in accordance with their terms of
               service and privacy policy. You can view or remove access in the Cal.com App Store.
             </div>{" "}
             {/* How can access be viewed? Access can be removed by uninstalling app */}

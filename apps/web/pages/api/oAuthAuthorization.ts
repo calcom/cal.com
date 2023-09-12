@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { NextApiRequest } from "next";
 
-// Import jwt module
 import prisma from "@calcom/prisma";
 
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
