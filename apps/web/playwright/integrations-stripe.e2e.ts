@@ -143,7 +143,6 @@ test.describe("Stripe integration", () => {
       expect(await paidBadge.innerText()).toBe("Paid");
     });
 
-    todo("Payment should trigger a BOOKING_PAID webhook");
     todo("Paid and confirmed booking should be able to be rescheduled");
   });
 });
