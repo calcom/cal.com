@@ -63,6 +63,17 @@ export const paginateHandler = async ({ ctx, input }: EventTypesPaginateProps) =
           name: true,
         },
       },
+      hosts: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      },
       children: {
         select: {
           id: true,

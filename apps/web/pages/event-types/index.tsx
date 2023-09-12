@@ -394,7 +394,9 @@ export const EventTypeList = ({ data, readonly }: EventTypeListProps): JSX.Eleme
 
           const isChildrenManagedEventType = !!eventType.parentId;
           const isReadOnly = readonly || isChildrenManagedEventType;
-
+          const hosts = !!eventType?.hosts?.length
+            ? eventType?.hosts.map((user) => user.user)
+            : eventType.users;
           return (
             <li key={eventType.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between">
@@ -413,15 +415,13 @@ export const EventTypeList = ({ data, readonly }: EventTypeListProps): JSX.Eleme
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={eventType.users.map(
-                            (organizer: { name: string | null; username: string | null }) => ({
-                              alt: organizer.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                organizer.username
-                              }/avatar.png`,
-                              title: organizer.name || "",
-                            })
-                          )}
+                          items={hosts.map((organizer: { name: string | null; username: string | null }) => ({
+                            alt: organizer.name || "",
+                            image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                              organizer.username
+                            }/avatar.png`,
+                            title: organizer.name || "",
+                          }))}
                         />
                       )}
                       {isManagedEventType && eventType.children?.length > 0 && (

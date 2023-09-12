@@ -26,36 +26,54 @@ async function createEventTypesForUserAndForTeams() {
 }
 
 async function createManyEventTypes({ userId, teamId }: { userId?: number; teamId?: number }) {
-  const eventTypes: Prisma.EventTypeUncheckedCreateInput[] = [];
-  for (let i = 0; i < 20; i++) {
-    eventTypes.push({
-      title: `Event Type ${i + 1}`,
-      slug: `event-type-${teamId ? `team-${teamId}` : ""}${i + 1}`,
-      userId: teamId ? null : userId,
-      teamId: teamId ? teamId : null,
-      length: 30,
-      description: "This is a description",
-    });
+  // If teamId is provided then we fetch membership users from that team
+
+  const membershipUsers: number[] = [];
+  if (teamId) {
+    const memberships = await prisma.membership.findMany({ where: { teamId } });
+    for (const membership of memberships) {
+      if (!membership.userId) {
+        // Do nothing
+      } else {
+        membershipUsers.push(membership.userId);
+      }
+    }
   }
 
-  await prisma.eventType.createMany({
-    data: eventTypes,
-  });
+  const eventTypesPromises: Promise<
+    Prisma.EventTypeGetPayload<{
+      select: {
+        id: true;
+        schedulingType: true;
+        teamId: true;
+      };
+    }>
+  >[] = [];
 
-  // Load event types recently created
-  const eventTypesFound = await prisma.eventType.findMany({
-    where: {
-      slug: {
-        startsWith: `event-type-${teamId ? "teams-" : ""}`,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
+  for (let i = 0; i < 20; i++) {
+    const schedulingType = randomSchedulingType();
+    eventTypesPromises.push(
+      prisma.eventType.create({
+        data: {
+          title: `${schedulingType.toLowerCase() ?? ""} Event Type ${i + 1} - ${
+            teamId ? `Team ${teamId}` : ""
+          }`,
+          slug: `event-type-${teamId ? `team-${teamId}` : ""}${i + 1}`,
+          userId: teamId ? null : userId,
+          teamId: teamId ? teamId : null,
+          length: 30,
+          description: "This is a description",
+          ...(teamId ? { schedulingType: schedulingType } : {}),
+        },
+      })
+    );
+  }
+
+  const resultEventTypes = await Promise.all(eventTypesPromises);
 
   const updateRelationships: Promise<any>[] = [];
-  for (const eventType of eventTypesFound) {
+  for (const eventType of resultEventTypes) {
+    const schedulingType = eventType.schedulingType;
     updateRelationships.push(
       prisma.eventType.update({
         where: {
@@ -67,6 +85,16 @@ async function createManyEventTypes({ userId, teamId }: { userId?: number; teamI
               id: userId,
             },
           },
+          ...(schedulingType === "COLLECTIVE" || schedulingType === "ROUND_ROBIN"
+            ? {
+                hosts: {
+                  create: membershipUsers.map((userId) => ({
+                    userId,
+                    isFixed: schedulingType === "COLLECTIVE" ? true : false,
+                  })),
+                },
+              }
+            : {}),
         },
       })
     );
@@ -75,42 +103,53 @@ async function createManyEventTypes({ userId, teamId }: { userId?: number; teamI
 }
 
 async function createManyTeams(userId: number) {
-  const teams: Prisma.TeamUncheckedCreateInput[] = [];
+  const teamsPromises: Promise<
+    Prisma.TeamGetPayload<{
+      select: {
+        id: true;
+      };
+    }>
+  >[] = [];
   for (let i = 0; i < 20; i++) {
-    teams.push({
-      name: `Team ${i + 1}`,
-      slug: `team-${i + 1}`,
-    });
+    teamsPromises.push(
+      prisma.team.create({
+        data: {
+          name: `Team ${i + 1}`,
+          slug: `team-${i + 1}`,
+        },
+      })
+    );
   }
 
-  const createdTeams = await prisma.team.createMany({
-    data: teams,
-  });
-
-  if (!createdTeams.count) {
-    throw new Error("No team created");
+  const result = await Promise.all(teamsPromises);
+  if (result.length > 0) {
+    console.log(`👥 Created ${result.length} teams`);
   }
+  const teamIds = result.map((team) => team.id);
 
-  // Load teams recently created
-  const teamsFound = await prisma.team.findMany({
-    where: {
-      slug: {
-        startsWith: "team-",
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
+  const usersForTeam = await createManyUsers();
+
+  if (usersForTeam.length > 0) {
+    console.log(`👥 Created ${usersForTeam.length} users for teams`);
+  }
 
   // Create memberships for the user
   const memberships: Prisma.MembershipUncheckedCreateInput[] = [];
 
-  for (const team of teamsFound) {
+  for (const teamId of teamIds) {
+    for (const userId of usersForTeam) {
+      memberships.push({
+        userId: userId,
+        teamId: teamId,
+        role: randomTeamRole(),
+        accepted: true,
+      });
+    }
+    // Add main user to all teams as Owner
     memberships.push({
-      userId,
-      teamId: team.id,
-      role: "ADMIN",
+      userId: userId,
+      teamId: teamId,
+      role: "OWNER",
       accepted: true,
     });
   }
@@ -139,4 +178,44 @@ async function createManyTeams(userId: number) {
   }
 }
 
+async function createManyUsers() {
+  const userPromises: Promise<
+    Prisma.UserGetPayload<{
+      select: { id: true };
+    }>
+  >[] = [];
+  for (let i = 0; i < 20; i++) {
+    userPromises.push(
+      prisma.user.create({
+        data: {
+          username: `user-${i + 1}`,
+          email: `user-${i + 1}`,
+          password: "password",
+          name: `User ${i + 1}`,
+          role: randomUserRole(),
+          completedOnboarding: true,
+        },
+      })
+    );
+  }
+
+  const result = await Promise.all(userPromises);
+  return result.map((user) => user.id);
+}
+
 createEventTypesForUserAndForTeams();
+
+function randomUserRole(): any {
+  const roles = ["USER", "ADMIN"];
+  return roles[Math.floor(Math.random() * roles.length)];
+}
+
+function randomTeamRole(): any {
+  const roles = ["ADMIN", "OWNER", "MEMBER"];
+  return roles[Math.floor(Math.random() * roles.length)];
+}
+
+function randomSchedulingType(): any {
+  const roles = ["MANAGED", "COLLECTIVE", "ROUND_ROBIN"];
+  return roles[Math.floor(Math.random() * roles.length)];
+}
