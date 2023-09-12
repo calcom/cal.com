@@ -7,7 +7,7 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { CalEventResponses } from "@calcom/types/Calendar";
+import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -44,6 +44,7 @@ export type BookingInfo = {
   };
   eventType: {
     slug?: string;
+    recurringEvent?: RecurringEvent | null;
   };
   startTime: string;
   endTime: string;
@@ -162,7 +163,7 @@ export const scheduleSMSReminder = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
-  if (message.length > 0 && reminderPhone && isNumberVerified && action !== WorkflowActions.SMS_ATTENDEE) {
+  if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||

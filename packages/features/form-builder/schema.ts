@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
+
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
 
@@ -31,7 +33,7 @@ export const EditableSchema = z.enum([
 ]);
 
 const baseFieldSchema = z.object({
-  name: z.string(),
+  name: z.string().transform(getValidRhfFieldName),
   type: fieldTypeEnum,
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),

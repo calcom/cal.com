@@ -1,8 +1,8 @@
 @import url("../../../packages/features/calendars/weeklyview/styles/styles.css");
 
 .sbdocs {
-  font-family: 'Inter var' !important;
-  padding: 0!important;
+  font-family: "Inter var" !important;
+  padding: 0 !important;
 }
 
 #docs-root {
@@ -21,8 +21,8 @@
   font-weight: 500;
   border: none;
   border-top: 2px solid rgba(0, 0, 0, 0.12);
-  padding-top: 12px!important;
-  padding-bottom: 12px!important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
   margin: 82px 0 0 0;
 }
 
@@ -37,7 +37,7 @@
 }
 
 /** Docs table **/
-.custom-args-wrapper{
+.custom-args-wrapper {
   max-height: 400px;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -45,7 +45,7 @@
 }
 
 .docblock-argstable-body {
-  box-shadow: none!important;
+  box-shadow: none !important;
   font-size: 14px;
 }
 
@@ -64,7 +64,7 @@
 
 .docblock-argstable-body div p,
 .docblock-argstable-body div span {
-  color: #8F8F8F !important;
+  color: #8f8f8f !important;
 }
 
 /** Custom components **/
@@ -83,8 +83,8 @@
 }
 
 .story-title h1 span {
-  color: #9CA3AF;
-  font-family: 'Inter var';
+  color: #9ca3af;
+  font-family: "Inter var";
   font-weight: normal;
   display: inline-block;
   margin-left: 8px;
@@ -96,7 +96,7 @@
 }
 
 .examples {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -111,14 +111,14 @@
 }
 
 .examples-title {
-  color: #8F8F8F;
+  color: #8f8f8f;
   font-size: 14px;
   margin-bottom: 30px;
 }
 
 .examples-item-title {
   font-size: 12px;
-  color: #8F8F8F;
+  color: #8f8f8f;
   margin-bottom: 12px;
   display: block;
 }
@@ -130,7 +130,7 @@
 .examples-footnote p,
 .examples-footnote ul,
 .examples-footnote li {
-  color: #8F8F8F;
+  color: #8f8f8f;
   font-size: 14px;
 }
 
@@ -139,11 +139,11 @@
 }
 
 .examples-footnote li {
-  margin: 0!important;
+  margin: 0 !important;
 }
 
 .story-note {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   font-size: 14px;
   padding: 20px;
   margin-bottom: 12px;
@@ -161,12 +161,12 @@
   box-shadow: none !important;
   margin: 0 !important;
   border: none !important;
-  border-radius: none!important;
+  border-radius: none !important;
 }
 
 .docs-story > div:first-child {
-  padding: 0!important;
-  margin: 0!important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .docs-story .innerZoomElementWrapper > div {
@@ -174,7 +174,7 @@
 }
 
 .sb-main-padded {
-  padding: 0!important;
+  padding: 0 !important;
 }
 
 @media screen and (max-width: 1200px) {
@@ -198,83 +198,81 @@
   :root {
     /* background */
 
-    --cal-bg-emphasis: #E5E7EB;
+    --cal-bg-emphasis: #e5e7eb;
     --cal-bg: white;
-    --cal-bg-subtle: #F3F4F6;
-    --cal-bg-muted: #F9FAFB;
+    --cal-bg-subtle: #f3f4f6;
+    --cal-bg-muted: #f9fafb;
     --cal-bg-inverted: #111827;
 
     /* background -> components*/
-    --cal-bg-info: #DEE9FC;
-    --cal-bg-success: #E2FBE8;
-    --cal-bg-attention: #FCEED8;
-    --cal-bg-error: #F9E3E2;
+    --cal-bg-info: #dee9fc;
+    --cal-bg-success: #e2fbe8;
+    --cal-bg-attention: #fceed8;
+    --cal-bg-error: #f9e3e2;
     --cal-bg-dark-error: #752522;
 
-
     /* Borders */
-    --cal-border-emphasis:#9CA3AF;
-    --cal-border: #D1D5DB;
-    --cal-border-subtle:#E5E7EB;
-    --cal-border-muted:#F3F4F6;
+    --cal-border-emphasis: #9ca3af;
+    --cal-border: #d1d5db;
+    --cal-border-subtle: #e5e7eb;
+    --cal-border-muted: #f3f4f6;
     --cal-border-error: #aa2e26;
 
     /* Content/Text */
     --cal-text-emphasis: #111827;
-    --cal-text:#374151;
-    --cal-text-subtle:#6B7280;
-    --cal-text-muted:#9CA3AF;
-    --cal-text-inverted:white;
+    --cal-text: #374151;
+    --cal-text-subtle: #6b7280;
+    --cal-text-muted: #9ca3af;
+    --cal-text-inverted: white;
 
     /* Content/Text -> components */
-    --cal-text-info:#253985;
-    --cal-text-success:#285231;
-    --cal-text-attention:#73321B;
-    --cal-text-error:#752522;
+    --cal-text-info: #253985;
+    --cal-text-success: #285231;
+    --cal-text-attention: #73321b;
+    --cal-text-error: #752522;
 
     /* Brand shinanigans
       -> These will be computed for the users theme at runtime.
     */
-    --cal-brand:#111827;
-    --cal-brand-emphasis:#101010;
+    --cal-brand: #111827;
+    --cal-brand-emphasis: #101010;
     --cal-brand-text: white;
   }
   .dark {
     /* background */
 
-    --cal-bg-emphasis: #2B2B2B;
+    --cal-bg-emphasis: #2b2b2b;
     --cal-bg: #101010;
-    --cal-bg-subtle: #2B2B2B;
-    --cal-bg-muted: #1C1C1C;
-    --cal-bg-inverted: #F3F4F6;
+    --cal-bg-subtle: #2b2b2b;
+    --cal-bg-muted: #1c1c1c;
+    --cal-bg-inverted: #f3f4f6;
 
     /* background -> components*/
-    --cal-bg-info: #DEE9FC;
-    --cal-bg-success: #E2FBE8;
-    --cal-bg-attention: #FCEED8;
-    --cal-bg-error: #F9E3E2;
+    --cal-bg-info: #263fa9;
+    --cal-bg-success: #306339;
+    --cal-bg-attention: #8e3b1f;
+    --cal-bg-error: #8c2822;
     --cal-bg-dark-error: #752522;
-
 
     /* Borders */
     --cal-border-emphasis: #575757;
     --cal-border: #444444;
-    --cal-border-subtle: #2B2B2B;
-    --cal-border-muted: #1C1C1C;
+    --cal-border-subtle: #2b2b2b;
+    --cal-border-muted: #1c1c1c;
     --cal-border-error: #aa2e26;
 
     /* Content/Text */
-    --cal-text-emphasis: #F3F4F6;
-    --cal-text: #D6D6D6;
+    --cal-text-emphasis: #f3f4f6;
+    --cal-text: #d6d6d6;
     --cal-text-subtle: #757575;
     --cal-text-muted: #575757;
     --cal-text-inverted: #101010;
 
     /* Content/Text -> components */
-    --cal-text-info: #253985;
-    --cal-text-success: #285231;
-    --cal-text-attention: #73321B;
-    --cal-text-error: #752522;
+    --cal-text-info: #dee9fc;
+    --cal-text-success: #e2fbe8;
+    --cal-text-attention: #fceed8;
+    --cal-text-error: #f9e3e2;
 
     /* Brand shenanigans
       -> These will be computed for the users theme at runtime.

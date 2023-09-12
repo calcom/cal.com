@@ -3,6 +3,8 @@ import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
@@ -49,7 +51,7 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
-          {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
+          {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
             // eslint-disable-next-line @next/next/no-sync-scripts
             <script
               data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"

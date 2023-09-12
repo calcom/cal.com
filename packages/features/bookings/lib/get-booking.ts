@@ -1,8 +1,9 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
 type BookingSelect = {
@@ -109,24 +110,20 @@ export const getBookingWithResponses = <
 export default getBooking;
 
 export const getBookingForReschedule = async (uid: string) => {
-  let eventTypeId: number | null = null;
   let rescheduleUid: string | null = null;
-  eventTypeId =
-    (
-      await prisma.booking.findFirst({
-        where: {
-          uid,
-        },
-        select: {
-          eventTypeId: true,
-        },
-      })
-    )?.eventTypeId || null;
+  const theBooking = await prisma.booking.findFirst({
+    where: {
+      uid,
+    },
+    select: {
+      id: true,
+    },
+  });
 
-  // If no booking is found via the uid, it's probably a booking seat,
-  // which we query next.
+  // If no booking is found via the uid, it's probably a booking seat
+  // that its being rescheduled, which we query next.
   let attendeeEmail: string | null = null;
-  if (!eventTypeId) {
+  if (!theBooking) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
         referenceUid: uid,
@@ -154,7 +151,7 @@ export const getBookingForReschedule = async (uid: string) => {
 
   // If we don't have a booking and no rescheduleUid, the ID is invalid,
   // and we return null here.
-  if (!eventTypeId && !rescheduleUid) return null;
+  if (!theBooking && !rescheduleUid) return null;
 
   const booking = await getBooking(prisma, rescheduleUid || uid);
 
@@ -227,4 +224,14 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     })),
   };
   return result;
+};
+
+export const getMultipleDurationValue = (
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | undefined,
+  defaultValue: number
+) => {
+  if (!multipleDurationConfig) return null;
+  if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
+  return defaultValue;
 };

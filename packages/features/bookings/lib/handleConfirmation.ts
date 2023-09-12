@@ -1,15 +1,17 @@
-import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -85,8 +87,18 @@ export async function handleConfirmation(args: {
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
+      team: {
+        metadata: Prisma.JsonValue;
+      } | null;
       owner: {
         hideBranding?: boolean | null;
+        metadata: Prisma.JsonValue;
+        teams: {
+          accepted: boolean;
+          team: {
+            metadata: Prisma.JsonValue;
+          };
+        }[];
       } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
@@ -123,9 +135,25 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
+              team: {
+                select: {
+                  metadata: true,
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
+                  metadata: true,
+                  teams: {
+                    select: {
+                      accepted: true,
+                      team: {
+                        select: {
+                          metadata: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
               workflows: {
@@ -174,9 +202,25 @@ export async function handleConfirmation(args: {
           select: {
             slug: true,
             bookingFields: true,
+            team: {
+              select: {
+                metadata: true,
+              },
+            },
             owner: {
               select: {
                 hideBranding: true,
+                metadata: true,
+                teams: {
+                  select: {
+                    accepted: true,
+                    team: {
+                      select: {
+                        metadata: true,
+                      },
+                    },
+                  },
+                },
               },
             },
             workflows: {
@@ -206,6 +250,8 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const isKYCVerified = isEventTypeOwnerKYCVerified(updatedBookings[0].eventType);
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -229,6 +275,8 @@ export async function handleConfirmation(args: {
           },
           isFirstRecurringEvent: isFirstBooking,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          eventTypeRequiresConfirmation: true,
+          isKYCVerified,
         });
       }
     }
@@ -245,14 +293,16 @@ export async function handleConfirmation(args: {
       },
     });
 
+    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
     const subscribersBookingCreated = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: booking.userId,
+      userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: booking.eventType?.teamId,
@@ -288,7 +338,67 @@ export async function handleConfirmation(args: {
         );
       })
     );
+
     await Promise.all(promises);
+
+    if (paid) {
+      let paymentExternalId: string | undefined;
+      const subscriberMeetingPaid = await getWebhooks({
+        userId: triggerForUser ? booking.userId : null,
+        eventTypeId: booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+        teamId: booking.eventType?.teamId,
+      });
+      const bookingWithPayment = await prisma.booking.findFirst({
+        where: {
+          id: bookingId,
+        },
+        select: {
+          payment: {
+            select: {
+              id: true,
+              success: true,
+              externalId: true,
+            },
+          },
+        },
+      });
+      const successPayment = bookingWithPayment?.payment?.find((item) => item.success);
+      if (successPayment) {
+        paymentExternalId = successPayment.externalId;
+      }
+
+      const paymentMetadata = {
+        identifier: "cal.com",
+        bookingId,
+        eventTypeId: booking.eventType?.id,
+        bookerEmail: evt.attendees[0].email,
+        eventTitle: booking.eventType?.title,
+        externalId: paymentExternalId,
+      };
+      const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
+        sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_PAID, new Date().toISOString(), sub, {
+          ...evt,
+          ...eventTypeInfo,
+          bookingId,
+          eventTypeId: booking.eventType?.id,
+          status: "ACCEPTED",
+          smsReminderNumber: booking.smsReminderNumber || undefined,
+          paymentId: bookingWithPayment?.payment?.[0].id,
+          metadata: {
+            ...(paid ? paymentMetadata : {}),
+          },
+        }).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}`,
+            e
+          );
+        })
+      );
+
+      // I don't need to await for this
+      Promise.all(bookingPaidSubscribers);
+    }
   } catch (error) {
     // Silently fail
     console.error(error);

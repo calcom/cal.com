@@ -3,6 +3,7 @@ import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
@@ -11,7 +12,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
-import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
+import {
+  AllApps,
+  AppStoreCategories,
+  HorizontalTabs,
+  TextField,
+  PopularAppsSlider,
+  RecentAppsSlider,
+} from "@calcom/ui";
 import { Search } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -80,6 +88,7 @@ export default function Apps({
           <>
             <AppStoreCategories categories={categories} />
             <PopularAppsSlider items={appStore} />
+            <RecentAppsSlider items={appStore} />
           </>
         )}
         <AllApps
@@ -94,6 +103,7 @@ export default function Apps({
 }
 
 Apps.PageWrapper = PageWrapper;
+Apps.getLayout = getLayout;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

@@ -35,10 +35,11 @@ SheetPortal.displayName = SheetPrimitive.Portal.displayName;
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >(({ className, children, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={classNames(
-      "bg-inverted data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in fixed inset-0 z-50 opacity-60 backdrop-blur-sm transition-all duration-100",
+      "data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 backdrop-blur-[1px] transition-all duration-100",
       className
     )}
     {...props}
@@ -48,14 +49,14 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border",
+  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border border-default overflow-y-scroll ",
   {
     variants: {
       position: {
-        top: "animate-in slide-in-from-top w-full duration-300",
-        bottom: "animate-in slide-in-from-bottom w-full duration-300",
-        left: "animate-in slide-in-from-left h-full duration-300",
-        right: "animate-in slide-in-from-right h-full duration-300",
+        top: "animate-in slide-in-from-top w-full duration-200",
+        bottom: "animate-in slide-in-from-bottom w-full duration-200",
+        left: "animate-in slide-in-from-left h-full duration-200",
+        right: "animate-in slide-in-from-right h-full duration-200",
       },
       size: {
         content: "",
@@ -105,12 +106,12 @@ const sheetVariants = cva(
       {
         position: ["right", "left"],
         size: "default",
-        class: "w-1/3 h-[calc(100vh-2rem)]",
+        class: "w-[calc(100%-2rem)] lg:w-1/3 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "sm",
-        class: "w-1/4 h-[calc(100vh-2rem)]",
+        class: "w-1/4 max-h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],

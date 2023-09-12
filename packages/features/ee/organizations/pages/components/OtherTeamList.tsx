@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
@@ -14,8 +13,6 @@ interface Props {
 
 export default function OtherTeamList(props: Props) {
   const utils = trpc.useContext();
-
-  const { t } = useLocale();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 
