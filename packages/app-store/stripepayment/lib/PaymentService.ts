@@ -55,7 +55,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string,
     paymentOption: PaymentOption,
     eventTitle?: string,
-    boookingTitle?: string
+    bookingTitle?: string
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
