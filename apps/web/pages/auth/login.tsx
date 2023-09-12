@@ -249,7 +249,9 @@ export default function Login({
                     StartIcon={FaGoogle}
                     onClick={async (e) => {
                       e.preventDefault();
-                      await signIn("google");
+                      await signIn("google", {
+                        callbackUrl,
+                      });
                     }}>
                     {t("signin_with_google")}
                   </Button>
