@@ -202,6 +202,8 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               statusIn.includes(booking.status) &&
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               (booking.userId === where.OR[0].userId || userIdIn.includes(booking.userId));
 
             // We return this booking if either condition is met
