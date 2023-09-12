@@ -24,9 +24,10 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^5.0.0",
-    "@prisma/generator-helper": "^5.0.0",
-    "prisma": "^5.0.0",
+    "@prisma/client": "^5.2.0",
+    "@prisma/extension-accelerate": "^0.6.2",
+    "@prisma/generator-helper": "^5.2.0",
+    "prisma": "^5.2.0",
     "ts-node": "^10.9.1",
     "zod": "^3.22.2",
     "zod-prisma": "^0.5.4"

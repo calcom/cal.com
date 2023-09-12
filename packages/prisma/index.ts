@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingReferenceMiddleware } from "./middleware";
 
@@ -23,7 +24,10 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
-// const prismaWithClientExtensions = prismaWithoutClientExtensions.$extends({
+const prismaWithClientExtensions = prismaWithoutClientExtensions
+  //
+  .$extends(withAccelerate());
+// .$extends({
 //   query: {
 //     $allModels: {
 //       async $allOperations({ model, operation, args, query }) {
@@ -51,7 +55,7 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 //   },
 // })
 
-const prismaWithClientExtensions = prismaWithoutClientExtensions;
+// const prismaWithClientExtensions = prismaWithoutClientExtensions;
 
 export const prisma = (globalThis.prisma as typeof prismaWithClientExtensions) || prismaWithClientExtensions;
 
