@@ -56,11 +56,9 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
     return metadata.success && metadata.data?.subscriptionId;
   });
 
-const checkIfUserShouldBelongToOrg = async (
-  email: string
-): Promise<[string | undefined, number | undefined]> => {
-  if (!email || !ORGANIZATIONS_AUTOLINK) return [undefined, undefined];
-  const [username, apexDomain] = email.split("@");
+const checkIfUserShouldBelongToOrg = async (email: string) => {
+  const [orgUsername, apexDomain] = email.split("@");
+  if (!ORGANIZATIONS_AUTOLINK) return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
       AND: [
@@ -82,7 +80,7 @@ const checkIfUserShouldBelongToOrg = async (
       id: true,
     },
   });
-  return [username, existingOrg?.id];
+  return { orgUsername, orgId: existingOrg?.id };
 };
 
 const providers: Provider[] = [
@@ -767,14 +765,13 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         // Associate with organization if enabled by flag
-        const [orgUsername, orgId] = await checkIfUserShouldBelongToOrg(user.email);
+        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(user.email);
 
         const newUser = await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            username: orgId ? slugify(orgUsername!) : usernameSlug(user.name),
+            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
             email: user.email,
