@@ -526,7 +526,7 @@ For example, `Cal.com (support@cal.com)`.
 3. Copy Account SID to your `.env` file into the `TWILIO_SID` field
 4. Copy Auth Token to your `.env` file into the `TWILIO_TOKEN` field
 5. Copy your Twilio phone number to your `.env` file into the `TWILIO_PHONE_NUMBER` field
-6. Add your own sender id to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
+6. Add your own sender ID to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
 7. Create a messaging service (Develop -> Messaging -> Services)
 8. Choose any name for the messaging service
 9. Click 'Add Senders'
