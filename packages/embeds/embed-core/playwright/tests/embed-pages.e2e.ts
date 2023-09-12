@@ -59,4 +59,38 @@ test.describe("Embed Pages", () => {
     });
     expect(isEmbed).toBe(true);
   });
+
+  test("should return 'testing' on getEmbedNamespace when window.name is changed to cal-embed=testing", async ({
+    page,
+  }) => {
+    await page.goto("http://localhost:3000/free/30min");
+
+    await page.evaluate(() => {
+      window.name = "cal-embed=testing";
+    });
+
+    await page.reload();
+
+    const embedNamespace = await page.evaluate(() => {
+      return window?.getEmbedNamespace?.();
+    });
+    expect(embedNamespace).toBe("testing");
+  });
+
+  test("should return empty string on getEmbedNamespace when window.name is changed to cal-embed=", async ({
+    page,
+  }) => {
+    await page.goto("http://localhost:3000/free/30min");
+
+    await page.evaluate(() => {
+      window.name = "cal-embed=";
+    });
+
+    await page.reload();
+
+    const embedNamespace = await page.evaluate(() => {
+      return window?.getEmbedNamespace?.();
+    });
+    expect(embedNamespace).toBe("");
+  });
 });
