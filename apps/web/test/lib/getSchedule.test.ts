@@ -11,6 +11,7 @@ import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/vi
 import { getDate, getGoogleCalendarCredential, createBookingScenario} from "../utils/bookingScenario";
 
 // TODO: Mock properly
+prismaMock.booking.findMany.mockResolvedValue([]);
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
 
@@ -1139,4 +1140,3 @@ describe("getSchedule", () => {
     });
   });
 });
-
