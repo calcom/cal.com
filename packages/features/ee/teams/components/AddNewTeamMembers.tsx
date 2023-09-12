@@ -236,7 +236,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
     <li
       key={member.email}
       className={classNames(
-        "flex items-center justify-between p-6 text-sm",
+        "flex items-center justify-between overflow-auto p-6 text-sm",
         index !== 0 && "border-subtle border-t"
       )}
       data-testid="pending-member-item">
