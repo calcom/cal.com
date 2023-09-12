@@ -298,6 +298,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     input.rescheduleUid && durationToUse
       ? startTime.subtract(durationToUse, "minute").toDate()
       : startTime.toDate();
+
   const endTimeDate =
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
@@ -384,7 +385,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           rescheduleUid: input.rescheduleUid,
           currentBookings: currentBookingsAllUsers
             .filter(
-              (b) => b.userId === currentUser.id || b.attendees.some((a) => a.email === currentUser.email)
+              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
             )
             .map((bookings) => {
               const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
