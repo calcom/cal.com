@@ -20,5 +20,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-location-video-static",
-  "dirName": "bigbluebutton"
+  "dirName": "bigbluebutton",
+  "concurrentMeetings": true
 }
