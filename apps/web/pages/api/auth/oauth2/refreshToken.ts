@@ -31,13 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!client) {
-    return res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
 
   const decodedRefreshToken = jwt.verify(refresh_token, process.env.CALENDSO_ENCRYPTION_KEY);
 
-  if (!decodedRefreshToken || decodedRefreshToken.tokenType !== "Refresh Token") {
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
@@ -45,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const payload = {
     userId: decodedRefreshToken.userId,
     scope: decodedRefreshToken.scope,
-    tokenType: "Access Token",
+    token_type: "Access Token",
   };
 
   const access_token = jwt.sign(payload, secretKey, {

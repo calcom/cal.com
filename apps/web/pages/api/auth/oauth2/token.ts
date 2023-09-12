@@ -13,7 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, client_id, client_secret, grant_type, redirect_uri } = req.body;
 
   if (grant_type !== "authorization_code") {
-    return res.status(400).json({ message: "grant_type invalid" });
+    res.status(400).json({ message: "grant_type invalid" });
+    return;
   }
 
   const [hashedSecret] = generateSecret(client_secret);
@@ -29,7 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!client || client.redirectUri !== redirect_uri) {
-    return res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
 
   const accessCode = await prisma.accessCode.findFirst({
@@ -43,7 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!accessCode) {
-    return res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
 
   // can I use the CALENDSO_ENCRYPTION_KEY here?
@@ -52,13 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const payloadAuthToken = {
     userId: accessCode.userId,
     scope: accessCode.scopes,
-    tokenType: "Access Token",
+    token_type: "Access Token",
   };
 
   const payloadRefreshToken = {
     userId: accessCode.userId,
     scope: accessCode.scopes,
-    tokenType: "Refresh Token",
+    token_type: "Refresh Token",
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
