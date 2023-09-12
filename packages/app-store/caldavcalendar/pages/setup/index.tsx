@@ -57,13 +57,17 @@ export default function CalDavCalendarSetup() {
                     router.push(json.url);
                   }
                 }}>
-                <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+                <fieldset
+                  className="space-y-2"
+                  disabled={form.formState.isSubmitting}
+                  data-testid="caldav-calendar-form">
                   <TextField
                     required
                     type="text"
                     {...form.register("url")}
                     label={t("calendar_url")}
                     placeholder="https://example.com/calendar"
+                    data-testid="caldav-calendar-url"
                   />
                   <TextField
                     required
@@ -71,6 +75,7 @@ export default function CalDavCalendarSetup() {
                     {...form.register("username")}
                     label={t("username")}
                     placeholder="rickroll"
+                    data-testid="caldav-calendar-username"
                   />
                   <TextField
                     required
@@ -79,6 +84,7 @@ export default function CalDavCalendarSetup() {
                     label={t("password")}
                     placeholder="•••••••••••••"
                     autoComplete="password"
+                    data-testid="caldav-calendar-password"
                   />
                 </fieldset>
 
@@ -104,7 +110,10 @@ export default function CalDavCalendarSetup() {
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
-                  <Button type="submit" loading={form.formState.isSubmitting}>
+                  <Button
+                    type="submit"
+                    loading={form.formState.isSubmitting}
+                    data-testid="caldav-calendar-save-button">
                     {t("save")}
                   </Button>
                 </div>

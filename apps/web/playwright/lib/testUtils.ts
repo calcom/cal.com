@@ -197,6 +197,13 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
+export async function installCaldavCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-caldav-calendar"]');
+  await page.waitForURL("/apps/caldav-calendar");
+  await page.click('[data-testid="install-app-button"]');
+}
+
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
