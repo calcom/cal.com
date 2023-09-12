@@ -148,6 +148,7 @@ export async function createNewUserConnectToOrgIfExists({
   const createdUser = await prisma.user.create({
     data: {
       email: usernameOrEmail,
+      verified: true,
       invitedTo: input.teamId,
       organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
