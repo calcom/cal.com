@@ -15,6 +15,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -291,6 +292,73 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
+  const durationToUse = input.duration || 0;
+
+  const startTimeDate =
+    input.rescheduleUid && durationToUse
+      ? startTime.subtract(durationToUse, "minute").toDate()
+      : startTime.toDate();
+
+  const endTimeDate =
+    input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
+
+  const sharedQuery = {
+    startTime: { gte: startTimeDate },
+    endTime: { lte: endTimeDate },
+    status: {
+      in: [BookingStatus.ACCEPTED],
+    },
+  };
+
+  const currentBookingsAllUsers = await prisma.booking.findMany({
+    where: {
+      OR: [
+        // User is primary host (individual events, or primary organizer)
+        {
+          ...sharedQuery,
+          userId: {
+            in: usersWithCredentials.map((user) => user.id),
+          },
+        },
+        // The current user has a different booking at this time he/she attends
+        {
+          ...sharedQuery,
+          attendees: {
+            some: {
+              email: {
+                in: usersWithCredentials.map((user) => user.email),
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      attendees: true,
+      eventType: {
+        select: {
+          id: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+        },
+      },
+      ...(!!eventType?.seatsPerTimeSlot && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    },
+  });
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -310,7 +378,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
+        {
+          user: currentUser,
+          eventType,
+          currentSeats,
+          rescheduleUid: input.rescheduleUid,
+          currentBookings: currentBookingsAllUsers
+            .filter(
+              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
+            )
+            .map((bookings) => {
+              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+              return bookingWithoutAttendees;
+            }),
+        }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
