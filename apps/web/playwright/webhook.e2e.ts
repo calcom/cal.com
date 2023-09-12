@@ -600,6 +600,32 @@ test.describe("BOOKING_PAID", async () => {
       triggerEvent: "BOOKING_PAID",
     });
   });
+
+  test("should not send a booking paid event when the payment is not confirmed by Stripe", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({ name: "name" });
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+
+    await user.apiLogin();
+
+    // installing Stripe
+    await user.getPaymentCredential();
+
+    const webhookReceiver = await createWebhookReceiver(page);
+
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPayEvent(eventType);
+
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(2);
+    }).catch((err) => {
+      expect(err.message).toBe("waitFor timed out");
+    });
+
+    expect(webhookReceiver.requestList).toHaveLength(0);
+  });
 });
 
 test.describe("FORM_SUBMITTED", async () => {
