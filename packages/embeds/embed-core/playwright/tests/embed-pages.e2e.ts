@@ -108,4 +108,28 @@ test.describe("Embed Pages", () => {
     });
     expect(embedNamespace).toBe("");
   });
+
+  test("should return window.CalEmbed.embedStore.theme on getEmbedTheme when window.name is changed to cal-embed=", async ({
+    page,
+  }) => {
+    const theme = "dark";
+
+    await page.goto("http://localhost:3000/free/30min");
+
+    await page.evaluate(() => {
+      window.name = "cal-embed=";
+    });
+
+    await page.reload();
+
+    await page.evaluate((theme) => {
+      window.CalEmbed.embedStore.theme = theme;
+    }, theme);
+
+    const embedTheme = await page.evaluate(() => {
+      return window?.getEmbedTheme?.();
+    });
+
+    expect(embedTheme).toBe(theme);
+  });
 });
