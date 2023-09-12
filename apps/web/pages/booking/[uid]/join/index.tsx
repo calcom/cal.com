@@ -33,6 +33,15 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
         eventType: {
           select: {
             userId: true,
+            team: {
+              select: {
+                members: {
+                  select: {
+                    userId: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -70,9 +79,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
       JSON.parse(symmetricDecrypt(credential.key, process.env.CALENDSO_ENCRYPTION_KEY))
     );
 
-    // FIXME: also check for other user types that should be moderators
-    const isHost = booking.eventType?.userId === session.user.id;
-    if (!isHost) throw new Error("User is not a host.");
+    const isOwner = booking.eventType?.userId === session.user.id;
+    const isTeamMember = booking.eventType?.team?.members.some(({ userId }) => userId === session.user.id);
+
+    if (!isOwner && !isTeamMember) throw new Error("User should not be a moderator.");
 
     const bbbApi = new BbbApi(bbbOpts);
 

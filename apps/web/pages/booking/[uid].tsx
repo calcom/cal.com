@@ -181,6 +181,9 @@ export default function Success(props: SuccessProps) {
   // - It's a paid event and payment is pending.
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+  const userIsTeamMember = !!(
+    session?.user?.id && eventType?.team?.members.some(({ userId }) => userId === session.user.id)
+  );
   const isLoggedIn = session?.user;
   const isCancelled =
     status === "CANCELLED" ||
@@ -188,11 +191,10 @@ export default function Success(props: SuccessProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  // TODO: check for additional organizer types
   const locationVideoCallUrl = applyMeetingUrlTemplate(
     metadata?.videoCallUrl,
     props.attendeeHash,
-    userIsOwner
+    userIsOwner || userIsTeamMember
   );
 
   // const telemetry = useTelemetry();
@@ -908,6 +910,11 @@ const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          members: {
+            select: {
+              userId: true,
+            },
+          },
         },
       },
       workflows: {
@@ -1142,7 +1149,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  let attendeeHash;
+  let attendeeHash = null;
   if (bookingInfo.location === "integrations:bigbluebutton_video") {
     const attendee = bookingInfo?.attendees.find((attendee) => attendee.email === email);
     if (attendee) attendeeHash = (await import("@calcom/app-store/bigbluebutton/lib")).hashAttendee(attendee);
