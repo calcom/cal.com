@@ -64,10 +64,9 @@ type Component =
         TProps extends SelectLikeComponentProps<{
           value: string;
           optionValue: string;
-          _type?: string;
         }> & {
           optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
-          value: { value: string; optionValue: string; _type?: string };
+          value: { value: string; optionValue: string };
         } & {
           name?: string;
           required?: boolean;
@@ -394,17 +393,7 @@ export const Components: Record<FieldType, Component> = {
           setValue({
             value: options[0]?.value,
             optionValue: "",
-            _type: options[0]?._type,
           });
-        } else {
-          const option = options.find((o) => o.value === value.value);
-          // Handle prefill case where value is provided from outside which won't have _type
-          if (option && option._type !== value._type) {
-            setValue({
-              ...value,
-              _type: option._type,
-            });
-          }
         }
       }, [options, setValue, value]);
 
@@ -426,7 +415,6 @@ export const Components: Record<FieldType, Component> = {
                           setValue({
                             value: e.target.value,
                             optionValue: "",
-                            _type: option._type,
                           });
                         }}
                         checked={value?.value === option.value}

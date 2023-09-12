@@ -45,12 +45,10 @@ export type SelectLikeComponentProps<
     | {
         value: string;
         optionValue: string;
-        _type?: string;
       } = string
 > = {
   options: {
     label: string;
-    _type?: string;
     value: TVal extends (infer P)[]
       ? P
       : TVal extends {
