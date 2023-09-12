@@ -60,6 +60,21 @@ test.describe("Embed Pages", () => {
     expect(isEmbed).toBe(true);
   });
 
+  test("should return false on isEmbed when window.name does not contain cal-embed=", async ({ page }) => {
+    await page.goto("http://localhost:3000/free/30min");
+
+    await page.evaluate(() => {
+      window.name = "testing";
+    });
+
+    await page.reload();
+
+    const isEmbed = await page.evaluate(() => {
+      return window?.isEmbed?.();
+    });
+    expect(isEmbed).toBe(false);
+  });
+
   test("should return 'testing' on getEmbedNamespace when window.name is changed to cal-embed=testing", async ({
     page,
   }) => {
