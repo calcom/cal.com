@@ -93,6 +93,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     afterEventBuffer: 0,
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
+    seatsShowAvailabilityCount: null,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,

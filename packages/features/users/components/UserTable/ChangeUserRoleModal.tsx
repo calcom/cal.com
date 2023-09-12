@@ -7,7 +7,7 @@ import type { Action, State } from "./UserListTable";
 
 export function ChangeUserRoleModal(props: { state: State; dispatch: Dispatch<Action> }) {
   const { data: session } = useSession();
-  const orgId = session?.user.organizationId;
+  const orgId = session?.user.org?.id;
   if (!orgId || !props.state.changeMemberRole.user) return null;
 
   return (

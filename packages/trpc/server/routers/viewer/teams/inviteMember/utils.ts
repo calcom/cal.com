@@ -148,6 +148,7 @@ export async function createNewUserConnectToOrgIfExists({
   const createdUser = await prisma.user.create({
     data: {
       email: usernameOrEmail,
+      verified: true,
       invitedTo: input.teamId,
       organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
@@ -239,19 +240,19 @@ export async function sendVerificationEmail({
 }) {
   const token: string = randomBytes(32).toString("hex");
 
-  if (!connectionInfo.autoAccept) {
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-        team: {
-          connect: {
-            id: connectionInfo.orgId || input.teamId,
-          },
+  await prisma.verificationToken.create({
+    data: {
+      identifier: usernameOrEmail,
+      token,
+      expires: new Date(new Date().setHours(168)), // +1 week
+      team: {
+        connect: {
+          id: connectionInfo.orgId || input.teamId,
         },
       },
-    });
+    },
+  });
+  if (!connectionInfo.autoAccept) {
     await sendTeamInviteEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
@@ -262,15 +263,6 @@ export async function sendVerificationEmail({
       isOrg: input.isOrg,
     });
   } else {
-    // we have already joined the team in createNewUserConnectToOrgIfExists so we dont need to connect via token
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-      },
-    });
-
     await sendOrganizationAutoJoinEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,

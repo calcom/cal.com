@@ -3,17 +3,25 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import { renderEmail } from "@calcom/emails";
 import BaseEmail from "@calcom/emails/templates/_base-email";
 
-import type { Response } from "../../types/types";
+import type { OrderedResponses } from "../../types/types";
 
 type Form = Pick<App_RoutingForms_Form, "id" | "name">;
 export default class ResponseEmail extends BaseEmail {
-  response: Response;
+  orderedResponses: OrderedResponses;
   toAddresses: string[];
   form: Form;
-  constructor({ toAddresses, response, form }: { form: Form; toAddresses: string[]; response: Response }) {
+  constructor({
+    toAddresses,
+    orderedResponses,
+    form,
+  }: {
+    form: Form;
+    toAddresses: string[];
+    orderedResponses: OrderedResponses;
+  }) {
     super();
     this.form = form;
-    this.response = response;
+    this.orderedResponses = orderedResponses;
     this.toAddresses = toAddresses;
   }
 
@@ -26,7 +34,7 @@ export default class ResponseEmail extends BaseEmail {
       subject,
       html: renderEmail("ResponseEmail", {
         form: this.form,
-        response: this.response,
+        orderedResponses: this.orderedResponses,
         subject,
       }),
     };
