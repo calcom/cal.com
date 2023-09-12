@@ -170,11 +170,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
-
-  // TODO: only query what we need after applying limits (shrink date range)
-  const getBusyTimesStart = dateFrom.toISOString();
-  const getBusyTimesEnd = dateTo.toISOString();
-
   const busyTimesFromLimits =
     eventType && (bookingLimits || durationLimits)
       ? await getBusyTimesFromLimits(
@@ -188,6 +183,9 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
         )
       : [];
 
+  // TODO: only query what we need after applying limits (shrink date range)
+  const getBusyTimesStart = dateFrom.toISOString();
+  const getBusyTimesEnd = dateTo.toISOString();
   const getBusyTimesSpan = tracer.startSpan("getBusyTimes-" + user.id, undefined, context.active());
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,

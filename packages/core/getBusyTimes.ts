@@ -143,6 +143,7 @@ export async function getBusyTimes(params: {
 
   getBookingsSpan.end();
 
+  const calculateBusyTimesSpan = tracer.startSpan("busyTimes-" + userId, undefined, context.active());
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
