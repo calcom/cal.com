@@ -764,7 +764,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=use-identity-login";
         }
 
-        // Associate with organization if enabled by flag
+        // Associate with organization if enabled by flag and idP is Google (for now)
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         const newUser = await prisma.user.create({
