@@ -1,4 +1,4 @@
-import type { Credential } from "@prisma/client";
+import type { Booking, Credential, EventType } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -24,6 +24,17 @@ export async function getBusyTimes(params: {
   seatedEvent?: boolean;
   rescheduleUid?: string | null;
   duration?: number | null;
+  currentBookings?:
+    | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+        eventType: Pick<
+          EventType,
+          "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+        > | null;
+        _count?: {
+          seatsReferences: number;
+        };
+      })[]
+    | null;
 }) {
   const {
     credentials,
@@ -40,6 +51,7 @@ export async function getBusyTimes(params: {
     rescheduleUid,
     duration,
   } = params;
+
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
       userId,
@@ -76,49 +88,56 @@ export async function getBusyTimes(params: {
       in: [BookingStatus.ACCEPTED],
     },
   };
-  // Find bookings that block this user from hosting further bookings.
-  const bookings = await prisma.booking.findMany({
-    where: {
-      OR: [
-        // User is primary host (individual events, or primary organizer)
-        {
-          ...sharedQuery,
-          userId,
-        },
-        // The current user has a different booking at this time he/she attends
-        {
-          ...sharedQuery,
-          attendees: {
-            some: {
-              email: userEmail,
+
+  // INFO: Refactored to allow this method to take in a list of current bookings for the user.
+  // Will keep support for retrieving a user's bookings if the caller does not already supply them.
+  // This function is called from multiple places but we aren't refactoring all of them at this moment
+  // to avoid potential side effects.
+  const bookings = params.currentBookings
+    ? params.currentBookings
+    : await prisma.booking.findMany({
+        where: {
+          OR: [
+            // User is primary host (individual events, or primary organizer)
+            {
+              ...sharedQuery,
+              userId,
             },
-          },
+            // The current user has a different booking at this time he/she attends
+            {
+              ...sharedQuery,
+              attendees: {
+                some: {
+                  email: userEmail,
+                },
+              },
+            },
+          ],
         },
-      ],
-    },
-    select: {
-      id: true,
-      uid: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      eventType: {
         select: {
           id: true,
-          afterEventBuffer: true,
-          beforeEventBuffer: true,
-          seatsPerTimeSlot: true,
-        },
-      },
-      ...(seatedEvent && {
-        _count: {
-          select: {
-            seatsReferences: true,
+          uid: true,
+          userId: true,
+          startTime: true,
+          endTime: true,
+          title: true,
+          eventType: {
+            select: {
+              id: true,
+              afterEventBuffer: true,
+              beforeEventBuffer: true,
+              seatsPerTimeSlot: true,
+            },
           },
+          ...(seatedEvent && {
+            _count: {
+              select: {
+                seatsReferences: true,
+              },
+            },
+          }),
         },
-      }),
-    },
-  });
+      });
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
