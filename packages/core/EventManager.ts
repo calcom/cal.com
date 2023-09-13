@@ -350,6 +350,11 @@ export default class EventManager {
                     slug: true,
                   },
                 },
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
               },
               where: {
                 id: destination.credentialId,
@@ -365,6 +370,7 @@ export default class EventManager {
                 teamId: credentialFromDB.teamId,
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
+                userEmail: credentialFromDB.user?.email ?? "",
               };
             }
           }

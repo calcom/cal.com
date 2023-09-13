@@ -16,6 +16,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialWithAppName } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -28,11 +29,13 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
+  private credential: CredentialWithAppName;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialWithAppName) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.credential = credential;
   }
 
   private googleAuth = (credential: CredentialPayload) => {
@@ -91,18 +94,26 @@ export default class GoogleCalendarService implements Calendar {
     }));
     // TODO: Check every other CalendarService for team members
     const teamMembers =
-      calEventRaw.team?.members.map((m) => ({
-        email: m.email,
-        displayName: m.name,
-        responseStatus: "accepted",
-      })) || [];
+      calEventRaw.team?.members
+        .filter((m) => m.email !== this.credential.userEmail)
+        .map((m) => {
+          const teamMemberDestinationCalendar = calEventRaw.destinationCalendar?.find(
+            (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
+          );
+          return {
+            email: teamMemberDestinationCalendar?.externalId ?? m.email,
+            displayName: m.name,
+            responseStatus: "accepted",
+          };
+        }) || [];
+
     return new Promise(async (resolve, reject) => {
       const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
         (cal) => cal.credentialId === credentialId
       );
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
-        summary: calEventRaw.title,
+        summary: `${calEventRaw.title} CredId ${credentialId}`,
         description: getRichDescription(calEventRaw),
         start: {
           dateTime: calEventRaw.startTime,
@@ -118,9 +129,9 @@ export default class GoogleCalendarService implements Calendar {
             id: String(calEventRaw.organizer.id),
             responseStatus: "accepted",
             organizer: true,
-            email: selectedHostDestinationCalendar?.externalId
-              ? selectedHostDestinationCalendar.externalId
-              : calEventRaw.organizer.email,
+            displayName: calEventRaw.organizer.name,
+            email: selectedHostDestinationCalendar?.externalId ?? calEventRaw.organizer.email,
+            self: true,
           },
           ...eventAttendees,
           ...teamMembers,

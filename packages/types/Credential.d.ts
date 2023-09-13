@@ -22,4 +22,4 @@ export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
   key?: never;
 };
 
-export type CredentialWithAppName = CredentialPayload & { appName: string };
+export type CredentialWithAppName = CredentialPayload & { appName: string; userEmail?: string };

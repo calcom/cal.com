@@ -39,6 +39,7 @@ export type Person = {
 };
 
 export type TeamMember = {
+  id?: number;
   name: string;
   email: string;
   timeZone: string;
