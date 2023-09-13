@@ -205,19 +205,22 @@ export default class GoogleCalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const [mainHostDestinationCalendar] =
-        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
+      const mainHostDestinationCalendar = event.destinationCalendar?.find(
+        (cal) => cal.externalId === externalCalendarId
+      );
       const myGoogleAuth = await this.auth.getToken();
       const eventAttendees = event.attendees.map(({ ...rest }) => ({
         ...rest,
         responseStatus: "accepted",
       }));
       const teamMembers =
-        event.team?.members.map((m) => ({
-          email: m.email,
-          displayName: m.name,
-          responseStatus: "accepted",
-        })) || [];
+        event.team?.members
+          .filter((m) => m.email !== this.credentialUserEmail)
+          .map((m) => ({
+            email: m.email,
+            displayName: m.name,
+            responseStatus: "accepted",
+          })) || [];
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),

@@ -142,7 +142,15 @@ export default abstract class BaseCalendarService implements Calendar {
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: [
           ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
+          ...(event.team?.members
+            ? getAttendees(
+                event.team?.members
+                  ? getAttendees(
+                      event.team.members.filter((member) => member.email !== this.credentialUserEmail)
+                    )
+                  : []
+              )
+            : []),
         ],
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present

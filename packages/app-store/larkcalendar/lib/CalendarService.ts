@@ -194,7 +194,9 @@ export default class LarkCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.externalId === externalCalendarId
+    );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in updateEvent");
