@@ -815,7 +815,6 @@ document.addEventListener("click", (e) => {
   const namespace = targetEl.dataset.calNamespace;
   const configString = targetEl.dataset.calConfig || "";
   const calOrigin = targetEl.dataset.calOrigin || "";
-  const preloadId = targetEl.dataset.calPreloadId || "";
   let config;
   try {
     config = JSON.parse(configString);

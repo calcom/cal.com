@@ -211,15 +211,25 @@ if (only === "all" || only === "ns:fifth") {
     callback,
   });
 }
-if (only === "all" || only === "preload-test") {
-  Cal("init", "preloadtestLightTheme", {
+
+if (only === "all" || only === "prerender-test") {
+  Cal("init", "prerenderLightTheme", {
     debug: true,
     origin: "http://localhost:3000",
   });
-  Cal.ns.preloadtestLightTheme("preload", {
-    calLink: "free",
-    id: "preload-test-1",
+  Cal.ns.prerenderLightTheme("preload", {
+    calLink: "free/30min",
     type: "modal",
+  });
+}
+
+if (only === "all" || only === "preload-test") {
+  Cal("init", "preloadTest", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+  Cal.ns.preloadTest("preload", {
+    calLink: "free/30min",
   });
 }
 

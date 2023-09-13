@@ -142,17 +142,25 @@ test.describe("Event Types tests", () => {
         .first()
         .getAttribute("href");
 
+      /**
+       * Verify first organizer address
+       */
       await page.goto(previewLink ?? "");
-
       await selectFirstAvailableTimeSlotNextMonth(page);
-
-      for (const location of locationData) {
-        await page.locator(`span:has-text("${location}")`).click();
-      }
-
+      await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
-
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationData[0]);
+
+      /**
+       * Verify second organizer address
+       */
+      await page.goto(previewLink ?? "");
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator(`span:has-text("${locationData[1]}")`).click();
+      await bookTimeSlot(page);
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationData[1]);
     });
 
     test.describe("Different Locations Tests", () => {
