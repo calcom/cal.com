@@ -14,5 +14,5 @@ jobs:
           comment-body: "Hey there, there is a merge conflict, can you take a look?"
           wait-ms: 3000
           max-retries: 5
-          label-name: conflict
+          label-name: "🚨 merge conflict"
           ignore-authors: dependabot,otherAuthor
