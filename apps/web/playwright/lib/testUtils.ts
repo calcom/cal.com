@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
@@ -86,7 +86,7 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
   }
 }
 
-export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
+export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
   // Let current month dates fully render.
   await page.click('[data-testid="incrementMonth"]');
 

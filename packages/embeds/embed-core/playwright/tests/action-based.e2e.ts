@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   todo,
@@ -241,7 +242,7 @@ test.describe("Popup Tests", () => {
     });
   });
 
-  test("prendered embed should be loaded", async ({ page, embeds }) => {
+  test("prendered embed should be loaded and apply the config given to it", async ({ page, embeds }) => {
     const calNamespace = "e2ePrerenderLightTheme";
     const calLink = "/free/30min";
     await embeds.gotoPlayground({ calNamespace, url: "/?only=prerender-test" });
@@ -250,6 +251,13 @@ test.describe("Popup Tests", () => {
     await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: calLink });
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+    await selectFirstAvailableTimeSlotNextMonth(embedIframe);
+    await expect(embedIframe.locator('[name="name"]')).toHaveValue("Preloaded Prefilled");
+    await expect(embedIframe.locator('[name="email"]')).toHaveValue("preloaded-prefilled@example.com");
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: calLink,
