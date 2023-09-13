@@ -469,7 +469,7 @@ export default function Success(props: SuccessProps) {
                     {locationToDisplay && !isCancelled && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
-                        <div className="col-span-2 mt-3">
+                        <div className="col-span-2 mt-3" data-testid="where">
                           {locationToDisplay.startsWith("http") ? (
                             <a
                               href={locationToDisplay}
@@ -736,7 +736,7 @@ export default function Success(props: SuccessProps) {
               </div>
               {isGmail && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-right rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>
@@ -930,6 +930,7 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       periodStartDate: true,
       periodEndDate: true,
     },
@@ -953,6 +954,7 @@ const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
+    seatsShowAvailabilityCount: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<

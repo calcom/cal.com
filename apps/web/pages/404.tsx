@@ -75,6 +75,7 @@ export default function Custom404() {
         )}`
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isSuccessPage = pathname?.startsWith("/booking");

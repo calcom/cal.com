@@ -138,7 +138,9 @@ export const DropdownItem = (props: DropdownItemProps) => {
       {...rest}
       className={classNames(
         "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
-        color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle",
+        color === "destructive"
+          ? "hover:bg-error hover:text-red-700 dark:hover:text-red-100"
+          : "hover:bg-subtle",
         props.className
       )}>
       <>

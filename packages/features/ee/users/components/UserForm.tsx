@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 
@@ -118,7 +119,7 @@ export const UserForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <Avatar alt="" imageSrc={value} size="lg" />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"

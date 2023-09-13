@@ -1,4 +1,5 @@
 import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
 import { debounce, noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
@@ -24,7 +25,7 @@ interface ICustomUsernameProps {
 
 const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
 
   const {
     currentUsername,
@@ -65,8 +66,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     }
   }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
-  const utils = trpc.useContext();
-
   const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
@@ -76,9 +75,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
-    },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 
