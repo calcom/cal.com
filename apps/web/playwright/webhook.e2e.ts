@@ -1,6 +1,5 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
@@ -14,35 +13,14 @@ import {
   waitFor,
   gotoRoutingLink,
   createUserWithSeatedEventAndAttendees,
+  createWebhookReceiver,
+  todo,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
 const dynamic = "[redacted/dynamic]";
 
 test.afterEach(({ users }) => users.deleteAll());
-
-async function createWebhookReceiver(page: Page) {
-  const webhookReceiver = createHttpServer();
-
-  await page.goto(`/settings/developer/webhooks`);
-
-  // --- add webhook
-  await page.click('[data-testid="new_webhook"]');
-
-  await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-  await page.fill('[name="secret"]', "secret");
-
-  await Promise.all([
-    page.click("[type=submit]"),
-    page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-  ]);
-
-  // page contains the url
-  expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
-
-  return webhookReceiver;
-}
 
 test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
@@ -558,74 +536,15 @@ test.describe("BOOKING_RESCHEDULED", async () => {
   });
 });
 
+/**
+ * TO-DO:
+ * Implement these tests using the examples on apps/web/playwright/integrations-stripe.e2e.ts
+ * We need to do something agnostic to the payment provider here, so we can test it with Stripe, Paypal or other providers
+ */
 test.describe("BOOKING_PAID", async () => {
-  const IS_STRIPE_ENABLED = !!(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-    process.env.STRIPE_CLIENT_ID &&
-    process.env.STRIPE_PRIVATE_KEY &&
-    process.env.PAYMENT_FEE_FIXED &&
-    process.env.PAYMENT_FEE_PERCENTAGE
-  );
+  todo("should send a booking paid event when the payment is confirmed by Stripe");
 
-  // Stripe needs to be installed to pay a booking
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(!IS_STRIPE_ENABLED, "It should only run if has Stripe credentials");
-
-  test("should send a booking paid event when the payment is confirmed by Stripe", async ({
-    page,
-    users,
-  }) => {
-    const user = await users.create({ name: "name" });
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-
-    await user.apiLogin();
-
-    // installing Stripe
-    await user.getPaymentCredential();
-
-    const webhookReceiver = await createWebhookReceiver(page);
-
-    await user.setupEventWithPrice(eventType);
-    await user.bookAndPayEvent(eventType);
-    await user.confirmPendingPayment();
-
-    // --- check that webhook was called
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(2);
-    });
-
-    const [, request] = webhookReceiver.requestList;
-
-    expect(request.body).toMatchObject({
-      triggerEvent: "BOOKING_PAID",
-    });
-  });
-
-  test("should not send a booking paid event when the payment is not confirmed by Stripe", async ({
-    page,
-    users,
-  }) => {
-    const user = await users.create({ name: "name" });
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-
-    await user.apiLogin();
-
-    // installing Stripe
-    await user.getPaymentCredential();
-
-    const webhookReceiver = await createWebhookReceiver(page);
-
-    await user.setupEventWithPrice(eventType);
-    await user.bookAndPayEvent(eventType);
-
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(2);
-    }).catch((err) => {
-      expect(err.message).toBe("waitFor timed out");
-    });
-
-    expect(webhookReceiver.requestList).toHaveLength(0);
-  });
+  todo("should not send a booking paid event when the payment is not confirmed by Stripe");
 });
 
 test.describe("FORM_SUBMITTED", async () => {

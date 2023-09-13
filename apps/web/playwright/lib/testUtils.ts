@@ -274,3 +274,26 @@ export async function createUserWithSeatedEventAndAttendees(
   });
   return { user, eventType, booking };
 }
+
+export async function createWebhookReceiver(page: Page) {
+  const webhookReceiver = createHttpServer();
+
+  await page.goto(`/settings/developer/webhooks`);
+
+  // --- add webhook
+  await page.click('[data-testid="new_webhook"]');
+
+  await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+  await page.fill('[name="secret"]', "secret");
+
+  await Promise.all([
+    page.click("[type=submit]"),
+    page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+  ]);
+
+  // page contains the url
+  expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+  return webhookReceiver;
+}

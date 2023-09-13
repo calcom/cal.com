@@ -3,7 +3,7 @@ import type Prisma from "@prisma/client";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { todo, selectFirstAvailableTimeSlotNextMonth, waitFor, createWebhookReceiver } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -110,6 +110,32 @@ test.describe("Stripe integration", () => {
     await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
   });
 
+  test("should not send a booking paid event when the payment is not confirmed by Stripe", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({ name: "name" });
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+
+    await user.apiLogin();
+
+    // installing Stripe
+    await user.getPaymentCredential();
+
+    const webhookReceiver = await createWebhookReceiver(page);
+
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPayEvent(eventType);
+
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(2);
+    }).catch((err) => {
+      expect(err.message).toBe("waitFor timed out");
+    });
+
+    expect(webhookReceiver.requestList).toHaveLength(0);
+  });
+
   test.describe("When event is paid and confirmed", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
     let eventType: Prisma.EventType;
@@ -144,5 +170,20 @@ test.describe("Stripe integration", () => {
     });
 
     todo("Paid and confirmed booking should be able to be rescheduled");
+
+    test("should send a booking paid event when the payment is confirmed by Stripe", async ({ page }) => {
+      const webhookReceiver = await createWebhookReceiver(page);
+
+      // --- check that webhook was called
+      await waitFor(() => {
+        expect(webhookReceiver.requestList.length).toBe(2);
+      });
+
+      const [, request] = webhookReceiver.requestList;
+
+      expect(request.body).toMatchObject({
+        triggerEvent: "BOOKING_PAID",
+      });
+    });
   });
 });
