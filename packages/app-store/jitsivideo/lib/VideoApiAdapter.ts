@@ -26,7 +26,7 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       
       
       // Ensure the host URL starts with the correct protocol
-      const selfHostedJitsiUrl = ensureProtocol(appKeys.YourJitsiURL as string);
+      const selfHostedJitsiUrl = ensureProtocol(appKeys.jitsiHost as string);
 
       const hostUrl = (selfHostedJitsiUrl as string) || "https://meet.jit.si/cal";
 
