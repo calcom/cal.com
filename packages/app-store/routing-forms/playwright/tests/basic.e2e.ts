@@ -304,12 +304,14 @@ test.describe("Routing Forms", () => {
       await users.logout();
       page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForURL((url) => {
-        return url.pathname.endsWith("/pro/30min");
+        return url.pathname.endsWith("/pro/30min") && url.searchParams.get("Test field") === "event-routing";
       });
 
       page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return url.hostname.includes("google.com");
+        return (
+          url.hostname.includes("google.com") && url.searchParams.get("Test field") === "external-redirect"
+        );
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
