@@ -10,7 +10,7 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { applyMeetingUrlTemplate } from "@calcom/app-store/bigbluebutton/lib";
+import { applyMeetingUrlTemplate, hashAttendee } from "@calcom/app-store/bigbluebutton/lib";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -1154,7 +1154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let attendeeHash = null;
   if (bookingInfo.location === "integrations:bigbluebutton_video") {
     const attendee = bookingInfo?.attendees.find((attendee) => attendee.email === email);
-    if (attendee) attendeeHash = (await import("@calcom/app-store/bigbluebutton/lib")).hashAttendee(attendee);
+    if (attendee) attendeeHash = hashAttendee(attendee);
   }
 
   return {
