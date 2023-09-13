@@ -169,10 +169,7 @@ export async function handlePaymentSuccess(
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const eventManager = new EventManager({
-      credentials: user.credentials,
-      destinationCalendar: user.destinationCalendar,
-    });
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
@@ -202,14 +199,7 @@ export async function handlePaymentSuccess(
   }
 
   if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({
-      user,
-      evt,
-      prisma,
-      bookingId: booking.id,
-      booking,
-      paid: true,
-    });
+    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
   } else {
     await sendScheduledEmails({ ...evt });
   }
