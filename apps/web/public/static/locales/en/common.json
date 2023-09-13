@@ -45,7 +45,6 @@
   "invite_team_individual_segment": "Invite individual",
   "invite_team_bulk_segment": "Bulk import",
   "invite_team_notifcation_badge": "Inv.",
-  "signin_or_signup_to_accept_invite": "You need to Sign in or Sign up to see team invitation.",
   "your_event_has_been_scheduled": "Your event has been scheduled",
   "your_event_has_been_scheduled_recurring": "Your recurring event has been scheduled",
   "accept_our_license": "Accept our license by changing the .env variable <1>NEXT_PUBLIC_LICENSE_CONSENT</1> to '{{agree}}'.",
