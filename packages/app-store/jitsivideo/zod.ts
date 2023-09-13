@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  jitsiHost: z.string().optional(),
+  YourJitsiURL: z.string().optional(),
   jitsiPathPattern: z.string().optional(),
 });
 

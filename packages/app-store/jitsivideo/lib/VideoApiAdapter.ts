@@ -7,6 +7,13 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { metadata } from "../_metadata";
 
+const ensureProtocol = (url: string): string => {
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "https://" + url; // default to https if not specified
+  }
+  return url;
+};
+
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {
   return {
     getAvailability: () => {
@@ -16,7 +23,13 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       const appKeys = await getAppKeysFromSlug(metadata.slug);
 
       const meetingPattern = (appKeys.jitsiPathPattern as string) || "{uuid}";
-      const hostUrl = (appKeys.jitsiHost as string) || "https://meet.jit.si/cal";
+      
+      
+      // Ensure the host URL starts with the correct protocol
+      const selfHostedJitsiUrl = ensureProtocol(appKeys.YourJitsiURL as string);
+
+      const hostUrl = (selfHostedJitsiUrl as string) || "https://meet.jit.si/cal";
+
 
       //Allows "/{Type}-with-{Attendees}" slug
       const meetingID = meetingPattern
