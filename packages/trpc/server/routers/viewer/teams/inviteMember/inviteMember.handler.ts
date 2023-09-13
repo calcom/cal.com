@@ -68,6 +68,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         usernameOrEmail,
         input,
         connectionInfo,
+        autoAcceptEmailDomain,
         parentId: team.parentId,
       });
 
