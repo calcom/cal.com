@@ -37,6 +37,15 @@ const workspaces = packagedEmbedTestsOnly
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },
       },
+      {
+        test: {
+          globals: true,
+          name: "EventTypeAppCardInterface components",
+          include: ["packages/app-store/**/*.{test,spec}.{ts,js,tsx}"],
+          environment: "jsdom",
+          setupFiles: ["packages/app-store/test-setup.ts"],
+        },
+      },
     ];
 
 export default defineWorkspace(workspaces);

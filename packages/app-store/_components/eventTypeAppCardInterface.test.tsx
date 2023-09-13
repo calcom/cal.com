@@ -1,0 +1,77 @@
+import { render, screen } from "@testing-library/react";
+import type { CredentialOwner } from "types";
+import { vi } from "vitest";
+
+import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
+import type { RouterOutputs } from "@calcom/trpc";
+
+import { DynamicComponent } from "./DynamicComponent";
+import { EventTypeAppCard } from "./EventTypeAppCardInterface";
+
+vi.mock("./DynamicComponent", async () => {
+  const actual = (await vi.importActual("./DynamicComponent")) as object;
+  return {
+    ...actual,
+    DynamicComponent: vi.fn(() => <div>MockedDynamicComponent</div>),
+  };
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
+
+const getAppDataMock = vi.fn();
+const setAppDataMock = vi.fn();
+const mockProps = {
+  app: {
+    name: "TestApp",
+    slug: "testapp",
+    credentialOwner: {},
+  } as RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner },
+  eventType: {},
+  getAppData: getAppDataMock,
+  setAppData: setAppDataMock,
+  LockedIcon: <div>MockedIcon</div>,
+  disabled: false,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
+
+describe("Tests for EventTypeAppCard component", () => {
+  test("Should render DynamicComponent with correct slug", () => {
+    render(<EventTypeAppCard {...mockProps} />);
+
+    expect(DynamicComponent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        slug: mockProps.app.slug,
+      }),
+      {}
+    );
+
+    expect(screen.getByText("MockedDynamicComponent")).toBeInTheDocument();
+  });
+
+  test("Should provide the correct values to EventTypeAppContext", () => {
+    render(
+      <EventTypeAppContext.Provider
+        value={{
+          getAppData: getAppDataMock(),
+          setAppData: setAppDataMock(),
+        }}>
+        <EventTypeAppCard {...mockProps} />
+      </EventTypeAppContext.Provider>
+    );
+
+    expect(getAppDataMock).toHaveBeenCalled();
+    expect(setAppDataMock).toHaveBeenCalled();
+  });
+
+  test("Should display error boundary message on child component error", () => {
+    (DynamicComponent as jest.Mock).mockImplementation(() => {
+      throw new Error("Mocked error from DynamicComponent");
+    });
+
+    render(<EventTypeAppCard {...mockProps} />);
+    const errorMessage = screen.getByText(`There is some problem with ${mockProps.app.name} App`);
+    expect(errorMessage).toBeInTheDocument();
+  });
+});
