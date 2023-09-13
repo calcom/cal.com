@@ -171,7 +171,7 @@ test.describe("Stripe integration", () => {
 
     todo("Paid and confirmed booking should be able to be rescheduled");
 
-    test("should send a booking paid event when the payment is confirmed by Stripe", async ({ page }) => {
+    test("Payment should trigger a BOOKING_PAID webhook", async ({ page }) => {
       const webhookReceiver = await createWebhookReceiver(page);
 
       // --- check that webhook was called
