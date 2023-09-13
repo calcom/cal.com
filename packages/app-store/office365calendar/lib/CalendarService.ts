@@ -69,8 +69,11 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
+      : undefined;
     try {
       const eventsUrl = mainHostDestinationCalendar?.externalId
         ? `/me/calendars/${mainHostDestinationCalendar?.externalId}/events`
@@ -295,6 +298,16 @@ export default class Office365CalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: [
+        // Add the calEvent organizer
+        {
+          emailAddress: {
+            address: event.destinationCalendar
+              ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+                event.organizer.email
+              : event.organizer.email,
+            name: event.organizer.name,
+          },
+        },
         ...event.attendees.map((attendee) => ({
           emailAddress: {
             address: attendee.email,
@@ -303,13 +316,18 @@ export default class Office365CalendarService implements Calendar {
           type: "required",
         })),
         ...(event.team?.members
-          ? event.team?.members.map((member) => ({
-              emailAddress: {
-                address: member.email,
-                name: member.name,
-              },
-              type: "required",
-            }))
+          ? event.team?.members.map((member) => {
+              const destinationCalendar =
+                event.destinationCalendar &&
+                event.destinationCalendar.find((cal) => cal.userId === member.id);
+              return {
+                emailAddress: {
+                  address: destinationCalendar?.externalId ?? member.email,
+                  name: member.name,
+                },
+                type: "required",
+              };
+            })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
