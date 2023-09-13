@@ -341,6 +341,12 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
 
+### Koyeb
+
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=cal-com&type=docker&image=docker.io/calcom/cal.com&env[PORT]=8000&env[NEXT_PUBLIC_WEBAPP_URL]=CHANGE_ME&env[DATABASE_URL]=CHANGE_ME&env[NEXTAUTH_SECRET]=CHANGE_ME&env[CALENDSO_ENCRYPTION_KEY]=CHANGE_ME&env[EMAIL_SERVER_HOST]=smtp.mailgun.org&env[EMAIL_SERVER_PORT]=587&env[EMAIL_SERVER_USER]=CHANGE_ME&env[EMAIL_SERVER_PASSWORD]=CHANGE_ME&env[EMAIL_FROM]=CHANGE_ME&ports=8000;http;/)
+
+You can deploy Cal.com on [Koyeb](https://www.koyeb.com/) by clicking the button above.  Be sure to modify the environment variables to match your own details. Koyeb has a [tutorial outlining the procedure in greater detail](https://www.koyeb.com/tutorials/deploy-cal-com-on-koyeb-to-manage-scheduling-with-google-calendar) that you can read for additional context.
+
 <!-- ROADMAP -->
 
 ## Roadmap
