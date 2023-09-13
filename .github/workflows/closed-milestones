@@ -1,0 +1,20 @@
+name: Closed Milestones
+
+on:
+  milestone:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  Comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bflad/action-milestone-comment@v1
+        with:
+          body: |
+            This functionality has been released in ${{ github.event.milestone.title }}.
+
+            For further feature requests or bug reports with this functionality, please create a [new GitHub issue](https://github.com/${{ github.repository }}/issues/new/choose) following the template. Thank you!
