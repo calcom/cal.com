@@ -616,6 +616,10 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
   document.documentElement.style.colorScheme = colorScheme;
 }
 
+/**
+ * Apply configurations to the preloaded page and then ask parent to show the embed
+ * url has the config as params
+ */
 function connectPreloadedEmbed({ url }: { url: URL }) {
   const MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES = 700;
   embedStore.nextRouter?.push(url.toString());

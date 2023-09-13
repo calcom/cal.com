@@ -24,7 +24,7 @@ document.addEventListener("click", (e) => {
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
-
+const prerender = searchParams.get("prerender");
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
 }
@@ -377,6 +377,12 @@ Cal("init", "routingFormDark", {
 });
 
 if (only === "all" || only == "ns:floatingButton") {
+  if (prerender == "true") {
+    Cal.ns.floatingButton("preload", {
+      calLink: calLink || "pro",
+      type: "floatingButton",
+    });
+  }
   Cal.ns.floatingButton("floatingButton", {
     calLink: calLink || "pro",
     config: {
