@@ -1,14 +1,18 @@
-on:
-  push:
-    branches:
-      - master
+name: Auto Comment Merge Conflicts
+on: push
+
+permissions:
+  pull-requests: write
+
 jobs:
-  triage:
+  auto-comment-merge-conflicts:
     runs-on: ubuntu-latest
     steps:
-      - uses: mschilde/auto-label-merge-conflicts@master
+      - uses: codytseng/auto-comment-merge-conflicts@v1
         with:
-          CONFLICT_LABEL_NAME: "🚨 merge conflict"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MAX_RETRIES: 5
-          WAIT_MS: 5000
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment-body: "Hey there, there is a merge conflict, can you take a look?"
+          wait-ms: 3000
+          max-retries: 5
+          label-name: conflict
+          ignore-authors: dependabot,otherAuthor
