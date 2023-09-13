@@ -217,7 +217,7 @@ if (only === "all" || only === "prerender-test") {
     debug: true,
     origin: "http://localhost:3000",
   });
-  Cal.ns.e2ePrerenderLightTheme("preload", {
+  Cal.ns.e2ePrerenderLightTheme("prerender", {
     calLink: "free/30min",
     type: "modal",
   });
@@ -378,7 +378,7 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   if (prerender == "true") {
-    Cal.ns.floatingButton("preload", {
+    Cal.ns.floatingButton("prerender", {
       calLink: calLink || "pro",
       type: "floatingButton",
     });

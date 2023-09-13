@@ -676,7 +676,7 @@ class CalApi {
     options = {},
   }: {
     calLink: string;
-    type?: "inline" | "modal" | "floatingButton";
+    type?: "modal" | "floatingButton";
     options?: {
       prerenderIframe?: boolean;
     };
@@ -734,6 +734,13 @@ class CalApi {
     } else {
       preloadAssetsForCalLink({ calLink, config });
     }
+  }
+
+  prerender({ calLink, type }: { calLink: string; type: "modal" | "floatingButton" }) {
+    this.preload({
+      calLink,
+      type,
+    });
   }
 
   ui(uiConfig: UiConfig) {
