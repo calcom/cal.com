@@ -1,8 +1,9 @@
 import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 
 import { getLayout } from "@calcom/features/NoShellLayout";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button } from "@calcom/ui";
+import { Avatar, Button, Select } from "@calcom/ui";
 import { Plus, Info } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -11,12 +12,18 @@ export default function Authorize() {
   const router = useRouter();
 
   const { state, client_id, scope } = router.query;
-  if (!router.isReady) return null;
   const scopes = scope ? scope.toString().split(",") : [];
 
-  const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery({
-    clientId: client_id,
-  });
+  const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
+    {
+      clientId: client_id,
+    },
+    {
+      enabled: router.isReady,
+    }
+  );
+
+  const { data, isLoading: isLoadingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
@@ -24,9 +31,32 @@ export default function Authorize() {
     },
   });
 
-  if (isLoadingGetClient) return <div>Loading...</div>;
+  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
 
-  if (!client) return <div>Unauthorized</div>;
+  const mappedProfiles = data
+    ? data
+        .filter((profile) => !profile.readOnly)
+        .map((profile) => ({
+          label: profile.name,
+          value: profile.slug,
+        }))
+    : [];
+
+  useEffect(() => {
+    if (mappedProfiles.length > 0) {
+      setSelectedAccount(mappedProfiles[0]);
+    }
+  }, [isLoadingProfiles]);
+
+  const isLoading = isLoadingGetClient || isLoadingProfiles || !router.isReady;
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!client) {
+    return <div>Unauthorized</div>;
+  }
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -50,6 +80,16 @@ export default function Authorize() {
         <h1 className="p-5 text-center text-2xl font-bold tracking-tight">
           {client.name} would like access to your Cal.com account
         </h1>
+
+        <div>Select account or team</div>
+        <Select
+          isSearchable={true}
+          onChange={(value) => {
+            setSelectedAccount(value);
+          }}
+          defaultValue={selectedAccount}
+          options={mappedProfiles}
+        />
         <div className="mb-4 mt-2 font-medium">This will allow {client.name} to</div>
         <ul className="space-y-4 text-sm">
           <li className="relative pl-5">
