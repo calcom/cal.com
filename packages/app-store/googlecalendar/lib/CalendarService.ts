@@ -113,7 +113,7 @@ export default class GoogleCalendarService implements Calendar {
       );
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
-        summary: `${calEventRaw.title} CredId ${credentialId}`,
+        summary: calEventRaw.title,
         description: getRichDescription(calEventRaw),
         start: {
           dateTime: calEventRaw.startTime,
