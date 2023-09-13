@@ -95,7 +95,7 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const getAttendees = (attendees: Person[]): Attendee[] =>
+const mapAttendees = (attendees: Person[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
 export default abstract class BaseCalendarService implements Calendar {
@@ -104,7 +104,7 @@ export default abstract class BaseCalendarService implements Calendar {
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private log: typeof logger;
-  private credentialUserEmail: string;
+  private credential: CredentialWithAppName;
 
   constructor(credential: CredentialWithAppName, integrationName: string, url?: string) {
     this.integrationName = integrationName;
@@ -119,9 +119,22 @@ export default abstract class BaseCalendarService implements Calendar {
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
-    this.credentialUserEmail = credential.userEmail;
+    this.credential = credential;
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  }
+
+  private getAttendees(event: CalendarEvent) {
+    const attendees = mapAttendees(event.attendees);
+
+    if (event.team?.members) {
+      const teamAttendeesWithoutCurrentUser = event.team.members.filter(
+        (member) => member.email !== this.credential.userEmail
+      );
+      attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
+    }
+
+    return attendees;
   }
 
   async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -140,18 +153,7 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members
-            ? getAttendees(
-                event.team?.members
-                  ? getAttendees(
-                      event.team.members.filter((member) => member.email !== this.credentialUserEmail)
-                    )
-                  : []
-              )
-            : []),
-        ],
+        attendees: this.getAttendees(event),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -227,12 +229,7 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members
-            ? getAttendees(event.team.members.filter((member) => member.email !== this.credentialUserEmail))
-            : []),
-        ],
+        attendees: this.getAttendees(event),
       });
 
       if (error) {
