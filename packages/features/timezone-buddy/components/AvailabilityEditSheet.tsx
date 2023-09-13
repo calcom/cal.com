@@ -14,10 +14,10 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  TopBanner,
   SheetTitle,
   TimezoneSelect,
   showToast,
+  Alert,
 } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -139,17 +139,6 @@ export function AvailabilityEditSheet(props: Props) {
               </Button>
             </>
           }>
-          {!data?.hasDefaultSchedule && !isLoading && hasEditPermission && (
-            <div className="my-2">
-              <TopBanner variant="warning" text={t("view_only_edit_availability_not_onboarded")} />
-            </div>
-          )}
-          {!hasEditPermission && !loadingPermissions && (
-            <div className="my-2">
-              <TopBanner variant="warning" text={t("view_only_edit_availability")} />
-            </div>
-          )}
-
           <SheetHeader>
             <SheetTitle>
               {t("edit_users_availability", {
@@ -157,8 +146,18 @@ export function AvailabilityEditSheet(props: Props) {
               })}
             </SheetTitle>
           </SheetHeader>
+          {!data?.hasDefaultSchedule && !isLoading && hasEditPermission && (
+            <div className="my-2">
+              <Alert severity="warning" title={t("view_only_edit_availability_not_onboarded")} />
+            </div>
+          )}
+          {!hasEditPermission && !loadingPermissions && (
+            <div className="my-2">
+              <Alert severity="warning" title={t("view_only_edit_availability")} />
+            </div>
+          )}
 
-          <>
+          <div className="mt-4 flex flex-col space-y-4">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -192,7 +191,7 @@ export function AvailabilityEditSheet(props: Props) {
                 />
               )}
             </div>
-          </>
+          </div>
         </SheetContent>
       </Form>
     </Sheet>
