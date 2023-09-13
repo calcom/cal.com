@@ -160,9 +160,9 @@ export class Cal {
 
   __config: Config;
 
-  modalBox!: Element;
+  modalBox?: Element;
 
-  inlineEl!: Element;
+  inlineEl?: Element;
 
   namespace: string;
 
@@ -368,6 +368,9 @@ export class Cal {
     });
 
     this.actionManager.on("__routeChanged", () => {
+      if (!this.inlineEl) {
+        return;
+      }
       const { top, height } = this.inlineEl.getBoundingClientRect();
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
@@ -613,7 +616,7 @@ class CalApi {
   private handleClose() {
     // A request, to close from the iframe, should close the modal
     this.cal.actionManager.on("__closeIframe", () => {
-      this.cal.modalBox.setAttribute("state", "closed");
+      this.cal.modalBox?.setAttribute("state", "closed");
     });
   }
 
