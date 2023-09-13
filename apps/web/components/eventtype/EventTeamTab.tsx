@@ -11,7 +11,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, SettingsToggle } from "@calcom/ui";
 
 interface IUserToValue {
   id: number | null;
@@ -293,6 +293,8 @@ export const EventTeamTab = ({
   teamMembers,
   eventType,
 }: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
+  const formMethods = useFormContext<FormValues>();
+
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -344,7 +346,21 @@ export const EventTeamTab = ({
         </div>
       )}
       {team && isManagedEventType && (
-        <ChildrenEventTypes childrenEventTypeOptions={childrenEventTypeOptions} />
+        <div>
+          <Controller
+            name="addAllMembers"
+            control={formMethods.control}
+            render={({ field: { value, onChange } }) => (
+              <SettingsToggle
+                title={t("add_all_members")}
+                description={t("add_all_members_description")}
+                checked={value}
+                onCheckedChange={(e) => onChange(e)}
+              />
+            )}
+          />
+          <ChildrenEventTypes childrenEventTypeOptions={childrenEventTypeOptions} />
+        </div>
       )}
     </div>
   );

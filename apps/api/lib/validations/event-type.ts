@@ -55,6 +55,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   locations: true,
   bookingLimits: true,
   durationLimits: true,
+  addAllmembers: true,
 })
   .merge(z.object({ hosts: z.array(hostSchema).optional().default([]) }))
   .partial()
@@ -135,6 +136,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   bookingFields: true,
   bookingLimits: true,
   durationLimits: true,
+  addAllMembers: true,
 }).merge(
   z.object({
     locations: z

@@ -134,6 +134,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  addAllMembers: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -276,6 +277,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      addAllMembers: eventType.addAllMembers,
     };
   }, [eventType, periodDates, metadata]);
 

@@ -91,6 +91,7 @@ export default async function getEventTypeById({
       periodCountCalendarDays: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      addAllMembers: true,
       recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
@@ -302,6 +303,7 @@ export default async function getEventTypeById({
           }
         : []
     ),
+    addAllMembers: rawEventType.addAllMembers,
   };
 
   // backwards compat

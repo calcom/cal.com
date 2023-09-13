@@ -98,6 +98,7 @@ const commons = {
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
+  addAllMembers: false,
 };
 
 const dynamicEvent = {
