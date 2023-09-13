@@ -134,6 +134,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  organizerEmail?: string;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -172,6 +173,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     onlyInstalled: true,
   });
 
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -476,8 +478,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               multipleDurationEnabled,
               length,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              organizerEmail,
               ...input
             } = values;
+
+            let emailMeta;
 
             if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
@@ -503,10 +509,25 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, ...rest } = input;
+
+            // when no email is selected as organizer email, use email in 'Add to Calendar' (destinationCalendar)
+            // otherwise, use email in default calendar
+            if (metadata?.useAddToCalendarEmail) {
+              if (input.destinationCalendar) {
+                emailMeta = {
+                  organizerEmail: input.destinationCalendar.externalId,
+                  isDefaultCalendarEmail: false,
+                };
+              } else {
+                emailMeta = {
+                  organizerEmail: connectedCalendarsQuery.data?.destinationCalendar.primaryEmail,
+                  isDefaultCalendarEmail: true, // to keep track of when the default calendar is updated
+                };
+              }
+            }
+
             updateMutation.mutate({
-              ...rest,
+              ...input,
               length,
               locations,
               recurringEvent,
@@ -521,7 +542,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsPerTimeSlot,
               seatsShowAttendees,
               seatsShowAvailabilityCount,
-              metadata,
+              metadata: { ...metadata, ...emailMeta },
               customInputs,
             });
           }}>
