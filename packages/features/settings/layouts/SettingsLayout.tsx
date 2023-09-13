@@ -17,7 +17,6 @@ import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
   ArrowLeft,
-  Building,
   ChevronDown,
   ChevronRight,
   CreditCard,
@@ -77,7 +76,6 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "organization",
     href: "/settings/organizations",
-    icon: Building,
     children: [
       {
         name: "profile",
@@ -147,6 +145,9 @@ const useTabs = () => {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+    } else if (tab.href === "/settings/organizations") {
+      tab.name = orgBranding?.name || "organization";
+      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
