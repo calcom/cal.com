@@ -169,8 +169,6 @@ test.describe("Stripe integration", () => {
       expect(await paidBadge.innerText()).toBe("Paid");
     });
 
-    todo("Paid and confirmed booking should be able to be rescheduled");
-
     test("Payment should trigger a BOOKING_PAID webhook", async ({ page }) => {
       const webhookReceiver = await createWebhookReceiver(page);
 
@@ -185,5 +183,7 @@ test.describe("Stripe integration", () => {
         triggerEvent: "BOOKING_PAID",
       });
     });
+
+    todo("Paid and confirmed booking should be able to be rescheduled");
   });
 });
