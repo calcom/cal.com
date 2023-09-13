@@ -312,6 +312,11 @@ Cal("init", "popupDarkTheme", {
   origin: "http://localhost:3000",
 });
 
+Cal("init", "e2ePopupLightTheme", {
+  debug: true,
+  origin: "http://localhost:3000",
+});
+
 Cal("init", "popupHideEventTypeDetails", {
   debug: true,
   origin: "http://localhost:3000",
