@@ -29,13 +29,11 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
-  private credential: CredentialWithAppName;
 
   constructor(credential: CredentialWithAppName) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    this.credential = credential;
   }
 
   private googleAuth = (credential: CredentialPayload) => {
@@ -87,7 +85,11 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(
+    calEventRaw: CalendarEvent,
+    credentialId: number,
+    credentialUserEmail: string
+  ): Promise<NewCalendarEventType> {
     const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
@@ -95,7 +97,7 @@ export default class GoogleCalendarService implements Calendar {
     // TODO: Check every other CalendarService for team members
     const teamMembers =
       calEventRaw.team?.members
-        .filter((m) => m.email !== this.credential.userEmail)
+        .filter((m) => m.email !== credentialUserEmail)
         .map((m) => {
           const teamMemberDestinationCalendar = calEventRaw.destinationCalendar?.find(
             (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id

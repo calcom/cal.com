@@ -233,7 +233,7 @@ export const createEvent = async (
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id)
+        .createEvent(calEvent, credential.id, credential.userEmail)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**

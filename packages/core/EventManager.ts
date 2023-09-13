@@ -63,6 +63,7 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
+  email: string;
 };
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
@@ -78,7 +79,7 @@ export default class EventManager {
    */
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
-      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
+      app.credentials.map((creds) => ({ ...creds, appName: app.name, userEmail: user.email }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
