@@ -10,7 +10,9 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
+  monthCount?: number | null;
   rescheduleUid?: string | null;
+  isTeamEvent?: boolean;
 };
 
 export const useSchedule = ({
@@ -21,15 +23,18 @@ export const useSchedule = ({
   eventId,
   prefetchNextMonth,
   duration,
+  monthCount,
   rescheduleUid,
+  isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
-  const nextMonthDayjs = monthDayjs.add(1, "month");
+  const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
-  // no satisfy typscript.
+  // no satisfy typescript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
+      isTeamEvent,
       usernameList: getUsernameList(username ?? ""),
       // Prioritize slug over id, since slug is the first value we get available.
       // If we have a slug, we don't need to fetch the id.

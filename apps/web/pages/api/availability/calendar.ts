@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
+  credentialId: z.number().optional(),
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { credentials, ...user } = userWithCredentials;
 
   if (req.method === "POST") {
-    const { integration, externalId } = selectedCalendarSelectSchema.parse(req.body);
+    const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
     await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
@@ -50,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: user.id,
         integration,
         externalId,
+        credentialId,
       },
       // already exists
       update: {},

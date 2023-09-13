@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -48,10 +49,26 @@ const DateOverrideForm = ({
       value[0].end.getUTCMinutes() === 0
   );
 
-  const [date, setDate] = useState<Dayjs | null>(value ? dayjs.utc(value[0].start) : null);
+  const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
+
+  const onDateChange = (newDate: Dayjs) => {
+    // If clicking on a selected date unselect it
+    if (selectedDates.some((date) => yyyymmdd(date) === yyyymmdd(newDate))) {
+      setSelectedDates(selectedDates.filter((date) => yyyymmdd(date) !== yyyymmdd(newDate)));
+      return;
+    }
+
+    // If it's not editing we can allow multiple select
+    if (!value) {
+      setSelectedDates((prev) => [...prev, newDate]);
+      return;
+    }
+
+    setSelectedDates([newDate]);
+  };
 
   const defaultRanges = (workingHours || []).reduce((dayRanges: TimeRange[], workingHour) => {
-    if (date && workingHour.days.includes(date.day())) {
+    if (selectedDates[0] && workingHour.days.includes(selectedDates[0].day())) {
       dayRanges.push({
         start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
         end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
@@ -91,31 +108,51 @@ const DateOverrideForm = ({
     <Form
       form={form}
       handleSubmit={(values) => {
-        if (!date) return;
+        if (selectedDates.length === 0) return;
+
+        const datesInRanges: TimeRange[] = [];
+
+        if (!datesUnavailable) {
+          selectedDates.map((date) => {
+            values.range.map((item) => {
+              datesInRanges.push({
+                start: date
+                  .hour(item.start.getUTCHours())
+                  .minute(item.start.getUTCMinutes())
+                  .utc(true)
+                  .toDate(),
+                end: date.hour(item.end.getUTCHours()).minute(item.end.getUTCMinutes()).utc(true).toDate(),
+              });
+            });
+          });
+        }
+
         onChange(
-          (datesUnavailable
-            ? [
-                {
+          datesUnavailable
+            ? selectedDates.map((date) => {
+                return {
                   start: date.utc(true).startOf("day").toDate(),
                   end: date.utc(true).startOf("day").add(1, "day").toDate(),
-                },
-              ]
-            : values.range
-          ).map((item) => ({
-            start: date.hour(item.start.getUTCHours()).minute(item.start.getUTCMinutes()).utc(true).toDate(),
-            end: date.hour(item.end.getUTCHours()).minute(item.end.getUTCMinutes()).utc(true).toDate(),
-          }))
+                };
+              })
+            : datesInRanges
         );
         onClose();
       }}
-      className="p-6 sm:flex sm:p-0">
-      <div className={classNames(date && "sm:border-subtle w-full sm:border-r sm:pr-6", "sm:p-4 md:p-8")}>
+      className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
+      <div
+        className={classNames(
+          selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
+          "sm:p-4 md:p-8"
+        )}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
           weekStart={0}
-          selected={date}
-          onChange={(day) => setDate(day)}
+          selected={selectedDates}
+          onChange={(day) => {
+            if (day) onDateChange(day);
+          }}
           onMonthChange={(newMonth) => {
             setBrowsingDate(newMonth);
           }}
@@ -123,7 +160,7 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {date && (
+      {selectedDates[0] && (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
             <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
@@ -148,7 +185,7 @@ const DateOverrideForm = ({
               className="ml-2"
               color="primary"
               type="submit"
-              disabled={!date}
+              disabled={selectedDates.length === 0}
               data-testid="add-override-submit-btn">
               {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
             </Button>
@@ -183,7 +220,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
+      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0 md:w-auto">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

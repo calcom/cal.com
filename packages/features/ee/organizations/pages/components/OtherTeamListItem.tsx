@@ -1,6 +1,5 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -13,7 +12,6 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
   Tooltip,
@@ -38,8 +36,6 @@ export default function OtherTeamListItem(props: Props) {
 
   const orgBranding = useOrgBranding();
 
-  const isOwner = props.team.role === MembershipRole.OWNER;
-
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
@@ -57,7 +53,7 @@ export default function OtherTeamListItem(props: Props) {
         <span className="text-muted block text-xs">
           {team.slug
             ? orgBranding
-              ? `${orgBranding.fullDomain}${team.slug}`
+              ? `${orgBranding.fullDomain}/${team.slug}`
               : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
             : "Unpublished team"}
         </span>
@@ -81,8 +77,8 @@ export default function OtherTeamListItem(props: Props) {
                         `${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/"
-                        }${team.slug}`
+                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                        }/${team.slug}`
                       );
                       showToast(t("link_copied"), "success");
                     }}
@@ -119,42 +115,39 @@ export default function OtherTeamListItem(props: Props) {
                         href={`${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other/`
-                        }${team.slug}`}
+                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
+                        }/${team.slug}`}
                         StartIcon={ExternalLink}>
                         {t("preview_team") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuSeparator />
-                  {isOwner && (
-                    <DropdownMenuItem>
-                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
-                        <DialogTrigger asChild>
-                          <DropdownItem
-                            color="destructive"
-                            type="button"
-                            StartIcon={Trash}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}>
-                            {t("disband_team")}
-                          </DropdownItem>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("disband_team")}
-                          confirmBtnText={t("confirm_disband_team")}
-                          isLoading={props.isLoading}
-                          onConfirm={() => {
-                            props.onActionSelect("disband");
+                  <DropdownMenuItem>
+                    <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
+                      <DialogTrigger asChild>
+                        <DropdownItem
+                          color="destructive"
+                          type="button"
+                          StartIcon={Trash}
+                          onClick={(e) => {
+                            e.stopPropagation();
                           }}>
-                          {t("disband_team_confirmation_message")}
-                        </ConfirmationDialogContent>
-                      </Dialog>
-                    </DropdownMenuItem>
-                  )}
+                          {t("disband_team")}
+                        </DropdownItem>
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        variety="danger"
+                        title={t("disband_team")}
+                        confirmBtnText={t("confirm_disband_team")}
+                        isLoading={props.isLoading}
+                        onConfirm={() => {
+                          props.onActionSelect("disband");
+                        }}>
+                        {t("disband_team_confirmation_message")}
+                      </ConfirmationDialogContent>
+                    </Dialog>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </Dropdown>
             </ButtonGroup>

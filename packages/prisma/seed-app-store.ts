@@ -226,6 +226,17 @@ async function createApp(
 export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
+  if (
+    process.env.BASECAMP3_CLIENT_ID &&
+    process.env.BASECAMP3_CLIENT_SECRET &&
+    process.env.BASECAMP3_USER_AGENT
+  ) {
+    await createApp("basecamp3", "basecamp3", ["other"], "basecamp3_other", {
+      client_id: process.env.BASECAMP3_CLIENT_ID,
+      client_secret: process.env.BASECAMP3_CLIENT_SECRET,
+      user_agent: process.env.BASECAMP3_USER_AGENT,
+    });
+  }
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(
@@ -326,7 +337,9 @@ export default async function main() {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
-
+  await createApp("make", "make", ["automation"], "make_automation", {
+    invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
+  });
   await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
 
   // Payment apps

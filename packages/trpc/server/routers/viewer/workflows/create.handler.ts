@@ -3,8 +3,8 @@ import type { Workflow } from "@prisma/client";
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma/client";
 import {
   MembershipRole,
   TimeUnit,
