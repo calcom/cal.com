@@ -9,7 +9,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialWithAppName } from "@calcom/types/Credential";
 
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
@@ -33,15 +33,17 @@ export default class LarkCalendarService implements Calendar {
   private url = `https://${LARK_HOST}/open-apis`;
   private integrationName = "";
   private log: typeof logger;
+  private credentialUserEmail: string;
   auth: { getToken: () => Promise<string> };
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialWithAppName) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.credentialUserEmail = credential.userEmail;
   }
 
-  private larkAuth = (credential: CredentialPayload) => {
+  private larkAuth = (credential: CredentialWithAppName) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     return {
       getToken: () =>
@@ -51,7 +53,7 @@ export default class LarkCalendarService implements Calendar {
     };
   };
 
-  private refreshAccessToken = async (credential: CredentialPayload) => {
+  private refreshAccessToken = async (credential: CredentialWithAppName) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     const refreshExpireDate = larkAuthCredentials.refresh_expires_date;
     const refreshToken = larkAuthCredentials.refresh_token;
@@ -122,10 +124,13 @@ export default class LarkCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
+      : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       throw new Error("no calendar id");
@@ -393,13 +398,16 @@ export default class LarkCalendarService implements Calendar {
         attendeeArray.push(attendee);
       });
     event.team?.members.forEach((member) => {
-      const attendee: LarkEventAttendee = {
-        type: "third_party",
-        is_optional: false,
-        third_party_email: member.email,
-      };
-      attendeeArray.push(attendee);
+      if (member.email !== this.credentialUserEmail) {
+        const attendee: LarkEventAttendee = {
+          type: "third_party",
+          is_optional: false,
+          third_party_email: member.email,
+        };
+        attendeeArray.push(attendee);
+      }
     });
+
     return attendeeArray;
   };
 }

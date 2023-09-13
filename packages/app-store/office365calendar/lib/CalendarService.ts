@@ -15,7 +15,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialWithAppName } from "@calcom/types/Credential";
 
 import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -61,11 +61,12 @@ export default class Office365CalendarService implements Calendar {
   private accessToken: string | null = null;
   auth: { getToken: () => Promise<string> };
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
+  private credentialUserEmail: string;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialWithAppName) {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
-
+    this.credentialUserEmail = credential.userEmail;
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
@@ -228,7 +229,7 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private o365Auth = (credential: CredentialPayload) => {
+  private o365Auth = (credential: CredentialWithAppName) => {
     const isExpired = (expiryDate: number) => {
       if (!expiryDate) {
         return true;
@@ -316,18 +317,20 @@ export default class Office365CalendarService implements Calendar {
           type: "required",
         })),
         ...(event.team?.members
-          ? event.team?.members.map((member) => {
-              const destinationCalendar =
-                event.destinationCalendar &&
-                event.destinationCalendar.find((cal) => cal.userId === member.id);
-              return {
-                emailAddress: {
-                  address: destinationCalendar?.externalId ?? member.email,
-                  name: member.name,
-                },
-                type: "required",
-              };
-            })
+          ? event.team?.members
+              .filter((member) => member.email !== this.credentialUserEmail)
+              .map((member) => {
+                const destinationCalendar =
+                  event.destinationCalendar &&
+                  event.destinationCalendar.find((cal) => cal.userId === member.id);
+                return {
+                  emailAddress: {
+                    address: destinationCalendar?.externalId ?? member.email,
+                    name: member.name,
+                  },
+                  type: "required",
+                };
+              })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,

@@ -26,7 +26,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialWithAppName } from "@calcom/types/Credential";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -104,8 +104,9 @@ export default abstract class BaseCalendarService implements Calendar {
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private log: typeof logger;
+  private credentialUserEmail: string;
 
-  constructor(credential: CredentialPayload, integrationName: string, url?: string) {
+  constructor(credential: CredentialWithAppName, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
     const {
@@ -118,11 +119,12 @@ export default abstract class BaseCalendarService implements Calendar {
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
+    this.credentialUserEmail = credential.userEmail;
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
 
@@ -153,7 +155,10 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
-      const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+      const mainHostDestinationCalendar = event.destinationCalendar
+        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0]
+        : undefined;
 
       // We create the event directly on iCal
       const responses = await Promise.all(
@@ -216,7 +221,9 @@ export default abstract class BaseCalendarService implements Calendar {
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: [
           ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
+          ...(event.team?.members
+            ? getAttendees(event.team.members.filter((member) => member.email !== this.credentialUserEmail))
+            : []),
         ],
       });
 
