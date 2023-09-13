@@ -160,7 +160,14 @@ export async function getEventType(
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              date: true,
+              startTime: true,
+              endTime: true,
+              days: true,
+            },
+          },
           timeZone: true,
         },
       },
@@ -191,6 +198,7 @@ export async function getEventType(
       },
     },
   });
+
   if (!eventType) {
     return null;
   }
