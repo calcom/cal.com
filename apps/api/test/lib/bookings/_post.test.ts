@@ -151,7 +151,7 @@ describe("POST /api/bookings", () => {
       );
     });
   });
-
+  
   describe("Success", () => {
     describe("Regular event-type", () => {
       test("Creates one single booking", async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getCalendarCredentials } from "./CalendarManager";
+import { getCalendarCredentials } from "../CalendarManager";
 
 describe("CalendarManager tests", () => {
   describe("fn: getCalendarCredentials", () => {

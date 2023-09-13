@@ -1,6 +1,6 @@
 import { rest } from "msw";
 
-import { testExpiryDate } from "../vitest/api.test";
+import { testExpiryDate } from "../../gcal.test";
 
 export const handlers = [
   // Handles a POST request
@@ -35,6 +35,17 @@ export const handlers = [
     return res(
       // Respond with a 200 status code
       ctx.status(200)
+    );
+  }),
+  rest.post("https://www.googleapis.com/calendar/v3/calendars/primary/events", async (req, res, ctx) => {
+    const eventData = await req.json();
+    return res(
+      ctx.status(200),
+      ctx.json({
+        ...eventData,
+        id: 12345,
+        iCalUID: 67890,
+      })
     );
   }),
 ];

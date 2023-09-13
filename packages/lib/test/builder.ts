@@ -225,3 +225,15 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     ...user,
   };
 };
+
+export const buildNewBooking = (user: ReturnType<typeof buildUser>, eventTypeId: number) => {
+  return {
+    responses: {
+      email: "test@example.com",
+      name: "Test",
+      guests: [],
+      location: { optionValue: "", value: "integrations:daily" },
+    },
+    user: user.username,
+  };
+};

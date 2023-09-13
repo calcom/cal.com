@@ -15,6 +15,7 @@ let client_secret = "";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
+  console.log("🚀 ~ file: callback.ts:18 ~ handler ~ state:", state);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });

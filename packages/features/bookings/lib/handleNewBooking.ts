@@ -231,6 +231,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
+  console.log("🚀 ~ file: handleNewBooking.ts:234 ~ getEventTypesFromDB ~ eventTypeId:", eventTypeId);
   const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
@@ -337,6 +338,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       },
     },
   });
+  console.log("🚀 ~ file: handleNewBooking.ts:340 ~ getEventTypesFromDB ~ eventType:", eventType);
 
   return {
     ...eventType,
@@ -373,6 +375,8 @@ async function ensureAvailableUsers(
         "minutes"
       )
     : undefined;
+
+  console.log("🚀 ~ file: handleNewBooking.ts:379 ~ eventType:", eventType);
 
   /** Let's start checking for availability */
   for (const user of eventType.users) {
@@ -536,6 +540,7 @@ async function getBookingData({
         });
 
   const reqBody = await bookingDataSchema.parseAsync(req.body);
+  console.log("🚀 ~ file: handleNewBooking.ts:539 ~ reqBody:", reqBody);
 
   // Work with Typescript to require reqBody.end
   type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
@@ -635,7 +640,9 @@ async function handler(
     isNotAnApiCall: false,
   }
 ) {
+  console.log("🚀 ~ file: handleNewBooking.ts:640 ~ isNotAnApiCall:", isNotAnApiCall);
   const { userId } = req;
+  console.log("🚀 ~ file: handleNewBooking.ts:643 ~ userId:", userId);
 
   const userIp = getIP(req);
 
@@ -649,11 +656,17 @@ async function handler(
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
+  console.log("🚀 ~ file: handleNewBooking.ts:653 ~ eventType:", eventType);
+  console.log(
+    "🚀 ~ file: handleNewBooking.ts:655 ~ !req.body.eventTypeId && !!req.body.eventTypeSlug:",
+    !req.body.eventTypeId && !!req.body.eventTypeSlug
+  );
 
   eventType = {
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
+
   const {
     recurringCount,
     allRecurringDates,
