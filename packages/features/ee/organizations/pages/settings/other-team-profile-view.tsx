@@ -106,9 +106,9 @@ const OtherTeamProfileView = () => {
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.organizations.listOtherTeams.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
     },
