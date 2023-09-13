@@ -135,6 +135,24 @@ test.describe("Manage Booking Questions", () => {
           });
         });
       });
+
+      await test.step("Verify that we can prefill name field with no lastname", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("name", "FirstName");
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "FirstName",
+                lastName: "",
+              },
+            },
+          });
+        });
+      });
     });
   });
 
@@ -499,6 +517,27 @@ async function doOnFreshPreview(
   persistTab = false
 ) {
   const previewTabPage = await openBookingFormInPreviewTab(context, page);
+  await callback(previewTabPage);
+  if (!persistTab) {
+    await previewTabPage.close();
+  }
+  return previewTabPage;
+}
+
+async function doOnFreshPreviewWithSearchParams(
+  searchParams: URLSearchParams,
+  page: Page,
+  context: PlaywrightTestArgs["context"],
+  callback: (page: Page) => Promise<void>,
+  persistTab = false
+) {
+  const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
+  const previewUrlObj = new URL(previewUrl);
+  searchParams.forEach((value, key) => {
+    previewUrlObj.searchParams.append(key, value);
+  });
+  const previewTabPage = await context.newPage();
+  await previewTabPage.goto(previewUrlObj.toString());
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();

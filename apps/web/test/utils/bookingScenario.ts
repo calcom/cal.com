@@ -194,10 +194,17 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const statusIn = where.OR[0].status?.in || [];
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const userIdIn = where.OR[0].userId?.in || [];
             const firstConditionMatches =
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
+              statusIn.includes(booking.status) &&
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              (booking.userId === where.OR[0].userId || userIdIn.includes(booking.userId));
 
             // We return this booking if either condition is met
             return firstConditionMatches;
