@@ -98,7 +98,7 @@ export class ModalBox extends HTMLElement {
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
-    } else if (newValue === "preloading") {
+    } else if (newValue === "prerendering") {
       this.close();
     }
   }

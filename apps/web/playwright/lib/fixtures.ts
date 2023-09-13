@@ -35,7 +35,8 @@ declare global {
         calNamespace: string,
         // eslint-disable-next-line
         getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
-        expectedUrlDetails?: ExpectedUrlDetails
+        expectedUrlDetails?: ExpectedUrlDetails,
+        isPrendered?: boolean
       ): Promise<R>;
     }
   }

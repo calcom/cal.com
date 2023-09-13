@@ -3,9 +3,9 @@ import type { Page } from "@playwright/test";
 export const createEmbedsFixture = (page: Page) => {
   return {
     /**
-     * @deprecated Use gotoEmbedPlayground instead
+     * @deprecated Use gotoPlayground instead
      */
-    async addEmbedListeners(calNamespace: string, url?: string) {
+    async addEmbedListeners(calNamespace: string) {
       await page.addInitScript(
         ({ calNamespace }: { calNamespace: string }) => {
           console.log("PlaywrightTest:", "Adding listener for __iframeReady on namespace:", calNamespace);
@@ -82,9 +82,9 @@ export const createEmbedsFixture = (page: Page) => {
       }
     },
 
-    async gotoEmbedPlayground({ calNamespace, url }: { calNamespace: string; url: string }) {
-      await this.addEmbedListeners(calNamespace, url);
-      await page.goto("/");
+    async gotoPlayground({ calNamespace, url }: { calNamespace: string; url: string }) {
+      await this.addEmbedListeners(calNamespace);
+      await page.goto(url);
     },
   };
 };

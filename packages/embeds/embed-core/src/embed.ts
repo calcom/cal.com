@@ -175,6 +175,8 @@ export class Cal {
 
   api: CalApi;
 
+  isPerendering?: boolean;
+
   static actionsManagers: Record<Namespace, SdkActionManager>;
 
   static getQueryObject(config: PrefillAndIframeAttrsConfig) {
@@ -380,11 +382,13 @@ export class Cal {
       }
     });
 
-    this.actionManager.on("linkReady", (e) => {
-      if (!e.detail.data.isPreloading) {
-        this.modalBox?.setAttribute("state", "loaded");
-        this.inlineEl?.setAttribute("loading", "done");
+    this.actionManager.on("linkReady", () => {
+      if (this.isPerendering) {
+        // Absolute check to ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed would showup without any user action
+        return;
       }
+      this.modalBox?.setAttribute("state", "loaded");
+      this.inlineEl?.setAttribute("loading", "done");
     });
 
     this.actionManager.on("linkFailed", (e) => {
@@ -550,20 +554,25 @@ class CalApi {
   modal({
     calLink,
     config = {},
-    preloadOnly,
+    __prerender = false,
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
-    preloadOnly?: boolean;
+    __prerender?: boolean;
   }) {
     const uid = this.modalUid || this.preloadedModalUid || String(Date.now()) || "0";
     const isConnectingToPreloadedModal = this.preloadedModalUid && !this.modalUid;
 
     const containerEl = document.body;
-    if (preloadOnly) {
-      config.preload = "true";
+
+    this.cal.isPerendering = !!__prerender;
+
+    if (__prerender) {
+      // Add preload query param
+      config.prerender = "true";
     }
+
     const queryObject = withColorScheme(Cal.getQueryObject(config), containerEl);
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
@@ -582,7 +591,7 @@ class CalApi {
       }
     }
 
-    if (preloadOnly) {
+    if (__prerender) {
       this.preloadedModalUid = uid;
     }
 
@@ -607,8 +616,8 @@ class CalApi {
     template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
-    if (preloadOnly) {
-      this.cal.modalBox.setAttribute("state", "preloading");
+    if (__prerender) {
+      this.cal.modalBox.setAttribute("state", "prerendering");
     }
     this.handleClose();
     containerEl.appendChild(template.content);
@@ -712,10 +721,11 @@ class CalApi {
 
     if (prerenderIframe) {
       if (type === "modal" || type === "floatingButton") {
+        this.cal.isPerendering = true;
         this.modal({
           calLink,
           calOrigin: config.calOrigin,
-          preloadOnly: true,
+          __prerender: true,
         });
       } else {
         console.warn("Ignoring - full preload for inline embed and instead preloading assets only");
@@ -872,19 +882,11 @@ function getEmbedApiFn(ns: string) {
   return api;
 }
 
-function isIframeLoadingThisCalcomLink(iframe: HTMLIFrameElement, calLink: string) {
-  const preloadedUrl = new URL(iframe.src);
-  const getPathWithoutLeadingSlash = (url: string) => url.replace(/^\/*/, "");
-
-  // Before comparing the paths, remove the leading slash from both the paths because users might have added one or no slash in calLink
-  return getPathWithoutLeadingSlash(preloadedUrl.pathname) !== `${getPathWithoutLeadingSlash(calLink)}/embed`;
-}
-
 function preloadAssetsForCalLink({ config, calLink }: { config: Config; calLink: string }) {
   const iframe = document.body.appendChild(document.createElement("iframe"));
 
   const urlInstance = new URL(`${config.calOrigin}/${calLink}`);
-  urlInstance.searchParams.set("prerender", "true");
+  urlInstance.searchParams.set("preload", "true");
   iframe.src = urlInstance.toString();
   iframe.style.width = "0";
   iframe.style.height = "0";

@@ -53,9 +53,9 @@ test.describe("Popup Tests", () => {
   test("should open embed iframe on click - Configured with light theme", async ({ page, embeds }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
     const calNamespace = "e2ePopupLightTheme";
-    await embeds.gotoEmbedPlayground({ calNamespace, url: "/" });
+    await embeds.gotoPlayground({ calNamespace, url: "/" });
 
-    await page.click('[data-cal-namespace="e2ePopupLightTheme"]');
+    await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
 
@@ -240,4 +240,45 @@ test.describe("Popup Tests", () => {
       });
     });
   });
+
+  test("prendered embed should be loaded", async ({ page, embeds }) => {
+    const calNamespace = "e2ePrerenderLightTheme";
+    const calLink = "/free/30min";
+    await embeds.gotoPlayground({ calNamespace, url: "/?only=prerender-test" });
+    await expectPrerenderedIframe({ calNamespace, calLink, embeds, page });
+
+    await page.click(`[data-cal-namespace="${calNamespace}"]`);
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: calLink });
+
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      pathname: calLink,
+    });
+  });
 });
+
+async function expectPrerenderedIframe({
+  page,
+  calNamespace,
+  calLink,
+  embeds,
+}: {
+  page: Page;
+  calNamespace: string;
+  calLink: string;
+  embeds: Fixtures["embeds"];
+}) {
+  const prerenderedIframe = await getEmbedIframe({ calNamespace, page, pathname: calLink });
+
+  if (!prerenderedIframe) {
+    throw new Error("Prerendered iframe not found");
+  }
+  await expect(prerenderedIframe).toBeEmbedCalLink(
+    calNamespace,
+    embeds.getActionFiredDetails,
+    {
+      pathname: calLink,
+    },
+    true
+  );
+}

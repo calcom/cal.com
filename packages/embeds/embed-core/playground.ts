@@ -213,11 +213,11 @@ if (only === "all" || only === "ns:fifth") {
 }
 
 if (only === "all" || only === "prerender-test") {
-  Cal("init", "prerenderLightTheme", {
+  Cal("init", "e2ePrerenderLightTheme", {
     debug: true,
     origin: "http://localhost:3000",
   });
-  Cal.ns.prerenderLightTheme("preload", {
+  Cal.ns.e2ePrerenderLightTheme("preload", {
     calLink: "free/30min",
     type: "modal",
   });

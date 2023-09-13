@@ -398,7 +398,6 @@ const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
-    const url = new URL(document.URL);
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
       if (!embedStore.parentInformedAboutContentHeight) {
@@ -407,9 +406,9 @@ const methods = {
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       unhideBody();
-      sdkActionManager?.fire("linkReady", {
-        isPreloading: url.searchParams.get("preload") === "true",
-      });
+      if (!isPrerendering()) {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
   },
   connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
@@ -572,16 +571,16 @@ if (isBrowser) {
     messageParent(detail);
   });
 
-  sdkActionManager?.fire("__iframeReady", {});
   if (url.searchParams.get("preload") !== "true" && window?.isEmbed?.()) {
     initializeAndSetupEmbed();
   } else {
-    // log("Either Preload mode or deprecated embed is detected. Not initializing embed-iframe");
-    initializeAndSetupEmbed();
+    log(`Preloaded scenario - Skipping initialization and setup`);
   }
 }
 
-function initializeAndSetupEmbed(queryObject?: Record<string, unknown>) {
+function initializeAndSetupEmbed() {
+  sdkActionManager?.fire("__iframeReady", {});
+
   // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
   if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
     log("Embed Iframe already initialized");
@@ -622,8 +621,10 @@ function connectPreloadedEmbed({ url }: { url: URL }) {
   embedStore.nextRouter?.push(url.toString());
   setTimeout(() => {
     // Firing this event would stop the loader and show the embed
-    sdkActionManager?.fire("linkReady", {
-      isPreloading: false,
-    });
+    sdkActionManager?.fire("linkReady", {});
   }, MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES);
 }
+
+const isPrerendering = () => {
+  return new URL(document.URL).searchParams.get("prerender") === "true";
+};
