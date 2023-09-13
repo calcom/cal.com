@@ -13,6 +13,7 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   currency: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
+  addAllMembers: true,
 });
 
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -30,6 +31,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   recurringEvent: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
+  addAllMembers: true,
   metadata: true,
   periodCountCalendarDays: true,
   price: true,
