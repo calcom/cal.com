@@ -658,6 +658,8 @@
   "managed": "Managed",
   "managed_event_url_clarification": "\"username\" will be filled by the username of the members assigned",
   "assign_to": "Assign to",
+  "add_all_members": "Automatically add to all members",
+  "add_all_members_description": "including people who join the team in the future",
   "add_members": "Add members...",
   "count_members_one": "{{count}} member",
   "count_members_other": "{{count}} members",
