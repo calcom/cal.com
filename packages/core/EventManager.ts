@@ -338,9 +338,18 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
-      for (const destination of event.destinationCalendar) {
-        if (destination.credentialId) {
-          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
+      // Want to only create one event per calendar app as they sync across their own platforms
+      const destinationCalendarApps = event.destinationCalendar.reduce((apps, calendar) => {
+        if (!apps.includes(calendar.integration)) apps.push(calendar.integration);
+        return apps;
+      }, [] as string[]);
+      for (const destination of destinationCalendarApps) {
+        const destinationCalendar = event.destinationCalendar.find(
+          (calendar) => calendar.integration === destination
+        );
+        if (destinationCalendar?.credentialId) {
+          // Doesn't matter who creates the event for team events
+          let credential = this.calendarCredentials.find((c) => c.id === destinationCalendar?.credentialId);
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
@@ -357,7 +366,7 @@ export default class EventManager {
                 },
               },
               where: {
-                id: destination.credentialId,
+                id: destinationCalendar?.credentialId,
               },
             });
             if (credentialFromDB && credentialFromDB.app?.slug) {
@@ -375,14 +384,14 @@ export default class EventManager {
             }
           }
           if (credential) {
-            const createdEvent = await createEvent(credential, event, destination.externalId);
+            const createdEvent = await createEvent(credential, event, destinationCalendar.externalId);
             if (createdEvent) {
               createdEvents.push(createdEvent);
             }
           }
         } else {
           const destinationCalendarCredentials = this.calendarCredentials.filter(
-            (c) => c.type === destination.integration
+            (c) => c.type === destinationCalendar?.integration
           );
           createdEvents = createdEvents.concat(
             await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
