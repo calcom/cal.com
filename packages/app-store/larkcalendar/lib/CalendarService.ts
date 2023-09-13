@@ -124,11 +124,11 @@ export default class LarkCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+      ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
         event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
