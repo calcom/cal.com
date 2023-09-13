@@ -15,8 +15,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -29,13 +28,13 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
-  private credentialUserEmail?: string;
+  private credential: CredentialWithAppName;
 
   constructor(credential: CredentialWithAppName) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    this.credentialUserEmail = credential.userEmail;
+    this.credential = credential;
   }
 
   private googleAuth = (credential: CredentialPayload) => {
@@ -87,17 +86,33 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
-    const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
+  private getAttendees = (event: CalendarEvent) => {
+    const selectedHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.credentialId === this.credential.id
+    );
+    const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
-    // TODO: Check every other CalendarService for team members
-    const teamMembers =
-      calEventRaw.team?.members
-        .filter((m) => m.email !== this.credentialUserEmail)
+    const attendees: calendar_v3.Schema$EventAttendee[] = [
+      {
+        ...event.organizer,
+        id: String(event.organizer.id),
+        responseStatus: "accepted",
+        organizer: true,
+        displayName: event.organizer.name,
+        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+        self: true,
+      },
+      ...eventAttendees,
+    ];
+
+    if (event.team?.members) {
+      // TODO: Check every other CalendarService for team members
+      const teamAttendeesWithoutCurrentUser = event.team.members
+        .filter((member) => member.email !== this.credential.userEmail)
         .map((m) => {
-          const teamMemberDestinationCalendar = calEventRaw.destinationCalendar?.find(
+          const teamMemberDestinationCalendar = event.destinationCalendar?.find(
             (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
           );
           return {
@@ -105,12 +120,15 @@ export default class GoogleCalendarService implements Calendar {
             displayName: m.name,
             responseStatus: "accepted",
           };
-        }) || [];
+        });
+      attendees.push(...teamAttendeesWithoutCurrentUser);
+    }
 
+    return attendees;
+  };
+
+  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     return new Promise(async (resolve, reject) => {
-      const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
-        (cal) => cal.credentialId === credentialId
-      );
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
         summary: calEventRaw.title,
@@ -123,19 +141,7 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: calEventRaw.endTime,
           timeZone: calEventRaw.organizer.timeZone,
         },
-        attendees: [
-          {
-            ...calEventRaw.organizer,
-            id: String(calEventRaw.organizer.id),
-            responseStatus: "accepted",
-            organizer: true,
-            displayName: calEventRaw.organizer.name,
-            email: selectedHostDestinationCalendar?.externalId ?? calEventRaw.organizer.email,
-            self: true,
-          },
-          ...eventAttendees,
-          ...teamMembers,
-        ],
+        attendees: this.getAttendees(calEventRaw),
         reminders: {
           useDefault: true,
         },
@@ -205,22 +211,7 @@ export default class GoogleCalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const mainHostDestinationCalendar = event.destinationCalendar?.find(
-        (cal) => cal.externalId === externalCalendarId
-      );
       const myGoogleAuth = await this.auth.getToken();
-      const eventAttendees = event.attendees.map(({ ...rest }) => ({
-        ...rest,
-        responseStatus: "accepted",
-      }));
-      const teamMembers =
-        event.team?.members
-          .filter((m) => m.email !== this.credentialUserEmail)
-          .map((m) => ({
-            email: m.email,
-            displayName: m.name,
-            responseStatus: "accepted",
-          })) || [];
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),
@@ -232,19 +223,7 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: event.endTime,
           timeZone: event.organizer.timeZone,
         },
-        attendees: [
-          {
-            ...event.organizer,
-            id: String(event.organizer.id),
-            organizer: true,
-            responseStatus: "accepted",
-            email: mainHostDestinationCalendar?.externalId
-              ? mainHostDestinationCalendar.externalId
-              : event.organizer.email,
-          },
-          ...(eventAttendees as any),
-          ...(teamMembers as any),
-        ],
+        attendees: this.getAttendees(event),
         reminders: {
           useDefault: true,
         },
