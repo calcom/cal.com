@@ -37,8 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const dav = new CalendarService({
         id: 0,
         ...data,
-        appName: "apple-calendar",
-        userEmail: user.email,
+        user: { email: user.email },
       });
       await dav?.listCalendars();
       await prisma.credential.create({

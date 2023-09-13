@@ -15,7 +15,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -28,9 +28,9 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
-  private credential: CredentialWithAppName;
+  private credential: CredentialPayload;
 
-  constructor(credential: CredentialWithAppName) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
@@ -110,7 +110,7 @@ export default class GoogleCalendarService implements Calendar {
     if (event.team?.members) {
       // TODO: Check every other CalendarService for team members
       const teamAttendeesWithoutCurrentUser = event.team.members
-        .filter((member) => member.email !== this.credential.userEmail)
+        .filter((member) => member.email !== this.credential.user?.email)
         .map((m) => {
           const teamMemberDestinationCalendar = event.destinationCalendar?.find(
             (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id

@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: {
         id: true,
+        email: true,
       },
     });
 
@@ -36,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const dav = new CalendarService({
         id: 0,
         ...data,
+        user: { email: user.email },
       });
       await dav?.listCalendars();
       await prisma.credential.create({

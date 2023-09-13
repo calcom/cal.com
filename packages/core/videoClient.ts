@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -48,7 +48,7 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential || !credential.appId) {
@@ -69,7 +69,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     createdEvent: VideoCallData | undefined;
     credentialId: number;
   } = {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     uid,
     originalEvent: calEvent,
@@ -110,7 +110,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
 };
 
 const updateMeeting = async (
-  credential: CredentialWithAppName,
+  credential: CredentialPayload,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -131,7 +131,7 @@ const updateMeeting = async (
 
   if (!updatedMeeting) {
     return {
-      appName: credential.appName,
+      appName: credential.appId || "",
       type: credential.type,
       success,
       uid,
@@ -140,7 +140,7 @@ const updateMeeting = async (
   }
 
   return {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -176,6 +176,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
@@ -200,6 +201,7 @@ const getRecordingsOfCalVideoByRoomName = async (
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
@@ -222,6 +224,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,

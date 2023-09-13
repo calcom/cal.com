@@ -10,9 +10,9 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { bookingMinimalSelect } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -37,8 +37,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
-      key: true,
-      appId: true,
+      ...credentialForCalendarServiceSelect,
       app: {
         select: {
           slug: true,
@@ -46,11 +45,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           dirName: true,
         },
       },
-      id: true,
-      type: true,
-      userId: true,
-      teamId: true,
-      invalid: true,
     },
   });
 

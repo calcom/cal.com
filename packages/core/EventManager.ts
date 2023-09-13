@@ -1,4 +1,4 @@
-import type { DestinationCalendar, Booking } from "@prisma/client";
+import type { Booking, DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -7,18 +7,21 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
-import type { EventResult } from "@calcom/types/EventManager";
-import type { CreateUpdateResult, PartialBooking, PartialReference } from "@calcom/types/EventManager";
+import type {
+  CreateUpdateResult,
+  EventResult,
+  PartialBooking,
+  PartialReference,
+} from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
@@ -63,16 +66,13 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
-  user: {
-    email: string;
-  };
 };
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export default class EventManager {
-  calendarCredentials: CredentialWithAppName[];
-  videoCredentials: CredentialWithAppName[];
+  calendarCredentials: CredentialPayload[];
+  videoCredentials: CredentialPayload[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -81,7 +81,7 @@ export default class EventManager {
    */
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
-      app.credentials.map((creds) => ({ ...creds, appName: app.name, userEmail: user.email }))
+      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
@@ -365,25 +365,13 @@ export default class EventManager {
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
-              include: {
-                app: {
-                  select: {
-                    slug: true,
-                  },
-                },
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
               where: {
                 id: destination.credentialId,
               },
+              select: credentialForCalendarServiceSelect,
             });
-            if (credentialFromDB && credentialFromDB.app?.slug) {
+            if (credentialFromDB && credentialFromDB.appId) {
               credential = {
-                appName: credentialFromDB?.app.slug ?? "",
                 id: credentialFromDB.id,
                 type: credentialFromDB.type,
                 key: credentialFromDB.key,
@@ -391,7 +379,7 @@ export default class EventManager {
                 teamId: credentialFromDB.teamId,
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
-                userEmail: credentialFromDB.user?.email ?? "",
+                user: credentialFromDB.user,
               };
             }
           }
@@ -443,7 +431,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialPayload | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -471,7 +459,7 @@ export default class EventManager {
           event.location +
           " because credential is missing for the app"
       );
-      videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+      videoCredential = { ...FAKE_DAILY_CREDENTIAL };
     }
 
     return videoCredential;
@@ -551,25 +539,13 @@ export default class EventManager {
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
-              include: {
-                app: {
-                  select: {
-                    slug: true,
-                  },
-                },
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
               where: {
                 id: reference.credentialId,
               },
+              select: credentialForCalendarServiceSelect,
             });
-            if (credentialFromDB && credentialFromDB.app?.slug) {
+            if (credentialFromDB && credentialFromDB.appId) {
               credential = {
-                appName: credentialFromDB?.app.slug ?? "",
                 id: credentialFromDB.id,
                 type: credentialFromDB.type,
                 key: credentialFromDB.key,
@@ -577,7 +553,7 @@ export default class EventManager {
                 teamId: credentialFromDB.teamId,
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
-                userEmail: credentialFromDB.user?.email ?? "",
+                user: credentialFromDB.user,
               };
             }
           }
@@ -600,6 +576,7 @@ export default class EventManager {
             where: {
               id: oldCalendarEvent.credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
           const calendar = await getCalendar(calendarCredential);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
@@ -615,7 +592,7 @@ export default class EventManager {
 
             if (!calendarReference) {
               return {
-                appName: cred.appName,
+                appName: cred.appId || "",
                 type: cred.type,
                 success: false,
                 uid: "",

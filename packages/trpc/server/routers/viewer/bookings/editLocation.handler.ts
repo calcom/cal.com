@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -46,6 +47,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         where: {
           id: details.credentialId,
         },
+        select: credentialForCalendarServiceSelect,
       });
     }
 

@@ -15,7 +15,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -61,12 +61,12 @@ export default class Office365CalendarService implements Calendar {
   private accessToken: string | null = null;
   auth: { getToken: () => Promise<string> };
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
-  private credentialUserEmail: string;
+  private credential: CredentialPayload;
 
-  constructor(credential: CredentialWithAppName) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
-    this.credentialUserEmail = credential.userEmail;
+    this.credential = credential;
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
@@ -229,7 +229,7 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private o365Auth = (credential: CredentialWithAppName) => {
+  private o365Auth = (credential: CredentialPayload) => {
     const isExpired = (expiryDate: number) => {
       if (!expiryDate) {
         return true;
@@ -318,7 +318,7 @@ export default class Office365CalendarService implements Calendar {
         })),
         ...(event.team?.members
           ? event.team?.members
-              .filter((member) => member.email !== this.credentialUserEmail)
+              .filter((member) => member.email !== this.credential.user?.email)
               .map((member) => {
                 const destinationCalendar =
                   event.destinationCalendar &&

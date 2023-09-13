@@ -9,7 +9,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
@@ -33,17 +33,17 @@ export default class LarkCalendarService implements Calendar {
   private url = `https://${LARK_HOST}/open-apis`;
   private integrationName = "";
   private log: typeof logger;
-  private credentialUserEmail: string;
   auth: { getToken: () => Promise<string> };
+  private credential: CredentialPayload;
 
-  constructor(credential: CredentialWithAppName) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    this.credentialUserEmail = credential.userEmail;
+    this.credential = credential;
   }
 
-  private larkAuth = (credential: CredentialWithAppName) => {
+  private larkAuth = (credential: CredentialPayload) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     return {
       getToken: () =>
@@ -53,7 +53,7 @@ export default class LarkCalendarService implements Calendar {
     };
   };
 
-  private refreshAccessToken = async (credential: CredentialWithAppName) => {
+  private refreshAccessToken = async (credential: CredentialPayload) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     const refreshExpireDate = larkAuthCredentials.refresh_expires_date;
     const refreshToken = larkAuthCredentials.refresh_token;
@@ -400,7 +400,7 @@ export default class LarkCalendarService implements Calendar {
         attendeeArray.push(attendee);
       });
     event.team?.members.forEach((member) => {
-      if (member.email !== this.credentialUserEmail) {
+      if (member.email !== this.credential.user?.email) {
         const attendee: LarkEventAttendee = {
           type: "third_party",
           is_optional: false,

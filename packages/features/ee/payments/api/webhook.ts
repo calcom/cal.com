@@ -6,7 +6,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail, sendScheduledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -15,8 +15,9 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma, bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -164,7 +165,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
         select: {
           id: true,
           username: true,
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           timeZone: true,
           timeFormat: true,
           email: true,
@@ -313,7 +314,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       name: true,
       locale: true,
       destinationCalendar: true,
-      credentials: true,
+      credentials: { select: credentialForCalendarServiceSelect },
     },
   });
 

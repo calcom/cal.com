@@ -16,6 +16,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export const config = {
@@ -74,7 +75,9 @@ export async function handlePaymentSuccess(
         select: {
           id: true,
           username: true,
-          credentials: true,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
           timeZone: true,
           email: true,
           name: true,
@@ -166,7 +169,10 @@ export async function handlePaymentSuccess(
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const eventManager = new EventManager(user);
+    const eventManager = new EventManager({
+      credentials: user.credentials,
+      destinationCalendar: user.destinationCalendar,
+    });
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
@@ -196,7 +202,14 @@ export async function handlePaymentSuccess(
   }
 
   if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
+    await handleConfirmation({
+      user,
+      evt,
+      prisma,
+      bookingId: booking.id,
+      booking,
+      paid: true,
+    });
   } else {
     await sendScheduledEmails({ ...evt });
   }

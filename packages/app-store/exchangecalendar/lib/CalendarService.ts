@@ -37,7 +37,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import type { CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 
@@ -45,15 +45,13 @@ export default class ExchangeCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
   private payload;
-  private credentialUserEmail: string;
 
-  constructor(credential: CredentialWithAppName) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "exchange_calendar";
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.payload = JSON.parse(
       symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
     );
-    this.credentialUserEmail = credential.userEmail;
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {

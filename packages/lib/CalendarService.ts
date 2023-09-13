@@ -26,7 +26,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -104,9 +104,9 @@ export default abstract class BaseCalendarService implements Calendar {
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private log: typeof logger;
-  private credential: CredentialWithAppName;
+  private credential: CredentialPayload;
 
-  constructor(credential: CredentialWithAppName, integrationName: string, url?: string) {
+  constructor(credential: CredentialPayload, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
     const {
@@ -129,7 +129,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
     if (event.team?.members) {
       const teamAttendeesWithoutCurrentUser = event.team.members.filter(
-        (member) => member.email !== this.credential.userEmail
+        (member) => member.email !== this.credential.user?.email
       );
       attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
     }

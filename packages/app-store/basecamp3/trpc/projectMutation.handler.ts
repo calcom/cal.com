@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -24,6 +25,7 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
     where: {
       userId: user?.id,
     },
+    select: credentialForCalendarServiceSelect,
   });
 
   if (!credential) {

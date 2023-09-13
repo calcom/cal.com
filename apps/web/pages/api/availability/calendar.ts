@@ -5,6 +5,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
@@ -25,7 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: session.user.id,
     },
     select: {
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
       timeZone: true,
       id: true,
       selectedCalendars: true,
