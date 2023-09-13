@@ -52,7 +52,28 @@ const enum EMBED_IFRAME_STATE {
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 const embedStore = {
-  nextRouter: null as ReturnType<typeof useRouter> | null,
+  // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
+  router: {
+    setNextRouter(nextRouter: ReturnType<typeof useRouter>) {
+      this.nextRouter = nextRouter;
+
+      // Empty the queue after running push on nextRouter. This is important because setNextRouter is be called multiple times
+      this.queue.forEach((url) => {
+        nextRouter.push(url);
+        this.queue.splice(0, 1);
+      });
+    },
+    nextRouter: null as null | ReturnType<typeof useRouter>,
+    queue: [] as string[],
+    goto(url: string) {
+      if (this.nextRouter) {
+        this.nextRouter.push(url.toString());
+      } else {
+        this.queue.push(url);
+      }
+    },
+  },
+
   state: EMBED_IFRAME_STATE.NOT_INITIALIZED,
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
@@ -213,7 +234,7 @@ const useUrlChange = (callback: (newUrl: string) => void) => {
   const searchParams = currentFullUrl?.searchParams ?? null;
   const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
   const router = useRouter();
-  embedStore.nextRouter = router;
+  embedStore.router.setNextRouter(router);
   useEffect(() => {
     const newUrl = `${pathname}?${searchParams}`;
     if (lastKnownUrl.current !== newUrl) {
@@ -621,8 +642,10 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
  * url has the config as params
  */
 function connectPreloadedEmbed({ url }: { url: URL }) {
+  // TODO: Use a better way to detect that React has initialized. Currently, we are using setTimeout which is a hack.
   const MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES = 700;
-  embedStore.nextRouter?.push(url.toString());
+  // It can be fired before React has initialized, so use embedStore.router(which is a nextRouter wrapper that supports a queue)
+  embedStore.router.goto(url.toString());
   setTimeout(() => {
     // Firing this event would stop the loader and show the embed
     sdkActionManager?.fire("linkReady", {});
