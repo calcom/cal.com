@@ -176,9 +176,9 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       isOptionDisabled={(option: {
                         label: string;
                         value: WorkflowActions;
-                        needsUpgrade: boolean;
-                        needsVerification: boolean;
-                      }) => option.needsUpgrade || option.needsVerification}
+                        needsTeamsUpgrade: boolean;
+                        needsOrgsUpgrade: boolean;
+                      }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
                     />
                   );
                 }}

@@ -331,14 +331,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
-    const templateValue = form.watch(`steps.${step.stepNumber - 1}.template`);
     const actionString = t(`${step.action.toLowerCase()}_action`);
 
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      needsUpgrade: false,
-      needsVerification: false,
+      needsTeamsUpgrade: false,
+      needsOrgsUpgrade: false,
       verificationAction: () => props.setKYCVerificationDialogOpen(true),
     };
 
@@ -535,9 +534,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          needsUpgrade: boolean;
-                          needsVerification: boolean;
-                        }) => option.needsUpgrade || option.needsVerification}
+                          needsTeamsUpgrade: boolean;
+                          needsOrgsUpgrade: boolean;
+                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
                       />
                     );
                   }}
