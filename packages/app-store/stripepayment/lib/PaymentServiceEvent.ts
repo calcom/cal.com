@@ -43,6 +43,16 @@ export class PaymentServiceEvent {
             },
             quantity: 1,
           },
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Beenthere Fees",
+              },
+              unit_amount: payment.amount * 100 * 0.2,
+            },
+            quantity: 1,
+          },
         ],
 
         success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/event-types/${bookingId}?payment=success`,

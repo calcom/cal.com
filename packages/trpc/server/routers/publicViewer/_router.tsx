@@ -49,4 +49,8 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("event"), () => import("./event.handler"));
     return handler(opts);
   }),
+  events: publicProcedure.input(ZEventInputSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("events"), () => import("./events.handler"));
+    return handler(opts);
+  }),
 });

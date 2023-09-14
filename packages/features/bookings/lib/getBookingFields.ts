@@ -135,7 +135,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.RADIO]: BookingFieldTypeEnum.radio,
     [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
-
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
@@ -184,9 +183,26 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "Paypal ID",
-      type: "text",
-      name: "Paypal ID",
+      type: "address",
+      // This is the `name` of the main field
+      name: "address",
+      editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "Your Address",
+      required: true,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+
+    {
+      defaultLabel: "Phone Number",
+      type: "phone",
+      name: "Phone Number",
       required: true,
       editable: "system",
       sources: [
@@ -197,6 +213,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
+
     {
       defaultLabel: "location",
       type: "radioInput",
@@ -224,6 +241,32 @@ export const ensureBookingInputsHaveSystemFields = ({
           type: "default",
         },
       ],
+    },
+    {
+      name: "payment",
+      type: "radio",
+      label: "How would you like to recieve payment?",
+      options: [
+        {
+          label: "Paypal ID",
+          value: "Paypal ID",
+        },
+        {
+          label: "Bank Details",
+          value: "Bank Details",
+        },
+      ],
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: true,
+      placeholder: "",
     },
   ];
 
@@ -260,6 +303,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
+
     {
       defaultLabel: "additional_guests",
       type: "multiemail",
@@ -288,6 +332,85 @@ export const ensureBookingInputsHaveSystemFields = ({
           label: "Reschedule View",
         },
       ],
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      defaultLabel: "Paypal ID",
+      type: "text",
+      name: "PaypalId",
+      // required: true,
+
+      editable: "system",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      type: "text",
+      // This is the `name` of the main field
+      name: "bname",
+      editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "Bank Name",
+      // required: true,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      type: "text",
+      // This is the `name` of the main field
+      name: "baddress",
+      editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "Bank address",
+      // required: true,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      type: "text",
+      // This is the `name` of the main field
+      name: "iban",
+      editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "Account Number",
+      // required: true,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      type: "text",
+      // This is the `name` of the main field
+      name: "bcode",
+      editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "BIC / Swift Code",
+      // required: true,
       sources: [
         {
           label: "Default",

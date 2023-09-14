@@ -140,7 +140,7 @@ export const BookEventFormChild = ({
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-
+  const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
@@ -341,7 +341,42 @@ export const BookEventFormChild = ({
 
   const renderConfirmNotVerifyEmailButtonCond =
     !eventType?.requiresBookerEmailVerification || (email && verifiedEmail && verifiedEmail === email);
+  const sortedFields = eventType?.bookingFields.sort((a, b) => {
+    // Define the desired order of field names
+    const desiredOrder = ["name", "email", "location", "guests"];
 
+    // Get the index of each field name in the desired order
+    const indexA = desiredOrder.indexOf(a.name);
+    const indexB = desiredOrder.indexOf(b.name);
+
+    // Compare the indices to determine the sorting order
+    if (indexA === -1 && indexB === -1) {
+      // If both field names are not in the desired order, maintain their original order
+      return 0;
+    } else if (indexA === -1) {
+      // If field A is not in the desired order, it should come after field B
+      return 1;
+    } else if (indexB === -1) {
+      // If field B is not in the desired order, it should come after field A
+      return -1;
+    } else {
+      // Compare the indices to determine the sorting order
+      return indexA - indexB;
+    }
+  });
+
+  function isValidEmail(email: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  const nameMissing = !bookingForm.getValues("responses.name");
+  const emailNotValid = !isValidEmail(bookingForm.getValues("responses.email"));
+  const guestsArray = bookingForm.getValues("responses.guests");
+  const guestsNotValid = guestsArray && guestsArray.some((guest) => !isValidEmail(guest));
+  const guestsSameAsEmail = guestsArray && guestsArray.includes(bookingForm.getValues("responses.email"));
+  const emailInGuests = guestsArray && guestsArray.includes(bookingForm.getValues("responses.email"));
+  const guestsNotUnique = guestsArray && new Set(guestsArray).size !== guestsArray.length;
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -357,8 +392,9 @@ export const BookEventFormChild = ({
         handleSubmit={renderConfirmNotVerifyEmailButtonCond ? bookEvent : verifyEmail}
         noValidate>
         <BookingFields
+          currentStep={currentStep}
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
-          fields={eventType.bookingFields}
+          fields={sortedFields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
         />
@@ -380,24 +416,51 @@ export const BookEventFormChild = ({
             />
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
-          {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
-              {t("back")}
+        {currentStep === 1 && (
+          <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+            {!!onCancel && (
+              <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                {t("back")}
+              </Button>
+            )}
+            <Button
+              type="submit"
+              color="primary"
+              disabled={
+                nameMissing ||
+                emailNotValid ||
+                (guestsArray &&
+                  guestsArray.length !== 0 &&
+                  (guestsNotValid || guestsSameAsEmail || emailInGuests || guestsNotUnique))
+              }
+              // Condition 5: Responses.email is in the guests array or Condition 6: Guests are not unique within the array
+              onClick={() => {
+                setCurrentStep(2);
+              }}>
+              {t("Continue")}
             </Button>
-          )}
-          <Button
-            type="submit"
-            color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
-            data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid
-              ? t("reschedule")
-              : renderConfirmNotVerifyEmailButtonCond
-              ? t("confirm")
-              : t("verify_email_email_button")}
-          </Button>
-        </div>
+          </div>
+        )}
+        {currentStep === 2 && (
+          <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+            {!!onCancel && (
+              <Button color="minimal" type="button" onClick={() => setCurrentStep(1)} data-testid="back">
+                {t("back")}
+              </Button>
+            )}
+            <Button
+              type="submit" // Use type "submit" for the final confirmation button
+              color="primary"
+              loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+              data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
+              {rescheduleUid
+                ? t("reschedule")
+                : renderConfirmNotVerifyEmailButtonCond
+                ? t("confirm")
+                : t("verify_email_email_button")}
+            </Button>
+          </div>
+        )}
       </Form>
       <VerifyCodeDialog
         isOpenDialog={isEmailVerificationModalVisible}

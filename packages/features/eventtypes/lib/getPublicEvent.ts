@@ -206,7 +206,153 @@ export const getPublicEvent = async (
         },
         team: null,
       };
+  // In case it's not a group event, it's either a single user or a team, and we query that data.
+  const event = await prisma.eventType.findFirst({
+    where: {
+      slug: eventSlug,
+      paid: true,
+      // joined: false,
+      ...usersOrTeamQuery,
+    },
+    select: publicEventSelect,
+  });
 
+  if (!event) return null;
+
+  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
+
+  const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
+  if (users === null) {
+    throw new Error("Event has no owner");
+  }
+
+  return {
+    ...event,
+    bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
+    description: markdownToSafeHTML(event.description),
+    metadata: eventMetaData,
+    customInputs: customInputSchema.array().parse(event.customInputs || []),
+    locations: privacyFilteredLocations((event.locations || []) as LocationObject[]),
+    bookingFields: getBookingFieldsWithSystemFields(event),
+    recurringEvent: isRecurringEvent(event.recurringEvent) ? parseRecurringEvent(event.recurringEvent) : null,
+    // Sets user data on profile object for easier access
+    profile: getProfileFromEvent(event),
+    users,
+    entity: {
+      isUnpublished:
+        event.team?.slug === null ||
+        event.owner?.organization?.slug === null ||
+        event.team?.parent?.slug === null,
+      orgSlug: org,
+      teamSlug: (event.team?.slug || teamMetadata?.requestedSlug) ?? null,
+      name: (event.owner?.organization?.name || event.team?.parent?.name || event.team?.name) ?? null,
+    },
+    isDynamic: false,
+  };
+};
+export const getRecurringEvent = async (
+  username: string,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  org: string | null,
+  prisma: PrismaClient
+) => {
+  const usernameList = getUsernameList(username);
+  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
+  // In case of dynamic group event, we fetch user's data and use the default event.
+  if (usernameList.length > 1) {
+    const users = await prisma.user.findMany({
+      where: {
+        username: {
+          in: usernameList,
+        },
+        organization: orgQuery,
+      },
+      select: {
+        username: true,
+        name: true,
+
+        weekStart: true,
+        metadata: true,
+        brandColor: true,
+        darkBrandColor: true,
+        theme: true,
+        organization: {
+          select: {
+            slug: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const defaultEvent = getDefaultEvent(eventSlug);
+    let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
+
+    // Get the prefered location type from the first user
+    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
+    const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
+
+    if (preferedLocationType?.appSlug) {
+      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (appType) {
+        // Replace the location with the prefered location type
+        // This will still be default to daily if the app is not found
+        locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
+      }
+    }
+
+    const defaultEventBookerLayouts = {
+      enabledLayouts: [...bookerLayoutOptions],
+      defaultLayout: BookerLayouts.MONTH_VIEW,
+    } as BookerLayoutSettings;
+    const disableBookingTitle = !defaultEvent.isDynamic;
+    const unPublishedOrgUser = users.find((user) => user.organization?.slug === null);
+
+    return {
+      ...defaultEvent,
+      bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      // Clears meta data since we don't want to send this in the public api.
+      users: users.map((user) => ({ ...user, metadata: undefined })),
+      locations: privacyFilteredLocations(locations),
+      profile: {
+        username: users[0].username,
+        name: users[0].name,
+        weekStart: users[0].weekStart,
+        image: `/${users[0].username}/avatar.png`,
+        brandColor: users[0].brandColor,
+        darkBrandColor: users[0].darkBrandColor,
+        theme: null,
+        bookerLayouts: bookerLayoutsSchema.parse(
+          firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
+        ),
+      },
+      entity: {
+        isUnpublished: unPublishedOrgUser !== undefined,
+        orgSlug: org,
+        name: unPublishedOrgUser?.organization?.name ?? null,
+      },
+    };
+  }
+
+  const usersOrTeamQuery = isTeamEvent
+    ? {
+        team: {
+          ...getSlugOrRequestedSlug(username),
+          parent: orgQuery,
+        },
+      }
+    : {
+        users: {
+          some: {
+            username,
+            organization: orgQuery,
+          },
+        },
+        team: null,
+      };
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   const event = await prisma.eventType.findFirst({
     where: {

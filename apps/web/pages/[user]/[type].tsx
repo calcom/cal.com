@@ -106,11 +106,20 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: usernames.join("+"),
-    eventSlug: slug,
-    org,
-  });
+  let eventData;
+  if (rescheduleUid) {
+    eventData = await ssr.viewer.public.event.fetch({
+      username: usernames.join("+"),
+      eventSlug: slug,
+      org,
+    });
+  } else {
+    eventData = await ssr.viewer.public.events.fetch({
+      username: usernames.join("+"),
+      eventSlug: slug,
+      org,
+    });
+  }
 
   if (!eventData) {
     return {
@@ -149,7 +158,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
-
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
@@ -177,15 +185,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   } else if (bookingUid) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
-
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username,
-    eventSlug: slug,
-    org,
-  });
+
+  const eventData = await (rescheduleUid
+    ? ssr.viewer.public.event.fetch({ username, eventSlug: slug, org })
+    : ssr.viewer.public.events.fetch({ username, eventSlug: slug, org }));
 
   if (!eventData) {
     return {
