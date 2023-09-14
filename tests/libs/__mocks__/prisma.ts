@@ -1,6 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
 import { beforeEach, vi } from "vitest";
 import { mockDeep, mockReset } from "vitest-mock-extended";
+
+import type { PrismaClient } from "@calcom/prisma";
 
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
