@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Booking, Prisma, EventType as PrismaEventType } from "@prisma/client";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -128,6 +128,15 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
+    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      eventType: Pick<
+        PrismaEventType,
+        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      > | null;
+      _count?: {
+        seatsReferences: number;
+      };
+    })[];
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -188,6 +197,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     seatedEvent: !!eventType?.seatsPerTimeSlot,
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
+    currentBookings: initialData?.currentBookings,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [

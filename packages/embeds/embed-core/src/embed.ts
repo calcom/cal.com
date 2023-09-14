@@ -2,17 +2,12 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type {
-  InterfaceWithParent,
-  interfaceWithParent,
-  UiConfig,
-  EmbedThemeConfig,
-  BookerLayouts,
-} from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css?inline";
+import type { UiConfig, EmbedThemeConfig, BookerLayouts } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;

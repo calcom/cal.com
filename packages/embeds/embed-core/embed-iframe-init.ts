@@ -1,4 +1,4 @@
-import type { EmbedThemeConfig } from "./embed-iframe";
+import type { EmbedThemeConfig } from "./src/types";
 
 export default function EmbedInitIframe() {
   if (typeof window === "undefined" || window.isEmbed) {

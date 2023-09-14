@@ -214,7 +214,7 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   // For displaying the connected email address
   email?: string;
   primaryEmail?: string;
-  credentialId?: number;
+  credentialId?: number | null;
   integrationTitle?: string;
 }
 
