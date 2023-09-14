@@ -454,12 +454,15 @@ export default class Office365CalendarService implements Calendar {
       (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
         return acc.concat(
-          subResponse.body.value
-            .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
-            .map((evt) => ({
-              start: evt.start.dateTime + "Z",
-              end: evt.end.dateTime + "Z",
-            }))
+          subResponse.body.value.reduce((result: BufferedBusyTime[], evt: BodyValue) => {
+            if (evt.showAs !== "free" && evt.showAs !== "workingElsewhere") {
+              result.push({
+                start: evt.start.dateTime + "Z",
+                end: evt.end.dateTime + "Z",
+              });
+            }
+            return result;
+          }, [])
         );
       },
       []
