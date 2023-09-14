@@ -32,6 +32,8 @@ type BookerLayoutSelectorProps = {
    * to this boolean.
    */
   isDark?: boolean;
+
+  isDisabled: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -42,6 +44,7 @@ export const BookerLayoutSelector = ({
   name,
   fallbackToUserSettings,
   isDark,
+  isDisabled,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -74,7 +77,9 @@ export const BookerLayoutSelector = ({
               isDark={isDark}
             />
             <SectionBottomActions align="end">
-              <Button color="primary">{t("update")}</Button>
+              <Button type="submit" disabled={isDisabled} color="primary">
+                {t("update")}
+              </Button>
             </SectionBottomActions>
           </>
         )}
