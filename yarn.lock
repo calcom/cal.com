@@ -4398,7 +4398,6 @@ __metadata:
     next: ^13.4.6
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
-    next-collect: ^0.2.1
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
     playwright: ^1.31.2
@@ -27767,14 +27766,14 @@ __metadata:
   linkType: hard
 
 "mlly@npm:^1.4.0":
-  version: 1.4.1
-  resolution: "mlly@npm:1.4.1"
+  version: 1.4.2
+  resolution: "mlly@npm:1.4.2"
   dependencies:
     acorn: ^8.10.0
     pathe: ^1.1.1
     pkg-types: ^1.0.3
     ufo: ^1.3.0
-  checksum: b2b59ab3d70196127be4e54609d2a442bd252345727138940fb245672a238b2fbdd431e8c75ec5c741ff90410ce488c5fd6446d5d3e6476d21dbf4c3fa35d4a0
+  checksum: ad0813eca133e59ac03b356b87deea57da96083dce7dda58a8eeb2dce92b7cc2315bedd9268f3ff8e98effe1867ddb1307486d4c5cd8be162daa8e0fa0a98ed4
   languageName: node
   linkType: hard
 
