@@ -195,7 +195,6 @@ export default class GoogleCalendarService implements Calendar {
     if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
       payload["conferenceData"] = calEventRaw.conferenceData;
     }
-
     const calendar = await this.authedCalendar();
     // Find in calEventRaw.destinationCalendar the one with the same credentialId
 
@@ -380,7 +379,8 @@ export default class GoogleCalendarService implements Calendar {
       requestBody: { timeMin, timeMax, items },
     });
 
-    await prisma.calendarCache.upsert({
+    // Skipping await to respond faster
+    prisma.calendarCache.upsert({
       where: {
         credentialId_key: {
           credentialId: this.credential.id,
