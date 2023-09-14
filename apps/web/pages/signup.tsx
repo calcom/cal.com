@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
+import { Trans } from "react-i18next";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
@@ -16,7 +17,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -44,9 +45,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const { t, i18n } = useLocale();
   const router = useRouter();
   const flags = useFlagMap();
-  const formMethods = useForm({
+  const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
-    // defaultValues: prepopulateFormValues satisfies FormValues,
+    defaultValues: prepopulateFormValues satisfies FormValues,
   });
   const {
     register,
@@ -117,14 +118,21 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         <div className="flex w-full flex-col px-28 pt-16">
           {/* Header */}
           <div className="flex flex-col gap-3 ">
-            <h1 className="font-cal text-[28px] ">Create your Cal.com account</h1>
-            <p className="text-subtle text-base font-medium leading-none">
-              Free for individuals. Team plans for collaborative features.
-            </p>
+            <h1 className="font-cal text-[28px] ">
+              {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
+            </h1>
+            {IS_CALCOM ? (
+              <p className="text-subtle text-base font-medium leading-none">{t("cal_signup_description")}</p>
+            ) : null}
           </div>
           {/* Form Container */}
           <div className="mt-10">
-            <Form className="flex flex-col gap-5" form={formMethods}>
+            <Form
+              className="flex flex-col gap-5"
+              form={formMethods}
+              handleSubmit={async (values) => {
+                await signUp(values);
+              }}>
               {/* Username */}
               <TextField
                 {...register("username")}
@@ -144,7 +152,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 {...register("password")}
                 hintErrors={["caplow", "min", "num"]}
               />
-              <Button type="submit" className="w-full justify-center">
+              <Button type="submit" className="w-full justify-center" loading={isSubmitting}>
                 {t("create_account")}
               </Button>
             </Form>
@@ -153,7 +161,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <div className="relative flex items-center">
                 <div className="border-subtle flex-grow border-t" />
                 <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
-                  Or continue with
+                  {t("or_continue_with")}
                 </span>
                 <div className="border-subtle flex-grow border-t" />
               </div>
@@ -219,11 +227,20 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           <div className="mb-6 mt-auto">
             <div className="flex flex-col text-sm">
               <Link href="/auth/login" className="text-emphasis hover:underline">
-                I already have an account.
+                {t("already_have_account")}
               </Link>
               <p className="text-subtle">
-                By signing up, you agree to our <span className="text-emphasis">Terms of Service</span> and{" "}
-                <span className="text-emphasis">Privacy Policy</span>.
+                <Trans i18nKey="signing_up_terms">
+                  By signing up, you agree to our{" "}
+                  <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
+                    Privacy Policy
+                  </Link>
+                  .
+                </Trans>
               </p>
             </div>
           </div>
