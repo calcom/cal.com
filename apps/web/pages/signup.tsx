@@ -44,10 +44,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const { t, i18n } = useLocale();
   const router = useRouter();
   const flags = useFlagMap();
-  const formMethods = useForm<FormValues>({
-    mode: "onChange",
+  const formMethods = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: prepopulateFormValues satisfies FormValues,
+    // defaultValues: prepopulateFormValues satisfies FormValues,
   });
   const {
     register,
@@ -125,10 +124,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
           {/* Form Container */}
           <div className="mt-10">
-            <Form
-              className="flex flex-col gap-5"
-              form={formMethods}
-              onSubmit={(values) => console.log(values)}>
+            <Form className="flex flex-col gap-5" form={formMethods}>
               {/* Username */}
               <TextField
                 {...register("username")}
@@ -233,11 +229,39 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div
-          className="my-6 w-full rounded-l-lg"
+          className="my-6 flex w-full flex-col items-end justify-center rounded-l-lg"
           style={{
             background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
           }}>
-          <></>
+          <div className="ml-12 flex self-start">
+            {/* <div className="my-5 flex gap-4 ">
+              <img
+                className="hidden max-h-10 md:block"
+                alt="Product of the Day"
+                src="/product-cards/product-of-the-day.svg"
+              />
+              <img
+                className="max-h-10"
+                alt="Product of the Week"
+                src="/product-cards/product-of-the-week.svg"
+              />
+              <img
+                className="max-h-10"
+                alt="Product of the Month"
+                src="/product-cards/product-of-the-month.svg"
+              />
+            </div> */}
+            {/* <div className="mb-5 flex space-x-8">
+              <img className="max-h-14" alt="4.3 Stars on Trustpilot" src="/product-cards/trustpilot.svg" />
+              <img className="max-h-14 pt-1" alt="4.5 Stars on G2" src="/product-cards/g2.svg" />
+              <img
+                className="max-h-14 pt-1"
+                alt="5 Stars on ProductHunt"
+                src="/product-cards/producthunt.svg"
+              />
+            </div> */}
+          </div>
+          <img src="/mock-event-type-list.svg" alt="#" />
         </div>
         {/* <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
