@@ -52,14 +52,6 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   users: {
     select: userSelect,
   },
-  // Temporarily putting this back for testing
-  children: {
-    include: {
-      users: {
-        select: userSelect,
-      },
-    },
-  },
   parentId: true,
   hosts: {
     select: {
@@ -74,13 +66,13 @@ const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
 
 const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   ...userEventTypeSelect,
-  // children: {
-  //   include: {
-  //     users: {
-  //       select: userSelect,
-  //     },
-  //   },
-  // },
+  children: {
+    include: {
+      users: {
+        select: userSelect,
+      },
+    },
+  },
 });
 
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
@@ -167,11 +159,15 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+  type UserEventTypes = (typeof user.eventTypes)[number];
+  type TeamEventTypeChildren = (typeof user.teams)[number]["team"]["eventTypes"][number];
+
+  const mapEventType = (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
     ...eventType,
-    safeDescription: markdownToSafeHTML(eventType.description),
-    users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
+    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+    users: !!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users,
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+    children: eventType.children,
   });
 
   const userEventTypes = user.eventTypes.map(mapEventType);
@@ -279,8 +275,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   const bookerUrl = await getBookerUrl(user);
   return {
-    // don't display event teams without event types,
-    eventTypeGroups: eventTypeGroups.filter((groupBy) => groupBy.parentId || !!groupBy.eventTypes?.length),
+    eventTypeGroups,
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
       ...group.profile,

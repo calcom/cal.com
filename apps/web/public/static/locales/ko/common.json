@@ -21,7 +21,7 @@
   "verify_email_email_link_text": "버튼 클릭이 마음에 들지 않는 경우 다음 링크를 사용하세요.",
   "email_sent": "이메일이 성공적으로 전송되었습니다",
   "event_declined_subject": "거절됨: {{date}} {{title}}",
-  "event_cancelled_subject": "취소됨: {{title}} 날짜 {{date}}",
+  "event_cancelled_subject": "취소됨: {{title}}, 날짜 {{date}}",
   "event_request_declined": "회의 요청이 거절되었습니다.",
   "event_request_declined_recurring": "되풀이 이벤트 요청이 거부되었습니다",
   "event_request_cancelled": "예약된 일정이 취소되었습니다",

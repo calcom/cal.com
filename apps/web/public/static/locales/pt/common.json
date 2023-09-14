@@ -12,7 +12,7 @@
   "have_any_questions": "Tem perguntas? Estamos disponíveis para ajudar.",
   "reset_password_subject": "{{appName}}: Instruções de redefinição da senha",
   "verify_email_subject": "{{appName}}: Verifique a sua conta",
-  "check_your_email": "Confirme o seu e-mail",
+  "check_your_email": "Verifique o seu e-mail",
   "verify_email_page_body": "Enviámos um e-mail para {{email}}. É importante verificar o seu endereço de e-mail para garantir que receberá as comunicações de {{appName}}.",
   "verify_email_banner_body": "Confirme o seu endereço de e-mail para garantir a melhor entrega possível de e-mail e de agenda",
   "verify_email_email_header": "Confirme o seu endereço de e-mail",
