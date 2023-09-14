@@ -453,6 +453,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     <>
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
+        currentUserMembership={currentUserMembership}
         installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
@@ -460,8 +461,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-
-        disableBorder={false}    
+        disableBorder={false}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}

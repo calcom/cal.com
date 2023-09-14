@@ -5,6 +5,7 @@ import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import type { API, Messages } from "mailhog";
+import { uuid } from "short-uuid";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -242,6 +243,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
     eventTypes: [
       {
         title: "Seated event",
+        uid: uuid(),
         slug,
         seatsPerTimeSlot: 10,
         requiresConfirmation: true,

@@ -95,33 +95,33 @@ model EventType {
   joined                          Boolean                @default(false)
   amount                          Int                    @default(0)
 
-  payment              Payments[]
-  hideCalendarNotes    Boolean                 @default(false)
+  payment           Payments[]
+  hideCalendarNotes Boolean    @default(false)
   /// @zod.min(0)
 
-  minimumBookingNotice            Int                     @default(120)
-  beforeEventBuffer               Int                     @default(0)
-  afterEventBuffer                Int                     @default(0)
-  seatsPerTimeSlot                Int?
-  seatsShowAttendees              Boolean?                @default(false)
-  seatsShowAvailabilityCount      Boolean?                @default(true)
-  schedulingType                  SchedulingType?
-  schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
-  scheduleId                      Int?
+  minimumBookingNotice       Int                     @default(120)
+  beforeEventBuffer          Int                     @default(0)
+  afterEventBuffer           Int                     @default(0)
+  seatsPerTimeSlot           Int?
+  seatsShowAttendees         Boolean?                @default(false)
+  seatsShowAvailabilityCount Boolean?                @default(true)
+  schedulingType             SchedulingType?
+  schedule                   Schedule?               @relation(fields: [scheduleId], references: [id])
+  scheduleId                 Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                Int                     @default(0)
+  price                      Int                     @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency             String                  @default("usd")
-  slotInterval         Int?
+  currency                   String                  @default("usd")
+  slotInterval               Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
-  metadata             Json?
+  metadata                   Json?
   /// @zod.custom(imports.successRedirectUrl)
-  successRedirectUrl   String?
-  workflows            WorkflowsOnEventTypes[]
+  successRedirectUrl         String?
+  workflows                  WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits        Json?
+  bookingLimits              Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits       Json?
+  durationLimits             Json?
 
   @@unique([userId, parentId])
   @@index([userId])

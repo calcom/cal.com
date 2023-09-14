@@ -10,7 +10,7 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Editor, ImageUploader, Input, InputField, Label, showToast } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Input, InputField, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
