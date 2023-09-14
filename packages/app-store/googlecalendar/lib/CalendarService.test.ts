@@ -1,6 +1,7 @@
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import { afterEach, expect, test, vi } from "vitest";
 
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 import CalendarService from "./CalendarService";
 
 afterEach(() => {
