@@ -46,6 +46,12 @@ const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) =
   return username;
 };
 
+function addOrUpdateQueryParam(url, key, value) {
+  const separator = url.includes("?") ? "&" : "?";
+  const param = `${key}=${encodeURIComponent(value)}`;
+  return `${url}${separator}${param}`;
+}
+
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
@@ -84,13 +90,15 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const callBackUrl = `${
+          searchParams?.get("callbackUrl")
+            ? addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup")
+            : `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`
+        }`;
+
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: `${
-            searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }`,
+          callbackUrl,
         });
       })
       .catch((err) => {
