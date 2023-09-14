@@ -4,22 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-
-type Theme = "dark" | "light";
-
-export type BookerLayouts = "month_view" | "week_view" | "column_view";
-
-export type EmbedThemeConfig = Theme | "auto";
-export type UiConfig = {
-  hideEventTypeDetails?: boolean;
-  // If theme not provided we would get null
-  theme?: EmbedThemeConfig | null;
-  styles?: EmbedStyles & EmbedNonStylesConfig;
-  //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
-  cssVarsPerTheme?: Record<Theme, Record<string, string>>;
-  layout?: BookerLayouts;
-  colorScheme?: string | null;
-};
+import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts } from "./types";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
@@ -46,20 +31,6 @@ const embedStore = {
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
 };
-
-declare global {
-  interface Window {
-    CalEmbed: {
-      __logQueue?: unknown[];
-      embedStore: typeof embedStore;
-      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
-    };
-    CalComPageStatus: string;
-    isEmbed?: () => boolean;
-    getEmbedNamespace: () => string | null;
-    getEmbedTheme: () => EmbedThemeConfig | null;
-  }
-}
 
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
@@ -108,13 +79,6 @@ interface EmbedStyles {
   enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-}
-interface EmbedNonStylesConfig {
-  /** Default would be center */
-  align?: "left";
-  branding?: {
-    brandColor?: string;
-  };
 }
 
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
