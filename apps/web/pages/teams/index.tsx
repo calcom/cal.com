@@ -44,18 +44,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   await ssr.viewer.me.prefetch();
   const session = await getServerSession({ req: context.req, res: context.res });
   const token = Array.isArray(context.query?.token) ? context.query.token[0] : context.query?.token;
-  const isOrgCopyInviteLink = context.query?.isOrgCopyInviteLink;
 
-  const callbackUrl = token && !isOrgCopyInviteLink ? `/teams?token=${encodeURIComponent(token)}` : null;
+  const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
 
   if (!session) {
     return {
       redirect: {
-        destination: callbackUrl
-          ? `/signup?callbackUrl=${callbackUrl}`
-          : isOrgCopyInviteLink && token
-          ? `/signup?token=${token}&isOrgCopyInviteLink=true`
-          : "/auth/login",
+        destination: callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login",
         permanent: false,
       },
       props: {},

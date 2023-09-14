@@ -89,7 +89,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const copyInviteLinkToClipboard = async (token: string) => {
     const isOrgInvite = isOrg;
-    const inviteLink = `${WEBAPP_URL}/teams?token=${token}&isOrgCopyInviteLink=${isOrgInvite}`;
+    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+
+    const inviteLink = isOrgInvite ? orgInviteLink : teamInviteLink;
+
     console.log("INVITE", inviteLink);
     // await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
