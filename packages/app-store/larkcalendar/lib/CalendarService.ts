@@ -124,7 +124,7 @@ export default class LarkCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
@@ -148,7 +148,7 @@ export default class LarkCalendarService implements Calendar {
     }
 
     try {
-      await this.createAttendees(event, eventId);
+      await this.createAttendees(event, eventId, credentialId);
       return {
         ...eventRespData,
         uid: eventRespData.data.event.event_id as string,
@@ -165,8 +165,11 @@ export default class LarkCalendarService implements Calendar {
     }
   }
 
-  private createAttendees = async (event: CalendarEvent, eventId: string) => {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+  private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
+      : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in createAttendees");
@@ -241,7 +244,9 @@ export default class LarkCalendarService implements Calendar {
    * @returns
    */
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.externalId === externalCalendarId
+    );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");

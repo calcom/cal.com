@@ -87,6 +87,7 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   private getAttendees = (event: CalendarEvent) => {
+    // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
     );
@@ -100,9 +101,9 @@ export default class GoogleCalendarService implements Calendar {
         id: String(event.organizer.id),
         responseStatus: "accepted",
         organizer: true,
+        // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
         email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
-        self: true,
       },
       ...eventAttendees,
     ];
