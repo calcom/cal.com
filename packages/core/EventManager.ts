@@ -341,21 +341,21 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
-      // Since GCal pushes events to multiple calendars we only want to create one event
+      // Since GCal pushes events to multiple calendars we only want to create one event per booking
       let gCalAdded = false;
       const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
-        (destintaionCals, cal) => {
+        (destinationCals, cal) => {
           if (cal.integration === "google_calendar") {
             if (gCalAdded) {
-              return destintaionCals;
+              return destinationCals;
             } else {
               gCalAdded = true;
-              destintaionCals.push(cal);
+              destinationCals.push(cal);
             }
           } else {
-            destintaionCals.push(cal);
+            destinationCals.push(cal);
           }
-          return destinationCalendars;
+          return destinationCals;
         },
         [] as DestinationCalendar[]
       );
