@@ -34,11 +34,6 @@ type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
-const guessUsernameFromEmail = (email: string) => {
-  const [username] = email.split("@");
-  return username;
-};
-
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
 const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
@@ -103,6 +98,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       });
   };
 
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+
   return (
     <>
       <div
@@ -145,7 +142,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 {}
                 <div className="space-y-4">
-                  {!(orgSlug && !prepopulateFormValues?.username) && (
+                  {!isOrgInviteByLink && (
                     <TextField
                       addOnLeading={
                         orgSlug
@@ -275,6 +272,11 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
+  const guessUsernameFromEmail = (email: string) => {
+    const [username] = email.split("@");
+    return username;
+  };
+
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
   const tokenTeam = {
@@ -298,17 +300,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-
-  const prepopulateFormValues = {
-    email: verificationToken.identifier,
-    username: slugify(username),
-  };
+  const isOrgInviteByLink = orgSlug && !isValidEmail;
 
   return {
     props: {
       ...props,
       token,
-      prepopulateFormValues: isValidEmail ? prepopulateFormValues : null,
+      prepopulateFormValues: isOrgInviteByLink
+        ? {
+            email: verificationToken.identifier,
+            username: slugify(username),
+          }
+        : null,
       orgSlug,
     },
   };
