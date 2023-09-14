@@ -50,7 +50,7 @@ const BookerComponent = ({
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
-  useScheduleForEvent({
+  const schedule = useScheduleForEvent({
     prefetchNextMonth: false,
     username,
     eventSlug,
@@ -94,7 +94,7 @@ const BookerComponent = ({
   );
 
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
-  const schedule = useScheduleForEvent({ prefetchNextMonth: true });
+
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
@@ -110,7 +110,7 @@ const BookerComponent = ({
       ? totalWeekDays
       : 0;
 
-  //Taking one more avaliable slot(extraDays + 1) to claculate the no of days in between, that next and prev button need to shift.
+  // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
@@ -353,6 +353,7 @@ const BookerComponent = ({
             )}>
             {!hideBranding ? <PoweredBy logoOnly /> : null}
           </m.span>
+
         </div>
 
         <BookFormAsModal

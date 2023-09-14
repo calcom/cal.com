@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -52,6 +53,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
+
   // {
   //   name: "billing",
   //   href: "/settings/billing",
@@ -103,6 +105,7 @@ const tabs: VerticalTabItemProps[] = [
   //   icon: Users,
   //   children: [],
   // },
+=======
   {
     name: "admin",
     href: "/settings/admin",
@@ -134,6 +137,7 @@ const organizationRequiredKeys = ["organization"];
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
+  const orgBranding = useOrgBranding();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -141,7 +145,10 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
+      tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+    } else if (tab.href === "/settings/organizations") {
+      tab.name = orgBranding?.name || "organization";
+      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
@@ -156,7 +163,7 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
-    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
 
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
@@ -202,7 +209,7 @@ const SettingsSidebarContainer = ({
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
@@ -517,23 +524,15 @@ const SettingsSidebarContainer = ({
                                     alt={otherTeam.name || "Team logo"}
                                   />
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
-                                  {!otherTeam.accepted && otherTeam.userId === session.data?.user.id && (
-                                    <Badge className="ms-3" variant="orange">
-                                      Inv.
-                                    </Badge>
-                                  )}
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
-                                {((otherTeam.accepted && otherTeam.userId === session.data?.user.id) ||
-                                  isOrgAdminOrOwner) && (
-                                  <VerticalTabItem
-                                    name={t("profile")}
-                                    href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
+                                <VerticalTabItem
+                                  name={t("profile")}
+                                  href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}

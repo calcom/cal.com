@@ -182,6 +182,7 @@ const CalendarsView = () => {
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
+                                credentialId={cal.credentialId}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
                                 name={cal.name || "Nameless calendar"}

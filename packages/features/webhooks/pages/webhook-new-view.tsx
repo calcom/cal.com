@@ -81,9 +81,9 @@ const NewWebhookView = () => {
         backButton
       />
       <WebhookForm
+        noRoutingFormTriggers={false}
         onSubmit={onCreateWebhook}
         apps={installedApps?.items.map((app) => app.slug)}
-        noRoutingFormTriggers={!!teamId}
       />
     </>
   );

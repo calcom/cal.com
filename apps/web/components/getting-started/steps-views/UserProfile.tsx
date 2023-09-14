@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -120,11 +121,11 @@ const UserProfile = () => {
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && (
-          <Avatar
+          <OrganizationAvatar
             alt={user.username || "user avatar"}
-            gravatarFallbackMd5={user.emailMd5}
             size="lg"
             imageSrc={imageSrc}
+            organizationSlug={user.organization?.slug}
           />
         )}
         <input

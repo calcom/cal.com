@@ -1,6 +1,5 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -13,7 +12,6 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
   Tooltip,
@@ -37,8 +35,6 @@ export default function OtherTeamListItem(props: Props) {
   const team = props.team;
 
   const orgBranding = useOrgBranding();
-
-  const isOwner = props.team.role === MembershipRole.OWNER;
 
   const { hideDropdown, setHideDropdown } = props;
 
@@ -127,34 +123,31 @@ export default function OtherTeamListItem(props: Props) {
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuSeparator />
-                  {isOwner && (
-                    <DropdownMenuItem>
-                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
-                        <DialogTrigger asChild>
-                          <DropdownItem
-                            color="destructive"
-                            type="button"
-                            StartIcon={Trash}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}>
-                            {t("disband_team")}
-                          </DropdownItem>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("disband_team")}
-                          confirmBtnText={t("confirm_disband_team")}
-                          isLoading={props.isLoading}
-                          onConfirm={() => {
-                            props.onActionSelect("disband");
+                  <DropdownMenuItem>
+                    <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
+                      <DialogTrigger asChild>
+                        <DropdownItem
+                          color="destructive"
+                          type="button"
+                          StartIcon={Trash}
+                          onClick={(e) => {
+                            e.stopPropagation();
                           }}>
-                          {t("disband_team_confirmation_message")}
-                        </ConfirmationDialogContent>
-                      </Dialog>
-                    </DropdownMenuItem>
-                  )}
+                          {t("disband_team")}
+                        </DropdownItem>
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        variety="danger"
+                        title={t("disband_team")}
+                        confirmBtnText={t("confirm_disband_team")}
+                        isLoading={props.isLoading}
+                        onConfirm={() => {
+                          props.onActionSelect("disband");
+                        }}>
+                        {t("disband_team_confirmation_message")}
+                      </ConfirmationDialogContent>
+                    </Dialog>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </Dropdown>
             </ButtonGroup>

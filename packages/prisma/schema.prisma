@@ -58,6 +58,7 @@ model EventType {
   position                        Int                    @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations                       Json?
+  /// @zod.min(1)
   length                          Int
   offsetStart                     Int                    @default(0)
   hidden                          Boolean                @default(false)
@@ -97,14 +98,16 @@ model EventType {
   payment              Payments[]
   hideCalendarNotes    Boolean                 @default(false)
   /// @zod.min(0)
-  minimumBookingNotice Int                     @default(120)
-  beforeEventBuffer    Int                     @default(0)
-  afterEventBuffer     Int                     @default(0)
-  seatsPerTimeSlot     Int?
-  seatsShowAttendees   Boolean?                @default(false)
-  schedulingType       SchedulingType?
-  schedule             Schedule?               @relation(fields: [scheduleId], references: [id])
-  scheduleId           Int?
+
+  minimumBookingNotice            Int                     @default(120)
+  beforeEventBuffer               Int                     @default(0)
+  afterEventBuffer                Int                     @default(0)
+  seatsPerTimeSlot                Int?
+  seatsShowAttendees              Boolean?                @default(false)
+  seatsShowAvailabilityCount      Boolean?                @default(true)
+  schedulingType                  SchedulingType?
+  schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
+  scheduleId                      Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
   price                Int                     @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
@@ -138,6 +141,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
 
   @@index([userId])
@@ -452,10 +456,12 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  integration String
-  externalId  String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  integration  String
+  externalId   String
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId Int?
 
   @@id([userId, integration, externalId])
   @@index([userId])
