@@ -263,6 +263,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
                 }
                 onTimeSelect={onTimeSelect}
                 slots={slots}
+                showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
               />
             </div>
           ) : null}

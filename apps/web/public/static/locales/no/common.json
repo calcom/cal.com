@@ -941,7 +941,7 @@
   "reschedule_placeholder": "Fortell andre hvorfor du må endre tidspunktet",
   "emailed_information_about_cancelled_event": "Vi sendte deg og de andre deltakerne en e-post for å informere.",
   "this_input_will_shown_booking_this_event": "Dette inputfeltet vil vises når man booker denne hendelsen",
-  "meeting_url_in_conformation_email": "Møte-url ligger i e-postbekreftelsen",
+  "meeting_url_in_confirmation_email": "Møte-url ligger i e-postbekreftelsen",
   "url_start_with_https": "URL må begynne med http:// eller https://",
   "number_provided": "Telefonnummer vil bli oppgitt",
   "before_event_trigger": "før hendelsen starter",

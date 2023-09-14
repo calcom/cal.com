@@ -31,7 +31,7 @@ beforeAll(async () => {
 describe("next.config.js - Org Rewrite", () => {
   const orgHostRegExp = (subdomainRegExp: string) =>
   // RegExp copied from pagesAndRewritePaths.js orgHostPath. Do make the change there as well.
-    new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`);
+    new RegExp(`^(?<orgSlug>${subdomainRegExp})\\.(?!vercel\.app).*`);
 
   describe("Host matching based on NEXT_PUBLIC_WEBAPP_URL", () => {
     it("https://app.cal.com", () => {
@@ -86,6 +86,11 @@ describe("next.config.js - Org Rewrite", () => {
         orgHostRegExp(subdomainRegExp).exec("some-other.company.com")?.groups
           ?.orgSlug
       ).toEqual("some-other");
+    });
+    it("Should ignore Vercel preview URLs", () => {
+      const subdomainRegExp = getSubdomainRegExp("https://cal-xxxxxxxx-cal.vercel.app");
+      expect(orgHostRegExp(subdomainRegExp).exec("https://cal-xxxxxxxx-cal.vercel.app")).toMatchInlineSnapshot('null')
+      expect(orgHostRegExp(subdomainRegExp).exec("cal-xxxxxxxx-cal.vercel.app")).toMatchInlineSnapshot('null')
     });
   });
 

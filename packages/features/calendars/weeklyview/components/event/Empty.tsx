@@ -96,6 +96,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       )}
       data-disabled={isDisabled}
       data-slot={timeSlot.toISOString()}
+      data-testid="calendar-empty-cell"
       style={{
         height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
         overflow: "visible",

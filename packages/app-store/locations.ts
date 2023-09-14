@@ -403,7 +403,7 @@ export function getSuccessPageLocationMessage(
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay =
-        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_conformation_email");
+        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_confirmation_email");
     } else {
       locationToDisplay = t("web_conferencing_details_to_follow");
     }

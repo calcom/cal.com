@@ -136,7 +136,6 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-
   const members = team.members.map((obj) => {
     return {
       ...obj.user,
@@ -144,7 +143,7 @@ export async function getTeamWithMembers(args: {
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-      connectedApps: obj.user.credentials.map((cred) => {
+      connectedApps: obj?.user?.credentials?.map((cred) => {
         const appSlug = cred.app?.slug;
         let appData = appDataMap.get(appSlug);
 
@@ -153,14 +152,13 @@ export async function getTeamWithMembers(args: {
           appDataMap.set(appSlug, appData);
         }
 
-        const isCalendar = cred?.app?.categories.includes("calendar");
-        const externalId = isCalendar ? cred.destinationCalendars[0]?.externalId : undefined;
-
+        const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
+        const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
         return {
-          name: appData?.name,
-          logo: appData?.logo,
+          name: appData?.name ?? null,
+          logo: appData?.logo ?? null,
           app: cred.app,
-          externalId,
+          externalId: externalId ?? null,
         };
       }),
     };
