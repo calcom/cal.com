@@ -3109,6 +3109,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/alby@workspace:packages/app-store/alby":
+  version: 0.0.0-use.local
+  resolution: "@calcom/alby@workspace:packages/app-store/alby"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/amie@workspace:packages/app-store/amie":
   version: 0.0.0-use.local
   resolution: "@calcom/amie@workspace:packages/app-store/amie"
