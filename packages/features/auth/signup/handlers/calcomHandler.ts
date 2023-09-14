@@ -6,6 +6,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
+import { HttpError } from "@calcom/lib/http-error";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
@@ -39,8 +40,10 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
   // Validate the user
   if (!username) {
-    res.status(422).json({ message: "Invalid username" });
-    return;
+    throw new HttpError({
+      statusCode: 422,
+      message: "Invalid username",
+    });
   }
 
   const email = _email.toLowerCase();
