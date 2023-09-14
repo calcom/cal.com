@@ -300,7 +300,7 @@ export const findPaymentCredentials = async (
 ): Promise<{ clientId: string; secretKey: string; webhookId: string }> => {
   try {
     // @TODO: what about team bookings with paypal?
-    const userFromBooking = await prisma?.booking.findFirst({
+    const userFromBooking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
       },
@@ -312,7 +312,7 @@ export const findPaymentCredentials = async (
 
     if (!userFromBooking) throw new Error("No user found");
 
-    const credentials = await prisma?.credential.findFirst({
+    const credentials = await prisma.credential.findFirst({
       where: {
         appId: "paypal",
         userId: userFromBooking?.userId,
