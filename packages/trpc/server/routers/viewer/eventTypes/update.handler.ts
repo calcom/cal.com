@@ -246,17 +246,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const paymentCredential = await ctx.prisma.credential.findFirst({
       where: {
         userId: ctx.user.id,
-        type: {
-          equals: "stripe_payment",
+        appId: {
+          equals: "stripe",
         },
       },
       select: {
-        type: true,
+        appId: true,
         key: true,
       },
     });
 
-    if (paymentCredential?.type === "stripe_payment") {
+    if (paymentCredential?.appId === "stripe") {
       const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
       data.currency = default_currency;
     }
@@ -267,16 +267,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const paymentCredential = await ctx.prisma.credential.findFirst({
       where: {
         userId: ctx.user.id,
-        type: {
-          equals: "paypal_payment",
+        appId: {
+          equals: "paypal",
         },
       },
       select: {
-        type: true,
+        appId: true,
         key: true,
       },
     });
-    if (paymentCredential?.type === "paypal_payment" && input.metadata?.apps?.paypal?.currency) {
+    if (paymentCredential?.appId === "paypal" && input.metadata?.apps?.paypal?.currency) {
       data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
     }
   }
