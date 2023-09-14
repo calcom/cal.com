@@ -81,12 +81,6 @@ function useRouterHelpers() {
   return { goto, removeQueryParams };
 }
 
-const getQueryParam = (queryParam: string) => {
-  const params = new URLSearchParams(window.location.search);
-
-  return params.get(queryParam);
-};
-
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
@@ -527,7 +521,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = getQueryParam("eventId");
+  const eventId = searchParams.get("eventId");
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parseInt(eventId as string) },
