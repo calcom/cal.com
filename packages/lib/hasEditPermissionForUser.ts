@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
