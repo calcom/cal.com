@@ -306,7 +306,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       ...props,
       token,
-      prepopulateFormValues: isOrgInviteByLink
+      prepopulateFormValues: !isOrgInviteByLink
         ? {
             email: verificationToken.identifier,
             username: slugify(username),
