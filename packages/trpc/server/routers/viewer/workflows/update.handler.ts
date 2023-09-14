@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
 import {
-  isAttendeeAction,
   isSMSOrWhatsappAction,
   isTextMessageToAttendeeAction,
+  isTextMessageToSpecificNumber,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
@@ -427,10 +427,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       // check if step that require team plan already existed before
       if (
         !hasPaidPlan &&
-        !isSMSOrWhatsappAction(oldStep.action) &&
-        !isAttendeeAction(oldStep.action) &&
-        isSMSOrWhatsappAction(newStep.action) &&
-        !isAttendeeAction(newStep.action)
+        !isTextMessageToSpecificNumber(oldStep.action) &&
+        isTextMessageToSpecificNumber(newStep.action)
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
