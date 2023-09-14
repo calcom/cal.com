@@ -103,7 +103,7 @@ export function AvailabilitySliderTable() {
             .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
           return (
-            <div className="flex flex-col">
+            <div className="flex flex-col text-center">
               <span className="text-default text-sm font-medium">{time}</span>
               <span className="text-subtle text-xs leading-none">GMT {offsetFormatted}</span>
             </div>

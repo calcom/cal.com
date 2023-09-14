@@ -275,6 +275,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
       parentId: true,
@@ -1071,6 +1072,7 @@ async function handler(
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
   };
 
@@ -1720,6 +1722,7 @@ async function handler(
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
           booking,
+          fullName,
           bookerEmail
         );
 
@@ -1756,6 +1759,7 @@ async function handler(
     const webhookData = {
       ...evt,
       ...eventTypeInfo,
+      uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
@@ -1908,7 +1912,7 @@ async function handler(
     const createBookingObj = {
       include: {
         user: {
-          select: { email: true, name: true, timeZone: true },
+          select: { email: true, name: true, timeZone: true, username: true },
         },
         attendees: true,
         payment: true,
@@ -2276,6 +2280,7 @@ async function handler(
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
+      fullName,
       bookerEmail
     );
 
@@ -2463,6 +2468,7 @@ const findBookingQuery = async (bookingId: number) => {
           name: true,
           email: true,
           timeZone: true,
+          username: true,
         },
       },
       eventType: {

@@ -255,6 +255,10 @@ const nextConfig = {
         destination: "/team/:slug",
       },
       {
+        source: "/org/:orgSlug/avatar.png",
+        destination: "/api/user/avatar?orgSlug=:orgSlug",
+      },
+      {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },

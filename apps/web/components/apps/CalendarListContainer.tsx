@@ -116,6 +116,7 @@ function ConnectedCalendarsList(props: Props) {
                                 type={item.integration.type}
                                 isChecked={cal.isSelected}
                                 destination={cal.externalId === props.destinationCalendarId}
+                                credentialId={cal.credentialId}
                               />
                             ))}
                           </ul>

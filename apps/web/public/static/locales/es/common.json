@@ -1888,7 +1888,7 @@
   "organization_name": "Nombre de la organización",
   "organization_url": "URL de la organización",
   "organization_verify_header": "Verifique el correo electrónico de su organización",
-  "organization_verify_email_body": "Utilice el código a continuación para verificar su dirección de correo electrónico para seguir configurando su organización.",
+  "organization_verify_email_body": "Utilice el siguiente código para verificar su dirección de correo electrónico y continuar con la configuración de su organización.",
   "additional_url_parameters": "Parámetros adicionales de URL",
   "about_your_organization": "Acerca de su organización",
   "about_your_organization_description": "Las organizaciones son entornos compartidos donde puede crear varios equipos con miembros, tipos de eventos, aplicaciones, flujos de trabajo compartidos y más.",

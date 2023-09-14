@@ -12,6 +12,7 @@ import { Button, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
 import { useTimePreferences } from "../lib";
+import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 import { TimeFormatToggle } from "./TimeFormatToggle";
 
 type AvailableTimesProps = {
@@ -24,6 +25,7 @@ type AvailableTimesProps = {
     bookingUid?: string
   ) => void;
   seatsPerTimeSlot?: number | null;
+  showAvailableSeatsCount?: boolean | null;
   showTimeFormatToggle?: boolean;
   className?: string;
   availableMonth?: string | undefined;
@@ -35,6 +37,7 @@ export const AvailableTimes = ({
   slots,
   onTimeSelect,
   seatsPerTimeSlot,
+  showAvailableSeatsCount,
   showTimeFormatToggle = true,
   className,
   availableMonth,
@@ -110,15 +113,16 @@ export const AvailableTimes = ({
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
               {hasTimeSlots && !bookingFull && (
-                <p className="flex items-center text-sm lowercase">
+                <p className="flex items-center text-sm">
                   <span
                     className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                     aria-hidden
                   />
-                  {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot}{" "}
-                  {t("seats_available", {
-                    count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
-                  })}
+                  <SeatsAvailabilityText
+                    showExact={!!showAvailableSeatsCount}
+                    totalSeats={seatsPerTimeSlot}
+                    bookedSeats={slot.attendees || 0}
+                  />
                 </p>
               )}
             </Button>

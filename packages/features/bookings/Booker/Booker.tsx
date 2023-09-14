@@ -327,6 +327,7 @@ const BookerComponent = ({
                 prefetchNextMonth={prefetchNextMonth}
                 monthCount={monthCount}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />
             </BookerSection>
           </AnimatePresence>
