@@ -142,7 +142,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                   }
 
                   if (methods.getValues().username === undefined && isOrgInviteByLink) {
-                    methods.setValue("username", getOrgUsernameFromEmail(methods.getValues().email));
+                    methods.setValue("username", getOrgUsernameFromEmail(methods.getValues().email, orgSlug));
                   }
                   methods.handleSubmit(signUp)(event);
                 }}
