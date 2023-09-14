@@ -90,7 +90,7 @@ test.describe("Embed Pages", () => {
       const embedNamespace = await page.evaluate(() => {
         return window?.getEmbedNamespace?.();
       });
-      expect(isEmbed).toBe(undefined);
+      expect(isEmbed).toBe(false);
       expect(embedNamespace).toBe(null);
     });
 
