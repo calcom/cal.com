@@ -10,6 +10,7 @@ import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsernameInTeam, validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -116,12 +117,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      const membership = await prisma.membership.update({
+      const membership = await prisma.membership.upsert({
         where: {
           userId_teamId: { userId: user.id, teamId: team.id },
         },
-        data: {
+        update: {
           accepted: true,
+        },
+        create: {
+          userId: user.id,
+          teamId: team.id,
+          accepted: true,
+          role: MembershipRole.MEMBER,
         },
       });
       closeComUpsertTeamUser(team, user, membership.role);

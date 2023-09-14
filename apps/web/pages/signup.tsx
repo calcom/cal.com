@@ -34,6 +34,23 @@ type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
+const guessUsernameFromEmail = (email: string) => {
+  const [username] = email.split("@");
+  return username;
+};
+
+const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
+
+const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
+  const [emailUser, emailDomain] = email.split("@");
+  const username =
+    emailDomain === autoAcceptEmailDomain
+      ? slugify(emailUser)
+      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
+  return username;
+};
+
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
@@ -118,22 +135,28 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                   if (methods.formState?.errors?.apiError) {
                     methods.clearErrors("apiError");
                   }
+
+                  if (methods.getValues().username === undefined) {
+                    methods.setValue("username", getOrgUsernameFromEmail(methods.getValues().email));
+                  }
                   methods.handleSubmit(signUp)(event);
                 }}
                 className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 {}
                 <div className="space-y-4">
-                  <TextField
-                    addOnLeading={
-                      orgSlug
-                        ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
-                        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
-                    }
-                    {...register("username")}
-                    disabled={!!orgSlug && prepopulateFormValues?.username}
-                    required
-                  />
+                  {!(orgSlug && !prepopulateFormValues?.username) && (
+                    <TextField
+                      addOnLeading={
+                        orgSlug
+                          ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
+                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                      }
+                      {...register("username")}
+                      disabled={!!orgSlug}
+                      required
+                    />
+                  )}
                   <EmailField
                     {...register("email")}
                     disabled={prepopulateFormValues?.email}
@@ -252,11 +275,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
-  const guessUsernameFromEmail = (email: string) => {
-    const [username] = email.split("@");
-    return username;
-  };
-
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
   const tokenTeam = {
@@ -279,7 +297,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     username = available ? username : suggestion || username;
   }
 
-  const isValidEmail = z.string().email().safeParse(verificationToken.identifier).success;
+  const isValidEmail = checkValidEmail(verificationToken.identifier);
 
   const prepopulateFormValues = {
     email: verificationToken.identifier,
