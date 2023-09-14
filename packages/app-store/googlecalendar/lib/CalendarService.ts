@@ -7,6 +7,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
+import { tracer, context } from "@calcom/lib/server/otel-initializer";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -345,6 +346,7 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    const gCalGetAvailabilitySpan = tracer.startSpan("gCalGetAvailability", undefined, context.active());
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const calendar = google.calendar({
@@ -360,15 +362,24 @@ export default class GoogleCalendarService implements Calendar {
         return;
       }
 
+      const gCalGetCalendarsSpan = tracer.startSpan("gCalGetCalendarsSpan", undefined, context.active());
       (selectedCalendarIds.length === 0
         ? calendar.calendarList
             .list({
               fields: "items(id)",
             })
-            .then((cals) => cals.data.items?.map((cal) => cal.id).filter(Boolean) || [])
+            .then((cals) => {
+              gCalGetCalendarsSpan.end();
+              return cals.data.items?.map((cal) => cal.id).filter(Boolean) || [];
+            })
         : Promise.resolve(selectedCalendarIds)
       )
         .then((calsIds) => {
+          const gCalFreeBusyRequestSpan = tracer.startSpan(
+            "gCalFreeBusyRequestSpan",
+            undefined,
+            context.active()
+          );
           calendar.freebusy.query(
             {
               requestBody: {
@@ -378,6 +389,7 @@ export default class GoogleCalendarService implements Calendar {
               },
             },
             (err, apires) => {
+              gCalFreeBusyRequestSpan.end();
               if (err) return reject(err);
               // If there's no calendar we just skip
               if (!apires?.data.calendars) return resolve([]);
@@ -388,6 +400,7 @@ export default class GoogleCalendarService implements Calendar {
                     end: busyTime.end || "",
                   });
                 });
+                gCalGetAvailabilitySpan.end();
                 return c;
               }, [] as Prisma.PromiseReturnType<CalendarService["getAvailability"]>);
               resolve(result);

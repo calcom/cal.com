@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { tracer, context } from "@calcom/lib/server/otel-initializer";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
@@ -127,6 +128,11 @@ export default class Office365CalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    const outlookGetAvailabilitySpan = tracer.startSpan(
+      "outlookGetAvailabilitySpan",
+      undefined,
+      context.active()
+    );
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
@@ -146,6 +152,7 @@ export default class Office365CalendarService implements Calendar {
         return Promise.resolve([]);
       }
 
+      // TODO fetch external cal id to avoid this call. Follow up #11283
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
         : Promise.resolve(selectedCalendarIds));
@@ -172,7 +179,7 @@ export default class Office365CalendarService implements Calendar {
 
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
+      outlookGetAvailabilitySpan.end();
       return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
     } catch (err) {
       console.log(err);
@@ -418,11 +425,16 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private apiGraphBatchCall = async (requests: IRequest[]): Promise<Response> => {
+    const outlookBatchCallSpan = tracer.startSpan(
+      `outlookBatchCallSpan: ${requests.length} calls`,
+      undefined,
+      context.active()
+    );
     const response = await this.fetcher(`/$batch`, {
       method: "POST",
       body: JSON.stringify({ requests }),
     });
-
+    outlookBatchCallSpan.end();
     return response;
   };
 
