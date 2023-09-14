@@ -98,7 +98,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
 
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl,
+          callbackUrl: callBackUrl,
         });
       })
       .catch((err) => {
