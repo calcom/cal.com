@@ -2,8 +2,6 @@ import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;
@@ -28,38 +26,6 @@ export const isSAMLAdmin = (email: string) => {
   }
 
   return false;
-};
-
-export const samlTenantProduct = async (prisma: PrismaClient, email: string) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      id: true,
-      invitedTo: true,
-    },
-  });
-
-  if (!user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "no_account_exists",
-    });
-  }
-
-  if (!user.invitedTo) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message:
-        "Could not find a SAML Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
-    });
-  }
-
-  return {
-    tenant: tenantPrefix + user.invitedTo,
-    product: samlProductID,
-  };
 };
 
 export const canAccess = async (user: { id: number; email: string }, teamId: number | null) => {
