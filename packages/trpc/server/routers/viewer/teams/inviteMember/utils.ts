@@ -5,6 +5,7 @@ import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emai
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
@@ -136,17 +137,26 @@ export async function createNewUserConnectToOrgIfExists({
   usernameOrEmail,
   input,
   parentId,
+  autoAcceptEmailDomain,
   connectionInfo,
 }: {
   usernameOrEmail: string;
   input: InviteMemberOptions["input"];
   parentId?: number | null;
+  autoAcceptEmailDomain?: string;
   connectionInfo: ReturnType<typeof getOrgConnectionInfo>;
 }) {
   const { orgId, autoAccept } = connectionInfo;
 
+  const [emailUser, emailDomain] = usernameOrEmail.split("@");
+  const username =
+    emailDomain === autoAcceptEmailDomain
+      ? slugify(emailUser)
+      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
   const createdUser = await prisma.user.create({
     data: {
+      username,
       email: usernameOrEmail,
       verified: true,
       invitedTo: input.teamId,
