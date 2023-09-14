@@ -1,3 +1,5 @@
+import prisma from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../../trpc";
 import { getHandler } from "./get.handler";
 import type { TGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
