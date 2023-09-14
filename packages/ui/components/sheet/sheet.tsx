@@ -49,7 +49,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border border-default overflow-y-scroll ",
+  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border border-default flex flex-col ",
   {
     variants: {
       position: {
@@ -138,17 +138,24 @@ const sheetVariants = cva(
 
 export interface DialogContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+    VariantProps<typeof sheetVariants> {
+  bottomActions?: React.ReactNode;
+}
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, DialogContentProps>(
-  ({ position, size, className, children, ...props }, ref) => (
+  ({ position, size, className, children, bottomActions, ...props }, ref) => (
     <SheetPortal position={position}>
       <SheetOverlay />
       <SheetPrimitive.Content
         ref={ref}
-        className={classNames(sheetVariants({ position, size }), className)}
-        {...props}>
-        {children}
+        {...props}
+        className={classNames(sheetVariants({ position, size }), className)}>
+        <div className="h-full overflow-y-scroll">{children}</div>
+        {bottomActions && (
+          <div className="mt-auto flex justify-end">
+            <div className="flex gap-2">{bottomActions}</div>
+          </div>
+        )}
         <SheetPrimitive.Close className="focus:ring-emphasis data-[state=open]:bg-deafult absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>

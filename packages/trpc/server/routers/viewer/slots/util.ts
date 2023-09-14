@@ -16,6 +16,7 @@ import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -177,7 +178,7 @@ export async function getEventType(
           isFixed: true,
           user: {
             select: {
-              credentials: true,
+              credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
             },
           },
@@ -185,7 +186,7 @@ export async function getEventType(
       },
       users: {
         select: {
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
         },
       },
@@ -223,7 +224,9 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
