@@ -21,11 +21,11 @@ export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localho
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://beenthere.com";
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Beenthere.com";
-export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@beenthere.com";
-export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Beenthere.com, Inc.";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Beenthere.tech";
+export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@beenthere.tech";
+export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Beenthere.tech, Inc.";
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Beenthere";
-export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Beenthere.com";
+export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Beenthere.tech";
 
 // This is the URL from which all Beenthere Links and their assets are served.
 // Use website URL to make links shorter(beenthere.com and not app.beenthere.com)
@@ -34,7 +34,7 @@ export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WE
 
 export const IS_CALCOM =
   WEBAPP_URL &&
-  (new URL(WEBAPP_URL).hostname.endsWith("beenthere.com") ||
+  (new URL(WEBAPP_URL).hostname.endsWith("beenthere.tech") ||
     new URL(WEBAPP_URL).hostname.endsWith("beenthere.dev") ||
     new URL(WEBAPP_URL).hostname.endsWith("beenthere.qa") ||
     new URL(WEBAPP_URL).hostname.endsWith("beenthere-staging.com"));
@@ -58,7 +58,7 @@ export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES |
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
 export const LOGO = "/beenthere-logo-white-word.svg";
-export const LOGO_ICON = "/beenthere-com-icon-white.svg";
+export const LOGO_ICON = "/cal-com-icon-white.svg";
 export const FAVICON_16 = "/favicon-16x16.png";
 export const FAVICON_32 = "/favicon-32x32.png";
 export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
