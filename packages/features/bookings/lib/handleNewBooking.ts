@@ -1723,6 +1723,7 @@ async function handler(
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
           booking,
+          fullName,
           bookerEmail
         );
 
@@ -1912,7 +1913,7 @@ async function handler(
     const createBookingObj = {
       include: {
         user: {
-          select: { email: true, name: true, timeZone: true },
+          select: { email: true, name: true, timeZone: true, username: true },
         },
         attendees: true,
         payment: true,
@@ -2280,6 +2281,7 @@ async function handler(
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
+      fullName,
       bookerEmail
     );
 
@@ -2467,6 +2469,7 @@ const findBookingQuery = async (bookingId: number) => {
           name: true,
           email: true,
           timeZone: true,
+          username: true,
         },
       },
       eventType: {
