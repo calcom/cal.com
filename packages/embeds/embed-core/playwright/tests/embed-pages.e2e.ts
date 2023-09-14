@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
-import "../../src/types.d";
+import "../../src/types";
 
 test.describe("Embed Pages", () => {
   test("Event Type Page: should not have margin top on embed page", async ({ page }) => {

@@ -1,6 +1,18 @@
+import type { CSSProperties } from "react";
+
 type Theme = "dark" | "light";
 export type EmbedThemeConfig = Theme | "auto";
+
 export type BookerLayouts = "month_view" | "week_view" | "column_view";
+// Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
+// Keep this list to minimum, only adding those styles which are really needed.
+export interface EmbedStyles {
+  body?: Pick<CSSProperties, "background">;
+  eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+  enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+  disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+  availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+}
 
 export interface EmbedNonStylesConfig {
   /** Default would be center */
@@ -23,11 +35,6 @@ export type UiConfig = {
 
 declare global {
   interface Window {
-    CalEmbed: {
-      __logQueue?: unknown[];
-      embedStore: typeof embedStore;
-      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
-    };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
     getEmbedNamespace: () => string | null;

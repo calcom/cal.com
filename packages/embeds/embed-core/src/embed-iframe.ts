@@ -1,14 +1,22 @@
 import { useSearchParams } from "next/navigation";
-import type { CSSProperties } from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts } from "./types";
+import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
 
+declare global {
+  interface Window {
+    CalEmbed: {
+      __logQueue?: unknown[];
+      embedStore: typeof embedStore;
+      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
+    };
+  }
+}
 /**
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
@@ -69,16 +77,6 @@ function log(...args: unknown[]) {
       console.log(...args);
     }
   }
-}
-
-// Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
-// Keep this list to minimum, only adding those styles which are really needed.
-interface EmbedStyles {
-  body?: Pick<CSSProperties, "background">;
-  eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
 
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
