@@ -52,7 +52,7 @@ function addOrUpdateQueryParam(url, key, value) {
   return `${url}${separator}${param}`;
 }
 
-export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
+export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoAcceptEmail }: SignupProps) {
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -141,8 +141,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                     methods.clearErrors("apiError");
                   }
 
-                  if (methods.getValues().username === undefined && isOrgInviteByLink) {
-                    methods.setValue("username", getOrgUsernameFromEmail(methods.getValues().email, orgSlug));
+                  if (methods.getValues().username === undefined && isOrgInviteByLink && orgAutoAcceptEmail) {
+                    methods.setValue(
+                      "username",
+                      getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail)
+                    );
                   }
                   methods.handleSubmit(signUp)(event);
                 }}
@@ -250,6 +253,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
+  console.log("TOKEN", verificationToken);
+
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
@@ -321,6 +326,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           }
         : null,
       orgSlug,
+      orgAutoAcceptEmail: isOrgInviteByLink ? tokenTeam.metadata?.orgAutoAcceptEmail : null,
     },
   };
 };
