@@ -1,10 +1,9 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
+import Link from "next/link";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-const ENTERPRISE_BOOKING_FEE = "$99"; // TODO: get this from a new API endpoint
 
 const ChooseLicense = (
   props: {
@@ -50,23 +49,19 @@ const ChooseLicense = (
             </ul>
           </div>
         </RadioGroup.Item>
-        <RadioGroup.Item value="EE">
-          <div
-            className={classNames(
-              "bg-default cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
-              value === "EE" && "ring-2 ring-black"
-            )}>
-            <h2 className="font-cal text-emphasis text-xl">{t("ee_enterprise_license")}</h2>
-            <p className="font-medium text-green-800">
-              {t("enterprise_booking_fee", { enterprise_booking_fee: ENTERPRISE_BOOKING_FEE })}
-            </p>
-            <p className="text-subtle">{t("enterprise_license_includes")}</p>
-            <ul className="text-subtle ml-4 list-disc text-left text-xs">
-              <li>{t("no_need_to_keep_your_code_open_source")}</li>
-              <li>{t("repackage_rebrand_resell")}</li>
-              <li>{t("a_vast_suite_of_enterprise_features")}</li>
-            </ul>
-          </div>
+        <RadioGroup.Item value="EE" disabled>
+          <Link href="https://cal.com/sales" target="_blank">
+            <div className={classNames("bg-default h-full cursor-pointer space-y-2 rounded-md border p-4")}>
+              <h2 className="font-cal text-emphasis text-xl">{t("custom_plan")}</h2>
+              <p className="font-medium text-green-800">{t("contact_sales")}</p>
+              <p className="text-subtle">Build on top of Cal.com</p>
+              <ul className="text-subtle ml-4 list-disc text-left text-xs">
+                <li>{t("no_need_to_keep_your_code_open_source")}</li>
+                <li>{t("repackage_rebrand_resell")}</li>
+                <li>{t("a_vast_suite_of_enterprise_features")}</li>
+              </ul>
+            </div>
+          </Link>
         </RadioGroup.Item>
       </RadioGroup.Root>
     </form>

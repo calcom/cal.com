@@ -12,14 +12,11 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.me.invalidate();
     },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
-    },
   });
 
   return (
     <>
-      <div className="flex flex-col justify-between pt-9 pl-2 sm:flex-row">
+      <div className="flex flex-col justify-between pl-2 pt-9 sm:flex-row">
         <div>
           <div className="flex flex-row items-center">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">

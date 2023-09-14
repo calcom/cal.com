@@ -1,33 +1,33 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
-  User,
-  Key,
-  CreditCard,
-  Terminal,
-  Users,
-  Loader,
-  Lock,
   ArrowLeft,
   ChevronDown,
   ChevronRight,
-  Plus,
+  CreditCard,
+  Key,
+  Loader,
+  Lock,
   Menu,
+  Plus,
+  Terminal,
+  User,
+  Users,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -51,8 +51,8 @@ const tabs: VerticalTabItemProps[] = [
     icon: Key,
     children: [
       { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
       { name: "impersonation", href: "/settings/security/impersonation" },
+      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   {
@@ -74,6 +74,32 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
   {
+    name: "organization",
+    href: "/settings/organizations",
+    children: [
+      {
+        name: "profile",
+        href: "/settings/organizations/profile",
+      },
+      {
+        name: "general",
+        href: "/settings/organizations/general",
+      },
+      {
+        name: "members",
+        href: "/settings/organizations/members",
+      },
+      {
+        name: "appearance",
+        href: "/settings/organizations/appearance",
+      },
+      {
+        name: "billing",
+        href: "/settings/organizations/billing",
+      },
+    ],
+  },
+  {
     name: "teams",
     href: "/settings/teams",
     icon: Users,
@@ -90,6 +116,8 @@ const tabs: VerticalTabItemProps[] = [
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
+      { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "kyc_verification", href: "/settings/admin/kycVerification" },
     ],
   },
 ];
@@ -97,17 +125,18 @@ const tabs: VerticalTabItemProps[] = [
 tabs.find((tab) => {
   // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+    tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
   }
 });
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
+const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
-  const { data: avatar } = useAvatarQuery();
+  const orgBranding = useOrgBranding();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -115,13 +144,26 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
+      tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+    } else if (tab.href === "/settings/organizations") {
+      tab.name = orgBranding?.name || "organization";
+      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+    } else if (
+      tab.href === "/settings/security" &&
+      user?.identityProvider === IdentityProvider.GOOGLE &&
+      !user?.twoFactorEnabled
+    ) {
+      tab.children = tab?.children?.filter(
+        (childTab) => childTab.href !== "/settings/security/two-factor-auth"
+      );
     }
     return tab;
   });
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
+
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
   });
@@ -131,10 +173,10 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
+      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -144,25 +186,38 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
 interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
+  bannersHeight?: number;
 }
 
 const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
+  bannersHeight,
 }: SettingsSidebarContainerProps) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-
+  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
+    {
+      teamId: number | undefined;
+      teamMenuOpen: boolean;
+    }[]
+  >();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const session = useSession();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
+
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
 
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === router.query.id,
+        teamMenuOpen: String(team.id) === searchParams?.get("id"),
       }));
       setTeamMenuState(teamStates);
       setTimeout(() => {
@@ -172,10 +227,43 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [router.query.id, teams]);
+  }, [searchParams?.get("id"), teams]);
+
+  // Same as above but for otherTeams
+  useEffect(() => {
+    if (otherTeams) {
+      const otherTeamStates = otherTeams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+      }));
+      setOtherTeamMenuState(otherTeamStates);
+      setTimeout(() => {
+        // @TODO: test if this works for 2 dataset testids
+        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
+        )[1];
+        tabMembers?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [searchParams?.get("id"), otherTeams]);
+
+  const isOrgAdminOrOwner =
+    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+
+  if (isOrgAdminOrOwner) {
+    const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
+
+    tabsWithPermissions.splice(teamsIndex + 1, 0, {
+      name: "other_teams",
+      href: "/settings/organizations/teams/other",
+      icon: Users,
+      children: [],
+    });
+  }
 
   return (
     <nav
+      style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
         "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
@@ -187,69 +275,79 @@ const SettingsSidebarContainer = ({
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
-          return tab.name !== "teams" ? (
+          return (
             <React.Fragment key={tab.href}>
-              <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
-                  {tab && tab.icon && (
-                    <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
-                  )}
-                  {!tab.icon && tab?.avatar && (
-                    <img
-                      className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
-                      src={tab?.avatar}
-                      alt="User Avatar"
-                    />
-                  )}
-                  <p className="text-sm font-medium leading-5 truncate">{t(tab.name)}</p>
-                </div>
-              </div>
-              <div className="my-3 space-y-0.5">
-                {tab.children?.map((child, index) => (
-                  <VerticalTabItem
-                    key={child.href}
-                    name={t(child.name)}
-                    isExternalLink={child.isExternalLink}
-                    href={child.href || "/"}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
-                    disableChevron
-                  />
-                ))}
-              </div>
-            </React.Fragment>
-          ) : (
-            <React.Fragment key={tab.href}>
-              <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                <Link href={tab.href}>
-                  <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
-                    {tab && tab.icon && (
-                      <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
-                    )}
-                    <p className="text-sm font-medium leading-5 truncate">{t(tab.name)}</p>
+              {!["teams", "other_teams"].includes(tab.name) && (
+                <React.Fragment key={tab.href}>
+                  <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
+                      {tab && tab.icon && (
+                        <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                      )}
+                      {!tab.icon && tab?.avatar && (
+                        <img
+                          className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
+                          src={tab?.avatar}
+                          alt="User Avatar"
+                        />
+                      )}
+                      <Skeleton
+                        title={tab.name}
+                        as="p"
+                        className="truncate text-sm font-medium leading-5"
+                        loadingClassName="ms-3">
+                        {t(tab.name)}
+                      </Skeleton>
+                    </div>
                   </div>
-                </Link>
-                {teams &&
-                  teamMenuState &&
-                  teams.map((team, index: number) => {
-                    if (teamMenuState.some((teamState) => teamState.teamId === team.id))
-                      return (
-                        <Collapsible
-                          key={team.id}
-                          open={teamMenuState[index].teamMenuOpen}
-                          onOpenChange={() =>
-                            setTeamMenuState([
-                              ...teamMenuState,
-                              (teamMenuState[index] = {
-                                ...teamMenuState[index],
-                                teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                              }),
-                            ])
-                          }>
-                          <CollapsibleTrigger>
-                            <div
-                              className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
-                              onClick={() =>
+                  <div className="my-3 space-y-0.5">
+                    {tab.children?.map((child, index) => (
+                      <VerticalTabItem
+                        key={child.href}
+                        name={t(child.name)}
+                        isExternalLink={child.isExternalLink}
+                        href={child.href || "/"}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className={`my-0.5 me-5 h-7 ${
+                          tab.children && index === tab.children?.length - 1 && "!mb-3"
+                        }`}
+                        disableChevron
+                      />
+                    ))}
+                  </div>
+                </React.Fragment>
+              )}
+
+              {tab.name === "teams" && (
+                <React.Fragment key={tab.href}>
+                  <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                    <Link href={tab.href}>
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                        {tab && tab.icon && (
+                          <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                        )}
+                        <Skeleton
+                          title={tab.name}
+                          as="p"
+                          className="truncate text-sm font-medium leading-5"
+                          loadingClassName="ms-3">
+                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
+                        </Skeleton>
+                      </div>
+                    </Link>
+                    {teams &&
+                      teamMenuState &&
+                      teams.map((team, index: number) => {
+                        if (!teamMenuState[index]) {
+                          return null;
+                        }
+                        if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+                          return (
+                            <Collapsible
+                              className="cursor-pointer"
+                              key={team.id}
+                              open={teamMenuState[index].teamMenuOpen}
+                              onOpenChange={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
                                   (teamMenuState[index] = {
@@ -258,84 +356,205 @@ const SettingsSidebarContainer = ({
                                   }),
                                 ])
                               }>
-                              <div className="me-3">
-                                {teamMenuState[index].teamMenuOpen ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </div>
-                              <img
-                                src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                alt={team.name || "Team logo"}
-                              />
-                              <p className="w-1/2 truncate">{team.name}</p>
-                              {!team.accepted && (
-                                <Badge className="ms-3" variant="orange">
-                                  Inv.
-                                </Badge>
-                              )}
-                            </div>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="space-y-0.5">
-                            {team.accepted && (
-                              <VerticalTabItem
-                                name={t("profile")}
-                                href={`/settings/teams/${team.id}/profile`}
-                                textClassNames="px-3 text-emphasis font-medium text-sm"
-                                disableChevron
-                              />
-                            )}
-                            <VerticalTabItem
-                              name={t("members")}
-                              href={`/settings/teams/${team.id}/members`}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              disableChevron
-                            />
-                            {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
-                              <>
-                                {/* TODO */}
-                                {/* <VerticalTabItem
-                              name={t("general")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              disableChevron
-                            /> */}
-                                <VerticalTabItem
-                                  name={t("appearance")}
-                                  href={`/settings/teams/${team.id}/appearance`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                <VerticalTabItem
-                                  name={t("billing")}
-                                  href={`/settings/teams/${team.id}/billing`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                {HOSTED_CAL_FEATURES && (
+                              <CollapsibleTrigger asChild>
+                                <div
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                                  onClick={() =>
+                                    setTeamMenuState([
+                                      ...teamMenuState,
+                                      (teamMenuState[index] = {
+                                        ...teamMenuState[index],
+                                        teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                                      }),
+                                    ])
+                                  }>
+                                  <div className="me-3">
+                                    {teamMenuState[index].teamMenuOpen ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </div>
+                                  <img
+                                    src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                    alt={team.name || "Team logo"}
+                                  />
+                                  <p className="w-1/2 truncate">{team.name}</p>
+                                  {!team.accepted && (
+                                    <Badge className="ms-3" variant="orange">
+                                      Inv.
+                                    </Badge>
+                                  )}
+                                </div>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="space-y-0.5">
+                                {team.accepted && (
                                   <VerticalTabItem
-                                    name={t("saml_config")}
-                                    href={`/settings/teams/${team.id}/sso`}
+                                    name={t("profile")}
+                                    href={`/settings/teams/${team.id}/profile`}
                                     textClassNames="px-3 text-emphasis font-medium text-sm"
                                     disableChevron
                                   />
                                 )}
-                              </>
-                            )}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      );
-                  })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  disableChevron
-                />
-              </div>
+                                <VerticalTabItem
+                                  name={t("members")}
+                                  href={`/settings/teams/${team.id}/members`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                {(team.role === MembershipRole.OWNER ||
+                                  team.role === MembershipRole.ADMIN ||
+                                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                  // @ts-ignore this exists wtf?
+                                  (team.isOrgAdmin && team.isOrgAdmin)) && (
+                                  <>
+                                    {/* TODO */}
+                                    {/* <VerticalTabItem
+                                name={t("general")}
+                                href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                                textClassNames="px-3 text-emphasis font-medium text-sm"
+                                disableChevron
+                              /> */}
+                                    <VerticalTabItem
+                                      name={t("appearance")}
+                                      href={`/settings/teams/${team.id}/appearance`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    />
+                                    {/* Hide if there is a parent ID */}
+                                    {!team.parentId ? (
+                                      <>
+                                        <VerticalTabItem
+                                          name={t("billing")}
+                                          href={`/settings/teams/${team.id}/billing`}
+                                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                                          disableChevron
+                                        />
+                                        {HOSTED_CAL_FEATURES && (
+                                          <VerticalTabItem
+                                            name={t("saml_config")}
+                                            href={`/settings/teams/${team.id}/sso`}
+                                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                                            disableChevron
+                                          />
+                                        )}
+                                      </>
+                                    ) : null}
+                                  </>
+                                )}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                      })}
+                    {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                      <VerticalTabItem
+                        name={t("add_a_team")}
+                        href={`${WEBAPP_URL}/settings/teams/new`}
+                        textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                        icon={Plus}
+                        disableChevron
+                      />
+                    )}
+                  </div>
+                </React.Fragment>
+              )}
+
+              {tab.name === "other_teams" && (
+                <React.Fragment key={tab.href}>
+                  <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                    <Link href={tab.href}>
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                        {tab && tab.icon && (
+                          <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                        )}
+                        <Skeleton
+                          title={t("org_admin_other_teams")}
+                          as="p"
+                          className="truncate text-sm font-medium leading-5"
+                          loadingClassName="ms-3">
+                          {t("org_admin_other_teams")}
+                        </Skeleton>
+                      </div>
+                    </Link>
+                    {otherTeams &&
+                      otherTeamMenuState &&
+                      otherTeams.map((otherTeam, index: number) => {
+                        if (!otherTeamMenuState[index]) {
+                          return null;
+                        }
+                        if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
+                          return (
+                            <Collapsible
+                              className="cursor-pointer"
+                              key={otherTeam.id}
+                              open={otherTeamMenuState[index].teamMenuOpen}
+                              onOpenChange={() =>
+                                setOtherTeamMenuState([
+                                  ...otherTeamMenuState,
+                                  (otherTeamMenuState[index] = {
+                                    ...otherTeamMenuState[index],
+                                    teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                  }),
+                                ])
+                              }>
+                              <CollapsibleTrigger asChild>
+                                <div
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                                  onClick={() =>
+                                    setOtherTeamMenuState([
+                                      ...otherTeamMenuState,
+                                      (otherTeamMenuState[index] = {
+                                        ...otherTeamMenuState[index],
+                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                      }),
+                                    ])
+                                  }>
+                                  <div className="me-3">
+                                    {otherTeamMenuState[index].teamMenuOpen ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </div>
+                                  <img
+                                    src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                    alt={otherTeam.name || "Team logo"}
+                                  />
+                                  <p className="w-1/2 truncate">{otherTeam.name}</p>
+                                </div>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="space-y-0.5">
+                                <VerticalTabItem
+                                  name={t("profile")}
+                                  href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                <VerticalTabItem
+                                  name={t("members")}
+                                  href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+
+                                <>
+                                  {/* TODO: enable appearance edit */}
+                                  {/* <VerticalTabItem
+                                      name={t("appearance")}
+                                      href={`/settings/organizations/teams/other/${otherTeam.id}/appearance`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    /> */}
+                                </>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                      })}
+                  </div>
+                </React.Fragment>
+              )}
             </React.Fragment>
           );
         })}
@@ -372,7 +591,7 @@ export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const router = useRouter();
+  const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -394,7 +613,7 @@ export default function SettingsLayout({
     if (sideContainerOpen) {
       setSideContainerOpen(!sideContainerOpen);
     }
-  }, [router.asPath]);
+  }, [pathname]);
 
   return (
     <Shell
@@ -403,17 +622,10 @@ export default function SettingsLayout({
       hideHeadingOnMobile
       {...rest}
       SidebarContainer={
-        <>
-          {/* Mobile backdrop */}
-          {sideContainerOpen && (
-            <button
-              onClick={() => setSideContainerOpen(false)}
-              className="fixed top-0 left-0 z-10 h-full w-full bg-black/50">
-              <span className="sr-only">{t("hide_navigation")}</span>
-            </button>
-          )}
-          <SettingsSidebarContainer navigationIsOpenedOnMobile={sideContainerOpen} />
-        </>
+        <SidebarContainerElement
+          sideContainerOpen={sideContainerOpen}
+          setSideContainerOpen={setSideContainerOpen}
+        />
       }
       drawerState={state}
       MobileNavigationContainer={null}
@@ -421,7 +633,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
+        <div className="mx-auto max-w-full justify-center md:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>
@@ -431,6 +643,36 @@ export default function SettingsLayout({
     </Shell>
   );
 }
+
+const SidebarContainerElement = ({
+  sideContainerOpen,
+  bannersHeight,
+  setSideContainerOpen,
+}: SidebarContainerElementProps) => {
+  const { t } = useLocale();
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {sideContainerOpen && (
+        <button
+          onClick={() => setSideContainerOpen(false)}
+          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
+          <span className="sr-only">{t("hide_navigation")}</span>
+        </button>
+      )}
+      <SettingsSidebarContainer
+        navigationIsOpenedOnMobile={sideContainerOpen}
+        bannersHeight={bannersHeight}
+      />
+    </>
+  );
+};
+
+type SidebarContainerElementProps = {
+  sideContainerOpen: boolean;
+  bannersHeight?: number;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
@@ -451,12 +693,12 @@ function ShellHeader() {
               {t(meta.title)}
             </h1>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
+            <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
             <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
           )}
         </div>
         <div className="ms-auto flex-shrink-0">{meta.CTA}</div>

@@ -5,6 +5,7 @@ export type CloseComLead = {
   contactName?: string;
   contactEmail?: string;
   description?: string;
+  id?: string | PromiseLike<string>;
 };
 
 export type CloseComFieldOptions = [string, string, boolean, boolean][];
@@ -13,9 +14,9 @@ export type CloseComLeadCreateResult = {
   status_id: string;
   status_label: string;
   display_name: string;
-  addresses: { [key: string]: any }[];
+  addresses: { [key: string]: string }[];
   name: string;
-  contacts: { [key: string]: any }[];
+  contacts: { [key: string]: string }[];
   [key: CloseComCustomActivityCustomField<string>]: string;
   id: string;
 };
@@ -119,7 +120,7 @@ export type CloseComCustomActivityCreate = {
 
 export type typeCloseComCustomActivityGet = {
   organization_id: string;
-  contact_id: any;
+  contact_id: string;
   date_updated: string;
   user_name: string;
   created_by_name: "Bruce Wayne";
@@ -127,7 +128,7 @@ export type typeCloseComCustomActivityGet = {
   created_by: string;
   status: string;
   user_id: string;
-  users: any[];
+  users: string[];
   lead_id: string;
   _type: string;
   updated_by: string;
@@ -140,6 +141,44 @@ export type typeCloseComCustomActivityGet = {
 type CloseComCustomActivityCustomField<T extends string> = `custom.${T}`;
 
 const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
+
+type CloseComQuery = {
+  negate?: boolean;
+  queries?: CloseComQuery[] | CloseComCondition[];
+  object_type?: string;
+  related_object_type?: string;
+  related_query?: CloseComQuery;
+  this_object_type?: string;
+  type?: "object_type" | "has_related" | "and" | "or";
+  _fields?: string[];
+};
+
+type CloseComCondition = {
+  condition: {
+    mode: "full_words";
+    type: "text";
+    value: string;
+  };
+  field: {
+    field_name: string;
+    object_type: string;
+    type: "regular_field";
+  };
+  negate: boolean;
+  type: "field_condition";
+};
+
+export type CloseComCustomFieldCreateResponse = {
+  data: {
+    id: string;
+    name?: string;
+    type?: string;
+    required?: boolean;
+    accepts_multiple_values: boolean;
+    editable_with_roles: string[];
+    custom_activity_type_id?: string;
+  };
+};
 
 /**
  * This class to instance communicating to Close.com APIs requires an API Key.
@@ -200,8 +239,8 @@ export default class CloseCom {
     list: async ({
       query,
     }: {
-      query: { [key: string]: any };
-    }): Promise<{ data: { [key: string]: any }[] }> => {
+      query: CloseComQuery;
+    }): Promise<{ data: { [key: string]: CloseComQuery }[] }> => {
       return this._get({ urlPath: "/lead", query });
     },
     status: async () => {
@@ -247,7 +286,7 @@ export default class CloseCom {
       ): Promise<CloseComCustomActivityFieldGet["data"][number]> => {
         return this._post({ urlPath: "/custom_field/activity/", data });
       },
-      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomActivityFieldGet> => {
+      get: async ({ query }: { query: CloseComQuery }): Promise<CloseComCustomActivityFieldGet> => {
         return this._get({ urlPath: "/custom_field/activity/", query });
       },
     },
@@ -257,12 +296,12 @@ export default class CloseCom {
       ): Promise<CloseComCustomContactFieldGet["data"][number]> => {
         return this._post({ urlPath: "/custom_field/contact/", data });
       },
-      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+      get: async ({ query }: { query: CloseComQuery }): Promise<CloseComCustomContactFieldGet> => {
         return this._get({ urlPath: "/custom_field/contact/", query });
       },
     },
     shared: {
-      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+      get: async ({ query }: { query: CloseComQuery }): Promise<CloseComCustomContactFieldGet> => {
         return this._get({ urlPath: "/custom_field/shared/", query });
       },
     },
@@ -287,7 +326,7 @@ export default class CloseCom {
     },
   };
 
-  private _get = async ({ urlPath, query }: { urlPath: string; query?: { [key: string]: any } }) => {
+  private _get = async ({ urlPath, query }: { urlPath: string; query?: CloseComQuery }) => {
     return await this._request({ urlPath, method: "get", query });
   };
   private _post = async ({ urlPath, data }: { urlPath: string; data: Record<string, unknown> }) => {
@@ -307,7 +346,7 @@ export default class CloseCom {
   }: {
     urlPath: string;
     method: string;
-    query?: { [key: string]: any };
+    query?: CloseComQuery;
     data?: Record<string, unknown>;
   }) => {
     this.log.debug(method, urlPath, query, data);
@@ -316,7 +355,7 @@ export default class CloseCom {
       Authorization: `Basic ${credentials}`,
       "Content-Type": "application/json",
     };
-    const queryString = query ? `?${new URLSearchParams(query).toString()}` : "";
+    const queryString = query ? `?${new URLSearchParams(String(query)).toString()}` : "";
     return await fetch(`${this.apiUrl}${urlPath}${queryString}`, {
       headers,
       method,

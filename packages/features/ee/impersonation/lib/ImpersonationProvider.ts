@@ -1,4 +1,5 @@
 import type { User } from "@prisma/client";
+import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
@@ -10,7 +11,7 @@ const teamIdschema = z.object({
 });
 
 const auditAndReturnNextUser = async (
-  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
+  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId" | "locale">,
   impersonatedByUID: number,
   hasTeam?: boolean
 ) => {
@@ -38,10 +39,34 @@ const auditAndReturnNextUser = async (
     role: impersonatedUser.role,
     impersonatedByUID,
     belongsToActiveTeam: hasTeam,
+    organizationId: impersonatedUser.organizationId,
+    locale: impersonatedUser.locale,
   };
 
   return obj;
 };
+
+type Credentials = Record<"username" | "teamId", string> | undefined;
+
+export function parseTeamId(creds: Partial<Credentials>) {
+  return creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
+}
+
+export function checkSelfImpersonation(session: Session | null, creds: Partial<Credentials>) {
+  if (session?.user.username === creds?.username || session?.user.email === creds?.username) {
+    throw new Error("You cannot impersonate yourself.");
+  }
+}
+
+export function checkUserIdentifier(creds: Partial<Credentials>) {
+  if (!creds?.username) throw new Error("User identifier must be present");
+}
+
+export function checkPermission(session: Session | null) {
+  if (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") {
+    throw new Error("You do not have permission to do this.");
+  }
+}
 
 const ImpersonationProvider = CredentialsProvider({
   id: "impersonation-auth",
@@ -55,18 +80,10 @@ const ImpersonationProvider = CredentialsProvider({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
-    // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
-    const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
-
-    if (session?.user.username === creds?.username || session?.user.email === creds?.username) {
-      throw new Error("You cannot impersonate yourself.");
-    }
-
-    if (!creds?.username) throw new Error("User identifier must be present");
-    // If you are an ADMIN we return way before team impersonation logic is executed, so NEXT_PUBLIC_TEAM_IMPERSONATION certainly true
-    if (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") {
-      throw new Error("You do not have permission to do this.");
-    }
+    const teamId = parseTeamId(creds);
+    checkSelfImpersonation(session, creds);
+    checkUserIdentifier(creds);
+    checkPermission(session);
 
     // Get user who is being impersonated
     const impersonatedUser = await prisma.user.findFirst({
@@ -79,7 +96,9 @@ const ImpersonationProvider = CredentialsProvider({
         role: true,
         name: true,
         email: true,
+        organizationId: true,
         disableImpersonation: true,
+        locale: true,
         teams: {
           where: {
             disableImpersonation: false, // Ensure they have impersonation enabled

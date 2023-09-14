@@ -20,7 +20,9 @@ export default function getLocationsOptionsForSelect(
       const type = eventLocation.type;
 
       return {
-        label: t(locationString),
+        // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it get's cleaned up.
+        // Beacause there can be a URL in here, simply don't translate it if it starts with http: or https:. This would allow us to keep supporting namespaces if we plan to use them
+        label: locationString.search(/^https?:/) !== -1 ? locationString : t(locationString),
         value: type,
         inputPlaceholder: t(eventLocation?.attendeeInputPlaceholder || ""),
       };

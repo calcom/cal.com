@@ -28,7 +28,7 @@ export const stripeDataSchema = stripeOAuthTokenSchema.extend({
 export type StripeData = z.infer<typeof stripeDataSchema>;
 
 /** Figure out a way to get this from the DB without too much wreckage. */
-const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
+const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY || "";
 const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });

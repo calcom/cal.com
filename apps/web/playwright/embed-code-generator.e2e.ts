@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+
 import { test } from "./lib/fixtures";
 
 function chooseEmbedType(page: Page, embedType: string) {
@@ -47,7 +49,15 @@ async function expectToBeNavigatingToEmbedTypesDialog(
 
 async function expectToBeNavigatingToEmbedCodeAndPreviewDialog(
   page: Page,
-  { embedUrl, embedType, basePage }: { embedUrl: string | null; embedType: string; basePage: string }
+  {
+    embedUrl,
+    embedType,
+    basePage,
+  }: {
+    embedUrl: string | null;
+    embedType: string;
+    basePage: string;
+  }
 ) {
   if (!embedUrl) {
     throw new Error("Couldn't find embedUrl");
@@ -73,12 +83,16 @@ async function expectToContainValidCode(page: Page, { embedType }: { embedType: 
   };
 }
 
+/**
+ * Let's just check if iframe is opened with preview.html. preview.html tests are responsibility of embed-core
+ */
 async function expectToContainValidPreviewIframe(
   page: Page,
   { embedType, calLink }: { embedType: string; calLink: string }
 ) {
+  const bookerUrl = `${WEBAPP_URL}`;
   expect(await page.locator("[data-testid=embed-preview]").getAttribute("src")).toContain(
-    `/preview.html?embedType=${embedType}&calLink=${calLink}`
+    `/preview.html?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${EMBED_LIB_URL}&bookerUrl=${bookerUrl}`
   );
 }
 
@@ -89,7 +103,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Embed Code Generator Tests", () => {
   test.beforeEach(async ({ users }) => {
     const pro = await users.create();
-    await pro.login();
+    await pro.apiLogin();
   });
 
   test.describe("Event Types Page", () => {
@@ -178,7 +192,7 @@ test.describe("Embed Code Generator Tests", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto(`/event-types`);
       await Promise.all([
-        page.locator('[href*="/event-types/"]').first().click(),
+        page.locator('a[href*="/event-types/"]').first().click(),
         page.waitForURL((url) => url.pathname.startsWith("/event-types/")),
       ]);
     });

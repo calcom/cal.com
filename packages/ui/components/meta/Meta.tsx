@@ -21,7 +21,7 @@ const initialMeta: MetaType = {
 const MetaContext = createContext({
   meta: initialMeta,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  setMeta: (newMeta: Partial<MetaType>) => {},
+  setMeta: (_newMeta: Partial<MetaType>) => {},
 });
 
 export function useMeta() {

@@ -8,24 +8,35 @@ Fixes # (issue)
  Loom Video: https://www.loom.com/
 -->
 
-**Environment**: Staging(main branch) / Production
+## Requirement/Documentation
+
+<!-- Please provide all documents that are important to understand the reason of that PR. -->
+
+- If there is a requirement document, please, share it here.
+- If there is ab UI/UX design document, please, share it here.
 
 ## Type of change
 
 <!-- Please delete bullets that are not relevant. -->
 
-- Bug fix (non-breaking change which fixes an issue)
-- Chore (refactoring code, technical debt, workflow improvements)
-- New feature (non-breaking change which adds functionality)
-- Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- This change requires a documentation update
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] Chore (refactoring code, technical debt, workflow improvements)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
 
 ## How should this be tested?
 
-<!-- Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration -->
+<!-- Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration. Write details that help to start the tests -->
 
-- [ ] Test A
-- [ ] Test B
+- Are there environment variables that should be set?
+- What are the minimal test data to have?
+- What is expected (happy path) to have (input and output)?
+- Any other important info that could help to test that PR
+
+## Mandatory Tasks
+
+- [ ] Make sure you have self-reviewed the code. A decent size PR without self-review might be rejected.
 
 ## Checklist
 
@@ -33,7 +44,6 @@ Fixes # (issue)
 
 - I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project
-- I haven't performed a self-review of my own code and corrected any misspellings
 - I haven't commented my code, particularly in hard-to-understand areas
 - I haven't checked if my PR needs changes to the documentation
 - I haven't checked if my changes generate no new warnings

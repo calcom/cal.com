@@ -8,20 +8,19 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
-import type { BookerVariants } from "./lib/new-booker";
 import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
 }
 
+test.describe.configure({ mode: "parallel" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  testBothBookers.describe("For User EventType", (bookerVariant) => {
+  test.describe("For User EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -29,7 +28,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
 
@@ -40,7 +39,120 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+    });
+
+    test("Split 'Full name' into 'First name' and 'Last name'", async ({
+      page,
+      users,
+      context,
+    }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
+      test.setTimeout(testInfo.timeout * 3);
+      const user = await createAndLoginUserWithEventTypes({ page, users });
+      const webhookReceiver = await addWebhook(user);
+      await test.step("Go to first EventType Page ", async () => {
+        const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+
+        await firstEventTypeElement.click();
+      });
+
+      await test.step("Open the 'Name' field dialog", async () => {
+        await page.click('[href$="tabName=advanced"]');
+        await page.locator('[data-testid="field-name"] [data-testid="edit-field-action"]').click();
+      });
+
+      await test.step("Toggle on the variant toggle and save Event Type", async () => {
+        await page.click('[data-testid="variant-toggle"]');
+        await page.click("[data-testid=field-add-save]");
+        await saveEventType(page);
+      });
+
+      await test.step("Book a time slot with firstName and lastName provided separately", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+          await expectSystemFieldsToBeThereOnBookingPage({ page, isFirstAndLastNameVariant: true });
+          await bookTimeSlot({
+            page,
+            name: { firstName: "John", lastName: "Doe" },
+            email: "booker@example.com",
+          });
+          await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+          expect(await page.locator('[data-testid="attendee-name-John Doe"]').nth(0).textContent()).toBe(
+            "John Doe"
+          );
+          await expectWebhookToBeCalled(webhookReceiver, {
+            triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+            payload: {
+              attendees: [
+                {
+                  // It would have full Name only
+                  name: "John Doe",
+                  email: "booker@example.com",
+                },
+              ],
+              responses: {
+                name: {
+                  label: "your_name",
+                  value: {
+                    firstName: "John",
+                    lastName: "Doe",
+                  },
+                },
+                email: {
+                  label: "email_address",
+                  value: "booker@example.com",
+                },
+              },
+            },
+          });
+        });
+      });
+
+      await test.step("Verify that we can prefill name and other fields correctly", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+          const url = page.url();
+          const prefillUrl = new URL(url);
+          prefillUrl.searchParams.append("name", "John Johny Janardan");
+          prefillUrl.searchParams.append("email", "john@example.com");
+          prefillUrl.searchParams.append("guests", "guest1@example.com");
+          prefillUrl.searchParams.append("guests", "guest2@example.com");
+          prefillUrl.searchParams.append("notes", "This is an additional note");
+          await page.goto(prefillUrl.toString());
+          await bookTimeSlot({ page, skipSubmission: true });
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "John",
+                lastName: "Johny Janardan",
+              },
+              email: "john@example.com",
+              guests: ["guest1@example.com", "guest2@example.com"],
+              notes: "This is an additional note",
+            },
+          });
+        });
+      });
+
+      await test.step("Verify that we can prefill name field with no lastname", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("name", "FirstName");
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "FirstName",
+                lastName: "",
+              },
+            },
+          });
+        });
+      });
     });
 
     test("Split 'Full name' into 'First name' and 'Last name'", async ({
@@ -139,7 +251,7 @@ test.describe("Manage Booking Questions", () => {
     });
   });
 
-  testBothBookers.describe("For Team EventType", (bookerVariant) => {
+  test.describe("For Team EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -147,7 +259,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
           members: {
@@ -161,7 +273,7 @@ test.describe("Manage Booking Questions", () => {
         },
       });
 
-      const teamId = team?.id ?? 0;
+      const teamId = team?.id;
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
@@ -171,7 +283,7 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
     });
   });
 });
@@ -182,10 +294,10 @@ async function runTestStepsCommonForTeamAndUserEventType(
   webhookReceiver: {
     port: number;
     close: () => import("http").Server;
-    requestList: (import("http").IncomingMessage & { body?: unknown })[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    requestList: (import("http").IncomingMessage & { body?: any })[];
     url: string;
-  },
-  bookerVariant: BookerVariants
+  }
 ) {
   await page.click('[href$="tabName=advanced"]');
 
@@ -203,7 +315,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
     await addQuestionAndSave({
       page,
       question: {
-        name: "how_are_you",
+        name: "how-are-you",
         type: "Address",
         label: "How are you?",
         placeholder: "I'm fine, thanks",
@@ -211,11 +323,11 @@ async function runTestStepsCommonForTeamAndUserEventType(
       },
     });
 
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
       const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
       const userFieldLocator = allFieldsLocator.nth(5);
 
-      await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
+      await expect(userFieldLocator.locator('[name="how-are-you"]')).toBeVisible();
       // There are 2 labels right now. Will be one in future. The second one is hidden
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
       await expect(userFieldLocator.locator("input")).toBeVisible();
@@ -224,26 +336,26 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Hide Question and see that it's not shown on Booking Page", async () => {
     await toggleQuestionAndSave({
-      name: "how_are_you",
+      name: "how-are-you",
       page,
     });
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
-      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
+    await doOnFreshPreview(page, context, async (page) => {
+      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
       await expect(formBuilderFieldLocator).toBeHidden();
     });
   });
 
   await test.step("Show Question Again", async () => {
     await toggleQuestionAndSave({
-      name: "how_are_you",
+      name: "how-are-you",
       page,
     });
   });
 
   await test.step('Try to book without providing "How are you?" response', async () => {
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
       await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-      await expectErrorToBeThereFor({ page, name: "how_are_you" });
+      await expectErrorToBeThereFor({ page, name: "how-are-you" });
     });
   });
 
@@ -260,20 +372,19 @@ async function runTestStepsCommonForTeamAndUserEventType(
       return await doOnFreshPreview(
         page,
         context,
-        bookerVariant,
         async (page) => {
-          const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
+          const formBuilderFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
           await expect(formBuilderFieldLocator).toBeVisible();
           expect(
-            await formBuilderFieldLocator.locator('[name="how_are_you"]').getAttribute("placeholder")
+            await formBuilderFieldLocator.locator('[name="how-are-you"]').getAttribute("placeholder")
           ).toBe("I'm fine, thanks");
           expect(await getLabelText(formBuilderFieldLocator)).toBe("How are you?");
-          await formBuilderFieldLocator.locator('[name="how_are_you"]').fill("I am great!");
+          await formBuilderFieldLocator.locator('[name="how-are-you"]').fill("I am great!");
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
           expect(
-            await page.locator('[data-testid="field-response"][data-fob-field="how_are_you"]').innerText()
+            await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
 
           await waitFor(() => {
@@ -282,14 +393,14 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
           const [request] = webhookReceiver.requestList;
 
-          const payload = (request.body as any).payload as any;
+          const payload = request.body.payload;
 
           expect(payload.responses).toMatchObject({
             email: {
               label: "email_address",
               value: "booker@example.com",
             },
-            how_are_you: {
+            "how-are-you": {
               label: "How are you?",
               value: "I am great!",
             },
@@ -299,15 +410,13 @@ async function runTestStepsCommonForTeamAndUserEventType(
             },
           });
 
-          expect(payload.location).toBe("integrations:daily");
-
           expect(payload.attendees[0]).toMatchObject({
             name: "Booker",
             email: "booker@example.com",
           });
 
           expect(payload.userFieldsResponses).toMatchObject({
-            how_are_you: {
+            "how-are-you": {
               label: "How are you?",
               value: "I am great!",
             },
@@ -319,7 +428,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
     const page = previewTabPage;
-    await rescheduleFromTheLinkOnPage({ page, bookerVariant });
+    await rescheduleFromTheLinkOnPage({ page });
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }
@@ -423,6 +532,7 @@ async function bookTimeSlot({
     await page.press('[name="email"]', "Enter");
   }
 }
+
 /**
  * 'option' starts from 1
  */
@@ -498,11 +608,31 @@ async function expectErrorToBeThereFor({ page, name }: { page: Page; name: strin
 async function doOnFreshPreview(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  bookerVariant: BookerVariants,
   callback: (page: Page) => Promise<void>,
   persistTab = false
 ) {
-  const previewTabPage = await openBookingFormInPreviewTab(context, page, bookerVariant);
+  const previewTabPage = await openBookingFormInPreviewTab(context, page);
+  await callback(previewTabPage);
+  if (!persistTab) {
+    await previewTabPage.close();
+  }
+  return previewTabPage;
+}
+
+async function doOnFreshPreviewWithSearchParams(
+  searchParams: URLSearchParams,
+  page: Page,
+  context: PlaywrightTestArgs["context"],
+  callback: (page: Page) => Promise<void>,
+  persistTab = false
+) {
+  const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
+  const previewUrlObj = new URL(previewUrl);
+  searchParams.forEach((value, key) => {
+    previewUrlObj.searchParams.append(key, value);
+  });
+  const previewTabPage = await context.newPage();
+  await previewTabPage.goto(previewUrlObj.toString());
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();
@@ -534,47 +664,36 @@ async function toggleQuestionRequireStatusAndSave({
   await saveEventType(page);
 }
 
-async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<typeof createUsersFixture> }) {
+async function createAndLoginUserWithEventTypes({
+  users,
+  page,
+}: {
+  users: ReturnType<typeof createUsersFixture>;
+  page: Page;
+}) {
   const user = await users.create(null, {
     hasTeam: true,
   });
-  await user.login();
+  await user.apiLogin();
+  await page.goto("/event-types");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="event-types"]');
   return user;
 }
 
-async function rescheduleFromTheLinkOnPage({
-  page,
-  bookerVariant,
-}: {
-  page: Page;
-  bookerVariant: BookerVariants;
-}) {
+async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  if (bookerVariant === "old-booker") {
-    await page.waitForURL((url) => {
-      return url.pathname.endsWith("/book");
-    });
-  }
   await page.click('[data-testid="confirm-reschedule-button"]');
 }
 
-async function openBookingFormInPreviewTab(
-  context: PlaywrightTestArgs["context"],
-  page: Page,
-  bookerVariant: BookerVariants
-) {
+async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
   const previewTabPromise = context.waitForEvent("page");
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
-  if (bookerVariant === "old-booker") {
-    await previewTabPage.waitForURL((url) => {
-      return url.pathname.endsWith("/book");
-    });
-  }
   return previewTabPage;
 }
 

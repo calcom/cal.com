@@ -8,6 +8,7 @@
     "ban.spellright", // Spell check for docs
     "stripe.vscode-stripe", // stripe VSCode extension
     "Prisma.prisma", // syntax|format|completion for prisma
-    "rebornix.project-snippets" // Share useful snippets between collaborators
+    "rebornix.project-snippets", // Share useful snippets between collaborators
+    "inlang.vs-code-extension" // improved i18n DX
   ]
 }

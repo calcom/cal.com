@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -29,6 +29,12 @@ export function Logout(props: Props) {
   }, [props.query?.survey]);
   const { t } = useLocale();
 
+  const message = () => {
+    if (props.query?.passReset === "true") return "reset_your_password";
+    if (props.query?.emailChange === "true") return "email_change";
+    return "hope_to_see_you_soon";
+  };
+
   return (
     <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
       <div className="mb-4">
@@ -40,7 +46,7 @@ export function Logout(props: Props) {
             {t("youve_been_logged_out")}
           </h3>
           <div className="mt-2">
-            <p className="text-subtle text-sm">{t("hope_to_see_you_soon")}</p>
+            <p className="text-subtle text-sm">{t(message())}</p>
           </div>
         </div>
       </div>

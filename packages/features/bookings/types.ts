@@ -8,7 +8,6 @@ export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
 export enum EventDetailBlocks {
-  DESCRIPTION,
   // Includes duration select when event has multiple durations.
   DURATION,
   LOCATION,

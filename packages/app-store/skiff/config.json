@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Skiff",
+  "slug": "skiff",
+  "type": "skiff_calendar",
+  "logo": "icon.svg",
+  "url": "https://skiff.com/blog/skiff-cal-com-launch",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Skiff World, Inc.",
+  "email": "hello@skiff.org",
+  "description": "End-to-end encrypted, private calendar, email, notes, and drive.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app",
+  "dirName": "skiff"
+}

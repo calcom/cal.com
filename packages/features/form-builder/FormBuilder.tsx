@@ -6,6 +6,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
   Label,
   Badge,
@@ -26,8 +27,10 @@ import {
 import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
+import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -178,7 +181,7 @@ export const FormBuilder = function FormBuilder({
                           {index >= 1 && (
                             <button
                               type="button"
-                              className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                              className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                               onClick={() => swap(index, index - 1)}>
                               <ArrowUp className="h-5 w-5" />
                             </button>
@@ -186,7 +189,7 @@ export const FormBuilder = function FormBuilder({
                           {index < fields.length - 1 && (
                             <button
                               type="button"
-                              className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                              className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                               onClick={() => swap(index, index + 1)}>
                               <ArrowDown className="h-5 w-5" />
                             </button>
@@ -380,7 +383,7 @@ function Options({
                 {value.length > 2 && !readOnly && (
                   <Button
                     type="button"
-                    className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
                     StartIcon={X}
@@ -450,10 +453,10 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent enableOverflow data-testid="edit-field-dialog">
-        <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
-        <div>
-          <Form form={fieldForm} handleSubmit={handleSubmit}>
+      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
+        <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
+          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               id="test-field-type"
@@ -471,9 +474,6 @@ function FieldEditDialog({
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
-              classNames={{
-                menuList: () => "min-h-[27.25rem]",
-              }}
             />
             {(() => {
               if (!variantsConfig) {
@@ -483,11 +483,14 @@ function FieldEditDialog({
                       required
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
+                      onChange={(e) => {
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                      }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||
                         fieldForm.getValues("editable") === "system-but-optional"
                       }
-                      label="Identifier"
+                      label={t("identifier")}
                     />
                     <InputField
                       {...fieldForm.register("label")}
@@ -542,15 +545,15 @@ function FieldEditDialog({
 
               return <VariantFields variantsConfig={variantsConfig} fieldForm={fieldForm} />;
             })()}
+          </div>
 
-            <DialogFooter>
-              <DialogClose color="secondary">{t("cancel")}</DialogClose>
-              <Button data-testid="field-add-save" type="submit">
-                {isFieldEditMode ? t("save") : t("add")}
-              </Button>
-            </DialogFooter>
-          </Form>
-        </div>
+          <DialogFooter className="relative rounded px-8" showDivider>
+            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <Button data-testid="field-add-save" type="submit">
+              {isFieldEditMode ? t("save") : t("add")}
+            </Button>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );
@@ -565,9 +568,21 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
   const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
   const variantsConfig = field.variantsConfig;
+  const variantsConfigVariants = variantsConfig?.variants;
   const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
   if (!fieldTypeConfigVariants || !variantsConfig) {
-    return <span>{field.label || t(field.defaultLabel || "")}</span>;
+    if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+      return (
+        <span
+          dangerouslySetInnerHTML={{
+            // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
+            __html: markdownToSafeHTML(field.label || "") || t(field.defaultLabel || ""),
+          }}
+        />
+      );
+    } else {
+      return <span>{field.label || t(field.defaultLabel || "")}</span>;
+    }
   }
   const variant = field.variant || defaultVariant;
   if (!variant) {
@@ -575,7 +590,9 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
     );
   }
-  return <span>{t(fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label)}</span>;
+  const label =
+    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+  return <span>{t(label)}</span>;
 }
 
 function VariantSelector() {
@@ -643,7 +660,7 @@ function VariantFields({
           fieldForm.getValues("editable") === "system" ||
           fieldForm.getValues("editable") === "system-but-optional"
         }
-        label="Identifier"
+        label={t("identifier")}
       />
 
       <ul

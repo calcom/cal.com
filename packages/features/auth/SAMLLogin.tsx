@@ -63,7 +63,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
           email,
         });
       }}>
-      {t("signin_with_saml")}
+      {t("signin_with_saml_oidc")}
     </Button>
   );
 }

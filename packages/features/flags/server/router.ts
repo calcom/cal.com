@@ -1,6 +1,3 @@
-import { z } from "zod";
-
-import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -17,14 +14,4 @@ export const featureFlagRouter = router({
     const { prisma } = ctx;
     return getFeatureFlagMap(prisma);
   }),
-  toggle: authedAdminProcedure
-    .input(z.object({ slug: z.string(), enabled: z.boolean() }))
-    .mutation(({ ctx, input }) => {
-      const { prisma, user } = ctx;
-      const { slug, enabled } = input;
-      return prisma.feature.update({
-        where: { slug },
-        data: { enabled, updatedBy: user.id },
-      });
-    }),
 });

@@ -11,7 +11,12 @@ export function UserFieldsResponses(props: { calEvent: CalendarEvent }) {
     <>
       {Object.keys(labelValueMap).map((key) =>
         labelValueMap[key] !== "" ? (
-          <Info key={key} label={key} description={`${labelValueMap[key]}`} withSpacer />
+          <Info
+            key={key}
+            label={key}
+            description={`${labelValueMap[key] ? labelValueMap[key] : ""}`}
+            withSpacer
+          />
         ) : null
       )}
     </>

@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -7,7 +7,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 
-export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
   const slug = appConfig.slug;
   const appType = appConfig.type;

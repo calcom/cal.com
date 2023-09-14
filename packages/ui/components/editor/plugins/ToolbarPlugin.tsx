@@ -358,6 +358,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.updateTemplate]);
 
   useEffect(() => {
@@ -381,6 +382,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         });
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -392,7 +394,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       }),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
-        (_payload, newEditor) => {
+        (_payload, _newEditor) => {
           updateToolbar();
           return false;
         },

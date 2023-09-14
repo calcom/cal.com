@@ -28,7 +28,7 @@ import {
   Select,
   SkeletonText,
   Switch,
-  Checkbox,
+  CheckboxField,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
@@ -43,11 +43,13 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   weekday,
   control,
   CopyButton,
+  disabled,
 }: {
   name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
   CopyButton: JSX.Element;
+  disabled?: boolean;
 }) => {
   const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
@@ -60,7 +62,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
           <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
-                disabled={!watchDayRange}
+                disabled={!watchDayRange || disabled}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
@@ -69,18 +71,17 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
       <>
         {watchDayRange ? (
           <div className="flex sm:ml-2">
-            <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
+            <DayRanges control={control} name={name} disabled={disabled} />
+            {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
           </div>
         ) : (
-          <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
+          <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
         )}
       </>
     </div>
@@ -134,11 +135,13 @@ const Schedule = <
 >({
   name,
   control,
+  disabled,
   weekStart = 0,
 }: {
   name: TPath;
   control: Control<TFieldValues>;
   weekStart?: number;
+  disabled?: boolean;
 }) => {
   const { i18n } = useLocale();
 
@@ -150,6 +153,7 @@ const Schedule = <
         const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
+            disabled={disabled}
             name={dayRangeName}
             key={weekday}
             weekday={weekday}
@@ -164,15 +168,17 @@ const Schedule = <
 
 export const DayRanges = <TFieldValues extends FieldValues>({
   name,
+  disabled,
   control,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
+  disabled?: boolean;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
 
-  const { remove, fields, append } = useFieldArray({
+  const { remove, fields, prepend, append } = useFieldArray({
     control,
     name,
   });
@@ -185,6 +191,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
               <Button
+                disabled={disabled}
                 tooltip={t("add_time_availability")}
                 className="text-default mx-2 "
                 type="button"
@@ -193,8 +200,18 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const nextRange: any = getNextRange(getValues(`${name}.${fields.length - 1}`));
-                  if (nextRange) append(nextRange);
+                  const slotRange: any = getDateSlotRange(
+                    getValues(`${name}.${fields.length - 1}`),
+                    getValues(`${name}.0`)
+                  );
+
+                  if (slotRange?.append) {
+                    append(slotRange.append);
+                  }
+
+                  if (slotRange?.prepend) {
+                    prepend(slotRange.prepend);
+                  }
                 }}
               />
             )}
@@ -211,15 +228,18 @@ export const DayRanges = <TFieldValues extends FieldValues>({
 const RemoveTimeButton = ({
   index,
   remove,
+  disabled,
   className,
 }: {
   index: number | number[];
   remove: UseFieldArrayRemove;
   className?: string;
+  disabled?: boolean;
 }) => {
   const { t } = useLocale();
   return (
     <Button
+      disabled={disabled}
       type="button"
       variant="icon"
       color="destructive"
@@ -231,12 +251,18 @@ const RemoveTimeButton = ({
   );
 };
 
-const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
+const TimeRangeField = ({
+  className,
+  value,
+  onChange,
+  disabled,
+}: { className?: string; disabled?: boolean } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={className}>
+    <div className={classNames("flex flex-row gap-1", className)}>
       <LazySelect
         className="inline-block w-[100px]"
+        isDisabled={disabled}
         value={value.start}
         max={value.end}
         onChange={(option) => {
@@ -246,6 +272,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
       <span className="text-default mx-2 w-2 self-center"> - </span>
       <LazySelect
         className="inline-block w-[100px] rounded-md"
+        isDisabled={disabled}
         value={value.end}
         min={value.start}
         onChange={(option) => {
@@ -351,20 +378,34 @@ const useOptions = () => {
   return { options: filteredOptions, filter };
 };
 
-const getNextRange = (field?: FieldArrayWithId) => {
-  const nextRangeStart = dayjs((field as unknown as TimeRange).end).utc();
+const getDateSlotRange = (endField?: FieldArrayWithId, startField?: FieldArrayWithId) => {
+  const timezoneStartRange = dayjs((startField as unknown as TimeRange).start).utc();
+  const nextRangeStart = dayjs((endField as unknown as TimeRange).end).utc();
   const nextRangeEnd =
     nextRangeStart.hour() === 23
       ? dayjs(nextRangeStart).add(59, "minutes").add(59, "seconds").add(999, "milliseconds")
       : dayjs(nextRangeStart).add(1, "hour");
 
-  if (
-    nextRangeEnd.isBefore(nextRangeStart.endOf("day")) ||
-    nextRangeEnd.isSame(nextRangeStart.endOf("day"))
-  ) {
+  const endOfDay = nextRangeStart.endOf("day");
+
+  if (!nextRangeStart.isSame(endOfDay)) {
     return {
-      start: nextRangeStart.toDate(),
-      end: nextRangeEnd.toDate(),
+      append: {
+        start: nextRangeStart.toDate(),
+        end: nextRangeEnd.isAfter(endOfDay) ? endOfDay.toDate() : nextRangeEnd.toDate(),
+      },
+    };
+  }
+
+  const previousRangeStart = dayjs((startField as unknown as TimeRange).start).subtract(1, "hour");
+  const startOfDay = timezoneStartRange.startOf("day");
+
+  if (!timezoneStartRange.isSame(startOfDay)) {
+    return {
+      prepend: {
+        start: previousRangeStart.isBefore(startOfDay) ? startOfDay.toDate() : previousRangeStart.toDate(),
+        end: timezoneStartRange.toDate(),
+      },
     };
   }
 };
@@ -423,7 +464,7 @@ const CopyTimes = ({
           <li key="select all">
             <label className="text-default flex w-full items-center justify-between">
               <span className="px-1">{t("select_all")}</span>
-              <Checkbox
+              <CheckboxField
                 description=""
                 value={t("select_all")}
                 checked={selected.length === 7}
@@ -448,7 +489,7 @@ const CopyTimes = ({
               <li key={weekday}>
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
-                  <Checkbox
+                  <CheckboxField
                     description=""
                     value={weekdayIndex}
                     checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}

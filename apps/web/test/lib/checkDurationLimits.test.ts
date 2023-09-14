@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
+import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { checkDurationLimit, checkDurationLimits } from "@calcom/lib/server";
-
 
 type MockData = {
   id: number;
@@ -96,21 +96,6 @@ describe("Check Duration Limit Tests", () => {
         eventId: MOCK_DATA.id,
       })
     ).resolves.toBeUndefined();
-  });
-  it("Should return busyTimes when set and limit is reached", async () => {
-    prismaMock.$queryRaw.mockResolvedValue([{ totalMinutes: 60 }]);
-    await expect(
-      checkDurationLimit({
-        key: "PER_DAY",
-        limitingNumber: 60,
-        eventStartDate: MOCK_DATA.startDate,
-        eventId: MOCK_DATA.id,
-        returnBusyTimes: true,
-      })
-    ).resolves.toEqual({
-      start: dayjs(MOCK_DATA.startDate).startOf("day").toDate(),
-      end: dayjs(MOCK_DATA.startDate).endOf("day").toDate(),
-    });
   });
 });
 

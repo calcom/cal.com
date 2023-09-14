@@ -6,14 +6,8 @@ const findValidApiKey = async (apiKey: string, appId?: string) => {
 
   const validKey = await prisma.apiKey.findFirst({
     where: {
-      AND: [
-        {
-          hashedKey,
-        },
-        {
-          appId,
-        },
-      ],
+      hashedKey,
+      appId,
       OR: [
         {
           expiresAt: {

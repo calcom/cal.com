@@ -6,7 +6,7 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DatePicker, DialogFooter, Form, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
+import { Button, DialogFooter, Form, showToast, Switch, TextField, Tooltip, SelectField } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ApiKeyDialogForm({
@@ -29,8 +29,11 @@ export default function ApiKeyDialogForm({
       showToast(t("api_key_update_failed"), "error");
     },
   });
-
+  type Option = { value: Date | null | undefined; label: string };
   const [apiKey, setApiKey] = useState("");
+  const [expiryDate, setExpiryDate] = useState<Date | null | undefined>(
+    () => defaultValues?.expiresAt || dayjs().add(30, "day").toDate()
+  );
   const [successfulNewApiKeyModal, setSuccessfulNewApiKeyModal] = useState(false);
   const [apiKeyDetails, setApiKeyDetails] = useState({
     expiresAt: null as Date | null,
@@ -42,16 +45,35 @@ export default function ApiKeyDialogForm({
     defaultValues: {
       note: defaultValues?.note || "",
       neverExpires: defaultValues?.neverExpires || false,
-      expiresAt: defaultValues?.expiresAt || dayjs().add(1, "month").toDate(),
+      expiresAt: defaultValues?.expiresAt || dayjs().add(30, "day").toDate(),
     },
   });
   const watchNeverExpires = form.watch("neverExpires");
+
+  const expiresAtOptions: Option[] = [
+    {
+      label: t("seven_days"),
+      value: dayjs().add(7, "day").toDate(),
+    },
+    {
+      label: t("thirty_days"),
+      value: dayjs().add(30, "day").toDate(),
+    },
+    {
+      label: t("three_months"),
+      value: dayjs().add(3, "month").toDate(),
+    },
+    {
+      label: t("one_year"),
+      value: dayjs().add(1, "year").toDate(),
+    },
+  ];
 
   return (
     <LicenseRequired>
       {successfulNewApiKeyModal ? (
         <>
-          <div className="mb-10">
+          <div className="mb-6">
             <h2 className="font-semi-bold font-cal text-emphasis mb-2 text-xl tracking-wide">
               {t("success_api_key_created")}
             </h2>
@@ -62,7 +84,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="bg-subtle text-default mb-2 w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -73,19 +95,19 @@ export default function ApiKeyDialogForm({
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className="rounded-l-none py-[19px] text-base ">
-                  <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  className="rounded-l-none text-base"
+                  StartIcon={Clipboard}>
                   {t("copy")}
                 </Button>
               </Tooltip>
             </div>
             <span className="text-muted text-sm">
               {apiKeyDetails.neverExpires
-                ? t("never_expire_key")
+                ? t("never_expires")
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider className="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("done")}
             </Button>
@@ -107,11 +129,11 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mt-1 mb-10">
+          <div className="mb-4 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            <p className="text-subtle mt-1 mb-5 text-sm">{t("api_key_modal_subtitle")}</p>
+            <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
           </div>
           <div>
             <Controller
@@ -140,7 +162,7 @@ export default function ApiKeyDialogForm({
                   control={form.control}
                   render={({ field: { onChange, value } }) => (
                     <Switch
-                      label={t("never_expire_key")}
+                      label={t("never_expires")}
                       onCheckedChange={onChange}
                       checked={value}
                       disabled={!!defaultValues}
@@ -150,19 +172,44 @@ export default function ApiKeyDialogForm({
               </div>
               <Controller
                 name="expiresAt"
-                render={({ field: { onChange, value } }) => (
-                  <DatePicker
-                    disabled={watchNeverExpires || !!defaultValues}
-                    minDate={new Date()}
-                    date={value}
-                    onDatesChange={onChange}
-                  />
-                )}
+                render={({ field: { onChange, value } }) => {
+                  const defaultValue = expiresAtOptions[1];
+
+                  return (
+                    <SelectField
+                      styles={{
+                        singleValue: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                        option: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                      }}
+                      isDisabled={watchNeverExpires || !!defaultValues}
+                      containerClassName="data-testid-field-type"
+                      options={expiresAtOptions}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        onChange(option.value);
+                        setExpiryDate(option.value);
+                      }}
+                      defaultValue={defaultValue}
+                    />
+                  );
+                }}
               />
+              <span className="text-subtle mt-2 text-xs">
+                {t("api_key_expires_on")}
+                <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
+              </span>
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter showDivider className="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("cancel")}
             </Button>

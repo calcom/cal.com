@@ -1,18 +1,19 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, showToast, DialogFooter, DialogClose } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { Dialog, showToast, ConfirmationDialogContent } from "@calcom/ui";
 
 interface DisconnectIntegrationModalProps {
   credentialId: number | null;
   isOpen: boolean;
   handleModelClose: () => void;
+  teamId?: number;
 }
 
 export default function DisconnectIntegrationModal({
   credentialId,
   isOpen,
   handleModelClose,
+  teamId,
 }: DisconnectIntegrationModalProps) {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -32,24 +33,17 @@ export default function DisconnectIntegrationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
-      <DialogContent
+      <ConfirmationDialogContent
+        variety="danger"
         title={t("remove_app")}
-        description={t("are_you_sure_you_want_to_remove_this_app")}
-        type="confirmation"
-        Icon={AlertCircle}>
-        <DialogFooter>
-          <DialogClose onClick={handleModelClose} />
-          <DialogClose
-            color="primary"
-            onClick={() => {
-              if (credentialId) {
-                mutation.mutate({ id: credentialId });
-              }
-            }}>
-            {t("yes_remove_app")}
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
+        confirmBtnText={t("yes_remove_app")}
+        onConfirm={() => {
+          if (credentialId) {
+            mutation.mutate({ id: credentialId, teamId });
+          }
+        }}>
+        <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
+      </ConfirmationDialogContent>
     </Dialog>
   );
 }

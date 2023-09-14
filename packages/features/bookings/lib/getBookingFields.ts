@@ -1,6 +1,10 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import type { z } from "zod";
 
+import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
@@ -13,10 +17,9 @@ import {
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
 if (typeof window !== "undefined") {
-  console.warn("This file should not be imported on the client side");
+  // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.
+  throw new Error("`getBookingFields` must not be imported on the client side.");
 }
-
-export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
 /**
  * PHONE -> Phone
@@ -29,7 +32,7 @@ export const getSmsReminderNumberField = () =>
   ({
     name: SMS_REMINDER_NUMBER_FIELD,
     type: "phone",
-    defaultLabel: "number_sms_notifications",
+    defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
   } as const);
@@ -54,12 +57,14 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   customInputs,
   metadata,
   workflows,
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
   workflows: Prisma.EventTypeGetPayload<{
@@ -84,6 +89,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
+    disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
     workflows,
@@ -93,12 +99,14 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
+  disableBookingTitle,
   additionalNotesRequired,
   customInputs,
   workflows,
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
+  disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
   workflows: Prisma.EventTypeGetPayload<{
@@ -117,6 +125,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   }>["workflows"];
 }) => {
   // If bookingFields is set already, the migration is done.
+  const hideBookingTitle = disableBookingTitle ?? true;
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
     [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
@@ -130,7 +139,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
-      if (step.action === "SMS_ATTENDEE") {
+      if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
         smsNumberSources.push(
           getSmsReminderNumberSource({
@@ -207,6 +216,22 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
     {
+      defaultLabel: "what_is_this_meeting_about",
+      type: "text",
+      name: "title",
+      editable: "system-but-optional",
+      required: true,
+      hidden: hideBookingTitle,
+      defaultPlaceholder: "",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
       defaultLabel: "additional_notes",
       type: "textarea",
       name: "notes",
@@ -226,6 +251,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "multiemail",
       editable: "system-but-optional",
       name: "guests",
+      defaultPlaceholder: "email",
       required: false,
       hidden: disableGuests,
       sources: [
@@ -237,7 +263,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "reschedule_reason",
+      defaultLabel: "reason_for_reschedule",
       type: "textarea",
       editable: "system-but-optional",
       name: "rescheduleReason",
@@ -277,7 +303,9 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
+    const existingBookingFieldIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
+    );
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
@@ -295,8 +323,13 @@ export const ensureBookingInputsHaveSystemFields = ({
   // Backward Compatibility for SMS Reminder Number
   // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
   // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (smsNumberSources.length && !bookingFields.find((f) => f.name !== SMS_REMINDER_NUMBER_FIELD)) {
-    const indexForLocation = bookingFields.findIndex((f) => f.name === "location");
+  if (
+    smsNumberSources.length &&
+    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
+  ) {
+    const indexForLocation = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+    );
     // Add the SMS Reminder Number field after `location` field always
     bookingFields.splice(indexForLocation + 1, 0, {
       ...getSmsReminderNumberField(),
@@ -332,7 +365,9 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemAfterFields = [];
   for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
+    const existingBookingFieldIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
+    );
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);
@@ -344,7 +379,16 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-  bookingFields = bookingFields.concat(missingSystemAfterFields);
+
+  bookingFields = bookingFields.concat(missingSystemAfterFields).map((f) => {
+    return {
+      ...f,
+      // TODO: This has to be a FormBuilder feature and not be specific to bookingFields. Either use zod transform in FormBuilder to add labelAsSafeHtml automatically or add a getter for fields that would do this.
+      ...(fieldsThatSupportLabelAsSafeHtml.includes(f.type)
+        ? { labelAsSafeHtml: markdownToSafeHTML(f.label || null) || "" }
+        : null),
+    };
+  });
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

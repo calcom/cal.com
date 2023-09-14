@@ -25,6 +25,7 @@ module.exports = {
         success: "var(--cal-bg-success)",
         attention: "var(--cal-bg-attention)",
         error: "var(--cal-bg-error)",
+        darkerror: "var(--cal-bg-dark-error)",
         black: "#111111",
         brand: {
           default: "var(--cal-brand,#111827)",
@@ -63,6 +64,7 @@ module.exports = {
         subtle: `var(--cal-border-subtle, ${subtleColor})`,
         muted: "var(--cal-border-muted, #F3F4F6)",
         booker: `var(--cal-border-booker, ${subtleColor})`,
+        error: "var(--cal-border-error, #AA2E26)",
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -96,9 +98,13 @@ module.exports = {
           from: { opacity: 0, transform: "translateY(10px)" },
           to: { opacity: 1, transform: "none" },
         },
+        spinning: {
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        spinning: "spinning 0.75s linear infinite",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
@@ -145,7 +151,7 @@ module.exports = {
   plugins: [
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
-    require("tailwind-scrollbar"),
+    require("tailwind-scrollbar")({ nocompatible: true }),
     require("tailwindcss-radix")(),
     require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
@@ -162,6 +168,6 @@ module.exports = {
     }),
   ],
   variants: {
-    scrollbar: ["rounded", "dark"],
+    scrollbar: ["dark"],
   },
 };

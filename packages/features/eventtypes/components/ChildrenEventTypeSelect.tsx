@@ -1,6 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -34,18 +36,12 @@ export const ChildrenEventTypeSelect = ({
   onChange: (value: readonly ChildrenEventType[]) => void;
 }) => {
   const { t } = useLocale();
-
+  const orgBranding = useOrgBranding();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
     <>
       <Select
-        styles={{
-          option: (styles, { isDisabled }) => ({
-            ...styles,
-            backgroundColor: isDisabled ? "#F5F5F5" : "inherit",
-          }),
-        }}
         name={props.name}
         placeholder={t("select")}
         options={options}
@@ -67,13 +63,15 @@ export const ChildrenEventTypeSelect = ({
               <Avatar
                 size="mdLg"
                 className="overflow-visible"
-                imageSrc={`${CAL_URL}/${children.owner.username}/avatar.png`}
-                alt={children.owner.name || ""}
+                imageSrc={`${orgBranding ? getOrgFullDomain(orgBranding.slug) : CAL_URL}/${
+                  children.owner.username
+                }/avatar.png`}
+                alt={children.owner.name || children.owner.email || ""}
               />
               <div className="flex w-full flex-row justify-between">
                 <div className="flex flex-col">
                   <span className="text text-sm font-semibold leading-none">
-                    {children.owner.name}
+                    {children.owner.name || children.owner.email}
                     <div className="flex flex-row gap-1">
                       {children.owner.membership === MembershipRole.OWNER ? (
                         <Badge variant="gray">{t("owner")}</Badge>
@@ -83,9 +81,11 @@ export const ChildrenEventTypeSelect = ({
                       {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                     </div>
                   </span>
-                  <small className="text-subtle font-normal leading-normal">
-                    {`/${children.owner.username}/${children.slug}`}
-                  </small>
+                  {children.owner.username && (
+                    <small className="text-subtle font-normal leading-normal">
+                      {`/${children.owner.username}/${children.slug}`}
+                    </small>
+                  )}
                 </div>
                 <div className="flex flex-row items-center gap-2">
                   <Tooltip content={t("show_eventtype_on_profile")}>
@@ -103,7 +103,7 @@ export const ChildrenEventTypeSelect = ({
                     </div>
                   </Tooltip>
                   <ButtonGroup combined>
-                    {children.created && (
+                    {children.created && children.owner.username && (
                       <Tooltip content={t("preview")}>
                         <Button
                           color="secondary"

@@ -168,6 +168,7 @@ declare module "ical.js" {
     public isNegative: boolean;
     public icalclass: string;
     public icaltype: string;
+    public toSeconds(): number;
   }
 
   export class RecurExpansion {

@@ -4,8 +4,10 @@ import { sendLocationChangeEmails } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +23,7 @@ type EditLocationOptions = {
 };
 
 export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
-  const { bookingId, newLocation: location } = input;
+  const { bookingId, newLocation: location, details } = input;
   const { booking } = ctx;
 
   try {
@@ -36,6 +38,16 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         locale: true,
       },
     });
+
+    let conferenceCredential: CredentialPayload | null = null;
+
+    if (details?.credentialId) {
+      conferenceCredential = await prisma.credential.findFirst({
+        where: {
+          id: details.credentialId,
+        },
+      });
+    }
 
     const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
@@ -69,12 +81,25 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       uid: booking.uid,
       recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
       location,
-      destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
+      conferenceCredentialId: details?.credentialId,
+      destinationCalendar: booking?.destinationCalendar
+        ? [booking?.destinationCalendar]
+        : booking?.user?.destinationCalendar
+        ? [booking?.user?.destinationCalendar]
+        : [],
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
-    const eventManager = new EventManager(ctx.user);
+    const credentials = await getUsersCredentials(ctx.user.id);
+
+    const eventManager = new EventManager({
+      ...ctx.user,
+      credentials: [
+        ...(credentials ? credentials : []),
+        ...(conferenceCredential ? [conferenceCredential] : []),
+      ],
+    });
 
     const updatedResult = await eventManager.updateLocation(evt, booking);
     const results = updatedResult.results;

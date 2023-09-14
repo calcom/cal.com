@@ -1,11 +1,17 @@
-import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import { getSchedule } from "./util";
+import type { IncomingMessage } from "http";
 
-type GetScheduleOptions = {
-  ctx: Record<string, unknown>;
+import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+import { getAvailableSlots } from "./util";
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
   input: TGetScheduleInputSchema;
 };
 
-export const getScheduleHandler = async ({ input }: GetScheduleOptions) => {
-  return await getSchedule(input);
+interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
+  return await getAvailableSlots({ ctx, input });
 };

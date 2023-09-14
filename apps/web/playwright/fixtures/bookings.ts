@@ -19,9 +19,12 @@ export const createBookingsFixture = (page: Page) => {
       username: string | null,
       eventTypeId = -1,
       {
+        title = "",
         rescheduled = false,
         paid = false,
         status = "ACCEPTED",
+        startTime,
+        endTime,
         attendees = {
           create: {
             email: "attendee@example.com",
@@ -39,9 +42,9 @@ export const createBookingsFixture = (page: Page) => {
       const booking = await prisma.booking.create({
         data: {
           uid: uid,
-          title: "30min",
-          startTime: startDate,
-          endTime: endDateParam || dayjs().add(1, "day").add(30, "minutes").toDate(),
+          title: title || "30min",
+          startTime: startTime || startDate,
+          endTime: endTime || endDateParam || dayjs().add(1, "day").add(30, "minutes").toDate(),
           user: {
             connect: {
               id: userId,
@@ -58,10 +61,11 @@ export const createBookingsFixture = (page: Page) => {
           status,
         },
       });
-      const bookingFixture = createBookingFixture(booking, store.page!);
+      const bookingFixture = createBookingFixture(booking, store.page);
       store.bookings.push(bookingFixture);
       return bookingFixture;
     },
+    update: async (args: Prisma.BookingUpdateArgs) => await prisma.booking.update(args),
     get: () => store.bookings,
     delete: async (id: number) => {
       await prisma.booking.delete({
@@ -80,7 +84,11 @@ const createBookingFixture = (booking: Booking, page: Page) => {
   return {
     id: store.booking.id,
     uid: store.booking.uid,
-    self: async () => (await prisma.booking.findUnique({ where: { id: store.booking.id } }))!,
-    delete: async () => (await prisma.booking.delete({ where: { id: store.booking.id } }))!,
+    self: async () =>
+      await prisma.booking.findUnique({
+        where: { id: store.booking.id },
+        include: { attendees: true, seatsReferences: true },
+      }),
+    delete: async () => await prisma.booking.delete({ where: { id: store.booking.id } }),
   };
 };

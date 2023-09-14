@@ -35,7 +35,7 @@ test.describe("Wipe my Cal App Test", () => {
     );
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await bookings.create(pro.id, pro.username, eventType.id, {});
-    await pro.login();
+    await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 

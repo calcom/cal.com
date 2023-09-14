@@ -2,16 +2,12 @@ import { decodeHTML } from "entities";
 import { createTransport } from "nodemailer";
 import { z } from "zod";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import { setTestEmail } from "@calcom/lib/testEmails";
 import prisma from "@calcom/prisma";
-
-declare let global: {
-  E2E_EMAILS?: Record<string, unknown>[];
-};
 
 export default class BaseEmail {
   name = "";
@@ -20,12 +16,12 @@ export default class BaseEmail {
     return "";
   }
 
-  protected getRecipientTime(time: string): Dayjs;
-  protected getRecipientTime(time: string, format: string): string;
-  protected getRecipientTime(time: string, format?: string) {
-    const date = dayjs(time).tz(this.getTimezone());
-    if (typeof format === "string") return date.format(format);
-    return date;
+  protected getLocale(): string {
+    return "";
+  }
+
+  protected getFormattedRecipientTime({ time, format }: { time: string; format: string }) {
+    return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
@@ -38,11 +34,15 @@ export default class BaseEmail {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      global.E2E_EMAILS = global.E2E_EMAILS || [];
-      global.E2E_EMAILS.push(this.getNodeMailerPayload());
-      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E==1");
-      return new Promise((r) => r("Skipped sendEmail for E2E"));
+
+    if (process.env.INTEGRATION_TEST_MODE === "true") {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      setTestEmail(this.getNodeMailerPayload());
+      console.log(
+        "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
+      );
+      return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
     const payload = this.getNodeMailerPayload();
@@ -52,7 +52,7 @@ export default class BaseEmail {
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
 
-    new Promise((resolve, reject) =>
+    await new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
         (_err, info) => {

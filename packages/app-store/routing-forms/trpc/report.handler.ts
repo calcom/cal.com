@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
@@ -40,7 +39,7 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
     });
   }
   // TODO: Second argument is required to return deleted operators.
-  const serializedForm = await getSerializableForm(form, true);
+  const serializedForm = await getSerializableForm({ form, withDeletedFields: true });
 
   const rows = await prisma.app_RoutingForms_FormResponse.findMany({
     where: {
@@ -52,9 +51,9 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
   });
   const fields = serializedForm?.fields || [];
   const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
-  const responses: string[][] = [];
+  const responses: (string | number)[][] = [];
   rows.forEach((r) => {
-    const rowResponses: string[] = [];
+    const rowResponses: (string | number)[] = [];
     responses.push(rowResponses);
     fields.forEach((field) => {
       if (!r.response) {
@@ -62,13 +61,13 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
       }
       const response = r.response as Response;
       const value = response[field.id]?.value || "";
-      let stringValue = "";
+      let transformedValue;
       if (value instanceof Array) {
-        stringValue = value.join(", ");
+        transformedValue = value.join(", ");
       } else {
-        stringValue = value;
+        transformedValue = value;
       }
-      rowResponses.push(stringValue);
+      rowResponses.push(transformedValue);
     });
   });
   const areThereNoResultsOrLessThanAskedFor = !rows.length || rows.length < take;

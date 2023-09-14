@@ -1,11 +1,12 @@
+import { Prisma } from "@prisma/client";
 import z from "zod";
 
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -27,12 +28,13 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { user } = ctx;
+  const { id, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
@@ -44,6 +46,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           dirName: true,
         },
       },
+      id: true,
+      type: true,
+      userId: true,
+      teamId: true,
+      invalid: true,
     },
   });
 
@@ -73,7 +80,10 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   for (const eventType of eventTypes) {
     if (eventType.locations) {
       // If it's a video, replace the location with Cal video
-      if (credential.app?.categories.includes(AppCategories.video)) {
+      if (
+        credential.app?.categories.includes(AppCategories.video) ||
+        credential.app?.categories.includes(AppCategories.conferencing)
+      ) {
         // Find the user's event types
 
         // Look for integration name from app slug
@@ -105,40 +115,22 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
 
     // If it's a calendar, remove the destination calendar from the event type
-    if (credential.app?.categories.includes(AppCategories.calendar)) {
-      if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
-        const destinationCalendar = await prisma.destinationCalendar.findFirst({
-          where: {
-            id: eventType.destinationCalendar?.id,
-          },
-        });
-        if (destinationCalendar) {
-          await prisma.destinationCalendar.delete({
-            where: {
-              id: destinationCalendar.id,
-            },
-          });
-        }
-      }
+    if (
+      credential.app?.categories.includes(AppCategories.calendar) &&
+      eventType.destinationCalendar?.credential?.appId === credential.appId
+    ) {
+      const destinationCalendar = await prisma.destinationCalendar.findFirst({
+        where: {
+          id: eventType.destinationCalendar?.id,
+        },
+      });
 
-      if (externalId) {
-        const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+      if (destinationCalendar) {
+        await prisma.destinationCalendar.delete({
           where: {
-            externalId: externalId,
+            id: destinationCalendar.id,
           },
         });
-        // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
-        if (existingSelectedCalendar) {
-          await prisma.selectedCalendar.delete({
-            where: {
-              userId_integration_externalId: {
-                userId: existingSelectedCalendar.userId,
-                externalId: existingSelectedCalendar.externalId,
-                integration: existingSelectedCalendar.integration,
-              },
-            },
-          });
-        }
       }
     }
 
@@ -215,6 +207,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   bookingFields: true,
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
+                  eventName: true,
                 },
               },
               uid: true,
@@ -273,32 +266,41 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-            await sendCancelledEmails({
-              type: booking?.eventType?.title as string,
-              title: booking.title,
-              description: booking.description,
-              customInputs: isPrismaObjOrUndefined(booking.customInputs),
-              ...getCalEventResponses({
-                bookingFields: booking.eventType?.bookingFields ?? null,
-                booking,
-              }),
-              startTime: booking.startTime.toISOString(),
-              endTime: booking.endTime.toISOString(),
-              organizer: {
-                email: booking?.user?.email as string,
-                name: booking?.user?.name ?? "Nameless",
-                timeZone: booking?.user?.timeZone as string,
-                language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+            await sendCancelledEmails(
+              {
+                type: booking?.eventType?.title as string,
+                title: booking.title,
+                description: booking.description,
+                customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                ...getCalEventResponses({
+                  bookingFields: booking.eventType?.bookingFields ?? null,
+                  booking,
+                }),
+                startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
+                organizer: {
+                  email: booking?.user?.email as string,
+                  name: booking?.user?.name ?? "Nameless",
+                  timeZone: booking?.user?.timeZone as string,
+                  language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                },
+                attendees: attendeesList,
+                uid: booking.uid,
+                recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                location: booking.location,
+                destinationCalendar: booking.destinationCalendar
+                  ? [booking.destinationCalendar]
+                  : booking.user?.destinationCalendar
+                  ? [booking.user?.destinationCalendar]
+                  : [],
+                cancellationReason: "Payment method removed by organizer",
+                seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                seatsShowAttendees: booking.eventType?.seatsShowAttendees,
               },
-              attendees: attendeesList,
-              uid: booking.uid,
-              recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-              location: booking.location,
-              destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
-              cancellationReason: "Payment method removed by organizer",
-              seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-              seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-            });
+              {
+                eventName: booking?.eventType?.eventName,
+              }
+            );
           }
         });
       }
@@ -338,8 +340,46 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
-  // Revalidate user calendar cache.
-  if (credential.app?.slug.includes("calendar")) {
-    await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+
+  // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
+  // If it's a calendar remove it from the SelectedCalendars
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    const selectedCalendars = await prisma.selectedCalendar.findMany({
+      where: {
+        userId: user.id,
+        integration: credential.type as string,
+      },
+    });
+
+    if (selectedCalendars.length) {
+      const calendar = await getCalendar(credential);
+
+      const calendars = await calendar?.listCalendars();
+
+      if (calendars && calendars.length > 0) {
+        calendars.map(async (cal) => {
+          prisma.selectedCalendar
+            .delete({
+              where: {
+                userId_integration_externalId: {
+                  userId: user.id,
+                  externalId: cal.externalId,
+                  integration: cal.integration as string,
+                },
+              },
+            })
+            .catch((error) => {
+              if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+                console.log(
+                  `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}. Could not find selected calendar.`
+                );
+              }
+              console.log(
+                `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId} with error: ${error}`
+              );
+            });
+        });
+      }
+    }
   }
 };

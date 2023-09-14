@@ -21,12 +21,11 @@ export const TotalBookingUsersTable = ({
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={item.user.avatar}
+                    imageSrc={"/" + item.user.username + "/avatar.png"}
                     title={item.user.name || ""}
                     className="m-2"
-                    gravatarFallbackMd5={item.emailMd5}
                   />
-                  <p className="text-default my-auto mx-0">
+                  <p className="text-default mx-0 my-auto">
                     <strong>{item.user.name}</strong>
                   </p>
                 </TableCell>

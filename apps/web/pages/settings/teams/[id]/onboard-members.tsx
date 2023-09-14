@@ -2,9 +2,9 @@ import Head from "next/head";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import WizardLayout from "@components/layouts/WizardLayout";
 
 const OnboardTeamMembersPage = () => {
   const { t } = useLocale();

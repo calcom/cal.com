@@ -30,6 +30,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     type: "exchange_calendar",
     key: encrypted,
     userId: session.user?.id,
+    teamId: null,
     appId: "exchange",
     invalid: false,
   };

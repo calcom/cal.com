@@ -3,7 +3,7 @@ import { loadStripe } from "@stripe/stripe-js/pure";
 
 export type Maybe<T> = T | undefined | null;
 
-const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!;
+const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "";
 let stripePromise: Promise<Stripe | null>;
 
 /**

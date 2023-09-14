@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as hubspot from "@hubspot/api-client";
 import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import type { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type {
+  SimplePublicObject,
+  SimplePublicObjectInput,
+} from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,10 +27,14 @@ import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
 
+interface CustomPlublicObjectInput extends SimplePublicObjectInput {
+  id?: string;
+}
+
 export default class HubspotCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
-  private auth: Promise<{ getToken: () => Promise<any> }>;
+  private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
   private log: typeof logger;
   private client_id = "";
   private client_secret = "";
@@ -113,9 +121,9 @@ export default class HubspotCalendarService implements Calendar {
     return hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
   };
 
-  private hubspotAssociate = async (meeting: any, contacts: any) => {
+  private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
     const batchInputPublicAssociation: BatchInputPublicAssociation = {
-      inputs: contacts.map((contact: any) => ({
+      inputs: contacts.map((contact: { id: string }) => ({
         _from: { id: meeting.id },
         to: { id: contact.id },
         type: "meeting_event_to_contact",
@@ -197,11 +205,12 @@ export default class HubspotCalendarService implements Calendar {
     };
   };
 
-  async handleMeetingCreation(event: CalendarEvent, contacts: SimplePublicObjectInput[]) {
+  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPlublicObjectInput[]) {
+    const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
     const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
       this.log.debug("meeting:creation:ok", { meetingEvent });
-      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
+      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
         return Promise.resolve({
@@ -264,6 +273,7 @@ export default class HubspotCalendarService implements Calendar {
     return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();
@@ -277,14 +287,14 @@ export default class HubspotCalendarService implements Calendar {
   }
 
   async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    _dateFrom: string,
+    _dateTo: string,
+    _selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 
-  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
 }

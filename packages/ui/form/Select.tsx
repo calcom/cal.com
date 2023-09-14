@@ -67,7 +67,7 @@ export function UnstyledSelect<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
->({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+>({ ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect
       {...props}

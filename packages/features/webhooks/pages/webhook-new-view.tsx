@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,23 +12,24 @@ import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const NewWebhookView = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const session = useSession();
 
-  const teamId = router.query.teamId ? +router.query.teamId : undefined;
+  const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
 
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: router.isReady,
+      enabled: session.status === "authenticated",
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: router.isReady,
+    enabled: session.status === "authenticated",
   });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
@@ -80,9 +81,9 @@ const NewWebhookView = () => {
         backButton
       />
       <WebhookForm
+        noRoutingFormTriggers={false}
         onSubmit={onCreateWebhook}
         apps={installedApps?.items.map((app) => app.slug)}
-        noRoutingFormTriggers={!!teamId}
       />
     </>
   );

@@ -1,0 +1,53 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  RowTitles,
+  CustomArgsTable,
+} from "@calcom/storybook/components";
+
+import { Button } from "../button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";
+
+<Meta title="UI/Sheet" />
+
+<Title title="Sheet" suffix="Brief" subtitle="Version 2.0 — Last Update: 21 June 2023" />
+
+## Definition
+
+A sheet is a container that can be used to display content on differnt sides of the current page.
+
+## Structure
+
+<Examples title="Spacing">
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button>Open default sheet</Button>
+    </SheetTrigger>
+    <SheetContent position="right" size={"default"}>
+      <SheetHeader>
+        <SheetTitle>Edit profile</SheetTitle>
+        <SheetDescription>Make changes to your profile here. Click save when you're done.</SheetDescription>
+      </SheetHeader>
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button type="submit">Save changes</Button>
+        </SheetClose>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
+</Examples>

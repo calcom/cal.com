@@ -1,8 +1,8 @@
 import getEventTypeById from "@calcom/lib/getEventTypeById";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetInputSchema } from "./get.schema";
-import type { PrismaClient } from ".prisma/client";
 
 type GetOptions = {
   ctx: {
@@ -18,5 +18,6 @@ export const getHandler = ({ ctx, input }: GetOptions) => {
     userId: ctx.user.id,
     prisma: ctx.prisma,
     isTrpcCall: true,
+    isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
   });
 };

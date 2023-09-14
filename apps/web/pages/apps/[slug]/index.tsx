@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
@@ -8,6 +9,7 @@ import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -37,7 +39,7 @@ const sourceSchema = z.object({
 function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
   // If it's not production environment, it would be a better idea to inform that the App is disabled.
   if (props.isAppDisabled) {
-    if (process.env.NODE_ENV !== "production") {
+    if (!IS_PRODUCTION) {
       // TODO: Improve disabled App UI. This is just a placeholder.
       return (
         <div className="p-2">
@@ -76,6 +78,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       descriptionItems={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
       dependencies={data.dependencies}
+      concurrentMeetings={data.concurrentMeetings}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
@@ -88,8 +91,18 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
 }
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
+  let paths: { params: { slug: string } }[] = [];
+
+  try {
+    const appStore = await prisma.app.findMany({ select: { slug: true } });
+    paths = appStore.map(({ slug }) => ({ params: { slug } }));
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time, but that's ok – we fall back to resolving paths on demand
+    } else {
+      throw e;
+    }
+  }
 
   return {
     paths,
@@ -111,7 +124,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const isAppAvailableInFileSystem = appMeta;
   const isAppDisabled = isAppAvailableInFileSystem && (!appFromDb || !appFromDb.enabled);
 
-  if (process.env.NODE_ENV !== "production" && isAppDisabled) {
+  if (!IS_PRODUCTION && isAppDisabled) {
     return {
       props: {
         isAppDisabled: true as const,

@@ -31,6 +31,13 @@ turndownService.addRule("enter", {
   },
 });
 
+turndownService.addRule("ignoreEmphasized", {
+  filter: "em",
+  replacement: function (content) {
+    return content;
+  },
+});
+
 function isShiftEnter(node: HTMLElement) {
   let currentNode: HTMLElement | null | ParentNode = node;
 

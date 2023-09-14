@@ -1,19 +1,19 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
 import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types tests", () => {
-  testBothBookers.describe("user", (bookerVariant) => {
+  test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
       await page.goto("/event-types");
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
@@ -69,7 +69,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      if (!href) throw new Error("No href found for event type");
+      expect(href).toBeTruthy();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
@@ -77,6 +77,8 @@ test.describe("Event Types tests", () => {
 
       await page.click(`[data-testid=event-type-options-${eventTypeId}]`);
       await page.click(`[data-testid=event-type-duplicate-${eventTypeId}]`);
+      // Wait for the dialog to appear so we can get the URL
+      await page.waitForSelector('[data-testid="dialog-title"]');
 
       const url = page.url();
       const params = new URLSearchParams(url);
@@ -90,6 +92,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
     });
+
     test("edit first event", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
@@ -98,7 +101,7 @@ test.describe("Event Types tests", () => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
       await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
       expect(toast).toBeTruthy();
     });
 
@@ -139,28 +142,66 @@ test.describe("Event Types tests", () => {
         .first()
         .getAttribute("href");
 
+      /**
+       * Verify first organizer address
+       */
       await page.goto(previewLink ?? "");
-
       await selectFirstAvailableTimeSlotNextMonth(page);
-
-      // Navigate to book page
-      // Kept in if statement here, since it's only temporary
-      // until the old booker isn't used anymore, and I wanted
-      // to change the test as little as possible.
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (bookerVariant === "old-booker") {
-        await page.waitForURL((url) => {
-          return url.pathname.endsWith("/book");
-        });
-      }
-
-      for (const location of locationData) {
-        await page.locator(`span:has-text("${location}")`).click();
-      }
-
+      await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
-
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationData[0]);
+
+      /**
+       * Verify second organizer address
+       */
+      await page.goto(previewLink ?? "");
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator(`span:has-text("${locationData[1]}")`).click();
+      await bookTimeSlot(page);
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationData[1]);
+    });
+
+    test.describe("Different Locations Tests", () => {
+      test("can add Attendee Phone Number location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+        await selectAttendeePhoneNumber(page);
+        await saveEventType(page);
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator(`[data-fob-field-name="location"] input`).fill("9199999999");
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
+      });
     });
   });
 });
+
+const selectAttendeePhoneNumber = async (page: Page) => {
+  const locationOptionText = "Attendee Phone Number";
+  await page.locator("#location-select").click();
+  await page.locator(`text=${locationOptionText}`).click();
+};
+
+async function gotoFirstEventType(page: Page) {
+  const $eventTypes = page.locator("[data-testid=event-types] > li a");
+  const firstEventTypeElement = $eventTypes.first();
+  await firstEventTypeElement.click();
+  await page.waitForURL((url) => {
+    return !!url.pathname.match(/\/event-types\/.+/);
+  });
+}
+
+async function saveEventType(page: Page) {
+  await page.locator("[data-testid=update-eventtype]").click();
+}
+
+async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}

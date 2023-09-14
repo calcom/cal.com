@@ -1,7 +1,8 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -17,7 +18,7 @@ type ListLocalOptions = {
 
 export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   const { prisma } = ctx;
-  const category = input.category === "conferencing" ? "video" : input.category;
+  const category = input.category;
   const localApps = getLocalAppMetadata();
 
   const dbApps = await prisma.app.findMany({

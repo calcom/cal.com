@@ -29,8 +29,16 @@ export class ModalBox extends HTMLElement {
     }
   }
 
+  open() {
+    this.show(true);
+    const event = new Event("open");
+    this.dispatchEvent(event);
+  }
+
   close() {
     this.show(false);
+    const event = new Event("close");
+    this.dispatchEvent(event);
   }
 
   getLoaderElement() {
@@ -63,9 +71,9 @@ export class ModalBox extends HTMLElement {
     if (newValue == "loaded") {
       this.getLoaderElement().style.display = "none";
     } else if (newValue === "started") {
-      this.show(true);
+      this.open();
     } else if (newValue == "closed") {
-      this.show(false);
+      this.close();
     } else if (newValue === "failed") {
       this.getLoaderElement().style.display = "none";
       this.getErrorElement().style.display = "inline-block";
@@ -105,7 +113,7 @@ export class ModalBox extends HTMLElement {
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
+    this.open();
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
   }

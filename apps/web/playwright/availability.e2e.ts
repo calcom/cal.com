@@ -9,7 +9,7 @@ test.describe.configure({ mode: "parallel" });
 test.describe("Availablity tests", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
-    await user.login();
+    await user.apiLogin();
     await page.goto("/availability");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="schedules"]');

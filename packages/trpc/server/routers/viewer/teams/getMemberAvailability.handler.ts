@@ -27,6 +27,11 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
         select: {
           credentials: true, // needed for getUserAvailability
           ...availabilityUserSelect,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
         },
       },
     },

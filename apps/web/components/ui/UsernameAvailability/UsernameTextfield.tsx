@@ -1,5 +1,7 @@
 import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
 import { debounce, noop } from "lodash";
+import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -8,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter } from "@calcom/ui";
 import { Check, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
@@ -21,8 +23,10 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps) => {
+const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
+  const { update } = useSession();
+
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -31,6 +35,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
+    ...rest
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -61,25 +66,21 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     }
   }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
-  const utils = trpc.useContext();
-
   const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
+      await update({ username: inputUsernameValue });
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
-    },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="ms-2 me-2 mt-px flex flex-row space-x-2">
+      <div className="me-2 ms-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -116,9 +117,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={
-              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
-            }
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -133,16 +131,17 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
+            {...rest}
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
-              <span className={classNames("mx-2 py-2.5")}>
+              <span className={classNames("mx-2 py-3.5")}>
                 {usernameIsAvailable ? <Check className="h-4 w-4" /> : <></>}
               </span>
             </div>
           )}
         </div>
-        <div className="mt-5 hidden md:inline">
+        <div className="mt-7 hidden md:inline">
           <ActionButtons />
         </div>
       </div>
@@ -157,23 +156,24 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
-                <div className="flex-1 px-2">
+              <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
+                <div>
                   <p className="text-subtle">{t("current_username")}</p>
                   <p className="text-emphasis mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
-                <div className="ml-6 flex-1">
+                <div>
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis mt-1">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="mt-4 flex flex-row-reverse gap-x-2">
+
+          <DialogFooter className="mt-4">
             <Button
               type="button"
               loading={updateUsernameMutation.isLoading}
@@ -185,7 +185,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
               {t("cancel")}
             </DialogClose>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

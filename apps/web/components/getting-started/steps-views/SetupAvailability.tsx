@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import { Schedule } from "@calcom/features/schedules";
@@ -21,16 +20,13 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { t } = useLocale();
   const { nextStep } = props;
 
-  const router = useRouter();
-  let queryAvailability;
-  if (defaultScheduleId) {
-    queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-      { scheduleId: defaultScheduleId },
-      {
-        enabled: router.isReady,
-      }
-    );
-  }
+  const scheduleId = defaultScheduleId === null ? undefined : defaultScheduleId;
+  const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId: defaultScheduleId ?? undefined },
+    {
+      enabled: !!scheduleId,
+    }
+  );
 
   const availabilityForm = useForm({
     defaultValues: {

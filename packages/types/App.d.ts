@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { AppCategories, Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
 
@@ -31,6 +31,10 @@ type DynamicLinkBasedEventLocation = {
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
 type AppData = {
+  /**
+   * TODO: We must assert that if `location` is set in App config.json, then it must have atleast Messaging or Conferencing as a category.
+   * This is because we fetch only those credentials(as an optimization) which match that category.
+   */
   location?: EventLocationTypeFromAppMeta;
   tag?: Tag;
 } | null;
@@ -81,14 +85,17 @@ export interface App {
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
-  /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
+  /** The category to which this app belongs. Remove all usages of category and then remove the prop  */
   /*
    * @deprecated Use categories
    */
   category?: string;
 
-  /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
-  categories: string[];
+  /** The category to which this app belongs. */
+  /**
+   * Messaging and Conferencing(Earlier called Video) are considered location apps and are fetched when configuring an event-type location.
+   */
+  categories: AppCategories[];
   /**
    * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.
    * See https://app.gitbook.com/o/6snd8PyPYMhg0wUw6CeQ/s/VXRprBTuMlihk37NQgUU/~/changes/6xkqZ4qvJ3Xh9k8UaWaZ/engineering/product-specs/app-store#user-apps for more details
@@ -111,10 +118,15 @@ export interface App {
   /** Number of reviews, harcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
-   *  Wheter if the app is installed globally or needs user intervention.
+   *  Whether if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
+  /**
+   * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
+   * e.g. Routing Forms App is available as /routing-forms in addition to regular /apps/routing-forms.
+   */
+  simplePath?: string;
   /** A contact email, mainly to ask for support */
   email: string;
   /** Needed API Keys (usually for global apps) */
@@ -139,6 +151,10 @@ export interface App {
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */
   dependencies?: string[];
+  /** Enables video apps to be used for team events. Non Video/Conferencing apps don't honor this as they support team installation always. */
+  concurrentMeetings?: boolean;
+
+  createdAt?: string;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
@@ -149,6 +165,8 @@ export type AppFrontendPayload = Omit<App, "key"> & {
     name?: string;
     installed?: boolean;
   }[];
+  /** Number of users who currently have this App installed */
+  installCount?: number;
 };
 
 export type AppMeta = App;

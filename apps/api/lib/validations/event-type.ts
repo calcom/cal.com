@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
@@ -32,12 +33,14 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   position: true,
   eventName: true,
   timeZone: true,
+  schedulingType: true,
+  // START Limit future bookings
   periodType: true,
   periodStartDate: true,
-  schedulingType: true,
   periodEndDate: true,
   periodDays: true,
   periodCountCalendarDays: true,
+  // END Limit future bookings
   requiresConfirmation: true,
   disableGuests: true,
   hideCalendarNotes: true,
@@ -50,6 +53,8 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   locations: true,
+  bookingLimits: true,
+  durationLimits: true,
 })
   .merge(z.object({ hosts: z.array(hostSchema).optional().default([]) }))
   .partial()
@@ -58,14 +63,16 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
 const schemaEventTypeCreateParams = z
   .object({
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
     length: z.number().int(),
     metadata: z.any().optional(),
     recurringEvent: recurringEventInputSchema.optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
+    seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
+    scheduleId: z.number().optional(),
   })
   .strict();
 
@@ -76,11 +83,16 @@ export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
 const schemaEventTypeEditParams = z
   .object({
     title: z.string().optional(),
-    slug: z.string().optional(),
+    slug: z
+      .string()
+      .transform((s) => slugify(s))
+      .optional(),
     length: z.number().int().optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
+    seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
+    scheduleId: z.number().optional(),
   })
   .strict();
 
@@ -94,6 +106,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   position: true,
   userId: true,
   teamId: true,
+  scheduleId: true,
   eventName: true,
   timeZone: true,
   periodType: true,
@@ -118,7 +131,10 @@ export const schemaEventTypeReadPublic = EventType.pick({
   metadata: true,
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
   bookingFields: true,
+  bookingLimits: true,
+  durationLimits: true,
 }).merge(
   z.object({
     locations: z

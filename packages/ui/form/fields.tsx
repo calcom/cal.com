@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "border-default mt-1 block w-full rounded-sm border py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
+        "border-default mt-1 block w-full rounded-sm border px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -90,7 +90,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Alert
           className="mt-1"
           severity="error"
-          message={<>{methods.formState.errors[props.name]!.message}</>}
+          message={<>{methods.formState.errors[props.name]?.message}</>}
         />
       )}
     </div>
@@ -186,7 +186,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         <Alert
           className="mt-1"
           severity="error"
-          message={<>{methods.formState.errors[props.name]!.message}</>}
+          message={<>{methods.formState.errors[props.name]?.message}</>}
         />
       )}
     </div>

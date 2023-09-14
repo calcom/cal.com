@@ -1,14 +1,14 @@
 import { signIn } from "next-auth/react";
 import Head from "next/head";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
-import { Check, MailOpen, AlertTriangle } from "@calcom/ui/components/icon";
+import { AlertTriangle, Check, MailOpen } from "@calcom/ui/components/icon";
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
@@ -54,8 +54,11 @@ const querySchema = z.object({
 });
 
 export default function Verify() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
-  const { t, sessionId, stripeCustomerId } = querySchema.parse(router.query);
+  const routerQuery = useRouterQuery();
+  const { t, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
   const [secondsLeft, setSecondsLeft] = useState(30);
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
     stripeCustomerId,
@@ -88,7 +91,7 @@ export default function Verify() {
     }
   }, [secondsLeft]);
 
-  if (!router.isReady || !data) {
+  if (!data) {
     // Loading state
     return <Loader />;
   }
@@ -106,7 +109,7 @@ export default function Verify() {
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
-          it or too hard to read. */}
+        it or too hard to read. */}
           {hasPaymentFailed
             ? "Your payment failed"
             : sessionId
@@ -155,16 +158,9 @@ export default function Verify() {
                 e.preventDefault();
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
-                router.push(
-                  router.asPath,
-                  {
-                    query: {
-                      ...router.query,
-                      t: Date.now(),
-                    },
-                  },
-                  { shallow: true }
-                );
+                const _searchParams = new URLSearchParams(searchParams);
+                _searchParams.set("t", `${Date.now()}`);
+                router.replace(`${pathname}?${_searchParams.toString()}`);
                 return await sendVerificationLogin(customer.email, customer.username);
               }}>
               {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Send another mail"}

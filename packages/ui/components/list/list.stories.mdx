@@ -1,21 +1,97 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
-import { List, ListItem } from './List';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { List, ListItem, ListItemTitle, ListItemText } from "./List";
+
+export const listItems = [
+  { title: "Title 1", description: "Description 1" },
+  { title: "Title 2", description: "Description 2" },
+  { title: "Title 3", description: "Description 3" },
+];
 
 <Meta title="UI/List" component={List} />
 
-<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023"/>
+<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 24 Aug 2023" />
 
 ## Definition
-Sums it up nicely.
+
+The List component is used to render an unordered list with default styling
+
+## Structure
+
+List takes an array of objects to display a list in the UI
+### List
+<CustomArgsTable of={List} />
+
+### ListItem
+<CustomArgsTable of={ListItem} />
+
+<Examples>
+  <Example title="Default">
+    <List>
+      {listItems.map((item) => (
+        <ListItem rounded={false}>
+          <ListItemTitle className="mr-2">{item.title}</ListItemTitle>
+          <ListItemText>{item.description}</ListItemText>
+        </ListItem>
+      ))}
+    </List>
+  </Example>
+  <Example title="Round Container">
+    <List roundContainer={false}>
+      {listItems.map((item) => (
+        <ListItem rounded={false}>
+          <ListItemTitle className="mr-2">{item.title}</ListItemTitle>
+          <ListItemText>{item.description}</ListItemText>
+        </ListItem>
+      ))}
+    </List>
+  </Example>
+    <Example title="No Border Treatment">
+    <List noBorderTreatment={true}>
+      {listItems.map((item) => (
+        <ListItem rounded={false}>
+          <ListItemTitle className="mr-2">{item.title}</ListItemTitle>
+          <ListItemText>{item.description}</ListItemText>
+        </ListItem>
+      ))}
+    </List>
+  </Example>
+</Examples>
+
+<Title offset title="List" suffix="Variants" />
 
 <Canvas>
   <Story
-    name="List">
-    <VariantsTable titles={[]} columnMinWidth={150}>
-      <VariantRow variant="Default">
-        TODO!
-      </VariantRow>
-    </VariantsTable>
+    name="List"
+    args={{
+      roundContainer: true,
+      noBorderTreatment: false,
+      rounded: false,
+      expanded: false
+    }}>
+    {({ roundContainer, noBorderTreatment, rounded, expanded }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <List roundContainer={roundContainer} noBorderTreatment={noBorderTreatment}>
+            {listItems.map((item) => (
+              <ListItem rounded={rounded} expanded={expanded}>
+                <ListItemTitle className="mr-2">{item.title}</ListItemTitle>
+                <ListItemText>{item.description}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

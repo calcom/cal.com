@@ -1,6 +1,6 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Avatar,
@@ -21,7 +21,7 @@ export interface Option {
   slug: string | null;
 }
 
-interface CreateBtnProps {
+export type CreateBtnProps = {
   options: Option[];
   createDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
@@ -29,35 +29,46 @@ interface CreateBtnProps {
   buttonText?: string;
   isLoading?: boolean;
   disableMobileButton?: boolean;
-}
+  "data-testid"?: string;
+};
 
+/**
+ * @deprecated use CreateButtonWithTeamsList instead
+ */
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const bookerUrl = useBookerUrl();
 
-  const CreateDialog = props.createDialog ? props.createDialog() : null;
+  const {
+    createDialog,
+    options,
+    isLoading,
+    createFunction,
+    buttonText,
+    disableMobileButton,
+    subtitle,
+    ...restProps
+  } = props;
+  const CreateDialog = createDialog ? createDialog() : null;
 
-  const hasTeams = !!props.options.find((option) => option.teamId);
+  const hasTeams = !!options.find((option) => option.teamId);
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const query = {
-      ...router.query,
-      dialog: "new",
-      eventPage: option.slug,
-      teamId: option.teamId,
-    };
-    if (!option.teamId) {
-      delete query.teamId;
+    const _searchParams = new URLSearchParams(searchParams);
+    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
+      if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
+    setParamsIfDefined("dialog", "new");
+    setParamsIfDefined("eventPage", option.slug);
+    setParamsIfDefined("teamId", option.teamId);
+    if (!option.teamId) {
+      _searchParams.delete("teamId");
+    }
+    router.push(`${pathname}?${_searchParams.toString()}`);
   };
 
   return (
@@ -66,33 +77,35 @@ export function CreateButton(props: CreateBtnProps) {
         <Button
           onClick={() =>
             !!CreateDialog
-              ? openModal(props.options[0])
-              : props.createFunction
-              ? props.createFunction(props.options[0].teamId || undefined)
+              ? openModal(options[0])
+              : createFunction
+              ? createFunction(options[0].teamId || undefined)
               : null
           }
-          data-testid="new-event-type"
+          data-testid="create-button"
           StartIcon={Plus}
-          loading={props.isLoading}
-          variant={props.disableMobileButton ? "button" : "fab"}>
-          {props.buttonText ? props.buttonText : t("new")}
+          loading={isLoading}
+          variant={disableMobileButton ? "button" : "fab"}
+          {...restProps}>
+          {buttonText ? buttonText : t("new")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
-              variant={props.disableMobileButton ? "button" : "fab"}
+              variant={disableMobileButton ? "button" : "fab"}
               StartIcon={Plus}
-              data-testid="new-event-type-dropdown"
-              loading={props.isLoading}>
-              {props.buttonText ? props.buttonText : t("new")}
+              data-testid="create-button-dropdown"
+              loading={isLoading}
+              {...restProps}>
+              {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={14} align="end">
             <DropdownMenuLabel>
-              <div className="w-48 text-left text-xs">{props.subtitle}</div>
+              <div className="w-48 text-left text-xs">{subtitle}</div>
             </DropdownMenuLabel>
-            {props.options.map((option, idx) => (
+            {options.map((option, idx) => (
               <DropdownMenuItem key={option.label}>
                 <DropdownItem
                   type="button"
@@ -100,7 +113,7 @@ export function CreateButton(props: CreateBtnProps) {
                   StartIcon={(props) => (
                     <Avatar
                       alt={option.label || ""}
-                      imageSrc={option.image || `${WEBAPP_URL}/${option.label}/avatar.png`} // if no image, use default avatar
+                      imageSrc={option.image || `${bookerUrl}/${option.label}/avatar.png`} // if no image, use default avatar
                       size="sm"
                       {...props}
                     />
@@ -108,8 +121,8 @@ export function CreateButton(props: CreateBtnProps) {
                   onClick={() =>
                     !!CreateDialog
                       ? openModal(option)
-                      : props.createFunction
-                      ? props.createFunction(option.teamId || undefined)
+                      : createFunction
+                      ? createFunction(option.teamId || undefined)
                       : null
                   }>
                   {" "}
@@ -121,7 +134,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {router.query.dialog === "new" && CreateDialog}
+      {searchParams.get("dialog") === "new" && CreateDialog}
     </>
   );
 }

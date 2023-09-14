@@ -26,7 +26,7 @@ test.describe("Change username on settings", () => {
   test.fixme("User can change username", async ({ page, users, prisma }) => {
     const user = await users.create();
 
-    await user.login();
+    await user.apiLogin();
     // Try to go homepage
     await page.goto("/settings/my-account/profile");
     // Change username from normal to normal
@@ -50,12 +50,13 @@ test.describe("Change username on settings", () => {
   test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
+    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(IS_SELF_HOSTED, "It shouldn't run on self hosted");
 
     const user = await users.create();
     await stripe.customers.create({ email: `${user?.username}@example.com` });
 
-    await user.login();
+    await user.apiLogin();
     await page.goto("/settings/my-account/profile");
 
     // Change username from normal to premium

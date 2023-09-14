@@ -11,7 +11,7 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId } = filter;
+  const { dateRange, selectedEventTypeId, isAll } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -21,6 +21,7 @@ export const MostBookedTeamMembersTable = () => {
       endDate: endDate.toISOString(),
       teamId,
       eventTypeId: selectedEventTypeId ?? undefined,
+      isAll,
     },
     {
       staleTime: 30000,

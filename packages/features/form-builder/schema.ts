@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
+
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
 
@@ -25,15 +27,18 @@ export type FieldType = z.infer<typeof fieldTypeEnum>;
 export const EditableSchema = z.enum([
   "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
   "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
   "user", // Fully editable
   "user-readonly", // All fields are readOnly.
 ]);
 
 const baseFieldSchema = z.object({
-  name: z.string(),
+  name: z.string().transform(getValidRhfFieldName),
   type: fieldTypeEnum,
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),
+  labelAsSafeHtml: z.string().optional(),
+
   /**
    * It is the default label that will be used when a new field is created.
    * Note: It belongs in FieldsTypeConfig, so that changing defaultLabel in code can work for existing fields as well(for fields that are using the default label).
@@ -49,7 +54,6 @@ const baseFieldSchema = z.object({
    */
   defaultPlaceholder: z.string().optional(),
   required: z.boolean().default(false).optional(),
-  form: z.string().optional(),
   /**
    * It is the list of options that is valid for a certain type of fields.
    *
@@ -92,7 +96,6 @@ export const variantsConfigSchema = z.object({
           options: true,
           getOptionsAt: true,
           optionsInputs: true,
-          form: true,
         })
         .array(),
     })
@@ -197,15 +200,7 @@ export const fieldSchema = baseFieldSchema.merge(
     hideWhenJustOneOption: z.boolean().default(false).optional(),
 
     hidden: z.boolean().optional(),
-    editable: z
-      .enum([
-        "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
-        "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
-        "user", // Fully editable
-        "user-readonly", // All fields are readOnly.
-      ])
-      .default("user")
-      .optional(),
+    editable: EditableSchema.default("user").optional(),
     sources: z
       .array(
         z.object({
@@ -318,24 +313,6 @@ export const fieldTypesSchemaMap: Partial<
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
-    },
-  },
-  text: {
-    preprocess: ({ response }) => {
-      return response;
-    },
-    superRefine: ({ response, field, isPartialSchema, ctx, m }) => {
-      if (field.required) {
-        if (!isPartialSchema && !response) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
-          return;
-        }
-      }
-      if (z.string().optional().safeParse(response).success) {
-        return;
-      }
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
-      return;
     },
   },
 };

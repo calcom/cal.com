@@ -37,6 +37,10 @@
       "description": "ApiKey for cronjobs",
       "value": ""
     },
+    "CRON_ENABLE_APP_SYNC": {
+      "description": "Whether to automatically keep app metadata in the database in sync with the metadata/config files. When disabled, the sync runs in a reporting-only dry-run mode.",
+      "value": "false"
+    },
     "SEND_FEEDBACK_EMAIL": {
       "description": "Send feedback email",
       "value": ""

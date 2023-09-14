@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
 import { TRPCError } from "@calcom/trpc";
@@ -27,10 +27,10 @@ const userBodySchema = User.pick({
   // brandColor: true,
   // darkBrandColor: true,
   allowDynamicBooking: true,
+  identityProvider: true,
   // away: true,
   role: true,
-  // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.
-  // avatar: true,
+  avatar: true,
 });
 
 /** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
@@ -39,7 +39,7 @@ export function getAvatarUrlFromUser(user: {
   username: string | null;
   email: string;
 }) {
-  if (!user.avatar || !user.username) return defaultAvatarSrc({ email: user.email });
+  if (!user.avatar || !user.username) return AVATAR_FALLBACK;
   return `${WEBAPP_URL}/${user.username}/avatar.png`;
 }
 

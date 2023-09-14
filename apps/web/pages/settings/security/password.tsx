@@ -34,7 +34,7 @@ const PasswordView = () => {
     onSettled: () => {
       utils.viewer.me.invalidate();
     },
-    onMutate: async ({ metadata }) => {
+    onMutate: async () => {
       await utils.viewer.me.cancel();
       const previousValue = utils.viewer.me.getData();
       const previousMetadata = userMetadata.parse(previousValue?.metadata);
@@ -199,6 +199,7 @@ const PasswordView = () => {
             color="primary"
             className="mt-8"
             type="submit"
+            loading={passwordMutation.isLoading || sessionMutation.isLoading}
             onClick={() => formMethods.clearErrors("apiError")}
             disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
             {t("update")}

@@ -1,8 +1,8 @@
 import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
-import type { PrismaClient } from "@prisma/client";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -11,19 +12,28 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
     getAvailability: () => {
       return Promise.resolve([]);
     },
-    createMeeting: async (): Promise<VideoCallData> => {
+    createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const appKeys = await getAppKeysFromSlug(metadata.slug);
 
-      const meetingID = uuidv4();
+      const meetingPattern = (appKeys.jitsiPathPattern as string) || "{uuid}";
+      const hostUrl = (appKeys.jitsiHost as string) || "https://meet.jit.si/cal";
 
-      // Default Value
-      const hostUrl = appKeys.jitsiHost || "https://meet.jit.si/cal";
+      //Allows "/{Type}-with-{Attendees}" slug
+      const meetingID = meetingPattern
+        .replaceAll("{uuid}", uuidv4())
+        .replaceAll("{Title}", eventData.title)
+        .replaceAll("{Event Type Title}", eventData.type)
+        .replaceAll("{Scheduler}", eventData.attendees.map((a) => a.name).join("-"))
+        .replaceAll("{Organizer}", eventData.organizer.name)
+        .replaceAll("{Location}", eventData.location || "")
+        .replaceAll("{Team}", eventData.team?.name || "")
+        .replaceAll(" ", "-"); //Last Rule! - Replace all blanks (%20) with dashes;
 
       return Promise.resolve({
         type: metadata.type,
         id: meetingID,
         password: "",
-        url: hostUrl + "/" + meetingID,
+        url: hostUrl + "/" + encodeURIComponent(meetingID),
       });
     },
     deleteMeeting: async (): Promise<void> => {

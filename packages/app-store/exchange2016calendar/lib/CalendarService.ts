@@ -97,6 +97,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
       const appointment = await Appointment.Bind(
@@ -192,7 +193,6 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    console.log("This triggers");
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()

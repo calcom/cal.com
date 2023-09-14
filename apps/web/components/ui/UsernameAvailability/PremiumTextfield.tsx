@@ -1,21 +1,22 @@
 import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
 import { debounce, noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { Star as StarSolid } from "@calcom/ui/components/icon";
-import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
+import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -29,7 +30,6 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
 
@@ -47,7 +47,11 @@ const obtainNewUsernameChangeCondition = ({
 };
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLocale();
+  const { update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -57,12 +61,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     readonly: disabled,
-    user,
   } = props;
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
-  const router = useRouter();
-  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
+  const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
@@ -92,17 +95,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
 
-  const utils = trpc.useContext();
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
+      await update({ username: inputUsernameValue });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
-    },
-    async onSettled() {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 
@@ -119,7 +119,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${pathname}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {
@@ -222,12 +222,16 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              delete router.query.paymentStatus;
+              const _searchParams = new URLSearchParams(searchParams);
+              _searchParams.delete("paymentStatus");
+              if (searchParams.toString() !== _searchParams.toString()) {
+                router.replace(`${pathname}?${_searchParams.toString()}`);
+              }
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
           />
-          <div className="absolute top-0 right-2 flex flex-row">
+          <div className="absolute right-2 top-0 flex flex-row">
             <span
               className={classNames(
                 "mx-2 py-2",
@@ -283,7 +287,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-row-reverse gap-x-2">
+          <DialogFooter className="mt-4">
             {/* redirect to checkout */}
             {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
@@ -311,7 +315,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
               {t("cancel")}
             </DialogClose>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

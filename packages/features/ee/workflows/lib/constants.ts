@@ -14,11 +14,28 @@ export const WORKFLOW_ACTIONS = [
   WorkflowActions.EMAIL_ADDRESS,
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
+  WorkflowActions.WHATSAPP_ATTENDEE,
+  WorkflowActions.WHATSAPP_NUMBER,
 ] as const;
 
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 
-export const WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+export const WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.COMPLETED,
+  WorkflowTemplates.RESCHEDULED,
+] as const;
+
+export const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+
+export const WHATSAPP_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.COMPLETED,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
+] as const;
 
 export const DYNAMIC_TEXT_VARIABLES = [
   "event_name",
@@ -29,6 +46,8 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "location",
   "organizer_name",
   "attendee_name",
+  "attendee_first_name",
+  "attendee_last_name",
   "attendee_email",
   "additional_notes",
   "meeting_url",

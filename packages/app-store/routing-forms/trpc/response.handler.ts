@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -33,7 +33,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
-    const serializableForm = await getSerializableForm(form);
+    const serializableForm = await getSerializableForm({ form });
     if (!serializableForm.fields) {
       // There is no point in submitting a form that doesn't have fields defined
       throw new TRPCError({

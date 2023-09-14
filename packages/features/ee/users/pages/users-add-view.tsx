@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -10,13 +10,14 @@ import { UserForm } from "../components/UserForm";
 import { userBodySchema } from "../schemas/userBodySchema";
 
 const UsersAddView = () => {
+  const pathname = usePathname();
   const router = useRouter();
   const utils = trpc.useContext();
   const mutation = trpc.viewer.users.add.useMutation({
     onSuccess: async () => {
       showToast("User added successfully", "success");
       await utils.viewer.users.list.invalidate();
-      router.replace(router.asPath.replace("/add", ""));
+      router.replace(pathname?.replace("/add", ""));
     },
     onError: (err) => {
       console.error(err.message);

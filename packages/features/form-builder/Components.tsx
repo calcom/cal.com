@@ -17,7 +17,7 @@ import {
   EmailField,
   Tooltip,
   InputField,
-  Checkbox,
+  CheckboxField,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
@@ -81,7 +81,7 @@ type Component =
         TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
           variant: string | undefined;
           variants: z.infer<typeof variantsConfigSchema>["variants"];
-          value: Record<string, string> | string;
+          value: Record<string, string> | string | undefined;
           setValue: (value: string | Record<string, string>) => void;
         }
       >(
@@ -141,6 +141,7 @@ export const Components: Record<FieldType, Component> = {
         return (
           <InputField
             name="name"
+            showAsteriskIndicator={true}
             placeholder={variantField.placeholder}
             label={variantField.label}
             containerClassName="w-full"
@@ -165,6 +166,9 @@ export const Components: Record<FieldType, Component> = {
         <div className="flex space-x-4">
           {variant.fields.map((variantField) => (
             <InputField
+              // Because the container is flex(and thus margin is being computed towards container height), I need to explicitly ensure that margin-bottom for the input becomes 0, which is mb-2 otherwise
+              className="!mb-0"
+              showAsteriskIndicator={true}
               key={variantField.name}
               name={variantField.name}
               readOnly={props.readOnly}
@@ -229,7 +233,7 @@ export const Components: Record<FieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
       const inputClassName =
-        "dark:placeholder:text-darkgray-600 focus:border-brand-default border-subtle  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
+        "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle bg-default";
       return (
         <>
           {value.length ? (
@@ -243,11 +247,11 @@ export const Components: Record<FieldType, Component> = {
                     <EmailField
                       disabled={readOnly}
                       value={value[index]}
+                      className={inputClassName}
                       onChange={(e) => {
                         value[index] = e.target.value;
                         setValue(value);
                       }}
-                      className={inputClassName}
                       placeholder={placeholder}
                       label={<></>}
                       required
@@ -346,11 +350,11 @@ export const Components: Record<FieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -400,12 +404,12 @@ export const Components: Record<FieldType, Component> = {
               {options.length > 1 ? (
                 options.map((option, i) => {
                   return (
-                    <label key={i} className="block">
+                    <label key={i} className="mb-1 flex items-center">
                       <input
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -415,7 +419,7 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
                     </label>
                   );
                 })
@@ -425,7 +429,7 @@ export const Components: Record<FieldType, Component> = {
                   <Label>
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default ml-1 mb-1 text-sm font-medium">*</span>
+                      <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
                   </Label>
                 </>
@@ -465,7 +469,7 @@ export const Components: Record<FieldType, Component> = {
     factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">
-          <Checkbox
+          <CheckboxField
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
@@ -476,7 +480,9 @@ export const Components: Record<FieldType, Component> = {
             placeholder=""
             checked={value}
             disabled={readOnly}
-            description={label ?? ""}
+            description=""
+            // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
+            descriptionAsSafeHtml={label ?? ""}
           />
         </div>
       );

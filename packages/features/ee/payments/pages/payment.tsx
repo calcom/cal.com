@@ -1,13 +1,13 @@
+import type { Payment } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -40,6 +40,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           description: true,
           title: true,
           startTime: true,
+          endTime: true,
           attendees: {
             select: {
               email: true,
@@ -88,24 +89,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!rawPayment) return { notFound: true };
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
+
   const payment = {
     ...restPayment,
-    data: data as unknown as StripePaymentData | StripeSetupIntentData,
+    data: data as Record<string, unknown>,
   };
 
   if (!_booking) return { notFound: true };
 
-  const { startTime, eventType, ...restBooking } = _booking;
+  const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
     ...restBooking,
     startTime: startTime.toString(),
+    endTime: endTime.toString(),
   };
 
   if (!eventType) return { notFound: true };
 
-  const [user] = eventType.users;
-  if (!user) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
 
+  const [user] = eventType?.users.length
+    ? eventType.users
+    : [{ name: null, theme: null, hideBranding: null, username: null }];
   const profile = {
     name: eventType.team?.name || user?.name || null,
     theme: (!eventType.team?.name && user?.theme) || null,
@@ -135,7 +140,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking,
       trpcState: ssr.dehydrate(),
       payment,
+      clientSecret: getClientSecretFromPayment(payment),
       profile,
     },
   };
 };
+
+function hasStringProp<T extends string>(x: unknown, key: T): x is { [key in T]: string } {
+  return !!x && typeof x === "object" && key in x;
+}
+
+function getClientSecretFromPayment(
+  payment: Omit<Partial<Payment>, "data"> & { data: Record<string, unknown> }
+) {
+  if (
+    payment.paymentOption === "HOLD" &&
+    hasStringProp(payment.data, "setupIntent") &&
+    hasStringProp(payment.data.setupIntent, "client_secret")
+  ) {
+    return payment.data.setupIntent.client_secret;
+  }
+  if (hasStringProp(payment.data, "client_secret")) {
+    return payment.data.client_secret;
+  }
+  return "";
+}

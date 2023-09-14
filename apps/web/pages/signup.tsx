@@ -1,18 +1,23 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -21,19 +26,22 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-type FormValues = {
-  username: string;
-  email: string;
-  password: string;
-  apiError: string;
-};
+const signupSchema = apiSignupSchema.extend({
+  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+});
 
-export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
-  const router = useRouter();
+type FormValues = z.infer<typeof signupSchema>;
+
+type SignupProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
+  const searchParams = useSearchParams();
   const telemetry = useTelemetry();
-
+  const { t, i18n } = useLocale();
+  const flags = useFlagMap();
   const methods = useForm<FormValues>({
+    mode: "onChange",
+    resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -52,6 +60,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
+        language: i18n.language,
+        token,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -61,11 +71,14 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
       .then(handleErrors)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: router.query.callbackUrl
-            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-            : `${WEBAPP_URL}/getting-started`,
+          callbackUrl: `${
+            searchParams?.get("callbackUrl")
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
+          }?from=signup`,
         });
       })
       .catch((err) => {
@@ -74,7 +87,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
   };
 
   return (
-    <LicenseRequired>
+    <>
       <div
         className="bg-muted flex min-h-screen flex-col justify-center "
         style={
@@ -111,8 +124,13 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-4">
                   <TextField
-                    addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
+                    addOnLeading={
+                      orgSlug
+                        ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
+                        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                    }
                     {...register("username")}
+                    disabled={!!orgSlug}
                     required
                   />
                   <EmailField
@@ -139,8 +157,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: router.query.callbackUrl
-                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          callbackUrl: searchParams?.get("callbackUrl")
+                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>
@@ -153,11 +171,13 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
           </div>
         </div>
       </div>
-    </LicenseRequired>
+    </>
   );
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 
@@ -168,7 +188,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
     return {
       notFound: true,
     };
@@ -184,6 +204,20 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token,
+    },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          slug: true,
+        },
+      },
     },
   });
 
@@ -224,7 +258,20 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
-  if (!IS_SELF_HOSTED) {
+  const tokenTeam = {
+    ...verificationToken?.team,
+    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+  };
+
+  // Detect if the team is an org by either the metadata flag or if it has a parent team
+  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  // If we are dealing with an org, the slug may come from the team itself or its parent
+  const orgSlug = isOrganization
+    ? tokenTeam.slug || tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug
+    : null;
+
+  // Org context shouldn't check if a username is premium
+  if (!IS_SELF_HOSTED && !isOrganization) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
@@ -237,8 +284,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       token,
       prepopulateFormValues: {
         email: verificationToken.identifier,
-        username,
+        username: slugify(username),
       },
+      orgSlug,
     },
   };
 };

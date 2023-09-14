@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -25,10 +25,7 @@ import {
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
-import {
-  getBookingFieldsWithSystemFields,
-  SMS_REMINDER_NUMBER_FIELD,
-} from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
@@ -39,6 +36,7 @@ import {
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -47,10 +45,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
-import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
+import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
+import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -96,22 +93,25 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
+  const routerQuery = useRouterQuery();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    changes,
     formerTime,
     email,
     seatReferenceUid,
-  } = querySchema.parse(router.query);
+  } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
   )?.timeZone;
-  const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
+
+  const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
@@ -128,6 +128,10 @@ export default function Success(props: SuccessProps) {
       ? props?.bookingInfo?.attendees?.[0]?.name
       : "Nameless";
 
+  const attendees = props?.bookingInfo?.attendees;
+
+  const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -141,30 +145,27 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   function setIsCancellationMode(value: boolean) {
-    const query_ = { ...router.query };
+    const _searchParams = new URLSearchParams(searchParams);
 
     if (value) {
-      query_.cancel = "true";
+      _searchParams.set("cancel", "true");
     } else {
-      if (query_.cancel) {
-        delete query_.cancel;
+      if (_searchParams.get("cancel")) {
+        _searchParams.delete("cancel");
       }
     }
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...query_ },
-      },
-      undefined,
-      { scroll: false }
-    );
+    router.replace(`${pathname}?${_searchParams.toString()}`);
   }
 
+  let evtName = props.eventType.eventName;
+  if (eventType.isDynamic && bookingInfo.responses?.title) {
+    evtName = bookingInfo.responses.title as string;
+  }
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
-    eventName: (props.dynamicEventName as string) || props.eventType.eventName,
+    eventName: evtName,
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
@@ -181,7 +182,7 @@ export default function Success(props: SuccessProps) {
   // - It's a paid event and payment is pending.
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
-
+  const isLoggedIn = session?.user;
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
@@ -222,6 +223,7 @@ export default function Success(props: SuccessProps) {
     setCalculatedDuration(
       dayjs(props.bookingInfo.endTime).diff(dayjs(props.bookingInfo.startTime), "minutes")
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function eventLink(): string {
@@ -273,7 +275,7 @@ export default function Success(props: SuccessProps) {
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
-  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
+  useTheme(isSuccessBookingPage ? props.profile.theme : "system");
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
@@ -305,12 +307,12 @@ export default function Success(props: SuccessProps) {
           status={status}
         />
       )}
-      {userIsOwner && !isEmbed && (
-        <div className="mt-2 ml-4 -mb-4">
+      {isLoggedIn && !isEmbed && (
+        <div className="-mb-4 ml-4 mt-2">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -321,7 +323,7 @@ export default function Success(props: SuccessProps) {
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
-              "flex items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
+              "flex items-end justify-center px-4 pb-20 pt-4  sm:block sm:p-0"
             )}>
             <div
               className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
@@ -330,7 +332,7 @@ export default function Success(props: SuccessProps) {
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
-                  "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
+                  "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
                 aria-modal="true"
@@ -356,15 +358,15 @@ export default function Success(props: SuccessProps) {
                   {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
                   {isCancelled && <X className="h-5 w-5 text-red-600" />}
                 </div>
-                <div className="mt-6 mb-8 text-center last:mb-0">
+                <div className="mb-8 mt-6 text-center last:mb-0">
                   <h3
                     className="text-emphasis text-2xl font-semibold leading-6"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
                       ? props.recurringBookings
-                        ? t("submitted_recurring")
-                        : t("submitted")
+                        ? t("booking_submitted_recurring")
+                        : t("booking_submitted")
                       : isCancelled
                       ? seatReferenceUid
                         ? t("no_longer_attending")
@@ -390,17 +392,19 @@ export default function Success(props: SuccessProps) {
                       </h4>
                     )}
 
-                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left">
+                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
-                          {isCancelled ? t("reason") : t("reschedule_reason_success_page")}
+                          {isCancelled ? t("reason") : t("reschedule_reason")}
                         </div>
                         <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
+                    <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                      {eventName}
+                    </div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -435,7 +439,9 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>
-                                <span className="mr-2">{bookingInfo.user.name}</span>
+                                <span data-testid="booking-host-name" className="mr-2">
+                                  {bookingInfo.user.name}
+                                </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
                               <p className="text-default">{bookingInfo.user.email}</p>
@@ -455,7 +461,7 @@ export default function Success(props: SuccessProps) {
                     {locationToDisplay && !isCancelled && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
-                        <div className="col-span-2 mt-3">
+                        <div className="col-span-2 mt-3" data-testid="where">
                           {locationToDisplay.startsWith("http") ? (
                             <a
                               href={locationToDisplay}
@@ -469,6 +475,21 @@ export default function Success(props: SuccessProps) {
                           ) : (
                             locationToDisplay
                           )}
+                        </div>
+                      </>
+                    )}
+                    {props.paymentStatus && (
+                      <>
+                        <div className="mt-3 font-medium">
+                          {props.paymentStatus.paymentOption === "HOLD"
+                            ? t("complete_your_booking")
+                            : t("payment")}
+                        </div>
+                        <div className="col-span-2 mb-2 mt-3">
+                          {new Intl.NumberFormat(i18n.language, {
+                            style: "currency",
+                            currency: props.paymentStatus.currency,
+                          }).format(props.paymentStatus.amount / 100.0)}
                         </div>
                       </>
                     )}
@@ -620,7 +641,7 @@ export default function Success(props: SuccessProps) {
                             className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
                             target="_blank">
                             <svg
-                              className="mr-1 -mt-1.5 inline-block h-4 w-4"
+                              className="-mt-1.5 mr-1 inline-block h-4 w-4"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24">
@@ -647,7 +668,7 @@ export default function Success(props: SuccessProps) {
                             className="text-default border-subtle mx-2 h-10 w-10 rounded-sm border px-3 py-2"
                             target="_blank">
                             <svg
-                              className="mr-1 -mt-1.5 inline-block h-4 w-4"
+                              className="-mt-1.5 mr-1 inline-block h-4 w-4"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24">
@@ -664,7 +685,7 @@ export default function Success(props: SuccessProps) {
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 1000 1000"
-                              className="mr-1 -mt-1.5 inline-block h-4 w-4">
+                              className="-mt-1.5 mr-1 inline-block h-4 w-4">
                               <title>{t("other")}</title>
                               <path d="M971.3,154.9c0-34.7-28.2-62.9-62.9-62.9H611.7c-1.3,0-2.6,0.1-3.9,0.2V10L28.7,87.3v823.4L607.8,990v-84.6c1.3,0.1,2.6,0.2,3.9,0.2h296.7c34.7,0,62.9-28.2,62.9-62.9V154.9z M607.8,636.1h44.6v-50.6h-44.6v-21.9h44.6v-50.6h-44.6v-92h277.9v230.2c0,3.8-3.1,7-7,7H607.8V636.1z M117.9,644.7l-50.6-2.4V397.5l50.6-2.2V644.7z M288.6,607.3c17.6,0.6,37.3-2.8,49.1-7.2l9.1,48c-11,5.1-35.6,9.9-66.9,8.3c-85.4-4.3-127.5-60.7-127.5-132.6c0-86.2,57.8-136.7,133.2-140.1c30.3-1.3,53.7,4,64.3,9.2l-12.2,48.9c-12.1-4.9-28.8-9.2-49.5-8.6c-45.3,1.2-79.5,30.1-79.5,87.4C208.8,572.2,237.8,605.7,288.6,607.3z M455.5,665.2c-32.4-1.6-63.7-11.3-79.1-20.5l12.6-50.7c16.8,9.1,42.9,18.5,70.4,19.4c30.1,1,46.3-10.7,46.3-29.3c0-17.8-14-28.1-48.8-40.6c-46.9-16.4-76.8-41.7-76.8-81.5c0-46.6,39.3-84.1,106.8-87.1c33.3-1.5,58.3,4.2,76.5,11.2l-15.4,53.3c-12.1-5.3-33.5-12.8-62.3-12c-28.3,0.8-41.9,13.6-41.9,28.1c0,17.8,16.1,25.5,53.6,39c52.9,18.5,78.4,45.3,78.4,86.4C575.6,629.7,536.2,669.2,455.5,665.2z M935.3,842.7c0,14.9-12.1,27-27,27H611.7c-1.3,0-2.6-0.2-3.9-0.4V686.2h270.9c19.2,0,34.9-15.6,34.9-34.9V398.4c0-19.2-15.6-34.9-34.9-34.9h-47.1v-32.3H808v32.3h-44.8v-32.3h-22.7v32.3h-43.3v-32.3h-22.7v32.3H628v-32.3h-20.2v-203c1.31.2,2.6-0.4,3.9-0.4h296.7c14.9,0,27,12.1,27,27L935.3,842.7L935.3,842.7z" />
                             </svg>
@@ -710,6 +731,26 @@ export default function Success(props: SuccessProps) {
                   </>
                 )}
               </div>
+              {isGmail && (
+                <Alert
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  severity="warning"
+                  message={
+                    <div>
+                      <p className="font-semibold">{t("google_new_spam_policy")}</p>
+                      <span className="underline">
+                        <a
+                          target="_blank"
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          {t("resolve")}
+                        </a>
+                      </span>
+                    </div>
+                  }
+                  CustomIcon={AlertCircle}
+                  customIconColor="text-attention dark:text-orange-200"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -881,6 +922,7 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       periodStartDate: true,
       periodEndDate: true,
     },
@@ -904,6 +946,7 @@ const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
+    seatsShowAvailabilityCount: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<
@@ -1094,6 +1137,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       success: true,
       refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
     },
   });
 

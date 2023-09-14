@@ -23,7 +23,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
         id={id}
         {...props}
         className={classNames(
-          "hover:bg-subtle border-default focus:ring-emphasis absolute top-[0.9rem] left-3 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
+          "hover:bg-subtle border-default focus:ring-emphasis absolute left-3 top-[0.9rem] mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
           props.disabled && "opacity-60"
         )}>
         <RadioGroupPrimitive.Indicator
@@ -33,7 +33,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
           )}
         />
       </RadioGroupPrimitive.Item>
-      <label htmlFor={id} className={classNames("text-default p-4 pt-3 pl-10", innerClassNames?.container)}>
+      <label htmlFor={id} className={classNames("text-default p-4 pl-10 pt-3", innerClassNames?.container)}>
         {children}
       </label>
     </div>

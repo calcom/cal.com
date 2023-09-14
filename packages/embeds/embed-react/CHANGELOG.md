@@ -1,5 +1,41 @@
 # @calcom/embed-react
 
+## 1.3.0
+
+### Minor Changes
+
+- Fix module import of the embed-react package
+
+## 1.2.2
+
+### Patch Changes
+
+- Improve UI instruction layout typings
+- Updated dependencies
+  - @calcom/embed-snippet@1.1.2
+  - @calcom/embed-core@1.3.2
+
+## 1.2.1
+
+### Patch Changes
+
+- layout type fix as zod-utils can't be used in npm package
+- Updated dependencies
+  - @calcom/embed-snippet@1.1.1
+  - @calcom/embed-core@1.3.1
+
+## 1.2.0
+
+### Minor Changes
+
+- Supports new booker layout
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.3.0
+  - @calcom/embed-snippet@1.1.0
+
 ## 1.1.1
 
 ### Patch Changes

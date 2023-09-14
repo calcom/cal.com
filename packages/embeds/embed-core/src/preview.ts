@@ -1,7 +1,11 @@
-const WEBAPP_URL =
-  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
-const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
-
+const searchParams = new URL(document.URL).searchParams;
+const embedType = searchParams.get("embedType");
+const calLink = searchParams.get("calLink");
+const bookerUrl = searchParams.get("bookerUrl");
+const embedLibUrl = searchParams.get("embedLibUrl");
+if (!bookerUrl || !embedLibUrl) {
+  throw new Error('Can\'t Preview: Missing "bookerUrl" or "embedLibUrl" query parameter');
+}
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,17 +40,15 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
       }
       p(cal, ar);
     };
-})(window, EMBED_LIB_URL, "init");
+})(window, embedLibUrl, "init");
 
 const previewWindow = window;
 previewWindow.Cal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
 previewWindow.Cal("init", {
-  origin: WEBAPP_URL,
+  origin: bookerUrl,
 });
-const searchParams = new URL(document.URL).searchParams;
-const embedType = searchParams.get("embedType");
-const calLink = searchParams.get("calLink");
+
 if (!calLink) {
   throw new Error('Missing "calLink" query parameter');
 }
@@ -114,3 +116,5 @@ function makePreviewPageUseSystemPreference() {
 
 // This makes preview page behave like a website that has system preference enabled. This provides a better experience of preview when user switch their system theme to dark
 makePreviewPageUseSystemPreference();
+
+export {};

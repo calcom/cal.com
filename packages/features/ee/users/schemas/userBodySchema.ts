@@ -8,5 +8,6 @@ export const userBodySchema = z
     role: optionToValueSchema(z.enum(["USER", "ADMIN"])),
     weekStart: optionToValueSchema(z.string()),
     timeFormat: optionToValueSchema(z.number()),
+    identityProvider: optionToValueSchema(z.enum(["CAL", "GOOGLE", "SAML"])),
   })
   .passthrough();

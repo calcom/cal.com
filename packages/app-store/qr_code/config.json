@@ -4,7 +4,7 @@
   "slug": "qr_code",
   "type": "qr_code_other",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/qr_code",
+  "url": "https://cal.com/",
   "variant": "other",
   "categories": ["other"],
   "extendsFeature": "EventType",

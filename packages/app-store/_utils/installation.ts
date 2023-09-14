@@ -20,17 +20,19 @@ export async function createDefaultInstallation({
   userId,
   slug,
   key = {},
+  teamId,
 }: {
   appType: string;
   userId: number;
   slug: string;
   key?: Prisma.InputJsonValue;
+  teamId?: number;
 }) {
   const installation = await prisma.credential.create({
     data: {
       type: appType,
       key,
-      userId,
+      ...(teamId ? { teamId } : { userId }),
       appId: slug,
     },
   });

@@ -40,7 +40,8 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         sideOffset={sideOffset}
         className={classNames(
           "shadow-dropdown w-50 bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
-          "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
+          "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+          props.className
         )}
         ref={forwardedRef}>
         {children}
@@ -73,7 +74,7 @@ type DropdownMenuCheckboxItemProps = ComponentProps<(typeof DropdownMenuPrimitiv
 export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
   ({ children, ...props }, forwardedRef) => {
     return (
-      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef}>
+      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
           <CheckCircle />
@@ -108,6 +109,7 @@ type DropdownItemProps = {
   EndIcon?: SVGComponent;
   href?: string;
   disabled?: boolean;
+  childrenClassName?: string;
 } & ButtonOrLinkProps;
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
@@ -129,18 +131,21 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {
-  const { StartIcon, EndIcon, children, color, ...rest } = props;
+  const { StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
 
   return (
     <ButtonOrLink
       {...rest}
       className={classNames(
         "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
-        color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle"
+        color === "destructive"
+          ? "hover:bg-error hover:text-red-700 dark:hover:text-red-100"
+          : "hover:bg-subtle",
+        props.className
       )}>
       <>
         {StartIcon && <StartIcon className="h-4 w-4" />}
-        <div className="text-sm font-medium leading-5">{children}</div>
+        <div className={classNames("text-sm font-medium leading-5", childrenClassName)}>{children}</div>
         {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>

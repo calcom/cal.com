@@ -1,11 +1,18 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
+import type { Prisma } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
+import { createEvent } from "ics";
+import type { DateArray } from "ics";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { RRule } from "rrule";
+import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { parseRecurringEvent } from "@calcom/lib";
 import { defaultHandler } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -19,6 +26,65 @@ const senderEmail = process.env.SENDGRID_EMAIL as string;
 
 sgMail.setApiKey(sendgridAPIKey);
 
+type Booking = Prisma.BookingGetPayload<{
+  include: {
+    eventType: true;
+    user: true;
+    attendees: true;
+  };
+}>;
+
+function getiCalEventAsString(booking: Booking) {
+  let recurrenceRule: string | undefined = undefined;
+  const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
+  if (recurringEvent?.count) {
+    recurrenceRule = new RRule(recurringEvent).toString().replace("RRULE:", "");
+  }
+
+  const uid = uuidv4();
+
+  const icsEvent = createEvent({
+    uid,
+    startInputType: "utc",
+    start: dayjs(booking.startTime.toISOString() || "")
+      .utc()
+      .toArray()
+      .slice(0, 6)
+      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+    duration: {
+      minutes: dayjs(booking.endTime.toISOString() || "").diff(
+        dayjs(booking.startTime.toISOString() || ""),
+        "minute"
+      ),
+    },
+    title: booking.eventType?.title || "",
+    description: booking.description || "",
+    location: booking.location || "",
+    organizer: {
+      email: booking.user?.email || "",
+      name: booking.user?.name || "",
+    },
+    attendees: [
+      {
+        name: booking.attendees[0].name,
+        email: booking.attendees[0].email,
+        partstat: "ACCEPTED",
+        role: "REQ-PARTICIPANT",
+        rsvp: true,
+      },
+    ],
+    method: "REQUEST",
+    ...{ recurrenceRule },
+    status: "CONFIRMED",
+  });
+
+  if (icsEvent.error) {
+    throw icsEvent.error;
+  }
+
+  return icsEvent.value;
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -30,6 +96,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
+
+  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   //delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete = await prisma.workflowReminder.findMany({
@@ -191,26 +259,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
+        const emailLocale = locale || "en";
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",
           variables,
-          locale || "",
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).text;
         emailContent.emailSubject = emailSubject;
         emailContent.emailBody = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || "",
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           !!reminder.booking.user?.hideBranding
         ).html;
 
         emailBodyEmpty =
-          customTemplate(reminder.workflowStep.reminderBody || "", variables, locale || "").text.length === 0;
+          customTemplate(
+            reminder.workflowStep.reminderBody || "",
+            variables,
+            emailLocale,
+            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
+          ).text.length === 0;
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
         emailContent = emailReminderTemplate(
           false,
           reminder.workflowStep.action,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking.startTime.toISOString() || "",
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
@@ -241,6 +318,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
             replyTo: reminder.booking.user?.email || senderEmail,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
+            attachments: reminder.workflowStep.includeCalendarEvent
+              ? [
+                  {
+                    content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                    filename: "event.ics",
+                    type: "text/calendar; method=REQUEST",
+                    disposition: "attachment",
+                    contentId: uuidv4(),
+                  },
+                ]
+              : undefined,
           });
         }
 

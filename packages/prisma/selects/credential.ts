@@ -6,6 +6,7 @@ export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()(
   /** Omitting to avoid frontend leaks */
   // key: true,
   userId: true,
+  teamId: true,
   appId: true,
   invalid: true,
 });

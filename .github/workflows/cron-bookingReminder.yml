@@ -4,8 +4,8 @@ on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
-    # Runs “At minute 0, 15, 30, and 45.” (see https://crontab.guru)
-    - cron: "0,15,30,45 * * * *"
+    # Runs "At every 15th minute." (see https://crontab.guru)
+    - cron: "*/15 * * * *"
 jobs:
   cron-bookingReminder:
     env:
@@ -20,4 +20,4 @@ jobs:
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
-            --fail
+            -sSf

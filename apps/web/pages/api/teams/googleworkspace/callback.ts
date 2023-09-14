@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -22,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, state } = req.query;
   const parsedState = stateSchema.parse(JSON.parse(state as string));
   const { teamId } = parsedState;
-
+  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: session.user.id });
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;

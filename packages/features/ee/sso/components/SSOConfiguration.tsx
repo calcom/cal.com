@@ -28,7 +28,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   if (errorMessage) {
     return (
       <>
-        <Meta title={t("saml_config")} description={t("saml_description")} />
+        <Meta title={t("sso_configuration")} description={t("saml_description")} />
         <Alert severity="warning" message={t(errorMessage)} className="mb-4 " />
       </>
     );

@@ -6,7 +6,7 @@ import { GoPrimitiveDot } from "react-icons/go";
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
+export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
     variant: {
       default: "bg-attention text-attention",
@@ -68,8 +68,8 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const Children = () => (
     <>
-      {withDot ? <GoPrimitiveDot className="h-3 w-3 stroke-[3px]" /> : null}
-      {StartIcon ? <StartIcon className="h-3 w-3 stroke-[3px]" /> : null}
+      {withDot ? <GoPrimitiveDot data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
+      {StartIcon ? <StartIcon data-testid="start-icon" className="h-3 w-3 stroke-[3px]" /> : null}
       {children}
     </>
   );

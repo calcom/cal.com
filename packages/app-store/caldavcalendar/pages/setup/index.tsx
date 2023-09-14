@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -23,7 +23,7 @@ export default function CalDavCalendarSetup() {
   return (
     <div className="bg-emphasis flex h-screen">
       <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
-        <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
+        <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
@@ -33,7 +33,7 @@ export default function CalDavCalendarSetup() {
             />
           </div>
           <div className="flex w-10/12 flex-col">
-            <h1 className="text-default">{t("connect_caldav_server")}</h1>
+            <h1 className="text-default">{t("connect_caldav")}</h1>
             <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form

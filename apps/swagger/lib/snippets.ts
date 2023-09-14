@@ -30,7 +30,7 @@ export const SnippedGenerator = {
     // extend some internals to gain information about current path, method and spec in the generator function metioned later
     spec: {
       wrapSelectors: {
-        requestFor: (ori, system) => (state, path, method) => {
+        requestFor: (ori) => (state, path, method) => {
           return ori(path, method)
             ?.set("spec", state.get("json", {}))
             ?.setIn(["oasPathMethod", "path"], path)

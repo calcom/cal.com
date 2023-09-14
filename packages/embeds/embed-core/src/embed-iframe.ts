@@ -1,25 +1,25 @@
-import { useRouter } from "next/router";
-import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
-
-import embedInit from "@calcom/embed-core/embed-iframe-init";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-
-type Theme = "dark" | "light";
-export type EmbedThemeConfig = Theme | "auto";
-export type UiConfig = {
-  hideEventTypeDetails?: boolean;
-  theme?: EmbedThemeConfig;
-  styles?: EmbedStyles & EmbedNonStylesConfig;
-  //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
-  cssVarsPerTheme?: Record<Theme, Record<string, string>>;
-};
+import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
 
+declare global {
+  interface Window {
+    CalEmbed: {
+      __logQueue?: unknown[];
+      embedStore: typeof embedStore;
+      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
+    };
+  }
+}
+/**
+ * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
+ */
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
@@ -34,23 +34,11 @@ const embedStore = {
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
+  /**
+   * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
+   */
+  setUiConfig: [] as ((arg0: UiConfig) => void)[],
 };
-
-declare global {
-  interface Window {
-    CalEmbed: {
-      __logQueue?: unknown[];
-      embedStore: typeof embedStore;
-      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
-    };
-    CalComPageStatus: string;
-    isEmbed?: () => boolean;
-    resetEmbedStatus: () => void;
-    getEmbedNamespace: () => string | null;
-    getEmbedTheme: () => "dark" | "light" | null;
-  }
-}
 
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
@@ -89,23 +77,6 @@ function log(...args: unknown[]) {
       console.log(...args);
     }
   }
-}
-
-// Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
-// Keep this list to minimum, only adding those styles which are really needed.
-interface EmbedStyles {
-  body?: Pick<CSSProperties, "background">;
-  eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-}
-interface EmbedNonStylesConfig {
-  /** Default would be center */
-  align?: "left";
-  branding?: {
-    brandColor?: string;
-  };
 }
 
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
@@ -168,21 +139,54 @@ function isValidNamespace(ns: string | null | undefined) {
   return typeof ns !== "undefined" && ns !== null;
 }
 
-export const useEmbedTheme = () => {
-  const router = useRouter();
-  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as typeof embedStore.theme));
+/**
+ * It handles any URL change done through Web history API as well
+ * History API is currently being used by Booker/utils/query-param
+ */
+const useUrlChange = (callback: (newUrl: string) => void) => {
+  const currentFullUrl = isBrowser ? new URL(document.URL) : null;
+  const pathname = currentFullUrl?.pathname ?? "";
+  const searchParams = currentFullUrl?.searchParams ?? null;
+  const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
   useEffect(() => {
-    router.events.on("routeChangeComplete", () => {
-      sdkActionManager?.fire("__routeChanged", {});
-    });
-  }, [router.events]);
+    const newUrl = `${pathname}?${searchParams}`;
+    if (lastKnownUrl.current !== newUrl) {
+      lastKnownUrl.current = newUrl;
+      callback(newUrl);
+    }
+  }, [pathname, searchParams, callback]);
+};
+
+export const useEmbedTheme = () => {
+  const searchParams = useSearchParams();
+  const [theme, setTheme] = useState(
+    embedStore.theme || (searchParams?.get("theme") as typeof embedStore.theme)
+  );
+
+  const onUrlChange = useCallback(() => {
+    sdkActionManager?.fire("__routeChanged", {});
+  }, []);
+  useUrlChange(onUrlChange);
+
   embedStore.setTheme = setTheme;
   return theme;
 };
 
+/**
+ * It serves following purposes
+ * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component get's the correct value of ui config
+ * - Ensures that all the components using useEmbedUiConfig are updated when ui config changes. It is done by maintaining a list of all non-stale setters.
+ */
 export const useEmbedUiConfig = () => {
   const [uiConfig, setUiConfig] = useState(embedStore.uiConfig || {});
-  embedStore.setUiConfig = setUiConfig;
+  embedStore.setUiConfig.push(setUiConfig);
+  useEffect(() => {
+    return () => {
+      const foundAtIndex = embedStore.setUiConfig.findIndex((item) => item === setUiConfig);
+      // Keep removing the setters that are stale
+      embedStore.setUiConfig.splice(foundAtIndex, 1);
+    };
+  });
   return uiConfig;
 };
 
@@ -235,7 +239,7 @@ function getNamespace() {
     return embedStore.namespace;
   }
   if (isBrowser) {
-    const namespace = window?.getEmbedNamespace?.() || null;
+    const namespace = window?.getEmbedNamespace?.() ?? null;
     embedStore.namespace = namespace;
     return namespace;
   }
@@ -288,7 +292,7 @@ const methods = {
 
     if (stylesConfig) {
       console.warn(
-        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported.https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19"
+        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19"
       );
     }
 
@@ -304,15 +308,22 @@ const methods = {
       }
     }
 
-    // Set the value here so that if setUiConfig state isn't available and later it's defined,it uses this value
-    embedStore.uiConfig = uiConfig;
+    // Merge new values over the old values
+    uiConfig = {
+      ...embedStore.uiConfig,
+      ...uiConfig,
+    };
 
     if (uiConfig.cssVarsPerTheme) {
       window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
     }
 
+    if (uiConfig.colorScheme) {
+      actOnColorScheme(uiConfig.colorScheme);
+    }
+
     if (embedStore.setUiConfig) {
-      embedStore.setUiConfig(uiConfig);
+      runAllUiSetters(uiConfig);
     }
 
     setEmbedStyles(stylesConfig || {});
@@ -335,7 +346,6 @@ const methods = {
 };
 
 export type InterfaceWithParent = {
-  // Ensure that only one argument is read by the method
   [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
 };
 
@@ -431,10 +441,17 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
-  // Exposes certain global variables/fns that are used by the app to get interface with the embed.
-  embedInit();
   const url = new URL(document.URL);
-  embedStore.theme = window?.getEmbedTheme?.() as UiConfig["theme"];
+  embedStore.theme = window?.getEmbedTheme?.();
+
+  embedStore.uiConfig = {
+    // TODO: Add theme as well here
+    colorScheme: url.searchParams.get("ui.color-scheme"),
+    layout: url.searchParams.get("layout") as BookerLayouts,
+  };
+
+  actOnColorScheme(embedStore.uiConfig.colorScheme);
+
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
@@ -486,4 +503,17 @@ if (isBrowser) {
         },
       });
   }
+}
+
+function runAllUiSetters(uiConfig: UiConfig) {
+  // Update EmbedStore so that when a new react component mounts, useEmbedUiConfig can get the persisted value from embedStore.uiConfig
+  embedStore.uiConfig = uiConfig;
+  embedStore.setUiConfig.forEach((setUiConfig) => setUiConfig(uiConfig));
+}
+
+function actOnColorScheme(colorScheme: string | null | undefined) {
+  if (!colorScheme) {
+    return;
+  }
+  document.documentElement.style.colorScheme = colorScheme;
 }

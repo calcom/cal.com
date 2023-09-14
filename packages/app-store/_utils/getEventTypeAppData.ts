@@ -18,12 +18,14 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
     return allowDataGet
       ? {
           ...appMetadata,
+          // We should favor eventType's price and currency over appMetadata's price and currency
+          price: eventType.price || appMetadata.price,
+          currency: eventType.currency || appMetadata.currency,
           // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
           TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId,
         }
       : null;
   }
-
   // Backward compatibility for existing event types.
   // TODO: After the new AppStore EventType App flow is stable, write a migration to migrate metadata to new format which will let us remove this compatibility code
   // Migration isn't being done right now, to allow a revert if needed
@@ -35,11 +37,6 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
       // Currency default is "usd" in DB.So, it would also be available always
       currency: eventType.currency,
       paymentOption: "ON_BOOKING",
-    },
-    rainbow: {
-      enabled: !!(eventType.metadata?.smartContractAddress && eventType.metadata?.blockchainId),
-      smartContractAddress: eventType.metadata?.smartContractAddress || "",
-      blockchainId: eventType.metadata?.blockchainId || 0,
     },
     giphy: {
       enabled: !!eventType.metadata?.giphyThankYouPage,

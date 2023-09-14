@@ -1,15 +1,19 @@
-import type { InferGetStaticPropsType } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { SkeletonText } from "@calcom/ui";
 import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
+import { ssrInit } from "@server/lib/ssr";
+
+export default function Apps({ categories }: inferSSRProps<typeof getServerSideProps>) {
   const { t, isLocaleReady } = useLocale();
 
   return (
@@ -47,8 +51,20 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 
 Apps.PageWrapper = PageWrapper;
 
-export const getStaticProps = async () => {
-  const appStore = await getAppRegistry();
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, res } = context;
+
+  const ssr = await ssrInit(context);
+
+  const session = await getServerSession({ req, res });
+
+  let appStore;
+  if (session?.user?.id) {
+    appStore = await getAppRegistryWithCredentials(session.user.id);
+  } else {
+    appStore = await getAppRegistry();
+  }
+
   const categories = appStore.reduce((c, app) => {
     for (const category of app.categories) {
       c[category] = c[category] ? c[category] + 1 : 1;
@@ -59,6 +75,7 @@ export const getStaticProps = async () => {
   return {
     props: {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

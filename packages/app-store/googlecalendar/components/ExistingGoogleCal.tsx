@@ -8,11 +8,11 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
   const { t } = useLocale();
 
   return gCalInstalled ? (
-    <div className="bg-subtle rounded-md py-3 px-4">
+    <div className="bg-subtle rounded-md px-4 py-3">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <Check className="mt-1 mr-2 font-semibold" />
+            <Check className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("google_calendar_is_connected")}</span>
@@ -26,11 +26,11 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
       </div>
     </div>
   ) : (
-    <div className="bg-info text-info rounded-md py-3 px-4">
+    <div className="bg-info text-info rounded-md px-4 py-3">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <AlertCircle className="mt-1 mr-2 font-semibold" />
+            <AlertCircle className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("this_app_requires_google_calendar", { appName })}</span>

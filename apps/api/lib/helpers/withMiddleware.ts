@@ -28,10 +28,17 @@ const withMiddleware = label(
     customPrismaClient,
     extendRequest,
     pagination: withPagination,
-    sentry: captureErrors,
+    captureErrors,
   },
-  // The order here, determines the order of execution, put customPrismaClient before verifyApiKey always.
-  ["extendRequest", "sentry", "customPrismaClient", "verifyApiKey", "addRequestId"] // <-- Provide a list of middleware to call automatically
+  // The order here, determines the order of execution
+  [
+    "extendRequest",
+    "captureErrors",
+    // - Put customPrismaClient before verifyApiKey always.
+    "customPrismaClient",
+    "verifyApiKey",
+    "addRequestId",
+  ] // <-- Provide a list of middleware to call automatically
 );
 
 export { withMiddleware };

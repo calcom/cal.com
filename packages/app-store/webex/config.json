@@ -6,10 +6,10 @@
   "type": "webex_video",
   "imageSrc": "/icon.ico",
   "logo": "/icon.ico",
-  "url": "https://cal.com/apps/webex",
+  "url": "https://github.com/aar2dee2",
   "variant": "conferencing",
-  "categories": ["video"],
-  "publisher": "Cal.com, Inc.",
+  "categories": ["conferencing"],
+  "publisher": "aar2dee2",
   "email": "support@cal.com",
   "description": "Create meetings with Cisco Webex",
   "appData": {
@@ -21,5 +21,6 @@
   },
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "basic"
+  "__template": "basic",
+  "concurrentMeetings": true
 }

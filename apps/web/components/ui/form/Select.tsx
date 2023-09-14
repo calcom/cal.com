@@ -3,7 +3,7 @@ import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "reac
 import ReactSelect, { components } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
-import useTheme from "@calcom/lib/hooks/useTheme";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 
 export type SelectProps<
   Option,
@@ -30,7 +30,7 @@ function Select<
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   const [mounted, setMounted] = useState<boolean>(false);
-  const { resolvedTheme, forcedTheme } = useTheme();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const darkThemeColors = {
     /** Dark Theme starts */

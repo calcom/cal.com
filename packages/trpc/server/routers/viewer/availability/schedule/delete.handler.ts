@@ -26,6 +26,8 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
 
   if (scheduleToDelete?.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+  // cannot remove this schedule if this is the last schedule remaining
+  // if this is the last remaining schedule of the user then this would be the default schedule and so cannot remove it
   if (user.defaultScheduleId === input.scheduleId) {
     // set a new default or unset default if no other schedule
     const scheduleToSetAsDefault = await prisma.schedule.findFirst({
@@ -39,6 +41,9 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
         id: true,
       },
     });
+
+    // to throw the error if there arent any other schedules
+    if (!scheduleToSetAsDefault) throw new TRPCError({ code: "BAD_REQUEST" });
 
     await prisma.user.update({
       where: {

@@ -1,7 +1,7 @@
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TListMembersInputSchema } from "./listMembers.schema";
-import type { PrismaClient } from ".prisma/client";
 
 type ListMembersOptions = {
   ctx: {
@@ -37,16 +37,20 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
               username: true,
             },
           },
+          accepted: true,
         },
       },
     },
   });
 
-  type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
-  // flattern users to be unique by id
+  type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"] & { accepted: boolean }>;
+  // flatten users to be unique by id
   const users = teams
     .flatMap((t) => t.members)
-    .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
+    .reduce(
+      (acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: { ...m.user, accepted: m.accepted } }),
+      {} as UserMap
+    );
 
   return Object.values(users);
 };

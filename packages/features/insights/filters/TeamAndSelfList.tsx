@@ -1,67 +1,164 @@
+import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
-import type { RouterOutputs } from "@calcom/trpc";
+import {
+  FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
+} from "@calcom/features/filters/components/TeamsFilter";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Select } from "@calcom/ui";
+import { AnimatedPopover, Avatar, Divider } from "@calcom/ui";
+import { Layers, User } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
-type Team = RouterOutputs["viewer"]["insights"]["teamListForUser"][number];
-type Option = { value: number; label: string | null; userId?: number };
-
-const mapTeamToOption = (team: Team): Option => ({
-  value: team.id,
-  label: team.name ?? "",
-  userId: team.userId,
-});
-
 export const TeamAndSelfList = () => {
-  const { filter, setSelectedTeamId, setSelectedTeamName, setSelectedUserId } = useFilterContext();
-  const { selectedTeamId, selectedUserId } = filter;
-  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery();
+  const { t } = useLocale();
+  const session = useSession();
+
+  const { filter, setConfigFilters } = useFilterContext();
+  const { selectedTeamId, selectedUserId, isAll } = filter;
+  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
+    // Teams don't change that frequently
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
-    if (data && data?.length > 0) {
+    if (isSuccess && session.data?.user.id) {
       // We have a team?
-      if (data[0].id) {
-        setSelectedTeamId(data[0].id);
-        setSelectedTeamName(data[0].name);
-      } else if (data[0].userId) {
+      if (data[0]?.id && data && data?.length > 0) {
+        const isAllSelected = !!data[0]?.isOrg;
+        setConfigFilters({
+          selectedTeamId: data[0].id,
+          selectedUserId: null,
+          isAll: isAllSelected,
+          initialConfig: {
+            teamId: data[0].id,
+            userId: null,
+            isAll: isAllSelected,
+          },
+        });
+      } else if (session.data?.user.id) {
         // default to user
-        setSelectedUserId(data[0].userId);
+        setConfigFilters({
+          initialConfig: {
+            teamId: null,
+            userId: session.data?.user.id,
+            isAll: false,
+          },
+        });
       }
+    } else if (session.data?.user.id) {
+      setConfigFilters({
+        selectedUserId: session.data?.user.id,
+        selectedTeamId: null,
+        isAll: false,
+        initialConfig: {
+          teamId: null,
+          userId: session.data?.user.id,
+          isAll: false,
+        },
+      });
     }
-  }, [data]);
+  }, [data, session.data?.user.id]);
 
-  const UserListOptions = data?.map(mapTeamToOption) || ([{ label: "Empty", value: -1 }] as Option[]);
-  const selectedTeam = data?.find((item) => {
-    if (!!selectedUserId && !selectedTeamId) {
-      return item.userId === selectedUserId;
+  const getTextPopover = () => {
+    if (isAll) {
+      return `${t("all")}`;
+    } else if (selectedUserId) {
+      return `${t("yours")}`;
+    } else if (selectedTeamId) {
+      const selectedTeam = data?.find((item) => {
+        return item.id === selectedTeamId;
+      });
+      return `${t("team")}: ${selectedTeam?.name}`;
     }
-    return item.id === selectedTeamId;
-  });
-  const teamValue = selectedTeam ? mapTeamToOption(selectedTeam) : null;
 
-  if (!isSuccess || data?.length === 0) return null;
+    return t("select");
+  };
+
+  const text = getTextPopover();
 
   return (
-    <>
-      <Select<Option>
-        isSearchable={false}
-        isMulti={false}
-        value={teamValue}
-        defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
-        className="h-[38px] w-[90vw] min-w-[160px] max-w-[100px]"
-        options={UserListOptions}
-        onChange={(input) => {
-          if (!!input?.userId) {
-            setSelectedUserId(input.userId);
-          } else if (input && input.value) {
-            setSelectedTeamId(input.value);
-            setSelectedTeamName(input.label);
-          }
-        }}
-      />
-    </>
+    <AnimatedPopover text={text}>
+      <FilterCheckboxFieldsContainer>
+        {isSuccess && data?.length > 0 && data[0].isOrg && (
+          <FilterCheckboxField
+            id="all"
+            icon={<Layers className="h-4 w-4" />}
+            checked={isAll}
+            onChange={(e) => {
+              setConfigFilters({
+                selectedTeamId: data[0].isOrg ? data[0].id : null,
+                selectedUserId: null,
+                selectedTeamName: null,
+                isAll: true,
+              });
+            }}
+            label={t("insights_all_org_filter")}
+          />
+        )}
+
+        <Divider />
+        {data?.map((team) => (
+          <FilterCheckboxField
+            key={team.id}
+            id={team.name || ""}
+            label={team.name || ""}
+            checked={selectedTeamId === team.id && !isAll}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setConfigFilters({
+                  selectedTeamId: team.id,
+                  selectedUserId: null,
+                  selectedTeamName: team.name,
+                  isAll: false,
+                  // Setting these to null to reset the filters
+                  selectedEventTypeId: null,
+                  selectedMemberUserId: null,
+                  selectedFilter: null,
+                });
+              } else if (!e.target.checked) {
+                setConfigFilters({
+                  selectedTeamId: null,
+                  selectedTeamName: null,
+                  isAll: false,
+                });
+              }
+            }}
+            icon={
+              <Avatar
+                alt={team?.name || ""}
+                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                size="xs"
+              />
+            }
+          />
+        ))}
+        <Divider />
+
+        <FilterCheckboxField
+          id="yours"
+          icon={<User className="h-4 w-4" />}
+          checked={selectedUserId === session.data?.user.id}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setConfigFilters({
+                selectedUserId: session.data?.user.id,
+                selectedTeamId: null,
+                isAll: false,
+              });
+            } else if (!e.target.checked) {
+              setConfigFilters({
+                selectedUserId: null,
+                isAll: false,
+              });
+            }
+          }}
+          label={t("yours")}
+        />
+      </FilterCheckboxFieldsContainer>
+    </AnimatedPopover>
   );
 };

@@ -36,7 +36,7 @@ export const createPaymentsFixture = (page: Page) => {
           },
         },
       });
-      const paymentFixture = createPaymentFixture(payment, store.page!);
+      const paymentFixture = createPaymentFixture(payment, store.page);
       store.payments.push(paymentFixture);
       return paymentFixture;
     },
@@ -57,7 +57,7 @@ const createPaymentFixture = (payment: Payment, page: Page) => {
   // self is a reflective method that return the Prisma object that references this fixture.
   return {
     id: store.payment.id,
-    self: async () => (await prisma.payment.findUnique({ where: { id: store.payment.id } }))!,
-    delete: async () => (await prisma.payment.delete({ where: { id: store.payment.id } }))!,
+    self: async () => await prisma.payment.findUnique({ where: { id: store.payment.id } }),
+    delete: async () => await prisma.payment.delete({ where: { id: store.payment.id } }),
   };
 };
