@@ -367,6 +367,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -411,10 +412,10 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
       }
     } catch {
       log.debug({
@@ -1722,6 +1723,7 @@ async function handler(
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
           booking,
+          fullName,
           bookerEmail
         );
 
@@ -1911,7 +1913,7 @@ async function handler(
     const createBookingObj = {
       include: {
         user: {
-          select: { email: true, name: true, timeZone: true },
+          select: { email: true, name: true, timeZone: true, username: true },
         },
         attendees: true,
         payment: true,
@@ -2279,6 +2281,7 @@ async function handler(
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
+      fullName,
       bookerEmail
     );
 
@@ -2466,6 +2469,7 @@ const findBookingQuery = async (bookingId: number) => {
           name: true,
           email: true,
           timeZone: true,
+          username: true,
         },
       },
       eventType: {
