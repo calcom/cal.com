@@ -1,3 +1,7 @@
+import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
+import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import type {
   EventType as PrismaEventType,
   User as PrismaUser,
@@ -16,10 +20,6 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
-
-import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
-import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 type App = {
   slug: string;

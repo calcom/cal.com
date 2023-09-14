@@ -1,4 +1,4 @@
-import type { App, Attendee, Credential, EventTypeCustomInput, DestinationCalendar } from "@prisma/client";
+import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -69,6 +69,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
   bookingCreateBodySchemaForApi,
   bookingCreateSchemaLegacyPropsForApi,
@@ -85,6 +86,7 @@ import type {
   IntervalLimit,
   Person,
 } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -111,11 +113,12 @@ interface IEventTypePaymentCredentialType {
  *
  * @param credential
  */
-async function refreshCredential(credential: Credential): Promise<Credential> {
+async function refreshCredential(credential: CredentialPayload): Promise<CredentialPayload> {
   const newCredential = await prisma.credential.findUnique({
     where: {
       id: credential.id,
     },
+    select: credentialForCalendarServiceSelect,
   });
 
   if (!newCredential) {
@@ -130,7 +133,7 @@ async function refreshCredential(credential: Credential): Promise<Credential> {
  *
  * @param credentials
  */
-async function refreshCredentials(credentials: Array<Credential>): Promise<Array<Credential>> {
+async function refreshCredentials(credentials: Array<CredentialPayload>): Promise<Array<CredentialPayload>> {
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
@@ -139,7 +142,7 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
  *
  */
 const getAllCredentials = async (
-  user: User & { credentials: Credential[] },
+  user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
   const allCredentials = user.credentials;
@@ -150,6 +153,7 @@ const getAllCredentials = async (
       where: {
         teamId: eventType.team.id,
       },
+      select: credentialForCalendarServiceSelect,
     });
     allCredentials.push(...teamCredentialsQuery);
   }
@@ -165,7 +169,9 @@ const getAllCredentials = async (
         },
       },
       select: {
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
       },
     });
     if (teamCredentialsQuery?.credentials) {
@@ -180,7 +186,9 @@ const getAllCredentials = async (
         id: user.organizationId,
       },
       select: {
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
       },
     });
 
@@ -241,7 +249,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       disableGuests: true,
       users: {
         select: {
-          credentials: true,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
           ...userSelect.select,
         },
       },
@@ -317,7 +327,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           user: {
             select: {
-              credentials: true,
+              credentials: {
+                select: credentialForCalendarServiceSelect,
+              },
               ...userSelect.select,
               organization: {
                 select: {
@@ -352,7 +364,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type IsFixedAwareUser = User & {
   isFixed: boolean;
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   organization: { slug: string };
 };
 
@@ -367,6 +379,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -411,10 +424,10 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
       }
     } catch {
       log.debug({
@@ -735,7 +748,9 @@ async function handler(
           },
           select: {
             ...userSelect.select,
-            credentials: true,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
             metadata: true,
           },
         });
@@ -785,7 +800,9 @@ async function handler(
         id: eventType.userId,
       },
       select: {
-        credentials: true, // Don't leak to client
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        }, // Don't leak to client
         ...userSelect.select,
       },
     });
@@ -994,6 +1011,7 @@ async function handler(
       teamDestinationCalendars.push(user.destinationCalendar);
     }
     return {
+      id: user.id,
       email: user.email ?? "",
       name: user.name ?? "",
       firstName: "",
@@ -1111,6 +1129,7 @@ async function handler(
             where: {
               id: reference.credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
 
           if (credential) {
@@ -1722,6 +1741,7 @@ async function handler(
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
           booking,
+          fullName,
           bookerEmail
         );
 
@@ -1911,7 +1931,7 @@ async function handler(
     const createBookingObj = {
       include: {
         user: {
-          select: { email: true, name: true, timeZone: true },
+          select: { email: true, name: true, timeZone: true, username: true },
         },
         attendees: true,
         payment: true,
@@ -2279,6 +2299,7 @@ async function handler(
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
+      fullName,
       bookerEmail
     );
 
@@ -2466,6 +2487,7 @@ const findBookingQuery = async (bookingId: number) => {
           name: true,
           email: true,
           timeZone: true,
+          username: true,
         },
       },
       eventType: {
