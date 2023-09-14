@@ -50,6 +50,7 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
+    cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!user) {
