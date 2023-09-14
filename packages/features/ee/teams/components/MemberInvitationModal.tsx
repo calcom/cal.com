@@ -94,8 +94,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     const inviteLink = isOrgInvite ? orgInviteLink : teamInviteLink;
 
-    console.log("INVITE", inviteLink);
-    // await navigator.clipboard.writeText(inviteLink);
+    await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
   };
 
