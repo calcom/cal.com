@@ -42,6 +42,7 @@ type MemberInvitationModalProps = {
   token?: string;
   isLoading?: boolean;
   disableCopyLink?: boolean;
+  isOrg?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -68,7 +69,7 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
-  const { disableCopyLink = false } = props;
+  const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useContext();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
@@ -87,8 +88,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   });
 
   const copyInviteLinkToClipboard = async (token: string) => {
-    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    await navigator.clipboard.writeText(inviteLink);
+    const isOrgInvite = isOrg;
+    const inviteLink = `${WEBAPP_URL}/teams?token=${token}&isOrgCopyInviteLink=${isOrgInvite}`;
+    console.log("INVITE", inviteLink);
+    // await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
   };
 

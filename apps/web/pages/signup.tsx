@@ -78,7 +78,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             searchParams?.get("callbackUrl")
               ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
               : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }?from=signup`,
+          }`,
         });
       })
       .catch((err) => {
@@ -122,6 +122,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 }}
                 className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
+                {}
                 <div className="space-y-4">
                   <TextField
                     addOnLeading={
@@ -130,7 +131,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                         : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                     }
                     {...register("username")}
-                    disabled={!!orgSlug}
+                    disabled={!!orgSlug && prepopulateFormValues?.username}
                     required
                   />
                   <EmailField
@@ -278,14 +279,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     username = available ? username : suggestion || username;
   }
 
+  const isValidEmail = z.string().email().safeParse(verificationToken.identifier).success;
+
+  const prepopulateFormValues = {
+    email: verificationToken.identifier,
+    username: slugify(username),
+  };
+
   return {
     props: {
       ...props,
       token,
-      prepopulateFormValues: {
-        email: verificationToken.identifier,
-        username: slugify(username),
-      },
+      prepopulateFormValues: isValidEmail ? prepopulateFormValues : null,
       orgSlug,
     },
   };
