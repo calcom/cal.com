@@ -141,7 +141,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                     methods.clearErrors("apiError");
                   }
 
-                  if (methods.getValues().username === undefined) {
+                  if (methods.getValues().username === undefined && isOrgInviteByLink) {
                     methods.setValue("username", getOrgUsernameFromEmail(methods.getValues().email));
                   }
                   methods.handleSubmit(signUp)(event);
