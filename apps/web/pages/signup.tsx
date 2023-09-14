@@ -46,7 +46,7 @@ const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) =
   return username;
 };
 
-function addOrUpdateQueryParam(url, key, value) {
+function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
   return `${url}${separator}${param}`;
