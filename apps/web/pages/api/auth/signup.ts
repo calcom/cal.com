@@ -37,8 +37,12 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     return selfhostedSignupHandler(req, res);
   } catch (e) {
     if (e instanceof HttpError) {
-      return res.status(e.statusCode).json({ message: e.message });
+      console.log("HTTPERROR");
+      res.status(e.statusCode).json({ message: e.message });
     }
-    throw e;
+    console.log("INTERNAL SERVER ERROR");
+    res.status(500).json({ message: "Internal server error" });
+  } finally {
+    console.log("FINALLY - we have a log");
   }
 }

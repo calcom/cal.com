@@ -54,9 +54,12 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     throwIfTokenExpired(foundToken?.expires);
     validateUsernameForTeam({ username, email, teamId: foundToken?.teamId });
   } else {
-    const userValidation = await validateUsername(username, email);
-    if (!userValidation.isValid) {
-      return res.status(409).json({ message: "Username or email is already taken" });
+    const usernameAndEmailValidation = await validateUsername(username, email);
+    if (!usernameAndEmailValidation.isValid) {
+      throw new HttpError({
+        statusCode: 409,
+        message: "Username or email is already taken",
+      });
     }
   }
 
