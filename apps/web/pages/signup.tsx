@@ -253,8 +253,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
-  console.log("TOKEN", verificationToken);
-
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
