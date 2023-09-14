@@ -7,10 +7,10 @@ import React, { Suspense, useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
@@ -120,12 +120,12 @@ const tabs: VerticalTabItemProps[] = [
   },
 ];
 
-tabs.find((tab) => {
-  // Add "SAML SSO" to the tab
-  if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-    tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
-  }
-});
+// tabs.find((tab) => {
+//   // Add "SAML SSO" to the tab
+//   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
+//     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
+//   }
+// });
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
@@ -382,7 +382,7 @@ const SettingsSidebarContainer = ({
                                   )}
                                 </div>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
+                              {/* <CollapsibleContent className="space-y-0.5">
                                 {team.accepted && (
                                   <VerticalTabItem
                                     name={t("profile")}
@@ -404,20 +404,20 @@ const SettingsSidebarContainer = ({
                                   (team.isOrgAdmin && team.isOrgAdmin)) && (
                                   <>
                                     {/* TODO */}
-                                    {/* <VerticalTabItem
+                              {/* <VerticalTabItem
                                 name={t("general")}
                                 href={`${WEBAPP_URL}/settings/my-account/appearance`}
                                 textClassNames="px-3 text-emphasis font-medium text-sm"
                                 disableChevron
                               /> */}
-                                    <VerticalTabItem
+                              {/* <VerticalTabItem
                                       name={t("appearance")}
                                       href={`/settings/teams/${team.id}/appearance`}
                                       textClassNames="px-3 text-emphasis font-medium text-sm"
                                       disableChevron
-                                    />
-                                    {/* Hide if there is a parent ID */}
-                                    {!team.parentId ? (
+                                    /> */}
+                              {/* Hide if there is a parent ID */}
+                              {/* {!team.parentId ? (
                                       <>
                                         <VerticalTabItem
                                           name={t("billing")}
@@ -434,10 +434,10 @@ const SettingsSidebarContainer = ({
                                           />
                                         )}
                                       </>
-                                    ) : null}
+                                    ) : null} *}
                                   </>
                                 )}
-                              </CollapsibleContent>
+                              </CollapsibleContent> */}
                             </Collapsible>
                           );
                       })}

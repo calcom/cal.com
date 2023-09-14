@@ -89,6 +89,9 @@ export const BookingFields = ({
         if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
           return null;
         }
+        if (field.name === SystemField.Enum.payment && !!rescheduleUid) {
+          return null;
+        }
 
         // Dynamically populate location field options
         if (field.name === SystemField.Enum.location && field.type === "radioInput") {

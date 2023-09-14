@@ -373,10 +373,7 @@ export const BookEventFormChild = ({
   const nameMissing = !bookingForm.getValues("responses.name");
   const emailNotValid = !isValidEmail(bookingForm.getValues("responses.email"));
   const guestsArray = bookingForm.getValues("responses.guests");
-  const guestsNotValid = guestsArray && guestsArray.some((guest) => !isValidEmail(guest));
-  const guestsSameAsEmail = guestsArray && guestsArray.includes(bookingForm.getValues("responses.email"));
-  const emailInGuests = guestsArray && guestsArray.includes(bookingForm.getValues("responses.email"));
-  const guestsNotUnique = guestsArray && new Set(guestsArray).size !== guestsArray.length;
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -426,15 +423,29 @@ export const BookEventFormChild = ({
             <Button
               type="submit"
               color="primary"
-              disabled={
-                nameMissing ||
-                emailNotValid ||
-                (guestsArray &&
-                  guestsArray.length !== 0 &&
-                  (guestsNotValid || guestsSameAsEmail || emailInGuests || guestsNotUnique))
-              }
+              disabled={nameMissing || emailNotValid}
               // Condition 5: Responses.email is in the guests array or Condition 6: Guests are not unique within the array
               onClick={() => {
+                if (bookingForm.formState.errors?.responses?.message) {
+                  const errorMessage = bookingForm.formState.errors.responses.message;
+                  if (
+                    errorMessage.includes("name") ||
+                    errorMessage.includes("email") ||
+                    errorMessage.includes("guests")
+                  ) {
+                    return;
+                  }
+                }
+                if (guestsArray && guestsArray.length > 0) {
+                  const uniqueGuestsArray = Array.from(
+                    new Set(
+                      guestsArray.filter((guest) => {
+                        return isValidEmail(guest) && guest !== bookingForm.getValues("responses.email");
+                      })
+                    )
+                  );
+                  bookingForm.setValue("responses.guests", uniqueGuestsArray);
+                }
                 setCurrentStep(2);
               }}>
               {t("Continue")}

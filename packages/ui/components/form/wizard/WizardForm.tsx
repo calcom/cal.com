@@ -88,7 +88,7 @@ function WizardForm<T extends DefaultStep>(props: {
               color="primary"
               form={`wizard-step-${step}`}
               disabled={currentStep.isEnabled === false}
-              className="bg-brand-default text-brand relative ml-2">
+              className="bg-brand-default text-brand  relative ml-2 hover:text-white">
               {step < steps.length ? nextLabel : finishLabel}
             </Button>
           </div>

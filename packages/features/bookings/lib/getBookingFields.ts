@@ -311,6 +311,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "guests",
       required: false,
       hidden: disableGuests,
+      defaultPlaceholder: "Enter Email id of guests",
       sources: [
         {
           label: "Default",
