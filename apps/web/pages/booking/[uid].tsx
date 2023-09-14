@@ -40,7 +40,6 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -57,6 +56,8 @@ import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 const useBrandColors = ({
   brandColor,
@@ -93,6 +94,8 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
+  const query = useMeQuery();
+  const user = query.data;
   const { t, i18n } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -132,7 +135,7 @@ export default function Success(props: SuccessProps) {
 
   const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
 
-  const [is24h, setIs24h] = useState(isBrowserLocale24h());
+  const [is24h, setIs24h] = useState(user?.timeFormat===24);
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
@@ -215,7 +218,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!getIs24hClockFromLocalStorage());
+    setIs24h(user?.timeFormat===24);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
