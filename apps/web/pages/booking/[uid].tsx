@@ -49,6 +49,7 @@ import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calc
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
@@ -56,8 +57,6 @@ import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 const useBrandColors = ({
   brandColor,
@@ -135,7 +134,7 @@ export default function Success(props: SuccessProps) {
 
   const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
 
-  const [is24h, setIs24h] = useState(user?.timeFormat===24);
+  const [is24h, setIs24h] = useState(user?.timeFormat === 24);
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
@@ -218,7 +217,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(user?.timeFormat===24);
+    setIs24h(user?.timeFormat === 24);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
