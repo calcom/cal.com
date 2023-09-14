@@ -311,6 +311,10 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
+    const options = field.options.map((field) => {
+      return { ...field, value: field.value === "inPerson" ? field.label : field.value };
+    });
+
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
@@ -320,7 +324,7 @@ export const ComponentForField = ({
           value={value as { value: string; optionValue: string }}
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
-          options={field.options}
+          options={options}
           required={field.required}
         />
       </WithLabel>
