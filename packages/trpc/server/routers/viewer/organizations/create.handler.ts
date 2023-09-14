@@ -14,6 +14,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -126,7 +127,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     const createOwnerOrg = await prisma.user.create({
       data: {
-        username: adminUsername,
+        username: slugify(adminUsername),
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
