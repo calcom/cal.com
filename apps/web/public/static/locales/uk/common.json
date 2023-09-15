@@ -2044,5 +2044,12 @@
   "value": "Значення",
   "your_organization_updated_sucessfully": "Організацію оновлено",
   "team_no_event_types": "У цієї команди немає типів заходів",
+  "seat_options_doesnt_multiple_durations": "Параметр «Місця» не підтримує декілька варіантів тривалості",
+  "include_calendar_event": "Включити календарний захід",
+  "recently_added": "Нещодавно додані",
+  "no_members_found": "Учасників не знайдено",
+  "event_setup_length_error": "Налаштування заходу: мінімальна тривалість — 1 хвилина.",
+  "availability_schedules": "Розклад доступності",
+  "view_only_edit_availability_not_onboarded": "Цей користувач не завершив ознайомлення. Доки він не зробить цього, ви не зможете налаштувати доступність для нього.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
