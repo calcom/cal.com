@@ -92,8 +92,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
     const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
 
-    const inviteLink = isOrgInvite ? orgInviteLink : teamInviteLink;
-
+    const inviteLink =
+      isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
     await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
   };

@@ -245,6 +245,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           parent: {
             select: {
               slug: true,
+              metadata: true,
             },
           },
           slug: true,
@@ -311,7 +312,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = orgSlug && !isValidEmail;
+  const isOrgInviteByLink = isOrganization && !isValidEmail;
 
   return {
     props: {
@@ -324,7 +325,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           }
         : null,
       orgSlug,
-      orgAutoAcceptEmail: isOrgInviteByLink ? tokenTeam.metadata?.orgAutoAcceptEmail : null,
+      orgAutoAcceptEmail: isOrgInviteByLink
+        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? tokenTeam?.parent?.metadata?.orgAutoAcceptEmail
+        : null,
     },
   };
 };
