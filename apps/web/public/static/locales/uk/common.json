@@ -2031,5 +2031,7 @@
   "admin_org_notification_email_subject": "Створено нову організацію: очікується дія",
   "hi_admin": "Вітаємо, адміністраторе",
   "admin_org_notification_email_title": "Організації потрібно налаштувати DNS",
+  "admin_org_notification_email_body_part1": "Створено організацію з URL-адресою {{orgSlug}}.<br /><br />Налаштуйте реєстр DNS, щоб субдомен, який відповідає новій організації, вказував на те місце, де запущено основний застосунок. Інакше організація не працюватиме.<br /><br />Ось кілька дуже базових варіантів налаштування, щоб субдомен вказував на відповідний застосунок і завантажував сторінку профілю організації.<br /><br />Це можна зробити за допомогою запису А:",
+  "admin_org_notification_email_body_part2": "Або запису CNAME:",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

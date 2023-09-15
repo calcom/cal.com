@@ -2032,5 +2032,16 @@
   "hi_admin": "안녕하세요 관리자 님",
   "admin_org_notification_email_title": "조직에 DNS 설정이 필요합니다",
   "admin_org_notification_email_body_part1": "슬러그 \"{{orgSlug}}\" 있는 조직이 생성되었습니다.<br /><br />새 조직에 해당하는 하위 도메인이 기본 앱이 실행되는 위치를 가리키도록 DNS 레지스트리를 구성하십시오. 구성하지 않으면 조직은 작동하지 않습니다.<br /><br />다음은 하위 도메인이 앱을 가리키도록 구성하여 조직 프로필 페이지를 로드하는 매우 기본적인 옵션입니다.<br /><br />할 수 있는 작업은 A 레코드를 사용하는 것입니다:",
+  "admin_org_notification_email_body_part2": "또는 CNAME 레코드를 사용하는 것입니다:",
+  "admin_org_notification_email_body_part3": "하위 도메인을 구성한 후 조직 관리 설정에서 DNS 구성을 완료로 표시하십시오.",
+  "admin_org_notification_email_cta": "조직 관리자 설정으로 이동",
+  "org_has_been_processed": "조직이 처리되었습니다",
+  "org_error_processing": "이 조직을 처리하는 중 오류가 발생했습니다",
+  "orgs_page_description": "모든 조직의 목록입니다. 조직을 수락하면 해당 이메일 도메인을 가진 모든 사용자가 이메일 인증 없이 가입할 수 있습니다.",
+  "unverified": "미인증됨",
+  "dns_missing": "DNS 없음",
+  "mark_dns_configured": "DNS 구성됨으로 표시",
+  "value": "값",
+  "your_organization_updated_sucessfully": "조직이 업데이트되었습니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
