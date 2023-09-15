@@ -2049,5 +2049,9 @@
   "recently_added": "최근 추가됨",
   "no_members_found": "구성원 없음",
   "event_setup_length_error": "이벤트 설정: 지속 시간은 1분 이상이어야 합니다.",
+  "availability_schedules": "사용 가능한 일정",
+  "view_only_edit_availability_not_onboarded": "이 사용자는 온보딩을 완료하지 않았습니다. 온보딩이 완료될 때까지는 가용성을 설정할 수 없습니다.",
+  "view_only_edit_availability": "이 사용자의 가용성을 보고 계십니다. 본인의 가용성만 편집할 수 있습니다.",
+  "edit_users_availability": "사용자 가용성 편집: {{username}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
