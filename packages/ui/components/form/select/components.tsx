@@ -31,7 +31,6 @@ type ExtendedOption = {
   label: string;
   needsTeamsUpgrade?: boolean;
   needsOrgsUpgrade?: boolean;
-  verificationAction?: () => void;
 };
 
 export const OptionComponent = <

@@ -67,7 +67,6 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
-  setKYCVerificationDialogOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -338,7 +337,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       value: step.action,
       needsTeamsUpgrade: false,
       needsOrgsUpgrade: false,
-      verificationAction: () => props.setKYCVerificationDialogOpen(true),
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -529,7 +527,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
-                          verificationAction: () => props.setKYCVerificationDialogOpen(true),
                         }))}
                         isOptionDisabled={(option: {
                           label: string;
