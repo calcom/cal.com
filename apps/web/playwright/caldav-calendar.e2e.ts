@@ -16,7 +16,7 @@ const SHOULD_SKIP_TESTS = !CALDAV_CALENDER_URL || !CALDAV_CALENDAR_USERNAME || !
 
 test.describe("CalDav Calendar", () => {
   // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(SHOULD_SKIP_TESTS, "Skipping due to missing test credentials");
+  test.skip(SHOULD_SKIP_TESTS, "Skipping 'CalDav Calendar' tests due to missing CalDav credentials");
 
   test("Should be able to install and login on CalDav Calendar", async ({ page, users }) => {
     const user = await users.create();
