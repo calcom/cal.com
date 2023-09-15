@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
@@ -56,80 +57,72 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
-const AppearanceView = () => {
+const AppearanceView = ({
+  user,
+  hasPaidPlan,
+}: {
+  user: RouterOutputs["viewer"]["me"];
+  hasPaidPlan: boolean;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
   const [isCustomBrandColorChecked, setIsCustomBranColorChecked] = useState(
-    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR && user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
+    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
 
-  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
-
-  const formMethods = useForm({
-    defaultValues: {
-      theme: user?.theme,
-      brandColor: user?.brandColor || "#292929",
-      darkBrandColor: user?.darkBrandColor || "#fafafa",
-      hideBranding: user?.hideBranding,
-      metadata: user?.metadata as z.infer<typeof userMetadata>,
-    },
-  });
-
   const userThemeFormMethods = useForm({
     defaultValues: {
-      theme: user?.theme,
+      theme: user.theme,
     },
   });
 
   const {
     formState: { isSubmitting: isUserThemeSubmitting, isDirty: isUserThemeDirty },
-    reset: isUserThemeReset,
+    reset: resetUserThemeReset,
   } = userThemeFormMethods;
 
   const bookerLayoutFormMethods = useForm({
     defaultValues: {
-      metadata: user?.metadata as z.infer<typeof userMetadata>,
+      metadata: user.metadata as z.infer<typeof userMetadata>,
     },
   });
 
   const {
     formState: { isSubmitting: isBookerLayoutFormSubmitting, isDirty: isBookerLayoutFormDirty },
-    reset: isBookerLayoutThemeReset,
+    reset: resetBookerLayoutThemeReset,
   } = bookerLayoutFormMethods;
 
   const brandColorsFormMethods = useForm({
     defaultValues: {
-      brandColor: user?.brandColor || "#292929",
-      darkBrandColor: user?.darkBrandColor || "#fafafa",
+      brandColor: user.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
+      darkBrandColor: user.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
     },
   });
 
   const {
     formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
-    reset: isBrandColorsThemeReset,
+    reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
-  const selectedTheme = formMethods.watch("theme");
+  console.log("brandColorsFormMethods", brandColorsFormMethods.formState, user);
+
+  const selectedTheme = userThemeFormMethods.watch("theme");
   const selectedThemeIsDark =
     selectedTheme === "dark" ||
     (selectedTheme === "" &&
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
 
-  const {
-    formState: { isSubmitting, isDirty },
-    reset,
-  } = formMethods;
-
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       showToast(t("settings_updated_successfully"), "success");
-      reset(data);
+      resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
+      resetBookerLayoutThemeReset({ metadata: data.metadata });
+      resetUserThemeReset({ theme: data.theme });
     },
     onError: (error) => {
       if (error.message) {
@@ -139,13 +132,6 @@ const AppearanceView = () => {
       }
     },
   });
-
-  if (isLoading || isTeamPlanStatusLoading)
-    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
-
-  if (!user) return null;
-
-  const isDisabled = isSubmitting || !isDirty;
 
   return (
     <div>
@@ -227,6 +213,12 @@ const AppearanceView = () => {
             checked={isCustomBrandColorChecked}
             onCheckedChange={(checked) => {
               setIsCustomBranColorChecked(checked);
+              if (!checked) {
+                mutation.mutate({
+                  brandColor: DEFAULT_LIGHT_BRAND_COLOR,
+                  darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
+                });
+              }
             }}
             childrenClassName="lg:ml-0"
             switchContainerClassName={classNames("p-6 border-subtle rounded-xl border", "rounded-b-none")}>
@@ -297,7 +289,6 @@ const AppearanceView = () => {
             </div>
             <SectionBottomActions align="end">
               <Button
-                loading={isLoading}
                 disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
                 color="primary"
                 type="submit">
@@ -333,7 +324,19 @@ const AppearanceView = () => {
   );
 };
 
-AppearanceView.getLayout = getLayout;
-AppearanceView.PageWrapper = PageWrapper;
+const AppearanceViewWrapper = () => {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
-export default AppearanceView;
+  const { t } = useLocale();
+
+  if (isLoading || isTeamPlanStatusLoading)
+    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
+
+  return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;
+};
+
+AppearanceViewWrapper.getLayout = getLayout;
+AppearanceViewWrapper.PageWrapper = PageWrapper;
+
+export default AppearanceViewWrapper;
