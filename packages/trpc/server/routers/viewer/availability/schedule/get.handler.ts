@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
+import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
 import type { TimeRange } from "@calcom/types/schedule";
 
@@ -30,25 +31,22 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       availability: true,
       timeZone: true,
-      eventType: {
-        select: {
-          id: true,
-          eventName: true,
-          team: {
-            select: { members: { select: { userId: true } } },
-          },
-        },
-      },
     },
   });
 
-  const isCurrentUserPartOfTeam = schedule?.eventType.some((eventType) =>
-    eventType.team?.members.some((teamMember) => teamMember.userId === user.id)
-  );
+  if (!schedule) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({
+    ctx,
+    input: { memberId: schedule?.userId },
+  });
 
   const isCurrentUserOwner = schedule?.userId === user.id;
 
-  if (!schedule || (!isCurrentUserOwner && !isCurrentUserPartOfTeam)) {
+  if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });

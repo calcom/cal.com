@@ -137,7 +137,9 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
+  CalendarCache        CalendarCache[]
 
   @@index([userId])
   @@index([appId])
@@ -448,10 +450,12 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  integration String
-  externalId  String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  integration  String
+  externalId   String
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId Int?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -919,4 +923,16 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+}
+
+model CalendarCache {
+  // The key would be the unique URL that is requested by the user
+  key          String
+  value        Json
+  expiresAt    DateTime
+  credentialId Int
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@id([credentialId, key])
+  @@unique([credentialId, key])
 }
