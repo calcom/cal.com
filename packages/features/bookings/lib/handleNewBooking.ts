@@ -239,6 +239,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
+  console.log("🚀 ~ file: handleNewBooking.ts:242 ~ getEventTypesFromDB ~ eventTypeId:", eventTypeId);
   const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
@@ -350,6 +351,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       },
     },
   });
+  console.log("🚀 ~ file: handleNewBooking.ts:353 ~ getEventTypesFromDB ~ eventType:", eventType);
 
   return {
     ...eventType,
@@ -379,7 +381,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -658,11 +660,19 @@ async function handler(
     identifier: userIp,
   });
 
+  console.log(
+    "🚀 ~ file: handleNewBooking.ts:664 ~ !req.body.eventTypeId && !!req.body.eventTypeSlug:",
+    process.env.DATABASE_URL
+  );
+  console.log("🚀 ~ file: handleNewBooking.ts:676 ~ prisma:", prisma);
+
   // handle dynamic user
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
+
+  console.log("🚀 ~ file: handleNewBooking.ts:663 ~ eventType:", eventType);
 
   eventType = {
     ...eventType,

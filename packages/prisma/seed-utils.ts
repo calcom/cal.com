@@ -107,6 +107,13 @@ export async function createUserAndEventType({
       data: eventTypeData,
     });
 
+    await prisma.host.create({
+      data: {
+        userId: theUser.id,
+        eventTypeId: id,
+      },
+    });
+
     console.log(
       `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
