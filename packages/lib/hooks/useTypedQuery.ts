@@ -57,6 +57,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       search.set(String(key), String(value));
       router.replace(`${pathname}?${search.toString()}`);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [parsedQuery, router]
   );
 

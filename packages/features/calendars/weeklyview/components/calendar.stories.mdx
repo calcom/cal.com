@@ -55,30 +55,31 @@ export const Template = (args) => <Calendar {...args} />;
 </Canvas>
 
 <Canvas>
-  <Story name="Onclick Handlers"
-         args={{
-            startHour: 8,
-            endHour: 17,
-            hoverEventDuration: 30,
-          }}
-         argTypes={{
-           startHour: {
-             control: { type: "number", min: 0, max: 23, step: 1 },
-           },
-            endHour: {
-              control: { type: "number", min: 0, max: 23, step: 1 },
-            },
-           hoverEventDuration: {
-             control: { type: "number", min: 0, max: 60, step: 1 },
-           },
-         }}
-  >
-    {({...args}) => (
-      <Calendar {...args}
-                events={events}
-                onEventClick={(e) => alert(e.title)}
-                onEmptyCellClick={(date) => alert(date.toString())}
-                sortEvents
+  <Story
+    name="Onclick Handlers"
+    args={{
+      startHour: 8,
+      endHour: 17,
+      hoverEventDuration: 30,
+    }}
+    argTypes={{
+      startHour: {
+        control: { type: "number", min: 0, max: 23, step: 1 },
+      },
+      endHour: {
+        control: { type: "number", min: 0, max: 23, step: 1 },
+      },
+      hoverEventDuration: {
+        control: { type: "number", min: 0, max: 60, step: 1 },
+      },
+    }}>
+    {({ ...args }) => (
+      <Calendar
+        {...args}
+        events={events}
+        onEventClick={(e) => alert(e.title)}
+        onEmptyCellClick={(date) => alert(date.toString())}
+        sortEvents
       />
     )}
   </Story>

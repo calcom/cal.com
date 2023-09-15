@@ -10,7 +10,7 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
  */
 export type OrganizationBranding =
   | ({
-      logo?: string | null | undefined;
+      id: number;
       name?: string;
       slug: string;
       fullDomain: string;

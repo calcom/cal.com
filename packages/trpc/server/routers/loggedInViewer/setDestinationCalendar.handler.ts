@@ -1,4 +1,5 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -16,7 +17,8 @@ type SetDestinationCalendarOptions = {
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;
   const { integration, externalId, eventTypeId } = input;
-  const calendarCredentials = getCalendarCredentials(user.credentials);
+  const credentials = await getUsersCredentials(user.id);
+  const calendarCredentials = getCalendarCredentials(credentials);
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 

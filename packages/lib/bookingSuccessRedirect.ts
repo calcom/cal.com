@@ -1,5 +1,8 @@
-import type { Booking, EventType } from "@prisma/client";
+import type { EventType } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
+
+import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 
 function getNewSeachParams(args: {
   query: Record<string, string | null | undefined | boolean>;
@@ -16,27 +19,54 @@ function getNewSeachParams(args: {
   return newSearchParams;
 }
 
+type SuccessRedirectBookingType = Pick<
+  BookingResponse | PaymentPageProps["booking"],
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+>;
+
+export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
+  type BookingResponseKey = keyof SuccessRedirectBookingType;
+  const redirectQueryParamKeys: BookingResponseKey[] = [
+    "title",
+    "description",
+    "startTime",
+    "endTime",
+    "location",
+  ];
+
+  return (Object.keys(booking) as BookingResponseKey[])
+    .filter((key) => redirectQueryParamKeys.includes(key))
+    .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+};
+
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
-    bookingUid,
     query,
+    booking,
   }: {
     successRedirectUrl: EventType["successRedirectUrl"];
-    bookingUid: Booking["uid"] | undefined;
     query: Record<string, string | null | undefined | boolean>;
+    booking: SuccessRedirectBookingType;
   }) => {
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
-      const newSearchParams = getNewSeachParams({ query, searchParams });
+      const bookingExtraParams = getBookingRedirectExtraParams(booking);
+      const newSearchParams = getNewSeachParams({
+        query: {
+          ...query,
+          ...bookingExtraParams,
+        },
+        searchParams,
+      });
       window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
       return;
     }
     const newSearchParams = getNewSeachParams({ query });
-    return router.push(`/booking/${bookingUid}?${newSearchParams.toString()}`);
+    return router.push(`/booking/${booking.uid}?${newSearchParams.toString()}`);
   };
 
   return bookingSuccessRedirect;

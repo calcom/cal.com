@@ -1,25 +1,35 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable, VariantRow } from '@calcom/storybook/components'
-import { Plus } from '../icon';
-import { Badge } from './Badge';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { Plus } from "../icon";
+import { Badge } from "./Badge";
 
 <Meta title="UI/Badge" component={Badge} />
 
-<Title title="Bages" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
-
+<Title title="Bages" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Definition
-Badges are small status descriptors for UI elements. A badge consists of a small circle, typically containing a number or other short set of characters, that appears in proximity to another object. We provide three different type of badge such as status, alert, and brand badge.
 
-Status badge communicate status information.  It is generally used within a container such as accordion and tables to label status for easy scanning.
+Badges are small status descriptors for UI elements. A badge consists of a small circle, typically containing a number or other short set of characters, that appears in proximity to another object. We provide three different types of badges such as status, alert, and brand badge.
+
+Status badge communicate status information. It is generally used within a container such as accordion and tables to label status for easy scanning.
+
 ## Structure
 
 <CustomArgsTable of={Badge} />
 
-
 <Examples title="Badge style">
   <Example title="Gray">
-    <Badge variant="gray" >Badge text</Badge>
+    <Badge variant="gray">Badge text</Badge>
   </Example>
   <Example title="Green/Success">
     <Badge variant="success">Badge text</Badge>
@@ -44,44 +54,46 @@ Status badge communicate status information.  It is generally used within a cont
   </Example>
 </Examples>
 
-
 ## Alert Badges
 
-
 ## Usage
-Alet badge is used in conjunction with an item, profile or label to indicate numeric value and messages assocciated with them.
 
-
+Alert badge is used in conjunction with an item, profile or label to indicate numeric value and messages associated with them.
 
 <Title offset title="Badge" suffix="Variants" />
 
 <Canvas>
-  <Story name="All Variants"
-  args={{
-    severity: 'default',
-    label: 'Badge text',
-  }}
-  argTypes={{
-    severity: {
-      control: {
-        type: 'inline-radio',
-        options: ['default', 'success', 'gray', 'error'],
+  <Story
+    name="All Variants"
+    args={{
+      severity: "default",
+      label: "Badge text",
+    }}
+    argTypes={{
+      severity: {
+        control: {
+          type: "inline-radio",
+          options: ["default", "success", "gray", "error"],
+        },
       },
-    },
-    label: {
-      control: {
-        type: 'text',
+      label: {
+        control: {
+          type: "text",
+        },
       },
-    },
-  }}>
+    }}>
     {({ severity, label }) => (
-  <VariantsTable titles={['Default','With Dot', 'With Icon']} columnMinWidth={150}>
-      <VariantRow variant={severity}>
-        <Badge variant={severity}>{label}</Badge>
-        <Badge variant={severity} withDot>{label}</Badge>
-        <Badge variant={severity} startIcon={Plus}>{label}</Badge>
-      </VariantRow>
-  </VariantsTable>
+      <VariantsTable titles={["Default", "With Dot", "With Icon"]} columnMinWidth={150}>
+        <VariantRow variant={severity}>
+          <Badge variant={severity}>{label}</Badge>
+          <Badge variant={severity} withDot>
+            {label}
+          </Badge>
+          <Badge variant={severity} startIcon={Plus}>
+            {label}
+          </Badge>
+        </VariantRow>
+      </VariantsTable>
     )}
   </Story>
 </Canvas>

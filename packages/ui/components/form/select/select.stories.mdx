@@ -1,71 +1,62 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTable} from '@calcom/storybook/components'
-import { Plus } from "../../icon";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
 
-import { SelectField } from "./Select"
+import {
+  Examples,
+  Example,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import { Plus } from "../../icon";
+import { SelectField } from "./Select";
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
-<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 29 Aug 2022" />
 
 ## Definition
+
 Dropdown fields allow users to input existing options that is preset by the deisgner/ developer. It can be just one choice per field, or they might be multiple choices depends on the circumstances.
 
 ## Structure
+
 <CustomArgsTable of={SelectField} />
 
-
-
 export const options = [
-    { value: 0, label: "Option One" },
-    { value: 1, label: "Option Two" },
-    { value: 3, label: "Option Three" },
-    { value: 4, label: "Option Four" },
+  { value: 0, label: "Option One" },
+  { value: 1, label: "Option Two" },
+  { value: 3, label: "Option Three" },
+  { value: 4, label: "Option Four" },
 ];
-
 
 ## Examples
 
-<Examples title=" Single Selected / Unselected" footnote={
-  <ul>
-    <li>The difference between the types are when they are filled.  </li>
-  </ul>
-}>
+<Examples
+  title=" Single Selected / Unselected"
+  footnote={
+    <ul>
+      <li>The difference between the types are when they are filled. </li>
+    </ul>
+  }>
   <Example title="Single Select [Unselected]" isFullWidth>
-    <SelectField
-      label={"Single Select"}
-      options={options}
-    />
+    <SelectField label={"Single Select"} options={options} />
   </Example>
-    <Example title="Single Select [Selected]" isFullWidth>
-    <SelectField
-      label={"Single Select"}
-      options={options}
-      defaultValue={options[0]}
-    />
+  <Example title="Single Select [Selected]" isFullWidth>
+    <SelectField label={"Single Select"} options={options} defaultValue={options[0]} />
   </Example>
-  <Example title="Multi Select [Unselected]" isFullWidth >
-    <SelectField
-      label={"Multi Select"}
-      options={options}
-      isMulti={true}
-    />
+  <Example title="Multi Select [Unselected]" isFullWidth>
+    <SelectField label={"Multi Select"} options={options} isMulti={true} />
   </Example>
   <Example title="Multi Select [Selected]" isFullWidth>
-    <SelectField
-      label={"Multi Select"}
-      options={options}
-      isMulti={true}
-      defaultValue={options[0]}
-    />
+    <SelectField label={"Multi Select"} options={options} isMulti={true} defaultValue={options[0]} />
   </Example>
 </Examples>
 
 <Examples title="Variants">
   <Example title="Default">
-    <SelectField
-      label={"Default Select"}
-      options={options}/>
+    <SelectField label={"Default Select"} options={options} />
   </Example>
   <Example title="Icon Left">
     WIP
@@ -73,32 +64,30 @@ export const options = [
   </Example>
 </Examples>
 
-
 ## Variant Caviats (WIP) - To be updated
+
 Using Icons is a bit of a strange one cause you can't simpily pass in an icon as a prop. You have to pass in a component. To the select field.
 
 ```js
 // Bad: Inline declaration will cause remounting issues
-const BadSelect = props => (
-  <Select {...props} components={{
-    Control: ({ children, ...rest }) => (
-      <components.Control {...rest}>
-        👎 {children}
-      </components.Control>
-    )}}
+const BadSelect = (props) => (
+  <Select
+    {...props}
+    components={{
+      Control: ({ children, ...rest }) => <components.Control {...rest}>👎 {children}</components.Control>,
+    }}
   />
-)
+);
 
 // Good: Custom component declared outside of the Select scope
-const Control = <IconLeading icon={Plus}/>
+const Control = <IconLeading icon={Plus} />;
 
-const GoodSelect = props => <Select {...props} components={{ Control }} />
-
+const GoodSelect = (props) => <Select {...props} components={{ Control }} />;
 ```
 
 <Examples title="States ">
   <Example title="Default">
-    <SelectField options={options} label={"Default Select"}/>
+    <SelectField options={options} label={"Default Select"} />
   </Example>
   {/* <Example title="Hover">
     <SelectField options={options} className="sb-pseudo--hover"/>
@@ -108,14 +97,34 @@ const GoodSelect = props => <Select {...props} components={{ Control }} />
   </Example> */}
 </Examples>
 
-
 ## Select Story
+
 <Canvas>
-  <Story name="Default">
-    <VariantsTable titles={['Default']} columnMinWidth={450} >
-      <VariantRow>
-        <SelectField options={options} label={"Default Select"}/>
-      </VariantRow>
-    </VariantsTable>
+  <Story
+    name="Default"
+    args={{
+      required: false,
+      name: "select-field",
+      error: "Some error",
+      variant: "default",
+      label: "Select an item",
+      isMulti: false,
+      options,
+    }}
+    argTypes={{
+      variant: {
+        control: {
+          type: "select",
+          options: ["default", "checkbox"],
+        },
+      },
+    }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={300}>
+        <VariantRow>
+          <SelectField {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

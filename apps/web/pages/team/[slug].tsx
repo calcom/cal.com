@@ -153,11 +153,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
     ) : (
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-          <div className="text-muted dark:text-inverted p-8 text-center">
-            <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
-              {" " + t("org_no_teams_yet")}
-            </h2>
-            <p className="mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
+          <div className="text-muted p-8 text-center">
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
+            <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
       </div>
@@ -182,7 +180,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
               size="lg"
             />
           </div>
-          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
             {teamName}
           </p>
@@ -199,19 +197,27 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+            {(showMembers.isOn || !team.eventTypes.length) &&
+              (team.isPrivate ? (
+                <div className="w-full text-center">
+                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+                </div>
+              ) : (
+                <Team team={team} />
+              ))}
             {!showMembers.isOn && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
                 <EventTypes />
 
-                {!team.hideBookATeamMember && (
+                {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
+                {!team.hideBookATeamMember && !team.isPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
                         <div className="border-subtle w-full border-t" />
                       </div>
                       <div className="relative flex justify-center">
-                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
+                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle px-2 text-sm">
                           {t("or")}
                         </span>
                       </div>
@@ -306,7 +312,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
   const members = team.members.map((member) => {
-    return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
+    return {
+      name: member.name,
+      id: member.id,
+      bio: member.bio,
+      username: member.username,
+      safeBio: markdownToSafeHTML(member.bio || ""),
+    };
   });
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");

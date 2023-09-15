@@ -81,7 +81,7 @@ type Component =
         TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
           variant: string | undefined;
           variants: z.infer<typeof variantsConfigSchema>["variants"];
-          value: Record<string, string> | string;
+          value: Record<string, string> | string | undefined;
           setValue: (value: string | Record<string, string>) => void;
         }
       >(

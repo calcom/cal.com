@@ -1,7 +1,8 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient, Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -25,9 +26,14 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
 
   const forms = await prisma.app_RoutingForms_Form.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        position: "desc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
     include: {
       team: {
         include: {

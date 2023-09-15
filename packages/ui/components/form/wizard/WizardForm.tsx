@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -42,13 +43,23 @@ function WizardForm<T extends DefaultStep>(props: {
   }, [currentStep]);
 
   return (
-    <div className="mx-auto mt-4 print:w-full">
+    <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
       <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
         <div className="px-6 py-5 sm:px-14">
-          <h1 className="font-cal text-emphasis text-2xl">{currentStep.title}</h1>
-          <p className="text-subtle text-sm">{currentStep.description}</p>
+          <h1 className="font-cal text-emphasis text-2xl" data-testid="step-title">
+            {currentStep.title}
+          </h1>
+          <p className="text-subtle text-sm" data-testid="step-description">
+            {currentStep.description}
+          </p>
           {!props.disableNavigation && (
-            <Steps maxSteps={steps.length} currentStep={step} navigateToStep={noop} stepLabel={stepLabel} />
+            <Steps
+              maxSteps={steps.length}
+              currentStep={step}
+              navigateToStep={noop}
+              stepLabel={stepLabel}
+              data-testid="wizard-step-component"
+            />
           )}
         </div>
       </div>

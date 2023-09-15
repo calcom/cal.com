@@ -1,12 +1,12 @@
-import type { Prisma, Credential } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -26,7 +26,7 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
-const user: User & { credentials: Credential[] } = {
+const user: User & { credentials: CredentialPayload[] } = {
   metadata: null,
   theme: null,
   credentials: [],
@@ -80,6 +80,7 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
+  seatsShowAvailabilityCount: null,
   id: 0,
   hideCalendarNotes: false,
   recurringEvent: null,
@@ -97,15 +98,7 @@ const commons = {
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
-  bookingFields: getBookingFieldsWithSystemFields({
-    bookingFields: [],
-    customInputs: [],
-    // Default value of disableGuests from DB.
-    disableGuests: false,
-    disableBookingTitle: false,
-    metadata: {},
-    workflows: [],
-  }),
+  bookingFields: [],
 };
 
 const dynamicEvent = {

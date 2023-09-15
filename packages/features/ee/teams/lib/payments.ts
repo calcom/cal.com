@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -74,7 +75,7 @@ export const purchaseTeamSubscription = async (input: {
 const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { metadata: true, members: true },
+    select: { metadata: true, members: true, _count: { select: { orgUsers: true } } },
   });
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
@@ -109,15 +110,15 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (membershipCount < subscriptionQuantity) {
-      console.info(`Team ${teamId} has less members than seats, skipping updating subscription.`);
+    if (!!team._count.orgUsers && membershipCount < ORGANIZATION_MIN_SEATS) {
+      console.info(
+        `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
+      );
       return;
     }
 
-    const newQuantity = membershipCount - subscriptionQuantity;
-
     await stripe.subscriptions.update(subscriptionId, {
-      items: [{ quantity: membershipCount + newQuantity, id: subscriptionItemId }],
+      items: [{ quantity: membershipCount, id: subscriptionItemId }],
     });
     console.info(
       `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`

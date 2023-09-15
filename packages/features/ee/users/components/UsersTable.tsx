@@ -109,7 +109,7 @@ function UsersTableBare() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div
-        className="rounded-md border"
+        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={() => fetchMoreOnBottomReached()}
         style={{
@@ -134,7 +134,6 @@ function UsersTableBare() {
                     <Avatar
                       size="md"
                       alt={`Avatar of ${user.username || "Nameless"}`}
-                      gravatarFallbackMd5=""
                       imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png?orgId=${user.organizationId}`}
                     />
 

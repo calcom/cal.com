@@ -1,87 +1,98 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable, VariantRow } from '@calcom/storybook/components'
-import { TopBanner } from './TopBanner'
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { TopBanner } from "./TopBanner";
 
 <Meta title="UI/TopBanner" component={TopBanner} />
 
 <Title title="TopBanner" suffix="Brief" />
 
-
 ## Definition
+
 Top banner will be position on the very top of the page to communicate on what’s wrong or what’s new.
 
-
 ## Structure
+
 Each toast has a state to represent neutral, positive or negative responses.
 
 <CustomArgsTable of={TopBanner} />
 
 <Examples title="Top Banner Style">
-  <Example title="Default" isFullWidth={true} >
-     <TopBanner
-          actions={
-            <button
-              className="border-b border-black text-sm"
-              onClick={() => {
-                console.log("test");
-              }}>
-              Action
-            </button>
-          }
-          text="Something big is happening we want you to know about."
-        />
- </Example>
-  <Example title="Warning" isFullWidth={true} >
+  <Example title="Default" isFullWidth={true}>
     <TopBanner
-          actions={
-            <button
-              className="border-b border-black text-sm"
-              onClick={() => {
-                console.log("test");
-              }}>
-              Action
-            </button>
-          }
-          variant="warning"
-          text="An app wide warning is occuring that should be resolved."
-        />
-         </Example>
-  <Example title="Error" isFullWidth={true} >
+      actions={
+        <button
+          className="border-b border-black text-sm"
+          onClick={() => {
+            console.log("test");
+          }}>
+          Action
+        </button>
+      }
+      text="Something big is happening we want you to know about."
+    />
+  </Example>
+  <Example title="Warning" isFullWidth={true}>
     <TopBanner
-          actions={
-            <button
-              className="border-b border-black text-sm"
-              onClick={() => {
-                console.log("test");
-              }}>
-              Action
-            </button>
-          }
-          variant="error"
-          text="A major error is occuring that must be resolved."
-        />
-         </Example>
+      actions={
+        <button
+          className="border-b border-black text-sm"
+          onClick={() => {
+            console.log("test");
+          }}>
+          Action
+        </button>
+      }
+      variant="warning"
+      text="An app wide warning is occuring that should be resolved."
+    />
+  </Example>
+  <Example title="Error" isFullWidth={true}>
+    <TopBanner
+      actions={
+        <button
+          className="border-b border-black text-sm"
+          onClick={() => {
+            console.log("test");
+          }}>
+          Action
+        </button>
+      }
+      variant="error"
+      text="A major error is occuring that must be resolved."
+    />
+  </Example>
 </Examples>
 
 <Canvas>
-  <Story name="TopBanner"
-         args={{
-           text: 'Something big is happening we want you to know about.',
-           variant: 'default'
-  }}
-         argTypes={{
-            variant: {
-              control: {
-                type: 'select',
-                options: ['default', 'warning', 'error'],
-              },
-            },
-           text: {
-              control: {
-                type: 'text',
-              },
-            },
-  }}>
+  <Story
+    name="TopBanner"
+    args={{
+      text: "Something big is happening we want you to know about.",
+      variant: "default",
+    }}
+    argTypes={{
+      variant: {
+        control: {
+          type: "select",
+          options: ["default", "warning", "error"],
+        },
+      },
+      text: {
+        control: {
+          type: "text",
+        },
+      },
+    }}>
     {({ text, variant, ...args }) => (
       <TopBanner
         {...args}

@@ -52,3 +52,5 @@ export const getOtherTeamHandler = async ({ input }: GetOptions) => {
     safeBio: markdownToSafeHTML(team.bio),
   };
 };
+
+export default getOtherTeamHandler;

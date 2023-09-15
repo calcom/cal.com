@@ -61,18 +61,23 @@ export default class Office365CalendarService implements Calendar {
   private accessToken: string | null = null;
   auth: { getToken: () => Promise<string> };
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
+  private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
-
+    this.credential = credential;
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
+      : undefined;
     try {
-      const eventsUrl = event.destinationCalendar?.externalId
-        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+      const eventsUrl = mainHostDestinationCalendar?.externalId
+        ? `/me/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : "/me/calendar/events";
 
       const response = await this.fetcher(eventsUrl, {
@@ -133,6 +138,8 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
+    const calendarSelectParams = "$select=showAs,start,end";
+
     try {
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
@@ -149,7 +156,7 @@ export default class Office365CalendarService implements Calendar {
       const requests = ids.map((calendarId, id) => ({
         id,
         method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
+        url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
@@ -181,8 +188,10 @@ export default class Office365CalendarService implements Calendar {
     const officeCalendars: OfficeCalendar[] = [];
     // List calendars from MS are paginated
     let finishedParsingCalendars = false;
+    const calendarFilterParam = "$select=id,name,isDefaultCalendar,canEdit";
+
     // Store @odata.nextLink if in response
-    let requestLink = "/me/calendars";
+    let requestLink = `/me/calendars?${calendarFilterParam}`;
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);
@@ -290,6 +299,16 @@ export default class Office365CalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: [
+        // Add the calEvent organizer
+        {
+          emailAddress: {
+            address: event.destinationCalendar
+              ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+                event.organizer.email
+              : event.organizer.email,
+            name: event.organizer.name,
+          },
+        },
         ...event.attendees.map((attendee) => ({
           emailAddress: {
             address: attendee.email,
@@ -298,13 +317,20 @@ export default class Office365CalendarService implements Calendar {
           type: "required",
         })),
         ...(event.team?.members
-          ? event.team?.members.map((member) => ({
-              emailAddress: {
-                address: member.email,
-                name: member.name,
-              },
-              type: "required",
-            }))
+          ? event.team?.members
+              .filter((member) => member.email !== this.credential.user?.email)
+              .map((member) => {
+                const destinationCalendar =
+                  event.destinationCalendar &&
+                  event.destinationCalendar.find((cal) => cal.userId === member.id);
+                return {
+                  emailAddress: {
+                    address: destinationCalendar?.externalId ?? member.email,
+                    name: member.name,
+                  },
+                  type: "required",
+                };
+              })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
@@ -449,12 +475,13 @@ export default class Office365CalendarService implements Calendar {
       (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
         return acc.concat(
-          subResponse.body.value
-            .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
-            .map((evt) => ({
+          subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
+            if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
+            return acc.concat({
               start: evt.start.dateTime + "Z",
               end: evt.end.dateTime + "Z",
-            }))
+            });
+          }, [])
         );
       },
       []

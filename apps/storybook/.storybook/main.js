@@ -15,6 +15,7 @@ module.exports = {
     "storybook-addon-rtl-direction",
     "storybook-react-i18next",
     "storybook-addon-next",
+    "storybook-addon-next-router",
     /*{
       name: "storybook-addon-next",
       options: {

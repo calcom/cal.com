@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import type { StripeData } from "../lib/server";
 import stripe from "../lib/server";
@@ -30,8 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
-
-  const state = decodeOAuthState(req);
 
   const response = await stripe.oauth.token({
     grant_type: "authorization_code",

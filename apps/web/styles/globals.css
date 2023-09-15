@@ -58,10 +58,10 @@
   --cal-bg-inverted: #f3f4f6;
 
   /* background -> components*/
-  --cal-bg-info: #dee9fc;
-  --cal-bg-success: #e2fbe8;
-  --cal-bg-attention: #fceed8;
-  --cal-bg-error: #f9e3e2;
+  --cal-bg-info: #263fa9;
+  --cal-bg-success: #306339;
+  --cal-bg-attention: #8e3b1f;
+  --cal-bg-error: #8c2822;
   --cal-bg-dark-error: #752522;
 
   /* Borders */
@@ -75,15 +75,15 @@
   /* Content/Text */
   --cal-text-emphasis: #f3f4f6;
   --cal-text: #d6d6d6;
-  --cal-text-subtle: #A5a5a5;
+  --cal-text-subtle: #a5a5a5;
   --cal-text-muted: #575757;
   --cal-text-inverted: #101010;
 
   /* Content/Text -> components */
-  --cal-text-info: #253985;
-  --cal-text-success: #285231;
-  --cal-text-attention: #73321b;
-  --cal-text-error: #752522;
+  --cal-text-info: #dee9fc;
+  --cal-text-success: #e2fbe8;
+  --cal-text-attention: #fceed8;
+  --cal-text-error: #f9e3e2;
 
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
@@ -93,6 +93,12 @@
   --cal-brand-text: black;
 }
 
+@layer base {
+  * {
+    @apply border-default 
+  }
+}
+
 ::-moz-selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
@@ -100,15 +106,13 @@
 
 ::selection {
   color: var(--cal-brand-text);
-   background: var(--cal-brand);
+  background: var(--cal-brand);
 }
 
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
-
-
 
 /*
   Desktop App specific CSS
@@ -170,17 +174,17 @@ html.todesktop aside {
   margin: 0px -6px;
 }
 
-html.todesktop-platform-darwin .desktop-transparent{
+html.todesktop-platform-darwin .desktop-transparent {
   background: transparent !important;
   border: none !important;
 }
 
-html.todesktop-platform-darwin.dark main.bg-default{
-  background: rgba(0,0,0,0.6) !important
+html.todesktop-platform-darwin.dark main.bg-default {
+  background: rgba(0, 0, 0, 0.6) !important;
 }
 
-html.todesktop-platform-darwin.light main.bg-default{
-  background: rgba(255,255,255,0.8) !important
+html.todesktop-platform-darwin.light main.bg-default {
+  background: rgba(255, 255, 255, 0.8) !important;
 }
 
 /*
@@ -209,16 +213,14 @@ html.todesktop nav a svg{
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
 @layer utilities {
-  @layer responsive {
-    /* Chrome, Safari and Opera */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-    .no-scrollbar {
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-    }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
 
@@ -247,20 +249,16 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-
 @layer components {
   .scroll-bar {
     @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
-
-
 }
 
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
   transform: translateX(16px);
 } */
-
 
 @layer components {
   /* slider */
@@ -512,5 +510,5 @@ select:focus {
 }
 
 .react-tel-input .flag-dropdown {
-  @apply !border-r-default !border-y-0 !border-l-0 left-0.5;
+  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }

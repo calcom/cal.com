@@ -79,7 +79,12 @@ const ProfileImpersonationView = () => {
             </Skeleton>
           </div>
         </div>
-        <Button color="primary" className="mt-8" type="submit" disabled={isDisabled}>
+        <Button
+          color="primary"
+          loading={mutation.isLoading}
+          className="mt-8"
+          type="submit"
+          disabled={isDisabled}>
           {t("update")}
         </Button>
       </Form>

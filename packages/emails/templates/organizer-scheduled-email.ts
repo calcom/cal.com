@@ -1,5 +1,6 @@
 import type { DateArray } from "ics";
 import { createEvent } from "ics";
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
@@ -80,7 +81,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.newSeat ? this.t("new_attendee") + ":" : ""} ${this.calEvent.title}`,
+      subject: `${this.newSeat ? this.t("new_attendee") + ": " : ""}${this.calEvent.title}`,
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: clonedCalEvent,
         attendee: this.calEvent.organizer,

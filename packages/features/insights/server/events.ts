@@ -75,45 +75,36 @@ class EventsInsights {
     return result;
   };
 
-  static getBaseBookingForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const baseBookings = await prisma.bookingTimeStatus.findMany({
+  static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const baseBookings = await prisma.bookingTimeStatus.count({
       where,
-      select: {
-        id: true,
-      },
     });
 
     return baseBookings;
   };
 
-  static getTotalCompletedEvents = async (bookingIds: number[]) => {
+  static getTotalCompletedEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
-        id: {
-          in: bookingIds,
-        },
+        ...whereConditional,
         timeStatus: "completed",
       },
     });
   };
 
-  static getTotalRescheduledEvents = async (bookingIds: number[]) => {
+  static getTotalRescheduledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
-        id: {
-          in: bookingIds,
-        },
+        ...whereConditional,
         timeStatus: "rescheduled",
       },
     });
   };
 
-  static getTotalCancelledEvents = async (bookingIds: number[]) => {
+  static getTotalCancelledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
-        id: {
-          in: bookingIds,
-        },
+        ...whereConditional,
         timeStatus: "cancelled",
       },
     });

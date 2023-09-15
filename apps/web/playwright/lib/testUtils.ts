@@ -2,8 +2,14 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
+import type { API, Messages } from "mailhog";
 
+import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
+
+import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
 
 export function todo(title: string) {
@@ -182,4 +188,89 @@ export async function gotoRoutingLink({
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
   await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+export async function installAppleCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+  await page.waitForURL("/apps/apple-calendar");
+  await page.click('[data-testid="install-app-button"]');
+}
+
+export async function getEmailsReceivedByUser({
+  emails,
+  userEmail,
+}: {
+  emails?: API;
+  userEmail: string;
+}): Promise<Messages | null> {
+  if (!emails) return null;
+  return emails.search(userEmail, "to");
+}
+
+export async function expectEmailsToHaveSubject({
+  emails,
+  organizer,
+  booker,
+  eventTitle,
+}: {
+  emails?: API;
+  organizer: { name?: string | null; email: string };
+  booker: { name: string; email: string };
+  eventTitle: string;
+}) {
+  if (!emails) return null;
+  const emailsOrganizerReceived = await getEmailsReceivedByUser({ emails, userEmail: organizer.email });
+  const emailsBookerReceived = await getEmailsReceivedByUser({ emails, userEmail: booker.email });
+
+  expect(emailsOrganizerReceived?.total).toBe(1);
+  expect(emailsBookerReceived?.total).toBe(1);
+
+  const [organizerFirstEmail] = (emailsOrganizerReceived as Messages).items;
+  const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
+  const emailSubject = `${eventTitle} between ${organizer.name ?? "Nameless"} and ${booker.name}`;
+
+  expect(organizerFirstEmail.subject).toBe(emailSubject);
+  expect(bookerFirstEmail.subject).toBe(emailSubject);
+}
+
+// this method is not used anywhere else
+// but I'm keeping it here in case we need in the future
+async function createUserWithSeatedEvent(users: Fixtures["users"]) {
+  const slug = "seats";
+  const user = await users.create({
+    eventTypes: [
+      {
+        title: "Seated event",
+        slug,
+        seatsPerTimeSlot: 10,
+        requiresConfirmation: true,
+        length: 30,
+        disableGuests: true, // should always be true for seated events
+      },
+    ],
+  });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const eventType = user.eventTypes.find((e) => e.slug === slug)!;
+  return { user, eventType };
+}
+
+export async function createUserWithSeatedEventAndAttendees(
+  fixtures: Pick<Fixtures, "users" | "bookings">,
+  attendees: Prisma.AttendeeCreateManyBookingInput[]
+) {
+  const { user, eventType } = await createUserWithSeatedEvent(fixtures.users);
+
+  const booking = await fixtures.bookings.create(user.id, user.username, eventType.id, {
+    status: BookingStatus.ACCEPTED,
+    // startTime with 1 day from now and endTime half hour after
+    startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+    attendees: {
+      createMany: {
+        data: attendees,
+      },
+    },
+  });
+  return { user, eventType, booking };
 }

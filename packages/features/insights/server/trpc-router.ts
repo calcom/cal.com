@@ -73,7 +73,6 @@ const UserSelect = {
   id: true,
   name: true,
   email: true,
-  avatar: true,
   username: true,
 };
 
@@ -222,53 +221,56 @@ export const insightsRouter = router({
         };
       }
 
-      const baseBookings = await EventsInsights.getBaseBookingForEventStatus({
+      const baseWhereCondition = {
         ...whereConditional,
         createdAt: {
           gte: new Date(startDate),
           lte: new Date(endDate),
         },
-      });
+      };
+
+      const baseBookingsCount = await EventsInsights.getBaseBookingCountForEventStatus(baseWhereCondition);
 
       const startTimeEndTimeDiff = dayjs(endDate).diff(dayjs(startDate), "day");
 
-      const baseBookingIds = baseBookings.map((b) => b.id);
-      const totalCompleted = await EventsInsights.getTotalCompletedEvents(baseBookingIds);
+      const totalCompleted = await EventsInsights.getTotalCompletedEvents(baseWhereCondition);
 
-      const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseBookingIds);
+      const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseWhereCondition);
 
-      const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseBookingIds);
+      const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseWhereCondition);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
 
-      const lastPeriodBaseBookings = await EventsInsights.getBaseBookingForEventStatus({
+      const lastPeriodBaseCondition = {
         ...whereConditional,
         createdAt: {
           gte: lastPeriodStartDate.toDate(),
           lte: lastPeriodEndDate.toDate(),
         },
         teamId: teamId,
-      });
+      };
 
-      const lastPeriodBaseBookingIds = lastPeriodBaseBookings.map((b) => b.id);
-
-      const lastPeriodTotalRescheduled = await EventsInsights.getTotalRescheduledEvents(
-        lastPeriodBaseBookingIds
+      const lastPeriodBaseBookingsCount = await EventsInsights.getBaseBookingCountForEventStatus(
+        lastPeriodBaseCondition
       );
 
-      const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseBookingIds);
+      const lastPeriodTotalRescheduled = await EventsInsights.getTotalRescheduledEvents(
+        lastPeriodBaseCondition
+      );
+
+      const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseCondition);
       const result = {
         empty: false,
         created: {
-          count: baseBookings.length,
-          deltaPrevious: EventsInsights.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
+          count: baseBookingsCount,
+          deltaPrevious: EventsInsights.getPercentage(baseBookingsCount, lastPeriodBaseBookingsCount),
         },
         completed: {
           count: totalCompleted,
           deltaPrevious: EventsInsights.getPercentage(
-            baseBookings.length - totalCancelled - totalRescheduled,
-            lastPeriodBaseBookings.length - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
+            baseBookingsCount - totalCancelled - totalRescheduled,
+            lastPeriodBaseBookingsCount - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
           ),
         },
         rescheduled: {

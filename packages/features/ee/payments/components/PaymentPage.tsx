@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
@@ -15,7 +16,20 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { CreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
-import PaymentComponent from "./Payment";
+
+const StripePaymentComponent = dynamic(() => import("./Payment"), {
+  ssr: false,
+});
+
+const PaypalPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/paypal/components/PaypalPaymentComponent").then(
+      (m) => m.PaypalPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
@@ -119,14 +133,17 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
-                    <PaymentComponent
+                    <StripePaymentComponent
+                      clientSecret={props.clientSecret}
                       payment={props.payment}
                       eventType={props.eventType}
                       user={props.user}
                       location={props.booking.location}
-                      bookingId={props.booking.id}
-                      bookingUid={props.booking.uid}
+                      booking={props.booking}
                     />
+                  )}
+                  {props.payment.appId === "paypal" && !props.payment.success && (
+                    <PaypalPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

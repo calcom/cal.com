@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
   orgHostPath,
@@ -13,6 +14,10 @@ const {
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+const isOrganizationsEnabled =
+  process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
+// To be able to use the version in the app without having to import package.json
+process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
@@ -25,8 +30,10 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-
-if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+if (
+  process.env.CSP_POLICY === "strict" &&
+  (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
+) {
   throw new Error(
     "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
   );
@@ -127,7 +134,10 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: {
+    ...i18n,
+    localeDetection: false,
+  },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
@@ -217,7 +227,7 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
-      ...(process.env.ORGANIZATIONS_ENABLED
+      ...(isOrganizationsEnabled
         ? [
             {
               ...matcherConfigRootPath,
@@ -243,6 +253,10 @@ const nextConfig = {
       {
         source: "/org/:slug",
         destination: "/team/:slug",
+      },
+      {
+        source: "/org/:orgSlug/avatar.png",
+        destination: "/api/user/avatar?orgSlug=:orgSlug",
       },
       {
         source: "/team/:teamname/avatar.png",
@@ -324,44 +338,46 @@ const nextConfig = {
           },
         ],
       },
-      ...[
-        {
-          ...matcherConfigRootPath,
-          headers: [
+      ...(isOrganizationsEnabled
+        ? [
             {
-              key: "X-Cal-Org-path",
-              value: "/team/:orgSlug",
+              ...matcherConfigRootPath,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: "/team/:orgSlug",
+                },
+              ],
             },
-          ],
-        },
-        {
-          ...matcherConfigUserRoute,
-          headers: [
             {
-              key: "X-Cal-Org-path",
-              value: "/org/:orgSlug/:user",
+              ...matcherConfigUserRoute,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: "/org/:orgSlug/:user",
+                },
+              ],
             },
-          ],
-        },
-        {
-          ...matcherConfigUserTypeRoute,
-          headers: [
             {
-              key: "X-Cal-Org-path",
-              value: "/org/:orgSlug/:user/:type",
+              ...matcherConfigUserTypeRoute,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: "/org/:orgSlug/:user/:type",
+                },
+              ],
             },
-          ],
-        },
-        {
-          ...matcherConfigUserTypeEmbedRoute,
-          headers: [
             {
-              key: "X-Cal-Org-path",
-              value: "/org/:orgSlug/:user/:type/embed",
+              ...matcherConfigUserTypeEmbedRoute,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: "/org/:orgSlug/:user/:type/embed",
+                },
+              ],
             },
-          ],
-        },
-      ],
+          ]
+        : []),
     ];
   },
   async redirects() {
@@ -375,6 +391,11 @@ const nextConfig = {
         source: "/auth/signup",
         destination: "/signup",
         permanent: true,
+      },
+      {
+        source: "/auth",
+        destination: "/auth/login",
+        permanent: false,
       },
       {
         source: "/settings",
@@ -433,6 +454,13 @@ const nextConfig = {
       },
       {
         source: "/support",
+        missing: [
+          {
+            type: "header",
+            key: "host",
+            value: orgHostPath,
+          },
+        ],
         destination: "/event-types?openIntercom=true",
         permanent: true,
       },
@@ -449,7 +477,7 @@ const nextConfig = {
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
       ...(process.env.NODE_ENV === "development" &&
       // Safer to enable the redirect only when the user is opting to test out organizations
-      process.env.ORGANIZATIONS_ENABLED &&
+      isOrganizationsEnabled &&
       // Prevent infinite redirect by checking that we aren't already on localhost
       process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
         ? [

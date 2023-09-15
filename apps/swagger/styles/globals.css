@@ -2,8 +2,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,
+    Droid Sans, Helvetica Neue, sans-serif;
 }
 
 a {
@@ -21,7 +21,7 @@ a {
   }
   .swagger-ui .opblock .opblock-summary {
     display: grid;
-  flex-direction: column;
+    flex-direction: column;
   }
   .opblock-summary-path {
     flex-shrink: 0;
@@ -43,22 +43,22 @@ a {
     font-size: 22px;
   }
   .swagger-ui .scheme-container {
-  padding: 14px 0;
+    padding: 14px 0;
   }
   .swagger-ui .info {
-      margin: 10px 0;
+    margin: 10px 0;
   }
   .swagger-ui .auth-wrapper {
     margin: 10px 0;
   }
   .swagger-ui .authorization__btn {
-  display: none;
+    display: none;
   }
   .swagger-ui .opblock {
     margin: 0 0 5px;
   }
   button.opblock-summary-control > svg {
-    display: none;  
+    display: none;
   }
   .swagger-ui .filter .operation-filter-input {
     border: 2px solid #d8dde7;
@@ -73,15 +73,16 @@ a {
   .swagger-ui .info .title small {
     top: 5px;
   }
-  .swagger-ui a.nostyle, .swagger-ui a.nostyle:visited {
+  .swagger-ui a.nostyle,
+  .swagger-ui a.nostyle:visited {
     width: 100%;
   }
   div.request-snippets > div.curl-command > div:nth-child(1) {
     overscroll-behavior: contain;
     overflow-x: scroll;
   }
-  .swagger-ui .opblock-body pre.microlight {  
-    font-size: 9px; 
+  .swagger-ui .opblock-body pre.microlight {
+    font-size: 9px;
   }
   .swagger-ui table tbody tr td {
     padding: 0px 0 0;
@@ -91,7 +92,7 @@ a {
     font-size: 12px;
   }
   div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > tbody > tr {
-        display: flex;
+    display: flex;
     width: 100vw;
     flex-direction: column;
     font-size: 60%;

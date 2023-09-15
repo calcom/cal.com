@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { AppCategories } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -156,7 +157,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
     .filter((app) =>
       selectedCategory !== null
         ? app.categories
-          ? app.categories.includes(selectedCategory)
+          ? app.categories.includes(selectedCategory as AppCategories)
           : app.category === selectedCategory
         : true
     )

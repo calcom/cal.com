@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://skiff.com/blog/skiff-cal-com-launch",
   "variant": "calendar",
-  "categories": [
-    "calendar"
-  ],
+  "categories": ["calendar"],
   "publisher": "Skiff World, Inc.",
   "email": "hello@skiff.org",
   "description": "End-to-end encrypted, private calendar, email, notes, and drive.",

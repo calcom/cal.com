@@ -1,4 +1,3 @@
-
 .editor a {
   text-decoration: underline;
   font-size: 14px;
@@ -10,11 +9,11 @@
 }
 
 .editor ul {
-  list-style: disc inside
+  list-style: disc inside;
 }
 
 .editor ol {
-  list-style: decimal inside
+  list-style: decimal inside;
 }
 
 .editor-container {
@@ -46,7 +45,7 @@
   tab-size: 1;
   outline: 0;
   padding: 10px 10px;
-  outline: none
+  outline: none;
 }
 
 .editor-text-bold {
@@ -69,7 +68,7 @@
 .editor-paragraph {
   margin: 0;
   position: relative;
-  color: var(--cal-text)
+  color: var(--cal-text);
 }
 
 .editor-paragraph:last-child {
@@ -83,28 +82,26 @@
   font-weight: bold;
 }
 
-
 .editor-heading-h2 {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 20px;
 }
 
-.editor-list-ul  {
+.editor-list-ul {
   margin-bottom: 12px;
 }
 
-.editor-list-ol  {
+.editor-list-ol {
   margin-bottom: 12px;
 }
-
 
 .editor-listitem {
   margin: 0px 32px;
 }
 
 .editor-nested-listitem {
- list-style-type: none;
+  list-style-type: none;
 }
 
 pre::-webkit-scrollbar {
@@ -144,7 +141,7 @@ pre::-webkit-scrollbar-thumb {
 
 .toolbar button.toolbar-item.active {
   background-color: var(--cal-bg-inverted);
-  color: var(--cal-text-inverted)
+  color: var(--cal-text-inverted);
 }
 
 .toolbar button.toolbar-item.active i {
@@ -353,7 +350,8 @@ pre::-webkit-scrollbar-thumb {
   vertical-align: -0.25em;
 }
 
-i, .icon {
+i,
+.icon {
   fill: currentColor;
 }
 

@@ -1,7 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { getLayout } from "@calcom/features/MainLayout";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
-import Shell from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -17,7 +18,7 @@ function Teams() {
   const [user] = trpc.viewer.me.useSuspenseQuery();
 
   return (
-    <Shell
+    <ShellMain
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
@@ -33,7 +34,7 @@ function Teams() {
         )
       }>
       <TeamsListing />
-    </Shell>
+    </ShellMain>
   );
 }
 
@@ -46,5 +47,5 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
 Teams.requiresLicense = false;
 Teams.PageWrapper = PageWrapper;
-
+Teams.getLayout = getLayout;
 export default Teams;

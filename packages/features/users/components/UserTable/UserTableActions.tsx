@@ -66,7 +66,7 @@ export function TableActions({
                     type="button"
                     onClick={() =>
                       dispatch({
-                        type: "SET_CHANGE_MEMBER_ROLE_ID",
+                        type: "EDIT_USER_SHEET",
                         payload: {
                           user,
                           showModal: true,
@@ -140,7 +140,7 @@ export function TableActions({
                     type="button"
                     onClick={() =>
                       dispatch({
-                        type: "SET_IMPERSONATE_ID",
+                        type: "EDIT_USER_SHEET",
                         payload: {
                           user,
                           showModal: true,

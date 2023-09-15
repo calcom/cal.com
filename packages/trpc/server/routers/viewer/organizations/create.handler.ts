@@ -1,14 +1,22 @@
 import { createHash } from "crypto";
+import { lookup } from "dns";
 import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
+import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { IS_CALCOM, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import {
+  IS_TEAM_BILLING_ENABLED,
+  RESERVED_SUBDOMAINS,
+  IS_PRODUCTION,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,9 +30,18 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
+const getIPAddress = async (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    lookup(url, (err, address) => {
+      if (err) reject(err);
+      resolve(address);
+    });
+  });
+};
+
 const vercelCreateDomain = async (domain: string) => {
   const response = await fetch(
-    `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
       headers: {
@@ -38,12 +55,10 @@ const vercelCreateDomain = async (domain: string) => {
   const data = await response.json();
 
   // Domain is already owned by another team but you can request delegation to access it
-  if (data.error?.code === "forbidden")
-    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_team" });
+  if (data.error?.code === "forbidden") return false;
 
   // Domain is already being used by a different project
-  if (data.error?.code === "domain_taken")
-    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_project" });
+  if (data.error?.code === "domain_taken") return false;
 
   return true;
 };
@@ -80,13 +95,39 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+  let isOrganizationConfigured = false;
 
   if (check === false) {
-    if (IS_CALCOM) await vercelCreateDomain(slug);
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    if (process.env.VERCEL) {
+      // We only want to proceed to register the subdomain for the org in Vercel
+      // within a Vercel context
+      isOrganizationConfigured = await vercelCreateDomain(slug);
+    } else {
+      // Otherwise, we proceed to send an administrative email to admins regarding
+      // the need to configure DNS registry to support the newly created org
+      const instanceAdmins = await prisma.user.findMany({
+        where: { role: UserPermissionRole.ADMIN },
+        select: { email: true },
+      });
+      if (instanceAdmins.length) {
+        await sendAdminOrganizationNotification({
+          instanceAdmins,
+          orgSlug: slug,
+          ownerEmail: adminEmail,
+          webappIPAddress: await getIPAddress(
+            WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
+          ),
+          t,
+        });
+      } else {
+        console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+      }
+    }
 
     const createOwnerOrg = await prisma.user.create({
       data: {
-        username: adminUsername,
+        username: slugify(adminUsername),
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
@@ -108,11 +149,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         organization: {
           create: {
             name,
-            ...(!IS_TEAM_BILLING_ENABLED && { slug }),
+            ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
             metadata: {
-              ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
+              ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
               isOrganization: true,
               isOrganizationVerified: false,
+              isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },
           },
@@ -120,17 +162,20 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
+    if (!createOwnerOrg.organizationId) throw Error("User not created");
+
     await prisma.membership.create({
       data: {
         userId: createOwnerOrg.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: createOwnerOrg.organizationId!,
+        teamId: createOwnerOrg.organizationId,
       },
     });
 
     return { user: { ...createOwnerOrg, password } };
   } else {
+    if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")
@@ -154,3 +199,5 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   return { checked: true };
 };
+
+export default createHandler;

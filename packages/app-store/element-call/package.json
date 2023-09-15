@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/element-call",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Element is an open-source communication platform that provides messaging, voice calling, and video conferencing capabilities. It is based on the Matrix protocol, which is a decentralized and federated messaging protocol designed to enable secure and interoperable communication across different platforms and services.\""
+}

@@ -23,6 +23,7 @@ const ENDPOINTS = [
   "apps",
   "auth",
   "availability",
+  "appBasecamp3",
   "bookings",
   "deploymentSetup",
   "eventTypes",
@@ -40,6 +41,7 @@ const ENDPOINTS = [
   "workflows",
   "appsRouter",
   "googleWorkspace",
+  "kycVerification",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 

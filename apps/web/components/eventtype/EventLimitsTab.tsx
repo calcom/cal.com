@@ -13,6 +13,7 @@ import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import type { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
@@ -462,7 +463,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           type="number"
           {...offsetStartLockedProps}
           label={t("offset_start")}
-          defaultValue={eventType.offsetStart}
           {...formMethods.register("offsetStart")}
           addOnSuffix={<>{t("minutes")}</>}
           hint={t("offset_start_description", {
@@ -477,11 +477,9 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
 type IntervalLimitsKey = keyof IntervalLimit;
 
-const intervalOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"] as const;
-
-const INTERVAL_LIMIT_OPTIONS = intervalOrderKeys.map((key) => ({
+const INTERVAL_LIMIT_OPTIONS = ascendingLimitKeys.map((key) => ({
   value: key as keyof IntervalLimit,
-  label: `Per ${key.split("_")[1].toLocaleLowerCase()}`,
+  label: `Per ${intervalLimitKeyToUnit(key)}`,
 }));
 
 type IntervalLimitItemProps = {
@@ -590,8 +588,8 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
               Object.entries(currentIntervalLimits)
                 .sort(([limitKeyA], [limitKeyB]) => {
                   return (
-                    intervalOrderKeys.indexOf(limitKeyA as IntervalLimitsKey) -
-                    intervalOrderKeys.indexOf(limitKeyB as IntervalLimitsKey)
+                    ascendingLimitKeys.indexOf(limitKeyA as IntervalLimitsKey) -
+                    ascendingLimitKeys.indexOf(limitKeyB as IntervalLimitsKey)
                   );
                 })
                 .map(([key, value]) => {

@@ -3,10 +3,7 @@ import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 export const getAggregatedAvailability = (
-  userAvailability: (Omit<
-    Awaited<ReturnType<Awaited<typeof import("./getUserAvailability")>["getUserAvailability"]>>,
-    "currentSeats"
-  > & { user?: { isFixed?: boolean } })[],
+  userAvailability: { dateRanges: DateRange[]; user?: { isFixed?: boolean } }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
   const fixedHosts = userAvailability.filter(
@@ -25,25 +22,33 @@ export const getAggregatedAvailability = (
   return mergeOverlappingDateRanges(availability);
 };
 
+function isSameDay(date1: Date, date2: Date) {
+  return (
+    date1.getUTCFullYear() === date2.getUTCFullYear() &&
+    date1.getUTCMonth() === date2.getUTCMonth() &&
+    date1.getUTCDate() === date2.getUTCDate()
+  );
+}
+
 function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
-  const sortedDateRanges = dateRanges.sort((a, b) => a.start.diff(b.start)); //is it already sorted before?
+  dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
   const mergedDateRanges: DateRange[] = [];
 
-  let currentRange = sortedDateRanges[0];
+  let currentRange = dateRanges[0];
   if (!currentRange) {
     return [];
   }
 
-  for (let i = 1; i < sortedDateRanges.length; i++) {
-    const nextRange = sortedDateRanges[i];
+  for (let i = 1; i < dateRanges.length; i++) {
+    const nextRange = dateRanges[i];
     if (
-      currentRange.start.utc().format("DD MM YY") === nextRange.start.utc().format("DD MM YY") &&
-      currentRange.end.isAfter(nextRange.start)
+      isSameDay(currentRange.start.toDate(), nextRange.start.toDate()) &&
+      currentRange.end.valueOf() > nextRange.start.valueOf()
     ) {
       currentRange = {
         start: currentRange.start,
-        end: currentRange.end.isAfter(nextRange.end) ? currentRange.end : nextRange.end,
+        end: currentRange.end.valueOf() > nextRange.end.valueOf() ? currentRange.end : nextRange.end,
       };
     } else {
       mergedDateRanges.push(currentRange);

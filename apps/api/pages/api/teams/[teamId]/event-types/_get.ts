@@ -59,7 +59,7 @@ async function getHandler(req: NextApiRequest) {
   };
 
   const data = await prisma.eventType.findMany(args);
-  return { event_types: data.map((attendee) => schemaEventTypeReadPublic.parse(attendee)) };
+  return { event_types: data.map((eventType) => schemaEventTypeReadPublic.parse(eventType)) };
 }
 
 export default defaultResponder(getHandler);

@@ -119,9 +119,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               )}
               <div className="w-full">
                 <DialogHeader title={title} subtitle={props.description} />
-                <div data-testid="dialog-confirmation" className="flex  space-y-6">
-                  {children}
-                </div>
+                <div data-testid="dialog-confirmation">{children}</div>
               </div>
             </div>
           )}

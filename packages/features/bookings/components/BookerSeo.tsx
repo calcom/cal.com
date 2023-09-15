@@ -7,6 +7,7 @@ interface BookerSeoProps {
   eventSlug: string;
   rescheduleUid: string | undefined;
   hideBranding?: boolean;
+  isSEOIndexable?: boolean;
   isTeamEvent?: boolean;
   entity: {
     orgSlug?: string | null;
@@ -16,7 +17,7 @@ interface BookerSeoProps {
 }
 
 export const BookerSeo = (props: BookerSeoProps) => {
-  const { eventSlug, username, rescheduleUid, hideBranding, isTeamEvent, entity } = props;
+  const { eventSlug, username, rescheduleUid, hideBranding, isTeamEvent, entity, isSEOIndexable } = props;
   const { t } = useLocale();
   const { data: event } = trpc.viewer.public.event.useQuery(
     { username, eventSlug, isTeamEvent, org: entity.orgSlug ?? null },
@@ -41,8 +42,8 @@ export const BookerSeo = (props: BookerSeoProps) => {
         ],
       }}
       nextSeoProps={{
-        nofollow: event?.hidden,
-        noindex: event?.hidden,
+        nofollow: event?.hidden || !isSEOIndexable,
+        noindex: event?.hidden || !isSEOIndexable,
       }}
       isBrandingHidden={hideBranding}
     />

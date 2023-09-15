@@ -1,3 +1,4 @@
+import type { EventType, Prisma } from "@prisma/client";
 import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
@@ -5,8 +6,6 @@ import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/get
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import type { EventType, Prisma } from ".prisma/client";
 
 export const getCalEventResponses = ({
   bookingFields,

@@ -60,6 +60,30 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
+// for Apple's Travel Time feature only (for now)
+const getTravelDurationInSeconds = (vevent: ICAL.Component, log: typeof logger) => {
+  const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
+  if (!travelDuration) return 0;
+
+  // we can't rely on this being a valid duration and it's painful to check, so just try and catch if anything throws
+  try {
+    const travelSeconds = travelDuration.toSeconds();
+    // integer validation as we can never be sure with ical.js
+    if (!Number.isInteger(travelSeconds)) return 0;
+    return travelSeconds;
+  } catch (e) {
+    log.error("invalid travelDuration?", e);
+    return 0;
+  }
+};
+
+const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
+  if (seconds <= 0) return event;
+  // move event start date back by the specified travel time
+  event.startDate.second -= seconds;
+  return event;
+};
+
 const convertDate = (date: string): DateArray =>
   dayjs(date)
     .utc()
@@ -71,7 +95,7 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const getAttendees = (attendees: Person[]): Attendee[] =>
+const mapAttendees = (attendees: Person[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
 export default abstract class BaseCalendarService implements Calendar {
@@ -80,6 +104,7 @@ export default abstract class BaseCalendarService implements Calendar {
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private log: typeof logger;
+  private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload, integrationName: string, url?: string) {
     this.integrationName = integrationName;
@@ -94,11 +119,25 @@ export default abstract class BaseCalendarService implements Calendar {
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
+    this.credential = credential;
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  private getAttendees(event: CalendarEvent) {
+    const attendees = mapAttendees(event.attendees);
+
+    if (event.team?.members) {
+      const teamAttendeesWithoutCurrentUser = event.team.members.filter(
+        (member) => member.email !== this.credential.user?.email
+      );
+      attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
+    }
+
+    return attendees;
+  }
+
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
 
@@ -114,10 +153,7 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
-        ],
+        attendees: this.getAttendees(event),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -129,12 +165,17 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      const mainHostDestinationCalendar = event.destinationCalendar
+        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0]
+        : undefined;
+
       // We create the event directly on iCal
       const responses = await Promise.all(
         calendars
           .filter((c) =>
-            event.destinationCalendar?.externalId
-              ? c.externalId === event.destinationCalendar.externalId
+            mainHostDestinationCalendar?.externalId
+              ? c.externalId === mainHostDestinationCalendar.externalId
               : true
           )
           .map((calendar) =>
@@ -188,10 +229,7 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
-        ],
+        attendees: this.getAttendees(event),
       });
 
       if (error) {
@@ -387,6 +425,9 @@ export default abstract class BaseCalendarService implements Calendar {
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
+        // mutate event to consider travel time
+        applyTravelDuration(event, getTravelDurationInSeconds(vevent, this.log));
+
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
@@ -477,13 +518,13 @@ export default abstract class BaseCalendarService implements Calendar {
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
         if (!calendar.components?.includes("VEVENT")) return newCalendars;
-
+        const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
         newCalendars.push({
           externalId: calendar.url,
           /** @url https://github.com/calcom/cal.com/issues/7186 */
           name: typeof calendar.displayName === "string" ? calendar.displayName : "",
-          primary: event?.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId === calendar.url
+          primary: mainHostDestinationCalendar?.externalId
+            ? mainHostDestinationCalendar.externalId === calendar.url
             : false,
           integration: this.integrationName,
           email: this.credentials.username ?? "",

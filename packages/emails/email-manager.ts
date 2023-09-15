@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
@@ -8,6 +9,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
+import type { OrganizationNotification } from "./templates/admin-organization-notification";
+import AdminOrganizationNotification from "./templates/admin-organization-notification";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -374,4 +377,8 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
 
 export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
+};
+
+export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
+  await sendEmail(() => new AdminOrganizationNotification(input));
 };

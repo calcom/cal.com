@@ -17,9 +17,10 @@ import {
 import { useState } from "react";
 import { useVirtual } from "react-virtual";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
+import classNames from "@calcom/lib/classNames";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
+import type { ActionItem } from "./DataTableSelectionBar";
 import { DataTableSelectionBar } from "./DataTableSelectionBar";
 import type { FilterableItems } from "./DataTableToolbar";
 import { DataTableToolbar } from "./DataTableToolbar";
@@ -30,15 +31,13 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   filterableItems?: FilterableItems;
-  selectionOptions?: {
-    label: string;
-    onClick: () => void;
-    icon?: SVGComponent;
-  }[];
+  selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
+  onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
+  tableOverlay?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +49,9 @@ export function DataTable<TData, TValue>({
   selectionOptions,
   tableContainerRef,
   isLoading,
+  tableOverlay,
+  /** This should only really be used if you dont have actions in a row. */
+  onRowMouseclick,
   onScroll,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
@@ -101,7 +103,7 @@ export function DataTable<TData, TValue>({
         tableCTA={tableCTA}
       />
       <div
-        className="rounded-md border"
+        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={onScroll}
         style={{
@@ -140,7 +142,11 @@ export function DataTable<TData, TValue>({
                 const row = rows[virtualRow.index] as Row<TData>;
 
                 return (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                    className={classNames(onRowMouseclick && "hover:cursor-pointer")}>
                     {row.getVisibleCells().map((cell) => {
                       return (
                         <TableCell key={cell.id}>
@@ -164,6 +170,7 @@ export function DataTable<TData, TValue>({
               </tr>
             )}
           </TableBody>
+          {tableOverlay && tableOverlay}
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}

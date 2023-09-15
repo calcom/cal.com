@@ -111,12 +111,14 @@ export const CreateANewTeamForm = () => {
                 placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${
-                  orgBranding?.fullDomain.replace("https://", "").replace("http://", "") ??
-                  `${extractDomainFromWebsiteUrl}/team/`
+                  orgBranding
+                    ? orgBranding.fullDomain.replace("https://", "").replace("http://", "") + "/"
+                    : `${extractDomainFromWebsiteUrl}/team/`
                 }`}
+                value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");

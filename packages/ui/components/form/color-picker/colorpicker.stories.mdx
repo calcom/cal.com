@@ -1,0 +1,84 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  Example,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import ColorPicker from "./colorpicker";
+
+<Meta title="UI/Form/ColorPicker" component={ColorPicker} />
+
+<Title title="ColorPicker" suffix="Brief" subtitle="Version 1.0 — Last Update: 16 Aug 2023" />
+
+## Definitions
+
+`Color Picker` is used to select custom hex colors for from a range of values.
+
+## Structure
+
+The `Color Picker` takes in several props
+
+<CustomArgsTable of={ColorPicker} />
+
+## Default:
+
+<Example title="Default">
+  <ColorPicker defaultValue="#000000" />
+</Example>
+
+## ColorPicker Story
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{
+      defaultValue: "#21aef3",
+      onChange: (value) => {
+        console.debug(value);
+      },
+      resetDefaultValue: "#000000",
+      className: "w-[200px]",
+      popoverAlign: "start",
+    }}
+    argTypes={{
+      defaultValue: {
+        control: {
+          type: "text",
+        },
+      },
+      resetDefaultValue: {
+        control: {
+          type: "text",
+        },
+      },
+      popoverAlign: {
+        control: {
+          type: "inline-radio",
+          options: ["center", "start", "end"],
+        },
+      },
+    }}>
+    {({ defaultValue, onChange, resetDefaultValue, className, popoverAlign }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <TooltipProvider>
+            <Tooltip content="color picker">
+              <ColorPicker
+                defaultValue={defaultValue}
+                onChange={onChange}
+                resetDefaultValue={resetDefaultValue}
+                className={className}
+                popoverAlign={popoverAlign}
+              />
+            </Tooltip>
+          </TooltipProvider>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

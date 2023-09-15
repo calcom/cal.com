@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -73,12 +73,14 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         }
         return !schema.safeParse(fieldValue).success;
       })
-      .map((f) => ({ label: f.label, type: f.type }));
+      .map((f) => ({ label: f.label, type: f.type, value: response[f.id]?.value }));
 
     if (invalidFields.length) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
+        message: `Invalid value for fields ${invalidFields
+          .map((f) => `'${f.label}' with value '${f.value}' should be valid ${f.type}`)
+          .join(", ")}`,
       });
     }
 

@@ -1,33 +1,57 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title, CustomArgsTable, VariantsTable,VariantRow } from '@calcom/storybook/components'
-import { Alert } from './Alert';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { Alert } from "./Alert";
 
 <Meta title="UI/Alert" component={Alert} />
 
-<Title title="Alert" suffix="Brief" subtitle="Version 2.0 — Last Update: 04 jan 2023"/>
+<Title title="Alert" suffix="Brief" subtitle="Version 2.0 — Last Update: 04 jan 2023" />
 
 ## Definition
+
 Alerts provide time-based feedback to the user after taking an action.
 
 ## Structure
+
 Each alert has a state to represent neutral, positive or negative responses.
 
 <CustomArgsTable of={Alert} />
 
 <Examples title="Alert style">
   <Example title="Error">
-    <Alert severity="error" title="Summarise what happened" message="Describe what can be done about it here." />
+    <Alert
+      severity="error"
+      title="Summarise what happened"
+      message="Describe what can be done about it here."
+    />
   </Example>
   <Example title="Warning">
-    <Alert severity="warning" title="Summarise what happened" message="Describe what can be done about it here." />
+    <Alert
+      severity="warning"
+      title="Summarise what happened"
+      message="Describe what can be done about it here."
+    />
   </Example>
   <Example title="With actions">
     <Alert
       severity="warning"
       title="Summarise what happened"
       message="Describe what can be done about it here."
-      actions={<><button>Cancel me</button></>}
-      />
+      actions={
+        <>
+          <button>Cancel me</button>
+        </>
+      }
+    />
   </Example>
 </Examples>
 
@@ -37,31 +61,30 @@ Each alert has a state to represent neutral, positive or negative responses.
   <Story
     name="Alert"
     args={{
-      severity: 'success',
-      title: 'Summarise what happened',
-      message: 'Describe what can be done about it here.',
+      severity: "success",
+      title: "Summarise what happened",
+      message: "Describe what can be done about it here.",
     }}
     argTypes={{
       severity: {
         control: {
-          type: 'inline-radio',
-          options: ['success', 'warning', 'error', 'neutral', 'info'],
+          type: "inline-radio",
+          options: ["success", "warning", "error", "neutral", "info"],
         },
       },
       title: {
         control: {
-          type: 'text'
-        }
+          type: "text",
+        },
       },
       message: {
         control: {
-          type: 'text'
-        }
+          type: "text",
+        },
       },
-    }}
-  >
+    }}>
     {({ severity, title, message }) => (
-      <VariantsTable titles={['Default']} columnMinWidth={150}>
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
         <VariantRow variant={severity}>
           <Alert severity={severity} title={title} message={message} />
         </VariantRow>

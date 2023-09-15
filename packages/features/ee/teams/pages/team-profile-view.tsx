@@ -16,6 +16,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
+import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -227,12 +228,12 @@ const ProfileView = () => {
                       value={value}
                       addOnLeading={
                         team.parent && orgBranding
-                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false })
+                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false }) + "/"
                           : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {
                         form.clearErrors("slug");
-                        form.setValue("slug", e?.target.value);
+                        form.setValue("slug", slugify(e?.target.value, true));
                       }}
                     />
                   </div>

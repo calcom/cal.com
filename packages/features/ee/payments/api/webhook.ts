@@ -6,7 +6,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail, sendScheduledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -15,8 +15,9 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma, bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -98,7 +99,7 @@ async function getBooking(bookingId: number) {
   });
 
   const attendeesList = await Promise.all(attendeesListPromises);
-
+  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -116,7 +117,7 @@ async function getBooking(bookingId: number) {
     },
     attendees: attendeesList,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
   };
 
@@ -164,7 +165,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
         select: {
           id: true,
           username: true,
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           timeZone: true,
           timeFormat: true,
           email: true,
@@ -204,7 +205,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   const attendeesList = await Promise.all(attendeesListPromises);
-
+  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -226,7 +227,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     attendees: attendeesList,
     location: booking.location,
     uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
   };
 
@@ -313,7 +314,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       name: true,
       locale: true,
       destinationCalendar: true,
-      credentials: true,
+      credentials: { select: credentialForCalendarServiceSelect },
     },
   });
 
@@ -398,7 +399,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (!event.account) {
+    // bypassing this validation for e2e tests
+    // in order to successfully confirm the payment
+    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
       throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
     }
 

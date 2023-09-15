@@ -5,6 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
@@ -18,6 +19,7 @@ import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
+import { KYCVerificationDialog } from "./KYCVerificationDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"];
@@ -39,10 +41,14 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
+  const [isKYCVerificationDialogOpen, setKYCVerificationDialogOpen] = useState(false);
+
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const isPartOfTeam = useHasTeamPlan();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -55,7 +61,9 @@ export default function WorkflowDetailsPage(props: Props) {
           ...options,
           ...group.eventTypes.map((eventType) => ({
             value: String(eventType.id),
-            label: `${eventType.title} ${eventType.children.length ? `(+${eventType.children.length})` : ``}`,
+            label: `${eventType.title} ${
+              eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+            }`,
           })),
         ];
       }, [] as Option[]) || [],
@@ -107,6 +115,7 @@ export default function WorkflowDetailsPage(props: Props) {
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
+      includeCalendarEvent: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -114,7 +123,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="my-8 sm:my-0 md:flex">
+      <div className="z-1 my-8 sm:my-0 md:flex">
         <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
@@ -168,6 +177,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
               />
             </div>
           )}
@@ -184,6 +194,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
                   />
                 );
               })}
@@ -211,6 +222,12 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        setKYCVerificationDialogOpen={() => setKYCVerificationDialogOpen(true)}
+      />
+      <KYCVerificationDialog
+        isOpenDialog={isKYCVerificationDialogOpen}
+        setIsOpenDialog={setKYCVerificationDialogOpen}
+        isPartOfTeam={!!isPartOfTeam.hasTeamPlan}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

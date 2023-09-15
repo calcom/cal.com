@@ -68,7 +68,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   let nextCursor: typeof cursor | undefined = undefined;
   if (teamMembers && teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
-    nextCursor = nextItem!.id;
+    nextCursor = nextItem?.id;
   }
 
   const members = teamMembers?.map((member) => {
@@ -102,3 +102,5 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   };
 };
+
+export default listMembersHandler;

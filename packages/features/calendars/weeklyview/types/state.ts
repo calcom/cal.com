@@ -53,6 +53,7 @@ export type CalendarPrivateActions = {
 
 export type CalendarAvailableTimeslots = {
   // Key is the date in YYYY-MM-DD format
+  // start and end are ISOstring
   [key: string]: TimeRange[];
 };
 

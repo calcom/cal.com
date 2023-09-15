@@ -23,7 +23,7 @@ class CalendarEventClass implements CalendarEvent {
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: any;
-  destinationCalendar?: DestinationCalendar | null;
+  destinationCalendar?: DestinationCalendar[] | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;

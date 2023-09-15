@@ -1,4 +1,5 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
 import {
   Examples,
   Example,
@@ -8,58 +9,58 @@ import {
   VariantColumn,
   RowTitles,
   CustomArgsTable,
-  VariantRow
+  VariantRow,
 } from "@calcom/storybook/components";
 
-import { SuccessToast,ErrorToast,WarningToast,DefaultToast } from './';
+import { SuccessToast, ErrorToast, WarningToast, DefaultToast } from "./";
 
 <Meta title="UI/Toasts" component={DefaultToast} />
 
-<Title title="Toasts" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
-
+<Title title="Toasts" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Definition
+
 Toasts are used to show an action has had a impact. If a user submits a form a toast should be shown to notify the user there has been a success
 
 ## Structure
 
 <CustomArgsTable of={DefaultToast} />
 
-
-<Examples title="Toasts" >
+<Examples title="Toasts">
   <Example title="Default">
-    <DefaultToast  message="Default Toast" toastVisible={true}/>
+    <DefaultToast message="Default Toast" toastVisible={true} />
   </Example>
   <Example title="Success">
-    <SuccessToast message="Success Toast" toastVisible={true}/>
+    <SuccessToast message="Success Toast" toastVisible={true} />
   </Example>
   <Example title="Warning">
-    <WarningToast message="Warning Toast" toastVisible={true}/>
+    <WarningToast message="Warning Toast" toastVisible={true} />
   </Example>
   <Example title="Error">
-    <ErrorToast message="Error Toast" toastVisible={true}/>
+    <ErrorToast message="Error Toast" toastVisible={true} />
   </Example>
 </Examples>
 
 ## Toast Story
 
 <Canvas>
-  <Story name="Default"
-  args={{
-    message: 'Default Toast',
-    toastVisible: true
-  }}
-         argTypes={{
-            message: { control: 'text' },
-            toastVisible: { control: 'boolean'}
-  }}>
-    {({message, toastVisible}) => (
-      <VariantsTable titles={['Default','Success', 'Warning', 'Error']} columnMinWidth={150}>
+  <Story
+    name="Default"
+    args={{
+      message: "Default Toast",
+      toastVisible: true,
+    }}
+    argTypes={{
+      message: { control: "text" },
+      toastVisible: { control: "boolean" },
+    }}>
+    {({ message, toastVisible }) => (
+      <VariantsTable titles={["Default", "Success", "Warning", "Error"]} columnMinWidth={150}>
         <VariantRow variant="Default">
-          <DefaultToast message={message} toastVisible={toastVisible}/>
-          <SuccessToast message={message} toastVisible={toastVisible}/>
-          <WarningToast message={message} toastVisible={toastVisible}/>
-          <ErrorToast message={message} toastVisible={toastVisible}/>
+          <DefaultToast message={message} toastVisible={toastVisible} />
+          <SuccessToast message={message} toastVisible={toastVisible} />
+          <WarningToast message={message} toastVisible={toastVisible} />
+          <ErrorToast message={message} toastVisible={toastVisible} />
         </VariantRow>
       </VariantsTable>
     )}

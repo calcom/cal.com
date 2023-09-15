@@ -10,6 +10,9 @@ type UseScheduleWithCacheArgs = {
   timezone?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
+  monthCount?: number | null;
+  rescheduleUid?: string | null;
+  isTeamEvent?: boolean;
 };
 
 export const useSchedule = ({
@@ -20,33 +23,45 @@ export const useSchedule = ({
   eventId,
   prefetchNextMonth,
   duration,
+  monthCount,
+  rescheduleUid,
+  isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
-  const nextMonthDayjs = monthDayjs.add(1, "month");
+  const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
-  // no satisfy typscript.
+  // no satisfy typescript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
+      isTeamEvent,
       usernameList: getUsernameList(username ?? ""),
-      eventTypeSlug: eventSlug!,
+      // Prioritize slug over id, since slug is the first value we get available.
+      // If we have a slug, we don't need to fetch the id.
+      // TODO: are queries using eventTypeId faster? Even tho we lost time fetching the id with the slug.
+      ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
       startTime: monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
-      eventTypeId: eventId!,
       duration: duration ? `${duration}` : undefined,
+      rescheduleUid,
     },
     {
+      trpc: {
+        context: {
+          skipBatch: true,
+        },
+      },
       refetchOnWindowFocus: false,
       enabled:
         Boolean(username) &&
-        Boolean(eventSlug) &&
-        (Boolean(eventId) || eventId === 0) &&
         Boolean(month) &&
-        Boolean(timezone),
+        Boolean(timezone) &&
+        // Should only wait for one or the other, not both.
+        (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
     }
   );
 };

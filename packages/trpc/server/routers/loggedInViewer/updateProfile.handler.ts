@@ -1,9 +1,11 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -11,12 +13,13 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TUpdateProfileInputSchema } from "./updateProfile.schema";
+import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 type UpdateProfileOptions = {
   ctx: {
@@ -28,11 +31,15 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
+  const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
-    metadata: input.metadata as Prisma.InputJsonValue,
+    metadata: userMetadata,
   };
 
+  // some actions can invalidate a user session.
+  let signOutUser = false;
+  let passwordReset = false;
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -56,20 +63,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
   }
-  const userToUpdate = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-  });
 
-  if (!userToUpdate) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-  }
-  const metadata = userMetadata.parse(userToUpdate.metadata);
-
-  const isPremium = metadata?.isPremium;
   if (isPremiumUsername) {
-    const stripeCustomerId = metadata?.stripeCustomerId;
+    const stripeCustomerId = userMetadata?.stripeCustomerId;
+    const isPremium = userMetadata?.isPremium;
     if (!isPremium || !stripeCustomerId) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
     }
@@ -98,10 +95,24 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-  const hasEmailBeenChanged = userToUpdate.email !== data.email;
+  const hasEmailBeenChanged = data.email && user.email !== data.email;
 
   if (hasEmailBeenChanged) {
     data.emailVerified = null;
+  }
+
+  // check if we are changing email and identity provider is not CAL
+  const hasEmailChangedOnNonCalProvider =
+    hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
+  const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
+
+  if (hasEmailChangedOnNonCalProvider) {
+    // Only validate if we're changing email
+    data.identityProvider = IdentityProvider.CAL;
+    data.identityProviderId = null;
+  } else if (hasEmailChangedOnCalProvider) {
+    // when the email changes, the user needs to sign in again.
+    signOutUser = true;
   }
 
   const updatedUser = await prisma.user.update({
@@ -113,11 +124,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       id: true,
       username: true,
       email: true,
+      identityProvider: true,
+      identityProviderId: true,
       metadata: true,
       name: true,
       createdDate: true,
+      locale: true,
     },
   });
+
+  if (hasEmailChangedOnNonCalProvider) {
+    // Because the email has changed, we are now attempting to use the CAL provider-
+    // which has no password yet. We have to send the reset password email.
+    await passwordResetRequest(updatedUser);
+    signOutUser = true;
+    passwordReset = true;
+  }
 
   // Sync Services
   await syncServicesUpdateWebUser(updatedUser);
@@ -154,5 +176,26 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }*/
-  return input;
+  return { ...input, signOutUser, passwordReset };
+};
+
+const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {
+  if (!metadata) {
+    return {};
+  }
+  const cleanedMetadata = updateUserMetadataAllowedKeys.safeParse(metadata);
+  if (!cleanedMetadata.success) {
+    logger.error("Error cleaning metadata", cleanedMetadata.error);
+    return {};
+  }
+
+  return cleanedMetadata.data;
+};
+
+const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
+  const { user } = ctx;
+  const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
+  const userMetadata = userMetadataSchema.parse(user.metadata);
+  // Required so we don't override and delete saved values
+  return { ...userMetadata, ...cleanMetadata };
 };

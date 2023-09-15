@@ -82,3 +82,5 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
     message: "Team published successfully",
   };
 };
+
+export default publishHandler;

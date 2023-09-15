@@ -1,0 +1,78 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  CustomArgsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+import dayjs from "@calcom/dayjs";
+
+import DatePicker from "./DatePicker";
+
+<Meta title="UI/DatePicker" component={DatePicker} />
+
+<Title title="DatePicker" suffix="Brief" subtitle="Version 1.0 — Last Update: 21 Aug 2023" />
+
+## Definition
+
+DatePicker is a clickable element that allows the user to select a specific date from the available list in the component.
+
+## Structure
+
+DatePicker component offers a complete and customizable element for the user to select a specific date in the calendar.
+
+<CustomArgsTable of={DatePicker} />
+
+<Examples title="DatePicker">
+  <Example title="Default">
+    <DatePicker />
+  </Example>
+</Examples>
+
+<Title offset title="DatePicker" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="DatePicker"
+    args={{
+      weekStart: 0,
+      excludedDates: ["2023-08-20", "2023-08-21"],
+      minDate: dayjs("2023-07-23").utc(),
+      maxDate: dayjs("2023-08-30").utc(),
+      selected: dayjs("2023-08-30").utc(),
+      isLoading: false,
+      onChange: (newDate) => console.log(newDate),
+      onMonthChange: (newMonth) => console.log(newMonth),
+    }}
+    argTypes={{
+      weekStart: {
+        control: {
+          type: "inline-radio",
+          options: [0, 1, 2, 3, 4, 5, 6],
+        },
+      },
+      selected: {
+        control: "date"
+      }
+    }}>
+    {({ weekStart, excludedDates, onChange, onMonthChange, minDate, maxDate, selected, isLoading }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <DatePicker
+            weekStart={weekStart}
+            excludedDates={excludedDates}
+            minDate={dayjs(minDate).utc()}
+            maxDate={dayjs(maxDate).utc()}
+            onChange={onChange}
+            onMonthChange={onMonthChange}
+            selected={dayjs(selected)}
+            isLoading={isLoading}
+          />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

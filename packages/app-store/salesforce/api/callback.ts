@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential(
     { appId: "salesforce", type: "salesforce_other_calendar" },
-    salesforceTokenInfo as any,
+    salesforceTokenInfo,
     req
   );
 

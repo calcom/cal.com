@@ -1,136 +1,52 @@
-import localeMiddleware from "../../middlewares/localeMiddleware";
 import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
-import { router } from "../../trpc";
+import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
+import { i18nInputSchema } from "./i18n.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
-type PublicViewerRouterHandlerCache = {
-  session?: typeof import("./session.handler").sessionHandler;
-  i18n?: typeof import("./i18n.handler").i18nHandler;
-  countryCode?: typeof import("./countryCode.handler").countryCodeHandler;
-  samlTenantProduct?: typeof import("./samlTenantProduct.handler").samlTenantProductHandler;
-  stripeCheckoutSession?: typeof import("./stripeCheckoutSession.handler").stripeCheckoutSessionHandler;
-  cityTimezones?: typeof import("./cityTimezones.handler").cityTimezonesHandler;
-  event?: typeof import("./event.handler").eventHandler;
-};
+const NAMESPACE = "publicViewer";
 
-const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
-  session: publicProcedure.use(sessionMiddleware).query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.session) {
-      UNSTABLE_HANDLER_CACHE.session = await import("./session.handler").then((mod) => mod.sessionHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.session) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.session({
-      ctx,
-    });
+  session: publicProcedure.use(sessionMiddleware).query(async (opts) => {
+    const handler = await importHandler(namespaced("session"), () => import("./session.handler"));
+    return handler(opts);
   }),
-
-  i18n: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.i18n) {
-      UNSTABLE_HANDLER_CACHE.i18n = await import("./i18n.handler").then((mod) => mod.i18nHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.i18n) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.i18n({ ctx });
+  i18n: publicProcedure.input(i18nInputSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("i18n"), () => import("./i18n.handler"));
+    return handler(opts);
   }),
-
-  countryCode: publicProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.countryCode) {
-      UNSTABLE_HANDLER_CACHE.countryCode = await import("./countryCode.handler").then(
-        (mod) => mod.countryCodeHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.countryCode) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.countryCode({
-      ctx,
-    });
+  countryCode: publicProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
+    return handler(opts);
   }),
-
-  samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.samlTenantProduct) {
-      UNSTABLE_HANDLER_CACHE.samlTenantProduct = await import("./samlTenantProduct.handler").then(
-        (mod) => mod.samlTenantProductHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.samlTenantProduct) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.samlTenantProduct({
-      ctx,
-      input,
-    });
+  samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("samlTenantProduct"),
+      () => import("./samlTenantProduct.handler")
+    );
+    return handler(opts);
   }),
-
-  stripeCheckoutSession: publicProcedure.input(ZStripeCheckoutSessionInputSchema).query(async ({ input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
-      UNSTABLE_HANDLER_CACHE.stripeCheckoutSession = await import("./stripeCheckoutSession.handler").then(
-        (mod) => mod.stripeCheckoutSessionHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.stripeCheckoutSession({
-      input,
-    });
+  stripeCheckoutSession: publicProcedure.input(ZStripeCheckoutSessionInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("stripeCheckoutSession"),
+      () => import("./stripeCheckoutSession.handler")
+    );
+    return handler(opts);
   }),
-
   cityTimezones: publicProcedure.query(async () => {
-    if (!UNSTABLE_HANDLER_CACHE.cityTimezones) {
-      UNSTABLE_HANDLER_CACHE.cityTimezones = await import("./cityTimezones.handler").then(
-        (mod) => mod.cityTimezonesHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.cityTimezones) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.cityTimezones();
+    const handler = await importHandler(namespaced("cityTimezones"), () => import("./cityTimezones.handler"));
+    return handler();
   }),
-
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  event: publicProcedure.input(ZEventInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.event) {
-      UNSTABLE_HANDLER_CACHE.event = await import("./event.handler").then((mod) => mod.eventHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.event) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.event({
-      ctx,
-      input,
-    });
+  event: publicProcedure.input(ZEventInputSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("event"), () => import("./event.handler"));
+    return handler(opts);
   }),
 });

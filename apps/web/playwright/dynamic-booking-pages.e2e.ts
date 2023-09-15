@@ -9,10 +9,7 @@ import {
 
 test.afterEach(({ users }) => users.deleteAll());
 
-// Due to some reason for Dynamic booking cancellation, daily video api_key is not set which causes cancellation to fail.
-// This test is skipped until the issue is resolved in GH actions.
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip("dynamic booking", async ({ page, users }) => {
+test("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.apiLogin();
 
@@ -20,10 +17,13 @@ test.skip("dynamic booking", async ({ page, users }) => {
   await page.goto(`/${pro.username}+${free.username}`);
 
   await test.step("book an event first day in next month", async () => {
-    // Click first event type
-    await page.click('[data-testid="event-type-link"]');
     await selectFirstAvailableTimeSlotNextMonth(page);
+
+    // Fill what is this meeting about? title
+    await page.locator('[name="title"]').fill("Test meeting");
+
     await bookTimeSlot(page);
+
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
@@ -37,7 +37,8 @@ test.skip("dynamic booking", async ({ page, users }) => {
       return !!bookingId;
     });
     await selectSecondAvailableTimeSlotNextMonth(page);
-    // --- fill form
+
+    // No need to fill fields since they should be already filled
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
@@ -26,6 +26,7 @@ export default function Type({
   isBrandingHidden,
   isTeamEvent,
   entity,
+  duration,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -44,6 +45,7 @@ export default function Type({
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
         entity={entity}
+        duration={duration}
       />
     </main>
   );
@@ -54,7 +56,7 @@ Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
@@ -133,6 +135,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       entity: eventData.entity,
+      duration: getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        queryDuration,
+        eventData.length
+      ),
       booking,
       away: user?.away,
       user: username,

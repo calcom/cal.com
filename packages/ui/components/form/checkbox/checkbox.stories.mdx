@@ -1,89 +1,99 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
-import {CheckboxField as Checkbox} from './Checkbox';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
 
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { CheckboxField as Checkbox } from "./Checkbox";
 
 <Meta title="UI/Form/Checkbox" component={Checkbox} />
 
-<Title title="Checkbox  " suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+<Title title="Checkbox  " suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Definition
+
 Checkboxes are used in forms and databases to indicate an answer to a question, apply a batch of settings or allow the user to make a multi-selection from a list. Alternatively, a single checkbox may be used for making single selections
+
 ## Structure
 
 <CustomArgsTable of={Checkbox} />
 
-
 <Examples title="Checkbox style">
-  <Example title="Default" >
-    <Checkbox label="Default"  />
+  <Example title="Default">
+    <Checkbox label="Default" />
   </Example>
-  <Example title="Error" >
-    <Checkbox label="Error" error/>
+  <Example title="Error">
+    <Checkbox label="Error" error />
   </Example>
-  <Example title="Disabled" >
-    <Checkbox label="Disabled"  disabled/>
+  <Example title="Disabled">
+    <Checkbox label="Disabled" disabled />
   </Example>
-  <Example title="Disabled" >
-    <Checkbox label="Disabled Checked"  checked disabled />
+  <Example title="Disabled">
+    <Checkbox label="Disabled Checked" checked disabled />
   </Example>
 </Examples>
 
 <Examples title="Description As Label">
-  <Example title="Default" >
-    <Checkbox descriptionAsLabel description="Default Description"  />
+  <Example title="Default">
+    <Checkbox descriptionAsLabel description="Default Description" />
   </Example>
-  <Example title="Error" >
-    <Checkbox descriptionAsLabel description="Default Description"  error/>
+  <Example title="Error">
+    <Checkbox descriptionAsLabel description="Default Description" error />
   </Example>
-  <Example title="Disabled" >
-    <Checkbox descriptionAsLabel description="Default Description"  disabled/>
+  <Example title="Disabled">
+    <Checkbox descriptionAsLabel description="Default Description" disabled />
   </Example>
-  <Example title="Disabled" >
-    <Checkbox descriptionAsLabel description="Default Description"  disabled checked/>
+  <Example title="Disabled">
+    <Checkbox descriptionAsLabel description="Default Description" disabled checked />
   </Example>
 </Examples>
 
 <Canvas>
-  <Story name="Checkbox"
+  <Story
+    name="Checkbox"
     args={{
       label: "Default",
       description: "Default Description",
       error: false,
       disabled: false,
     }}
-         argTypes={{
-            label: {
-              control: {
-                type: 'text',
-              },
-            },
-            description: {
-              control: {
-                type: 'text',
-              },
-            },
-            error: {
-              control: {
-                type: 'boolean',
-              },
-            },
-            disabled: {
-              control: {
-                type: 'boolean',
-              },
-            }
-         }}
-  >
+    argTypes={{
+      label: {
+        control: {
+          type: "text",
+        },
+      },
+      description: {
+        control: {
+          type: "text",
+        },
+      },
+      error: {
+        control: {
+          type: "boolean",
+        },
+      },
+      disabled: {
+        control: {
+          type: "boolean",
+        },
+      },
+    }}>
     {({ label, description, error, disabled }) => (
-  <VariantsTable titles={[""]} columnMinWidth={150}>
-    <VariantRow variant="Default">
-      <Checkbox label={label} error={error} disabled={disabled} />
-    </VariantRow>
-    <VariantRow variant="Description As Label">
-      <Checkbox description={description} error={error} disabled={disabled} descriptionAsLabel/>
-    </VariantRow>
-  </VariantsTable>
+      <VariantsTable titles={[""]} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <Checkbox label={label} error={error} disabled={disabled} />
+        </VariantRow>
+        <VariantRow variant="Description As Label">
+          <Checkbox description={description} error={error} disabled={disabled} descriptionAsLabel />
+        </VariantRow>
+      </VariantsTable>
     )}
   </Story>
 </Canvas>

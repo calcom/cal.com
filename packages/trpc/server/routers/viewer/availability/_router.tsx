@@ -1,11 +1,13 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { scheduleRouter } from "./schedule/_router";
+import { ZListTeamAvailaiblityScheme } from "./team/listTeamAvailability.schema";
 import { ZUserInputSchema } from "./user.schema";
 
 type AvailabilityRouterHandlerCache = {
   list?: typeof import("./list.handler").listHandler;
   user?: typeof import("./user.handler").userHandler;
+  listTeamAvailability?: typeof import("./team/listTeamAvailability.handler").listTeamAvailabilityHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AvailabilityRouterHandlerCache = {};
@@ -37,6 +39,23 @@ export const availabilityRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.user({
+      ctx,
+      input,
+    });
+  }),
+  listTeam: authedProcedure.input(ZListTeamAvailaiblityScheme).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
+      UNSTABLE_HANDLER_CACHE.listTeamAvailability = await import("./team/listTeamAvailability.handler").then(
+        (mod) => mod.listTeamAvailabilityHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listTeamAvailability({
       ctx,
       input,
     });

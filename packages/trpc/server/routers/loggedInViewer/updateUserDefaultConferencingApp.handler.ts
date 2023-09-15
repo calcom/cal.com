@@ -1,6 +1,7 @@
 import z from "zod";
 
 import getApps from "@calcom/app-store/utils";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -21,7 +22,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
   input,
 }: UpdateUserDefaultConferencingAppOptions) => {
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
-  const credentials = ctx.user.credentials;
+  const credentials = await getUsersCredentials(ctx.user.id);
   const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 

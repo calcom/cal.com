@@ -11,6 +11,7 @@ import {
   CustomArgsTable,
 } from "@calcom/storybook/components";
 
+import { Button } from "../button";
 import {
   Sheet,
   SheetClose,
@@ -21,9 +22,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
-
-import {Button} from "../button";
-
 
 <Meta title="UI/Sheet" />
 
@@ -36,22 +34,20 @@ A sheet is a container that can be used to display content on differnt sides of 
 ## Structure
 
 <Examples title="Spacing">
-      <Sheet>
-          <SheetTrigger asChild>
-              <Button>Open default sheet</Button>
-          </SheetTrigger>
-      <SheetContent position="right" size={"default"}>
-          <SheetHeader>
-              <SheetTitle>Edit profile</SheetTitle>
-              <SheetDescription>
-              Make changes to your profile here. Click save when you're done.
-              </SheetDescription>
-          </SheetHeader>
-          <SheetFooter>
-              <SheetClose asChild>
-                <Button type="submit">Save changes</Button>
-              </SheetClose>
-          </SheetFooter>
-      </SheetContent>
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button>Open default sheet</Button>
+    </SheetTrigger>
+    <SheetContent position="right" size={"default"}>
+      <SheetHeader>
+        <SheetTitle>Edit profile</SheetTitle>
+        <SheetDescription>Make changes to your profile here. Click save when you're done.</SheetDescription>
+      </SheetHeader>
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button type="submit">Save changes</Button>
+        </SheetClose>
+      </SheetFooter>
+    </SheetContent>
   </Sheet>
 </Examples>

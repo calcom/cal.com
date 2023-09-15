@@ -9,6 +9,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -171,7 +172,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     attendees: attendeesList,
     location: booking.location ?? "",
     uid: booking.uid,
-    destinationCalendar: booking?.destinationCalendar || user.destinationCalendar,
+    destinationCalendar: booking?.destinationCalendar
+      ? [booking.destinationCalendar]
+      : user.destinationCalendar
+      ? [user.destinationCalendar]
+      : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     eventTypeId: booking.eventType?.id,
   };
@@ -212,7 +217,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    await handleConfirmation({ user, evt, recurringEventId, prisma, bookingId, booking });
+    const credentials = await getUsersCredentials(user.id);
+    const userWithCredentials = {
+      ...user,
+      credentials,
+    };
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      recurringEventId,
+      prisma,
+      bookingId,
+      booking,
+    });
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {

@@ -1,0 +1,83 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  CustomArgsTable,
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { StorybookTrpcProvider } from "../../mocks/trpc";
+import { TimezoneSelect } from "./TimezoneSelect";
+
+<Meta title="UI/Form/TimezoneSelect" component={TimezoneSelect} />
+
+<Title title="TimezoneSelect" suffix="Brief" subtitle="Version 1.0 — Last Update: 25 Aug 2023" />
+
+## Definition
+
+The `TimezoneSelect` component is used to display timezone options.
+
+## Structure
+
+The `TimezoneSelect` component can be used to display timezone options.
+
+<CustomArgsTable of={TimezoneSelect} />
+
+## Examples
+
+<Examples title="TimezoneSelect">
+  <Example title="Default">
+    <StorybookTrpcProvider>
+      <TimezoneSelect value="Africa/Douala" />
+    </StorybookTrpcProvider>
+  </Example>
+  <Example title="Disabled">
+    <StorybookTrpcProvider>
+      <TimezoneSelect value="Africa/Douala" isDisabled />
+    </StorybookTrpcProvider>
+  </Example>
+</Examples>
+
+## TimezoneSelect Story
+
+<Canvas>
+  <Story
+    name="TimezoneSelect"
+    args={{
+      className: "mt-24",
+      value: "Africa/Douala",
+      variant: "default",
+      isDisabled: false,
+      timezones: {
+        "Timezone 1": "City 1",
+        "Timezone 2": "City 2",
+        "Timezone 3": "City 3",
+      },
+      isLoading: false,
+    }}
+    argTypes={{
+      value: {
+        control: { disable: true },
+      },
+      variant: {
+        control: {
+          type: "inline-radio",
+          options: ["default", "minimal"],
+        },
+      },
+    }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={350}>
+        <VariantRow>
+          <StorybookTrpcProvider>
+            <TimezoneSelect {...args} />
+          </StorybookTrpcProvider>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

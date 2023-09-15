@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
@@ -8,20 +7,11 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsernameInOrg } from "@calcom/lib/validateUsernameInOrg";
+import { validateUsernameInTeam, validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-const signupSchema = z.object({
-  username: z.string().refine((value) => !value.includes("+"), {
-    message: "String should not contain a plus symbol (+).",
-  }),
-  email: z.string().email(),
-  password: z.string().min(7),
-  language: z.string().optional(),
-  token: z.string().optional(),
-});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -65,41 +55,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Token expired" });
     }
     if (foundToken?.teamId) {
-      const isValidUsername = await validateUsernameInOrg(username, foundToken?.teamId);
-
-      if (!isValidUsername) {
-        return res.status(409).json({ message: "Username already taken" });
+      const teamUserValidation = await validateUsernameInTeam(username, userEmail, foundToken?.teamId);
+      if (!teamUserValidation.isValid) {
+        return res.status(409).json({ message: "Username or email is already taken" });
       }
     }
   } else {
-    // There is an existingUser if the username matches
-    // OR if the email matches AND either the email is verified
-    // or both username and password are set
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username },
-          {
-            AND: [
-              { email: userEmail },
-              {
-                OR: [
-                  { emailVerified: { not: null } },
-                  {
-                    AND: [{ password: { not: null } }, { username: { not: null } }],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    });
-    if (existingUser) {
-      const message: string =
-        existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
-
-      return res.status(409).json({ message });
+    const userValidation = await validateUsername(username, userEmail);
+    if (!userValidation.isValid) {
+      return res.status(409).json({ message: "Username or email is already taken" });
     }
   }
 
@@ -111,7 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: foundToken.teamId,
       },
     });
-
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 

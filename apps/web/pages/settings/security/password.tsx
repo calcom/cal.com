@@ -199,6 +199,7 @@ const PasswordView = () => {
             color="primary"
             className="mt-8"
             type="submit"
+            loading={passwordMutation.isLoading || sessionMutation.isLoading}
             onClick={() => formMethods.clearErrors("apiError")}
             disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
             {t("update")}

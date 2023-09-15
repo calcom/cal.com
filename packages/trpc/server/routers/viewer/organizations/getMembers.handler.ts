@@ -52,3 +52,5 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
   });
   return teamQuery?.members || [];
 };
+
+export default getMembersHandler;

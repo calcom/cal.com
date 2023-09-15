@@ -1,9 +1,11 @@
 import type { NextApiRequest } from "next";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
+import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import getCalLink from "../_utils/getCalLink";
 
@@ -42,7 +44,8 @@ import getCalLink from "../_utils/getCalLink";
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const event_type = await prisma.eventType.findUnique({
+
+  const eventType = await prisma.eventType.findUnique({
     where: { id },
     include: {
       customInputs: true,
@@ -51,10 +54,43 @@ export async function getHandler(req: NextApiRequest) {
       owner: { select: { username: true, id: true } },
     },
   });
+  await checkPermissions(req, eventType);
 
-  const link = event_type ? getCalLink(event_type) : null;
+  const link = eventType ? getCalLink(eventType) : null;
+  // user.defaultScheduleId doesn't work the same for team events.
+  if (!eventType?.scheduleId && eventType?.userId && !eventType?.teamId) {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: eventType.userId,
+      },
+      select: {
+        defaultScheduleId: true,
+      },
+    });
+    eventType.scheduleId = user.defaultScheduleId;
+  }
 
-  return { event_type: schemaEventTypeReadPublic.parse({ ...event_type, link }) };
+  // TODO: eventType when not found should be a 404
+  //       but API consumers may depend on the {} behaviour.
+  return { event_type: schemaEventTypeReadPublic.parse({ ...eventType, link }) };
+}
+
+type BaseEventTypeCheckPermissions = {
+  userId: number | null;
+  teamId: number | null;
+};
+
+async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
+  req: NextApiRequest,
+  eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
+) {
+  if (req.isAdmin) return true;
+  if (eventType?.teamId) {
+    req.query.teamId = String(eventType.teamId);
+    await canAccessTeamEventOrThrow(req, "MEMBER");
+  }
+  if (eventType?.userId === req.userId) return true; // is owner.
+  throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(getHandler);

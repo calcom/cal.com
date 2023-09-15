@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import cx from "@calcom/lib/classNames";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -116,6 +116,8 @@ export const EventSetupTab = (
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const orgBranding = useOrgBranding();
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -129,10 +131,12 @@ export const EventSetupTab = (
     };
   });
 
-  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
-    value: mins,
-    label: t("multiple_duration_mins", { count: mins }),
-  }));
+  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180].map(
+    (mins) => ({
+      value: mins,
+      label: t("multiple_duration_mins", { count: mins }),
+    })
+  );
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{
@@ -297,13 +301,7 @@ export const EventSetupTab = (
                     <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className={cx(
-                          "h-4 w-4",
-                          // invert all the icons except app icons
-                          eventLocationType.iconUrl &&
-                            !eventLocationType.iconUrl.startsWith("/app-store") &&
-                            "dark:invert"
-                        )}
+                        className="h-4 w-4 dark:invert-[.65]"
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${
@@ -383,6 +381,9 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+  const urlPrefix = orgBranding
+    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
+    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -411,10 +412,10 @@ export const EventSetupTab = (
           defaultValue={eventType.slug}
           addOnLeading={
             <>
-              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {urlPrefix}/
               {!isManagedEventType
                 ? team
-                  ? "team/" + team.slug
+                  ? (orgBranding ? "" : "team/") + team.slug
                   : eventType.users[0].username
                 : t("username_placeholder")}
               /
@@ -501,6 +502,8 @@ export const EventSetupTab = (
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
               checked={multipleDuration !== undefined}
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
               onCheckedChange={() => {
                 if (multipleDuration !== undefined) {
                   setMultipleDuration(undefined);

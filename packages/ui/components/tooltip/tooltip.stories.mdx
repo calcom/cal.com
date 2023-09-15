@@ -1,60 +1,69 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import Tooltip from './Tooltip';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import Tooltip from "./Tooltip";
 
 <Meta title="UI/Tooltip" component={Tooltip} />
 
-<Title title="Tooltip" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023"/>
+<Title title="Tooltip" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023" />
 
 ## Definition
+
 Tooltip components can be used to provide additional information about an element when the user hovers over or focuses on the element.
 
 <CustomArgsTable of={Tooltip} />
 
-
-
 <Canvas>
-  <Story name="Tooltip"
-  args={{
-    alertMsg: 'Copied!',
-    hoverMsg: "Copy to clipboard",
-    content: 'Hover Me',
-  }}
-         argTypes={{
-            alertMsg: {
-              control: {
-                type: 'text',
-              },
-            },
-            hoverMsg: {
-              control: {
-                type: 'text',
-              },
-            },
-            content: {
-              control: {
-                type: 'text',
-              },
-            },
-         }}
-  >
+  <Story
+    name="Tooltip"
+    args={{
+      alertMsg: "Copied!",
+      hoverMsg: "Copy to clipboard",
+      content: "Hover Me",
+    }}
+    argTypes={{
+      alertMsg: {
+        control: {
+          type: "text",
+        },
+      },
+      hoverMsg: {
+        control: {
+          type: "text",
+        },
+      },
+      content: {
+        control: {
+          type: "text",
+        },
+      },
+    }}>
     {({ alertMsg, hoverMsg, content }) => (
-    <TooltipProvider>
-      <VariantsTable titles={['']} columnMinWidth={150}>
-        <VariantRow variant="Default">
-          <Tooltip content={`${hoverMsg}`}>
-            <span
-              className="dark:text-darkgray-50 p-2 bg-brand-default rounded-md text-gray-100 dark:bg-darkgray-900 hover:cursor-pointer"
-              onClick={() => {
-                alert(`${alertMsg}`);
-              }}>
-              {content}
-            </span>
-          </Tooltip>
-        </VariantRow>
-      </VariantsTable>
-    </TooltipProvider>
+      <TooltipProvider>
+        <VariantsTable titles={[""]} columnMinWidth={150}>
+          <VariantRow variant="Default">
+            <Tooltip content={`${hoverMsg}`}>
+              <span
+                className="dark:text-darkgray-50 bg-brand-default dark:bg-darkgray-900 rounded-md p-2 text-gray-100 hover:cursor-pointer"
+                onClick={() => {
+                  alert(`${alertMsg}`);
+                }}>
+                {content}
+              </span>
+            </Tooltip>
+          </VariantRow>
+        </VariantsTable>
+      </TooltipProvider>
     )}
   </Story>
 </Canvas>
