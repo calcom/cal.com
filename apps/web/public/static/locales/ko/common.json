@@ -2043,5 +2043,11 @@
   "mark_dns_configured": "DNS 구성됨으로 표시",
   "value": "값",
   "your_organization_updated_sucessfully": "조직이 업데이트되었습니다",
+  "team_no_event_types": "이 팀에는 이벤트 유형이 없습니다",
+  "seat_options_doesnt_multiple_durations": "좌석 옵션은 여러 기간을 지원하지 않습니다",
+  "include_calendar_event": "캘린더 이벤트 포함",
+  "recently_added": "최근 추가됨",
+  "no_members_found": "구성원 없음",
+  "event_setup_length_error": "이벤트 설정: 지속 시간은 1분 이상이어야 합니다.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
