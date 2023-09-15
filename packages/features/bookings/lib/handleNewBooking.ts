@@ -551,6 +551,8 @@ async function getBookingData({
           }
         });
 
+  console.log("🚀 ~ file: handleNewBooking.ts:555 ~ req.body:", req.body);
+
   const reqBody = await bookingDataSchema.parseAsync(req.body);
 
   // Work with Typescript to require reqBody.end

@@ -37,7 +37,7 @@ const timeout = process.env.CI ? 5000 : 20000;
 describe.sequential("handleNewBooking", () => {
   beforeEach(() => {
     // Required to able to generate token in email in some cases
-    process.env.CALENDSO_ENCRYPTION_KEY="abcdefghjnmkljhjklmnhjklkmnbhjui"
+    process.env.CALENDSO_ENCRYPTION_KEY = "abcdefghjnmkljhjklmnhjklkmnbhjui";
     mockNoTranslations();
     mockEnableEmailFeature();
     globalThis.testEmails = [];
@@ -573,8 +573,7 @@ describe.sequential("handleNewBooking", () => {
         expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
           triggerEvent: "BOOKING_CREATED",
           payload: {
-            metadata: {
-            },
+            metadata: {},
             responses: {
               name: { label: "your_name", value: "Booker" },
               email: { label: "email_address", value: "booker@example.com" },

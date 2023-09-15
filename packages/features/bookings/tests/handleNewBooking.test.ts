@@ -1,17 +1,16 @@
-import { PrismaClient } from "@prisma/client";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { test } from "vitest";
 
 // import { default as handleNewBooking } from "@calcom/features/bookings/lib/handleNewBooking";
-// import prisma from "@calcom/prisma";
-import { getBooker, getDate } from "@calcom/web/test/utils/bookingScenario";
+import prisma from "@calcom/prisma";
+import { getDate } from "@calcom/web/test/utils/bookingScenario";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 export function withPrisma(handler: any) {
   return async (req: any, res: any) => {
@@ -24,10 +23,10 @@ export function withPrisma(handler: any) {
 
 test("handleNewBooking", async () => {
   const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-  const booker = getBooker({
-    email: "booker@example.com",
-    name: "Booker",
-  });
+  // const booker = getBooker({
+  //   email: "booker@example.com",
+  //   name: "Booker",
+  // });
 
   //   const organizer = getOrganizer({
   //     name: "Organizer",
@@ -51,21 +50,35 @@ test("handleNewBooking", async () => {
     },
   });
 
-  const mockBookingData = getMockRequestDataForBooking({
-    data: {
-      eventTypeId: pro30MinEventType?.id,
-      responses: {
-        email: booker.email,
-        name: booker.name,
-        location: { optionValue: "", value: "integrations:daily" },
-      },
-    },
-  });
+  // const mockBookingData = getMockRequestDataForBooking({
+  //   data: {
+  //     eventTypeId: pro30MinEventType?.id,
+  //     responses: {
+  //       email: booker.email,
+  //       name: booker.name,
+  //       location: { optionValue: "", value: "integrations:daily" },
+  //     },
+  //   },
+  // });
 
   const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
     method: "POST",
-    body: mockBookingData,
-    prisma,
+    body: {
+      eventTypeId: pro30MinEventType?.id,
+      responses: {
+        email: "booker@example.com",
+        name: "Booker",
+        location: { optionValue: "", value: "integrations:daily" },
+      },
+      start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+      end: `${getDate({ dateIncrement: 1 }).dateString}T04:30:00.000Z`,
+      timeZone: "Asia/Calcutta",
+      language: "en",
+      metadata: {},
+      hasHashedBookingLink: false,
+      hashedLink: null,
+    },
+    // prisma,
   });
   //   console.log("🚀 ~ file: handleNewBooking.test.ts:56 ~ test ~ prisma:", prisma);
 
@@ -75,13 +88,13 @@ test("handleNewBooking", async () => {
   //     prisma,
   //   });
 
-  withPrisma(async (req: NextApiRequest, res: NextApiResponse) => {
-    // Your code here
-    handleNewBooking(req);
-  })(req, res);
+  // withPrisma(async (req: NextApiRequest, res: NextApiResponse) => {
+  //   // Your code here
+  //   handleNewBooking(req);
+  // })(req, res);
 
-  //   const createdBooking = await handleNewBooking(req);
-  //   console.log("🚀 ~ file: handleNewBooking.test.ts:49 ~ test ~ createdBooking:", createdBooking);
+  const createdBooking = await handleNewBooking(req);
+  console.log("🚀 ~ file: handleNewBooking.test.ts:49 ~ test ~ createdBooking:", createdBooking);
 });
 
 function createMockNextJsRequest(...args: Parameters<typeof createMocks>) {
