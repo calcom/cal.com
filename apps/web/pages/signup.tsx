@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ShieldCheckIcon } from "lucide-react";
+import { Info, Loader2, ShieldCheckIcon, StarIcon } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import { Trans } from "react-i18next";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
+import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -42,12 +43,15 @@ type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
-function UsernameField({ ...props }: React.ComponentProps<typeof TextField>) {
+function UsernameField({
+  ...props
+}: React.ComponentProps<typeof TextField> & { setPremiumExternal?: () => void }) {
   const { t } = useLocale();
   const { formState, watch, setError, register } = useFormContext<FormValues>();
   const { errors } = formState;
   const [loading, setLoading] = useState(false);
   const [premium, setPremium] = useState(false);
+  const [taken, setTaken] = useState(false);
   const watchedUsername = watch("username");
   const debouncedUsername = useDebounce(watchedUsername, 500);
 
@@ -55,23 +59,20 @@ function UsernameField({ ...props }: React.ComponentProps<typeof TextField>) {
     async function checkUsername() {
       if (!debouncedUsername) {
         setLoading(false);
+        setPremium(false);
+        setTaken(false);
         return;
       }
       setLoading(true);
       fetchUsername(debouncedUsername)
         .then(({ data }) => {
           if (data.premium) {
-            // setError("username", {
-            //   type: "manual",
-            //   message: t("premium_username_error"),
-            // });
             setPremium(true);
+          } else {
+            setPremium(false);
           }
           if (!data.available) {
-            setError("username", {
-              type: "manual",
-              message: t("already_in_use_error"),
-            });
+            setTaken(true);
           }
         })
         .finally(() => {
@@ -82,13 +83,31 @@ function UsernameField({ ...props }: React.ComponentProps<typeof TextField>) {
   }, [debouncedUsername, t, setError]);
 
   return (
-    <>
-      <TextField {...props} {...register("username")} hintErrors={["premium"]} />
+    <div>
+      <TextField {...props} {...register("username")} />
       <div className="text-gray text-default flex items-center text-sm">
-        {loading && <span className="text-default mr-2 h-4 w-4 animate-spin">⏳</span>}
-        {errors.username?.message}
+        <p className="flex items-center text-sm ">
+          {loading ? (
+            <>
+              <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
+              {t("loading")}
+            </>
+          ) : taken ? (
+            <div className="text-error">
+              <Info className="mr-1 inline-block h-4 w-4" />
+              {t("already_taken")}
+            </div>
+          ) : premium ? (
+            <>
+              <StarIcon className="mr-1 inline-block h-4 w-4" />
+              {t("premium_username", {
+                price: getPremiumPlanPriceValue(),
+              })}
+            </>
+          ) : null}
+        </p>
       </div>
-    </>
+    </div>
   );
 }
 

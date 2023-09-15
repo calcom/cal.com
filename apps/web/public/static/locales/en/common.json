@@ -1138,6 +1138,7 @@
   "active_on": "Active on",
   "workflow_updated_successfully": "{{workflowName}} workflow updated successfully",
   "premium_to_standard_username_description": "This is a standard username and updating will take you to billing to downgrade.",
+  "premium_username": "This is a premium username, get yours for {{price}}",
   "current": "Current",
   "premium": "premium",
   "standard": "standard",
