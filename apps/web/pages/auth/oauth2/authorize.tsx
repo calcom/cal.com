@@ -1,7 +1,7 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
-import { getLayout } from "@calcom/features/NoShellLayout";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Select } from "@calcom/ui";
 import { Plus, Info } from "@calcom/ui/components/icon";
@@ -10,8 +10,9 @@ import PageWrapper from "@components/PageWrapper";
 
 export default function Authorize() {
   const router = useRouter();
-
+  const { status } = useSession();
   const { state, client_id, scope } = router.query;
+  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
   const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
@@ -19,7 +20,7 @@ export default function Authorize() {
       clientId: client_id,
     },
     {
-      enabled: router.isReady,
+      enabled: router.isReady && status !== "loading",
     }
   );
 
@@ -31,14 +32,12 @@ export default function Authorize() {
     },
   });
 
-  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
-
   const mappedProfiles = data
     ? data
         .filter((profile) => !profile.readOnly)
         .map((profile) => ({
-          label: profile.name,
-          value: profile.slug,
+          label: profile.name || "",
+          value: profile.slug || "",
         }))
     : [];
 
@@ -48,10 +47,18 @@ export default function Authorize() {
     }
   }, [isLoadingProfiles]);
 
-  const isLoading = isLoadingGetClient || isLoadingProfiles || !router.isReady;
+  const isLoading = isLoadingGetClient || isLoadingProfiles || !router.isReady || status === "loading";
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <></>;
+  }
+
+  if (status === "unauthenticated") {
+    const urlSearchParams = new URLSearchParams({
+      callbackUrl: window.location.href,
+    });
+    router.replace(`/auth/login?${urlSearchParams.toString()}`);
+    return <></>;
   }
 
   if (!client) {
@@ -152,4 +159,3 @@ export default function Authorize() {
 }
 
 Authorize.PageWrapper = PageWrapper;
-Authorize.getLayout = getLayout;

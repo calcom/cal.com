@@ -9,12 +9,8 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
 
   const hasAllRequiredScopes = requiredScopes.every((scope) => decodedToken.scope.includes(scope));
 
-  if (!hasAllRequiredScopes) {
-    throw new Error("Invalid Scopes");
-  }
-
-  if (decodedToken.token_type !== "Access Token") {
-    throw new Error("Invalid token type");
+  if (!hasAllRequiredScopes || decodedToken.token_type !== "Access Token") {
+    return null;
   }
 
   const user = await prisma.user.findFirst({
@@ -26,10 +22,6 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
       username: true,
     },
   });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
 
   return user;
 }

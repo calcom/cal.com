@@ -142,7 +142,7 @@ export async function listBookings(
       }
     } else {
       where.userId = user.id;
-      // how are we handling team access with OAuth?
+      // todo: team access with oAuth
       where.eventType = {
         teamId: null,
       };

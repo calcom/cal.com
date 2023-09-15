@@ -4,17 +4,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
-// not yet tested
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Invalid method" });
     return;
   }
 
-  const { refresh_token, client_id, client_secret, grant_type } = req.body;
+  const { code, client_id, client_secret, grant_type, redirect_uri } = req.body;
 
-  if (grant_type !== "refresh_token") {
-    res.status(400).json({ message: "grant type invalid" });
+  if (grant_type !== "authorization_code") {
+    res.status(400).json({ message: "grant_type invalid" });
     return;
   }
 
@@ -30,29 +29,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  if (!client) {
+  if (!client || client.redirectUri !== redirect_uri) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  const decodedRefreshToken = jwt.verify(refresh_token, process.env.CALENDSO_ENCRYPTION_KEY);
+  const accessCode = await prisma.accessCode.findFirst({
+    where: {
+      code: code,
+      clientId: client_id,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+  });
 
-  if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
+  if (!accessCode) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
 
-  const payload = {
-    userId: decodedRefreshToken.userId,
-    scope: decodedRefreshToken.scope,
+  const payloadAuthToken = {
+    userId: accessCode.userId,
+    scope: accessCode.scopes,
     token_type: "Access Token",
   };
 
-  const access_token = jwt.sign(payload, secretKey, {
+  const payloadRefreshToken = {
+    userId: accessCode.userId,
+    scope: accessCode.scopes,
+    token_type: "Refresh Token",
+  };
+
+  const access_token = jwt.sign(payloadAuthToken, secretKey, {
     expiresIn: 1800, // 30 min
   });
 
-  res.status(200).json({ access_token });
+  const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
+    expiresIn: 30 * 24 * 60 * 60, // 30 days
+  });
+
+  res.status(200).json({ access_token, refresh_token });
 }

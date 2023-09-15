@@ -252,7 +252,6 @@ type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
-  noMenu?: boolean;
 };
 
 const useBrandColors = () => {
@@ -290,9 +289,6 @@ export default function Shell(props: LayoutProps) {
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
   // useTheme(profile.theme);
   useBrandColors();
-  if (props.noMenu) {
-    return <>{props.children}</>;
-  }
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
