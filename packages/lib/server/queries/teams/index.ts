@@ -30,7 +30,7 @@ export async function getTeamWithMembers(args: {
     },
     selectedCalendars: true,
     credentials: {
-      include: {
+      select: {
         app: {
           select: {
             slug: true,
