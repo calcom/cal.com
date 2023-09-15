@@ -40,6 +40,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -49,7 +50,6 @@ import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calc
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import useMeQuery from "@lib/hooks/useMeQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
@@ -93,8 +93,6 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const query = useMeQuery();
-  const user = query.data;
   const { t, i18n } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -134,7 +132,9 @@ export default function Success(props: SuccessProps) {
 
   const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
 
-  const [is24h, setIs24h] = useState(user?.timeFormat === 24);
+  const [is24h, setIs24h] = useState(
+    props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
+  );
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
@@ -217,7 +217,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(user?.timeFormat === 24);
+    setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
@@ -1008,10 +1008,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
+  let userTimeFormat: string | null = null;
 
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
+    userTimeFormat = user.timeFormat;
   }
 
   const parsedQuery = querySchema.safeParse(context.query);
@@ -1152,6 +1154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingInfo,
       paymentStatus: payment,
       ...(tz && { tz }),
+      userTimeFormat,
     },
   };
 }
