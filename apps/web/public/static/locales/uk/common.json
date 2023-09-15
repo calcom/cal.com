@@ -2037,5 +2037,12 @@
   "admin_org_notification_email_cta": "Перейти до налаштувань адміністратора організації",
   "org_has_been_processed": "Організація обробляється",
   "org_error_processing": "Під час обробки цієї організації сталася помилка",
+  "orgs_page_description": "Список всіх організацій. Після прийняття організації всі користувачі із цим доменом електронної пошти зможуть зареєструватися без підтвердження електронної адреси.",
+  "unverified": "Не підтверджено",
+  "dns_missing": "Відсутній DNS",
+  "mark_dns_configured": "Позначити DNS налаштованим",
+  "value": "Значення",
+  "your_organization_updated_sucessfully": "Організацію оновлено",
+  "team_no_event_types": "У цієї команди немає типів заходів",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
