@@ -2018,5 +2018,8 @@
   "attendee_last_name_info": "Прізвище особи, яка бронює",
   "me": "Я",
   "verify_team_tooltip": "Верифікуйте свою команду, щоб увімкнути надсилання повідомлень відвідувачам",
+  "member_removed": "Учасника вилучено",
+  "my_availability": "Моя доступність",
+  "team_availability": "Доступність команди",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
