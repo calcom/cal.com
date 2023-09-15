@@ -1868,6 +1868,7 @@
   "acknowledge_booking_no_show_fee": "Я усвідомлюю, що в разі моєї відсутності на цьому заході з моєї картки буде стягнуто плату в розмірі {{amount, currency}}.",
   "card_details": "Карткові реквізити",
   "something_went_wrong_on_our_end": "Щось пішло не так на нашому боці. Зв’яжіться з нашою службою підтримки й ми одразу все виправимо.",
+  "please_provide_following_text_to_suppport": "Надайте нижчезазначений текст, звертаючись до служби підтримки, щоб нам було легше допомогти вам",
   "seats_and_no_show_fee_error": "Зараз неможливо активувати місця і стягнути плату за відсутність",
   "complete_your_booking": "Завершіть бронювання",
   "complete_your_booking_subject": "Завершіть бронювання: {{title}} від {{date}}",
@@ -1978,6 +1979,13 @@
   "insights_team_filter": "Команда: {{teamName}}",
   "insights_user_filter": "Користувач: {{userName}}",
   "insights_subtitle": "Переглядайте дані Insights про бронювання для своїх заходів",
+  "location_options": "Варіантів місць проведення: {{locationCount}}",
   "custom_plan": "Користувацький план",
+  "email_embed": "Вбудовування в ел. пошту",
+  "select_time": "Виберіть час",
+  "select_date": "Виберіть дату",
+  "see_all_available_times": "Переглянути доступні часові проміжки",
+  "org_team_names_example": "напр. команда маркетингу",
+  "org_team_names_example_1": "напр. команда маркетингу",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
