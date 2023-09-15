@@ -432,11 +432,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      // check if step that require team org already existed before
+      // check if step that require org already existed before
       if (
         !hasOrgsPlan &&
-        isTextMessageToAttendeeAction(newStep.action) &&
-        !isTextMessageToAttendeeAction(oldStep.action)
+        !isTextMessageToAttendeeAction(oldStep.action) &&
+        isTextMessageToAttendeeAction(newStep.action)
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan required" });
       }
