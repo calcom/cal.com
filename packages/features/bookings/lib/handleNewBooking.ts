@@ -1,4 +1,4 @@
-import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
+import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -69,6 +69,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
   bookingCreateBodySchemaForApi,
   bookingCreateSchemaLegacyPropsForApi,
@@ -85,6 +86,7 @@ import type {
   IntervalLimit,
   Person,
 } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -111,11 +113,12 @@ interface IEventTypePaymentCredentialType {
  *
  * @param credential
  */
-async function refreshCredential(credential: Credential): Promise<Credential> {
+async function refreshCredential(credential: CredentialPayload): Promise<CredentialPayload> {
   const newCredential = await prisma.credential.findUnique({
     where: {
       id: credential.id,
     },
+    select: credentialForCalendarServiceSelect,
   });
 
   if (!newCredential) {
@@ -130,7 +133,7 @@ async function refreshCredential(credential: Credential): Promise<Credential> {
  *
  * @param credentials
  */
-async function refreshCredentials(credentials: Array<Credential>): Promise<Array<Credential>> {
+async function refreshCredentials(credentials: Array<CredentialPayload>): Promise<Array<CredentialPayload>> {
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
@@ -139,7 +142,7 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
  *
  */
 const getAllCredentials = async (
-  user: User & { credentials: Credential[] },
+  user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
   const allCredentials = user.credentials;
@@ -150,6 +153,7 @@ const getAllCredentials = async (
       where: {
         teamId: eventType.team.id,
       },
+      select: credentialForCalendarServiceSelect,
     });
     allCredentials.push(...teamCredentialsQuery);
   }
@@ -165,7 +169,9 @@ const getAllCredentials = async (
         },
       },
       select: {
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
       },
     });
     if (teamCredentialsQuery?.credentials) {
@@ -180,7 +186,9 @@ const getAllCredentials = async (
         id: user.organizationId,
       },
       select: {
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
       },
     });
 
@@ -241,7 +249,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       disableGuests: true,
       users: {
         select: {
-          credentials: true,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
           ...userSelect.select,
         },
       },
@@ -275,6 +285,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
       parentId: true,
@@ -316,7 +327,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           user: {
             select: {
-              credentials: true,
+              credentials: {
+                select: credentialForCalendarServiceSelect,
+              },
               ...userSelect.select,
               organization: {
                 select: {
@@ -351,7 +364,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type IsFixedAwareUser = User & {
   isFixed: boolean;
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   organization: { slug: string };
 };
 
@@ -366,8 +379,9 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
 
-  const orginalBookingDuration = input.originalRescheduledBooking
+  const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
         dayjs(input.originalRescheduledBooking.startTime),
         "minutes"
@@ -380,7 +394,7 @@ async function ensureAvailableUsers(
       {
         userId: user.id,
         eventTypeId: eventType.id,
-        duration: orginalBookingDuration,
+        duration: originalBookingDuration,
         ...input,
       },
       {
@@ -410,10 +424,10 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
       }
     } catch {
       log.debug({
@@ -686,8 +700,7 @@ async function handler(
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const isTeamEventType =
-    eventType.schedulingType === SchedulingType.COLLECTIVE ||
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
 
@@ -722,31 +735,48 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
-      ? await prisma.user.findMany({
+  const loadUsers = async () => {
+    try {
+      if (!eventTypeId) {
+        if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
+          throw new Error("dynamicUserList is not properly defined or empty.");
+        }
+
+        const users = await prisma.user.findMany({
           where: {
-            username: {
-              in: dynamicUserList,
-            },
+            username: { in: dynamicUserList },
           },
           select: {
             ...userSelect.select,
-            credentials: true, // Don't leak to client
-            metadata: true,
-            organization: {
-              select: {
-                slug: true,
-              },
+            credentials: {
+              select: credentialForCalendarServiceSelect,
             },
+            metadata: true,
           },
-        })
-      : eventType.hosts?.length
-      ? eventType.hosts.map(({ user, isFixed }) => ({
+        });
+
+        return users;
+      } else {
+        const hosts = eventType.hosts || [];
+
+        if (!Array.isArray(hosts)) {
+          throw new Error("eventType.hosts is not properly defined.");
+        }
+
+        const users = hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
-        }))
-      : eventType.users || [];
+        }));
+
+        return users.length ? users : eventType.users;
+      }
+    } catch (error) {
+      if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpError({ statusCode: 400, message: error.message });
+      }
+      throw new HttpError({ statusCode: 500, message: "Unable to load users" });
+    }
+  };
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -770,7 +800,9 @@ async function handler(
         id: eventType.userId,
       },
       select: {
-        credentials: true, // Don't leak to client
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        }, // Don't leak to client
         ...userSelect.select,
       },
     });
@@ -970,20 +1002,27 @@ async function handler(
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
-  const teamMemberPromises =
-    users.length > 1
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
+  const teamDestinationCalendars: DestinationCalendar[] = [];
+
+  // Organizer or user owner of this event type it's not listed as a team member.
+  const teamMemberPromises = users.slice(1).map(async (user) => {
+    // push to teamDestinationCalendars if it's a team event but collective only
+    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+      teamDestinationCalendars.push(user.destinationCalendar);
+    }
+    return {
+      id: user.id,
+      email: user.email ?? "",
+      name: user.name ?? "",
+      firstName: "",
+      lastName: "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+    };
+  });
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
@@ -1040,15 +1079,24 @@ async function handler(
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
-    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
+    destinationCalendar: eventType.destinationCalendar
+      ? [eventType.destinationCalendar]
+      : organizerUser.destinationCalendar
+      ? [organizerUser.destinationCalendar]
+      : null,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+    schedulingType: eventType.schedulingType,
   };
+
+  if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
+    evt.destinationCalendar?.push(...teamDestinationCalendars);
+  }
 
   /* Used for seats bookings to update evt object with video data */
   const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
@@ -1081,6 +1129,7 @@ async function handler(
             where: {
               id: reference.credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
 
           if (credential) {
@@ -1346,7 +1395,7 @@ async function handler(
             }
           }
 
-          if (noEmail !== true) {
+          if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
             const copyEvent = cloneDeep(evt);
             await sendRescheduledEmails({
               ...copyEvent,
@@ -1466,12 +1515,14 @@ async function handler(
             ? calendarResult?.updatedEvent[0]?.iCalUID
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-          // TODO send reschedule emails to attendees of the old booking
-          await sendRescheduledEmails({
-            ...copyEvent,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
-          });
+          if (!requiresConfirmation || isOrganizerRescheduling) {
+            // TODO send reschedule emails to attendees of the old booking
+            await sendRescheduledEmails({
+              ...copyEvent,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
+            });
+          }
 
           // Update the old booking with the cancelled status
           await prisma.booking.update({
@@ -1690,6 +1741,7 @@ async function handler(
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
           booking,
+          fullName,
           bookerEmail
         );
 
@@ -1726,6 +1778,7 @@ async function handler(
     const webhookData = {
       ...evt,
       ...eventTypeInfo,
+      uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
@@ -1843,11 +1896,12 @@ async function handler(
           id: organizerUser.id,
         },
       },
-      destinationCalendar: evt.destinationCalendar
-        ? {
-            connect: { id: evt.destinationCalendar.id },
-          }
-        : undefined,
+      destinationCalendar:
+        evt.destinationCalendar && evt.destinationCalendar.length > 0
+          ? {
+              connect: { id: evt.destinationCalendar[0].id },
+            }
+          : undefined,
     };
 
     if (reqBody.recurringEventId) {
@@ -1877,7 +1931,7 @@ async function handler(
     const createBookingObj = {
       include: {
         user: {
-          select: { email: true, name: true, timeZone: true },
+          select: { email: true, name: true, timeZone: true, username: true },
         },
         attendees: true,
         payment: true,
@@ -2068,7 +2122,7 @@ async function handler(
           videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
-      if (noEmail !== true) {
+      if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
         const copyEvent = cloneDeep(evt);
         await sendRescheduledEmails({
           ...copyEvent,
@@ -2245,6 +2299,7 @@ async function handler(
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
+      fullName,
       bookerEmail
     );
 
@@ -2432,6 +2487,7 @@ const findBookingQuery = async (bookingId: number) => {
           name: true,
           email: true,
           timeZone: true,
+          username: true,
         },
       },
       eventType: {

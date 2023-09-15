@@ -104,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       const attendeesList = await Promise.all(attendeesListPromises);
-
+      const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
@@ -127,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         attendees: attendeesList,
         uid: booking.uid,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-        destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+        destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
       };
 
       await sendOrganizerRequestReminderEmail(evt);

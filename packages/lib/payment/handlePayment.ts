@@ -8,7 +8,7 @@ import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentS
 
 const handlePayment = async (
   evt: CalendarEvent,
-  selectedEventType: Pick<Zod.infer<typeof EventTypeModel>, "metadata">,
+  selectedEventType: Pick<Zod.infer<typeof EventTypeModel>, "metadata" | "title">,
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;
@@ -18,11 +18,13 @@ const handlePayment = async (
     } | null;
   },
   booking: {
-    user: { email: string | null; name: string | null; timeZone: string } | null;
+    user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
     id: number;
+    userId: number | null;
     startTime: { toISOString: () => string };
     uid: string;
   },
+  bookerName: string,
   bookerEmail: string
 ) => {
   const paymentApp = (await appStore[
@@ -58,8 +60,13 @@ const handlePayment = async (
         currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
+      booking.userId,
+      booking.user?.username ?? null,
+      bookerName,
       bookerEmail,
-      paymentOption
+      paymentOption,
+      selectedEventType.title,
+      evt.title
     );
   }
 

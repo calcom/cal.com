@@ -237,7 +237,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     uid: bookingToReschedule?.uid,
     location: bookingToReschedule?.location,
-    destinationCalendar: bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
+    destinationCalendar: bookingToReschedule?.destinationCalendar
+      ? [bookingToReschedule?.destinationCalendar]
+      : [],
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
   };
 

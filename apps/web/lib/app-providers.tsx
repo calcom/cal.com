@@ -14,7 +14,6 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
@@ -222,19 +221,7 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
 
 function useOrgBrandingValues() {
   const session = useSession();
-
-  const res = trpc.viewer.organizations.getBrand.useQuery(undefined, {
-    // Only fetch if we have a session to avoid flooding logs with errors
-    enabled: session.status === "authenticated",
-  });
-
-  if (res.status === "loading") {
-    return undefined;
-  }
-
-  if (res.status === "error") return null;
-
-  return res.data;
+  return session?.data?.user.org;
 }
 
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {

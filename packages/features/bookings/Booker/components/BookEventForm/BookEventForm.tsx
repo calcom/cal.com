@@ -34,6 +34,7 @@ import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
+import { useSlotReservationId } from "../../useSlotReservationId";
 import { useEvent } from "../../utils/event";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
@@ -45,8 +46,16 @@ type BookEventFormProps = {
 type DefaultValues = Record<string, unknown>;
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
-    trpc: { context: { skipBatch: true } },
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+    onSuccess: (data) => {
+      setSlotReservationId(data.uid);
+    },
   });
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
@@ -82,7 +91,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     return () => {
       if (eventType) {
-        removeSelectedSlot.mutate();
+        removeSelectedSlot.mutate({ uid: slotReservationId });
       }
       clearInterval(interval);
     };

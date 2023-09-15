@@ -1,8 +1,8 @@
 {
-  "builds": [
+  "crons": [
     {
-      "src": "package.json",
-      "use": "https://profile-next-cold-starts.vercel.app/builder.tgz"
+      "path": "/api/cron/calendar-cache-cleanup",
+      "schedule": "0 5 * * *"
     }
   ]
 }

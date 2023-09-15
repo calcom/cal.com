@@ -1,3 +1,5 @@
+import { usePathname } from "next/navigation";
+
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -26,6 +28,7 @@ type Avatar = {
 type AvatarWithRequiredImage = Avatar & { image: string };
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
+  const pathname = usePathname();
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
 
@@ -57,7 +60,9 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     title: `${profile.name || profile.username}`,
     image: "logo" in profile && profile.logo ? `${profile.logo}` : undefined,
     alt: profile.name || undefined,
-    href: profile.username ? `${CAL_URL}/${profile.username}` : undefined,
+    href: profile.username
+      ? `${CAL_URL}` + (pathname.indexOf("/team/") !== -1 ? "/team" : "") + `/${profile.username}`
+      : undefined,
   });
 
   const uniqueAvatars = avatars

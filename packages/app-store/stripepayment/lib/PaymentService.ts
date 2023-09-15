@@ -49,8 +49,13 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string,
     bookerEmail: string,
-    paymentOption: PaymentOption
+    paymentOption: PaymentOption,
+    eventTitle?: string,
+    bookingTitle?: string
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
@@ -78,6 +83,16 @@ export class PaymentService implements IAbstractPaymentService {
         currency: this.credentials.default_currency,
         payment_method_types: ["card"],
         customer: customer.id,
+        metadata: {
+          identifier: "cal.com",
+          bookingId,
+          calAccountId: userId,
+          calUsername: username,
+          bookerName,
+          bookerEmail,
+          eventTitle: eventTitle || "",
+          bookingTitle: bookingTitle || "",
+        },
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {

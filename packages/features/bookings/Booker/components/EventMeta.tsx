@@ -4,6 +4,7 @@ import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -130,13 +131,12 @@ export const EventMeta = () => {
               <EventMetaBlock icon={User} className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
-                    {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats} /{" "}
-                    {eventTotalSeats}{" "}
-                    {t("seats_available", {
-                      count: bookingSeatAttendeesQty
-                        ? eventTotalSeats - bookingSeatAttendeesQty
-                        : eventTotalSeats,
-                    })}
+                    <SeatsAvailabilityText
+                      showExact={!!seatedEventData.showAvailableSeatsCount}
+                      totalSeats={eventTotalSeats}
+                      bookedSeats={bookingSeatAttendeesQty || 0}
+                      variant="fraction"
+                    />
                   </p>
                 </div>
               </EventMetaBlock>

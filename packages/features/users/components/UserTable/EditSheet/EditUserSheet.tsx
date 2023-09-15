@@ -5,7 +5,7 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Sheet, SheetContent, SheetFooter, Avatar, Skeleton, Loader } from "@calcom/ui";
+import { Sheet, SheetContent, SheetFooter, Avatar, Skeleton, Loader, Label } from "@calcom/ui";
 
 import type { State, Action } from "../UserListTable";
 import { DisplayInfo } from "./DisplayInfo";
@@ -46,7 +46,6 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
                     imageSrc={avatarURL}
-                    gravatarFallbackMd5="fallback"
                   />
                   <div className="space-between flex flex-col leading-none">
                     <Skeleton loading={isLoading} as="p" waitForTranslation={false}>
@@ -70,14 +69,23 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                   />
                   <DisplayInfo label={t("role")} value={loadedUser?.role ?? ""} asBadge badgeColor="blue" />
                   <DisplayInfo label={t("timezone")} value={loadedUser?.timeZone ?? ""} />
-                  <DisplayInfo
-                    label={t("availability_schedules")}
-                    value={
-                      schedulesNames && schedulesNames?.length === 0
-                        ? [t("user_has_no_schedules")]
-                        : schedulesNames ?? "" // TS wtf
-                    }
-                  />
+                  <div className="flex flex-col">
+                    <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
+                      {t("availability_schedules")}
+                    </Label>
+                    <div className="flex flex-col">
+                      {schedulesNames
+                        ? schedulesNames.map((scheduleName) => (
+                            <span
+                              key={scheduleName}
+                              className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">
+                              {scheduleName}
+                            </span>
+                          ))
+                        : t("user_has_no_schedules")}
+                    </div>
+                  </div>
+
                   <DisplayInfo
                     label={t("teams")}
                     displayCount={teamNames?.length ?? 0}
