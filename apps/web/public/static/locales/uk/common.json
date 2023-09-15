@@ -1998,5 +1998,9 @@
   "remove_users_from_org": "Видалити користувачів з організації",
   "remove_users_from_org_confirm": "Справді видалити користувачів ({{userCount}}) із цієї організації?",
   "user_has_no_schedules": "Цей користувач ще не налаштував розкладу",
+  "user_isnt_in_any_teams": "Цей користувач не входить до жодної команди",
+  "requires_booker_email_verification": "Потрібно підтвердження ел. адреси особи, які здійснює бронювання",
+  "description_requires_booker_email_verification": "Щоб забезпечити підтвердження ел. адреси особи, яка здійснює бронювання, до планування заходів",
+  "requires_confirmation_mandatory": "Текстові повідомлення можна надсилати лише учасникам, коли тип події вимагає підтвердження.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

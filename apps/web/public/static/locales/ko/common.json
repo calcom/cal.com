@@ -17,6 +17,7 @@
   "verify_email_banner_body": "이메일 및 일정을 가능한 한 차질 없이 보내드릴 수 있도록 이메일 주소를 인증하세요.",
   "verify_email_email_header": "이메일 주소 인증",
   "verify_email_email_button": "이메일 인증",
+  "copy_somewhere_safe": "이 API 키를 안전한 곳에 보관하세요. 이 키는 다시 볼 수 없게 됩니다.",
   "verify_email_email_body": "아래 버튼을 클릭하여 이메일 주소를 인증하세요.",
   "verify_email_email_link_text": "버튼 클릭이 마음에 들지 않는 경우 다음 링크를 사용하세요.",
   "email_sent": "이메일이 성공적으로 전송되었습니다",
