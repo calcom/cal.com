@@ -2030,5 +2030,6 @@
   "missing_backup_codes": "Не знайдено резервних кодів. Створіть їх у налаштуваннях.",
   "admin_org_notification_email_subject": "Створено нову організацію: очікується дія",
   "hi_admin": "Вітаємо, адміністраторе",
+  "admin_org_notification_email_title": "Організації потрібно налаштувати DNS",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
