@@ -1981,5 +1981,11 @@
   "insights_subtitle": "Visualizza insight sulle prenotazioni per tutti i tuoi eventi",
   "location_options": "{{locationCount}} opzioni di luogo",
   "custom_plan": "Piano personalizzato",
+  "email_embed": "Incorporamento nell'e-mail",
+  "add_times_to_your_email": "Seleziona alcuni orari disponibili e incorporali nella tua e-mail",
+  "select_time": "Seleziona l'ora",
+  "select_date": "Seleziona la data",
+  "see_all_available_times": "Vedi tutti gli orari disponibili",
+  "org_team_names_example": "es. Team di marketing",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
