@@ -22,8 +22,6 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
-  console.log(hintErrors, fieldErrors);
-
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
     // no hints passed, field errors exist and they are custom ones
     return (

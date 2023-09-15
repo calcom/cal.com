@@ -5,8 +5,9 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { Trans } from "react-i18next";
 import { z } from "zod";
 
@@ -18,6 +19,8 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
 import { IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -38,6 +41,56 @@ const signupSchema = apiSignupSchema.extend({
 type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
+
+function UsernameField({ ...props }: React.ComponentProps<typeof TextField>) {
+  const { t } = useLocale();
+  const { formState, watch, setError, register } = useFormContext<FormValues>();
+  const { errors } = formState;
+  const [loading, setLoading] = useState(false);
+  const [premium, setPremium] = useState(false);
+  const watchedUsername = watch("username");
+  const debouncedUsername = useDebounce(watchedUsername, 500);
+
+  useEffect(() => {
+    async function checkUsername() {
+      if (!debouncedUsername) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      fetchUsername(debouncedUsername)
+        .then(({ data }) => {
+          if (data.premium) {
+            // setError("username", {
+            //   type: "manual",
+            //   message: t("premium_username_error"),
+            // });
+            setPremium(true);
+          }
+          if (!data.available) {
+            setError("username", {
+              type: "manual",
+              message: t("already_in_use_error"),
+            });
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+    checkUsername();
+  }, [debouncedUsername, t, setError]);
+
+  return (
+    <>
+      <TextField {...props} {...register("username")} hintErrors={["premium"]} />
+      <div className="text-gray text-default flex items-center text-sm">
+        {loading && <span className="text-default mr-2 h-4 w-4 animate-spin">⏳</span>}
+        {errors.username?.message}
+      </div>
+    </>
+  );
+}
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const searchParams = useSearchParams();
@@ -115,7 +168,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           } as CSSProperties
         }>
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-28 pt-16">
+        <div className="flex w-full flex-col px-4 pt-16 md:px-16 lg:px-28">
           {/* Header */}
           <div className="flex flex-col gap-3 ">
             <h1 className="font-cal text-[28px] ">
@@ -134,8 +187,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 await signUp(values);
               }}>
               {/* Username */}
-              <TextField
-                {...register("username")}
+              <UsernameField
                 label={t("username")}
                 addOnLeading={
                   orgSlug
@@ -224,7 +276,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             </div>
           </div>
           {/* Already have an account & T&C */}
-          <div className="mb-6 mt-auto">
+          <div className="mb-6 mt-auto ">
             <div className="flex flex-col text-sm">
               <Link href="/auth/login" className="text-emphasis hover:underline">
                 {t("already_have_account")}
@@ -246,7 +298,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div
-          className="my-6 flex w-full flex-col items-end justify-center rounded-l-lg"
+          className="my-6 hidden w-full flex-col items-end justify-center rounded-l-lg lg:flex"
           style={{
             background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
           }}>

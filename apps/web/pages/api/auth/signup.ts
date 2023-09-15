@@ -31,18 +31,15 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     ensureSignupIsEnabled();
 
     if (IS_CALCOM) {
-      return calcomSignupHandler(req, res);
+      return await calcomSignupHandler(req, res);
     }
 
-    return selfhostedSignupHandler(req, res);
+    return await selfhostedSignupHandler(req, res);
   } catch (e) {
     if (e instanceof HttpError) {
-      console.log("HTTPERROR");
-      res.status(e.statusCode).json({ message: e.message });
+      return res.status(e.statusCode).json({ message: e.message });
     }
-    console.log("INTERNAL SERVER ERROR");
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   } finally {
-    console.log("FINALLY - we have a log");
   }
 }
