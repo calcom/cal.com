@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import type { CredentialOwner } from "types";
 import { vi } from "vitest";
 
-import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import type { RouterOutputs } from "@calcom/trpc";
 
 import { DynamicComponent } from "./DynamicComponent";
@@ -50,15 +49,15 @@ describe("Tests for EventTypeAppCard component", () => {
     expect(screen.getByText("MockedDynamicComponent")).toBeInTheDocument();
   });
 
-  test("Should provide the correct values to EventTypeAppContext", () => {
+  test("Should invoke getAppData and setAppData from context on render", () => {
     render(
-      <EventTypeAppContext.Provider
+      <EventTypeAppCard
+        {...mockProps}
         value={{
           getAppData: getAppDataMock(),
           setAppData: setAppDataMock(),
-        }}>
-        <EventTypeAppCard {...mockProps} />
-      </EventTypeAppContext.Provider>
+        }}
+      />
     );
 
     expect(getAppDataMock).toHaveBeenCalled();
