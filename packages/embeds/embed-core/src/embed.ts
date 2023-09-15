@@ -278,7 +278,11 @@ export class Cal {
       }
     }
 
-    const originToUse = (calOrigin || config.calOrigin).replace("https://cal.com", "https://app.cal.com");
+    // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
+    const originToUse = (calOrigin || config.calOrigin || "").replace(
+      "https://cal.com",
+      "https://app.cal.com"
+    );
     const urlInstance = new URL(`${originToUse}/${calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
