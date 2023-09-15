@@ -25,7 +25,8 @@ import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -43,7 +44,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
-          credentials: true, // Not leaking at the moment, be careful with
+          credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
           timeFormat: true,
@@ -413,6 +414,7 @@ async function handler(req: CustomRequest) {
             where: {
               id: credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
           if (foundCalendarCredential) {
             calendarCredential = foundCalendarCredential;
@@ -704,6 +706,7 @@ async function handleSeatedEventCancellation(
           where: {
             id: reference.credentialId,
           },
+          select: credentialForCalendarServiceSelect,
         });
 
         if (credential) {
@@ -712,13 +715,7 @@ async function handleSeatedEventCancellation(
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
           };
           if (reference.type.includes("_video")) {
-            integrationsToUpdate.push(
-              updateMeeting(
-                { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
-                updatedEvt,
-                reference
-              )
-            );
+            integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
             const calendar = await getCalendar(credential);
