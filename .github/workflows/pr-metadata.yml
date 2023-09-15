@@ -4,6 +4,11 @@ on:
     branches:
       - main
   pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
 
 permissions:
   pull-requests: write
