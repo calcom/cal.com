@@ -97,6 +97,8 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
+    "react-router-dom": "^6.16.0",
+    "react-top-loading-bar": "^2.3.1",
     "turbo": "^1.10.1"
   },
   "resolutions": {

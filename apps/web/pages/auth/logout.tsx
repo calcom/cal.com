@@ -2,6 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useState } from "react";
+import LoadingBar from "react-top-loading-bar";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +20,8 @@ import { ssrInit } from "@server/lib/ssr";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 export function Logout(props: Props) {
+  const [progress, setProgress] = useState(0);
+
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
@@ -35,25 +39,36 @@ export function Logout(props: Props) {
     return "hope_to_see_you_soon";
   };
 
+  const handleClick = () => {
+    setProgress(30); // Set loader to 30% when the button is clicked
+
+    setTimeout(() => {
+      setProgress(100);
+    }, 1000); // Adjust the delay duration as needed
+  };
+
   return (
-    <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
-      <div className="mb-4">
-        <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Check className="h-6 w-6 text-green-600" />
-        </div>
-        <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-            {t("youve_been_logged_out")}
-          </h3>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t(message())}</p>
+    <div>
+      <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
+      <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
+        <div className="mb-4">
+          <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+            <Check className="h-6 w-6 text-green-600" />
+          </div>
+          <div className="mt-3 text-center sm:mt-5">
+            <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
+              {t("youve_been_logged_out")}
+            </h3>
+            <div className="mt-2">
+              <p className="text-subtle text-sm">{t(message())}</p>
+            </div>
           </div>
         </div>
-      </div>
-      <Button href="/auth/login" className="flex w-full justify-center">
-        {t("go_back_login")}
-      </Button>
-    </AuthContainer>
+        <Button href="/auth/login" className="flex w-full justify-center" onClick={handleClick}>
+          {t("go_back_login")}
+        </Button>
+      </AuthContainer>
+    </div>
   );
 }
 

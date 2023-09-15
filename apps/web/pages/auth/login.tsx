@@ -9,6 +9,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
+import LoadingBar from "react-top-loading-bar";
 import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
@@ -51,6 +52,8 @@ export default function Login({
   samlProductID,
   totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+  const [progress, setProgress] = useState(0);
+
   const searchParams = useSearchParams();
   const isTeamInvite = searchParams.get("teamInvite");
 
@@ -164,6 +167,15 @@ export default function Login({
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
+  const handleButtonClick = () => {
+    setProgress(30);
+    setTimeout(() => {
+      // waiting for formState to update
+
+      !formState.isSubmitting && setProgress(100);
+    }, 500); // 1000 milliseconds = 1 second
+  };
+
   return (
     <div
       style={
@@ -174,6 +186,7 @@ export default function Login({
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }>
+      <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
       <AuthContainer
         title={t("login")}
         description={t("login")}
@@ -191,6 +204,7 @@ export default function Login({
         {isTeamInvite && (
           <Alert severity="info" message={t("signin_or_signup_to_accept_invite")} className="mb-4 mt-4" />
         )}
+
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
@@ -228,11 +242,13 @@ export default function Login({
               {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
 
               {errorMessage && <Alert severity="error" title={errorMessage} />}
+
               <Button
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="w-full justify-center"
+                onClick={handleButtonClick}>
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
             </div>
