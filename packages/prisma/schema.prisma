@@ -139,6 +139,7 @@ model Credential {
   destinationCalendars DestinationCalendar[]
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
+  CalendarCache        CalendarCache[]
 
   @@index([userId])
   @@index([appId])
@@ -922,4 +923,16 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+}
+
+model CalendarCache {
+  // The key would be the unique URL that is requested by the user
+  key          String
+  value        Json
+  expiresAt    DateTime
+  credentialId Int
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@id([credentialId, key])
+  @@unique([credentialId, key])
 }

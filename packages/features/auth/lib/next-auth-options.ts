@@ -143,7 +143,9 @@ const providers: Provider[] = [
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
-
+      if (!user.password && user.identityProvider == IdentityProvider.CAL) {
+        throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
       if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }

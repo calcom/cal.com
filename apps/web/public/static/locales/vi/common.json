@@ -17,6 +17,7 @@
   "verify_email_banner_body": "Xác minh địa chỉ email của bạn nhằm bảo đảm khả năng gửi email và lịch hẹn tốt nhất",
   "verify_email_email_header": "Xác minh địa chỉ email của bạn",
   "verify_email_email_button": "Xác minh email",
+  "copy_somewhere_safe": "Lưu khoá API này ở nơi an toàn. Bạn sẽ không thể xem nó lại.",
   "verify_email_email_body": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào nút bên dưới.",
   "verify_email_email_link_text": "Đây là liên kết phòng trường hợp bạn không thích nhấp vào nút:",
   "email_sent": "Email đã gửi thành công",
