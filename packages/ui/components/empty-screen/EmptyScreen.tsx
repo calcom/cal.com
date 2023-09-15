@@ -48,7 +48,13 @@ export function EmptyScreen({
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
-          <h2 className="text-semibold font-cal text-emphasis mt-6 text-center text-xl">{headline}</h2>
+          <h2
+            className={classNames(
+              "text-semibold font-cal text-emphasis text-center text-xl",
+              Icon && "mt-6"
+            )}>
+            {headline}
+          </h2>
           {description && (
             <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
               {description}

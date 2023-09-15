@@ -3,7 +3,7 @@
   "name": "ZohoCRM",
   "slug": "zohocrm",
   "type": "zohocrm_other_calendar",
-  "logo": "icon.png",
+  "logo": "icon.svg",
   "url": "https://github.com/jatinsandilya",
   "variant": "other",
   "categories": ["crm"],

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Booking, Prisma, EventType as PrismaEventType } from "@prisma/client";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -14,6 +14,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
@@ -81,7 +82,9 @@ const getUser = (where: Prisma.UserWhereInput) =>
     where,
     select: {
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
 
@@ -128,6 +131,15 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
+    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      eventType: Pick<
+        PrismaEventType,
+        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      > | null;
+      _count?: {
+        seatsReferences: number;
+      };
+    })[];
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -180,6 +192,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     endTime: getBusyTimesEnd,
     eventTypeId,
     userId: user.id,
+    userEmail: user.email,
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
@@ -187,6 +200,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     seatedEvent: !!eventType?.seatsPerTimeSlot,
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
+    currentBookings: initialData?.currentBookings,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [

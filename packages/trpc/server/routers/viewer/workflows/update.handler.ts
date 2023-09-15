@@ -92,6 +92,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       id: {
         in: activeOn,
       },
+      parentId: null,
     },
     select: {
       id: true,
