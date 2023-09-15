@@ -2021,5 +2021,11 @@
   "member_removed": "Учасника вилучено",
   "my_availability": "Моя доступність",
   "team_availability": "Доступність команди",
+  "backup_code": "Резервний код",
+  "backup_codes": "Резервні коди",
+  "backup_code_instructions": "Кожен резервний код можна використовувати один раз, щоб надати доступ без автентифікатора.",
+  "backup_codes_copied": "Резервні коди скопійовані!",
+  "incorrect_backup_code": "Неправильний резервний код.",
+  "lost_access": "Втрачено доступ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
