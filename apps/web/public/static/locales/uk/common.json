@@ -2051,5 +2051,7 @@
   "event_setup_length_error": "Налаштування заходу: мінімальна тривалість — 1 хвилина.",
   "availability_schedules": "Розклад доступності",
   "view_only_edit_availability_not_onboarded": "Цей користувач не завершив ознайомлення. Доки він не зробить цього, ви не зможете налаштувати доступність для нього.",
+  "view_only_edit_availability": "Ви переглядаєте доступність цього користувача. Ви можете редагувати лише свою доступність.",
+  "edit_users_availability": "Редагувати доступність користувача: {{username}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
