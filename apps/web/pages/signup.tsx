@@ -326,7 +326,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? tokenTeam?.parent?.metadata?.orgAutoAcceptEmail
+        ? tokenTeam?.metadata?.orgAutoAcceptEmail ??
+          (tokenTeam?.parent?.metadata?.orgAutoAcceptEmail as string) ??
+          null
         : null,
     },
   };
