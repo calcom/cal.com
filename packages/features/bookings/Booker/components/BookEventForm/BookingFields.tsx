@@ -1,3 +1,4 @@
+import { usePostHog } from "posthog-js/react";
 import React, { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -25,13 +26,20 @@ export const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
-
+  const posthog = usePostHog();
   const currentView = rescheduleUid ? "reschedule" : "";
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(watch("responses.payment"));
   // Add an effect to update the additional fields when the selected payment method changes
   useEffect(() => {
     setSelectedPaymentMethod(watch("responses.payment"));
   }, [watch("responses.payment")]);
+
+  useEffect(() => {
+    posthog?.setPersonProperties(
+      { address: watch("responses.address") },
+      { phone: watch("responses.Phone-Number") } // Thes properties are like the `$set` from above
+    );
+  }, [watch("responses.address"), watch("responses.Phone-Number")]);
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form

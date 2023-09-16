@@ -5,6 +5,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -69,7 +70,7 @@ export default function Login({
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const posthog = usePostHog();
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
@@ -152,8 +153,13 @@ export default function Login({
     });
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
     // we're logged in! let's do a hard refresh to the desired url
-    else if (!res.error) router.push(callbackUrl);
-    else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (!res.error) {
+      posthog?.identify(values.email, {
+        email: values.email,
+        type: "user",
+      });
+      router.push(callbackUrl);
+    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
     else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found

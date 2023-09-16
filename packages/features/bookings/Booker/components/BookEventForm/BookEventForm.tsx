@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import { useEffect, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -60,7 +61,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
-
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
   const duration = useBookerStore((state) => state.selectedDuration);
@@ -167,7 +167,7 @@ export const BookEventFormChild = ({
     // to set generic error messages on. Needed until RHF has implemented root error keys.
     globalError: undefined;
   };
-
+  const posthog = usePostHog();
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: initialValues,
     resolver: zodResolver(
@@ -455,6 +455,13 @@ export const BookEventFormChild = ({
                   );
                   bookingForm.setValue("responses.guests", uniqueGuestsArray);
                 }
+                posthog?.identify("expert_" + username + eventSlug, {
+                  $set: { email: bookingForm.getValues("responses.email") },
+                });
+                posthog?.setPersonProperties(
+                  { name: bookingForm.getValues("responses.name") },
+                  { type: "expert" }
+                );
                 setCurrentStep(2);
               }}>
               {t("Continue")}
