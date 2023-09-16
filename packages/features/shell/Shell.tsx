@@ -833,7 +833,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/avatar.png`}
+                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
                     size="xsm"
                   />
                   <p className="text line-clamp-1 text-sm">

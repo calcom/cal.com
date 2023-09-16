@@ -12,6 +12,7 @@ import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
+import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
 import { TimeDial } from "./TimeDial";
 
 export interface SliderUser {
@@ -20,6 +21,7 @@ export interface SliderUser {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  defaultScheduleId: number | null;
   dateRanges: DateRange[];
 }
 
@@ -50,8 +52,11 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable() {
+  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
   const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
@@ -175,16 +180,32 @@ export function AvailabilitySliderTable() {
       value={createTimezoneBuddyStore({
         browsingDate: browsingDate.toDate(),
       })}>
-      <div className="relative">
-        <DataTable
-          tableContainerRef={tableContainerRef}
-          columns={memorisedColumns}
-          data={flatData}
-          isLoading={isLoading}
-          // tableOverlay={<HoverOverview />}
-          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-        />
-      </div>
+      <>
+        <div className="relative">
+          <DataTable
+            tableContainerRef={tableContainerRef}
+            columns={memorisedColumns}
+            onRowMouseclick={(row) => {
+              setEditSheetOpen(true);
+              setSelectedUser(row.original);
+            }}
+            data={flatData}
+            isLoading={isLoading}
+            // tableOverlay={<HoverOverview />}
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+          />
+        </div>
+        {selectedUser && editSheetOpen ? (
+          <AvailabilityEditSheet
+            open={editSheetOpen}
+            onOpenChange={(e) => {
+              setEditSheetOpen(e);
+              setSelectedUser(null); // We need to clear the user here or else the sheet will not re-render when opening a new user
+            }}
+            selectedUser={selectedUser}
+          />
+        ) : null}
+      </>
     </TBContext.Provider>
   );
 }
