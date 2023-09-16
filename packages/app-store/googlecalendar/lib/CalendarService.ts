@@ -380,7 +380,7 @@ export default class GoogleCalendarService implements Calendar {
     });
 
     // Skipping await to respond faster
-    prisma.calendarCache.upsert({
+    await prisma.calendarCache.upsert({
       where: {
         credentialId_key: {
           credentialId: this.credential.id,
