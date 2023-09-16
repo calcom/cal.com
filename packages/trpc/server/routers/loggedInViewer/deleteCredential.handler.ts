@@ -1,10 +1,11 @@
+import { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
@@ -287,7 +288,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 uid: booking.uid,
                 recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
                 location: booking.location,
-                destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                destinationCalendar: booking.destinationCalendar
+                  ? [booking.destinationCalendar]
+                  : booking.user?.destinationCalendar
+                  ? [booking.user?.destinationCalendar]
+                  : [],
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
@@ -299,31 +304,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           }
         });
       }
-    }
-  }
-
-  // If it's a calendar remove it from the SelectedCalendars
-  if (credential.app?.categories.includes(AppCategories.calendar)) {
-    try {
-      const calendar = await getCalendar(credential);
-
-      const calendars = await calendar?.listCalendars();
-
-      if (calendars && calendars.length > 0) {
-        calendars.map(async (cal) => {
-          await prisma.selectedCalendar.delete({
-            where: {
-              userId_integration_externalId: {
-                userId: user.id,
-                externalId: cal.externalId,
-                integration: cal.integration as string,
-              },
-            },
-          });
-        });
-      }
-    } catch {
-      console.log(`Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}`);
     }
   }
 
@@ -360,4 +340,46 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
+
+  // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
+  // If it's a calendar remove it from the SelectedCalendars
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    const selectedCalendars = await prisma.selectedCalendar.findMany({
+      where: {
+        userId: user.id,
+        integration: credential.type as string,
+      },
+    });
+
+    if (selectedCalendars.length) {
+      const calendar = await getCalendar(credential);
+
+      const calendars = await calendar?.listCalendars();
+
+      if (calendars && calendars.length > 0) {
+        calendars.map(async (cal) => {
+          prisma.selectedCalendar
+            .delete({
+              where: {
+                userId_integration_externalId: {
+                  userId: user.id,
+                  externalId: cal.externalId,
+                  integration: cal.integration as string,
+                },
+              },
+            })
+            .catch((error) => {
+              if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+                console.log(
+                  `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}. Could not find selected calendar.`
+                );
+              }
+              console.log(
+                `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId} with error: ${error}`
+              );
+            });
+        });
+      }
+    }
+  }
 };

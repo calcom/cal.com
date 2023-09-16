@@ -52,10 +52,9 @@ import {
   Skeleton,
   Switch,
   Tooltip,
+  ArrowButton,
 } from "@calcom/ui";
 import {
-  ArrowDown,
-  ArrowUp,
   Clipboard,
   Code,
   Copy,
@@ -109,8 +108,10 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    avatar: orgBranding
+      ? `${orgBranding.fullDomain}${item.teamId ? "/team" : ""}/${item.profile.slug}/avatar.png`
+      : item.profile.image ?? `${WEBAPP_URL + (item.teamId && "/team")}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -118,13 +119,15 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events.length && (
+      {events.length > 0 ? (
         <EventTypeList
           types={events[0].eventTypes}
           group={events[0]}
           groupIndex={0}
           readOnly={events[0].metadata.readOnly}
         />
+      ) : (
+        <CreateFirstEventTypeView />
       )}
     </div>
   );
@@ -359,6 +362,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
+  if (!types.length) {
+    return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
+  }
+
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   const isManagedEventPrefix = () => {
@@ -378,19 +385,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
-                    <button
-                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, -1)}>
-                      <ArrowUp className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}
 
                   {!(lastItem && lastItem.id === type.id) && (
-                    <button
-                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                      onClick={() => moveEventType(index, 1)}>
-                      <ArrowDown className="h-5 w-5" />
-                    </button>
+                    <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                   )}
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
@@ -400,23 +399,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map(
-                            (organizer: { name: string | null; username: string | null }) => ({
-                              alt: organizer.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                organizer.username
-                              }/avatar.png`,
-                              title: organizer.name || "",
-                            })
-                          )}
+                          items={
+                            type?.users
+                              ? type.users.map(
+                                  (organizer: { name: string | null; username: string | null }) => ({
+                                    alt: organizer.name || "",
+                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                      organizer.username
+                                    }/avatar.png`,
+                                    title: organizer.name || "",
+                                  })
+                                )
+                              : []
+                          }
                         />
                       )}
-                      {isManagedEventType && (
+                      {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.children
+                          items={type?.children
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
@@ -671,6 +674,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
+          isLoading={deleteMutation.isLoading}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
@@ -711,12 +715,17 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          orgBranding?.fullDomain
+            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
+            : profile.image
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -763,6 +772,12 @@ const CreateFirstEventTypeView = () => {
       Icon={LinkIcon}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
+      className="mb-16"
+      buttonRaw={
+        <Button href="?dialog=new" variant="button">
+          {t("create")}
+        </Button>
+      }
     />
   );
 };
@@ -830,6 +845,25 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <EmptyScreen
+        headline={t("team_no_event_types")}
+        buttonRaw={
+          <Button
+            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
+            variant="button"
+            className="mt-5">
+            {t("create")}
+          </Button>
+        }
+      />
+    </>
+  );
+};
+
 const Main = ({
   status,
   errorMessage,
@@ -863,7 +897,7 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="flex flex-col" key={group.profile.slug}>
+              <div className="mt-4 flex flex-col" key={group.profile.slug}>
                 <EventTypeListHeading
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
@@ -871,12 +905,18 @@ const Main = ({
                   orgSlug={orgBranding?.slug}
                 />
 
-                <EventTypeList
-                  types={group.eventTypes}
-                  group={group}
-                  groupIndex={index}
-                  readOnly={group.metadata.readOnly}
-                />
+                {group.eventTypes.length ? (
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
+                ) : group.teamId ? (
+                  <EmptyEventTypeList group={group} />
+                ) : (
+                  <CreateFirstEventTypeView />
+                )}
               </div>
             ))
           )}

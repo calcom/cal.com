@@ -24,8 +24,13 @@ export const DatePicker = () => {
   return (
     <DatePickerComponent
       isLoading={schedule.isLoading}
-      onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : date)}
-      onMonthChange={(date) => setMonth(date.format("YYYY-MM"))}
+      onChange={(date: Dayjs | null) => {
+        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+      }}
+      onMonthChange={(date: Dayjs) => {
+        setMonth(date.format("YYYY-MM"));
+        setSelectedDate(date.format("YYYY-MM-DD"));
+      }}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}

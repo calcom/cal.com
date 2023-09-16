@@ -1,0 +1,64 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  CustomArgsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import ErrorBoundary from "./ErrorBoundary";
+import { Tooltip } from "../tooltip";
+
+<Meta title="UI/ErrorBoundary" component={ErrorBoundary} />
+
+<Title title="ErrorBoundary" suffix="Brief" subtitle="Version 1.0 — Last Update: 17 Aug 2023" />
+
+## Definition
+
+ErrorBoundary is an element that catches JavaScript errors in their child component tree, log those errors and display a fallback UI.
+
+## Structure
+
+ErrorBoundary offers a flexible component capable of catching JavaScript errors and displaying it in the UI.
+
+<CustomArgsTable of={ErrorBoundary} />
+
+<Examples title="ErrorBoundary">
+  <Example title="Default">
+    <ErrorBoundary message="There is a problem with the App">
+      <p>Child Component</p>
+    </ErrorBoundary>
+  </Example>
+  <Example title="With Error">
+    <ErrorBoundary message="There is a problem with the App">
+      <Tooltip />
+    </ErrorBoundary>
+  </Example>
+</Examples>
+
+<Title offset title="ErrorBoundary" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="ErrorBoundary"
+    args={{
+      children: <p class="text-default">Child Component</p>,
+      message: "There is a problem with the App",
+    }}>
+    {({ children, message }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <ErrorBoundary message={message}>{children}</ErrorBoundary>
+        </VariantRow>
+        <VariantRow variant="With Error">
+          <ErrorBoundary message={message}>
+            <Tooltip />
+          </ErrorBoundary>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

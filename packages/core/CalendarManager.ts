@@ -217,7 +217,8 @@ export const getBusyCalendarTimes = async (
 
 export const createEvent = async (
   credential: CredentialWithAppName,
-  calEvent: CalendarEvent
+  calEvent: CalendarEvent,
+  externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
   const calendar = await getCalendar(credential);
@@ -226,29 +227,31 @@ export const createEvent = async (
 
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
-    calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
+    calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (error: { code: number; calError: string }) => {
-        success = false;
-        /**
-         * There is a time when selectedCalendar externalId doesn't match witch certain credential
-         * so google returns 404.
-         * */
-        if (error?.code === 404) {
+    ? await calendar
+        .createEvent(calEvent, credential.id)
+        .catch(async (error: { code: number; calError: string }) => {
+          success = false;
+          /**
+           * There is a time when selectedCalendar externalId doesn't match witch certain credential
+           * so google returns 404.
+           * */
+          if (error?.code === 404) {
+            return undefined;
+          }
+          if (error?.calError) {
+            calError = error.calError;
+          }
+          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          // @TODO: This code will be off till we can investigate an error with it
+          //https://github.com/calcom/cal.com/issues/3949
+          // await sendBrokenIntegrationEmail(calEvent, "calendar");
           return undefined;
-        }
-        if (error?.calError) {
-          calError = error.calError;
-        }
-        log.error("createEvent failed", JSON.stringify(error), calEvent);
-        // @TODO: This code will be off till we can investigate an error with it
-        //https://github.com/calcom/cal.com/issues/3949
-        // await sendBrokenIntegrationEmail(calEvent, "calendar");
-        return undefined;
-      })
+        })
     : undefined;
 
   return {
@@ -261,6 +264,8 @@ export const createEvent = async (
     originalEvent: calEvent,
     calError,
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
+    externalId,
+    credentialId: credential.id,
   };
 };
 

@@ -59,7 +59,8 @@ const handlePayment = async (
       },
       booking.id,
       bookerEmail,
-      paymentOption
+      paymentOption,
+      evt.title
     );
   }
 

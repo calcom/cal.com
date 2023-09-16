@@ -19,14 +19,37 @@ const gptModel = "gpt-4";
  * Uses a toolchain to book meetings, list available slots, etc.
  * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
  */
-const agent = async (input: string, user: User, users: UserList) => {
-  const tools = [createBookingIfAvailable, deleteBooking, getAvailability, getBookings, updateBooking];
+const agent = async (input: string, user: User, users: UserList, apiKey: string, userId: number) => {
+  const tools = [
+    // getEventTypes(apiKey),
+    getAvailability(apiKey, userId),
+    getBookings(apiKey, userId),
+    createBookingIfAvailable(apiKey, userId),
+    updateBooking(apiKey, userId),
+    deleteBooking(apiKey),
+  ];
 
   const model = new ChatOpenAI({
     modelName: gptModel,
     openAIApiKey: env.OPENAI_API_KEY,
     temperature: 0,
   });
+
+  console.log(
+    users,
+    `${
+      users.length
+        ? `The user referenced the following users: ${users
+            .map(
+              (u) =>
+                `id: ${u.id}` +
+                (u.email ? `, email: ${u.email}` : "") +
+                (u.username ? `, username: ${u.username}` : "")
+            )
+            .join("\n")}`
+        : ""
+    }`
+  );
 
   /**
    * Initialize the agent executor with arguments.
@@ -38,12 +61,19 @@ const agent = async (input: string, user: User, users: UserList) => {
             Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
             Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
 
-            Current UTC time is: ${now}
-            The user's time zone is: ${user.timeZone}
-            The user's event types are: ${user.eventTypes
+            Bookings should be created at a good time for all parties.
+
+            IMPORTANT: Always create bookings on the primary user's calender and invite external users as responses.
+
+            The primary user's id is: ${userId}
+            The primary user's email is: ${user.email}
+            The primary user's username is: ${user.username}
+            The current time in the primary user's timezone is: ${now(user.timeZone)}
+            The primary user's time zone is: ${user.timeZone}
+            The primary user's event types are: ${user.eventTypes
               .map((e: EventType) => `ID: ${e.id}, Title: ${e.title}, Length: ${e.length}`)
               .join("\n")}
-            The user's working hours are: ${user.workingHours
+            The primary user's working hours are: ${user.workingHours
               .map(
                 (w: WorkingHours) =>
                   `Days: ${w.days.join(", ")}, Start Time (minutes in UTC): ${
@@ -51,18 +81,23 @@ const agent = async (input: string, user: User, users: UserList) => {
                   }, End Time (minutes in UTC): ${w.endTime}`
               )
               .join("\n")}
-            ${
-              users
-                ? `The user referenced the following users: ${users
-                    .map(
-                      (u) =>
-                        `id: ${u.id}` +
-                        (u.email ? `, email: ${u.email}` : "") +
-                        (u.username ? `, username: ${u.username}` : "")
-                    )
-                    .join("\n")}`
-                : ""
-            }
+              ${
+                users.length
+                  ? `The email references the following @usernames and email addresses: ${users
+                      .map(
+                        (u) =>
+                          (u.id ? `, id: ${u.id}` : "(non user)") +
+                          (u.email ? `, email: ${u.email}` : "") +
+                          (u.username ? `, username: ${u.username}` : "")
+                        // (u.eventTypes.length
+                        //   ? `, event types: ${u.eventTypes
+                        //       .map((e) => `id: {e.id}, title: ${e.title}, length: ${e.length}`)
+                        //       .join("; ")}`
+                        //   : "")
+                      )
+                      .join("\n\n")}`
+                  : ""
+              }
             `,
     },
     agentType: "openai-functions",

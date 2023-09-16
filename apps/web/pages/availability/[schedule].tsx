@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
+import { classNames } from "@calcom/lib";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -17,11 +18,6 @@ import {
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
   Form,
   Label,
   showToast,
@@ -32,7 +28,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, MoreHorizontal, Plus, Trash } from "@calcom/ui/components/icon";
+import { Info, MoreVertical, ArrowLeft, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
@@ -95,7 +91,7 @@ export default function Availability() {
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
@@ -225,33 +221,60 @@ export default function Availability() {
             </ConfirmationDialogContent>
           </Dialog>
           <VerticalDivider className="hidden sm:inline" />
-          <Dropdown>
-            <DropdownMenuTrigger asChild>
-              <Button className="sm:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent style={{ minWidth: "200px" }}>
-              <DropdownItem
-                type="button"
-                color="destructive"
-                StartIcon={Trash}
-                onClick={() => setDeleteDialogOpen(true)}>
-                {t("delete")}
-              </DropdownItem>
-              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <ConfirmationDialogContent
-                  isLoading={deleteMutation.isLoading}
-                  variety="danger"
-                  title={t("delete_schedule")}
-                  confirmBtnText={t("delete")}
-                  loadingText={t("delete")}
-                  onConfirm={() => {
-                    schedule !== undefined && deleteMutation.mutate({ scheduleId: schedule.id });
-                  }}>
-                  {t("delete_schedule_description")}
-                </ConfirmationDialogContent>
-              </Dialog>
-              <DropdownMenuSeparator />
-              <div className="flex h-9 flex-row items-center justify-between px-4 py-2 hover:bg-gray-100">
+          <div
+            className={classNames(
+              openSidebar
+                ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                : ""
+            )}>
+            <div
+              className={classNames(
+                "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+                openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              )}>
+              <div className="flex flex-row items-center pt-5">
+                <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                <p className="-ml-2">{t("availability_settings")}</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      StartIcon={Trash}
+                      variant="icon"
+                      color="destructive"
+                      aria-label={t("delete")}
+                      className="ml-16 inline"
+                      disabled={schedule?.isLastSchedule}
+                      tooltip={schedule?.isLastSchedule ? t("requires_at_least_one_schedule") : t("delete")}
+                    />
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    isLoading={deleteMutation.isLoading}
+                    variety="danger"
+                    title={t("delete_schedule")}
+                    confirmBtnText={t("delete")}
+                    loadingText={t("delete")}
+                    onConfirm={() => {
+                      scheduleId && deleteMutation.mutate({ scheduleId });
+                      setOpenSidebar(false);
+                    }}>
+                    {t("delete_schedule_description")}
+                  </ConfirmationDialogContent>
+                </Dialog>
+              </div>
+              <div className="flex flex-col px-2 py-2">
+                <Skeleton as={Label}>{t("name")}</Skeleton>
+                <Controller
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <input
+                      className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
+                      {...field}
+                    />
+                  )}
+                />
+              </div>
+              <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -267,9 +290,44 @@ export default function Availability() {
                   }}
                 />
               </div>
-            </DropdownMenuContent>
-          </Dropdown>
 
+              <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
+                <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+                  <div>
+                    <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
+                      {t("timezone")}
+                    </Skeleton>
+                    <Controller
+                      control={form.control}
+                      name="timeZone"
+                      render={({ field: { onChange, value } }) =>
+                        value ? (
+                          <TimezoneSelect
+                            value={value}
+                            className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
+                            onChange={(timezone) => onChange(timezone.value)}
+                          />
+                        ) : (
+                          <SelectSkeletonLoader className="mt-1 w-72" />
+                        )
+                      }
+                    />
+                  </div>
+                  <hr className="border-subtle my-7" />
+                  <div className="rounded-md md:block">
+                    <Skeleton as="h3" className="mb-0 inline-block text-sm font-medium">
+                      {t("something_doesnt_look_right")}
+                    </Skeleton>
+                    <div className="mt-3 flex">
+                      <Skeleton as={Button} href="/availability/troubleshoot" color="secondary">
+                        {t("launch_troubleshooter")}
+                      </Skeleton>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="border-default border-l-2" />
           <Button
             className="ml-4 lg:ml-0"
@@ -278,6 +336,13 @@ export default function Availability() {
             loading={updateMutation.isLoading}>
             {t("save")}
           </Button>
+          <Button
+            className="ml-3 sm:hidden"
+            StartIcon={MoreVertical}
+            variant="icon"
+            color="secondary"
+            onClick={() => setOpenSidebar(true)}
+          />
         </div>
       }>
       <div className="mt-4 w-full md:mt-0">
@@ -313,7 +378,7 @@ export default function Availability() {
               {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
             </div>
           </div>
-          <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
+          <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
                 <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
@@ -335,7 +400,7 @@ export default function Availability() {
                 />
               </div>
               <hr className="border-subtle my-6 mr-8" />
-              <div className="hidden rounded-md md:block">
+              <div className="rounded-md">
                 <Skeleton as="h3" className="mb-0 inline-block text-sm font-medium">
                   {t("something_doesnt_look_right")}
                 </Skeleton>

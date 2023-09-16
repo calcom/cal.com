@@ -65,7 +65,7 @@ export function TeamsListing() {
     {
       icon: <Mail className="h-5 w-5 text-orange-500" />,
       title: t("sms_attendee_action"),
-      description: t("make_it_easy_to_book"),
+      description: t("send_reminder_sms"),
     },
     {
       icon: <Video className="h-5 w-5 text-purple-500" />,

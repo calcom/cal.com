@@ -8,7 +8,6 @@ import prisma from "@calcom/prisma";
 import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
-import { context } from "../../../utils/context";
 import { extractUsers } from "../../../utils/extractUsers";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
@@ -47,6 +46,7 @@ export const POST = async (request: NextRequest) => {
     select: {
       email: true,
       id: true,
+      timeZone: true,
       credentials: {
         select: {
           appId: true,
@@ -57,22 +57,23 @@ export const POST = async (request: NextRequest) => {
     where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
   });
 
-  if (!signature || !user?.email || !user?.id) {
+  // User is not a cal.com user or is using an unverified email.
+  if (!signature || !user) {
     await sendEmail({
+      html: `Thanks for your interest in Cal AI! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
       subject: `Re: ${body.subject}`,
-      text: "Sorry, you are not authorized to use this service. Please verify your email address and try again.",
-      to: user?.email || "",
+      text: `Thanks for your interest in Cal AI! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
+      to: envelope.from,
       from: aiEmail,
     });
 
-    return new NextResponse();
+    return new NextResponse("ok");
   }
 
   const credential = user.credentials.find((c) => c.appId === env.APP_ID)?.key;
-  const key = credential && (credential as { apiKey: string }).apiKey;
 
   // User has not installed the app from the app store. Direct them to install it.
-  if (!key) {
+  if (!(credential as { apiKey: string })?.apiKey) {
     const url = env.APP_URL;
 
     await sendEmail({
@@ -86,16 +87,18 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("ok");
   }
 
-  // Context is used in agent tools
-  context.apiKey = key;
-  context.userId = user.id.toString();
+  const { apiKey } = credential as { apiKey: string };
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability, users] = await Promise.all([
-    fetchEventTypes(),
+    fetchEventTypes({
+      apiKey,
+    }),
     fetchAvailability({
-      dateFrom: now,
-      dateTo: now,
+      apiKey,
+      userId: user.id,
+      dateFrom: now(user.timeZone),
+      dateTo: now(user.timeZone),
     }),
     extractUsers(`${parsed.text} ${parsed.subject}`),
   ]);
@@ -122,21 +125,22 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("Error fetching event types. Please try again.", { status: 400 });
   }
 
-  const { timeZone, workingHours } = availability;
+  const { workingHours } = availability;
 
   const appHost = getHostFromHeaders(request.headers);
 
   // Hand off to long-running agent endpoint to handle the email. (don't await)
   fetch(`${appHost}/api/agent?parseKey=${env.PARSE_KEY}`, {
     body: JSON.stringify({
-      context,
+      apiKey,
+      userId: user.id,
       message: parsed.text,
       subject: parsed.subject,
       replyTo: aiEmail,
       user: {
         email: user.email,
         eventTypes,
-        timeZone,
+        timeZone: user.timeZone,
         workingHours,
       },
       users,

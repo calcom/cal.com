@@ -33,6 +33,7 @@ type SeatedEventData = {
   seatsPerTimeSlot?: number | null;
   attendees?: number;
   bookingUid?: string;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 export type BookerStore = {
@@ -154,14 +155,19 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
+    // unset selected date
+    if (!selectedDate) {
+      removeQueryParam("date");
+      return;
+    }
+
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
     updateQueryParam("date", selectedDate ?? "");
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
-    // If selectedDate is null, prevents setting month to Invalid-Date
-    if (selectedDate && newSelection.month() !== currentSelection.month() ) {
+    if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
       updateQueryParam("month", newSelection.format("YYYY-MM"));
     }
@@ -194,12 +200,14 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setMonth: (month: string | null) => {
     set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
+    get().setSelectedDate(null);
   },
   isTeamEvent: false,
   seatedEventData: {
     seatsPerTimeSlot: undefined,
     attendees: undefined,
     bookingUid: undefined,
+    showAvailableSeatsCount: true,
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });

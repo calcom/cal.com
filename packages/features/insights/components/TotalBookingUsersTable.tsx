@@ -24,7 +24,6 @@ export const TotalBookingUsersTable = ({
                     imageSrc={item.user.avatar}
                     title={item.user.name || ""}
                     className="m-2"
-                    gravatarFallbackMd5={item.emailMd5}
                   />
                   <p className="text-default mx-0 my-auto">
                     <strong>{item.user.name}</strong>

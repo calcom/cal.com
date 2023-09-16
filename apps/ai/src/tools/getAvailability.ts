@@ -3,25 +3,26 @@ import { z } from "zod";
 
 import { env } from "../env.mjs";
 import type { Availability } from "../types/availability";
-import { context } from "../utils/context";
 
 /**
  * Fetches availability for a user by date range and event type.
  */
 export const fetchAvailability = async ({
+  apiKey,
   userId,
   dateFrom,
   dateTo,
   eventTypeId,
 }: {
-  userId?: string;
+  apiKey: string;
+  userId: number;
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
-    apiKey: context.apiKey,
-    userId: userId || context.userId,
+    apiKey,
+    userId: userId.toString(),
     dateFrom,
     dateTo,
   };
@@ -34,9 +35,7 @@ export const fetchAvailability = async ({
 
   const response = await fetch(url);
 
-  if (response.status === 401) {
-    throw new Error("Unauthorized");
-  }
+  if (response.status === 401) throw new Error("Unauthorized");
 
   const data = await response.json();
 
@@ -52,35 +51,36 @@ export const fetchAvailability = async ({
   };
 };
 
-const getAvailabilityTool = new DynamicStructuredTool({
-  description: "Get availability within range.",
-  func: async ({ userId, dateFrom, dateTo, eventTypeId }) => {
-    return JSON.stringify(
-      await fetchAvailability({
-        userId,
-        dateFrom,
-        dateTo,
-        eventTypeId,
-      })
-    );
-  },
-  name: "getAvailability",
-  schema: z.object({
-    userId: z
-      .string()
-      .optional()
-      .describe(
-        "The user ID of an external user to fetch availability for. If not provided, uses the current user."
-      ),
-    dateFrom: z.string(),
-    dateTo: z.string(),
-    eventTypeId: z
-      .number()
-      .optional()
-      .describe(
-        "The ID of the event type to filter availability for if you've called getEventTypes, otherwise do not include."
-      ),
-  }),
-});
+const getAvailabilityTool = (apiKey: string, _userId: number) => {
+  return new DynamicStructuredTool({
+    description: "Get availability of a user within range.",
+    func: async ({ userId, dateFrom, dateTo, eventTypeId }) => {
+      return JSON.stringify(
+        await fetchAvailability({
+          userId: userId || _userId,
+          apiKey,
+          dateFrom,
+          dateTo,
+          eventTypeId,
+        })
+      );
+    },
+    name: "getAvailability",
+    schema: z.object({
+      userId: z
+        .number()
+        .optional()
+        .describe("The user ID of a user to fetch availability for. If not provided, uses the primary user."),
+      dateFrom: z.string(),
+      dateTo: z.string(),
+      eventTypeId: z
+        .number()
+        .optional()
+        .describe(
+          "The ID of the event type to filter availability for if you've called getEventTypes, otherwise do not include."
+        ),
+    }),
+  });
+};
 
 export default getAvailabilityTool;

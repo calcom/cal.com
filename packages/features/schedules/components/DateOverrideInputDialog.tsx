@@ -51,11 +51,7 @@ const DateOverrideForm = ({
 
   const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
 
-  const onDateChange = (newDate: Dayjs | null) => {
-    // If no date is selected, do nothing
-    if (!newDate) {
-      return;
-    }
+  const onDateChange = (newDate: Dayjs) => {
     // If clicking on a selected date unselect it
     if (selectedDates.some((date) => yyyymmdd(date) === yyyymmdd(newDate))) {
       setSelectedDates(selectedDates.filter((date) => yyyymmdd(date) !== yyyymmdd(newDate)));
@@ -143,7 +139,7 @@ const DateOverrideForm = ({
         );
         onClose();
       }}
-      className="p-6 sm:flex sm:p-0">
+      className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
       <div
         className={classNames(
           selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
@@ -154,7 +150,9 @@ const DateOverrideForm = ({
           excludedDates={excludedDates}
           weekStart={0}
           selected={selectedDates}
-          onChange={(day) => onDateChange(day)}
+          onChange={(day) => {
+            if (day) onDateChange(day);
+          }}
           onMonthChange={(newMonth) => {
             setBrowsingDate(newMonth);
           }}
@@ -222,7 +220,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
+      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0 md:w-auto">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

@@ -1,59 +1,20 @@
 import { expect } from "@playwright/test";
-import type { Prisma } from "@prisma/client";
 import { uuid } from "short-uuid";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
   createNewSeatedEventType,
   selectFirstAvailableTimeSlotNextMonth,
+  createUserWithSeatedEventAndAttendees,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
-
-async function createUserWithSeatedEvent(users: Fixtures["users"]) {
-  const slug = "seats";
-  const user = await users.create({
-    eventTypes: [
-      {
-        title: "Seated event",
-        slug,
-        seatsPerTimeSlot: 10,
-        requiresConfirmation: true,
-        length: 30,
-        disableGuests: true, // should always be true for seated events
-      },
-    ],
-  });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const eventType = user.eventTypes.find((e) => e.slug === slug)!;
-  return { user, eventType };
-}
-
-async function createUserWithSeatedEventAndAttendees(
-  fixtures: Pick<Fixtures, "users" | "bookings">,
-  attendees: Prisma.AttendeeCreateManyBookingInput[]
-) {
-  const { user, eventType } = await createUserWithSeatedEvent(fixtures.users);
-  const booking = await fixtures.bookings.create(user.id, user.username, eventType.id, {
-    status: BookingStatus.ACCEPTED,
-    // startTime with 1 day from now and endTime half hour after
-    startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    attendees: {
-      createMany: {
-        data: attendees,
-      },
-    },
-  });
-  return { user, eventType, booking };
-}
 
 test.describe("Booking with Seats", () => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
@@ -64,7 +25,7 @@ test.describe("Booking with Seats", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     const eventTitle = "My 2-seated event";
     await createNewSeatedEventType(page, { eventTitle });
-    await expect(page.locator(`text=${eventTitle} event type updated successfully`)).toBeVisible();
+    await expect(page.locator(`text=Event type updated successfully`)).toBeVisible();
   });
 
   test("Multiple Attendees can book a seated event time slot", async ({ users, page }) => {
