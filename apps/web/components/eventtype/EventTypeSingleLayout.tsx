@@ -398,7 +398,7 @@ function EventTypeSingleLayout({
             loading={isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
-            {t("save")}
+            {t("update")}
           </Button>
         </div>
       }>
