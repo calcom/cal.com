@@ -30,6 +30,7 @@ export type CreateBtnProps = {
   isLoading?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
+  color?: string;
 };
 
 /**

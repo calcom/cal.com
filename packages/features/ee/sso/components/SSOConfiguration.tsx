@@ -28,8 +28,12 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   if (errorMessage) {
     return (
       <>
-        <Meta title={t("sso_configuration")} description={t("saml_description")} />
-        <Alert severity="warning" message={t(errorMessage)} className="mb-4 " />
+        <Meta
+          title={t("sso_configuration")}
+          description={t("sso_configuration_description")}
+          borderInShellHeader={false}
+        />
+        <Alert severity="warning" message={t(errorMessage)} className="mt-4" />
       </>
     );
   }

@@ -78,7 +78,7 @@ const WebhookForm = (props: {
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(false);
   const [newSecret, setNewSecret] = useState("");
-  const [changeSecret, setChangeSecret] = useState(false);
+  const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
   // const currentSecret = props?.webhook?.secret;
 
@@ -106,10 +106,12 @@ const WebhookForm = (props: {
                 required
                 type="url"
                 onChange={(e) => {
-                  formMethods.setValue("subscriberUrl", e?.target.value);
+                  formMethods.setValue("subscriberUrl", e?.target.value, { shouldDirty: true });
                   if (hasTemplateIntegration({ url: e.target.value })) {
                     setUseCustomTemplate(true);
-                    formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+                    formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }), {
+                      shouldDirty: true,
+                    });
                   }
                 }}
               />
@@ -126,7 +128,7 @@ const WebhookForm = (props: {
                 checked={value}
                 // defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
                 onCheckedChange={(value) => {
-                  formMethods.setValue("active", value);
+                  formMethods.setValue("active", value, { shouldDirty: true });
                 }}
               />
             </div>
@@ -209,7 +211,7 @@ const WebhookForm = (props: {
                   labelClassName="font-medium text-emphasis font-sm"
                   value={value}
                   onChange={(e) => {
-                    formMethods.setValue("secret", e?.target.value);
+                    formMethods.setValue("secret", e?.target.value, { shouldDirty: true });
                   }}
                 />
               )}
@@ -230,7 +232,7 @@ const WebhookForm = (props: {
                   onValueChange={(val) => {
                     if (val === "default") {
                       setUseCustomTemplate(false);
-                      formMethods.setValue("payloadTemplate", undefined);
+                      formMethods.setValue("payloadTemplate", undefined, { shouldDirty: true });
                     } else {
                       setUseCustomTemplate(true);
                     }
@@ -249,7 +251,7 @@ const WebhookForm = (props: {
                   rows={3}
                   value={value}
                   onChange={(e) => {
-                    formMethods.setValue("payloadTemplate", e?.target.value);
+                    formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true });
                   }}
                 />
               )}
@@ -267,6 +269,7 @@ const WebhookForm = (props: {
         </Button>
         <Button
           type="submit"
+          disabled={!formMethods.formState.isDirty && !changeSecret}
           loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>

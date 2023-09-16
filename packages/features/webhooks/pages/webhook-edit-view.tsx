@@ -76,7 +76,7 @@ function Component({ webhookId }: { webhookId: string }) {
           }
 
           if (values.changeSecret) {
-            values.secret = values.newSecret.length ? values.newSecret : null;
+            values.secret = values.newSecret.trim().length ? values.newSecret : null;
           }
 
           if (!values.payloadTemplate) {

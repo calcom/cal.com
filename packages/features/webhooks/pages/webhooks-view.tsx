@@ -32,6 +32,7 @@ const WebhooksView = () => {
         CTA={
           data && data.webhookGroups.length > 0 ? (
             <CreateButtonWithTeamsList
+              color="secondary"
               subtitle={t("create_for").toUpperCase()}
               createFunction={(teamId?: number) => {
                 router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);

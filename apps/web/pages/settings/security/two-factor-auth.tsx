@@ -28,8 +28,8 @@ const TwoFactorAuthView = () => {
   const { t } = useLocale();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const [enableModalOpen, setEnableModalOpen] = useState(false);
-  const [disableModalOpen, setDisableModalOpen] = useState(false);
+  const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
+  const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);
 
   if (isLoading) return <SkeletonLoader />;
 
