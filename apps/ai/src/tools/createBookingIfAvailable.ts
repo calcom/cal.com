@@ -66,15 +66,14 @@ const createBooking = async ({
   return "Booking created";
 };
 
-const createBookingTool = (apiKey: string, userId: number) => {
+const createBookingTool = (apiKey: string, _userId: number) => {
   return new DynamicStructuredTool({
-    description:
-      "Tries to create a booking. If the user is unavailable, it will return availability that day, allowing you to avoid the getAvailability step in many cases.",
-    func: async ({ eventTypeId, start, end, timeZone, language, responses, title, status }) => {
+    description: "Creates a booking on the specified user's calendar.",
+    func: async ({ userId, eventTypeId, start, end, timeZone, language, responses, title, status }) => {
       return JSON.stringify(
         await createBooking({
           apiKey,
-          userId,
+          userId: userId || _userId,
           end,
           eventTypeId,
           language,
@@ -88,17 +87,23 @@ const createBookingTool = (apiKey: string, userId: number) => {
     },
     name: "createBookingIfAvailable",
     schema: z.object({
+      userId: z
+        .number()
+        .optional()
+        .describe("The user ID of the user to book with. If not specified, the primary user will be used."),
       end: z
         .string()
         .describe("This should correspond to the event type's length, unless otherwise specified."),
-      eventTypeId: z.number(),
+      eventTypeId: z.number().describe("The event type must be owned by the user specified by userId."),
       language: z.string(),
       responses: z
         .object({
           email: z.string().optional(),
           name: z.string().optional(),
         })
-        .describe("External invited user. Not the user making the request."),
+        .describe(
+          "Users to invite. If booked on another user's calendar, make sure to invite the primary user as a response."
+        ),
       start: z.string(),
       status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
       timeZone: z.string(),

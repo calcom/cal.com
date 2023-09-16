@@ -51,14 +51,14 @@ export const fetchAvailability = async ({
   };
 };
 
-const getAvailabilityTool = (apiKey: string, userId: number) => {
+const getAvailabilityTool = (apiKey: string, _userId: number) => {
   return new DynamicStructuredTool({
-    description: "Get availability within range.",
-    func: async ({ dateFrom, dateTo, eventTypeId }) => {
+    description: "Get availability of a user within range.",
+    func: async ({ userId, dateFrom, dateTo, eventTypeId }) => {
       return JSON.stringify(
         await fetchAvailability({
+          userId: userId || _userId,
           apiKey,
-          userId,
           dateFrom,
           dateTo,
           eventTypeId,
@@ -67,6 +67,10 @@ const getAvailabilityTool = (apiKey: string, userId: number) => {
     },
     name: "getAvailability",
     schema: z.object({
+      userId: z
+        .number()
+        .optional()
+        .describe("The user ID of a user to fetch availability for. If not provided, uses the primary user."),
       dateFrom: z.string(),
       dateTo: z.string(),
       eventTypeId: z

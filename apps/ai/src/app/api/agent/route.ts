@@ -18,14 +18,14 @@ export const POST = async (request: NextRequest) => {
 
   const json = await request.json();
 
-  const { apiKey, userId, message, subject, user, replyTo } = json;
+  const { apiKey, userId, message, subject, user, users, replyTo } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 
   try {
-    const response = await agent(`${subject}\n\n${message}`, user, apiKey, userId);
+    const response = await agent(`${subject}\n\n${message}`, { ...user }, users, apiKey, userId);
 
     // Send response to user
     await sendEmail({

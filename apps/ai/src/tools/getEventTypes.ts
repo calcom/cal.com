@@ -7,10 +7,14 @@ import type { EventType } from "../types/eventType";
 /**
  * Fetches event types by user ID.
  */
-export const fetchEventTypes = async ({ apiKey }: { apiKey: string }) => {
-  const params = {
+export const fetchEventTypes = async ({ apiKey, userId }: { apiKey: string; userId?: number }) => {
+  const params: Record<string, string> = {
     apiKey,
   };
+
+  if (userId) {
+    params["userId"] = userId.toString();
+  }
 
   const urlParams = new URLSearchParams(params);
 
@@ -35,16 +39,19 @@ export const fetchEventTypes = async ({ apiKey }: { apiKey: string }) => {
 
 const getEventTypesTool = (apiKey: string) => {
   return new DynamicStructuredTool({
-    description: "Get the user's event type IDs. Usually necessary to book a meeting.",
-    func: async () => {
+    description: "Get a user's event type IDs. Usually necessary to book a meeting.",
+    func: async ({ userId }) => {
       return JSON.stringify(
         await fetchEventTypes({
           apiKey,
+          userId,
         })
       );
     },
     name: "getEventTypes",
-    schema: z.object({}),
+    schema: z.object({
+      userId: z.number().optional().describe("The user ID. Defaults to the primary user's ID."),
+    }),
   });
 };
 
