@@ -197,6 +197,13 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
+export async function installGoogleCalendar(page: Page) {
+  await page.goto("/apps/categories/calendar");
+  await page.click('[data-testid="app-store-app-card-google-calendar"]');
+  await page.waitForURL("/apps/google-calendar");
+  await page.click('[data-testid="install-app-button"]');
+}
+
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
