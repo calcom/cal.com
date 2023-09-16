@@ -1,12 +1,15 @@
 import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import z from "zod";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, NewToggle, showToast } from "@calcom/ui";
 
@@ -20,18 +23,38 @@ type ChangePasswordSessionFormValues = {
   apiError: string;
 };
 
-const PasswordView = () => {
+interface PasswordViewProps {
+  user: RouterOutputs["viewer"]["me"];
+}
+
+const cleanMetadataResponse = z
+  .object({
+    cleanMetadata: z
+      .object({
+        data: userMetadataSchema,
+        success: z.boolean(),
+      })
+      .nullable(),
+  })
+  .nullable();
+
+const PasswordView = ({ user }: PasswordViewProps) => {
   const { data } = useSession();
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user } = trpc.viewer.me.useQuery();
-  const metadata = userMetadata.safeParse(user?.metadata);
-  const sessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
+  const metadata = cleanMetadataResponse.safeParse(user?.metadata);
+  const initialSessionTimeout =
+    metadata.success && metadata.data?.cleanMetadata?.success
+      ? metadata.data.cleanMetadata?.data?.sessionTimeout
+      : undefined;
+
+  const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
   const sessionMutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
+      setSessionTimeout(data.metadata?.sessionTimeout);
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
@@ -39,12 +62,16 @@ const PasswordView = () => {
     onMutate: async () => {
       await utils.viewer.me.cancel();
       const previousValue = utils.viewer.me.getData();
-      const previousMetadata = userMetadata.parse(previousValue?.metadata);
+      const previousMetadata = cleanMetadataResponse.parse(previousValue?.metadata);
 
       if (previousValue && sessionTimeout) {
         utils.viewer.me.setData(undefined, {
           ...previousValue,
-          metadata: { ...previousMetadata, sessionTimeout: sessionTimeout },
+          metadata: {
+            cleanMetadata: {
+              data: { ...previousMetadata?.cleanMetadata?.data, sessionTimeout: sessionTimeout },
+            },
+          },
         });
       }
       return { previousValue };
@@ -86,19 +113,13 @@ const PasswordView = () => {
     defaultValues: {
       oldPassword: "",
       newPassword: "",
-      sessionTimeout,
     },
   });
 
-  const sessionTimeoutWatch = formMethods.watch("sessionTimeout");
-
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
-    const { oldPassword, newPassword, sessionTimeout: newSessionTimeout } = values;
+    const { oldPassword, newPassword } = values;
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
-    }
-    if (sessionTimeout !== newSessionTimeout) {
-      sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout: newSessionTimeout } });
     }
   };
 
@@ -132,13 +153,12 @@ const PasswordView = () => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          {formMethods.formState.errors.apiError && (
-            <div className="pb-6">
-              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
-            </div>
-          )}
-
           <div className="border-x p-6">
+            {formMethods.formState.errors.apiError && (
+              <div className="pb-6">
+                <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+              </div>
+            )}
             <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
               <div>
                 <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
@@ -167,7 +187,7 @@ const PasswordView = () => {
             <Button
               color="primary"
               type="submit"
-              loading={passwordMutation.isLoading || sessionMutation.isLoading}
+              loading={passwordMutation.isLoading}
               onClick={() => formMethods.clearErrors("apiError")}
               disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
               {t("update")}
@@ -177,19 +197,25 @@ const PasswordView = () => {
             <NewToggle
               title={t("session_timeout")}
               description={t("session_timeout_description")}
-              checked={sessionTimeoutWatch !== undefined}
+              checked={sessionTimeout !== undefined}
               data-testid="session-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+                  setSessionTimeout(undefined);
+
+                  if (metadata.success && metadata.data?.cleanMetadata?.success) {
+                    sessionMutation.mutate({
+                      metadata: { ...metadata.data?.cleanMetadata?.data, sessionTimeout: undefined },
+                    });
+                  }
                 } else {
-                  formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+                  setSessionTimeout(10);
                 }
               }}
               childrenClassName="lg:ml-0"
               switchContainerClassName={classNames(
                 "p-6 border-subtle rounded-xl border",
-                !!sessionTimeoutWatch && "rounded-b-none"
+                !!sessionTimeout && "rounded-b-none"
               )}>
               <>
                 <div className="border-subtle border-x p-6 pb-8">
@@ -205,7 +231,7 @@ const PasswordView = () => {
                       isSearchable={false}
                       className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
                       onChange={(event) => {
-                        formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
+                        setSessionTimeout(event?.value);
                       }}
                     />
                   </div>
@@ -213,10 +239,18 @@ const PasswordView = () => {
                 <SectionBottomActions align="end">
                   <Button
                     color="primary"
-                    type="submit"
-                    loading={passwordMutation.isLoading || sessionMutation.isLoading}
-                    onClick={() => formMethods.clearErrors("apiError")}
-                    disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
+                    loading={sessionMutation.isLoading}
+                    onClick={() => {
+                      sessionMutation.mutate({
+                        metadata: { ...metadata, sessionTimeout },
+                      });
+                      formMethods.clearErrors("apiError");
+                    }}
+                    disabled={
+                      initialSessionTimeout === sessionTimeout ||
+                      passwordMutation.isLoading ||
+                      sessionMutation.isLoading
+                    }>
                     {t("update")}
                   </Button>
                 </SectionBottomActions>
@@ -239,7 +273,14 @@ const PasswordView = () => {
   );
 };
 
-PasswordView.getLayout = getLayout;
-PasswordView.PageWrapper = PageWrapper;
+const PasswordViewWrapper = () => {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  if (isLoading || !user) return null;
 
-export default PasswordView;
+  return <PasswordView user={user} />;
+};
+
+PasswordViewWrapper.getLayout = getLayout;
+PasswordViewWrapper.PageWrapper = PageWrapper;
+
+export default PasswordViewWrapper;
