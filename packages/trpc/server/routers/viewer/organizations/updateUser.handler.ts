@@ -37,7 +37,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   let avatar = input.avatar;
   if (input.avatar) {
     avatar = await resizeBase64Image(input.avatar);
-    console.log("the value of avatar is, ", avatar);
   }
 
   // Update user
