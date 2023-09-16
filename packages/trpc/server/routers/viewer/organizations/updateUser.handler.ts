@@ -1,4 +1,5 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -33,6 +34,12 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
+  let avatar = input.avatar;
+  if (input.avatar) {
+    avatar = await resizeBase64Image(input.avatar);
+    console.log("the value of avatar is, ", avatar);
+  }
+
   // Update user
   await prisma.$transaction([
     prisma.user.update({
@@ -44,6 +51,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
         email: input.email,
         name: input.name,
         timeZone: input.timeZone,
+        avatar,
       },
     }),
     prisma.membership.update({
