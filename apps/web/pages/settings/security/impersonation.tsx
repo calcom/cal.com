@@ -1,23 +1,23 @@
-import type { GetServerSidePropsContext } from "next";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Meta, showToast, NewToggle } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-import { ssrInit } from "@server/lib/ssr";
-
-const ProfileImpersonationView = () => {
+const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
+    user?.disableImpersonation
+  );
+
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
-      reset(getValues());
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
@@ -26,83 +26,45 @@ const ProfileImpersonationView = () => {
       await utils.viewer.me.cancel();
       const previousValue = utils.viewer.me.getData();
 
-      if (previousValue && disableImpersonation) {
-        utils.viewer.me.setData(undefined, { ...previousValue, disableImpersonation });
-      }
+      setDisableImpersonation(disableImpersonation);
+
       return { previousValue };
     },
     onError: (error, variables, context) => {
       if (context?.previousValue) {
         utils.viewer.me.setData(undefined, context.previousValue);
+        setDisableImpersonation(context.previousValue);
       }
       showToast(`${t("error")}, ${error.message}`, "error");
     },
   });
 
-  const formMethods = useForm<{ disableImpersonation: boolean }>({
-    defaultValues: {
-      disableImpersonation: user?.disableImpersonation,
-    },
-  });
-
-  const {
-    formState: { isSubmitting, isDirty },
-    setValue,
-    reset,
-    getValues,
-    watch,
-  } = formMethods;
-
-  const isDisabled = isSubmitting || !isDirty;
   return (
     <>
       <Meta title={t("impersonation")} description={t("impersonation_description")} />
-      <Form
-        form={formMethods}
-        handleSubmit={({ disableImpersonation }) => {
-          mutation.mutate({ disableImpersonation });
-        }}>
-        <div className="flex space-x-3">
-          <Switch
-            onCheckedChange={(e) => {
-              setValue("disableImpersonation", !e, { shouldDirty: true });
-            }}
-            fitToHeight={true}
-            checked={!watch("disableImpersonation")}
-          />
-          <div className="flex flex-col">
-            <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">
-              {t("user_impersonation_heading")}
-            </Skeleton>
-            <Skeleton as="p" className="text-default -mt-2 text-sm leading-normal">
-              {t("user_impersonation_description")}
-            </Skeleton>
-          </div>
-        </div>
-        <Button
-          color="primary"
-          loading={mutation.isLoading}
-          className="mt-8"
-          type="submit"
-          disabled={isDisabled}>
-          {t("update")}
-        </Button>
-      </Form>
+      <div className="border-subtle rounded-b-xl border-x border-b p-6">
+        <NewToggle
+          title={t("user_impersonation_heading")}
+          description={t("user_impersonation_description")}
+          checked={!disableImpersonation}
+          onCheckedChange={(checked) => {
+            mutation.mutate({ disableImpersonation: !checked });
+          }}
+          disabled={mutation.isLoading}
+        />
+      </div>
     </>
   );
 };
 
-ProfileImpersonationView.getLayout = getLayout;
-ProfileImpersonationView.PageWrapper = PageWrapper;
+const ProfileImpersonationViewWrapper = () => {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-  await ssr.viewer.me.prefetch();
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
+  if (isLoading || !user) return null;
+  return <ProfileImpersonationView user={user} />;
 };
 
-export default ProfileImpersonationView;
+ProfileImpersonationViewWrapper.getLayout = getLayout;
+ProfileImpersonationViewWrapper.PageWrapper = PageWrapper;
+
+export default ProfileImpersonationViewWrapper;
