@@ -1,4 +1,5 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
+import { AvailableTimesHeader } from "bookings/components/AvailableTimesHeader";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -248,9 +249,9 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
             <div className="flex h-full w-full flex-row gap-4">
+              <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
-                date={dayjs(selectedDate)}
                 selectedSlots={
                   eventType.slug &&
                   selectedDatesAndTimes &&
