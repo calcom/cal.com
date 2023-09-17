@@ -1,5 +1,4 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
-import { AvailableTimesHeader } from "bookings/components/AvailableTimesHeader";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -11,6 +10,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { AvailableTimesHeader } from "@calcom/features/bookings";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
