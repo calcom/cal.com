@@ -90,6 +90,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // Identify the org id in an org context signup, either the invited team is an org
+      // or has a parentId, otherwise parentId will be null, making orgId null
+      const orgId = teamMetadata?.isOrganization ? team.id : team.parentId;
+
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -97,25 +101,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          organizationId: orgId,
         },
         create: {
           username,
           email: userEmail,
           password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
+          organizationId: orgId,
         },
       });
-
-      if (teamMetadata?.isOrganization) {
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            organizationId: team.id,
-          },
-        });
-      }
 
       const membership = await prisma.membership.upsert({
         where: {
@@ -133,19 +128,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       closeComUpsertTeamUser(team, user, membership.role);
 
-      // Accept any child team invites for orgs.
+      // Accept any child team invites for orgs and create a membership for the org itself
       if (team.parentId) {
-        // Join ORG
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
+        // Create a membership for the organization itself
+        await prisma.membership.create({
           data: {
-            organizationId: team.parentId,
+            userId: user.id,
+            teamId: team.parentId,
+            accepted: true,
+            role: MembershipRole.MEMBER,
           },
         });
 
-        /** We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG. */
+        // We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG
         await prisma.membership.updateMany({
           where: {
             userId: user.id,

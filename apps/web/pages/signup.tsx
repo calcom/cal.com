@@ -74,6 +74,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
     }
   };
 
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
@@ -92,7 +94,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${
           searchParams?.get("callbackUrl")
-            ? addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup")
+            ? isOrgInviteByLink
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+              : addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup")
             : `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`
         }`;
 
@@ -105,8 +109,6 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
         methods.setError("apiError", { message: err.message });
       });
   };
-
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
   return (
     <>
