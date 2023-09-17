@@ -107,8 +107,6 @@ const AppearanceView = ({
     reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
-  console.log("brandColorsFormMethods", brandColorsFormMethods.formState, user);
-
   const selectedTheme = userThemeFormMethods.watch("theme");
   const selectedThemeIsDark =
     selectedTheme === "dark" ||
@@ -221,7 +219,10 @@ const AppearanceView = ({
               }
             }}
             childrenClassName="lg:ml-0"
-            switchContainerClassName={classNames("p-6 border-subtle rounded-xl border", "rounded-b-none")}>
+            switchContainerClassName={classNames(
+              "p-6 border-subtle rounded-xl border",
+              isCustomBrandColorChecked && "rounded-b-none"
+            )}>
             <div className="border-subtle flex flex-col gap-6 border-x p-6">
               <Controller
                 name="brandColor"
@@ -330,7 +331,7 @@ const AppearanceViewWrapper = () => {
 
   const { t } = useLocale();
 
-  if (isLoading || isTeamPlanStatusLoading)
+  if (isLoading || isTeamPlanStatusLoading || !user)
     return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;

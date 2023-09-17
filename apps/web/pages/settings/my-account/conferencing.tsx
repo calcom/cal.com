@@ -33,7 +33,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="divide-subtle mb-8 mt-6 space-y-6">
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -45,11 +45,9 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <>
-      <Button color="secondary" StartIcon={Plus} href="/apps/categories/video">
-        {t("add_conferencing_app")}
-      </Button>
-    </>
+    <Button color="secondary" StartIcon={Plus} href="/apps/categories/video">
+      {t("add")}
+    </Button>
   );
 };
 

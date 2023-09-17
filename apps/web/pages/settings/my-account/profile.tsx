@@ -48,7 +48,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mb-8 space-y-6">
+      <div className="border-subtle space-y-6 border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -425,7 +425,7 @@ const ProfileForm = ({
 
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
-      <div className="border-subtle border-x px-6 pb-10 pt-8">
+      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
         <div className="flex items-center">
           <Controller
             control={formMethods.control}

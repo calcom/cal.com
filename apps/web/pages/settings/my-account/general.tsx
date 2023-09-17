@@ -29,13 +29,13 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mb-8 mt-6 space-y-6">
+      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
 
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+        <SkeletonButton className="ml-auto h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
@@ -133,7 +133,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           });
         }}>
         <Meta title={t("general")} description={t("general_description")} />
-        <div className="border-subtle border-x border-y-0 px-6 py-8">
+        <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
           <Controller
             name="locale"
             render={({ field: { value, onChange } }) => (
@@ -220,7 +220,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           title={t("dynamic_booking")}
           description={t("allow_dynamic_booking")}
           checked={isAllowDynamicBookingChecked}
-          defaultValue={user.allowDynamicBooking ?? true}
           onCheckedChange={(checked) => {
             setIsAllowDynamicBookingChecked(checked);
             mutation.mutate({ allowDynamicBooking: checked });
@@ -235,7 +234,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);
-            mutation.mutate({ isAllowSEOIndexingChecked: checked });
+            mutation.mutate({ allowSEOIndexing: checked });
           }}
         />
       </div>

@@ -638,7 +638,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center  md:max-w-4xl">
+        <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>
@@ -687,8 +687,8 @@ export function ShellHeader() {
   return (
     <header
       className={classNames(
-        "mx-auto block justify-between sm:flex ",
-        meta.borderInShellHeader && "border-subtle rounded-t-xl border px-2 py-6 lg:px-6"
+        "mx-auto block justify-between sm:flex",
+        meta.borderInShellHeader && "border-subtle rounded-t-xl border px-4 py-6 sm:px-6"
       )}>
       <div className="flex w-full items-center">
         {meta.backButton && (

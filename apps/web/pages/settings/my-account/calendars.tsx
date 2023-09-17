@@ -1,7 +1,7 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, React, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
@@ -35,13 +35,13 @@ import SectionBottomActions from "@components/settings/SectionBottomActions";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mb-8 mt-6 space-y-6">
+      <div className="border-subtle mt-8 space-y-6 rounded-xl border px-4 py-6 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
 
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+        <SkeletonButton className="ml-auto h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
@@ -109,13 +109,13 @@ const CalendarsView = () => {
             selectedDestinationCalendarOption?.externalId === query?.data?.destinationCalendar?.externalId;
           return data.connectedCalendars.length ? (
             <div>
-              <div className="border-subtle mt-8 rounded-t-xl border p-6">
+              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
                 <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
                   {t("add_to_calendar")}
                 </h2>
                 <p className="text-default text-sm">{t("add_to_calendar_description")}</p>
               </div>
-              <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 p-6">
+              <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 px-4 py-6 sm:px-6">
                 <DestinationCalendarSelector
                   hidePlaceholder
                   value={selectedDestinationCalendarOption?.externalId}
@@ -131,20 +131,22 @@ const CalendarsView = () => {
                   disabled={isDestinationUpdateBtnDisabled}
                   color="primary"
                   onClick={() => {
-                    mutation.mutate(selectedDestinationCalendarOption);
+                    if (selectedDestinationCalendarOption) mutation.mutate(selectedDestinationCalendarOption);
                   }}>
                   {t("update")}
                 </Button>
               </SectionBottomActions>
 
-              <div className="border-subtle mt-8 rounded-t-xl border p-6">
+              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
                 <h4 className="text-emphasis text-base font-semibold leading-5">
                   {t("check_for_conflicts")}
                 </h4>
                 <p className="text-default pb-2 text-sm leading-5">{t("select_calendars")}</p>
               </div>
 
-              <List className="border-subtle flex flex-col gap-6 border border-y-0 p-6" noBorderTreatment>
+              <List
+                className="border-subtle flex flex-col gap-6 rounded-b-xl border border-t-0 p-6"
+                noBorderTreatment>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
                     {item.error && item.error.message && (
@@ -227,9 +229,6 @@ const CalendarsView = () => {
                   </Fragment>
                 ))}
               </List>
-              <SectionBottomActions align="end">
-                <Button color="primary">{t("update")}</Button>
-              </SectionBottomActions>
             </div>
           ) : (
             <EmptyScreen
