@@ -34,11 +34,13 @@ export default class LarkCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
   auth: { getToken: () => Promise<string> };
+  private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.credential = credential;
   }
 
   private larkAuth = (credential: CredentialPayload) => {
@@ -122,10 +124,13 @@ export default class LarkCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
+        event.destinationCalendar[0]
+      : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       throw new Error("no calendar id");
@@ -143,7 +148,7 @@ export default class LarkCalendarService implements Calendar {
     }
 
     try {
-      await this.createAttendees(event, eventId);
+      await this.createAttendees(event, eventId, credentialId);
       return {
         ...eventRespData,
         uid: eventRespData.data.event.event_id as string,
@@ -160,8 +165,11 @@ export default class LarkCalendarService implements Calendar {
     }
   }
 
-  private createAttendees = async (event: CalendarEvent, eventId: string) => {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+  private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
+    const mainHostDestinationCalendar = event.destinationCalendar
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
+      : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in createAttendees");
@@ -189,7 +197,9 @@ export default class LarkCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.externalId === externalCalendarId
+    );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in updateEvent");
@@ -234,7 +244,9 @@ export default class LarkCalendarService implements Calendar {
    * @returns
    */
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+    const mainHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.externalId === externalCalendarId
+    );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");
@@ -393,13 +405,16 @@ export default class LarkCalendarService implements Calendar {
         attendeeArray.push(attendee);
       });
     event.team?.members.forEach((member) => {
-      const attendee: LarkEventAttendee = {
-        type: "third_party",
-        is_optional: false,
-        third_party_email: member.email,
-      };
-      attendeeArray.push(attendee);
+      if (member.email !== this.credential.user?.email) {
+        const attendee: LarkEventAttendee = {
+          type: "third_party",
+          is_optional: false,
+          third_party_email: member.email,
+        };
+        attendeeArray.push(attendee);
+      }
     });
+
     return attendeeArray;
   };
 }

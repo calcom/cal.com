@@ -1,3 +1,7 @@
+import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
+import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import type {
   EventType as PrismaEventType,
   User as PrismaUser,
@@ -16,10 +20,6 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
-
-import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
-import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 type App = {
   slug: string;
@@ -194,10 +194,17 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const statusIn = where.OR[0].status?.in || [];
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const userIdIn = where.OR[0].userId?.in || [];
             const firstConditionMatches =
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
+              statusIn.includes(booking.status) &&
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              (booking.userId === where.OR[0].userId || userIdIn.includes(booking.userId));
 
             // We return this booking if either condition is met
             return firstConditionMatches;
