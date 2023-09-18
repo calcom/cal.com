@@ -166,6 +166,12 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "multiemail") {
           const emailsParsed = emailSchema.array().safeParse(value);
+
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+
           if (!emailsParsed.success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
