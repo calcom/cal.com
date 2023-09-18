@@ -80,7 +80,7 @@ export default function Custom404() {
 
   const isSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
-  const isSignup = pathname?.startsWith("/signup");
+  const isSignup = false;
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
