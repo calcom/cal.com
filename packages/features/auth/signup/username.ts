@@ -84,6 +84,7 @@ const usernameHandler =
 
     req.usernameStatus.json.suggestion = check.suggestedUsername;
 
+    console.log(req.usernameStatus);
     return handler(req, res);
   };
 

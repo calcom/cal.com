@@ -28,7 +28,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -44,13 +44,13 @@ type FormValues = z.infer<typeof signupSchema>;
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 function UsernameField({
+  setPremium,
+  premium,
   ...props
-}: React.ComponentProps<typeof TextField> & { setPremiumExternal?: () => void }) {
+}: React.ComponentProps<typeof TextField> & { setPremium: (value: boolean) => void; premium: boolean }) {
   const { t } = useLocale();
-  const { formState, watch, setError, register } = useFormContext<FormValues>();
-  const { errors } = formState;
+  const { watch, setError, register } = useFormContext<FormValues>();
   const [loading, setLoading] = useState(false);
-  const [premium, setPremium] = useState(false);
   const [taken, setTaken] = useState(false);
   const watchedUsername = watch("username");
   const debouncedUsername = useDebounce(watchedUsername, 500);
@@ -80,7 +80,7 @@ function UsernameField({
         });
     }
     checkUsername();
-  }, [debouncedUsername, t, setError]);
+  }, [debouncedUsername, t, setError, setPremium]);
 
   return (
     <div>
@@ -112,6 +112,8 @@ function UsernameField({
 }
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
+  const [premiumUsername, setPremiumUsername] = useState(false);
+
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -123,7 +125,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   });
   const {
     register,
-    formState: { errors, isSubmitting },
+
+    formState: { isSubmitting, errors, isLoading },
   } = formMethods;
 
   const handleErrors = async (resp: Response) => {
@@ -189,6 +192,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         <div className="flex w-full flex-col px-4 pt-16 md:px-16 lg:px-28">
           {/* Header */}
+          {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
           <div className="flex flex-col gap-3 ">
             <h1 className="font-cal text-[28px] ">
               {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -208,6 +212,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               {/* Username */}
               <UsernameField
                 label={t("username")}
+                premium={premiumUsername}
+                setPremium={(value) => setPremiumUsername(value)}
                 addOnLeading={
                   orgSlug
                     ? getOrgFullDomain(orgSlug, { protocol: true })
@@ -224,7 +230,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 hintErrors={["caplow", "min", "num"]}
               />
               <Button type="submit" className="w-full justify-center" loading={isSubmitting}>
-                {t("create_account")}
+                {premiumUsername ? `Sign up for ${getPremiumPlanPriceValue()}` : t("create_account")}
               </Button>
             </Form>
             {/* Continue with Social Logins */}
@@ -317,39 +323,30 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div
-          className="my-6 hidden w-full flex-col items-end justify-center rounded-l-lg lg:flex"
+          className="my-6 hidden w-full flex-col justify-between rounded-l-lg py-12 pl-12 lg:flex"
           style={{
             background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
           }}>
-          <div className="ml-12 flex self-start">
-            {/* <div className="my-5 flex gap-4 ">
+          <div className="flex flex-col space-y-8">
+            <div className="flex space-x-8">
               <img
-                className="hidden max-h-10 md:block"
+                className="max-h-14 text-white"
                 alt="Product of the Day"
                 src="/product-cards/product-of-the-day.svg"
               />
               <img
-                className="max-h-10"
+                className="max-h-14 text-white"
                 alt="Product of the Week"
                 src="/product-cards/product-of-the-week.svg"
               />
               <img
-                className="max-h-10"
+                className="max-h-14 text-white"
                 alt="Product of the Month"
                 src="/product-cards/product-of-the-month.svg"
               />
-            </div> */}
-            {/* <div className="mb-5 flex space-x-8">
-              <img className="max-h-14" alt="4.3 Stars on Trustpilot" src="/product-cards/trustpilot.svg" />
-              <img className="max-h-14 pt-1" alt="4.5 Stars on G2" src="/product-cards/g2.svg" />
-              <img
-                className="max-h-14 pt-1"
-                alt="5 Stars on ProductHunt"
-                src="/product-cards/producthunt.svg"
-              />
-            </div> */}
+            </div>
+            <img src="/mock-event-type-list.svg" alt="#" />
           </div>
-          <img src="/mock-event-type-list.svg" alt="#" />
         </div>
         {/* <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
