@@ -9,6 +9,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -76,8 +77,8 @@ type FormValues = {
   bio: string;
 };
 
-const checkGravatarImage = (fetchedImgSrc: string) => {
-  return fetchedImgSrc.startsWith("https://www.gravatar.com/avatar");
+const checkIfItFallbackImage = (fetchedImgSrc: string) => {
+  return fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
@@ -237,7 +238,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        isGravatarImg={checkGravatarImage(fetchedImgSrc)}
+        isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
         userAvatar={user.avatar}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -378,16 +379,12 @@ const ProfileView = () => {
   );
 };
 
-// const checkIfAvatarValueIsNotDefault = (avatar)=>{
-//   return
-// }
-
 const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
   isLoading = false,
-  isGravatarImg,
+  isFallbackImg,
   userAvatar,
   userOrganization,
 }: {
@@ -395,7 +392,7 @@ const ProfileForm = ({
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
-  isGravatarImg: boolean;
+  isFallbackImg: boolean;
   userAvatar: string;
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
@@ -435,7 +432,7 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !isGravatarImg || (value && userAvatar !== value);
+              const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
               return (
                 <>
                   <OrganizationAvatar
