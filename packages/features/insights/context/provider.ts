@@ -15,7 +15,7 @@ interface IFilter {
   initialConfig?: {
     teamId?: number | null;
     userId?: number | null;
-    isAll?: boolean;
+    isAll?: boolean | null;
   };
 }
 
