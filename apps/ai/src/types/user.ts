@@ -11,8 +11,7 @@ export type User = {
 };
 
 export type UserList = {
-  id: number;
+  id?: number;
   email?: string;
   username?: string;
-  eventTypes: { id: string; title: string; length: number }[];
 }[];

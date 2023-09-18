@@ -1,6 +1,8 @@
 import { DynamicStructuredTool } from "langchain/tools";
 import { z } from "zod";
 
+import type { UserList } from "~/src/types/user";
+
 import { env } from "../env.mjs";
 
 /**
@@ -9,21 +11,23 @@ import { env } from "../env.mjs";
 const createBooking = async ({
   apiKey,
   userId,
+  users,
   eventTypeId,
   start,
   end,
   timeZone,
   language,
-  responses,
+  invites,
 }: {
   apiKey: string;
   userId: number;
+  users: UserList;
   eventTypeId: number;
   start: string;
   end: string;
   timeZone: string;
   language: string;
-  responses: { name?: string; email?: string; location?: string };
+  invites: number[];
   title?: string;
   status?: string;
 }): Promise<string | Error | { error: string }> => {
@@ -35,6 +39,20 @@ const createBooking = async ({
   const urlParams = new URLSearchParams(params);
 
   const url = `${env.BACKEND_URL}/bookings?${urlParams.toString()}`;
+
+  const responses = invites.map((invite) => {
+    const user = users.find((u) => u.id === invite);
+    if (!user) {
+      throw new Error(`User ${invite} not found`);
+    }
+    return {
+      id: invite,
+      name: user.username,
+      email: user.email,
+    };
+  });
+
+  console.log(responses);
 
   const response = await fetch(url, {
     body: JSON.stringify({
@@ -66,18 +84,19 @@ const createBooking = async ({
   return "Booking created";
 };
 
-const createBookingTool = (apiKey: string, _userId: number) => {
+const createBookingTool = (apiKey: string, userId: number, users: UserList) => {
   return new DynamicStructuredTool({
     description: "Creates a booking on the specified user's calendar.",
-    func: async ({ userId, eventTypeId, start, end, timeZone, language, responses, title, status }) => {
+    func: async ({ eventTypeId, start, end, timeZone, language, invites, title, status }) => {
       return JSON.stringify(
         await createBooking({
           apiKey,
-          userId: userId || _userId,
+          userId,
+          users,
           end,
           eventTypeId,
           language,
-          responses,
+          invites,
           start,
           status,
           timeZone,
@@ -96,14 +115,7 @@ const createBookingTool = (apiKey: string, _userId: number) => {
         .describe("This should correspond to the event type's length, unless otherwise specified."),
       eventTypeId: z.number().describe("The event type must be owned by the user specified by userId."),
       language: z.string(),
-      responses: z
-        .object({
-          email: z.string().optional(),
-          name: z.string().optional(),
-        })
-        .describe(
-          "Users to invite. If booked on another user's calendar, make sure to invite the primary user as a response."
-        ),
+      invites: z.array(z.number()).describe("User ids to invite."),
       start: z.string(),
       status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
       timeZone: z.string(),

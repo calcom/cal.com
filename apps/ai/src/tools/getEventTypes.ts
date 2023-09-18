@@ -32,6 +32,7 @@ export const fetchEventTypes = async ({ apiKey, userId }: { apiKey: string; user
 
   return data.event_types.map((eventType: EventType) => ({
     id: eventType.id,
+    slug: eventType.slug,
     length: eventType.length,
     title: eventType.title,
   }));
