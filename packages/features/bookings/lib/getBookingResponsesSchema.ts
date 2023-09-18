@@ -79,7 +79,7 @@ function preprocess<T extends z.ZodType>({
             isPartialSchema,
             field,
           });
-          return newResponses;
+          return;
         }
         if (field.type === "boolean") {
           // Turn a boolean in string to a real boolean
@@ -103,7 +103,11 @@ function preprocess<T extends z.ZodType>({
           newResponses[field.name] = value;
         }
       });
-      return newResponses;
+
+      return {
+        ...parsedResponses,
+        ...newResponses,
+      };
     },
     schema.superRefine(async (responses, ctx) => {
       if (!eventType.bookingFields) {
@@ -137,8 +141,10 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (isRequired && !isPartialSchema && !value)
+        if (isRequired && !isPartialSchema && !value) {
           ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+          return;
+        }
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
@@ -217,7 +223,8 @@ function preprocess<T extends z.ZodType>({
               optionField?.required &&
               !optionValue
             ) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field2") });
+              return;
             }
 
             if (optionValue) {
@@ -242,7 +249,10 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        throw new Error(`Can't parse unknown booking field type: ${bookingField.type}`);
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Can't parse unknown booking field type: ${bookingField.type}`,
+        });
       }
     })
   );
