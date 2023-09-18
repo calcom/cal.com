@@ -73,7 +73,6 @@ const UserSelect = {
   id: true,
   name: true,
   email: true,
-  avatar: true,
   username: true,
 };
 
