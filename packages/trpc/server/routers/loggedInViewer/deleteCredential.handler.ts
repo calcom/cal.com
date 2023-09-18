@@ -10,9 +10,9 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { bookingMinimalSelect } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -37,8 +37,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
-      key: true,
-      appId: true,
+      ...credentialForCalendarServiceSelect,
       app: {
         select: {
           slug: true,
@@ -46,11 +45,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           dirName: true,
         },
       },
-      id: true,
-      type: true,
-      userId: true,
-      teamId: true,
-      invalid: true,
     },
   });
 
@@ -307,38 +301,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
   }
 
-  // If it's a calendar remove it from the SelectedCalendars
-  if (credential.app?.categories.includes(AppCategories.calendar)) {
-    const calendar = await getCalendar(credential);
-
-    const calendars = await calendar?.listCalendars();
-
-    if (calendars && calendars.length > 0) {
-      calendars.map(async (cal) => {
-        prisma.selectedCalendar
-          .delete({
-            where: {
-              userId_integration_externalId: {
-                userId: user.id,
-                externalId: cal.externalId,
-                integration: cal.integration as string,
-              },
-            },
-          })
-          .catch((error) => {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-              console.log(
-                `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}. Could not find selected calendar.`
-              );
-            }
-            console.log(
-              `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId} with error: ${error}`
-            );
-          });
-      });
-    }
-  }
-
   // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
   if (credential.app?.slug === "zapier") {
     await prisma.apiKey.deleteMany({
@@ -372,4 +334,46 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
+
+  // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
+  // If it's a calendar remove it from the SelectedCalendars
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    const selectedCalendars = await prisma.selectedCalendar.findMany({
+      where: {
+        userId: user.id,
+        integration: credential.type as string,
+      },
+    });
+
+    if (selectedCalendars.length) {
+      const calendar = await getCalendar(credential);
+
+      const calendars = await calendar?.listCalendars();
+
+      if (calendars && calendars.length > 0) {
+        calendars.map(async (cal) => {
+          prisma.selectedCalendar
+            .delete({
+              where: {
+                userId_integration_externalId: {
+                  userId: user.id,
+                  externalId: cal.externalId,
+                  integration: cal.integration as string,
+                },
+              },
+            })
+            .catch((error) => {
+              if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+                console.log(
+                  `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}. Could not find selected calendar.`
+                );
+              }
+              console.log(
+                `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId} with error: ${error}`
+              );
+            });
+        });
+      }
+    }
+  }
 };

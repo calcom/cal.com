@@ -24,10 +24,9 @@ export default function OtherTeamList(props: Props) {
     }
   }
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
-      await utils.viewer.teams.hasTeamPlan.invalidate();
+      await utils.viewer.organizations.listOtherTeams.invalidate();
     },
     async onError(err) {
       showToast(err.message, "error");

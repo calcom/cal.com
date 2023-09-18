@@ -14,7 +14,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
@@ -216,7 +216,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: CredentialWithAppName,
+  credential: CredentialPayload,
   calEvent: CalendarEvent,
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
@@ -255,7 +255,7 @@ export const createEvent = async (
     : undefined;
 
   return {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -270,7 +270,7 @@ export const createEvent = async (
 };
 
 export const updateEvent = async (
-  credential: CredentialWithAppName,
+  credential: CredentialPayload,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -311,7 +311,7 @@ export const updateEvent = async (
   }
 
   return {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     success,
     uid,

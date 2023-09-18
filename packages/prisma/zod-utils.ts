@@ -123,9 +123,7 @@ export const bookingResponses = z
       nonEmptyString(),
       z.object({
         firstName: nonEmptyString(),
-        lastName: nonEmptyString()
-          .refine((value: string) => value.trim().length > 0)
-          .optional(),
+        lastName: z.string().optional(),
       }),
     ]),
     guests: z.array(z.string()).optional(),
