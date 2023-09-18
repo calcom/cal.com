@@ -39,7 +39,7 @@ const ApiKeysView = () => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
         }}>
-        {t("new_api_key")}
+        {t("add")}
       </Button>
     );
   };

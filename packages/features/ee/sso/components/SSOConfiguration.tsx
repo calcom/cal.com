@@ -42,7 +42,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   if (!connection) {
     return (
       <LicenseRequired>
-        <div className="flex flex-col space-y-10">
+        <div className="[&>*]:border-subtle flex flex-col [&>*:last-child]:rounded-b-xl [&>*]:border [&>*]:border-t-0 [&>*]:px-4 [&>*]:py-6 [&>*]:sm:px-6">
           <SAMLConnection teamId={teamId} connection={null} />
           <OIDCConnection teamId={teamId} connection={null} />
         </div>
@@ -52,7 +52,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
 
   return (
     <LicenseRequired>
-      <div className="flex flex-col space-y-6">
+      <div className="[&>*]:border-subtle flex flex-col [&>*:last-child]:rounded-b-xl [&>*]:border [&>*]:border-t-0 [&>*]:px-4 [&>*]:py-6 [&>*]:sm:px-6">
         {connection.type === "saml" ? (
           <SAMLConnection teamId={teamId} connection={connection} />
         ) : (

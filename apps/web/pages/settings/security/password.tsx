@@ -153,7 +153,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="border-x p-6">
+          <div className="border-x px-4 py-6 sm:px-6">
             {formMethods.formState.errors.apiError && (
               <div className="pb-6">
                 <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
@@ -214,7 +214,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               }}
               childrenClassName="lg:ml-0"
               switchContainerClassName={classNames(
-                "p-6 border-subtle rounded-xl border",
+                "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
                 !!sessionTimeout && "rounded-b-none"
               )}>
               <>

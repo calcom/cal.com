@@ -220,7 +220,7 @@ const AppearanceView = ({
             }}
             childrenClassName="lg:ml-0"
             switchContainerClassName={classNames(
-              "p-6 border-subtle rounded-xl border",
+              "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
               isCustomBrandColorChecked && "rounded-b-none"
             )}>
             <div className="border-subtle flex flex-col gap-6 border-x p-6">

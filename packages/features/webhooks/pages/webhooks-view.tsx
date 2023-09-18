@@ -43,6 +43,7 @@ const WebhooksView = () => {
             <></>
           )
         }
+        borderInShellHeader={!(data && data.webhookGroups.length > 0)}
       />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>

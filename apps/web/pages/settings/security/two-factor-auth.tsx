@@ -39,21 +39,20 @@ const TwoFactorAuthView = () => {
     <>
       <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} />
       {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
-      <div className="border-subtle rounded-b-xl border border-t-0 p-6">
-        <NewToggle
-          title={t("two_factor_auth")}
-          description={t("add_an_extra_layer_of_security")}
-          checked={user?.twoFactorEnabled ?? false}
-          onCheckedChange={() =>
-            user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true)
-          }
-          Badge={
-            <Badge className="mx-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
-              {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
-            </Badge>
-          }
-        />
-      </div>
+      <NewToggle
+        title={t("two_factor_auth")}
+        description={t("add_an_extra_layer_of_security")}
+        checked={user?.twoFactorEnabled ?? false}
+        onCheckedChange={() =>
+          user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true)
+        }
+        Badge={
+          <Badge className="mx-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
+            {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
+          </Badge>
+        }
+        switchContainerClassName="border-subtle rounded-b-xl border border-t-0 px-5 py-6 sm:px-6"
+      />
 
       <EnableTwoFactorModal
         open={enableModalOpen}

@@ -33,7 +33,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     onError: (error, variables, context) => {
       if (context?.previousValue) {
         utils.viewer.me.setData(undefined, context.previousValue);
-        setDisableImpersonation(context.previousValue);
+        setDisableImpersonation(context.previousValue?.disableImpersonation);
       }
       showToast(`${t("error")}, ${error.message}`, "error");
     },
@@ -42,7 +42,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
   return (
     <>
       <Meta title={t("impersonation")} description={t("impersonation_description")} />
-      <div className="border-subtle rounded-b-xl border-x border-b p-6">
+      <div>
         <NewToggle
           title={t("user_impersonation_heading")}
           description={t("user_impersonation_description")}
@@ -51,6 +51,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
             mutation.mutate({ disableImpersonation: !checked });
           }}
           disabled={mutation.isLoading}
+          switchContainerClassName="py-6 px-4 sm:px-6 border-subtle rounded-b-xl border border-t-0"
         />
       </div>
     </>

@@ -47,7 +47,7 @@ const ApiKeyListItem = ({
     <div
       key={apiKey.id}
       className={classNames(
-        "flex w-full justify-between px-6 py-4",
+        "flex w-full justify-between px-4 py-4 sm:px-6",
         lastItem ? "" : "border-subtle border-b"
       )}>
       <div>
