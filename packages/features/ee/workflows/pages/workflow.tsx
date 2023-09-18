@@ -124,9 +124,12 @@ function WorkflowPage() {
     }
   );
 
-  const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
+  const readOnly = workflow?.team
+    ? workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+      MembershipRole.MEMBER
+    : false;
+
+  console.log({ workflow, readOnly, hasValidLicense: session.data?.hasValidLicense });
 
   useEffect(() => {
     if (workflow && !isLoading) {
