@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 export function UpgradeTip({
   dark,
   title,
+  plan,
   description,
   background,
   features,
@@ -15,6 +16,7 @@ export function UpgradeTip({
   children,
 }: {
   dark?: boolean;
+  plan?: "team" | "license";
   title: string;
   description: string;
   /* overwrite EmptyScreen text */
@@ -28,7 +30,10 @@ export function UpgradeTip({
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
 
-  if (hasTeamPlan) return children;
+  // todo: if plan == "license" check for license
+  // if plan == "team" check for team plan
+
+  if (plan !== "license" && hasTeamPlan) return children;
 
   if (isLoading) return <>{isParentLoading}</>;
 
