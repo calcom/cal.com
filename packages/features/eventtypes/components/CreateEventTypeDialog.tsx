@@ -82,6 +82,7 @@ export default function CreateEventTypeDialog({
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
+  const [isHours, setIsHours] = useState(false);
   const orgBranding = useOrgBranding();
 
   const {
@@ -161,7 +162,8 @@ export default function CreateEventTypeDialog({
         <Form
           form={form}
           handleSubmit={(values) => {
-            createMutation.mutate(values);
+            const updatedValues = { ...values, length: isHours ? values.length * 60 : values.length };
+            createMutation.mutate(updatedValues);
           }}>
           <div className="mt-3 space-y-6 pb-11">
             {teamId && (
@@ -227,17 +229,21 @@ export default function CreateEventTypeDialog({
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
                 />
-
                 <div className="relative">
                   <TextField
                     type="number"
-                    required
-                    min="10"
-                    placeholder="15"
                     label={t("duration")}
-                    className="pr-4"
+                    placeholder="15"
                     {...register("length", { valueAsNumber: true })}
-                    addOnSuffix={t("minutes")}
+                    addOnSuffix={
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsHours(!isHours);
+                        }}>
+                        {isHours ? t("Hours") : t("Minutes")}
+                      </button>
+                    }
                   />
                 </div>
               </>
