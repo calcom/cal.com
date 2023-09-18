@@ -2,16 +2,12 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type {
-  InterfaceWithParent,
-  interfaceWithParent,
-  UiConfig,
-  PrefillAndIframeAttrsConfig,
-} from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent, PrefillAndIframeAttrsConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css?inline";
+import type { UiConfig } from "./types";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,7 +261,12 @@ export class Cal {
       }
     }
 
-    const urlInstance = new URL(`${calOrigin || config.calOrigin}/${calLink}`);
+    // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
+    const originToUse = (calOrigin || config.calOrigin || "").replace(
+      "https://cal.com",
+      "https://app.cal.com"
+    );
+    const urlInstance = new URL(`${originToUse}/${calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
