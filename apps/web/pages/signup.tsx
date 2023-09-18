@@ -80,7 +80,7 @@ function UsernameField({
 
   return (
     <div>
-      <TextField {...props} {...register("username")} />
+      <TextField {...props} {...register("username")} data-testid="signup-usernamefield" />
       {!formState.isSubmitting && (
         <div className="text-gray text-default flex items-center text-sm">
           <p className="flex items-center text-sm ">
@@ -190,7 +190,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         <div className="flex w-full flex-col px-4 pt-6 md:px-16 lg:px-28">
           {/* Header */}
-          {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
+          {errors.apiError && (
+            <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
+          )}
           <div className="flex flex-col gap-3 ">
             <h1 className="font-cal text-[28px] ">
               {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -215,6 +217,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <UsernameField
                 label={t("username")}
                 premium={premiumUsername}
+                data-testid="signup-usernamefield"
                 setPremium={(value) => setPremiumUsername(value)}
                 addOnLeading={
                   orgSlug
@@ -223,10 +226,16 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 }
               />
               {/* Email */}
-              <TextField {...register("email")} label={t("email")} type="email" />
+              <TextField
+                {...register("email")}
+                label={t("email")}
+                type="email"
+                data-testid="signup-emailfield"
+              />
 
               {/* Password */}
               <PasswordField
+                data-testid="signup-passwordfield"
                 label={t("password")}
                 {...register("password")}
                 hintErrors={["caplow", "min", "num"]}
