@@ -148,10 +148,9 @@ test.describe("Stripe integration", () => {
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
-      await Promise.all([
-        page.waitForURL("/payment/*"),
-        page.click('[data-testid="confirm-reschedule-button"]'),
-      ]);
+      await page.click('[data-testid="confirm-reschedule-button"]');
+
+      await expect(page.getByText("This meeting is scheduled")).toBeVisible();
     });
 
     todo("Payment should trigger a BOOKING_PAID webhook");
