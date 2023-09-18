@@ -19,7 +19,7 @@ const OrganizationAvatar = ({ size, imageSrc, alt, organizationSlug, ...rest }: 
             <img
               src={`/org/${organizationSlug}/avatar.png`}
               alt={alt}
-              className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
+              className="dark:ring-darkgray-50 flex h-full items-center justify-center rounded-full ring-2 ring-white"
             />
           </div>
         ) : null
