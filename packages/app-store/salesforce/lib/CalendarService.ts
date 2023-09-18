@@ -196,7 +196,6 @@ export default class SalesforceCalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    debugger;
     const contacts = await this.salesforceContactSearch(event);
     if (contacts.length) {
       if (contacts.length == event.attendees.length) {

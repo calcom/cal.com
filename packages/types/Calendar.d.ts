@@ -1,4 +1,4 @@
-import type { Prisma, DestinationCalendar, SelectedCalendar, BookingSeat } from "@prisma/client";
+import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
@@ -42,6 +42,7 @@ export type Person = {
 };
 
 export type TeamMember = {
+  id?: number;
   name: string;
   email: string;
   timeZone: string;

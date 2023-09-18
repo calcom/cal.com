@@ -1,3 +1,5 @@
+import type { PrismaClient } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../../trpc";
 import { getHandler } from "./get.handler";
 import type { TGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
@@ -5,6 +7,7 @@ import type { TGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
 type GetOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TGetByUserIdInputSchema;
 };
@@ -12,7 +15,7 @@ type GetOptions = {
 const EMPTY_SCHEDULE = [[], [], [], [], [], [], []];
 
 export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => {
-  const foundUserDefaultId = await prisma.user.findUnique({
+  const foundUserDefaultId = await ctx.prisma.user.findUnique({
     where: {
       id: input.userId,
     },
