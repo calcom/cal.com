@@ -6,16 +6,10 @@ import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 
-// https://github.com/colinhacks/zod/discussions/839#discussioncomment-6488540
-const [firstAppKey, ...otherAppKeys] = Object.keys(appStoreMetadata) as (keyof typeof appStoreMetadata)[];
-
-const appMetadataEnum = z.enum([firstAppKey, ...otherAppKeys]);
-
 const appCredentialWebhookRequestBodySchema = z.object({
   // UserId of the cal.com user
   userId: z.number().int(),
-  // The dirname of the app under packages/app-store
-  appDirName: appMetadataEnum,
+  appSlug: z.string(),
   // Keys should be AES256 encrypted with the CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
   keys: z.string(),
 });
@@ -43,8 +37,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
+  const appDirName = await prisma.app.findUnique({
+    where: { slug: reqBody.appSlug },
+    select: { slug: true },
+  });
+
+  if (!appDirName) {
+    return res.status(404).json({ message: "App not found" });
+  }
+
   //   Search for the app's slug and type
-  const appMetadata = appStoreMetadata[reqBody.appDirName as keyof typeof appStoreMetadata];
+  const appMetadata = appStoreMetadata[appDirName.slug as keyof typeof appStoreMetadata];
 
   if (!appMetadata) {
     return res.status(404).json({ message: "App not found. Ensure that you have the correct appDir" });
