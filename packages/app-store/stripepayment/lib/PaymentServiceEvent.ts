@@ -27,6 +27,7 @@ export class PaymentServiceEvent {
         allow_promotion_codes: true,
         client_reference_id: bookingId.toString(),
         customer_email: bookerEmail,
+        billing_address_collection: "required",
         payment_intent_data: {
           metadata: {
             secret: slug,

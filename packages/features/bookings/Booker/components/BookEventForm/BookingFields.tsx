@@ -16,12 +16,14 @@ export const BookingFields = ({
   rescheduleUid,
   isDynamicGroupBooking,
   currentStep,
+  updateFields,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   isDynamicGroupBooking: boolean;
   currentStep: number;
+  updateFields: (updatedFields: typeof fields) => void; // Define the function type
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -29,17 +31,62 @@ export const BookingFields = ({
   const posthog = usePostHog();
   const currentView = rescheduleUid ? "reschedule" : "";
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(watch("responses.payment"));
-  // Add an effect to update the additional fields when the selected payment method changes
   useEffect(() => {
     setSelectedPaymentMethod(watch("responses.payment"));
   }, [watch("responses.payment")]);
 
+  const updateField = () => {
+    const updatedFields = fields.map((field) => {
+      const isPaypalID = selectedPaymentMethod === "Paypal ID";
+      const isBankDetails = selectedPaymentMethod === "Bank Details";
+      if (isPaypalID && field.name === "PaypalId") {
+        return {
+          ...field,
+          required: true,
+        };
+      }
+      if (isPaypalID && ["baddress", "bname", "iban", "bcode"].includes(field.name)) {
+        // If selectedPaymentMethod is "Paypal ID" and field name matches, set 'required: false'
+        setValue("responses.baddress", "");
+        setValue("responses.bname", "");
+        setValue("responses.iban", "");
+        setValue("responses.bcode", "");
+        return {
+          ...field,
+          required: false,
+        };
+      } else if (isBankDetails) {
+        // If selectedPaymentMethod is "Bank Details," set 'paypalid' to 'required: false'
+        if (field.name === "PaypalId") {
+          setValue("responses.PaypalId", "");
+          return {
+            ...field,
+            required: false,
+          };
+        }
+        // Set the other mentioned fields to 'required: true'
+        if (["baddress", "bname", "iban", "bcode"].includes(field.name)) {
+          return {
+            ...field,
+            required: true,
+          };
+        }
+      }
+      return field; // Keep other fields as they are
+    });
+
+    updateFields(updatedFields);
+  };
+  useEffect(() => {
+    updateField();
+  }, [selectedPaymentMethod]);
   useEffect(() => {
     posthog?.setPersonProperties(
       { address: watch("responses.address") },
       { phone: watch("responses.Phone-Number") } // Thes properties are like the `$set` from above
     );
   }, [watch("responses.address"), watch("responses.Phone-Number")]);
+
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form

@@ -60,6 +60,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     metadata: null,
     responses: null,
     isRecorded: false,
+    recordingLink: "ff",
     ...booking,
   };
 };

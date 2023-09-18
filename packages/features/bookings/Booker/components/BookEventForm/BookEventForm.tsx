@@ -259,7 +259,30 @@ export const BookEventFormChild = ({
       showToast(t("email_not_sent"), "error");
     },
   });
+  const sortedFields = eventType?.bookingFields.sort((a, b) => {
+    // Define the desired order of field names
+    const desiredOrder = ["name", "email", "location", "guests"];
 
+    // Get the index of each field name in the desired order
+    const indexA = desiredOrder.indexOf(a.name);
+    const indexB = desiredOrder.indexOf(b.name);
+
+    // Compare the indices to determine the sorting order
+    if (indexA === -1 && indexB === -1) {
+      // If both field names are not in the desired order, maintain their original order
+      return 0;
+    } else if (indexA === -1) {
+      // If field A is not in the desired order, it should come after field B
+      return 1;
+    } else if (indexB === -1) {
+      // If field B is not in the desired order, it should come after field A
+      return -1;
+    } else {
+      // Compare the indices to determine the sorting order
+      return indexA - indexB;
+    }
+  });
+  const [fields, setFields] = useState(sortedFields);
   const verifyEmail = () => {
     bookingForm.clearErrors();
 
@@ -350,29 +373,6 @@ export const BookEventFormChild = ({
 
   const renderConfirmNotVerifyEmailButtonCond =
     !eventType?.requiresBookerEmailVerification || (email && verifiedEmail && verifiedEmail === email);
-  const sortedFields = eventType?.bookingFields.sort((a, b) => {
-    // Define the desired order of field names
-    const desiredOrder = ["name", "email", "location", "guests"];
-
-    // Get the index of each field name in the desired order
-    const indexA = desiredOrder.indexOf(a.name);
-    const indexB = desiredOrder.indexOf(b.name);
-
-    // Compare the indices to determine the sorting order
-    if (indexA === -1 && indexB === -1) {
-      // If both field names are not in the desired order, maintain their original order
-      return 0;
-    } else if (indexA === -1) {
-      // If field A is not in the desired order, it should come after field B
-      return 1;
-    } else if (indexB === -1) {
-      // If field B is not in the desired order, it should come after field A
-      return -1;
-    } else {
-      // Compare the indices to determine the sorting order
-      return indexA - indexB;
-    }
-  });
 
   function isValidEmail(email: string) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -383,6 +383,10 @@ export const BookEventFormChild = ({
   const emailNotValid = !isValidEmail(bookingForm.getValues("responses.email"));
   const guestsArray = bookingForm.getValues("responses.guests");
 
+  const updateFields = (updatedFields) => {
+    eventType.bookingFields = updatedFields;
+    setFields(updatedFields);
+  };
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -400,9 +404,10 @@ export const BookEventFormChild = ({
         <BookingFields
           currentStep={currentStep}
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
-          fields={sortedFields}
+          fields={fields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
+          updateFields={updateFields}
         />
         {(createBookingMutation.isError ||
           createRecurringBookingMutation.isError ||

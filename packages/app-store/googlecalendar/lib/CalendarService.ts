@@ -115,13 +115,28 @@ export default class GoogleCalendarService implements Calendar {
         attendees: [
           {
             ...calEventRaw.organizer,
-            id: String(calEventRaw.organizer.id),
+
             responseStatus: "accepted",
             organizer: true,
             email: selectedHostDestinationCalendar?.externalId
               ? selectedHostDestinationCalendar.externalId
               : calEventRaw.organizer.email,
           },
+          {
+            email: calEventRaw.organizer.email,
+            name: calEventRaw.organizer.name,
+            timeZone: calEventRaw.organizer.timeZone,
+            language: calEventRaw.organizer.language,
+            responseStatus: "accepted",
+          },
+          {
+            email: process.env.BOT_EMAIL,
+            name: "Recording Bot",
+            timeZone: calEventRaw.organizer.timeZone,
+            language: calEventRaw.organizer.language,
+            responseStatus: "accepted",
+          },
+
           ...eventAttendees,
           ...teamMembers,
         ],
@@ -224,9 +239,7 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
-            email: mainHostDestinationCalendar?.externalId
-              ? mainHostDestinationCalendar.externalId
-              : event.organizer.email,
+            email: event.organizer.email,
           },
           ...(eventAttendees as any),
           ...(teamMembers as any),

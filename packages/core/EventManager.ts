@@ -136,10 +136,28 @@ export default class EventManager {
 
       results.push(result);
     }
-
     // Some calendar libraries may edit the original event so let's clone it
     const clonedCalEvent = cloneDeep(event);
-    // Create the calendar event with the proper video call data
+    const adminCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        externalId: process.env.CALENDAR_EMAIL,
+        integration: "google_calendar",
+      },
+      select: {
+        id: true,
+        integration: true,
+        externalId: true,
+        userId: true,
+        eventTypeId: true,
+        credentialId: true,
+      },
+    });
+    delete clonedCalEvent.destinationCalendar;
+
+    if (!clonedCalEvent.destinationCalendar) {
+      clonedCalEvent.destinationCalendar = [];
+    }
+    adminCalendar && clonedCalEvent.destinationCalendar.unshift(adminCalendar);
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
