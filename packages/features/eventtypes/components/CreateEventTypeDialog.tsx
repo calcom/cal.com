@@ -233,10 +233,10 @@ export default function CreateEventTypeDialog({
                   <TextField
                     type="number"
                     required
-                    min="1"
+                    min={isHours ? 1 : 15}
+                    placeholder="15"
                     label={t("duration")}
                     className="pr-4"
-                    placeholder="15"
                     {...register("length", { valueAsNumber: true })}
                     addOnSuffix={
                       <button
