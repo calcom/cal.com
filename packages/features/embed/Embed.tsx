@@ -137,8 +137,6 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
 
-  const [selectTime, setSelectTime] = useState(false);
-
   useInitializeBookerStore({
     username,
     eventSlug: eventType?.slug ?? "",
@@ -248,7 +246,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       </div>
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
-          {selectTime && selectedDate ? (
+          {selectedDate ? (
             <div className="flex h-full w-full flex-row gap-4">
               <AvailableTimes
                 className="w-full"
