@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 export const apiHandlers = {
+  alby: import("./alby/api"),
   amie: import("./amie/api"),
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
@@ -29,6 +30,7 @@ export const apiHandlers = {
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
+  make: import("./make/api"),
   metapixel: import("./metapixel/api"),
   mirotalk: import("./mirotalk/api"),
   n8n: import("./n8n/api"),

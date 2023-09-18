@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,10 +15,10 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
-  Avatar,
   Button,
   Dialog,
   DialogClose,
@@ -238,6 +239,7 @@ const ProfileView = () => {
         isLoading={updateProfileMutation.isLoading}
         isGravatarImg={checkGravatarImage(fetchedImgSrc)}
         userAvatar={user.avatar}
+        userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -387,6 +389,7 @@ const ProfileForm = ({
   isLoading = false,
   isGravatarImg,
   userAvatar,
+  userOrganization,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
@@ -394,6 +397,7 @@ const ProfileForm = ({
   isLoading: boolean;
   isGravatarImg: boolean;
   userAvatar: string;
+  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -434,7 +438,12 @@ const ProfileForm = ({
               const showRemoveAvatarButton = !isGravatarImg || (value && userAvatar !== value);
               return (
                 <>
-                  <Avatar alt="user-avatar" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+                  <OrganizationAvatar
+                    alt={formMethods.getValues("username")}
+                    imageSrc={value}
+                    size="lg"
+                    organizationSlug={userOrganization.slug}
+                  />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">

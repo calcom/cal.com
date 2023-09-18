@@ -80,8 +80,14 @@ export default function AppListCard(props: AppListCardProps) {
 
   return (
     <div className={classNames(highlight && "dark:bg-muted bg-yellow-100")}>
-      <div className="flex items-center gap-x-3 px-3 py-4 sm:px-5">
-        {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
+      <div className="flex items-center gap-x-3 px-5 py-4">
+        {logo ? (
+          <img
+            className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10")}
+            src={logo}
+            alt={`${title} logo`}
+          />
+        ) : null}
         <div className="flex grow flex-col gap-y-1 truncate">
           <div className="flex items-center gap-x-2">
             <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>

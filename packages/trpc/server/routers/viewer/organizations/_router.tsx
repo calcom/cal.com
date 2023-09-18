@@ -10,6 +10,7 @@ import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
+import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
@@ -118,6 +119,10 @@ export const viewerOrganizationsRouter = router({
       namespaced("listOtherTeams"),
       () => import("./listOtherTeams.handler")
     );
+    return handler(opts);
+  }),
+  deleteTeam: authedOrgAdminProcedure.input(ZDeleteTeamInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("deleteTeam"), () => import("./deleteTeam.handler"));
     return handler(opts);
   }),
 });

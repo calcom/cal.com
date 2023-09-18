@@ -41,7 +41,8 @@ const editBooking = async ({
     method: "PATCH",
   });
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  // Let GPT handle this. This will happen when wrong booking id is used.
+  // if (response.status === 401) throw new Error("Unauthorized");
 
   const data = await response.json();
 

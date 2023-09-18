@@ -241,24 +241,43 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input?.price || input.metadata?.apps?.stripe?.price) {
-    data.price = input.price || input.metadata?.apps?.stripe?.price;
+  if (input.metadata?.apps?.stripe?.price) {
+    data.price = input.metadata?.apps?.stripe?.price;
     const paymentCredential = await ctx.prisma.credential.findFirst({
       where: {
         userId: ctx.user.id,
-        type: {
-          contains: "_payment",
+        appId: {
+          equals: "stripe",
         },
       },
       select: {
-        type: true,
+        appId: true,
         key: true,
       },
     });
 
-    if (paymentCredential?.type === "stripe_payment") {
+    if (paymentCredential?.appId === "stripe") {
       const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
       data.currency = default_currency;
+    }
+  }
+
+  if (input.metadata?.apps?.paypal?.price) {
+    data.price = input.metadata?.apps?.paypal?.price;
+    const paymentCredential = await ctx.prisma.credential.findFirst({
+      where: {
+        userId: ctx.user.id,
+        appId: {
+          equals: "paypal",
+        },
+      },
+      select: {
+        appId: true,
+        key: true,
+      },
+    });
+    if (paymentCredential?.appId === "paypal" && input.metadata?.apps?.paypal?.currency) {
+      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
     }
   }
 
