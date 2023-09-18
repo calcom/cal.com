@@ -102,22 +102,24 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      {schedule.isLoading
-        ? // Shows exact amount of days as skeleton.
-          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
-        : slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <AvailableTimesHeader
-              key={slots.date}
-              date={dayjs(slots.date)}
-              showTimeFormatToggle={!isColumnView}
-              availableMonth={
-                dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
-                  ? dayjs(slots.date).format("MMM")
-                  : undefined
-              }
-            />
-          ))}
+      <div className="flex">
+        {schedule.isLoading
+          ? // Shows exact amount of days as skeleton.
+            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          : slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimesHeader
+                key={slots.date}
+                date={dayjs(slots.date)}
+                showTimeFormatToggle={!isColumnView}
+                availableMonth={
+                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                    ? dayjs(slots.date).format("MMM")
+                    : undefined
+                }
+              />
+            ))}
+      </div>
       <div
         ref={containerRef}
         className={classNames(
