@@ -30,6 +30,11 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     ensureReqIsPost(req);
     ensureSignupIsEnabled();
 
+    /**  Im not sure its worth merging these two handlers. They are different enough to be separate.
+     * Calcom handles things like creating a stripe customer - which we dont need to do for self hosted.
+     * It also handles things like premium username.
+     * TODO: (SEAN) - Extract a lot of the logic from calcomHandler into a separate file and import it into both handlers.
+     */
     if (IS_CALCOM) {
       return await calcomSignupHandler(req, res);
     }
