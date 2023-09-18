@@ -11,7 +11,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Form, Meta, PasswordField, Select, NewToggle, showToast } from "@calcom/ui";
+import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import SectionBottomActions from "@components/settings/SectionBottomActions";
@@ -194,7 +194,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
             </Button>
           </SectionBottomActions>
           <div className="mt-6">
-            <NewToggle
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
               title={t("session_timeout")}
               description={t("session_timeout_description")}
               checked={sessionTimeout !== undefined}
@@ -255,7 +256,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                   </Button>
                 </SectionBottomActions>
               </>
-            </NewToggle>
+            </SettingsToggle>
           </div>
           {/* TODO: Why is this Form not submitting? Hacky fix but works */}
           {/* <Button

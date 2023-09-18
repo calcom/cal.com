@@ -24,7 +24,7 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  NewToggle,
+  SettingsToggle,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
@@ -205,7 +205,8 @@ const AppearanceView = ({
           mutation.mutate(values);
         }}>
         <div className="mt-6">
-          <NewToggle
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
             title={t("custom_brand_colors")}
             description={t("customize_your_brand_colors")}
             checked={isCustomBrandColorChecked}
@@ -296,7 +297,7 @@ const AppearanceView = ({
                 {t("update")}
               </Button>
             </SectionBottomActions>
-          </NewToggle>
+          </SettingsToggle>
         </div>
       </Form>
 
@@ -308,19 +309,20 @@ const AppearanceView = ({
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-      <div className="border-subtle mt-6 rounded-xl border p-6">
-        <NewToggle
-          title={t("disable_cal_branding", { appName: APP_NAME })}
-          disabled={!hasPaidPlan || mutation?.isLoading}
-          description={t("removes_cal_branding", { appName: APP_NAME })}
-          checked={hasPaidPlan ? hideBrandingValue : false}
-          Badge={<UpgradeTeamsBadge />}
-          onCheckedChange={(checked) => {
-            setHideBrandingValue(checked);
-            mutation.mutate({ hideBranding: checked });
-          }}
-        />
-      </div>
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("disable_cal_branding", { appName: APP_NAME })}
+        disabled={!hasPaidPlan || mutation?.isLoading}
+        description={t("removes_cal_branding", { appName: APP_NAME })}
+        checked={hasPaidPlan ? hideBrandingValue : false}
+        Badge={<UpgradeTeamsBadge />}
+        onCheckedChange={(checked) => {
+          setHideBrandingValue(checked);
+          mutation.mutate({ hideBranding: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
     </div>
   );
 };

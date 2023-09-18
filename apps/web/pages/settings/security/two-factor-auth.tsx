@@ -3,7 +3,15 @@ import { useState } from "react";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Meta, SkeletonButton, SkeletonContainer, SkeletonText, Alert, NewToggle } from "@calcom/ui";
+import {
+  Badge,
+  Meta,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  Alert,
+  SettingsToggle,
+} from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
@@ -39,7 +47,8 @@ const TwoFactorAuthView = () => {
     <>
       <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} />
       {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
-      <NewToggle
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
         title={t("two_factor_auth")}
         description={t("add_an_extra_layer_of_security")}
         checked={user?.twoFactorEnabled ?? false}

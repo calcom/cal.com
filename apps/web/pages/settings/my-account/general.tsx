@@ -19,7 +19,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   TimezoneSelect,
-  NewToggle,
+  SettingsToggle,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -215,29 +215,30 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </Button>
         </SectionBottomActions>
       </Form>
-      <div className="border-subtle mt-6 rounded-xl border p-6">
-        <NewToggle
-          title={t("dynamic_booking")}
-          description={t("allow_dynamic_booking")}
-          checked={isAllowDynamicBookingChecked}
-          onCheckedChange={(checked) => {
-            setIsAllowDynamicBookingChecked(checked);
-            mutation.mutate({ allowDynamicBooking: checked });
-          }}
-        />
-      </div>
 
-      <div className="border-subtle mt-6 rounded-xl border p-6">
-        <NewToggle
-          title={t("seo_indexing")}
-          description={t("allow_seo_indexing")}
-          checked={isAllowSEOIndexingChecked}
-          onCheckedChange={(checked) => {
-            setIsAllowSEOIndexingChecked(checked);
-            mutation.mutate({ allowSEOIndexing: checked });
-          }}
-        />
-      </div>
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("dynamic_booking")}
+        description={t("allow_dynamic_booking")}
+        checked={isAllowDynamicBookingChecked}
+        onCheckedChange={(checked) => {
+          setIsAllowDynamicBookingChecked(checked);
+          mutation.mutate({ allowDynamicBooking: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("seo_indexing")}
+        description={t("allow_seo_indexing")}
+        checked={isAllowSEOIndexingChecked}
+        onCheckedChange={(checked) => {
+          setIsAllowSEOIndexingChecked(checked);
+          mutation.mutate({ allowSEOIndexing: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Meta, showToast, NewToggle } from "@calcom/ui";
+import { Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -43,7 +43,8 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     <>
       <Meta title={t("impersonation")} description={t("impersonation_description")} />
       <div>
-        <NewToggle
+        <SettingsToggle
+          toggleSwitchAtTheEnd={true}
           title={t("user_impersonation_heading")}
           description={t("user_impersonation_description")}
           checked={!disableImpersonation}
