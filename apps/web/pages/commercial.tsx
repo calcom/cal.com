@@ -54,10 +54,7 @@ export default function CommercialPage() {
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
-              <Button color="primary" href="https://console.cal.com">
-                {t("continue")}
-              </Button>
-              <Button color="minimal" href="https://cal.com/sales" target="_blank">
+              <Button color="primary" href="https://cal.com/sales">
                 {t("contact_sales")}
               </Button>
             </ButtonGroup>
