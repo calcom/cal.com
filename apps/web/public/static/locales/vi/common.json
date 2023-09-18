@@ -1992,5 +1992,9 @@
   "org_team_names_example_3": "ví dụ Nhóm Thiết kế",
   "org_team_names_example_4": "ví dụ Nhóm Kỹ thuật",
   "org_team_names_example_5": "ví dụ Nhóm Phân tích dữ liệu",
+  "org_max_team_warnings": "Bạn sẽ có thể thêm vào nhiều nhóm nữa sau này.",
+  "what_is_this_meeting_about": "Cuộc họp này về điều gì?",
+  "add_to_team": "Thêm vào nhóm",
+  "remove_users_from_org": "Xoá bỏ người dùng khỏi tổ chức",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
