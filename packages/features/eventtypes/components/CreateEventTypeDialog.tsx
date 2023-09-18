@@ -232,7 +232,10 @@ export default function CreateEventTypeDialog({
                 <div className="relative">
                   <TextField
                     type="number"
+                    required
+                    min="1"
                     label={t("duration")}
+                    className="pr-4"
                     placeholder="15"
                     {...register("length", { valueAsNumber: true })}
                     addOnSuffix={
