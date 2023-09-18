@@ -49,7 +49,7 @@ function UsernameField({
   ...props
 }: React.ComponentProps<typeof TextField> & { setPremium: (value: boolean) => void; premium: boolean }) {
   const { t } = useLocale();
-  const { watch, setError, register } = useFormContext<FormValues>();
+  const { watch, setError, register, formState } = useFormContext<FormValues>();
   const [loading, setLoading] = useState(false);
   const [taken, setTaken] = useState(false);
   const watchedUsername = watch("username");
@@ -85,28 +85,30 @@ function UsernameField({
   return (
     <div>
       <TextField {...props} {...register("username")} />
-      <div className="text-gray text-default flex items-center text-sm">
-        <p className="flex items-center text-sm ">
-          {loading ? (
-            <>
-              <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
-              {t("loading")}
-            </>
-          ) : taken ? (
-            <div className="text-error">
-              <Info className="mr-1 inline-block h-4 w-4" />
-              {t("already_taken")}
-            </div>
-          ) : premium ? (
-            <>
-              <StarIcon className="mr-1 inline-block h-4 w-4" />
-              {t("premium_username", {
-                price: getPremiumPlanPriceValue(),
-              })}
-            </>
-          ) : null}
-        </p>
-      </div>
+      {!formState.isSubmitting && (
+        <div className="text-gray text-default flex items-center text-sm">
+          <p className="flex items-center text-sm ">
+            {loading ? (
+              <>
+                <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
+                {t("loading")}
+              </>
+            ) : taken ? (
+              <div className="text-error">
+                <Info className="mr-1 inline-block h-4 w-4" />
+                {t("already_taken")}
+              </div>
+            ) : premium ? (
+              <>
+                <StarIcon className="mr-1 inline-block h-4 w-4" />
+                {t("premium_username", {
+                  price: getPremiumPlanPriceValue(),
+                })}
+              </>
+            ) : null}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
