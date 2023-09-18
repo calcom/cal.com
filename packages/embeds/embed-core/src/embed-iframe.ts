@@ -6,6 +6,12 @@ import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
 
+type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
+type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+const enum EMBED_IFRAME_STATE {
+  NOT_INITIALIZED,
+  INITIALIZED,
+}
 /**
  * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
  */
@@ -35,6 +41,7 @@ declare global {
     };
   }
 }
+
 /**
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
