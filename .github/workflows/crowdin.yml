@@ -19,7 +19,7 @@ jobs:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: crowdin action
-        uses: crowdin/github-action@1.5.1
+        uses: crowdin/github-action@v1.13.0
         with:
           upload_sources: true
           upload_translations: true

@@ -2,10 +2,9 @@ import { expect, it, beforeAll, vi } from "vitest";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 
-
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
-})
+});
 
 const HAWAII_AND_NEWYORK_TEAM = [
   {

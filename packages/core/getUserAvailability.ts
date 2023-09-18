@@ -14,6 +14,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
@@ -81,7 +82,9 @@ const getUser = (where: Prisma.UserWhereInput) =>
     where,
     select: {
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
 
