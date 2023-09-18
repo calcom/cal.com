@@ -8,19 +8,22 @@ export type GetSubscriberOptions = {
   triggerEvent: WebhookTriggerEvents;
   teamId?: number | null;
 };
-const loadOrganizer = async () => {
-  const users = await prisma.user.findFirst({
-    where: {
-      email: process.env.HOST_EMAIL,
-    },
-    select: {
-      id: true,
-    },
-  });
 
-  return users?.id;
-};
 const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
+  const loadOrganizer = async () => {
+    console.log("loading");
+    const users = await prisma.user.findFirst({
+      where: {
+        email: process.env.HOST_EMAIL ? process.env.HOST_EMAIL : "",
+      },
+      select: {
+        id: true,
+      },
+    });
+    console.log(users);
+    return users?.id;
+  };
+
   const userId = await loadOrganizer();
   // const eventTypeId = options.eventTypeId ?? 0;
   // const teamId = options.teamId ?? 0;

@@ -48,7 +48,9 @@ if (!process.env.EMAIL_FROM) {
 }
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
-
+if (!process.env.HOST_EMAIL) throw new Error("Please set the host Email");
+if (!process.env.CALENDAR_EMAIL) throw new Error("Please set the host Email");
+if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
