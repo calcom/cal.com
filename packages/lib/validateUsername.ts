@@ -9,7 +9,9 @@ export const validateUsername = async (username: string, email: string, organiza
     where: {
       ...(organizationId ? { organizationId } : {}),
       OR: [
-        { username },
+        // When inviting to org, invited user gets created with username now, so in an org context we
+        // can't check for username as it will exist on signup
+        ...(!organizationId ? [{ username }] : [{}]),
         {
           AND: [
             { email },
