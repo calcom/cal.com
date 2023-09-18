@@ -66,11 +66,7 @@ function UsernameField({
       setLoading(true);
       fetchUsername(debouncedUsername)
         .then(({ data }) => {
-          if (data.premium) {
-            setPremium(true);
-          } else {
-            setPremium(false);
-          }
+          setPremium(data.premium);
           if (!data.available) {
             setTaken(true);
           }
@@ -128,10 +124,10 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const {
     register,
 
-    formState: { isSubmitting, errors, isLoading },
+    formState: { isSubmitting, errors },
   } = formMethods;
 
-  const handleErrors = async (resp: Response) => {
+  const handleErrorsAndStripe = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
       if (err.checkoutSessionId) {
@@ -161,7 +157,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       },
       method: "POST",
     })
-      .then(handleErrors)
+      .then(handleErrorsAndStripe)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
@@ -180,19 +176,19 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   };
 
   return (
-    <>
-      <div
-        className="bg-muted grid min-h-screen grid-cols-1 grid-rows-1 lg:grid-cols-2 "
-        style={
-          {
-            "--cal-brand": "#111827",
-            "--cal-brand-emphasis": "#101010",
-            "--cal-brand-text": "white",
-            "--cal-brand-subtle": "#9CA3AF",
-          } as CSSProperties
-        }>
+    <div
+      className="bg-muted flex min-h-screen w-full flex-col items-center justify-center"
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+          "--cal-brand-subtle": "#9CA3AF",
+        } as CSSProperties
+      }>
+      <div className="grid max-h-[1080px]  w-full grid-cols-1 grid-rows-1 lg:grid-cols-2">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-4 pt-16 md:px-16 lg:px-28">
+        <div className="flex w-full flex-col px-4 pt-6 md:px-16 lg:px-28">
           {/* Header */}
           {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
           <div className="flex flex-col gap-3 ">
@@ -201,7 +197,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             </h1>
             {IS_CALCOM ? (
               <p className="text-subtle text-base font-medium leading-none">{t("cal_signup_description")}</p>
-            ) : null}
+            ) : (
+              <p className="text-subtle text-base font-medium leading-none">
+                Meet all your scheduling needs{" "}
+              </p>
+            )}
           </div>
           {/* Form Container */}
           <div className="mt-10">
@@ -350,76 +350,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             <img src="/mock-event-type-list.svg" alt="#" />
           </div>
         </div>
-        {/* <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
-            {t("create_your_account")}
-          </h2>
-        </div>
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-default mx-2 p-6 shadow sm:rounded-lg lg:p-8">
-            <FormProvider {...methods}>
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-
-                  if (methods.formState?.errors?.apiError) {
-                    methods.clearErrors("apiError");
-                  }
-                  methods.handleSubmit(signUp)(event);
-                }}
-                className="bg-default space-y-6">
-                {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
-                <div className="space-y-4">
-                  <TextField
-                    addOnLeading={
-                      orgSlug
-                        ? getOrgFullDomain(orgSlug, { protocol: true })
-                        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
-                    }
-                    {...register("username")}
-                    disabled={!!orgSlug}
-                    required
-                  />
-                  <EmailField
-                    {...register("email")}
-                    disabled={prepopulateFormValues?.email}
-                    className="disabled:bg-emphasis disabled:hover:cursor-not-allowed"
-                  />
-                  <PasswordField
-                    labelProps={{
-                      className: "block text-sm font-medium text-default",
-                    }}
-                    {...register("password")}
-                    hintErrors={["caplow", "min", "num"]}
-                    className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-                  />
-                </div>
-                <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button type="submit" loading={isSubmitting} className="w-full justify-center">
-                    {t("create_account")}
-                  </Button>
-                  {!token && (
-                    <Button
-                      color="secondary"
-                      className="w-full justify-center"
-                      onClick={() =>
-                        signIn("Cal.com", {
-                          callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-                            : `${WEBAPP_URL}/getting-started`,
-                        })
-                      }>
-                      {t("login_instead")}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </FormProvider>
-          </div>
-        </div> */}
       </div>
-    </>
+    </div>
   );
 }
 
