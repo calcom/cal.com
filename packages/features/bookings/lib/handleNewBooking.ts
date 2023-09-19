@@ -380,7 +380,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -746,7 +746,7 @@ async function handler(
         const users = await prisma.user.findMany({
           where: {
             username: { in: dynamicUserList },
-            organization: userOrgQuery(req.headers.host.replace(/^https?:\/\//, "")),
+            organization: userOrgQuery(req.headers.host ? req.headers.host.replace(/^https?:\/\//, "") : ""),
           },
           select: {
             ...userSelect.select,
