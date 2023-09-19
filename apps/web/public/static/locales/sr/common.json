@@ -2021,6 +2021,7 @@
   "member_removed": "Član je uklonjen",
   "my_availability": "Moja dostupnost",
   "team_availability": "Dostupnost tima",
+  "backup_code": "Rezervna kopija kôda",
   "backup_codes": "Kodovi za rezervnu kopiju",
   "backup_code_instructions": "Svaki kôd za rezervnu kopiju može biti korišćen samo jednom da bi se obezbedio pristup bez vašeg autentifikatora.",
   "backup_codes_copied": "Kopirani su kodovi za rezervnu kopiju!",
