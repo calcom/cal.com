@@ -1,6 +1,7 @@
 import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -50,7 +51,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRight}>
+                    <Button data-testid="return-home" href={DEFAULT_PAGE} EndIcon={ArrowRight}>
                       {t("go_back")}
                     </Button>
                   </div>

@@ -9,6 +9,7 @@ import { z } from "zod";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
@@ -218,7 +219,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (user.completedOnboarding) {
-    return { redirect: { permanent: false, destination: "/event-types" } };
+    return { redirect: { permanent: false, destination: DEFAULT_PAGE } };
   }
   const locale = await getLocale(context.req);
 

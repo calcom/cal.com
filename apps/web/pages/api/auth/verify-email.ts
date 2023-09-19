@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
 const verifySchema = z.object({
@@ -44,5 +45,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hasCompletedOnboarding = user.completedOnboarding;
 
-  res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? DEFAULT_PAGE : "/getting-started"}`);
 }

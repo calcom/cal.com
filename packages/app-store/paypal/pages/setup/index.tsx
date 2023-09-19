@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, showToast, TextField } from "@calcom/ui";
@@ -20,7 +21,7 @@ export default function PayPalSetup() {
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
-      router.push("/event-types");
+      router.push(DEFAULT_PAGE);
     },
     onError: (error) => {
       showToast(error.message, "error");

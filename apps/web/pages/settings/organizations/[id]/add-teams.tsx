@@ -1,6 +1,7 @@
 import type { AppProps as NextAppProps } from "next/app";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout } from "@calcom/ui";
 
@@ -24,7 +25,7 @@ AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextAppProps["rou
       currentStep={5}
       maxSteps={5}
       isOptionalCallback={() => {
-        router.push(`/event-types`);
+        router.push(DEFAULT_PAGE);
       }}>
       {page}
     </WizardLayout>

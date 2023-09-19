@@ -518,16 +518,16 @@ const MORE_SEPARATOR_NAME = "more";
 
 const navigation: NavigationItemType[] = [
   {
-    name: "event_types_page_title",
-    href: "/event-types",
-    icon: LinkIcon,
-  },
-  {
     name: "bookings",
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
+  },
+  {
+    name: "event_types_page_title",
+    href: "/event-types",
+    icon: LinkIcon,
   },
   {
     name: "availability",

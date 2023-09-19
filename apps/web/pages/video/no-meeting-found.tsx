@@ -1,3 +1,4 @@
+import { DEFAULT_PAGE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { X, ArrowRight } from "@calcom/ui/components/icon";
@@ -16,7 +17,7 @@ export default function NoMeetingFound() {
           headline={t("no_meeting_found")}
           description={t("no_meeting_found_description")}
           buttonRaw={
-            <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRight}>
+            <Button data-testid="return-home" href={DEFAULT_PAGE} EndIcon={ArrowRight}>
               {t("go_back_home")}
             </Button>
           }
