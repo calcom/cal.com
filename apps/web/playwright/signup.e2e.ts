@@ -85,15 +85,30 @@ test.describe("Signup Flow Test", async () => {
 
     // Check that stripe checkout is present
     const expectedUrl = "https://checkout.stripe.com"; // Adjust the expected URL
-    const regexPattern = /^https:\/\/checkout\.stripe\.com\/.*/;
 
-    await page.waitForURL(new RegExp(regexPattern));
-
+    await page.waitForURL((url) => url.pathname.includes(expectedUrl));
     const url = page.url();
 
     // Check that the URL matches the expected URL
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
+  });
+  test("Premium Username Flow - SelfHosted", async ({ page, users }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(IS_CALCOM, "Only run on Selfhosted Instances");
+
+    // Signup with premium username name
+    await page.goto("/signup");
+
+    // Fill form
+    await page.locator('input[name="username"]').fill("rick");
+    await page.locator('input[name="email"]').fill("rick@example.com");
+    await page.locator('input[name="password"]').fill("Password99!");
+
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+
+    expect(page.url()).toContain("/auth/verify-email");
   });
 
   test("Signup with valid (non premium) username", async ({ page, users }) => {
