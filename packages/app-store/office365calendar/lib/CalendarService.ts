@@ -17,6 +17,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
@@ -241,28 +243,25 @@ export default class Office365CalendarService implements Calendar {
 
     const refreshAccessToken = async (o365AuthCredentials: O365AuthCredentials) => {
       const { client_id, client_secret } = await getOfficeAppKeys();
-      const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          scope: "User.Read Calendars.Read Calendars.ReadWrite",
-          client_id,
-          refresh_token: o365AuthCredentials.refresh_token,
-          grant_type: "refresh_token",
-          client_secret,
-        }),
-      });
+      const response = await refreshOAuthTokens(
+        async () =>
+          await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              scope: "User.Read Calendars.Read Calendars.ReadWrite",
+              client_id,
+              refresh_token: o365AuthCredentials.refresh_token,
+              grant_type: "refresh_token",
+              client_secret,
+            }),
+          }),
+        "office365-calendar",
+        credential.userId
+      );
       const responseJson = await handleErrorsJson(response);
-      const tokenResponse = refreshTokenResponseSchema.safeParse(responseJson);
+      const tokenResponse = parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
       o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
-      if (!tokenResponse.success) {
-        console.error(
-          "Outlook error grabbing new tokens ~ zodError:",
-          tokenResponse.error,
-          "MS response:",
-          responseJson
-        );
-      }
       await prisma.credential.update({
         where: {
           id: credential.id,
