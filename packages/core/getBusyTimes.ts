@@ -144,7 +144,7 @@ export async function getBusyTimes(params: {
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
       if (rest._count?.seatsReferences) {
-        const bookedAt = dayjs(startTime).utc().format() + "<>" + dayjs(endTime).utc().format();
+        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
         // Seat references on the current event are non-blocking until the event is fully booked.

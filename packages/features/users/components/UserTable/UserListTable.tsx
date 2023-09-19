@@ -164,7 +164,7 @@ export function UserListTable() {
           const { username, email } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={domain + "/" + username + "/avatar.png"} />
+              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}

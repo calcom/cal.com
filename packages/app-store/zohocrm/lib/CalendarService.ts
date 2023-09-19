@@ -96,8 +96,9 @@ export default class ZohoCrmCalendarService implements Calendar {
   };
 
   private contactSearch = async (event: CalendarEvent) => {
-    const searchCriteria =
-      "(" + event.attendees.map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`).join("or") + ")";
+    const searchCriteria = `(${event.attendees
+      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
+      .join("or")})`;
 
     return await axios({
       method: "get",

@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
-      .map((key) => key + "=" + encodeURIComponent(payload[key]))
+      .map((key) => `${key}=${encodeURIComponent(payload[key])}`)
       .join("&");
 
   const body = toUrlEncoded({
@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: WEBAPP_URL + "/api/integrations/office365calendar/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
     client_secret,
   });
 

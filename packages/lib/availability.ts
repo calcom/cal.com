@@ -165,5 +165,5 @@ export function availabilityAsString(
     );
   };
 
-  return weekSpan(availability) + ", " + timeSpan(availability);
+  return `${weekSpan(availability)}, ${timeSpan(availability)}`;
 }

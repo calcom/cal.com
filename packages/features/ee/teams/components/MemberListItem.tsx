@@ -143,7 +143,7 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <Avatar
               size="sm"
-              imageSrc={bookerUrl + "/" + props.member.username + "/avatar.png"}
+              imageSrc={`${bookerUrl}/${props.member.username}/avatar.png`}
               alt={name || ""}
               className="h-10 w-10 rounded-full"
             />

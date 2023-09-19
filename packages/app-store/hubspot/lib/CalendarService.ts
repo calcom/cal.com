@@ -176,7 +176,7 @@ export default class HubspotCalendarService implements Calendar {
         const hubspotRefreshToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
           "refresh_token",
           undefined,
-          WEBAPP_URL + "/api/integrations/hubspot/callback",
+          `${WEBAPP_URL}/api/integrations/hubspot/callback`,
           this.client_id,
           this.client_secret,
           refreshToken

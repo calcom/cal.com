@@ -168,8 +168,8 @@ export async function getCloseComCustomActivityTypeFieldsIds(
     // Cal.com Custom Activity type doesn't exist
     // Create Custom Activity Type
     const { id: activityType } = await closeCom.customActivity.type.create({
-      name: APP_NAME + " Activity",
-      description: "Bookings in your " + APP_NAME + " account",
+      name: `${APP_NAME} Activity`,
+      description: `Bookings in your ${APP_NAME} account`,
     });
     // Create Custom Activity Fields
     const fields = await Promise.all(

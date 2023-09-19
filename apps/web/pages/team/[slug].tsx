@@ -101,7 +101,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   items={type.users.map((user) => ({
                     alt: user.name || "",
                     title: user.name || "",
-                    image: "/" + user.username + "/avatar.png" || "",
+                    image: `/${user.username}/avatar.png` || "",
                   }))}
                 />
               </div>
@@ -304,7 +304,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: "/" + user.username + "/avatar.png",
+      avatar: `/${user.username}/avatar.png`,
     })),
     descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));

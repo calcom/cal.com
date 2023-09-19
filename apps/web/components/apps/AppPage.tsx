@@ -264,8 +264,8 @@ export const AppPage = ({
 
         {price !== 0 && (
           <span className="block text-right">
-            {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
-            {feeType === "monthly" && "/" + t("month")}
+            {feeType === "usage-based" ? `${commission}% + ${priceInDollar}/booking` : priceInDollar}
+            {feeType === "monthly" && `/${t("month")}`}
           </span>
         )}
 

@@ -30,12 +30,12 @@ export default function Provider(props: SSOProviderPageProps) {
       const email = searchParams?.get("email");
 
       if (!email) {
-        router.push("/auth/error?error=" + "Email not provided");
+        router.push(`/auth/error?error=Email not provided`);
         return;
       }
 
       if (!props.isSAMLLoginEnabled) {
-        router.push("/auth/error?error=" + "SAML login not enabled");
+        router.push(`/auth/error?error=SAML login not enabled`);
         return;
       }
 

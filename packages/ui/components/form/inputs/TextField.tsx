@@ -61,7 +61,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelClassName,
     disabled,
     LockedIcon,
-    placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady && i18n.exists(`${name}_placeholder`) ? t(`${name}_placeholder`) : "",
     className,
     addOnLeading,
     addOnSuffix,

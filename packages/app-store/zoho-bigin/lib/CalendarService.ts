@@ -142,8 +142,9 @@ export default class BiginCalendarService implements Calendar {
    */
   private async contactSearch(event: CalendarEvent) {
     const token = await this.auth.getToken();
-    const searchCriteria =
-      "(" + event.attendees.map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`).join("or") + ")";
+    const searchCriteria = `(${event.attendees
+      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
+      .join("or")})`;
 
     return await axios({
       method: "get",

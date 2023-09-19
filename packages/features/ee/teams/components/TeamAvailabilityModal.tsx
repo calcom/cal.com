@@ -39,7 +39,7 @@ export default function TeamAvailabilityModal(props: Props) {
             <div className="flex">
               <Avatar
                 size="md"
-                imageSrc={WEBAPP_URL + "/" + props.member?.username + "/avatar.png"}
+                imageSrc={`${WEBAPP_URL}/${props.member?.username}/avatar.png`}
                 alt={props.member?.name || ""}
               />
               <div className="flex items-center justify-center ">

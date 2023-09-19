@@ -189,7 +189,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     value: 0,
                   },
                   ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                    label: minutes + " " + t("minutes"),
+                    label: `minutes ${t("minutes")}`,
                     value: minutes,
                   })),
                 ];
@@ -225,7 +225,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     value: 0,
                   },
                   ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                    label: minutes + " " + t("minutes"),
+                    label: `minutes ${t("minutes")}`,
                     value: minutes,
                   })),
                 ];
@@ -272,7 +272,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     value: -1,
                   },
                   ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                    label: minutes + " " + t("minutes"),
+                    label: `minutes ${t("minutes")}`,
                     value: minutes,
                   })),
                 ];

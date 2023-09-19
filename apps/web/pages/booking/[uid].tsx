@@ -674,7 +674,7 @@ export default function Success(props: SuccessProps) {
                           <Link
                             href={"data:text/calendar," + eventLink()}
                             className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
-                            download={props.eventType.title + ".ics"}>
+                            download={`${props.eventType.title}.ics`}>
                             <svg
                               version="1.1"
                               fill="currentColor"

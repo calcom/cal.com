@@ -72,7 +72,7 @@ const zoomRefreshedTokenSchema = z.object({
 const zoomAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
-    const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+    const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
 
     const response = await fetch("https://zoom.us/oauth/token", {
       method: "POST",
