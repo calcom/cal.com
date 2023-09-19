@@ -196,6 +196,18 @@ function TeamPage({
             {team.parent && `${team.parent.name} `}
             {teamName}
           </p>
+          {team.address && (
+            <>
+              <div className="flex w-full flex-row items-center justify-center text-sm font-medium">
+                <img
+                  src="/map-pin.svg"
+                  className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
+                  alt="map-pin"
+                />
+                <p className="line-clamp-1">{team.address}</p>
+              </div>
+            </>
+          )}
           {!isBioEmpty && (
             <>
               <div
