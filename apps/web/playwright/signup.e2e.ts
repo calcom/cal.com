@@ -18,6 +18,25 @@ test.describe("Signup Flow Test", async () => {
     await users.deleteByEmail("rick@example.com");
     await users.deleteByEmail("rick-jones@example.com");
   });
+  test.afterEach(async ({ users }) => {
+    // Clean up the user and token
+    await prisma.user.deleteMany({
+      where: {
+        email: "rick-team@example.com",
+      },
+    });
+    await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: "rick-team@example.com",
+      },
+    });
+
+    await prisma.team.deleteMany({
+      where: {
+        name: "Rick's Team",
+      },
+    });
+  });
   test("Username is taken", async ({ page, users }) => {
     // log in trail user
     await test.step("Sign up", async () => {
@@ -172,23 +191,5 @@ test.describe("Signup Flow Test", async () => {
 
     expect(await usernameField.inputValue()).toBe("rick-team");
     expect(await emailField.inputValue()).toBe("rick-team@example.com");
-
-    // Clean up the user and token
-    await prisma.user.delete({
-      where: {
-        id: rickTeamUser.id,
-      },
-    });
-    await prisma.verificationToken.delete({
-      where: {
-        id: createdtoken.id,
-      },
-    });
-
-    await prisma.team.delete({
-      where: {
-        id: createdtoken.teamId ?? -1,
-      },
-    });
   });
 });
