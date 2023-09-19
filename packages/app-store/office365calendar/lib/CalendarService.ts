@@ -262,14 +262,6 @@ export default class Office365CalendarService implements Calendar {
       const responseJson = await handleErrorsJson(response);
       const tokenResponse = parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
       o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
-      if (!tokenResponse.success) {
-        console.error(
-          "Outlook error grabbing new tokens ~ zodError:",
-          tokenResponse.error,
-          "MS response:",
-          responseJson
-        );
-      }
       await prisma.credential.update({
         where: {
           id: credential.id,

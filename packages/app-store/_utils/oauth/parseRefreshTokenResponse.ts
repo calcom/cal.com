@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 
-const minimumTokenReponseSchema = z.object({
+const minimumTokenResponseSchema = z.object({
   access_token: z.string(),
   //   Assume that any property with a number is the expiry
   [z.string().toString()]: z.number(),
@@ -13,7 +13,7 @@ const minimumTokenReponseSchema = z.object({
 const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
-    refreshTokenResponse = minimumTokenReponseSchema.safeParse(response);
+    refreshTokenResponse = minimumTokenResponseSchema.safeParse(response);
   } else {
     refreshTokenResponse = schema.safeParse(response);
   }
