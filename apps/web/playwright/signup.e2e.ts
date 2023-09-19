@@ -9,7 +9,7 @@ test.describe("Signup Validation", async () => {
   test("Username is taken", async ({ page, users }) => {
     // log in trail user
     await test.step("Sign up", async () => {
-      const pro = await users.create({
+      await users.create({
         username: "pro",
       });
 
