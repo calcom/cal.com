@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: user?.email,
         first_name: user?.name || undefined,
         /** We need this so E2E don't fail for international users */
-        country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
+        country: "US",
       },
       redirect_uri,
       state: typeof req.query.state === "string" ? req.query.state : undefined,
@@ -44,8 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
      * Choose Express or Standard Stripe accounts
      * @url https://stripe.com/docs/connect/accounts
      */
-    // const url = `https://connect.stripe.com/express/oauth/authorize?${query}`;
-    const url = `https://connect.stripe.com/oauth/authorize?${query}`;
+    const url = `https://connect.stripe.com/express/oauth/authorize?${query}`;
+    // const url = `https://connect.stripe.com/oauth/authorize?${query}`;
 
     res.status(200).json({ url });
   }
