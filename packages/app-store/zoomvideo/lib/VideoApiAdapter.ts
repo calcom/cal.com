@@ -101,14 +101,14 @@ const zoomAuth = (credential: CredentialPayload) => {
       }
     }
     // We check the if the new credentials matches the expected response structure
-    const parsedToken = parseRefreshTokenResponse(responseBody, zoomRefreshedTokenSchema);
+    const newTokens: z.infer<typeof zoomRefreshedTokenSchema> = parseRefreshTokenResponse(
+      responseBody,
+      zoomRefreshedTokenSchema
+    );
 
     // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
     // Expanding on this we can use server-to-server app and create meeting from admin calcom account
-    if (!parsedToken.success) {
-      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
-    }
-    const newTokens = parsedToken.data;
+
     const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
     const parsedKey = zoomTokenSchema.safeParse(oldCredential.key);
     if (!parsedKey.success) {
