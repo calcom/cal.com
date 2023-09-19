@@ -2053,5 +2053,7 @@
   "view_only_edit_availability_not_onboarded":"This user has not completed onboarding. You will not be able to set their availability until they have completed onboarding.",
   "view_only_edit_availability":"You are viewing this user's availability. You can only edit your own availability.",
   "edit_users_availability":"Edit user's availability: {{username}}",
+  "resend_invitation": "Resend invitation",
+  "invitation_resent": "The invitation was resent.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
