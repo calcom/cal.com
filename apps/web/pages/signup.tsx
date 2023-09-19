@@ -328,13 +328,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div
-          className="my-6 hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex"
+          className="my-6 hidden w-full flex-col justify-center rounded-l-2xl py-12 pl-12 lg:flex"
           style={{
             background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
           }}>
-          <div className="flex flex-col space-y-8">
-            <img src="/mock-event-type-list.svg" alt="#" />
-          </div>
+          <img src="/mock-event-type-list.svg" alt="#" />
         </div>
       </div>
     </div>
