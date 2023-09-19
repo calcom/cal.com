@@ -19,7 +19,6 @@ import { Loader } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
-import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
@@ -27,13 +26,7 @@ import { UserSettings } from "@components/getting-started/steps-views/UserSettin
 import { ssrInit } from "@server/lib/ssr";
 
 const INITIAL_STEP = "user-settings";
-const steps = [
-  "user-settings",
-  "connected-calendar",
-  "connected-video",
-  "setup-availability",
-  "user-profile",
-] as const;
+const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
 
 const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
@@ -68,11 +61,6 @@ const OnboardingPage = () => {
       title: `${t("connect_your_calendar")}`,
       subtitle: [`${t("connect_your_calendar_instructions")}`],
       skipText: `${t("connect_calendar_later")}`,
-    },
-    {
-      title: `${t("connect_your_video_app")}`,
-      subtitle: [`${t("connect_your_video_app_instructions")}`],
-      skipText: `${t("set_up_later")}`,
     },
     {
       title: `${t("set_availability")}`,
@@ -147,11 +135,9 @@ const OnboardingPage = () => {
                 )}
                 {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
-
                 {currentStep === "setup-availability" && (
                   <SetupAvailability
-                    nextStep={() => goToIndex(4)}
+                    nextStep={() => goToIndex(3)}
                     defaultScheduleId={user.defaultScheduleId}
                   />
                 )}
