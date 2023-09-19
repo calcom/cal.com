@@ -950,6 +950,7 @@
   "offer_seats_description": "Rezervasyonlar için yer teklif edin. Bu işlem, misafirleri ve rezervasyon onaylarını devre dışı bırakır.",
   "seats_available_one": "Yer mevcut",
   "seats_available_other": "Yer mevcut",
+  "seats_half_full": "Koltuklar hızla doluyor",
   "number_of_seats": "Rezervasyon başına yer sayısı",
   "enter_number_of_seats": "Yer sayısını girin",
   "you_can_manage_your_schedules": "Müsaitlik durumu sayfasından planlarınızı yönetebilirsiniz.",
@@ -1030,6 +1031,7 @@
   "how_you_want_add_cal_site": "{{appName}}'ı sitenize nasıl eklemek istersiniz?",
   "choose_ways_put_cal_site": "{{appName}}'ı sitenize eklemek için aşağıdaki seçeneklerden birini belirleyin.",
   "setting_up_zapier": "Zapier entegrasyonunuzu ayarlama",
+  "setting_up_make": "Make entegrasyonunuzu ayarlayın",
   "generate_api_key": "API anahtarı oluştur",
   "generate_api_key_description": "{{appName}} ile kullanmak için bir API anahtarı oluşturun:",
   "your_unique_api_key": "Benzersiz API anahtarınız",
@@ -1085,6 +1087,7 @@
   "email_attendee_action": "katılımcılara e-posta gönder",
   "sms_attendee_action": "Katılımcıya SMS gönder",
   "sms_number_action": "belirli bir numaraya SMS gönder",
+  "send_reminder_sms": "Katılımcılarınıza toplantı hatırlatmalarını SMS ile kolayca gönderin",
   "whatsapp_number_action": "belirli bir numaraya Whatsapp mesajı gönder",
   "whatsapp_attendee_action": "katılımcıya Whatsapp mesajı gönder",
   "workflows": "İş akışları",
@@ -1939,5 +1942,8 @@
   "insights_user_filter": "Kullanıcı: {{userName}}",
   "insights_subtitle": "Etkinliklerinizdeki rezervasyon insights'ı görüntüleyin",
   "custom_plan": "Özel Plan",
+  "email_embed": "E-posta Yerleştirme",
+  "add_times_to_your_email": "Uygun zamanlardan bazılarını seçin ve bunları E-postanıza ekleyin",
+  "kyc_verification_information": "Güvenliği sağlamak için katılımcılara kısa mesaj göndermeden önce {{teamOrAccount}} hesabınızı doğrulamanız gereklidir. Lütfen <a>{{supportEmail}}</a> adresinden bizimle iletişime geçin ve aşağıdaki bilgileri sağlayın:",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
