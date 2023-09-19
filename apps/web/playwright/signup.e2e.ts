@@ -17,8 +17,6 @@ test.describe("Signup Flow Test", async () => {
      */
     await users.deleteByEmail("rick@example.com");
     await users.deleteByEmail("rick-jones@example.com");
-  });
-  test.afterEach(async ({ users }) => {
     // Clean up the user and token
     await prisma.user.deleteMany({
       where: {
