@@ -15,6 +15,7 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  debugger;
   if (req.method !== "POST") {
     return res.status(405).end();
   }
@@ -130,16 +131,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Accept any child team invites for orgs and create a membership for the org itself
       if (team.parentId) {
-        // Create a membership for the organization itself
-        await prisma.membership.create({
-          data: {
-            userId: user.id,
-            teamId: team.parentId,
-            accepted: true,
-            role: MembershipRole.MEMBER,
-          },
-        });
-
         // We do a membership update twice so we can join the ORG invite if the user is invited to a team witin a ORG
         await prisma.membership.updateMany({
           where: {
