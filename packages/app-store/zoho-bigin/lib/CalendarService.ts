@@ -15,7 +15,6 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { appKeysSchema } from "../zod";
 
 export type BiginToken = {
@@ -82,16 +81,11 @@ export default class BiginCalendarService implements Calendar {
       refresh_token: credentialKey.refresh_token,
     };
 
-    const tokenInfo = await refreshOAuthTokens(
-      async () =>
-        await axios.post(accountsUrl, qs.stringify(formData), {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          },
-        }),
-      "zoho-bigin",
-      credentialId
-    );
+    const tokenInfo = await axios.post(accountsUrl, qs.stringify(formData), {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+      },
+    });
 
     if (!tokenInfo.data.error) {
       // set expiry date as offset from current time.

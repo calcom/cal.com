@@ -6,8 +6,8 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";
