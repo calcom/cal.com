@@ -21,6 +21,7 @@ type UpdateOptions = {
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
 
+  console.log({ input });
   if (!isOrgAdmin) {
     if (!(await isTeamAdmin(ctx.user?.id, input.id))) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -54,6 +55,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
+    address: input.address,
   };
 
   if (

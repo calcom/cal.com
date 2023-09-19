@@ -53,6 +53,7 @@ const teamProfileFormSchema = z.object({
     .min(1, { message: "Url cannot be left empty" }),
   logo: z.string(),
   bio: z.string(),
+  address: z.string(),
 });
 
 const ProfileView = () => {
@@ -96,6 +97,7 @@ const ProfileView = () => {
           form.setValue("slug", team.slug || "");
           form.setValue("bio", team.bio || "");
           form.setValue("logo", team.logo || "");
+          form.setValue("address", team.address || "");
           if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
             form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
           }
@@ -169,6 +171,7 @@ const ProfileView = () => {
                     slug: values.slug,
                     bio: values.bio,
                     logo: values.logo,
+                    address: values.address,
                   };
                   objectKeys(variables).forEach((key) => {
                     if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
@@ -241,6 +244,22 @@ const ProfileView = () => {
                       onChange={(e) => {
                         form.clearErrors("slug");
                         form.setValue("slug", slugify(e?.target.value, true));
+                      }}
+                    />
+                  </div>
+                )}
+              />
+              <Controller
+                name="address"
+                control={form.control}
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="address"
+                      label={t("address")}
+                      value={value}
+                      onChange={(e) => {
+                        form.setValue("address", e?.target.value);
                       }}
                     />
                   </div>
