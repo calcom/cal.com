@@ -49,7 +49,6 @@ export const MonthlyDigestEmail = (
               fontWeight: 600,
               fontSize: "48px",
               lineHeight: "48px",
-              fontFamily: "Inter",
             }}>
             {props.Created}
           </p>
@@ -63,7 +62,6 @@ export const MonthlyDigestEmail = (
               fontWeight: 600,
               fontSize: "48px",
               lineHeight: "48px",
-              fontFamily: "Inter",
             }}>
             {props.Completed}
           </p>
@@ -77,7 +75,6 @@ export const MonthlyDigestEmail = (
               fontWeight: 600,
               fontSize: "48px",
               lineHeight: "48px",
-              fontFamily: "Inter",
             }}>
             {props.Rescheduled}
           </p>
@@ -91,7 +88,6 @@ export const MonthlyDigestEmail = (
               fontWeight: 600,
               fontSize: "48px",
               lineHeight: "48px",
-              fontFamily: "Inter",
             }}>
             {props.Cancelled}
           </p>
@@ -116,10 +112,10 @@ export const MonthlyDigestEmail = (
           }}>
           {props.language("your_monthly_digest")}
         </p>
-        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px", fontFamily: "Inter" }}>
+        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px" }}>
           {props.language("hi_user_name", { name: props.admin.name })}!
         </p>
-        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px", fontFamily: "Inter" }}>
+        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px" }}>
           {props.language("summary_of_events_for_your_team_for_the_last_30_days", {
             teamName: props.team.name,
           })}
@@ -127,7 +123,6 @@ export const MonthlyDigestEmail = (
         <EventsDetails />
         <div
           style={{
-            fontFamily: "Inter",
             width: "100%",
           }}>
           <div
@@ -155,7 +150,7 @@ export const MonthlyDigestEmail = (
               ))
             : null}
         </div>
-        <div style={{ width: "100%", marginTop: "30px", fontFamily: "Inter" }}>
+        <div style={{ width: "100%", marginTop: "30px" }}>
           <div
             style={{
               display: "flex",
