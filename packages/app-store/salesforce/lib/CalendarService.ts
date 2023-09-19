@@ -87,15 +87,14 @@ export default class SalesforceCalendarService implements Calendar {
 
     const accessTokenJson = await response.json();
 
-    const accessTokenParsed = parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
-
-    if (!accessTokenParsed.success) {
-      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
-    }
+    const accessTokenParsed: z.infer<typeof salesforceTokenSchema> = parseRefreshTokenResponse(
+      accessTokenJson,
+      salesforceTokenSchema
+    );
 
     await prisma.credential.update({
       where: { id: credential.id },
-      data: { key: { ...accessTokenParsed.data, refresh_token: credentialKey.refresh_token } },
+      data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
     });
 
     return new jsforce.Connection({
