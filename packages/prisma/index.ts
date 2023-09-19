@@ -15,8 +15,8 @@ if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "war
 
 const prismaWithoutClientExtensions = new PrismaClientWithoutExtension(prismaOptions);
 
-export const customPrisma = (options: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options });
+export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
+  new PrismaClientWithoutExtension({ ...prismaOptions, ...options }).$extends(withAccelerate());
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
