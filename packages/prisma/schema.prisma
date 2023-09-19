@@ -296,6 +296,9 @@ model Team {
   credentials         Credential[]
   accessCodes         AccessCode[]
 
+  // Sweet Additions
+  address String?
+
   @@unique([slug, parentId])
 }
 
