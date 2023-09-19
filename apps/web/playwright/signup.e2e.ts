@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { randomBytes } from "crypto";
 
 import { IS_CALCOM } from "@calcom/lib/constants";
 
@@ -124,5 +125,70 @@ test.describe("Signup Flow Test", async () => {
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
+  });
+  test("Signup with token prefils correct fields", async ({ page, users, prisma }) => {
+    //Create a user and create a token
+    const token = randomBytes(32).toString("hex");
+
+    // @shivram we can probably create a fixture for this logic.
+    const createdtoken = await prisma.verificationToken.create({
+      data: {
+        identifier: "rick-team@example.com",
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+        team: {
+          create: {
+            name: "Rick's Team",
+            slug: "ricks-team",
+          },
+        },
+      },
+    });
+
+    // create a user with the same email as the token
+    const rickTeamUser = await prisma.user.create({
+      data: {
+        email: "rick-team@example.com",
+        username: "rick-team",
+      },
+    });
+
+    // Create provitional membership
+    await prisma.membership.create({
+      data: {
+        teamId: createdtoken.teamId ?? -1,
+        userId: rickTeamUser.id,
+        role: "ADMIN",
+        accepted: false,
+      },
+    });
+
+    const signupUrlWithToken = `/signup?token=${token}`;
+
+    await page.goto(signupUrlWithToken);
+
+    const usernameField = page.locator('input[name="username"]');
+    const emailField = page.locator('input[name="email"]');
+
+    expect(await usernameField.inputValue()).toBe("rick-team");
+    expect(await emailField.inputValue()).toBe("rick-team@example.com");
+
+    // Clean up the user and token
+    await prisma.user.delete({
+      where: {
+        id: rickTeamUser.id,
+      },
+    });
+    await prisma.verificationToken.delete({
+      where: {
+        id: createdtoken.id,
+      },
+    });
+
+    await prisma.team.delete({
+      where: {
+        id: createdtoken.teamId ?? -1,
+      },
+    });
   });
 });
