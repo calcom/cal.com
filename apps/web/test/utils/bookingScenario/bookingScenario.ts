@@ -173,7 +173,6 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
       };
-      console.log("eventTypeMock", eventType, "where", where, "eventTypesWithUsers", eventTypesWithUsers);
       resolve(eventType);
     });
   };
