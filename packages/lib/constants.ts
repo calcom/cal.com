@@ -33,11 +33,12 @@ export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.
 export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
 
 export const IS_CALCOM =
-  WEBAPP_URL &&
-  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+  true ||
+  (WEBAPP_URL &&
+    (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+      new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+      new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+      new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com")));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||

@@ -45,6 +45,5 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
       return res.status(e.statusCode).json({ message: e.message });
     }
     return res.status(500).json({ message: "Internal server error" });
-  } finally {
   }
 }

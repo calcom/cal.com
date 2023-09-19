@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Trans } from "react-i18next";
@@ -20,7 +20,6 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
 import { IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -49,34 +48,29 @@ function UsernameField({
   ...props
 }: React.ComponentProps<typeof TextField> & { setPremium: (value: boolean) => void; premium: boolean }) {
   const { t } = useLocale();
-  const { watch, setError, register, formState } = useFormContext<FormValues>();
-  const [loading, setLoading] = useState(false);
+  const { watch, register, formState } = useFormContext<FormValues>();
   const [taken, setTaken] = useState(false);
   const watchedUsername = watch("username");
   const debouncedUsername = useDebounce(watchedUsername, 500);
+  // const { isFetching } = useQuery({
+  //   queryKey: ["username"],
+  //   queryFn: async () => await fetchUsername(debouncedUsername),
+  //   refetchOnWindowFocus: false,
+  //   onSuccess: ({ data }) => {
+  //     setPremium(data.premium);
+  //     if (!data.available) {
+  //       setTaken(true);
+  //     }
+  //   },
+  //   enabled: debouncedUsername?.length > 0 || false,
+  // });
 
-  useEffect(() => {
-    async function checkUsername() {
-      if (!debouncedUsername) {
-        setLoading(false);
-        setPremium(false);
-        setTaken(false);
-        return;
-      }
-      setLoading(true);
-      fetchUsername(debouncedUsername)
-        .then(({ data }) => {
-          setPremium(data.premium);
-          if (!data.available) {
-            setTaken(true);
-          }
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-    checkUsername();
-  }, [debouncedUsername, t, setError, setPremium]);
+  // useEffect(() => {
+  //   if (!debouncedUsername) {
+  //     setTaken(false);
+  //     setPremium(false);
+  //   }
+  // }, [debouncedUsername, setPremium, setTaken]);
 
   return (
     <div>
@@ -84,7 +78,7 @@ function UsernameField({
       {!formState.isSubmitting && (
         <div className="text-gray text-default flex items-center text-sm">
           <p className="flex items-center text-sm ">
-            {loading ? (
+            {false ? (
               <>
                 <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
                 {t("loading")}
@@ -95,12 +89,12 @@ function UsernameField({
                 {t("already_taken")}
               </div>
             ) : premium ? (
-              <>
+              <div data-testid="premium-username-warning">
                 <StarIcon className="mr-1 inline-block h-4 w-4" />
                 {t("premium_username", {
                   price: getPremiumPlanPriceValue(),
                 })}
-              </>
+              </div>
             ) : null}
           </p>
         </div>
@@ -177,7 +171,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
 
   return (
     <div
-      className="bg-muted flex min-h-screen w-full flex-col items-center justify-center"
+      className="bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center"
       style={
         {
           "--cal-brand": "#111827",
@@ -186,14 +180,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }>
-      <div className="grid max-h-[1080px]  w-full grid-cols-1 grid-rows-1 lg:grid-cols-2">
+      <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-lg 2xl:border ">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-4 pt-6 md:px-16 lg:px-28">
+        <div className="flex w-full flex-col px-4 py-6 md:px-16 lg:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
           )}
-          <div className="flex flex-col gap-3 ">
+          <div className="flex flex-col gap-1">
             <h1 className="font-cal text-[28px] ">
               {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
             </h1>
@@ -208,7 +202,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           {/* Form Container */}
           <div className="mt-10">
             <Form
-              className="flex flex-col gap-5"
+              className="flex flex-col gap-4"
               form={formMethods}
               handleSubmit={async (values) => {
                 await signUp(values);
@@ -240,8 +234,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 {...register("password")}
                 hintErrors={["caplow", "min", "num"]}
               />
-              <Button type="submit" className="w-full justify-center" loading={isSubmitting}>
-                {premiumUsername ? `Sign up for ${getPremiumPlanPriceValue()}` : t("create_account")}
+              <Button type="submit" className="my-2 w-full justify-center" loading={isSubmitting}>
+                {premiumUsername ? `Create Account for ${getPremiumPlanPriceValue()}` : t("create_account")}
               </Button>
             </Form>
             {/* Continue with Social Logins */}
@@ -312,7 +306,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             </div>
           </div>
           {/* Already have an account & T&C */}
-          <div className="mb-6 mt-auto ">
+          <div className="mt-6">
             <div className="flex flex-col text-sm">
               <Link href="/auth/login" className="text-emphasis hover:underline">
                 {t("already_have_account")}
@@ -334,28 +328,11 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div
-          className="my-6 hidden w-full flex-col justify-between rounded-l-lg py-12 pl-12 lg:flex"
+          className="my-6 hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex"
           style={{
             background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
           }}>
           <div className="flex flex-col space-y-8">
-            <div className="flex space-x-8">
-              <img
-                className="max-h-14 text-white"
-                alt="Product of the Day"
-                src="/product-cards/product-of-the-day.svg"
-              />
-              <img
-                className="max-h-14 text-white"
-                alt="Product of the Week"
-                src="/product-cards/product-of-the-week.svg"
-              />
-              <img
-                className="max-h-14 text-white"
-                alt="Product of the Month"
-                src="/product-cards/product-of-the-month.svg"
-              />
-            </div>
             <img src="/mock-event-type-list.svg" alt="#" />
           </div>
         </div>

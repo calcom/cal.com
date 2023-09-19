@@ -355,6 +355,15 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
     },
+    deleteByEmail: async (email: string) => {
+      // Use deleteMany instead of delete to avoid the findUniqueOrThrow error that happens before the delete
+      await prisma.user.deleteMany({
+        where: {
+          email,
+        },
+      });
+      store.users = store.users.filter((b) => b.email !== email);
+    },
   };
 };
 

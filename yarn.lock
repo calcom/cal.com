@@ -4334,7 +4334,6 @@ __metadata:
     next: ^13.4.6
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
-    next-collect: ^0.2.1
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
     playwright: ^1.31.2
