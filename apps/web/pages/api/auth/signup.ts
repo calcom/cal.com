@@ -15,7 +15,6 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  debugger;
   if (req.method !== "POST") {
     return res.status(405).end();
   }
