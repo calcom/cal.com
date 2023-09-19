@@ -5,7 +5,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail, sendScheduledEmails } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
@@ -17,8 +17,9 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma, bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -65,6 +66,7 @@ async function getBooking(bookingId: number) {
           id: true,
           username: true,
           timeZone: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           timeFormat: true,
           email: true,
           name: true,
@@ -163,23 +165,7 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
     eventTypeRaw = await getEventType(booking.eventTypeId);
   }
 
-  const userWithCredentials = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      email: true,
-      name: true,
-      locale: true,
-      destinationCalendar: true,
-      credentials: true,
-    },
-  });
-
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
   if (booking.location) evt.location = booking.location;
 
@@ -190,7 +176,7 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const eventManager = new EventManager(userWithCredentials);
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
@@ -227,7 +213,7 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
-        user: userWithCredentials,
+        user,
         evt,
         prisma,
         bookingId: booking.id,
@@ -269,23 +255,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     paid: true,
   };
 
-  const userWithCredentials = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      email: true,
-      name: true,
-      locale: true,
-      destinationCalendar: true,
-      credentials: true,
-    },
-  });
-
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
   const requiresConfirmation = doesBookingRequireConfirmation({
     booking: {
@@ -294,7 +264,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     },
   });
   if (!requiresConfirmation) {
-    const eventManager = new EventManager(userWithCredentials);
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
@@ -321,7 +291,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!requiresConfirmation) {
     await handleConfirmation({
-      user: userWithCredentials,
+      user,
       evt,
       prisma,
       bookingId: booking.id,

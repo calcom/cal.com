@@ -8,7 +8,12 @@ import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { getDate, getGoogleCalendarCredential, createBookingScenario} from "../utils/bookingScenario/bookingScenario";
+
+import {
+  getDate,
+  getGoogleCalendarCredential,
+  createBookingScenario,
+} from "../utils/bookingScenario/bookingScenario";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
@@ -16,7 +21,7 @@ prismaMock.user.findMany.mockResolvedValue([]);
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
-  WEBAPP_URL: "http://localhost:3000"
+  WEBAPP_URL: "http://localhost:3000",
 }));
 
 declare global {
@@ -142,7 +147,6 @@ const TestData = {
     },
   },
 };
-
 
 const cleanup = async () => {
   await prisma.eventType.deleteMany();
@@ -296,7 +300,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       // getSchedule returns timeslots in GMT
@@ -328,7 +332,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
@@ -393,7 +397,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventWith30Length).toHaveTimeSlots(
@@ -429,7 +433,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       // `slotInterval` takes precedence over `length`
       // 4:30 is utc so it is 10:00 in IST
@@ -493,7 +497,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
@@ -514,7 +518,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
@@ -578,7 +582,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
@@ -652,7 +656,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
@@ -710,7 +714,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(schedule).toHaveTimeSlots(
@@ -774,7 +778,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
@@ -852,7 +856,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(thisUserAvailability).toHaveTimeSlots(
@@ -950,7 +954,7 @@ describe("getSchedule", () => {
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
 
       expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
@@ -980,7 +984,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
 
       // A user with blocked time in another event, still affects Team Event availability
@@ -1088,7 +1092,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
@@ -1116,7 +1120,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
@@ -1139,4 +1143,3 @@ describe("getSchedule", () => {
     });
   });
 });
-

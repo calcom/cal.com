@@ -65,6 +65,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
       email: member.user.email,
       timeZone: member.user.timeZone,
       role: member.role,
+      defaultScheduleId: -1,
       dateRanges: [] as DateRange[],
     };
   }
@@ -88,6 +89,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     email: member.user.email,
     timeZone,
     role: member.role,
+    defaultScheduleId: member.user.defaultScheduleId ?? -1,
     dateRanges,
   };
 }
