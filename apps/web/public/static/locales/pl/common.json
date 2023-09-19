@@ -1988,5 +1988,12 @@
   "see_all_available_times": "Zobacz wszystkie dostępne godziny",
   "org_team_names_example": "np. zespół marketingowy",
   "org_team_names_example_1": "np. zespół marketingowy",
+  "org_team_names_example_2": "np. zespół ds. sprzedaży",
+  "org_team_names_example_3": "np. zespół projektowy",
+  "org_team_names_example_4": "np. zespół ds. inżynierii",
+  "org_team_names_example_5": "np. zespół ds. analityki danych",
+  "org_max_team_warnings": "Później będzie można dodać więcej zespołów.",
+  "what_is_this_meeting_about": "Czego dotyczy to spotkanie?",
+  "add_to_team": "Dodaj do zespołu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
