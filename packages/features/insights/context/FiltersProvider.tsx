@@ -69,7 +69,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     initialConfig: {
       userId: null,
       teamId: null,
-      isAll: false,
+      isAll: null,
     },
   });
 

@@ -1,4 +1,4 @@
-import type { Prisma, Credential } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
@@ -6,6 +6,7 @@ import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -25,7 +26,7 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
-const user: User & { credentials: Credential[] } = {
+const user: User & { credentials: CredentialPayload[] } = {
   metadata: null,
   theme: null,
   credentials: [],
