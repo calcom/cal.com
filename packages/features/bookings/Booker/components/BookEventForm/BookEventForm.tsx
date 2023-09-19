@@ -29,6 +29,7 @@ import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
@@ -160,6 +161,10 @@ export const BookEventFormChild = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
+  const { data: connectedCalendars, isLoading: connectedCalendarLoading } =
+    trpc.viewer.connectedCalendars.useQuery();
+  const updateEventTypeMutation = trpc.viewer.eventTypes.update.useMutation();
+  const defaultEmail = connectedCalendars?.destinationCalendar?.primaryEmail;
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
     responses: z.infer<typeof bookingFormSchema>["responses"] | null;
@@ -334,6 +339,16 @@ export const BookEventFormChild = ({
         ),
     };
 
+    const eventMeta = EventTypeMetaDataSchema.parse(eventType?.metadata);
+
+    // if email in use is default email and not same with current default email, update organizerEmail
+    if (eventMeta?.isDefaultCalendarEmail && eventMeta?.organizerEmail !== defaultEmail) {
+      updateEventTypeMutation.mutate({
+        metadata: { ...eventMeta, organizerEmail: defaultEmail },
+        id: eventQuery?.data.id,
+      });
+    }
+
     if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
@@ -398,7 +413,11 @@ export const BookEventFormChild = ({
           <Button
             type="submit"
             color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+            loading={
+              createBookingMutation.isLoading ||
+              createRecurringBookingMutation.isLoading ||
+              connectedCalendarLoading
+            }
             data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
             {rescheduleUid
               ? t("reschedule")

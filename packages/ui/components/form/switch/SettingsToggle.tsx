@@ -14,6 +14,7 @@ type Props = {
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
   tooltip?: string;
+  revertToggle?: boolean;
 };
 
 function SettingsToggle({
@@ -25,6 +26,7 @@ function SettingsToggle({
   children,
   disabled,
   tooltip,
+  revertToggle,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -44,16 +46,20 @@ function SettingsToggle({
             />
 
             <div>
-              <Label className="text-emphasis text-sm font-semibold leading-none">
-                {title}
-                {LockedIcon}
-              </Label>
+              <div className="flex gap-2">
+                <Label className="text-emphasis text-sm font-semibold leading-none">{title}</Label>
+                <span>{LockedIcon}</span>
+              </div>
               {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
             </div>
           </div>
           {children && (
             <div className="lg:ml-14" ref={animateRef}>
-              {checked && <div className="mt-4">{children}</div>}
+              {(revertToggle && !checked) || (!revertToggle && checked) ? (
+                <div className="mt-4">{children}</div>
+              ) : (
+                ""
+              )}
             </div>
           )}
         </fieldset>
