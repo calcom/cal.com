@@ -50,7 +50,8 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
-    cacheStrategy: { ttl: 60, swr: 1 },
+    // TODO: Re-enable once we get confirmation from compliance that this is okay.
+    // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!user) {
