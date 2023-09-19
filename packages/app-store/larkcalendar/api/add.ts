@@ -5,8 +5,8 @@ import { z } from "zod";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
+import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { LARK_HOST } from "../common";
 
 const larkKeysSchema = z.object({

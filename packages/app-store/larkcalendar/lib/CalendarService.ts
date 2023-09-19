@@ -11,7 +11,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
   CreateAttendeesResp,
@@ -64,22 +63,17 @@ export default class LarkCalendarService implements Calendar {
     }
     try {
       const appAccessToken = await getAppAccessToken();
-      const resp = await refreshOAuthTokens(
-        async () =>
-          await fetch(`${this.url}/authen/v1/refresh_access_token`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${appAccessToken}`,
-              "Content-Type": "application/json; charset=utf-8",
-            },
-            body: JSON.stringify({
-              grant_type: "refresh_token",
-              refresh_token: refreshToken,
-            }),
-          }),
-        "lark-calendar",
-        credential.userId
-      );
+      const resp = await fetch(`${this.url}/authen/v1/refresh_access_token`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${appAccessToken}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+        }),
+      });
 
       const data = await handleLarkError<RefreshTokenResp>(resp, this.log);
       this.log.debug(

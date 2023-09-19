@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
+import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import { getZoomAppKeys } from "../lib";
 
 async function handler(req: NextApiRequest) {

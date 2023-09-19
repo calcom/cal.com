@@ -16,7 +16,6 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 
 export type ZohoToken = {
   scope: string;
@@ -201,19 +200,14 @@ export default class ZohoCrmCalendarService implements Calendar {
           client_secret: this.client_secret,
           refresh_token: credentialKey.refresh_token,
         };
-        const zohoCrmTokenInfo = await refreshOAuthTokens(
-          async () =>
-            await axios({
-              method: "post",
-              url: url,
-              data: qs.stringify(formData),
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-              },
-            }),
-          "zohocrm",
-          credential.userId
-        );
+        const zohoCrmTokenInfo = await axios({
+          method: "post",
+          url: url,
+          data: qs.stringify(formData),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+          },
+        });
         if (!zohoCrmTokenInfo.data.error) {
           // set expiry date as offset from current time.
           zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
