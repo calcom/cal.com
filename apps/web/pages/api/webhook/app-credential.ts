@@ -37,20 +37,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
-  const appDirName = await prisma.app.findUnique({
+  const app = await prisma.app.findUnique({
     where: { slug: reqBody.appSlug },
     select: { slug: true },
   });
 
-  if (!appDirName) {
+  if (!app) {
     return res.status(404).json({ message: "App not found" });
   }
 
   //   Search for the app's slug and type
-  const appMetadata = appStoreMetadata[appDirName.slug as keyof typeof appStoreMetadata];
+  const appMetadata = appStoreMetadata[app.slug as keyof typeof appStoreMetadata];
 
   if (!appMetadata) {
-    return res.status(404).json({ message: "App not found. Ensure that you have the correct appDir" });
+    return res.status(404).json({ message: "App not found. Ensure that you have the correct app slug" });
   }
 
   // Decrypt the keys
