@@ -46,7 +46,7 @@ export const MonthlyDigestEmail = (
         <div>
           <p
             style={{
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: "48px",
               lineHeight: "48px",
             }}>
@@ -59,7 +59,7 @@ export const MonthlyDigestEmail = (
         <div>
           <p
             style={{
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: "48px",
               lineHeight: "48px",
             }}>
@@ -72,7 +72,7 @@ export const MonthlyDigestEmail = (
         <div>
           <p
             style={{
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: "48px",
               lineHeight: "48px",
             }}>
@@ -85,7 +85,7 @@ export const MonthlyDigestEmail = (
         <div>
           <p
             style={{
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: "48px",
               lineHeight: "48px",
             }}>
@@ -112,10 +112,10 @@ export const MonthlyDigestEmail = (
           }}>
           {props.language("your_monthly_digest")}
         </p>
-        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px" }}>
+        <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
           {props.language("hi_user_name", { name: props.admin.name })}!
         </p>
-        <p style={{ fontWeight: 500, fontSize: "16px", lineHeight: "24px" }}>
+        <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
           {props.language("summary_of_events_for_your_team_for_the_last_30_days", {
             teamName: props.team.name,
           })}
@@ -129,10 +129,10 @@ export const MonthlyDigestEmail = (
             style={{
               display: "flex",
               justifyContent: "space-between",
-              borderBottom: "1px solid grey",
+              borderBottom: "1px solid #D1D5DB",
               fontSize: "16px",
             }}>
-            <p style={{ fontWeight: 600 }}>{props.language("most_popular_events")}</p>
+            <p style={{ fontWeight: 500 }}>{props.language("most_popular_events")}</p>
             <p style={{ fontWeight: 500 }}>{props.language("bookings")}</p>
           </div>
           {props.mostBookedEvents
@@ -142,10 +142,10 @@ export const MonthlyDigestEmail = (
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    borderBottom: `${idx === props.mostBookedEvents.length - 1 ? "" : "1px solid grey"}`,
+                    borderBottom: `${idx === props.mostBookedEvents.length - 1 ? "" : "1px solid #D1D5DB"}`,
                   }}>
-                  <p style={{ fontWeight: 500 }}>{ev.eventTypeName}</p>
-                  <p style={{ fontWeight: 500 }}>{ev.count}</p>
+                  <p style={{ fontWeight: "normal" }}>{ev.eventTypeName}</p>
+                  <p style={{ fontWeight: "normal" }}>{ev.count}</p>
                 </div>
               ))
             : null}
@@ -155,9 +155,9 @@ export const MonthlyDigestEmail = (
             style={{
               display: "flex",
               justifyContent: "space-between",
-              borderBottom: "1px solid grey",
+              borderBottom: "1px solid #D1D5DB",
             }}>
-            <p style={{ fontWeight: 600 }}>{props.language("most_booked_members")}</p>
+            <p style={{ fontWeight: 500 }}>{props.language("most_booked_members")}</p>
             <p style={{ fontWeight: 500 }}>{props.language("bookings")}</p>
           </div>
           {props.membersWithMostBookings
@@ -168,11 +168,11 @@ export const MonthlyDigestEmail = (
                     display: "flex",
                     justifyContent: "space-between",
                     borderBottom: `${
-                      idx === props.membersWithMostBookings.length - 1 ? "" : "1px solid grey"
+                      idx === props.membersWithMostBookings.length - 1 ? "" : "1px solid #D1D5DB"
                     }`,
                   }}>
-                  <p style={{ fontWeight: 500 }}>{it.user.name}</p>
-                  <p style={{ fontWeight: 500 }}>{it.count}</p>
+                  <p style={{ fontWeight: "normal" }}>{it.user.name}</p>
+                  <p style={{ fontWeight: "normal" }}>{it.count}</p>
                 </div>
               ))
             : null}
@@ -181,6 +181,7 @@ export const MonthlyDigestEmail = (
           <CallToAction
             label="View all stats"
             href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/insights?teamId=${props.team.id}`}
+            endIconName="white-arrow-right"
           />
         </div>
       </div>
