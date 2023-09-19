@@ -47,8 +47,6 @@ export async function handleBookingRequested(args: {
       evt,
     });
 
-    logger.silly("WEBHOOK Payload", webhookPayload);
-
     const promises = subscribersBookingRequested.map((sub) =>
       sendPayload(
         sub.secret,
@@ -66,6 +64,6 @@ export async function handleBookingRequested(args: {
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
-    console.error(error);
+    log.error(error);
   }
 }
