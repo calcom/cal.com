@@ -2046,5 +2046,12 @@
   "team_no_event_types": "Nhóm này không có loại sự kiện nào",
   "seat_options_doesnt_multiple_durations": "Tuỳ chọn ghế ngồi không hỗ trợ nhiều khoảng thời gian",
   "include_calendar_event": "Bao gồm sự kiện lịch",
+  "recently_added": "Đã thêm vào gần đây",
+  "no_members_found": "Không tìm thấy thành viên nào",
+  "event_setup_length_error": "Thiết lập sự kiện: Thời lượng phải ít nhất 1 phút.",
+  "availability_schedules": "Lịch trống",
+  "view_only_edit_availability_not_onboarded": "Người dùng chưa hoàn thành việc gia nhập. Bạn sẽ không thể đặt tình trạng lịch trống cho đến khi họ hoàn thành việc gia nhập.",
+  "view_only_edit_availability": "Bạn đang xem tình trạng trống lịch của người dùng này. Bạn chỉ có thể sửa tình trạng trống lịch của riêng bạn.",
+  "edit_users_availability": "Sửa tình trạng trống lịch của người dùng: {{username}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
