@@ -1,7 +1,9 @@
 import { useSession } from "next-auth/react";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Select } from "@calcom/ui";
 import { Plus, Info } from "@calcom/ui/components/icon";
@@ -9,9 +11,12 @@ import { Plus, Info } from "@calcom/ui/components/icon";
 import PageWrapper from "@components/PageWrapper";
 
 export default function Authorize() {
-  const router = useRouter();
+  const { t } = useLocale();
   const { status } = useSession();
+
+  const router = useRouter();
   const { state, client_id, scope } = router.query;
+
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
@@ -62,7 +67,7 @@ export default function Authorize() {
   }
 
   if (!client) {
-    return <div>Unauthorized</div>;
+    return <div>{t("unauthorized")}</div>;
   }
 
   return (
@@ -85,10 +90,9 @@ export default function Authorize() {
           </div>
         </div>
         <h1 className="p-5 text-center text-2xl font-bold tracking-tight">
-          {client.name} would like access to your Cal.com account
+          {t("access_cal_account", { clientName: client.name })}
         </h1>
-
-        <div>Select account or team</div>
+        <div>{t("select_account_team")}</div>
         <Select
           isSearchable={true}
           onChange={(value) => {
@@ -97,31 +101,33 @@ export default function Authorize() {
           defaultValue={selectedAccount}
           options={mappedProfiles}
         />
-        <div className="mb-4 mt-2 font-medium">This will allow {client.name} to</div>
+        <div className="mb-4 mt-2 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
         <ul className="space-y-4 text-sm">
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> Associate you with your personal info from
-            Cal.com
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> See your personal info, including any personal
-            info you&apos;ve made publicly available
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> See your primary email address
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> Connect to your installed apps
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> Read, edit, delete your event-types
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> Read, edit, delete your availability
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> Read, edit, delete your bookings
-          </li>
+          <Trans i18nKey="oauth_access_permission_list">
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> Associate you with your personal info from
+              Cal.com
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> See your personal info, including any personal
+              info you&apos;ve made publicly available
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> See your primary email address
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> Connect to your installed apps
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> Read, edit, delete your event-types
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> Read, edit, delete your availability
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span> Read, edit, delete your bookings
+            </li>
+          </Trans>
         </ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
