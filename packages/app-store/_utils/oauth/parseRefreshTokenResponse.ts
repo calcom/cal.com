@@ -26,7 +26,7 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
     refreshTokenResponse.data.refresh_token = "refresh_token";
   }
 
-  return refreshTokenResponse;
+  return refreshTokenResponse.data;
 };
 
 export default parseRefreshTokenResponse;
