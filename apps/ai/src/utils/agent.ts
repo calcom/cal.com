@@ -20,7 +20,14 @@ const gptModel = "gpt-4";
  * Uses a toolchain to book meetings, list available slots, etc.
  * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
  */
-const agent = async (input: string, user: User, users: UserList, apiKey: string, userId: number) => {
+const agent = async (
+  input: string,
+  user: User,
+  users: UserList,
+  apiKey: string,
+  userId: number,
+  agentEmail: string
+) => {
   const tools = [
     // getEventTypes(apiKey),
     getAvailability(apiKey, userId),
@@ -28,7 +35,7 @@ const agent = async (input: string, user: User, users: UserList, apiKey: string,
     createBookingIfAvailable(apiKey, userId, users),
     updateBooking(apiKey, userId),
     deleteBooking(apiKey),
-    sendBookingLink(apiKey, user, users),
+    sendBookingLink(apiKey, user, users, agentEmail),
   ];
 
   const model = new ChatOpenAI({
@@ -37,63 +44,44 @@ const agent = async (input: string, user: User, users: UserList, apiKey: string,
     temperature: 0,
   });
 
-  console.log(
-    users,
-    `${
-      users.length
-        ? `The user referenced the following users: ${users
-            .map(
-              (u) =>
-                `id: ${u.id}` +
-                (u.email ? `, email: ${u.email}` : "") +
-                (u.username ? `, username: ${u.username}` : "")
-            )
-            .join("\n")}`
-        : ""
-    }`
-  );
-
   /**
    * Initialize the agent executor with arguments.
    */
   const executor = await initializeAgentExecutorWithOptions(tools, model, {
     agentArgs: {
       prefix: `You are Cal AI - a bleeding edge scheduling assistant that interfaces via email.
-            Make sure your final answers are definitive, complete and well formatted.
-            Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
-            Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
+Make sure your final answers are definitive, complete and well formatted.
+Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
+Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
 
-            Bookings should be created at a good time for all parties.
-
-            IMPORTANT: Always create bookings on the primary user's calender and invite external users as responses.
-
-            The primary user's id is: ${userId}
-            The primary user's username is: ${user.username}
-            The current time in the primary user's timezone is: ${now(user.timeZone)}
-            The primary user's time zone is: ${user.timeZone}
-            The primary user's event types are: ${user.eventTypes
-              .map((e: EventType) => `ID: ${e.id}, Slug: ${e.slug}, Title: ${e.title}, Length: ${e.length};`)
-              .join("\n")}
-            The primary user's working hours are: ${user.workingHours
-              .map(
-                (w: WorkingHours) =>
-                  `Days: ${w.days.join(", ")}, Start Time (minutes in UTC): ${
-                    w.startTime
-                  }, End Time (minutes in UTC): ${w.endTime}`
-              )
-              .join("\n")}
-              ${
-                users.length
-                  ? `The email references the following @usernames and emails: ${users
-                      .map(
-                        (u) =>
-                          (u.id ? `, id: ${u.id}` : "(non user)") +
-                          (u.username ? `, username: ${u.username}` : "") +
-                          (u.email ? `, email: ${u.email}` : "")
-                      )
-                      .join("\n\n")}`
-                  : ""
-              }
+The primary user's id is: ${userId}
+The primary user's username is: ${user.username}
+The current time in the primary user's timezone is: ${now(user.timeZone)}
+The primary user's time zone is: ${user.timeZone}
+The primary user's event types are: ${user.eventTypes
+        .map((e: EventType) => `ID: ${e.id}, Slug: ${e.slug}, Title: ${e.title}, Length: ${e.length};`)
+        .join("\n")}
+The primary user's working hours are: ${user.workingHours
+        .map(
+          (w: WorkingHours) =>
+            `Days: ${w.days.join(", ")}, Start Time (minutes in UTC): ${
+              w.startTime
+            }, End Time (minutes in UTC): ${w.endTime};`
+        )
+        .join("\n")}
+${
+  users.length
+    ? `The email references the following @usernames and emails: ${users
+        .map(
+          (u) =>
+            (u.id ? `, id: ${u.id}` : "id: (non user)") +
+            (u.username ? `, username: @${u.username}` : "(no username)") +
+            (u.email ? `, email: ${u.email}` : "(no email)") +
+            ";"
+        )
+        .join("\n")}`
+    : ""
+}
             `,
     },
     agentType: "openai-functions",

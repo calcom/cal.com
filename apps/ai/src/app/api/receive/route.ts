@@ -46,6 +46,7 @@ export const POST = async (request: NextRequest) => {
     select: {
       email: true,
       id: true,
+      username: true,
       timeZone: true,
       credentials: {
         select: {
@@ -140,6 +141,7 @@ export const POST = async (request: NextRequest) => {
       user: {
         email: user.email,
         eventTypes,
+        username: user.username,
         timeZone: user.timeZone,
         workingHours,
       },
