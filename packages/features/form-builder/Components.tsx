@@ -259,7 +259,7 @@ export const Components: Record<FieldType, Component> = {
                         !readOnly ? (
                           <Tooltip content="Remove email">
                             <button
-                              className="m-1 disabled:hover:cursor-not-allowed"
+                              className="m-1 px-3 disabled:hover:cursor-not-allowed"
                               type="button"
                               onClick={() => {
                                 value.splice(index, 1);

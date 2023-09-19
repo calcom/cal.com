@@ -36,7 +36,7 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3",
+      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border ",
       isFilled && "bg-subtle",
       className
     )}>
