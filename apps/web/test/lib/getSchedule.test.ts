@@ -13,6 +13,7 @@ import { getDate, getGoogleCalendarCredential, createBookingScenario } from "../
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
+// @ts-expect-error Prisma v5 typings are not yet available
 prismaMock.user.findMany.mockResolvedValue([]);
 
 vi.mock("@calcom/lib/constants", () => ({
