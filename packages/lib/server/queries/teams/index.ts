@@ -170,10 +170,15 @@ export async function getTeamWithMembers(args: {
   }));
   /** Don't leak invite tokens to the frontend */
   const { inviteTokens, ...teamWithoutInviteTokens } = team;
+
   return {
     ...teamWithoutInviteTokens,
     /** To prevent breaking we only return non-email attached token here, if we have one */
-    inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + team.id),
+    inviteToken: inviteTokens.find(
+      (token) =>
+        token.identifier === "invite-link-for-teamId-" + team.id &&
+        token.expires > new Date(new Date().setHours(24))
+    ),
     metadata: teamMetadataSchema.parse(team.metadata),
     eventTypes,
     members,
