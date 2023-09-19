@@ -179,7 +179,7 @@ export default function Bookings() {
                 )}
                 <div className="pt-2 xl:pt-0">
                   <div className="border-subtle overflow-hidden rounded-md border">
-                    <table className="w-full max-w-full table-fixed">
+                    <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
                       <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>

@@ -3,12 +3,14 @@ import { test as base } from "@playwright/test";
 import type { API } from "mailhog";
 import mailhog from "mailhog";
 
+import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture, createGetActionFiredDetails } from "../fixtures/embeds";
 import { createPaymentsFixture } from "../fixtures/payments";
+import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
 
@@ -21,7 +23,8 @@ export interface Fixtures {
   getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
-  emails: API;
+  emails?: API;
+  routingForms: ReturnType<typeof createRoutingFormsFixture>;
 }
 
 declare global {
@@ -70,8 +73,15 @@ export const test = base.extend<Fixtures>({
   prisma: async ({}, use) => {
     await use(prisma);
   },
+  routingForms: async ({}, use) => {
+    await use(createRoutingFormsFixture());
+  },
   emails: async ({}, use) => {
-    const mailhogAPI = mailhog();
-    await use(mailhogAPI);
+    if (IS_MAILHOG_ENABLED) {
+      const mailhogAPI = mailhog();
+      await use(mailhogAPI);
+    } else {
+      await use(undefined);
+    }
   },
 });

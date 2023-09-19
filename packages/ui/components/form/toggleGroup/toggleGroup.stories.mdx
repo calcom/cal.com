@@ -1,0 +1,108 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import {
+  CustomArgsTable,
+  Examples,
+  Example,
+  Title,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+import { ArrowRight } from "@calcom/ui/components/icon";
+
+import { ToggleGroup } from "./ToggleGroup";
+
+<Meta title="UI/Form/ToggleGroup" component={ToggleGroup} />
+
+<Title title="ToggleGroup" suffix="Brief" subtitle="Version 1.0 — Last Update: 17 Aug 2023" />
+
+## Definition
+
+The `ToggleGroup` component is used to create a group of toggle items with optional tooltips.
+
+## Structure
+
+<CustomArgsTable of={ToggleGroup} />
+
+## Examples
+
+<Examples title="Toggle Group With Icon Left">
+  <Example>
+    <TooltipProvider>
+      <ToggleGroup
+        options={[
+          { value: "option1", label: "Option 1", tooltip: "Tooltip for Option 1", iconLeft: <ArrowRight /> },
+          { value: "option2", label: "Option 2", iconLeft: <ArrowRight /> },
+          { value: "option3", label: "Option 3", iconLeft: <ArrowRight /> },
+          {
+            value: "option4",
+            label: "Option 4",
+            tooltip: "Tooltip for Option 4",
+            iconLeft: <ArrowRight />,
+          },
+          { value: "option5", label: "Option 5", iconLeft: <ArrowRight />, disabled: true },
+        ]}
+      />
+    </TooltipProvider>
+  </Example>
+</Examples>
+
+## ToggleGroup Story
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{
+      options: [
+        { value: "option1", label: "Option 1", tooltip: "Tooltip for Option 1" },
+        { value: "option2", label: "Option 2" },
+        { value: "option3", label: "Option 3" },
+        {
+          value: "option4",
+          label: "Option 4",
+          tooltip: "Tooltip for Option 4",
+        },
+        { value: "option5", label: "Option 5", disabled: true },
+      ],
+    }}
+    argTypes={{
+      options: {
+        value: {
+          control: {
+            type: "text",
+          },
+        },
+        lable: {
+          control: {
+            type: "text",
+          },
+        },
+        tooltip: {
+          control: {
+            type: "text",
+          },
+        },
+        disabled: {
+          control: {
+            type: "boolean",
+          },
+        },
+        isFullWidth: {
+          control: {
+            type: "boolean",
+          },
+        },
+      },
+    }}>
+    {({ options, isFullWidth }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <TooltipProvider>
+            <ToggleGroup options={options} isFullWidth={isFullWidth} />
+          </TooltipProvider>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

@@ -45,6 +45,18 @@
       "cache": false,
       "dependsOn": []
     },
+    "@calcom/ai#build": {
+      "env": [
+        "BACKEND_URL",
+        "APP_ID",
+        "APP_URL",
+        "PARSE_KEY",
+        "NODE_ENV",
+        "OPENAI_API_KEY",
+        "SENDGRID_API_KEY",
+        "DATABASE_URL"
+      ]
+    },
     "@calcom/website#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
@@ -198,6 +210,14 @@
     "DEBUG",
     "E2E_TEST_APPLE_CALENDAR_EMAIL",
     "E2E_TEST_APPLE_CALENDAR_PASSWORD",
+    "E2E_TEST_MAILHOG_ENABLED",
+    "E2E_TEST_OIDC_CLIENT_ID",
+    "E2E_TEST_OIDC_CLIENT_SECRET",
+    "E2E_TEST_OIDC_PROVIDER_DOMAIN",
+    "E2E_TEST_OIDC_USER_EMAIL",
+    "E2E_TEST_OIDC_USER_PASSWORD",
+    "E2E_TEST_SAML_ADMIN_EMAIL",
+    "E2E_TEST_SAML_ADMIN_PASSWORD",
     "EMAIL_FROM",
     "EMAIL_SERVER_HOST",
     "EMAIL_SERVER_PASSWORD",
@@ -224,6 +244,7 @@
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_APP_NAME",
     "NEXT_PUBLIC_AUTH_URL",
+    "NEXT_PUBLIC_CALCOM_VERSION",
     "NEXT_PUBLIC_COMPANY_NAME",
     "NEXT_PUBLIC_CONSOLE_URL",
     "NEXT_PUBLIC_DEBUG",
@@ -244,6 +265,7 @@
     "NEXTAUTH_URL",
     "NODE_ENV",
     "ORGANIZATIONS_ENABLED",
+    "ORGANIZATIONS_AUTOLINK",
     "PAYMENT_FEE_FIXED",
     "PAYMENT_FEE_PERCENTAGE",
     "PLAYWRIGHT_HEADLESS",

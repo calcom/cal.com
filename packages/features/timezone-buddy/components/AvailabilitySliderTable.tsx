@@ -3,12 +3,16 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
 
+import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
+import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
 import { TimeDial } from "./TimeDial";
 
 export interface SliderUser {
@@ -17,12 +21,42 @@ export interface SliderUser {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  defaultScheduleId: number | null;
   dateRanges: DateRange[];
 }
 
+function UpgradeTeamTip() {
+  const { t } = useLocale();
+
+  return (
+    <UpgradeTip
+      title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
+      description="add_your_team_members"
+      background="/tips/teams"
+      features={[]}
+      buttons={
+        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+          <ButtonGroup>
+            <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+              {t("create_team")}
+            </Button>
+            <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+              {t("learn_more")}
+            </Button>
+          </ButtonGroup>
+        </div>
+      }>
+      <></>
+    </UpgradeTip>
+  );
+}
+
 export function AvailabilitySliderTable() {
+  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
   const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
@@ -47,12 +81,7 @@ export function AvailabilitySliderTable() {
           const { username, email, timeZone } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
-              <Avatar
-                size="sm"
-                alt={username || email}
-                imageSrc={"/" + username + "/avatar.png"}
-                gravatarFallbackMd5="fallback"
-              />
+              <Avatar size="sm" alt={username || email} imageSrc={"/" + username + "/avatar.png"} />
               <div className="">
                 <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}
@@ -79,7 +108,7 @@ export function AvailabilitySliderTable() {
             .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
           return (
-            <div className="flex flex-col">
+            <div className="flex flex-col text-center">
               <span className="text-default text-sm font-medium">{time}</span>
               <span className="text-subtle text-xs leading-none">GMT {offsetFormatted}</span>
             </div>
@@ -143,21 +172,40 @@ export function AvailabilitySliderTable() {
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
+  // This means they are not apart of any teams so we show the upgrade tip
+  if (!flatData.length) return <UpgradeTeamTip />;
+
   return (
     <TBContext.Provider
       value={createTimezoneBuddyStore({
         browsingDate: browsingDate.toDate(),
       })}>
-      <div className="relative">
-        <DataTable
-          tableContainerRef={tableContainerRef}
-          columns={memorisedColumns}
-          data={flatData}
-          isLoading={isLoading}
-          // tableOverlay={<HoverOverview />}
-          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-        />
-      </div>
+      <>
+        <div className="relative">
+          <DataTable
+            tableContainerRef={tableContainerRef}
+            columns={memorisedColumns}
+            onRowMouseclick={(row) => {
+              setEditSheetOpen(true);
+              setSelectedUser(row.original);
+            }}
+            data={flatData}
+            isLoading={isLoading}
+            // tableOverlay={<HoverOverview />}
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+          />
+        </div>
+        {selectedUser && editSheetOpen ? (
+          <AvailabilityEditSheet
+            open={editSheetOpen}
+            onOpenChange={(e) => {
+              setEditSheetOpen(e);
+              setSelectedUser(null); // We need to clear the user here or else the sheet will not re-render when opening a new user
+            }}
+            selectedUser={selectedUser}
+          />
+        ) : null}
+      </>
     </TBContext.Provider>
   );
 }

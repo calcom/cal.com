@@ -2,9 +2,9 @@
 import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { Table, TableActions } from "@calcom/ui";
+import { TableActions } from "@calcom/ui";
 
-import { TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./TableNew";
+import { TableNewExampleComponent } from "./TableExamples";
 
 const mockActions = [
   {
@@ -21,31 +21,7 @@ const mockActions = [
 
 describe("tests for Table component", () => {
   test("Should render Table component correctly", () => {
-    const { getByRole, getByText } = render(
-      <>
-        <Table>
-          <>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Header Column 1</TableHead>
-                <TableHead>Header Column 2</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>Row 1, Cell 1</TableCell>
-                <TableCell>Row 1, Cell 2</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Row 2, Cell 1</TableCell>
-                <TableCell>Row 2, Cell 2</TableCell>
-              </TableRow>
-            </TableBody>
-            <TableCaption>Table Caption</TableCaption>
-          </>
-        </Table>
-      </>
-    );
+    const { getByRole, getByText } = render(<TableNewExampleComponent />);
 
     const headerElement1 = getByRole("columnheader", { name: "Header Column 1" });
     const headerElement2 = getByRole("columnheader", { name: "Header Column 2" });

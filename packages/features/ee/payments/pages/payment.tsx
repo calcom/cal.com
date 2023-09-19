@@ -106,9 +106,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!eventType) return { notFound: true };
 
-  const [user] = eventType.users;
-  if (!user) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
 
+  const [user] = eventType?.users.length
+    ? eventType.users
+    : [{ name: null, theme: null, hideBranding: null, username: null }];
   const profile = {
     name: eventType.team?.name || user?.name || null,
     theme: (!eventType.team?.name && user?.theme) || null,

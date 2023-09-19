@@ -7,7 +7,7 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { CalEventResponses } from "@calcom/types/Calendar";
+import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -44,6 +44,7 @@ export type BookingInfo = {
   };
   eventType: {
     slug?: string;
+    recurringEvent?: RecurringEvent | null;
   };
   startTime: string;
   endTime: string;

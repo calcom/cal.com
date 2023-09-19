@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-import type { Messages } from "mailhog";
 
 import { randomString } from "@calcom/lib/random";
 
@@ -8,6 +7,7 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -41,19 +41,13 @@ test.describe("free user", () => {
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
-    // TODO: follow DRY
-    const emailsOrganiserReceived = await emails.search(user.email, "to");
-    const emailsBookerReceived = await emails.search(bookerObj.email, "to");
-    expect(emailsOrganiserReceived?.total).toBe(1);
-    expect(emailsBookerReceived?.total).toBe(1);
 
-    const [organizerFirstEmail] = (emailsOrganiserReceived as Messages).items;
-    const [bookerFirstEmail] = (emailsBookerReceived as Messages).items;
-    const emailSubject = `${eventTitle} between ${user.name} and ${bookerObj.name}`;
-
-    expect(organizerFirstEmail.subject).toBe(emailSubject);
-    expect(bookerFirstEmail.subject).toBe(emailSubject);
-
+    await expectEmailsToHaveSubject({
+      emails,
+      organizer: user,
+      booker: bookerObj,
+      eventTitle,
+    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -164,9 +158,10 @@ test.describe("pro user", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    additionalGuests.forEach(async (email) => {
+    const promises = additionalGuests.map(async (email) => {
       await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
+    await Promise.all(promises);
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
@@ -271,5 +266,62 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
+  });
+});
+
+test.describe("Booking on different layouts", () => {
+  test.beforeEach(async ({ page, users }) => {
+    const user = await users.create();
+    await page.goto(`/${user.username}`);
+  });
+
+  test("Book on week layout", async ({ page }) => {
+    // Click first event type
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="toggle-group-item-week_view"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    await page.locator('[data-testid="calendar-empty-cell"]').nth(0).click();
+
+    // Fill what is this meeting about? name email and notes
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+    await page.locator('[name="notes"]').fill("Test notes");
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    // expect page to be booking page
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
+  test("Book on column layout", async ({ page }) => {
+    // Click first event type
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="toggle-group-item-column_view"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    await page.locator('[data-testid="time"]').nth(0).click();
+
+    // Fill what is this meeting about? name email and notes
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+    await page.locator('[name="notes"]').fill("Test notes");
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    // expect page to be booking page
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 });

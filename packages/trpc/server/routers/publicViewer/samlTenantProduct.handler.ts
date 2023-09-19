@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
-import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { TSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 
@@ -15,5 +14,7 @@ export const samlTenantProductHandler = ({ ctx, input }: SamlTenantProductOption
   const { prisma } = ctx;
   const { email } = input;
 
-  return samlTenantProduct(prisma, email);
+  return ssoTenantProduct(prisma, email);
 };
+
+export default samlTenantProductHandler;

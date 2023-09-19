@@ -2,7 +2,7 @@ import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 

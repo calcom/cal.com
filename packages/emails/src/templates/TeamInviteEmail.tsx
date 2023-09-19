@@ -27,9 +27,8 @@ export const TeamInviteEmail = (
       })}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>
-          {props.language("email_no_user_invite_heading", {
+          {props.language(`email_no_user_invite_heading_${props.isOrg ? "org" : "team"}`, {
             appName: APP_NAME,
-            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
           })}
         </>
       </p>
@@ -57,11 +56,10 @@ export const TeamInviteEmail = (
           lineHeightStep: "24px",
         }}>
         <>
-          {props.language("email_user_invite_subheading", {
+          {props.language(`email_user_invite_subheading_${props.isOrg ? "org" : "team"}`, {
             invitedBy: props.from,
             appName: APP_NAME,
             teamName: props.teamName,
-            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
           })}
         </>
       </p>

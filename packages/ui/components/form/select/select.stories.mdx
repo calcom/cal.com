@@ -1,9 +1,8 @@
-import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
 
 import {
   Examples,
   Example,
-  Note,
   Title,
   CustomArgsTable,
   VariantRow,
@@ -15,7 +14,7 @@ import { SelectField } from "./Select";
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
-<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 29 Aug 2022" />
 
 ## Definition
 
@@ -101,11 +100,31 @@ const GoodSelect = (props) => <Select {...props} components={{ Control }} />;
 ## Select Story
 
 <Canvas>
-  <Story name="Default">
-    <VariantsTable titles={["Default"]} columnMinWidth={450}>
-      <VariantRow>
-        <SelectField options={options} label={"Default Select"} />
-      </VariantRow>
-    </VariantsTable>
+  <Story
+    name="Default"
+    args={{
+      required: false,
+      name: "select-field",
+      error: "Some error",
+      variant: "default",
+      label: "Select an item",
+      isMulti: false,
+      options,
+    }}
+    argTypes={{
+      variant: {
+        control: {
+          type: "select",
+          options: ["default", "checkbox"],
+        },
+      },
+    }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={300}>
+        <VariantRow>
+          <SelectField {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

@@ -9,7 +9,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   bookerLayoutOptions,
@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   seatsPerTimeSlot: true,
+  seatsShowAvailabilityCount: true,
   bookingFields: true,
   team: {
     select: {
@@ -285,7 +286,7 @@ function getProfileFromEvent(event: Event) {
 function getUsersFromEvent(event: Event) {
   const { team, hosts, owner } = event;
   if (team) {
-    return (hosts || []).map(mapHostsToUsers);
+    return (hosts || []).filter((host) => host.user.username).map(mapHostsToUsers);
   }
   if (!owner) {
     return null;

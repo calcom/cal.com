@@ -9,7 +9,6 @@ import type { Options } from "react-select";
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select } from "@calcom/ui";
@@ -18,13 +17,14 @@ interface IUserToValue {
   id: number | null;
   name: string | null;
   username: string | null;
+  avatar: string;
   email: string;
 }
 
-const mapUserToValue = ({ id, name, username, email }: IUserToValue, pendingString: string) => ({
+const mapUserToValue = ({ id, name, username, avatar, email }: IUserToValue, pendingString: string) => ({
   value: `${id || ""}`,
   label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
-  avatar: `${WEBAPP_URL}/${username}/avatar.png`,
+  avatar,
   email,
 });
 

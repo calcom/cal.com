@@ -57,7 +57,7 @@ const OrgProfileView = () => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      showToast(t("your_organisation_updated_sucessfully"), "success");
+      showToast(t("your_organization_updated_sucessfully"), "success");
     },
   });
 

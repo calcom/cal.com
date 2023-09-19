@@ -1,6 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";

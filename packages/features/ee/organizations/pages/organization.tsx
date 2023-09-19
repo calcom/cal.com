@@ -16,7 +16,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
 
   // Check if logged in user has an organization assigned
   const session = await getServerSession({ req, res });
-  if (!session?.user.organizationId) {
+  if (!session?.user.org?.id) {
     return {
       notFound: true,
     };
@@ -26,7 +26,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   const membership = await prisma.membership.findFirst({
     where: {
       userId: session?.user.id,
-      teamId: session?.user.organizationId,
+      teamId: session?.user.org.id,
     },
     select: {
       role: true,

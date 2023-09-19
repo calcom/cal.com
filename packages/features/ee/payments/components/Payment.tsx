@@ -1,7 +1,6 @@
 import type { Payment } from "@prisma/client";
 import type { EventType } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type stripejs from "@stripe/stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { SyntheticEvent } from "react";
@@ -181,27 +180,14 @@ const PaymentForm = (props: Props) => {
   );
 };
 
-const ELEMENT_STYLES: stripejs.Appearance = {
-  theme: "none",
-};
-
-const ELEMENT_STYLES_DARK: stripejs.Appearance = {
-  theme: "night",
-  variables: {
-    colorText: "#d6d6d6",
-    fontWeightNormal: "600",
-    borderRadius: "6px",
-    colorBackground: "#101010",
-    colorPrimary: "#d6d6d6",
-  },
-};
-
 export default function PaymentComponent(props: Props) {
   const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [theme, setTheme] = useState<"stripe" | "night">("stripe");
 
   useEffect(() => {
-    setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    if (document.documentElement.classList.contains("dark")) {
+      setTheme("night");
+    }
   }, []);
 
   return (
@@ -209,7 +195,9 @@ export default function PaymentComponent(props: Props) {
       stripe={stripePromise}
       options={{
         clientSecret: props.clientSecret,
-        appearance: darkMode ? ELEMENT_STYLES_DARK : ELEMENT_STYLES,
+        appearance: {
+          theme,
+        },
       }}>
       <PaymentForm {...props} />
     </Elements>

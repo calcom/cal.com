@@ -6,6 +6,7 @@ export const ZListTeamAvailaiblityScheme = z.object({
   startDate: z.string(),
   endDate: z.string(),
   loggedInUsersTz: z.string(),
+  teamId: z.number().optional(),
 });
 
 export type TListTeamAvailaiblityScheme = z.infer<typeof ZListTeamAvailaiblityScheme>;

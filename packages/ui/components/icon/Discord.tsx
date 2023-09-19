@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-export const Discord = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function Discord(props, ref) {
+export const Discord = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function Discord(props) {
   return (
     <svg
       className={props.className}

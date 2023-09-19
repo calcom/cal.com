@@ -138,7 +138,7 @@ const EventTypeScheduleDetails = memo(
             <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
-          {!!schedule?.id && !schedule.isManaged && (
+          {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
             <Button
               href={`/availability/${schedule.id}`}
               disabled={isLoading}
@@ -197,6 +197,15 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       ) {
         options.push({
           value: watchSchedule,
+          label: eventType.scheduleName ?? t("default_schedule_name"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
+      // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
+      else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+        options.push({
+          value: eventType.schedule,
           label: eventType.scheduleName ?? t("default_schedule_name"),
           isDefault: false,
           isManaged: false,

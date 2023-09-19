@@ -56,7 +56,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     });
     const invitee = await getUserToInviteOrThrowIfExists({
       usernameOrEmail,
-      orgId: input.teamId,
+      teamId: input.teamId,
       isOrg: input.isOrg,
     });
 
@@ -68,6 +68,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         usernameOrEmail,
         input,
         connectionInfo,
+        autoAcceptEmailDomain,
         parentId: team.parentId,
       });
 

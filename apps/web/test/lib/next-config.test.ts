@@ -1,4 +1,5 @@
 import { it, expect, describe, beforeAll } from "vitest";
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { getSubdomainRegExp } = require("../../getSubdomainRegExp");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -30,62 +31,50 @@ beforeAll(async () => {
 
 describe("next.config.js - Org Rewrite", () => {
   const orgHostRegExp = (subdomainRegExp: string) =>
-  // RegExp copied from pagesAndRewritePaths.js orgHostPath. Do make the change there as well.
-    new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`);
+    // RegExp copied from pagesAndRewritePaths.js orgHostPath. Do make the change there as well.
+    new RegExp(`^(?<orgSlug>${subdomainRegExp})\\.(?!vercel\.app).*`);
 
   describe("Host matching based on NEXT_PUBLIC_WEBAPP_URL", () => {
     it("https://app.cal.com", () => {
       const subdomainRegExp = getSubdomainRegExp("https://app.cal.com");
       expect(orgHostRegExp(subdomainRegExp).exec("app.cal.com")).toEqual(null);
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups
-          ?.orgSlug
-      ).toEqual("company");
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("org.cal.com")?.groups?.orgSlug
-      ).toEqual("org");
+      expect(orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups?.orgSlug).toEqual("company");
+      expect(orgHostRegExp(subdomainRegExp).exec("org.cal.com")?.groups?.orgSlug).toEqual("org");
 
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("localhost:3000")
-      ).toEqual(null);
+      expect(orgHostRegExp(subdomainRegExp).exec("localhost:3000")).toEqual(null);
     });
 
     it("app.cal.com", () => {
       const subdomainRegExp = getSubdomainRegExp("app.cal.com");
       expect(orgHostRegExp(subdomainRegExp).exec("app.cal.com")).toEqual(null);
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups
-          ?.orgSlug
-      ).toEqual("company");
+      expect(orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups?.orgSlug).toEqual("company");
     });
 
     it("https://calcom.app.company.com", () => {
-      const subdomainRegExp = getSubdomainRegExp(
-        "https://calcom.app.company.com"
+      const subdomainRegExp = getSubdomainRegExp("https://calcom.app.company.com");
+      expect(orgHostRegExp(subdomainRegExp).exec("calcom.app.company.com")).toEqual(null);
+      expect(orgHostRegExp(subdomainRegExp).exec("acme.calcom.app.company.com")?.groups?.orgSlug).toEqual(
+        "acme"
       );
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("calcom.app.company.com")
-      ).toEqual(null);
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("acme.calcom.app.company.com")
-          ?.groups?.orgSlug
-      ).toEqual("acme");
     });
 
     it("https://calcom.example.com", () => {
       const subdomainRegExp = getSubdomainRegExp("https://calcom.example.com");
-      expect(orgHostRegExp(subdomainRegExp).exec("calcom.example.com")).toEqual(
-        null
-      );
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("acme.calcom.example.com")?.groups
-          ?.orgSlug
-      ).toEqual("acme");
+      expect(orgHostRegExp(subdomainRegExp).exec("calcom.example.com")).toEqual(null);
+      expect(orgHostRegExp(subdomainRegExp).exec("acme.calcom.example.com")?.groups?.orgSlug).toEqual("acme");
       // The following also matches which causes anything other than the domain in NEXT_PUBLIC_WEBAPP_URL to give 404
+      expect(orgHostRegExp(subdomainRegExp).exec("some-other.company.com")?.groups?.orgSlug).toEqual(
+        "some-other"
+      );
+    });
+    it("Should ignore Vercel preview URLs", () => {
+      const subdomainRegExp = getSubdomainRegExp("https://cal-xxxxxxxx-cal.vercel.app");
       expect(
-        orgHostRegExp(subdomainRegExp).exec("some-other.company.com")?.groups
-          ?.orgSlug
-      ).toEqual("some-other");
+        orgHostRegExp(subdomainRegExp).exec("https://cal-xxxxxxxx-cal.vercel.app")
+      ).toMatchInlineSnapshot("null");
+      expect(orgHostRegExp(subdomainRegExp).exec("cal-xxxxxxxx-cal.vercel.app")).toMatchInlineSnapshot(
+        "null"
+      );
     });
   });
 

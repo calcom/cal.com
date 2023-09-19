@@ -3,17 +3,21 @@ import { useFormContext } from "react-hook-form";
 
 import { Check, Circle, Info, X } from "../../icon";
 
-export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
+type hintsOrErrorsProps = {
   hintErrors?: string[];
   fieldName: string;
   t: (key: string) => string;
-}) {
+};
+
+export function HintsOrErrors<T extends FieldValues = FieldValues>({
+  hintErrors,
+  fieldName,
+  t,
+}: hintsOrErrorsProps) {
   const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
   /* If there's no methods it means we're using these components outside a React Hook Form context */
   if (!methods) return null;
   const { formState } = methods;
-  const { hintErrors, fieldName, t } = props;
-
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];

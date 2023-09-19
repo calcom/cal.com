@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,10 +15,10 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
-  Avatar,
   Button,
   Dialog,
   DialogClose,
@@ -77,26 +78,25 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: _session, update } = useSession();
+  const { update } = useSession();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
+      await update(res);
       showToast(t("settings_updated_successfully"), "success");
-      if (res.signOutUser && tempFormValues) {
-        if (res.passwordReset) {
-          showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?passReset=true" });
-        } else {
-          // sign out the user to avoid unauthorized access error
-          await signOut({ callbackUrl: "/auth/logout?emailChange=true" });
-        }
+
+      // signout user only in case of password reset
+      if (res.signOutUser && tempFormValues && res.passwordReset) {
+        showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+        await signOut({ callbackUrl: "/auth/logout?passReset=true" });
+      } else {
+        utils.viewer.me.invalidate();
+        utils.viewer.avatar.invalidate();
+        utils.viewer.shouldVerifyEmail.invalidate();
       }
-      utils.viewer.me.invalidate();
-      utils.viewer.avatar.invalidate();
+
       setConfirmAuthEmailChangeWarningDialogOpen(false);
-      update(res);
       setTempFormValues(null);
     },
     onError: () => {
@@ -224,6 +224,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
+        userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -325,7 +326,10 @@ const ProfileView = () => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter showDivider>
-            <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+            <Button
+              color="primary"
+              loading={confirmPasswordMutation.isLoading}
+              onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -345,7 +349,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              disabled={updateProfileMutation.isLoading}
+              loading={updateProfileMutation.isLoading}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
@@ -362,11 +366,13 @@ const ProfileForm = ({
   onSubmit,
   extraField,
   isLoading = false,
+  userOrganization,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
+  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -404,7 +410,12 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <OrganizationAvatar
+                alt={formMethods.getValues("username")}
+                imageSrc={value}
+                size="lg"
+                organizationSlug={userOrganization.slug}
+              />
               <div className="ms-4">
                 <ImageUploader
                   target="avatar"
