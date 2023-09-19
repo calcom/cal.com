@@ -49,7 +49,7 @@ export function getMockPaymentService() {
       const paymentData = prismaMock.payment.create({
         data: paymentCreateData,
       });
-      logger.silly("Created mock payment", { paymentData });
+      logger.silly("Created mock payment", JSON.stringify({ paymentData }));
 
       return paymentData;
     }

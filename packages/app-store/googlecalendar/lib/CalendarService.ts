@@ -297,6 +297,7 @@ export default class GoogleCalendarService implements Calendar {
             }),
           },
         });
+
         return {
           uid: "",
           ...evt.data,

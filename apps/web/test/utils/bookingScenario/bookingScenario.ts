@@ -20,6 +20,7 @@ import { handlePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import type { HttpError } from "@lib/core/http/error";
@@ -108,6 +109,8 @@ export type InputEventType = {
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
 
 type InputBooking = {
+  id?: number;
+  uid?: string;
   userId?: number;
   eventTypeId: number;
   startTime: string;
@@ -115,6 +118,17 @@ type InputBooking = {
   title?: string;
   status: BookingStatus;
   attendees?: { email: string }[];
+  references?: {
+    type: string;
+    uid: string;
+    meetingId?: string;
+    meetingPassword?: string;
+    meetingUrl?: string;
+    bookingId?: number;
+    externalCalendarId?: string;
+    deleted?: boolean;
+    credentialId?: number;
+  }[];
 };
 
 const Timezones = {
@@ -122,6 +136,26 @@ const Timezones = {
   "+6:00": "Asia/Dhaka",
 };
 logger.setSettings({ minLevel: "silly" });
+
+function addEventTypesToDb(
+  eventTypes: (Prisma.EventTypeCreateInput & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    users?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    workflows?: any[];
+  })[]
+) {
+  MOCK_DB.__counter.eventTypes = MOCK_DB.__counter.eventTypes || 0;
+  const eventTypesToAdd = eventTypes.map((eventType) => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.eventTypes!,
+      ...eventType,
+    };
+  });
+  MOCK_DB.eventTypes = eventTypesToAdd;
+  return eventTypesToAdd;
+}
 
 function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   const baseEventType = {
@@ -131,7 +165,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     schedulingType: null,
-
+    length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
     periodStartDate: new Date("2022-01-21T09:03:48.000Z"),
     periodEndDate: new Date("2022-01-21T09:03:48.000Z"),
@@ -162,10 +196,8 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
       users,
     };
   });
-
-  MOCK_DB.eventTypes = eventTypesWithUsers;
-
-  logger.silly("TestData: Creating EventType", eventTypes);
+  addEventTypesToDb(eventTypesWithUsers);
+  logger.silly("TestData: Creating EventType", JSON.stringify(eventTypes));
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const eventTypeMock = ({ where }) => {
@@ -184,59 +216,106 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   prismaMock.eventType.findUniqueOrThrow.mockImplementation(eventTypeMock);
 }
 
-function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
-  logger.silly("TestData: Creating Bookings", bookings);
-  const allBookings = (MOCK_DB.bookings = [...bookings].map((booking, index) => {
+function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
+  MOCK_DB.__counter.bookingReferences = MOCK_DB.__counter.bookingReferences || 0;
+  const bookingReferencesWithId = bookingReferences.map((bookingReference) => {
     return {
-      ...booking,
-      id: index + 1,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.bookingReferences!,
+      ...bookingReference,
     };
-  }));
+  });
+  const allBookingReferences = [...MOCK_DB.bookingReferences, ...bookingReferencesWithId];
+  MOCK_DB.bookingReferences = allBookingReferences;
+  return bookingReferencesWithId;
+}
+
+function addBookingsToDb(
+  bookings: (Prisma.BookingCreateInput & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    references: any[];
+  })[]
+) {
+  MOCK_DB.__counter.bookings = MOCK_DB.__counter.bookings || 0;
+  const bookingsToAdd = bookings.map((eventType) => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.bookings!,
+      ...eventType,
+    };
+  });
+  MOCK_DB.bookings = bookings;
+  return bookingsToAdd;
+}
+
+function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
+  logger.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+  const allBookings = [...bookings].map((booking, index) => {
+    if (booking.references) {
+      addBookingReferencesToDB(
+        booking.references.map((reference) => {
+          return {
+            ...reference,
+            bookingId: booking.id,
+          };
+        })
+      );
+    }
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.bookings!,
+      uid: uuidv4(),
+      workflowReminders: [],
+      references: [],
+      title: "Test Booking Title",
+      ...booking,
+    };
+  });
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  addBookingsToDb(allBookings);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.booking.findMany.mockImplementation((findManyArg) => {
     const where = findManyArg?.where || {};
-    return new Promise((resolve) => {
-      resolve(
-        allBookings
-          // We can improve this filter to support the entire where clause but that isn't necessary yet. So, handle what we know we pass to `findMany` and is needed
-          .filter((booking) => {
-            /**
-             * A user is considered busy within a given time period if there
-             * is a booking they own OR host. This function mocks some of the logic
-             * for each condition. For details see the following ticket:
-             * https://github.com/calcom/cal.com/issues/6374
-             */
+    return (
+      allBookings
+        // We can improve this filter to support the entire where clause but that isn't necessary yet. So, handle what we know we pass to `findMany` and is needed
+        .filter((booking) => {
+          /**
+           * A user is considered busy within a given time period if there
+           * is a booking they own OR host. This function mocks some of the logic
+           * for each condition. For details see the following ticket:
+           * https://github.com/calcom/cal.com/issues/6374
+           */
 
-            // ~~ FIRST CONDITION ensures that this booking is owned by this user
-            //    and that the status is what we want
+          // ~~ FIRST CONDITION ensures that this booking is owned by this user
+          //    and that the status is what we want
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          const statusIn = where.OR[0].status?.in || [];
+
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          const userIdIn = where.OR[0].userId?.in || [];
+          const firstConditionMatches =
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const statusIn = where.OR[0].status?.in || [];
-
+            statusIn.includes(booking.status) &&
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const userIdIn = where.OR[0].userId?.in || [];
-            const firstConditionMatches =
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              statusIn.includes(booking.status) &&
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              (booking.userId === where.OR[0].userId || userIdIn.includes(booking.userId));
+            (booking.userId === where.OR[0].userId || userIdIn.includes(booking.userId));
 
-            // We return this booking if either condition is met
-            return firstConditionMatches;
-          })
-          .map((booking) => ({
-            uid: uuidv4(),
-            title: "Test Booking Title",
-            ...booking,
-            eventType: eventTypes.find((eventType) => eventType.id === booking.eventTypeId),
-          })) as unknown as PrismaBooking[]
-      );
-    });
+          // We return this booking if either condition is met
+          return firstConditionMatches;
+        })
+        .map((booking) => ({
+          ...booking,
+          eventType: eventTypes.find((eventType) => eventType.id === booking.eventTypeId),
+        })) as unknown as PrismaBooking[]
+    );
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -255,35 +334,65 @@ function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     allBookings.push(booking);
-    logger.silly("Created mock booking", booking);
+    logger.silly("Created mock booking", JSON.stringify(booking));
     return booking;
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  prismaMock.booking.findUnique.mockImplementation(({ where }) => {
+  const findBooking = ({ where }) => {
     const booking =
       allBookings.find((booking) => {
-        return booking.id === where.id;
+        return booking.id === where.id || booking.uid === where.uid;
       }) || null;
+
     const bookingWithUserAndEventType = {
       ...booking,
       user: MOCK_DB.users.find((user) => user.id === booking?.userId) || null,
       eventType: MOCK_DB.eventTypes.find((eventType) => eventType.id === booking?.eventTypeId) || null,
     };
-    logger.silly("booking.findUnique.mock", { where, bookingWithUserAndEventType });
+    logger.silly("booking.findUnique.mock", JSON.stringify({ where, bookingWithUserAndEventType }));
+
+    logger.silly({
+      MOCK_DB_REFERENCES: MOCK_DB.bookingReferences,
+    });
     return bookingWithUserAndEventType;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.booking.findUnique.mockImplementation((where) => findBooking(where));
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.booking.findFirst.mockImplementation((where) => {
+    return findBooking(where);
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.booking.update.mockImplementation(({ where, data }) => {
     const booking = allBookings.find((booking) => {
-      return booking.id === where.id;
+      return booking.id === where.id || booking.uid === where.uid;
     });
 
     const updatedBooking = Object.assign(booking || {}, data);
-    logger.silly("booking.update.mock", { where, data, updatedBooking });
+    if (data.references?.createMany && booking) {
+      const references =
+        data.references.createMany.data instanceof Array
+          ? data.references.createMany.data
+          : [data.references.createMany.data];
+      addBookingReferencesToDB(
+        references.map((reference) => {
+          return {
+            ...reference,
+            bookingId: booking.id,
+          };
+        })
+      );
+      updatedBooking.references = references;
+    }
+    logger.silly("booking.update.mock", JSON.stringify({ where, data, updatedBooking }));
     return updatedBooking;
   });
 }
@@ -306,13 +415,28 @@ function addWebhooks(webhooks: InputWebhook[]) {
         teamId: webhook.teamId || null,
       };
     });
-    logger.silly("webhook.findMany.mock", { webhooks: retWebhooks });
+    logger.silly("webhook.findMany.mock", JSON.stringify({ webhooks: retWebhooks }));
     return retWebhooks;
   });
 }
 
+function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
+  MOCK_DB.__counter.users = MOCK_DB.__counter.users || 0;
+  const usersToAdd = users.map((eventType) => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.users!,
+      ...eventType,
+    };
+  });
+  MOCK_DB.users = usersToAdd;
+  return usersToAdd;
+}
+
 function addUsers(users: InputUser[]) {
-  MOCK_DB.users = users;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  addUsersToDb(users);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.user.findUniqueOrThrow.mockImplementation((findUniqueArgs) => {
@@ -371,15 +495,16 @@ function addUsers(users: InputUser[]) {
     });
   });
 
-  prismaMock.user.findMany.mockResolvedValue(
-    users.map((user) => {
+  prismaMock.user.findMany.mockImplementation(() => {
+    logger.silly("user.findMany.mock", JSON.stringify({ users }));
+    return users.map((user) => {
       return {
         ...user,
         username: `IntegrationTestUser${user.id}`,
         email: `IntegrationTestUser${user.id}@example.com`,
       };
-    }) as unknown as PrismaUser[]
-  );
+    }) as unknown as PrismaUser[];
+  });
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -403,7 +528,7 @@ function addUsers(users: InputUser[]) {
 }
 
 export function createBookingScenario(data: ScenarioData) {
-  logger.silly("TestData: Creating Scenario", data);
+  logger.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   addUsers(data.users);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -457,6 +582,19 @@ export function createBookingScenario(data: ScenarioData) {
   };
 }
 
+function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
+  MOCK_DB.__counter.payments = MOCK_DB.__counter.payments || 0;
+  const paymentsToAdd = payments.map((eventType) => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: ++MOCK_DB.__counter.payments!,
+      ...eventType,
+    };
+  });
+  MOCK_DB.payments = paymentsToAdd;
+  return paymentsToAdd;
+}
+
 function addPaymentMock() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payments: any[] = (MOCK_DB.payments = []);
@@ -468,6 +606,7 @@ function addPaymentMock() {
       ...data,
       id: payments.length + 1,
     };
+    addPaymentsToDb([payment]);
     payments.push(payment);
     return payment;
   });
@@ -557,10 +696,11 @@ export function getMockedCredential({
     scope: string;
   };
 }) {
+  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
   return {
-    type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-    appId: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].slug,
-    app: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata],
+    type: app.type,
+    appId: app.slug,
+    app: app,
     key: {
       expiry_date: Date.now() + 1000000,
       token_type: "Bearer",
@@ -574,6 +714,7 @@ export function getMockedCredential({
 export function getGoogleCalendarCredential() {
   return getMockedCredential({
     metadataLookupKey: "googlecalendar",
+    credentialType: "google_calendar",
     key: {
       scope:
         "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
@@ -685,6 +826,20 @@ export const TestData = {
         redirect_uris: ["http://localhost:3000/auth/callback"],
       },
     },
+    zoomvideo: {
+      slug: "zoom",
+      dirName: "whatever",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        api_key: "",
+        scale_plan: "false",
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
     "stripe-payment": {
       //TODO: Read from appStoreMeta
       slug: "stripe",
@@ -750,6 +905,7 @@ export function getScenarioData({
   usersApartFromOrganizer = [],
   apps = [],
   webhooks,
+  bookings,
 }: // hosts = [],
 {
   organizer: ReturnType<typeof getOrganizer>;
@@ -757,6 +913,7 @@ export function getScenarioData({
   apps: ScenarioData["apps"];
   usersApartFromOrganizer?: ScenarioData["users"];
   webhooks?: ScenarioData["webhooks"];
+  bookings?: ScenarioData["bookings"];
   // hosts?: ScenarioData["hosts"];
 }) {
   const users = [organizer, ...usersApartFromOrganizer];
@@ -781,6 +938,7 @@ export function getScenarioData({
     users,
     apps: [...apps],
     webhooks,
+    bookings: bookings || [],
   };
 }
 
@@ -807,20 +965,74 @@ export function mockNoTranslations() {
   });
 }
 
-export function mockCalendarToHaveNoBusySlots(metadataLookupKey: keyof typeof appStoreMetadata) {
+export function mockCalendarToHaveNoBusySlots(
+  metadataLookupKey: keyof typeof appStoreMetadata,
+  calendarData?: {
+    create: {
+      uid: string;
+    };
+    update?: {
+      uid: string;
+    };
+  }
+) {
   const appStoreLookupKey = metadataLookupKey;
+  const normalizedCalendarData = calendarData || {
+    create: {
+      uid: "MOCK_ID",
+    },
+    update: {
+      uid: "UPDATED_MOCK_ID",
+    },
+  };
+  logger.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createEventCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateEventCalls: any[] = [];
+  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
     lib: {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       CalendarService: function MockCalendarService() {
         return {
-          createEvent: () => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            const [calEvent, credentialId] = rest;
+            logger.silly(
+              "mockCalendarToHaveNoBusySlots.createEvent",
+              JSON.stringify({ calEvent, credentialId })
+            );
+            createEventCalls.push(rest);
             return Promise.resolve({
-              type: "daily_video",
-              id: "dailyEventName",
-              password: "dailyvideopass",
-              url: "http://dailyvideo.example.com",
+              type: app.type,
+              additionalInfo: {},
+              uid: "PROBABLY_UNUSED_UID",
+              id: normalizedCalendarData.create.uid,
+              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+              password: "MOCK_PASSWORD",
+              url: "https://UNUSED_URL",
+            });
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            const [uid, event, externalCalendarId] = rest;
+            logger.silly(
+              "mockCalendarToHaveNoBusySlots.updateEvent",
+              JSON.stringify({ uid, event, externalCalendarId })
+            );
+            // eslint-disable-next-line prefer-rest-params
+            updateEventCalls.push(rest);
+            return Promise.resolve({
+              type: app.type,
+              additionalInfo: {},
+              uid: "PROBABLY_UNUSED_UID",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              id: normalizedCalendarData.update!.uid!,
+              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+              password: "MOCK_PASSWORD",
+              url: "https://UNUSED_URL",
             });
           },
           getAvailability: (): Promise<EventBusyDate[]> => {
@@ -832,16 +1044,37 @@ export function mockCalendarToHaveNoBusySlots(metadataLookupKey: keyof typeof ap
       },
     },
   });
+  return {
+    createEventCalls,
+    updateEventCalls,
+  };
 }
 
 export function mockSuccessfulVideoMeetingCreation({
   metadataLookupKey,
   appStoreLookupKey,
+  videoMeetingData,
 }: {
   metadataLookupKey: string;
   appStoreLookupKey?: string;
+  videoMeetingData?: {
+    password: string;
+    id: string;
+    url: string;
+  };
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+  videoMeetingData = videoMeetingData || {
+    id: "MOCK_ID",
+    password: "MOCK_PASS",
+    url: `http://mock-${metadataLookupKey}.example.com`,
+  };
+  logger.silly(
+    "mockSuccessfulVideoMeetingCreation",
+    JSON.stringify({ metadataLookupKey, appStoreLookupKey })
+  );
+  const createMeetingCalls: any[] = [];
+  const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
@@ -851,12 +1084,31 @@ export function mockSuccessfulVideoMeetingCreation({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           VideoApiAdapter: () => ({
-            createMeeting: () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            createMeeting: (...rest: any[]) => {
+              createMeetingCalls.push(rest);
               return Promise.resolve({
                 type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                id: "MOCK_ID",
-                password: "MOCK_PASS",
-                url: `http://mock-${metadataLookupKey}.example.com`,
+                ...videoMeetingData,
+              });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            updateMeeting: async (...rest: any[]) => {
+              const [bookingRef, calEvent] = rest;
+              updateMeetingCalls.push(rest);
+              if (!bookingRef.type) {
+                throw new Error("bookingRef.type is not defined");
+              }
+              if (!calEvent.organizer) {
+                throw new Error("calEvent.organizer is not defined");
+              }
+              logger.silly(
+                "mockSuccessfulVideoMeetingCreation.updateMeeting",
+                JSON.stringify({ bookingRef, calEvent })
+              );
+              return Promise.resolve({
+                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                ...videoMeetingData,
               });
             },
           }),
@@ -864,6 +1116,10 @@ export function mockSuccessfulVideoMeetingCreation({
       });
     });
   });
+  return {
+    createMeetingCalls,
+    updateMeetingCalls,
+  };
 }
 
 export function mockPaymentApp({
@@ -939,6 +1195,12 @@ function getInitialMockDb() {
     payments: [] as any[],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webhooks: [] as any[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bookingReferences: [] as any[],
+    __counter: {} as Record<
+      "users" | "eventTypes" | "bookings" | "payments" | "bookingReferences",
+      number | undefined
+    >,
   };
 }
 

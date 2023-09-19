@@ -80,6 +80,7 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
+    logger.silly("Initializing EventManager", JSON.stringify({ user }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
@@ -311,7 +312,6 @@ export default class EventManager {
         },
       });
     }
-
     return {
       results,
       referencesToCreate: [...booking.references],
@@ -360,6 +360,7 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
+        logger.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
@@ -399,13 +400,21 @@ export default class EventManager {
         }
       }
     } else {
+      logger.silly(
+        "No destination Calendar found, falling back to first connected calendar",
+        JSON.stringify({
+          calendarCredentials: this.calendarCredentials,
+        })
+      );
+
       /**
        *  Not ideal but, if we don't find a destination calendar,
-       * fallback to the first connected calendar
+       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
+        logger.silly("Created Calendar event", { createdEvent });
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -502,6 +511,7 @@ export default class EventManager {
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference[] | undefined = undefined,
       credential;
+    logger.silly("updateAllCalendarEvents", JSON.stringify({ event, booking, newBookingId }));
     try {
       // If a newBookingId is given, update that calendar event
       let newBooking;

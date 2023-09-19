@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { Booking } from "@prisma/client";
+import type { Booking, BookingReference } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
@@ -105,7 +105,9 @@ export function expectWorkflowToBeTriggered() {
   // TODO: Implement this.
 }
 
-export function expectBookingToBeInDatabase(booking: Partial<Booking> & Pick<Booking, "id">) {
+export function expectBookingToBeInDatabase(
+  booking: Partial<Booking> & Pick<Booking, "id"> & { references?: Partial<BookingReference>[] }
+) {
   const actualBooking = prismaMock.booking.findUnique({
     where: {
       id: booking.id,
@@ -140,6 +142,31 @@ export function expectSuccessfulBookingCreationEmails({
   );
 }
 
+export function expectSuccessfulBookingRescheduledEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>event_type_has_been_rescheduled_on_time_date</title>",
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>event_type_has_been_rescheduled_on_time_date</title>",
+      to: `${booker.name} <${booker.email}>`,
+    },
+    `${booker.name} <${booker.email}>`
+  );
+}
 export function expectAwaitingPaymentEmails({
   emails,
   organizer,
@@ -292,6 +319,39 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   }
 }
 
+export function expectBookingRescheduledWebhookToHaveBeenFired({
+  organizer,
+  booker,
+  location,
+  subscriberUrl,
+  paidEvent,
+  videoCallUrl,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  paidEvent?: boolean;
+  videoCallUrl?: string;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_RESCHEDULED",
+    payload: {
+      metadata: {
+        ...(videoCallUrl ? { videoCallUrl } : null),
+      },
+      responses: {
+        name: { label: "your_name", value: booker.name },
+        email: { label: "email_address", value: booker.email },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
+        },
+      },
+    },
+  });
+}
+
 export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   organizer,
   booker,
@@ -322,4 +382,86 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
       },
     },
   });
+}
+
+export function expectSuccessfulCalendarEventCreationInCalendar(
+  calendarMock: {
+    createEventCalls: any[];
+    updateEventCalls: any[];
+  },
+  expected: {
+    externalCalendarId: string;
+    calEvent: any;
+    uid: string;
+  }
+) {
+  expect(calendarMock.createEventCalls.length).toBe(1);
+  const call = calendarMock.createEventCalls[0];
+  const uid = call[0];
+  const calendarEvent = call[1];
+  const externalId = call[2];
+  expect(uid).toBe(expected.uid);
+  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalId).toBe(expected.externalCalendarId);
+}
+
+export function expectSuccessfulCalendarEventUpdationInCalendar(
+  calendarMock: {
+    createEventCalls: any[];
+    updateEventCalls: any[];
+  },
+  expected: {
+    externalCalendarId: string;
+    calEvent: any;
+    uid: string;
+  }
+) {
+  expect(calendarMock.updateEventCalls.length).toBe(1);
+  const call = calendarMock.updateEventCalls[0];
+  const uid = call[0];
+  const calendarEvent = call[1];
+  const externalId = call[2];
+  expect(uid).toBe(expected.uid);
+  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalId).toBe(expected.externalCalendarId);
+}
+
+export function expectSuccessfulVideoMeetingCreationInCalendar(
+  videoMock: {
+    createMeetingCalls: any[];
+    updateMeetingCalls: any[];
+  },
+  expected: {
+    externalCalendarId: string;
+    calEvent: any;
+    uid: string;
+  }
+) {
+  expect(videoMock.createMeetingCalls.length).toBe(1);
+  const call = videoMock.createMeetingCalls[0];
+  const uid = call[0];
+  const calendarEvent = call[1];
+  const externalId = call[2];
+  expect(uid).toBe(expected.uid);
+  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalId).toBe(expected.externalCalendarId);
+}
+
+export function expectSuccessfulVideoMeetingUpdationInCalendar(
+  videoMock: {
+    createMeetingCalls: any[];
+    updateMeetingCalls: any[];
+  },
+  expected: {
+    bookingRef: any;
+    calEvent: any;
+  }
+) {
+  logger.silly("videoMock.updateMeetingCalls", videoMock.updateMeetingCalls);
+  expect(videoMock.updateMeetingCalls.length).toBe(1);
+  const call = videoMock.updateMeetingCalls[0];
+  const bookingRef = call[0];
+  const calendarEvent = call[1];
+  expect(bookingRef).toEqual(expect.objectContaining(expected.bookingRef));
+  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
 }
