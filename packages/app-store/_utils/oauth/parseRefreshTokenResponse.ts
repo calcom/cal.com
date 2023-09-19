@@ -15,7 +15,11 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
     refreshTokenResponse = minimumTokenReponseSchema.safeParse(response);
   } else {
-    refreshTokenResponse = schema.parse(response);
+    refreshTokenResponse = schema.safeParse(response);
+    console.log(
+      "🚀 ~ file: parseRefreshTokenResponse.ts:19 ~ parseRefreshTokenResponse ~ refreshTokenResponse:",
+      refreshTokenResponse
+    );
   }
 
   if (!refreshTokenResponse.success) {
