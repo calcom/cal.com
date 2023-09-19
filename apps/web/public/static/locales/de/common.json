@@ -2013,6 +2013,7 @@
   "hi_admin": "Hallo, Administrator",
   "admin_org_notification_email_body_part2": "Oder der CNAME-Eintrag:",
   "org_has_been_processed": "Org wurde verarbeitet",
+  "org_error_processing": "Beim Verarbeiten dieser Organisation ist ein Fehler aufgetreten",
   "unverified": "Nicht verifiziert",
   "dns_missing": "DNS fehlt",
   "mark_dns_configured": "Als DNS konfiguriert kennzeichnen",
