@@ -151,21 +151,16 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
       bookingId: true,
     },
   });
-  if (!payment?.bookingId) {
-    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
-  }
+
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
   type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
     eventTypeRaw = await getEventType(booking.eventTypeId);
   }
-
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
   if (booking.location) evt.location = booking.location;
 
