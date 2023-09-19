@@ -16,10 +16,6 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
     refreshTokenResponse = minimumTokenReponseSchema.safeParse(response);
   } else {
     refreshTokenResponse = schema.safeParse(response);
-    console.log(
-      "🚀 ~ file: parseRefreshTokenResponse.ts:19 ~ parseRefreshTokenResponse ~ refreshTokenResponse:",
-      refreshTokenResponse
-    );
   }
 
   if (!refreshTokenResponse.success) {
