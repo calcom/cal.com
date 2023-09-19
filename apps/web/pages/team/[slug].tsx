@@ -19,8 +19,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, AvatarGroup, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -210,24 +209,17 @@ function TeamPage({
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes?.length) &&
-              (team.isPrivate ? (
-                <div className="w-full text-center">
-                  <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
-                    {t("you_cannot_see_team_members")}
-                  </h2>
-                </div>
-              ) : (
+            {team.isPrivate ? (
+              <div className="w-full text-center">
+                <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+              </div>
+            ) : (
+              <>
                 <Team members={team.members} teamName={team.name} />
-              ))}
-            {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
-              <div className="mx-auto max-w-3xl ">
-                <EventTypes eventTypes={team.eventTypes} />
 
-                {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !team.isPrivate && (
+                {team.eventTypes.length > 0 && (
                   <div>
-                    <div className="relative mt-12">
+                    <div className="relative mb-8 mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
                         <div className="border-subtle w-full border-t" />
                       </div>
@@ -238,26 +230,10 @@ function TeamPage({
                       </div>
                     </div>
 
-                    <aside className="dark:text-inverted mt-8 flex justify-center text-center">
-                      <Button
-                        color="minimal"
-                        EndIcon={ArrowRight}
-                        data-testid="book-a-team-member-btn"
-                        className="dark:hover:bg-darkgray-200"
-                        href={{
-                          pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
-                          query: {
-                            ...queryParamsToForward,
-                            members: "1",
-                          },
-                        }}
-                        shallow={true}>
-                        {t("book_a_team_member")}
-                      </Button>
-                    </aside>
+                    <EventTypes eventTypes={team.eventTypes} />
                   </div>
                 )}
-              </div>
+              </>
             )}
           </>
         )}
