@@ -254,14 +254,14 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
-  videoCallUrl: string;
+  videoCallUrl?: string;
 }) {
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
       payload: {
         metadata: {
-          videoCallUrl,
+          ...(videoCallUrl ? { videoCallUrl } : null),
         },
         responses: {
           name: { label: "your_name", value: booker.name },

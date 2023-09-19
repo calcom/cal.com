@@ -723,43 +723,20 @@ describe("handleNewBooking", () => {
 
         expectBookingToBeInDatabase({
           description: "",
-          eventType: {
-            connect: {
-              id: mockBookingData.eventTypeId,
-            },
-          },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: createdBooking.id!,
+          eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
         });
 
         expectWorkflowToBeTriggered();
 
-        const testEmails = emails.get();
-        expect(testEmails[0]).toHaveEmail({
-          htmlToContain: "<title>confirmed_event_type_subject</title>",
-          to: `${organizer.email}`,
-        });
-        expect(testEmails[1]).toHaveEmail({
-          htmlToContain: "<title>confirmed_event_type_subject</title>",
-          to: `${booker.name} <${booker.email}>`,
-        });
-        expect(testEmails[1].html).toContain("<title>confirmed_event_type_subject</title>");
-        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
-          triggerEvent: "BOOKING_CREATED",
-          payload: {
-            metadata: {},
-            responses: {
-              name: { label: "your_name", value: "Booker" },
-              email: { label: "email_address", value: "booker@example.com" },
-              location: {
-                label: "location",
-                value: { optionValue: "", value: "New York" },
-              },
-              title: { label: "what_is_this_meeting_about" },
-              notes: { label: "additional_notes" },
-              guests: { label: "additional_guests" },
-              rescheduleReason: { label: "reason_for_reschedule" },
-            },
-          },
+        expectSuccessfulBookingCreationEmails({ booker, organizer, emails });
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "New York",
+          subscriberUrl: "http://my-webhook.example.com",
         });
       },
       timeout
