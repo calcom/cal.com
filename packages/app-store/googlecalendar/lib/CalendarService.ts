@@ -2,6 +2,7 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import type { z } from "zod";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -94,7 +95,12 @@ export default class GoogleCalendarService implements Calendar {
         const token = res?.data;
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
-        const key = parseRefreshTokenResponse(googleCredentials, googleCredentialSchema);
+
+        const key: z.infer<typeof googleCredentialSchema> = parseRefreshTokenResponse(
+          googleCredentials,
+          googleCredentialSchema
+        );
+
         await prisma.credential.update({
           where: { id: credential.id },
           data: { key },
