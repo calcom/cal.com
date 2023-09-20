@@ -127,7 +127,7 @@ export default class GoogleCalendarService implements Calendar {
     return calendar;
   };
 
-  private getAttendees = (event: CalendarEvent, credId?: number) => {
+  private getAttendees = (event: CalendarEvent, credId?: number, emailId?: string) => {
     // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === credId
@@ -136,8 +136,7 @@ export default class GoogleCalendarService implements Calendar {
       ...rest,
       responseStatus: "accepted",
     }));
-    console.log("evtattned");
-    console.log(eventAttendees);
+
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
@@ -146,7 +145,7 @@ export default class GoogleCalendarService implements Calendar {
         // organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+        email: emailId ?? event.organizer.email,
       },
       {
         email: process.env.BOT_EMAIL,
@@ -157,8 +156,7 @@ export default class GoogleCalendarService implements Calendar {
       },
       ...eventAttendees,
     ];
-    console.log("attend");
-    console.log(attendees);
+
     if (event.team?.members) {
       // TODO: Check every other CalendarService for team members
       const teamAttendeesWithoutCurrentUser = event.team.members
@@ -179,7 +177,11 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(
+    calEventRaw: CalendarEvent,
+    credentialId: number,
+    emailId?: string
+  ): Promise<NewCalendarEventType> {
     const payload: calendar_v3.Schema$Event = {
       summary: calEventRaw.title,
       description: getRichDescription(calEventRaw),
@@ -191,14 +193,13 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: calEventRaw.endTime,
         timeZone: calEventRaw.organizer.timeZone,
       },
-      attendees: this.getAttendees(calEventRaw, credentialId),
+      attendees: this.getAttendees(calEventRaw, credentialId, emailId),
       reminders: {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
     };
-    console.log("Credential id ");
-    console.log(credentialId);
+
     if (calEventRaw.location) {
       payload["location"] = getLocation(calEventRaw);
     }
@@ -218,7 +219,7 @@ export default class GoogleCalendarService implements Calendar {
         calendarId: selectedCalendar,
         requestBody: payload,
         conferenceDataVersion: 1,
-        sendUpdates: "none",
+        sendUpdates: "all",
       });
 
       if (event && event.data.id && event.data.hangoutLink) {
@@ -281,17 +282,14 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     const calendar = await this.authedCalendar();
-
-    const selectedCalendar = externalCalendarId
-      ? externalCalendarId
-      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+    const selectedCalendar = process.env.CALENDAR_EMAIL;
 
     try {
       const evt = await calendar.events.update({
         calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: true,
-        sendUpdates: "none",
+        sendUpdates: "all",
         requestBody: payload,
         conferenceDataVersion: 1,
       });
@@ -331,16 +329,16 @@ export default class GoogleCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     const calendar = await this.authedCalendar();
     const defaultCalendarId = "primary";
-    const calendarId = externalCalendarId
-      ? externalCalendarId
-      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+    // const calendarId = externalCalendarId
+    //   ? externalCalendarId
+    //   : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
     try {
       const event = await calendar.events.delete({
-        calendarId: calendarId ? calendarId : defaultCalendarId,
+        calendarId: process.env.CALENDAR_EMAIL,
         eventId: uid,
         sendNotifications: false,
-        sendUpdates: "none",
+        sendUpdates: "all",
       });
       return event?.data;
     } catch (error) {
