@@ -107,7 +107,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
-      receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail ?? true,
     },
   });
   const {
@@ -116,10 +115,15 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
-  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
+  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState<boolean>(
     user.allowDynamicBooking ?? true
   );
-  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(user.allowSEOIndexing ?? true);
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState<boolean>(
+    user.allowSEOIndexing ?? true
+  );
+  const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState<boolean>(
+    user.receiveMonthlyDigestEmail ?? true
+  );
 
   return (
     <div>
@@ -221,6 +225,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         toggleSwitchAtTheEnd={true}
         title={t("dynamic_booking")}
         description={t("allow_dynamic_booking")}
+        disabled={mutation.isLoading}
         checked={isAllowDynamicBookingChecked}
         onCheckedChange={(checked) => {
           setIsAllowDynamicBookingChecked(checked);
@@ -228,11 +233,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         }}
         switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
       />
-              
+
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
         description={t("allow_seo_indexing")}
+        disabled={mutation.isLoading}
         checked={isAllowSEOIndexingChecked}
         onCheckedChange={(checked) => {
           setIsAllowSEOIndexingChecked(checked);
@@ -240,20 +246,20 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         }}
         switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
       />
-        
+
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("monthly_digest_email")}
         description={t("monthly_digest_email_for_teams")}
-        checked={formMethods.getValues("receiveMonthlyDigestEmail")}
+        disabled={mutation.isLoading}
+        checked={isReceiveMonthlyDigestEmailChecked}
         onCheckedChange={(checked) => {
-            formMethods.setValue("receiveMonthlyDigestEmail", checked, { shouldDirty: true });
+          setIsReceiveMonthlyDigestEmailChecked(checked);
+          mutation.mutate({ receiveMonthlyDigestEmail: checked });
         }}
         switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
       />
     </div>
-              
-    </Form>
   );
 };
 
