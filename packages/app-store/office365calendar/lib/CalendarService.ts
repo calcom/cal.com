@@ -17,6 +17,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { O365AuthCredentials } from "../types/Office365Calendar";
@@ -260,10 +261,8 @@ export default class Office365CalendarService implements Calendar {
         credential.userId
       );
       const responseJson = await handleErrorsJson(response);
-      const tokenResponse: z.infer<typeof refreshTokenResponseSchema> = parseRefreshTokenResponse(
-        responseJson,
-        refreshTokenResponseSchema
-      );
+      const tokenResponse: ParseRefreshTokenResponse<typeof refreshTokenResponseSchema> =
+        parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
       o365AuthCredentials = { ...o365AuthCredentials, ...tokenResponse };
       await prisma.credential.update({
         where: {

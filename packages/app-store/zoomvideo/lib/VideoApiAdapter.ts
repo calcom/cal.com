@@ -9,6 +9,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getZoomAppKeys } from "./getZoomAppKeys";
@@ -101,7 +102,7 @@ const zoomAuth = (credential: CredentialPayload) => {
       }
     }
     // We check the if the new credentials matches the expected response structure
-    const newTokens: z.infer<typeof zoomRefreshedTokenSchema> = parseRefreshTokenResponse(
+    const newTokens: ParseRefreshTokenResponse<typeof zoomRefreshedTokenSchema> = parseRefreshTokenResponse(
       responseBody,
       zoomRefreshedTokenSchema
     );

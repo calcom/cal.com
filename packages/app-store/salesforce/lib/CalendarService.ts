@@ -17,6 +17,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 
 type ExtendedTokenResponse = TokenResponse & {
@@ -87,10 +88,8 @@ export default class SalesforceCalendarService implements Calendar {
 
     const accessTokenJson = await response.json();
 
-    const accessTokenParsed: z.infer<typeof salesforceTokenSchema> = parseRefreshTokenResponse(
-      accessTokenJson,
-      salesforceTokenSchema
-    );
+    const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
+      parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
 
     await prisma.credential.update({
       where: { id: credential.id },

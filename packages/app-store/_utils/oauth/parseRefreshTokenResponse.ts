@@ -10,6 +10,10 @@ const minimumTokenResponseSchema = z.object({
   [z.string().optional().toString()]: z.unknown().optional(),
 });
 
+export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
+  | z.infer<S>
+  | z.infer<typeof minimumTokenResponseSchema>;
+
 const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
