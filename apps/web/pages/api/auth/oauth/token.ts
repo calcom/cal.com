@@ -44,6 +44,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  //delete all expired accessCodes + the one that is used here
+  await prisma.accessCode.deleteMany({
+    where: {
+      OR: [
+        {
+          expiresAt: {
+            lt: new Date(),
+          },
+        },
+        {
+          code: code,
+          clientId: client_id,
+        },
+      ],
+    },
+  });
+
   if (!accessCode) {
     res.status(401).json({ message: "Unauthorized" });
     return;
