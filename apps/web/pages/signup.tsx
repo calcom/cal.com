@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2, ShieldCheckIcon, StarIcon } from "lucide-react";
+import { CalendarHeart, Clock, Info, Loader2, ShieldCheckIcon, StarIcon } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -41,6 +41,29 @@ const signupSchema = apiSignupSchema.extend({
 type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
+
+const FEATURES = [
+  {
+    title: "connect_all_calendars",
+    description: "connect_all_calendars_description",
+    icon: CalendarHeart,
+  },
+  {
+    title: "scheduling_for_your_team",
+    description: "schedule_for_your_team_description",
+    icon: Clock,
+  },
+  {
+    title: "scheduling_for_your_team",
+    description: "schedule_for_your_team_description",
+    icon: Clock,
+  },
+  {
+    title: "scheduling_for_your_team",
+    description: "schedule_for_your_team_description",
+    icon: Clock,
+  },
+];
 
 function UsernameField({
   setPremium,
@@ -182,7 +205,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       }>
       <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-lg 2xl:border ">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-4 py-6 md:px-16 lg:px-28">
+        <div className="flex w-full flex-col px-4 py-6 md:px-16 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
@@ -327,12 +350,21 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             </div>
           </div>
         </div>
-        <div
-          className="my-6 hidden w-full flex-col justify-center rounded-l-2xl py-12 pl-12 lg:flex"
-          style={{
-            background: "radial-gradient(234.86% 110.55% at 109.58% 35%, #667593 0%, #D4D4D5 100%)",
-          }}>
+        <div className="bg-subtle border-subtle my-6 hidden w-full flex-col justify-center rounded-l-2xl py-12 pl-12 lg:flex">
           <img src="/mock-event-type-list.svg" alt="#" />
+          <div className="mr-12 mt-4 grid h-full w-full grid-cols-2 gap-4 overflow-hidden">
+            {FEATURES.map((feature) => (
+              <>
+                <div className="flex flex-col leading-none">
+                  <div className="text-emphasis flex items-center gap-1">
+                    <feature.icon className="h-4 w-4 " />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
+                  </div>
+                  <p className="text-subtle text-sm">{t(feature.description)}</p>
+                </div>
+              </>
+            ))}
+          </div>
         </div>
       </div>
     </div>
