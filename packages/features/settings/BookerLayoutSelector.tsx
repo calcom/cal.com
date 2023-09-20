@@ -52,7 +52,7 @@ export const BookerLayoutSelector = ({
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
   const flags = useFlagMap();
-  // if (flags["booker-layouts"] !== true) return null;
+  if (flags["booker-layouts"] !== true) return null;
 
   return (
     <>
