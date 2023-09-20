@@ -115,41 +115,46 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const SubTeams = () =>
     team.children.length ? (
       <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
-        {team.children.map((ch, i) => (
-          <li key={i} className="hover:bg-muted w-full">
-            <Link href={`/${ch.slug}`} className="flex items-center justify-between">
-              <div className="flex items-center px-5 py-5">
-                <Avatar
-                  size="md"
-                  imageSrc={getPlaceholderAvatar(ch?.logo, ch?.name as string)}
-                  alt="Team Logo"
-                  className="inline-flex justify-center"
-                />
-                <div className="ms-3 inline-block truncate">
-                  <span className="text-default text-sm font-bold">{ch.name}</span>
-                  <span className="text-subtle block text-xs">
-                    {t("number_member", {
-                      count: team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
-                        .length,
-                    })}
-                  </span>
+        {team.children.map((ch, i) => {
+          const memberCount = team.members.filter(
+            (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
+          ).length;
+          return (
+            <li key={i} className="hover:bg-muted w-full">
+              <Link href={`/${ch.slug}`} className="flex items-center justify-between">
+                <div className="flex items-center px-5 py-5">
+                  <Avatar
+                    size="md"
+                    imageSrc={getPlaceholderAvatar(ch?.logo, ch?.name as string)}
+                    alt="Team Logo"
+                    className="inline-flex justify-center"
+                  />
+                  <div className="ms-3 inline-block truncate">
+                    <span className="text-default text-sm font-bold">{ch.name}</span>
+                    <span className="text-subtle block text-xs">
+                      {t("number_member", {
+                        count: memberCount,
+                        defaultValue: `${memberCount} member${memberCount > 1 ? "s" : ""}`,
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <AvatarGroup
-                className="mr-6"
-                size="sm"
-                truncateAfter={4}
-                items={team.members
-                  .filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
-                  .map((member) => ({
-                    alt: member.name || "",
-                    image: `/${member.username}/avatar.png`,
-                    title: member.name || "",
-                  }))}
-              />
-            </Link>
-          </li>
-        ))}
+                <AvatarGroup
+                  className="mr-6"
+                  size="sm"
+                  truncateAfter={4}
+                  items={team.members
+                    .filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
+                    .map((member) => ({
+                      alt: member.name || "",
+                      image: `/${member.username}/avatar.png`,
+                      title: member.name || "",
+                    }))}
+                />
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     ) : (
       <div className="space-y-6" data-testid="event-types">
@@ -252,7 +257,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
     context.req.headers.host ?? "",
@@ -260,12 +264,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
+  const ssr = await ssrInit(context, {
+    noI18nPreload: isValidOrgDomain && !team?.parent,
+  });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-  console.warn("gSSP, team/[slug] - ", {
+  console.info("gSSP, team/[slug] - ", {
     isValidOrgDomain,
     currentOrgDomain,
     ALLOWED_HOSTNAMES: process.env.ALLOWED_HOSTNAMES,
-    flags: JSON.stringify,
+    flags: JSON.stringify(flags),
   });
   // Taking care of sub-teams and orgs
   if (
