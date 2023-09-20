@@ -2055,6 +2055,12 @@
   "access_cal_account": "{{clientName}} would like access to your Cal.com account",
   "select_account_team": "Select account or team",
   "allow_client_to": "This will allow {{clientName}} to",
-  "oauth_access_permission_list": "<0>Associate you with your personal info from Cal.com</0><1>See your personal info, including any personal info you've made publicly available</1><2>See your primary email address</2><3>Connect to your installed apps</3><4>Read, edit, delete your event-types</4><5>Read, edit, delete your availability</5><6>Read, edit, delete your bookings</6>",
+  "associate_with_cal_account":"Associate you with your personal info from {{clientName}}",
+  "see_personal_info":"See your personal info, including any personal info you've made publicly available",
+  "see_primary_email_address":"See your primary email address",
+  "connect_installed_apps":"Connect to your installed apps",
+  "access_event_type": "Read, edit, delete your event-types",
+  "access_availability": "Read, edit, delete your availability",
+  "access_bookings": "Read, edit, delete your bookings",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

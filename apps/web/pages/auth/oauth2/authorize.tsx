@@ -1,5 +1,4 @@
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -16,6 +15,7 @@ export default function Authorize() {
 
   const router = useRouter();
   const { state, client_id, scope } = router.query;
+  const queryString = router.asPath.split("?")[1] || "";
 
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
@@ -60,7 +60,7 @@ export default function Authorize() {
 
   if (status === "unauthenticated") {
     const urlSearchParams = new URLSearchParams({
-      callbackUrl: window.location.href,
+      callbackUrl: `auth/oauth2/authorize?${queryString}`,
     });
     router.replace(`/auth/login?${urlSearchParams.toString()}`);
     return <></>;
@@ -89,45 +89,43 @@ export default function Authorize() {
             </div>
           </div>
         </div>
-        <h1 className="p-5 text-center text-2xl font-bold tracking-tight">
+        <h1 className="mt-1 p-5 text-center text-2xl font-bold tracking-tight">
           {t("access_cal_account", { clientName: client.name })}
         </h1>
-        <div>{t("select_account_team")}</div>
+        <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
         <Select
           isSearchable={true}
           onChange={(value) => {
             setSelectedAccount(value);
           }}
+          className="w-52"
           defaultValue={selectedAccount}
           options={mappedProfiles}
         />
-        <div className="mb-4 mt-2 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
+        <div className="mb-4 mt-5 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
         <ul className="space-y-4 text-sm">
-          <Trans i18nKey="oauth_access_permission_list">
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> Associate you with your personal info from
-              Cal.com
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> See your personal info, including any personal
-              info you&apos;ve made publicly available
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> See your primary email address
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> Connect to your installed apps
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> Read, edit, delete your event-types
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> Read, edit, delete your availability
-            </li>
-            <li className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span> Read, edit, delete your bookings
-            </li>
-          </Trans>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("associate_with_cal_account", { clientName: client.name })}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("see_personal_info")}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("see_primary_email_address")}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("connect_installed_apps")}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("access_event_type")}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("access_availability")}
+          </li>
+          <li className="relative pl-5">
+            <span className="absolute left-0">&#10003;</span> {t("access_bookings")}
+          </li>
         </ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
