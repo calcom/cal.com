@@ -49,6 +49,7 @@ const TwoFactorAuthView = () => {
       {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
+        data-testid="two-factor-switch"
         title={t("two_factor_auth")}
         description={t("add_an_extra_layer_of_security")}
         checked={user?.twoFactorEnabled ?? false}
