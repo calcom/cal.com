@@ -265,7 +265,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
   const ssr = await ssrInit(context, {
-    noI18nPreload: isValidOrgDomain,
+    noI18nPreload: isValidOrgDomain && !team?.parent,
   });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   console.info("gSSP, team/[slug] - ", {
