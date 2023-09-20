@@ -26,7 +26,6 @@ export const oAuthRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getClient({
-      ctx,
       input,
     });
   }),
@@ -45,7 +44,6 @@ export const oAuthRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.addClient({
-      ctx,
       input,
     });
   }),

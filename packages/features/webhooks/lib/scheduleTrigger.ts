@@ -29,8 +29,8 @@ export async function addSubscription({
   } | null;
 }) {
   try {
-    const userId = appApiKey ? appApiKey.userId : !account.isTeam ? account.id : null;
-    const teamId = appApiKey ? appApiKey.teamId : account.isTeam ? account.id : null;
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
 
     const createSubscription = await prisma.webhook.create({
       data: {
@@ -44,7 +44,8 @@ export async function addSubscription({
       },
     });
 
-    if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
+    // todo - add oAuth code ehre
+    if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED && appApiKey) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};
       if (teamId) {
