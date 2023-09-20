@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Accept any child team invites for orgs and create a membership for the org itself
       if (team.parentId) {
-        // Create or Upate membership for the organization itself
+        // Create (when invite link is used) or Update (when regular email invitation is used) membership for the organization itself
         await prisma.membership.upsert({
           where: {
             userId_teamId: { userId: user.id, teamId: team.parentId },
