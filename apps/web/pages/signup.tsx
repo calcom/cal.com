@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Trans } from "react-i18next";
@@ -20,6 +20,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
 import { IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -66,34 +67,43 @@ const FEATURES = [
 ];
 
 function UsernameField({
+  username,
   setPremium,
   premium,
   ...props
-}: React.ComponentProps<typeof TextField> & { setPremium: (value: boolean) => void; premium: boolean }) {
+}: React.ComponentProps<typeof TextField> & {
+  username: string;
+  setPremium: (value: boolean) => void;
+  premium: boolean;
+}) {
   const { t } = useLocale();
   const { watch, register, formState } = useFormContext<FormValues>();
   const [taken, setTaken] = useState(false);
-  const watchedUsername = watch("username");
-  const debouncedUsername = useDebounce(watchedUsername, 500);
-  // const { isFetching } = useQuery({
-  //   queryKey: ["username"],
-  //   queryFn: async () => await fetchUsername(debouncedUsername),
-  //   refetchOnWindowFocus: false,
-  //   onSuccess: ({ data }) => {
-  //     setPremium(data.premium);
-  //     if (!data.available) {
-  //       setTaken(true);
-  //     }
-  //   },
-  //   enabled: debouncedUsername?.length > 0 || false,
-  // });
+  const [loading, setLoading] = useState(false);
+  const debouncedUsername = useDebounce(username, 500);
 
-  // useEffect(() => {
-  //   if (!debouncedUsername) {
-  //     setTaken(false);
-  //     setPremium(false);
-  //   }
-  // }, [debouncedUsername, setPremium, setTaken]);
+  useEffect(() => {
+    async function checkUsername() {
+      if (!debouncedUsername) {
+        setLoading(false);
+        setPremium(false);
+        setTaken(false);
+        return;
+      }
+      setLoading(true);
+      fetchUsername(debouncedUsername)
+        .then(({ data }) => {
+          setPremium(data.premium);
+          if (!data.available) {
+            setTaken(true);
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+    checkUsername();
+  }, [debouncedUsername, setPremium, setTaken]);
 
   return (
     <div>
@@ -101,7 +111,7 @@ function UsernameField({
       {!formState.isSubmitting && (
         <div className="text-gray text-default flex items-center text-sm">
           <p className="flex items-center text-sm ">
-            {false ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
                 {t("loading")}
@@ -140,7 +150,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   });
   const {
     register,
-
+    watch,
     formState: { isSubmitting, errors },
   } = formMethods;
 
@@ -233,6 +243,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               {/* Username */}
               <UsernameField
                 label={t("username")}
+                username={watch("username")}
                 premium={premiumUsername}
                 data-testid="signup-usernamefield"
                 setPremium={(value) => setPremiumUsername(value)}
