@@ -226,7 +226,7 @@ model User {
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking Boolean?             @default(true)
+  allowDynamicBooking Boolean?             @default(false)
 
   // participate in SEO indexing or not
   allowSEOIndexing Boolean? @default(true)
