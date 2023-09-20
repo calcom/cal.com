@@ -112,9 +112,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
     </ul>
   );
 
-  const SubTeams = () => {
-    console.log({ members: team.members });
-    return team.children.length ? (
+  const SubTeams = () =>
+    team.children.length ? (
       <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
         {team.children.map((ch, i) => (
           <li key={i} className="hover:bg-muted w-full">
@@ -162,7 +161,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         </div>
       </div>
     );
-  };
 
   return (
     <>
