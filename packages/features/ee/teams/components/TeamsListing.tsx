@@ -46,6 +46,8 @@ export function TeamsListing() {
   const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
 
+  const isCreateTeamButtonDisabled = user?.organizationId && !user?.organization?.isOrgAdmin;
+
   const features = [
     {
       icon: <Users className="h-5 w-5 text-red-500" />,
@@ -131,7 +133,11 @@ export function TeamsListing() {
             buttonRaw={
               <Button
                 color="secondary"
-                href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+                disabled={isCreateTeamButtonDisabled}
+                tooltip={
+                  isCreateTeamButtonDisabled ? t("org_admins_can_create_new_teams") : t("create_new_team")
+                }
+                onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
                 {t(`create_new_team`)}
               </Button>
             }
