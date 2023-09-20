@@ -28,6 +28,15 @@ export async function getTeamWithMembers(args: {
         externalId: true,
       },
     },
+    teams: {
+      select: {
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    },
     selectedCalendars: true,
     credentials: {
       select: {
@@ -68,16 +77,6 @@ export async function getTeamWithMembers(args: {
         name: true,
         logo: true,
         slug: true,
-        members: {
-          select: {
-            user: {
-              select: {
-                name: true,
-                username: true,
-              },
-            },
-          },
-        },
       },
     },
     members: {
@@ -142,6 +141,9 @@ export async function getTeamWithMembers(args: {
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
+      subteams: orgSlug
+        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        : null,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
       connectedApps: obj?.user?.credentials?.map((cred) => {
         const appSlug = cred.app?.slug;
