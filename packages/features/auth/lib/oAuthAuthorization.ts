@@ -5,7 +5,14 @@ import prisma from "@calcom/prisma";
 
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
   const token = req.headers.authorization?.split(" ")[1];
-  const decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY);
+  let decodedToken: any = null;
+  try {
+    decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY);
+  } catch {
+    return null;
+  }
+
+  if (!decodedToken) return null;
   const hasAllRequiredScopes = requiredScopes.every((scope) => decodedToken.scope.includes(scope));
 
   if (!hasAllRequiredScopes || decodedToken.token_type !== "Access Token") {
