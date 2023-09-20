@@ -4,7 +4,6 @@ import z from "zod";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { findPaymentCredentials } from "@calcom/features/ee/payments/api/paypal-webhook";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -78,12 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return;
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
-
-    res.status(200).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
     res.redirect(`/booking/${req.query.bookingUid}?paypalPaymentStatus=failed`);
   }
 }

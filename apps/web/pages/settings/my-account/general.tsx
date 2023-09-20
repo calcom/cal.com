@@ -107,6 +107,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       },
       allowDynamicBooking: user.allowDynamicBooking ?? true,
       allowSEOIndexing: user.allowSEOIndexing ?? true,
+      receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail ?? true,
     },
   });
   const {
@@ -229,6 +230,23 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               checked={formMethods.getValues("allowSEOIndexing")}
               onCheckedChange={(checked) => {
                 formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
+
+      <div className="mt-8">
+        <Controller
+          name="receiveMonthlyDigestEmail"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("monthly_digest_email")}
+              description={t("monthly_digest_email_for_teams")}
+              checked={formMethods.getValues("receiveMonthlyDigestEmail")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("receiveMonthlyDigestEmail", checked, { shouldDirty: true });
               }}
             />
           )}
