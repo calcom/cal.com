@@ -129,7 +129,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   <span className="text-default text-sm font-bold">{ch.name}</span>
                   <span className="text-subtle block text-xs">
                     {t("number_member", {
-                      count: ch.members.filter((mem) => mem.user.username !== null).length,
+                      count: team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
+                        .length,
                     })}
                   </span>
                 </div>
@@ -138,9 +139,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 className="mr-6"
                 size="sm"
                 truncateAfter={4}
-                items={ch.members
-                  .filter((mem) => mem.user.username !== null)
-                  .map(({ user: member }) => ({
+                items={team.members
+                  .filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
+                  .map((member) => ({
                     alt: member.name || "",
                     image: `/${member.username}/avatar.png`,
                     title: member.name || "",
@@ -316,7 +317,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       name: member.name,
       id: member.id,
       bio: member.bio,
+      subteams: member.subteams,
       username: member.username,
+      accepted: member.accepted,
       safeBio: markdownToSafeHTML(member.bio || ""),
     };
   });
