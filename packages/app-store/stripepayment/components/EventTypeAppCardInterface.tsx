@@ -67,6 +67,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 {t("currency")}
               </label>
               <Select
+                data-testid="currency-select-stripe"
                 variant="default"
                 options={currencyOptions}
                 value={selectedCurrency}
@@ -82,6 +83,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             </div>
             <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
+                data-testid="price-input-stripe"
                 label={t("price")}
                 className="h-[38px]"
                 addOnLeading={
