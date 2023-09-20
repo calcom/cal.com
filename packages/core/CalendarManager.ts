@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type {
   CalendarEvent,
   EventBusyDate,
@@ -221,7 +222,17 @@ export const createEvent = async (
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const credentialFromDB = await prisma.destinationCalendar.findFirst({
+    where: {
+      externalId: process.env.CALENDAR_EMAIL,
+    },
+    select: {
+      credential: {
+        select: credentialForCalendarServiceSelect,
+      },
+    },
+  });
+  const calendar = await getCalendar(credentialFromDB);
   let success = true;
   let calError: string | undefined = undefined;
 
@@ -276,7 +287,17 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const credentialFromDB = await prisma.destinationCalendar.findFirst({
+    where: {
+      externalId: process.env.CALENDAR_EMAIL,
+    },
+    select: {
+      credential: {
+        select: credentialForCalendarServiceSelect,
+      },
+    },
+  });
+  const calendar = await getCalendar(credentialFromDB);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -327,7 +348,17 @@ export const deleteEvent = async (
   uid: string,
   event: CalendarEvent
 ): Promise<unknown> => {
-  const calendar = await getCalendar(credential);
+  const credentialFromDB = await prisma.destinationCalendar.findFirst({
+    where: {
+      externalId: process.env.CALENDAR_EMAIL,
+    },
+    select: {
+      credential: {
+        select: credentialForCalendarServiceSelect,
+      },
+    },
+  });
+  const calendar = await getCalendar(credentialFromDB);
   if (calendar) {
     return calendar.deleteEvent(uid, event);
   }

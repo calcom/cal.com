@@ -127,96 +127,54 @@ export default class GoogleCalendarService implements Calendar {
     return calendar;
   };
 
-  private getAttendees = (event: CalendarEvent) => {
+  private getAttendees = (event: CalendarEvent, credId?: number) => {
     // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
-      (cal) => cal.credentialId === this.credential.id
+      (cal) => cal.credentialId === credId
     );
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
+    console.log("evtattned");
+    console.log(eventAttendees);
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
         id: String(event.organizer.id),
         responseStatus: "accepted",
-
-      })) || [];
-    return new Promise(async (resolve, reject) => {
-      const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
-        (cal) => cal.credentialId === credentialId
-      );
-      const myGoogleAuth = await this.auth.getToken();
-      const payload: calendar_v3.Schema$Event = {
-        summary: calEventRaw.title,
-        description: getRichDescription(calEventRaw),
-        start: {
-          dateTime: calEventRaw.startTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        end: {
-          dateTime: calEventRaw.endTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...calEventRaw.organizer,
-
+        // organizer: true,
+        // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
+        displayName: event.organizer.name,
+        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+      },
+      {
+        email: process.env.BOT_EMAIL,
+        name: "Recording bot",
+        timeZone: event.organizer.timeZone,
+        language: event.organizer.language,
+        responseStatus: "accepted",
+      },
+      ...eventAttendees,
+    ];
+    console.log("attend");
+    console.log(attendees);
+    if (event.team?.members) {
+      // TODO: Check every other CalendarService for team members
+      const teamAttendeesWithoutCurrentUser = event.team.members
+        .filter((member) => member.email !== this.credential.user?.email)
+        .map((m) => {
+          const teamMemberDestinationCalendar = event.destinationCalendar?.find(
+            (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
+          );
+          return {
+            email: teamMemberDestinationCalendar?.externalId ?? m.email,
+            displayName: m.name,
             responseStatus: "accepted",
-            organizer: true,
-            email: selectedHostDestinationCalendar?.externalId
-              ? selectedHostDestinationCalendar.externalId
-              : calEventRaw.organizer.email,
-          },
-          {
-            email: calEventRaw.organizer.email,
-            name: calEventRaw.organizer.name,
-            timeZone: calEventRaw.organizer.timeZone,
-            language: calEventRaw.organizer.language,
-            responseStatus: "accepted",
-          },
-          {
-            email: process.env.BOT_EMAIL,
-            name: "Recording Bot",
-            timeZone: calEventRaw.organizer.timeZone,
-            language: calEventRaw.organizer.language,
-            responseStatus: "accepted",
-          },
-
-          ...eventAttendees,
-          ...teamMembers,
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
-      };
-//         organizer: true,
-//         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
-//         displayName: event.organizer.name,
-//         email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
-//       },
-//       ...eventAttendees,
-//     ];
-
-//     if (event.team?.members) {
-//       // TODO: Check every other CalendarService for team members
-//       const teamAttendeesWithoutCurrentUser = event.team.members
-//         .filter((member) => member.email !== this.credential.user?.email)
-//         .map((m) => {
-//           const teamMemberDestinationCalendar = event.destinationCalendar?.find(
-//             (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
-//           );
-//           return {
-//             email: teamMemberDestinationCalendar?.externalId ?? m.email,
-//             displayName: m.name,
-//             responseStatus: "accepted",
-//           };
-//         });
-//       attendees.push(...teamAttendeesWithoutCurrentUser);
-//     }
-
+          };
+        });
+      attendees.push(...teamAttendeesWithoutCurrentUser);
+    }
 
     return attendees;
   };
@@ -233,13 +191,14 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: calEventRaw.endTime,
         timeZone: calEventRaw.organizer.timeZone,
       },
-      attendees: this.getAttendees(calEventRaw),
+      attendees: this.getAttendees(calEventRaw, credentialId),
       reminders: {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
     };
-
+    console.log("Credential id ");
+    console.log(credentialId);
     if (calEventRaw.location) {
       payload["location"] = getLocation(calEventRaw);
     }
@@ -295,66 +254,23 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
-
-    return new Promise(async (resolve, reject) => {
-      const [mainHostDestinationCalendar] =
-        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
-      const myGoogleAuth = await this.auth.getToken();
-      const eventAttendees = event.attendees.map(({ ...rest }) => ({
-        ...rest,
-        responseStatus: "accepted",
-      }));
-      const teamMembers =
-        event.team?.members.map((m) => ({
-          email: m.email,
-          displayName: m.name,
-          responseStatus: "accepted",
-        })) || [];
-      const payload: calendar_v3.Schema$Event = {
-        summary: event.title,
-        description: getRichDescription(event),
-        start: {
-          dateTime: event.startTime,
-          timeZone: event.organizer.timeZone,
-        },
-        end: {
-          dateTime: event.endTime,
-          timeZone: event.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...event.organizer,
-            id: String(event.organizer.id),
-            organizer: true,
-            responseStatus: "accepted",
-            email: event.organizer.email,
-          },
-          ...(eventAttendees as any),
-          ...(teamMembers as any),
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
-      };
-//     const payload: calendar_v3.Schema$Event = {
-//       summary: event.title,
-//       description: getRichDescription(event),
-//       start: {
-//         dateTime: event.startTime,
-//         timeZone: event.organizer.timeZone,
-//       },
-//       end: {
-//         dateTime: event.endTime,
-//         timeZone: event.organizer.timeZone,
-//       },
-//       attendees: this.getAttendees(event),
-//       reminders: {
-//         useDefault: true,
-//       },
-//       guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
-//     };
-
+    const payload: calendar_v3.Schema$Event = {
+      summary: event.title,
+      description: getRichDescription(event),
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: this.getAttendees(event),
+      reminders: {
+        useDefault: true,
+      },
+      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+    };
 
     if (event.location) {
       payload["location"] = getLocation(event);

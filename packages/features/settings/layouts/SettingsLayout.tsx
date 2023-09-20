@@ -119,7 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "users", href: "/settings/admin/users" },
       // { name: "organizations", href: "/settings/admin/organizations" },
       // { name: "kyc_verification", href: "/settings/admin/kycVerification" },
-      { name: "webhooks", href: "/settings/developer/webhooks" },
+      { name: "webhooks", href: "/settings/admin/webhooks" },
     ],
   },
 ];
@@ -140,7 +140,7 @@ const useTabs = () => {
   const { data: user } = trpc.viewer.me.useQuery();
   const orgBranding = useOrgBranding();
 
-  const isAdmin = true || session.data?.user.role === UserPermissionRole.ADMIN;
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {

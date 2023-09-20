@@ -18,17 +18,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import {
-  Button,
-  Label,
-  Select,
-  Skeleton,
-  TextField,
-  Editor,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
+import { Label, Select, Skeleton, TextField, Editor, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Check } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
@@ -307,7 +298,7 @@ export const EventSetupTab = (
                         location.teamName ? `(${location.teamName})` : ""
                       }`}</span>
                     </div>
-                    <div className="flex">
+                    {/* <div className="flex">
                       <button
                         type="button"
                         onClick={() => {
@@ -329,7 +320,7 @@ export const EventSetupTab = (
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
                         <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 </li>
               );
@@ -361,7 +352,7 @@ export const EventSetupTab = (
                 </a>
               </p>
             )}
-            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+            {/* {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -371,7 +362,7 @@ export const EventSetupTab = (
                   {t("add_location")}
                 </Button>
               </li>
-            )}
+            )} */}
           </ul>
         )}
       </div>
