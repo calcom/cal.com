@@ -99,7 +99,7 @@ export default function Authorize() {
             setSelectedAccount(value);
           }}
           className="w-52"
-          defaultValue={selectedAccount}
+          defaultValue={selectedAccount || mappedProfiles[0]}
           options={mappedProfiles}
         />
         <div className="mb-4 mt-5 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
@@ -132,11 +132,10 @@ export default function Authorize() {
             <Info className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
-            <div className="text-sm font-medium">Allow {client.name} to do this?</div>
-            <div className="text-sm">
-              By clicking allow, you allow this app to use your information in accordance with their terms of
-              service and privacy policy. You can view or remove access in the Cal.com App Store.
-            </div>{" "}
+            <div className="mb-1 text-sm font-medium">
+              {t("allow_client_to_do", { clientName: client.name })}
+            </div>
+            <div className="text-sm">{t("oatuh_access_information")}</div>{" "}
             {/* How can access be viewed? Access can be removed by uninstalling app */}
           </div>
         </div>
@@ -152,7 +151,12 @@ export default function Authorize() {
           </Button>
           <Button
             onClick={() => {
-              generateAuthCodeMutation.mutate({ clientId: client_id, scopes });
+              console.log("selectedAccount", selectedAccount?.value);
+              generateAuthCodeMutation.mutate({
+                clientId: client_id,
+                scopes,
+                teamSlug: selectedAccount?.value,
+              });
             }}>
             Allow
           </Button>

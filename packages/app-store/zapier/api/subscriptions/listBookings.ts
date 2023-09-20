@@ -18,20 +18,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  let authorizedUser: {
+  let authorizedAccount: {
     id: number;
-    username: string | null;
-  } | null | void = null;
+    name: string | null;
+    isTeam: boolean;
+  } | null = null;
 
   if (!apiKey) {
-    authorizedUser = await isAuthorized(req, ["READ_BOOKING"]);
+    authorizedAccount = await isAuthorized(req, ["READ_BOOKING"]);
   }
 
-  if (!authorizedUser) {
+  if (!authorizedAccount) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const bookings = await listBookings(validKey, authorizedUser);
+  const bookings = await listBookings(validKey, authorizedAccount);
 
   if (!bookings) {
     return res.status(500).json({ message: "Unable to get bookings." });

@@ -13,15 +13,33 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
     return null;
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      id: decodedToken.userId,
-    },
-    select: {
-      id: true,
-      username: true,
-    },
-  });
+  if (decodedToken.userId) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: decodedToken.userId,
+      },
+      select: {
+        id: true,
+        username: true,
+      },
+    });
 
-  return user;
+    return { id: user.id, name: user.username, isTeam: false };
+  }
+
+  if (decodedToken.teamId) {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: decodedToken.teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return { ...team, isTeam: true };
+  }
+
+  return null;
 }

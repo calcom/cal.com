@@ -17,7 +17,7 @@ type AddClientOptions = {
 };
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { clientId, scopes } = input;
+  const { clientId, scopes, teamSlug } = input;
   const client = await prisma.oAuthClient.findFirst({
     where: {
       clientId,
@@ -34,11 +34,16 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
   }
   const authorizationCode = generateAuthorizationCode();
 
+  const isTeam = teamSlug.startsWith("team/");
+
+  const team = isTeam ? await prisma.team.findFirst({ where: { slug: teamSlug.substring(5) } }) : undefined;
+
   await prisma.accessCode.create({
     data: {
       code: authorizationCode,
       clientId,
-      userId: ctx.user.id,
+      userId: !isTeam ? ctx.user.id : undefined,
+      teamId: team ? team.id : undefined,
       expiresAt: dayjs().add(10, "minutes").toDate(),
       scopes: scopes as [AccessScope],
     },

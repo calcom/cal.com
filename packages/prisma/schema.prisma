@@ -290,6 +290,7 @@ model Team {
   routingForms        App_RoutingForms_Form[]
   apiKeys             ApiKey[]
   credentials         Credential[]
+  accessCodes         AccessCode[]
 
   @@unique([slug, parentId])
 }
@@ -920,9 +921,11 @@ model AccessCode {
   clientId  String?
   client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   expiresAt DateTime
-  userId    Int?
   scopes    AccessScope[]
+  userId    Int?
   user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    Int?
+  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 enum AccessScope {

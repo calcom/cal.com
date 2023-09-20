@@ -53,12 +53,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const payloadAuthToken = {
     userId: accessCode.userId,
+    teamId: accessCode.teamId,
     scope: accessCode.scopes,
     token_type: "Access Token",
   };
 
   const payloadRefreshToken = {
     userId: accessCode.userId,
+    teamId: accessCode.teamId,
     scope: accessCode.scopes,
     token_type: "Refresh Token",
   };

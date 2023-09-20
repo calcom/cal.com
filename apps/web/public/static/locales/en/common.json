@@ -2062,5 +2062,7 @@
   "access_event_type": "Read, edit, delete your event-types",
   "access_availability": "Read, edit, delete your availability",
   "access_bookings": "Read, edit, delete your bookings",
+  "allow_client_to_do": "Allow {{clientName}} to do this?",
+  "oatuh_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy. You can remove access in the Cal.com App Store.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

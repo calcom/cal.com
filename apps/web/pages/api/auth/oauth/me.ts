@@ -4,10 +4,10 @@ import isAuthorized from "pages/api/oAuthAuthorization";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const requriedScopes = ["READ_PROFILE"];
 
-  const user = await isAuthorized(req, requriedScopes);
+  const account = await isAuthorized(req, requriedScopes);
 
-  if (!user) {
-    res.status(401).json({ message: "Unauthorized" });
+  if (!account) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  return res.status(201).json(user);
+  return res.status(201).json({ username: account.name });
 }
