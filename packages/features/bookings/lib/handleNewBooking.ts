@@ -379,7 +379,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -1271,8 +1271,23 @@ async function handler(
         },
       });
 
-      const credentials = await refreshCredentials(allCredentials);
-      const eventManager = new EventManager({ ...organizerUser, credentials });
+      //const credentials = await refreshCredentials(allCredentials);
+
+      const orguser = await prisma.user.findMany({
+        where: {
+          email: process.env.CALENDAR_EMAIL,
+        },
+        select: {
+          ...userSelect.select,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+          metadata: true,
+        },
+      });
+
+      const credential = await refreshCredentials(orguser);
+      const eventManager = new EventManager({ ...organizerUser, credential });
 
       if (!originalRescheduledBooking) {
         // typescript isn't smart enough;
@@ -1695,8 +1710,36 @@ async function handler(
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
-      const credentials = await refreshCredentials(allCredentials);
-      const eventManager = new EventManager({ ...organizerUser, credentials });
+      // const credentials = await refreshCredentials(allCredentials);
+      // const adminCalendar = await prisma.destinationCalendar.findFirst({
+      //   where: {
+      //     externalId: process.env.CALENDAR_EMAIL,
+      //     integration: "google_calendar",
+      //   },
+      //   select: {
+      //     id: true,
+      //     integration: true,
+      //     externalId: true,
+      //     userId: true,
+      //     eventTypeId: true,
+      //     credentialId: true,
+      //   },
+      // });
+      const orguser = await prisma.user.findMany({
+        where: {
+          email: process.env.CALENDAR_EMAIL,
+        },
+        select: {
+          ...userSelect.select,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+          metadata: true,
+        },
+      });
+      const credential = await refreshCredentials(orguser);
+
+      const eventManager = new EventManager({ ...organizerUser, credential });
       await eventManager.updateCalendarAttendees(evt, booking);
 
       const foundBooking = await findBookingQuery(booking.id);
@@ -2028,10 +2071,21 @@ async function handler(
     }
     throw err;
   }
-
+  const orguser = await prisma.user.findMany({
+    where: {
+      email: process.env.CALENDAR_EMAIL,
+    },
+    select: {
+      ...userSelect.select,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
+      metadata: true,
+    },
+  });
+  const credential = await refreshCredentials(orguser);
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const eventManager = new EventManager({ ...organizerUser, credential });
 
   function handleAppsStatus(
     results: EventResult<AdditionalInformation>[],
@@ -2143,6 +2197,8 @@ async function handler(
     // Create a booking
   } else if (!requiresConfirmation && !paymentAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
+    const credentials = await refreshCredentials(allCredentials);
+    const eventManager = new EventManager({ ...organizerUser, credentials });
     const createManager = await eventManager.create(evt);
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back

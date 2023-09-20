@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc";
-import { StepCard, Steps } from "@calcom/ui";
+import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -65,10 +65,12 @@ const OnboardingPage = () => {
     {
       title: `${t("connect_your_calendar")}`,
       subtitle: [`${t("connect_your_calendar_instructions")}`],
+      skipText: `${t("connect_calendar_later")}`,
     },
     {
       title: `${t("connect_your_video_app")}`,
       subtitle: [`${t("connect_your_video_app_instructions")}`],
+      skipText: `${t("set_up_later")}`,
     },
     {
       title: `${t("set_availability")}`,
@@ -154,6 +156,20 @@ const OnboardingPage = () => {
                 {currentStep === "user-profile" && <UserProfile />}
               </Suspense>
             </StepCard>
+            {headers[currentStepIndex]?.skipText && (
+              <div className="flex w-full flex-row justify-center">
+                <Button
+                  color="minimal"
+                  data-testid="skip-step"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    goToIndex(currentStepIndex + 1);
+                  }}
+                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  {headers[currentStepIndex]?.skipText}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

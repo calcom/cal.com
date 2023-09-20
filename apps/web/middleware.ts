@@ -12,7 +12,7 @@ const middleware: NextMiddleware = async (req) => {
     "/team",
     "/teams/",
     "/workflows",
-    // "/settings/developer",
+    "/settings/developer",
     "/settings/teams",
     "/insights",
     "/apps/routing-forms/forms",
@@ -91,7 +91,6 @@ export const config = {
     "/settings/teams",
     "/settings/teams/:path*",
     "/insights",
-    // "/webhooks",
     "/apps/routing-forms/forms",
     "/settings/billing",
     /**

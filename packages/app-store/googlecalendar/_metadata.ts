@@ -15,8 +15,8 @@ export const metadata = {
   logo: "icon.svg",
   publisher: "Cal.com",
   slug: "google-calendar",
-  url: "https://cal.com/",
-  email: "help@cal.com",
+  url: "https://beenthere.com/",
+  email: "help@beenthere.com",
   dirName: "googlecalendar",
 } as AppMeta;
 
