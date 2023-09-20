@@ -94,7 +94,7 @@ export default function MemberListItem(props: Props) {
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem
                       disabled={!member.accepted}
-                      href={"/" + user.username}
+                      href={`/${user.username}`}
                       target="_blank"
                       type="button"
                       StartIcon={ExternalLink}>

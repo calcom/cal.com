@@ -83,7 +83,7 @@ export const getEmbedIframe = async ({
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
   }
-  console.log('Embed iframe url pathname match. Expected: "' + pathname + '/embed"', "Actual: " + u.pathname);
+  console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
 };
 

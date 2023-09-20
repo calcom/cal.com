@@ -550,7 +550,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const variant = field.variant || defaultVariant;
   if (!variant) {
     throw new Error(
-      "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
+      `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
   const label =
