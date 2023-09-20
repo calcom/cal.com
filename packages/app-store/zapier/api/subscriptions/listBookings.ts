@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import isAuthorized from "@calcom/features/auth/lib/oAuthAuthorization";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { listBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import isAuthorized from "@calcom/web/pages/api/oAuthAuthorization";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -27,8 +27,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!apiKey) {
     authorizedAccount = await isAuthorized(req, ["READ_BOOKING"]);
   }
-
-  if (!authorizedAccount) {
+  if (!authorizedAccount && !validKey) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -38,7 +37,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Unable to get bookings." });
   }
   if (bookings.length === 0) {
-    const requested = validKey.teamId ? "teamId: " + validKey.teamId : "userId: " + validKey.userId;
+    const userInfo = validKey ? validKey.userId : !authorizedAccount.isTeam ? authorizedAccount.name : null;
+    const teamInfo = validKey ? validKey.teamId : authorizedAccount.isTeam ? authorizedAccount.name : null;
+
+    const requested = teamInfo ? "team: " + teamInfo : "user: " + userInfo;
     return res.status(404).json({
       message: `There are no bookings to retrieve, please create a booking first. Requested: \`${requested}\``,
     });

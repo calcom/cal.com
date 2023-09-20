@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
   const token = req.headers.authorization?.split(" ")[1];
   const decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY);
-
   const hasAllRequiredScopes = requiredScopes.every((scope) => decodedToken.scope.includes(scope));
 
   if (!hasAllRequiredScopes || decodedToken.token_type !== "Access Token") {
@@ -24,6 +23,8 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
       },
     });
 
+    if (!user) return null;
+
     return { id: user.id, name: user.username, isTeam: false };
   }
 
@@ -38,6 +39,7 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
       },
     });
 
+    if (!team) return null;
     return { ...team, isTeam: true };
   }
 
