@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { firebaseSignUp } from "lib/firebase";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -77,6 +78,16 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
+    console.info("signup data", data);
+    const { result, error } = firebaseSignUp(data?.email, data?.password);
+    if (error) {
+      if (error.code === "auth/email-already-in-use") alert("Email already in use 😕");
+      if (error.code === "auth/weak-password") alert("Password should be at least 6 characters 😕");
+      if (error.code === "auth/invalid-email") alert("Invalid email 😕");
+      return;
+    }
+    console.info({ result, error });
+
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
