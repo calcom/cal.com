@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Select } from "@calcom/ui";
@@ -90,7 +91,7 @@ export default function Authorize() {
           </div>
         </div>
         <h1 className="mt-1 p-5 text-center text-2xl font-bold tracking-tight">
-          {t("access_cal_account", { clientName: client.name })}
+          {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
         <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
         <Select
@@ -135,7 +136,7 @@ export default function Authorize() {
             <div className="mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
-            <div className="text-sm">{t("oatuh_access_information")}</div>{" "}
+            <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
             {/* How can access be viewed? Access can be removed by uninstalling app */}
           </div>
         </div>
@@ -147,7 +148,7 @@ export default function Authorize() {
             onClick={() => {
               window.location.href = `${client.redirectUri}`;
             }}>
-            Go back
+            {t("go_back")}
           </Button>
           <Button
             onClick={() => {
@@ -158,7 +159,7 @@ export default function Authorize() {
                 teamSlug: selectedAccount?.value,
               });
             }}>
-            Allow
+            {t("allow")}
           </Button>
         </div>
       </div>

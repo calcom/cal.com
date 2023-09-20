@@ -2052,7 +2052,7 @@
   "event_setup_length_error":"Event Setup: The duration must be at least 1 minute.",
   "availability_schedules":"Availability Schedules",
   "unauthorized":"Unauthorized",
-  "access_cal_account": "{{clientName}} would like access to your Cal.com account",
+  "access_cal_account": "{{clientName}} would like access to your {{appName}} account",
   "select_account_team": "Select account or team",
   "allow_client_to": "This will allow {{clientName}} to",
   "associate_with_cal_account":"Associate you with your personal info from {{clientName}}",
@@ -2063,6 +2063,7 @@
   "access_availability": "Read, edit, delete your availability",
   "access_bookings": "Read, edit, delete your bookings",
   "allow_client_to_do": "Allow {{clientName}} to do this?",
-  "oatuh_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy. You can remove access in the Cal.com App Store.",
+  "oauth_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy. You can remove access in the {{appName}} App Store.",
+  "allow": "Allow",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
