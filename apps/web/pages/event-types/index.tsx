@@ -3,6 +3,7 @@ import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
@@ -950,14 +951,31 @@ const EventTypesPage = () => {
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
-
+  const posthog = usePostHog();
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
     refetchOnWindowFocus: false,
     cacheTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
+  // const { user } = ctx;
+  useEffect(() => {
+    if (user) {
+      posthog?.identify(user.email, {
+        $set: { email: user.email },
+      });
+      posthog?.setPersonProperties({ name: user?.name }, { completedOnboarding: user?.completedOnboarding });
+      posthog?.setPersonProperties({ type: "user" }, { timeZone: user?.timeZone });
+      posthog?.setPersonProperties(
+        {
+          username: user?.username,
+        },
+        {
+          createdDate: user?.createdDate,
+        }
+      );
+    }
+  }, [user]);
   function closeBanner() {
     setShowProfileBanner(false);
     document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
