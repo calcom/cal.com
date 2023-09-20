@@ -107,6 +107,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail ?? true,
     },
   });
   const {
@@ -227,7 +228,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         }}
         switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
       />
-
+              
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
@@ -239,7 +240,20 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         }}
         switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
       />
+        
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("monthly_digest_email")}
+        description={t("monthly_digest_email_for_teams")}
+        checked={formMethods.getValues("receiveMonthlyDigestEmail")}
+        onCheckedChange={(checked) => {
+            formMethods.setValue("receiveMonthlyDigestEmail", checked, { shouldDirty: true });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
     </div>
+              
+    </Form>
   );
 };
 
