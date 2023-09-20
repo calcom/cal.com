@@ -159,7 +159,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                 <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
               </div>
             )}
-            <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+            <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
               <div>
                 <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
               </div>
@@ -179,7 +179,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                 />
               </div>
             </div>
-            <p className="text-default mt-4 max-w-[38rem] text-sm">
+            <p className="text-default mt-4 w-full text-sm">
               {t("invalid_password_hint", { passwordLength: passwordMinLength })}
             </p>
           </div>

@@ -50,7 +50,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="border-subtle space-y-6 border border-t-0 px-4 py-8">
+      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -452,6 +452,7 @@ const ProfileForm = ({
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                         }}
                         imageSrc={value || undefined}
+                        triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 
                       {showRemoveAvatarButton && (
