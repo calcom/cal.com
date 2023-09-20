@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
@@ -43,7 +44,6 @@ import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
-import SectionBottomActions from "@components/settings/SectionBottomActions";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {

@@ -12,7 +12,7 @@ import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/z
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Label, CheckboxField, Button } from "@calcom/ui";
 
-import SectionBottomActions from "@components/settings/SectionBottomActions";
+import SectionBottomActions from "./SectionBottomActions";
 
 type BookerLayoutSelectorProps = {
   title?: string;

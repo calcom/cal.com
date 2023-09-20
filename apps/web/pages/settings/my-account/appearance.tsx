@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -29,7 +30,6 @@ import {
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import SectionBottomActions from "@components/settings/SectionBottomActions";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

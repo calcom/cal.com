@@ -6,6 +6,7 @@ import React, { Fragment, useState, useEffect } from "react";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,7 +31,6 @@ import { Plus, Calendar } from "@calcom/ui/components/icon";
 import { QueryCell } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
-import SectionBottomActions from "@components/settings/SectionBottomActions";
 
 const SkeletonLoader = () => {
   return (

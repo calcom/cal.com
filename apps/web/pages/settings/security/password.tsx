@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,7 +15,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import SectionBottomActions from "@components/settings/SectionBottomActions";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;

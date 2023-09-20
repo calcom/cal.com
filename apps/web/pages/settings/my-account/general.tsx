@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -23,7 +24,6 @@ import {
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import SectionBottomActions from "@components/settings/SectionBottomActions";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
