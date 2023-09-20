@@ -176,9 +176,11 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.booking.findMany.mockImplementation((findManyArg) => {
+    // @ts-expect-error Prisma v5 breaks this
     const where = findManyArg?.where || {};
     return new Promise((resolve) => {
       resolve(
+        // @ts-expect-error Prisma v5 breaks this
         bookings
           // We can improve this filter to support the entire where clause but that isn't necessary yet. So, handle what we know we pass to `findMany` and is needed
           .filter((booking) => {
@@ -222,6 +224,7 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
 
 async function addWebhooks(webhooks: InputWebhook[]) {
   prismaMock.webhook.findMany.mockResolvedValue(
+    // @ts-expect-error Prisma v5 breaks this
     webhooks.map((webhook) => {
       return {
         ...webhook,
@@ -242,13 +245,16 @@ function addUsers(users: InputUser[]) {
   // @ts-ignore
   prismaMock.user.findUniqueOrThrow.mockImplementation((findUniqueArgs) => {
     return new Promise((resolve) => {
+      // @ts-expect-error Prisma v5 breaks this
       resolve({
+        // @ts-expect-error Prisma v5 breaks this
         email: `IntegrationTestUser${findUniqueArgs?.where.id}@example.com`,
       } as unknown as PrismaUser);
     });
   });
 
   prismaMock.user.findMany.mockResolvedValue(
+    // @ts-expect-error Prisma v5 breaks this
     users.map((user) => {
       return {
         ...user,
@@ -265,6 +271,7 @@ export async function createBookingScenario(data: ScenarioData) {
 
   const eventType = addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
+    // @ts-expect-error Prisma v5 breaks this
     prismaMock.app.findMany.mockResolvedValue(data.apps as PrismaApp[]);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -562,9 +569,8 @@ export function getScenarioData({
 }
 
 export function mockEnableEmailFeature() {
+  // @ts-expect-error Prisma v5 breaks this
   prismaMock.feature.findMany.mockResolvedValue([
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     {
       slug: "emails",
       // It's a kill switch
@@ -574,8 +580,7 @@ export function mockEnableEmailFeature() {
 }
 
 export function mockNoTranslations() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
