@@ -33,7 +33,7 @@ type BookerLayoutSelectorProps = {
    */
   isDark?: boolean;
 
-  isDisabled: boolean;
+  isDisabled?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -44,7 +44,7 @@ export const BookerLayoutSelector = ({
   name,
   fallbackToUserSettings,
   isDark,
-  isDisabled,
+  isDisabled = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
