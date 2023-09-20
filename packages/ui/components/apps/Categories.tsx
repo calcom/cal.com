@@ -33,7 +33,7 @@ export function AppStoreCategories({
         renderItem={(category) => (
           <Link
             key={category.name}
-            href={"/apps/categories/" + category.name}
+            href={`/apps/categories/${category.name}`}
             data-testid={`app-store-category-${category.name}`}
             className="relative flex rounded-md"
             style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>

@@ -232,7 +232,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       method: "GET",
       ...options,
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         ...options?.headers,
       },
     });
@@ -283,7 +283,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             url: result.join_url,
           };
         }
-        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
         /* Prevents meeting creation failure when Zoom Token is expired */

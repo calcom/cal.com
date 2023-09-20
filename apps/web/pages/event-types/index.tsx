@@ -140,13 +140,13 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <div>
       <span
         className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-        data-testid={"event-type-title-" + type.id}>
+        data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
       {group.profile.slug ? (
         <small
           className="text-subtle hidden font-normal leading-4 sm:inline"
-          data-testid={"event-type-slug-" + type.id}>
+          data-testid={`event-type-slug-${type.id}`}>
           {`/${
             type.schedulingType !== SchedulingType.MANAGED ? group.profile.slug : t("username_placeholder")
           }/${type.slug}`}
@@ -177,13 +177,13 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       <div>
         <span
           className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-          data-testid={"event-type-title-" + type.id}>
+          data-testid={`event-type-title-${type.id}`}>
           {type.title}
         </span>
         {group.profile.slug ? (
           <small
             className="text-subtle hidden font-normal leading-4 sm:inline"
-            data-testid={"event-type-slug-" + type.id}>
+            data-testid={`event-type-slug-${type.id}`}>
             {`/${group.profile.slug}/${type.slug}`}
           </small>
         ) : null}
@@ -475,7 +475,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </>
                           )}
                           <Dropdown modal={false}>
-                            <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                            <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                               <Button
                                 type="button"
                                 variant="icon"
@@ -489,9 +489,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
-                                    data-testid={"event-type-edit-" + type.id}
+                                    data-testid={`event-type-edit-${type.id}`}
                                     StartIcon={Edit2}
-                                    onClick={() => router.push("/event-types/" + type.id)}>
+                                    onClick={() => router.push(`/event-types/${type.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
@@ -501,7 +501,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
                                       type="button"
-                                      data-testid={"event-type-duplicate-" + type.id}
+                                      data-testid={`event-type-duplicate-${type.id}`}
                                       StartIcon={Copy}
                                       onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
@@ -551,7 +551,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 </div>
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
-                    <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                    <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                       <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
@@ -569,7 +569,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </DropdownMenuItem>
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
-                                data-testid={"event-type-duplicate-" + type.id}
+                                data-testid={`event-type-duplicate-${type.id}`}
                                 onClick={() => {
                                   navigator.clipboard.writeText(calLink);
                                   showToast(t("link_copied"), "success");
@@ -584,7 +584,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {isNativeShare ? (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
-                              data-testid={"event-type-duplicate-" + type.id}
+                              data-testid={`event-type-duplicate-${type.id}`}
                               onClick={() => {
                                 navigator
                                   .share({
@@ -604,7 +604,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {!readOnly && (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
-                              onClick={() => router.push("/event-types/" + type.id)}
+                              onClick={() => router.push(`/event-types/${type.id}`)}
                               StartIcon={Edit}
                               className="w-full rounded-none">
                               {t("edit")}
@@ -616,7 +616,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
                               StartIcon={Copy}
-                              data-testid={"event-type-duplicate-" + type.id}>
+                              data-testid={`event-type-duplicate-${type.id}`}>
                               {t("duplicate")}
                             </DropdownItem>
                           </DropdownMenuItem>

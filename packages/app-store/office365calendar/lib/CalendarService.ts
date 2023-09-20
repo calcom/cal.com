@@ -342,7 +342,7 @@ export default class Office365CalendarService implements Calendar {
     return fetch(`${this.apiGraphUrl}${endpoint}`, {
       method: "get",
       headers: {
-        Authorization: "Bearer " + this.accessToken,
+        Authorization: `Bearer ${this.accessToken}`,
         "Content-Type": "application/json",
       },
       ...init,

@@ -56,7 +56,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const providerParam = asStringOrNull(context.query.provider);
   const emailParam = asStringOrNull(context.query.email);
   const usernameParam = asStringOrNull(context.query.username);
-  const successDestination = "/getting-started" + (usernameParam ? `?username=${usernameParam}` : "");
+  const successDestination = `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
   }
@@ -120,7 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (error) {
     return {
       redirect: {
-        destination: "/auth/error?error=" + error,
+        destination: `/auth/error?error=${error}`,
         permanent: false,
       },
     };

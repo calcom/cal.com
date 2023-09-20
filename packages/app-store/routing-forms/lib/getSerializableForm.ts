@@ -30,7 +30,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const fieldsParsed = zodFields.safeParse(form.fields);
 
   if (!fieldsParsed.success) {
-    throw new Error("Error parsing fields" + fieldsParsed.error);
+    throw new Error(`Error parsing fields: ${fieldsParsed.error}`);
   }
 
   const settings = RoutingFormSettings.parse(

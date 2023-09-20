@@ -52,11 +52,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const responseBody = await response.json();
 
   if (!response.ok) {
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   const whoami = await fetch("https://graph.microsoft.com/v1.0/me", {
-    headers: { Authorization: "Bearer " + responseBody.access_token },
+    headers: { Authorization: `Bearer ${responseBody.access_token}` },
   });
   const graphUser = await whoami.json();
 

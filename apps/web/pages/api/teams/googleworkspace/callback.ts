@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   res.redirect(
-    getSafeRedirectUrl(WEBAPP_URL + `/settings/teams/${teamId}/members?inviteModal=true&bulk=true`) ??
+    getSafeRedirectUrl(`${WEBAPP_URL}/settings/teams/${teamId}/members?inviteModal=true&bulk=true`) ??
       `${WEBAPP_URL}/teams`
   );
 }

@@ -195,8 +195,8 @@ export async function getCloseComCustomActivityTypeFieldsIds(
 export async function getCloseComLeadId(
   closeCom: CloseCom,
   leadInfo: CloseComLead = {
-    companyName: "From " + APP_NAME,
-    description: "Generic Lead for Contacts created by " + APP_NAME,
+    companyName: `From ${APP_NAME}`,
+    description: `Generic Lead for Contacts created by ${APP_NAME}`,
   }
 ): Promise<string> {
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });

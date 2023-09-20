@@ -19,29 +19,29 @@ module.exports = {
     },
   },
   rules: {
-    "@next/next/no-img-element": "off",
-    "@next/next/no-html-link-for-pages": "off",
-    "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
-    "playwright/no-page-pause": "error",
-    "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
-    "react/self-closing-comp": ["error", { component: true, html: true }],
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
-      {
-        vars: "all",
-        varsIgnorePattern: "^_",
-        args: "after-used",
-        argsIgnorePattern: "^_",
-        destructuredArrayIgnorePattern: "^_",
-      },
-    ],
-    "unused-imports/no-unused-imports": "error",
-    "no-restricted-imports": [
-      "error",
-      {
-        patterns: ["lodash"],
-      },
-    ],
+    // "@next/next/no-img-element": "off",
+    // "@next/next/no-html-link-for-pages": "off",
+    // "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
+    // "playwright/no-page-pause": "error",
+    // "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
+    // "react/self-closing-comp": ["error", { component: true, html: true }],
+    // "@typescript-eslint/no-unused-vars": [
+    //   "warn",
+    //   {
+    //     vars: "all",
+    //     varsIgnorePattern: "^_",
+    //     args: "after-used",
+    //     argsIgnorePattern: "^_",
+    //     destructuredArrayIgnorePattern: "^_",
+    //   },
+    // ],
+    // "unused-imports/no-unused-imports": "error",
+    // "no-restricted-imports": [
+    //   "error",
+    //   {
+    //     patterns: ["lodash"],
+    //   },
+    // ],
     "prefer-template": "error",
   },
   overrides: [

@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!clientSecret) return res.status(400).json({ message: "Zoho Bigin client_secret missing." });
 
   const accountsUrl = `${accountsServer}/oauth/v2/token`;
-  const redirectUri = WEBAPP_URL + `/api/integrations/${appConfig.slug}/callback`;
+  const redirectUri = `${WEBAPP_URL}/api/integrations/${appConfig.slug}/callback`;
 
   const formData = {
     client_id: clientId,

@@ -161,7 +161,7 @@ export const getManageLink = (calEvent: CalendarEvent, t: TFunction) => {
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  const cancelLink = new URL((calEvent.bookerUrl ?? WEBAPP_URL) + `/booking/${getUid(calEvent)}`);
+  const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}`);
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
   const seatReferenceUid = getSeatReferenceId(calEvent);
