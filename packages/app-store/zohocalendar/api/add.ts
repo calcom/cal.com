@@ -9,6 +9,8 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import config from "../config.json";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
+const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
+
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const appKeys = await getAppKeysFromSlug(config.slug);
   const { client_id } = zohoKeysSchema.parse(appKeys);
@@ -32,7 +34,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const query = stringify(params);
 
-  res.status(200).json({ url: `https://accounts.zoho.com/oauth/v2/auth?${query}` });
+  res.status(200).json({ url: `${OAUTH_BASE_URL}/auth?${query}` });
 }
 
 export default defaultHandler({

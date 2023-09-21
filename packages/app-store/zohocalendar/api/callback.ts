@@ -16,6 +16,8 @@ import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const log = logger.getChildLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
+const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
+
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
@@ -42,7 +44,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const query = stringify(params);
 
-  const response = await fetch(`https://accounts.zoho.com/oauth/v2/token?${query}`, {
+  const response = await fetch(`${OAUTH_BASE_URL}/token?${query}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json; charset=utf-8",
