@@ -5,8 +5,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -63,14 +63,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
-  await prisma.credential.create({
-    data: {
-      type: config.type,
-      key,
-      userId: req.session.user.id,
-      appId: config.slug,
-    },
-  });
+  await createOAuthAppCredential({ appId: config.slug, type: config.type }, key, req);
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
