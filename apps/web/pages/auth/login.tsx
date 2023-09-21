@@ -5,6 +5,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { NextLink } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -95,9 +96,9 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <NextLink href="/signup" className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
-    </a>
+    </NextLink>
   );
 
   const TwoFactorFooter = (
