@@ -573,6 +573,7 @@ export default class EventManager {
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
+            logger.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
             result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
           }
         }

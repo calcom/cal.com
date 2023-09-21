@@ -16,6 +16,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   // if we have userId and teamId it is a managed event type and should trigger for team and user
   const allWebhooks = await prisma.webhook.findMany({
     where: {
+      // Mock it separately because prismock error here
       OR: [
         {
           userId,

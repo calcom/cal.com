@@ -53,7 +53,7 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
 
 const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-  log.error("videoClient:createMeeting", JSON.stringify({ credential, uid, calEvent }));
+  log.silly("videoClient:createMeeting", JSON.stringify({ credential, uid, calEvent }));
   if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
@@ -121,10 +121,6 @@ const updateMeeting = async (
   let success = true;
 
   const [firstVideoAdapter] = await getVideoAdapters([credential]);
-  log.silly(
-    "Calling updateMeeting for the app",
-    JSON.stringify({ credential, uid, calEvent, bookingRef, firstVideoAdapter })
-  );
   const updatedMeeting =
     credential && bookingRef
       ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {

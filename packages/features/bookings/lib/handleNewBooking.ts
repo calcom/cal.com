@@ -446,9 +446,6 @@ async function ensureAvailableUsers(
 }
 
 async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
-  console.log("getOriginalRescheduledBooking", {
-    uid,
-  });
   return prisma.booking.findFirst({
     where: {
       uid: uid,
@@ -1199,8 +1196,6 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
   };
-
-  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
   const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
 
@@ -2069,13 +2064,7 @@ async function handler(
   }
 
   let videoCallUrl;
-  console.log({
-    originalRescheduledBooking,
-    rescheduleUid,
-    requiresConfirmation,
-    isOrganizerRescheduling,
-    eventType,
-  });
+
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
@@ -2089,9 +2078,6 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    log.error({
-      updateManager: JSON.stringify(updateManager),
-    });
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
       await prisma.booking.update({
@@ -2153,7 +2139,6 @@ async function handler(
   } else if (!requiresConfirmation && !paymentAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
-    logger.silly(JSON.stringify({ createManager }));
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.

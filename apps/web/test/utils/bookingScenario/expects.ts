@@ -105,15 +105,23 @@ export function expectWorkflowToBeTriggered() {
   // TODO: Implement this.
 }
 
-export function expectBookingToBeInDatabase(
+export async function expectBookingToBeInDatabase(
   booking: Partial<Booking> & Pick<Booking, "id"> & { references?: Partial<BookingReference>[] }
 ) {
-  const actualBooking = prismaMock.booking.findUnique({
+  const actualBooking = await prismaMock.booking.findUnique({
     where: {
       id: booking.id,
     },
+    include: {
+      references: true,
+    },
   });
-  expect(actualBooking).toEqual(expect.objectContaining(booking));
+
+  const { references, ...remainingBooking } = booking;
+  expect(actualBooking).toEqual(expect.objectContaining(remainingBooking));
+  expect(actualBooking?.references).toEqual(
+    expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
+  );
 }
 
 export function expectSuccessfulBookingCreationEmails({
@@ -457,7 +465,6 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
     calEvent: any;
   }
 ) {
-  logger.silly("videoMock.updateMeetingCalls", videoMock.updateMeetingCalls);
   expect(videoMock.updateMeetingCalls.length).toBe(1);
   const call = videoMock.updateMeetingCalls[0];
   const bookingRef = call[0];
