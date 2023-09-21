@@ -20,7 +20,7 @@ import {
   getBooker,
   getScenarioData,
   getZoomAppCredential,
-  mockEnableEmailFeature,
+  enableEmailFeature,
   mockNoTranslations,
   mockErrorOnVideoMeetingCreation,
   mockSuccessfulVideoMeetingCreation,
@@ -56,7 +56,8 @@ describe("handleNewBooking", () => {
     process.env.CALENDSO_ENCRYPTION_KEY = "abcdefghjnmkljhjklmnhjklkmnbhjui";
     process.env.STRIPE_WEBHOOK_SECRET = "MOCK_STRIPE_WEBHOOK_SECRET";
     mockNoTranslations();
-    mockEnableEmailFeature();
+    // mockEnableEmailFeature();
+    enableEmailFeature();
     globalThis.testEmails = [];
     fetchMock.resetMocks();
   });
@@ -83,8 +84,7 @@ describe("handleNewBooking", () => {
           credentials: [getGoogleCalendarCredential()],
           selectedCalendars: [TestData.selectedCalendars.google],
         });
-
-        createBookingScenario(
+        await createBookingScenario(
           getScenarioData({
             webhooks: [
               {
@@ -154,7 +154,7 @@ describe("handleNewBooking", () => {
           location: "integrations:daily",
         });
 
-        expectBookingToBeInDatabase({
+        await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: createdBooking.id!,
@@ -174,8 +174,6 @@ describe("handleNewBooking", () => {
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASSWORD",
               meetingUrl: "https://UNUSED_URL",
-              externalCalendarId: undefined,
-              credentialId: undefined,
             },
           ],
         });
@@ -244,7 +242,7 @@ describe("handleNewBooking", () => {
             organizer,
             apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
           });
-          createBookingScenario(scenarioData);
+          await createBookingScenario(scenarioData);
 
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
@@ -278,7 +276,7 @@ describe("handleNewBooking", () => {
             location: "integrations:daily",
           });
 
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -328,7 +326,7 @@ describe("handleNewBooking", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           });
 
-          createBookingScenario(
+          await createBookingScenario(
             getScenarioData({
               webhooks: [
                 {
@@ -396,7 +394,7 @@ describe("handleNewBooking", () => {
             location: "integrations:daily",
           });
 
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -475,7 +473,7 @@ describe("handleNewBooking", () => {
             apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
           });
 
-          createBookingScenario(scenarioData);
+          await createBookingScenario(scenarioData);
 
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
@@ -509,7 +507,7 @@ describe("handleNewBooking", () => {
             location: "integrations:daily",
           });
 
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -544,7 +542,7 @@ describe("handleNewBooking", () => {
         });
         const organizer = TestData.users.example;
 
-        createBookingScenario({
+        await createBookingScenario({
           eventTypes: [
             {
               id: 1,
@@ -617,7 +615,7 @@ describe("handleNewBooking", () => {
           credentials: [getZoomAppCredential()],
           selectedCalendars: [TestData.selectedCalendars.google],
         });
-        createBookingScenario(
+        await createBookingScenario(
           getScenarioData({
             organizer,
             eventTypes: [
@@ -742,7 +740,7 @@ describe("handleNewBooking", () => {
         });
 
         mockCalendarToHaveNoBusySlots("googlecalendar");
-        createBookingScenario(scenarioData);
+        await createBookingScenario(scenarioData);
 
         const createdBooking = await handleNewBooking(req);
         expect(createdBooking.responses).toContain({
@@ -754,7 +752,7 @@ describe("handleNewBooking", () => {
           location: "New York",
         });
 
-        expectBookingToBeInDatabase({
+        await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: createdBooking.id!,
@@ -841,7 +839,7 @@ describe("handleNewBooking", () => {
               TestData.apps["stripe-payment"],
             ],
           });
-          createBookingScenario(scenarioData);
+          await createBookingScenario(scenarioData);
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
@@ -875,7 +873,7 @@ describe("handleNewBooking", () => {
             location: "integrations:daily",
             paymentUid: paymentUid,
           });
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -897,7 +895,7 @@ describe("handleNewBooking", () => {
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
           expect(webhookResponse?.statusCode).toBe(200);
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -982,7 +980,7 @@ describe("handleNewBooking", () => {
               TestData.apps["stripe-payment"],
             ],
           });
-          createBookingScenario(scenarioData);
+          await createBookingScenario(scenarioData);
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
@@ -1016,7 +1014,7 @@ describe("handleNewBooking", () => {
             location: "integrations:daily",
             paymentUid: paymentUid,
           });
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -1037,7 +1035,7 @@ describe("handleNewBooking", () => {
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
           expect(webhookResponse?.statusCode).toBe(200);
-          expectBookingToBeInDatabase({
+          await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: createdBooking.id!,
@@ -1085,7 +1083,7 @@ describe("handleNewBooking", () => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
         const idOfBookingToBeRescheduled = 101;
-        createBookingScenario(
+        await await createBookingScenario(
           getScenarioData({
             webhooks: [
               {
@@ -1183,7 +1181,7 @@ describe("handleNewBooking", () => {
         });
 
         // Expect previous booking to be cancelled
-        expectBookingToBeInDatabase({
+        await expectBookingToBeInDatabase({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: idOfBookingToBeRescheduled,
           status: BookingStatus.CANCELLED,
@@ -1206,7 +1204,7 @@ describe("handleNewBooking", () => {
         });
 
         // Expect new booking to be there.
-        expectBookingToBeInDatabase({
+        await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: createdBooking.id!,
@@ -1228,7 +1226,6 @@ describe("handleNewBooking", () => {
               meetingPassword: "MOCK_PASSWORD",
               meetingUrl: "https://UNUSED_URL",
               externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-              credentialId: undefined,
             },
           ],
         });
@@ -1293,7 +1290,7 @@ describe("handleNewBooking", () => {
     //     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
     //     const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
     //     const idOfBookingToBeRescheduled = 101;
-    //     createBookingScenario(
+    //     await createBookingScenario(
     //       getScenarioData({
     //         webhooks: [
     //           {
@@ -1390,7 +1387,7 @@ describe("handleNewBooking", () => {
     //       },
     //     });
 
-    //     expectBookingToBeInDatabase({
+    //     await expectBookingToBeInDatabase({
     //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     //       id: idOfBookingToBeRescheduled,
     //       status: BookingStatus.CANCELLED,
@@ -1413,7 +1410,7 @@ describe("handleNewBooking", () => {
     //     });
 
     //     // Expect new booking to be there.
-    //     expectBookingToBeInDatabase({
+    //     await expectBookingToBeInDatabase({
     //       description: "",
     //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     //       id: createdBooking.id!,

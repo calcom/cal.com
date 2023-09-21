@@ -121,10 +121,6 @@ const updateMeeting = async (
   let success = true;
 
   const [firstVideoAdapter] = await getVideoAdapters([credential]);
-  log.silly(
-    "Calling updateMeeting for the app",
-    JSON.stringify({ credential, uid, calEvent, bookingRef, firstVideoAdapter })
-  );
   const updatedMeeting =
     credential && bookingRef
       ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {

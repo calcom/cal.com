@@ -4,7 +4,6 @@ import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
-import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -14,10 +13,6 @@ import {
   getGoogleCalendarCredential,
   createBookingScenario,
 } from "../utils/bookingScenario/bookingScenario";
-
-// TODO: Mock properly
-prismaMock.eventType.findUnique.mockResolvedValue(null);
-prismaMock.user.findMany.mockResolvedValue([]);
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -149,13 +144,13 @@ const TestData = {
 };
 
 const cleanup = async () => {
-  await prisma.eventType.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.schedule.deleteMany();
-  await prisma.selectedCalendar.deleteMany();
-  await prisma.credential.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.app.deleteMany();
+  await prismaMock.eventType.deleteMany();
+  await prismaMock.user.deleteMany();
+  await prismaMock.schedule.deleteMany();
+  await prismaMock.selectedCalendar.deleteMany();
+  await prismaMock.credential.deleteMany();
+  await prismaMock.booking.deleteMany();
+  await prismaMock.app.deleteMany();
 };
 
 beforeEach(async () => {
@@ -204,7 +199,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
       // An event with one accepted booking
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
         input: {
@@ -231,7 +226,7 @@ describe("getSchedule", () => {
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
       // An event with one accepted booking
-      createBookingScenario({
+      await createBookingScenario({
         // An event with length 30 minutes, slotInterval 45 minutes, and minimumBookingNotice 1440 minutes (24 hours)
         eventTypes: [
           {
@@ -357,7 +352,7 @@ describe("getSchedule", () => {
     });
 
     test("slots are available as per `length`, `slotInterval` of the event", async () => {
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -447,7 +442,7 @@ describe("getSchedule", () => {
 
     // FIXME: Fix minimumBookingNotice is respected test
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip("minimumBookingNotice is respected", async () => {
+    test("minimumBookingNotice is respected", async () => {
       vi.useFakeTimers().setSystemTime(
         (() => {
           const today = new Date();
@@ -456,7 +451,7 @@ describe("getSchedule", () => {
         })()
       );
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -572,7 +567,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
         input: {
@@ -646,7 +641,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule({
         input: {
@@ -704,7 +699,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const schedule = await getSchedule({
         input: {
@@ -768,7 +763,7 @@ describe("getSchedule", () => {
         ],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithDateOverride = await getSchedule({
         input: {
@@ -793,7 +788,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // A Collective Event Type hosted by this user
           {
@@ -888,7 +883,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {
@@ -1013,7 +1008,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {

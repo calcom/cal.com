@@ -121,6 +121,7 @@ export async function getEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  const allEventTypes = await prisma.eventType.findMany();
   const eventTypeId =
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -268,7 +269,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
-  logger.debug(
+  logger.silly(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
       input.eventTypeId
     }`

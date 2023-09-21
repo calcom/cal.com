@@ -1006,7 +1006,6 @@ async function handler(
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamDestinationCalendars: DestinationCalendar[] = [];
-
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
     // push to teamDestinationCalendars if it's a team event but collective only
@@ -1175,11 +1174,9 @@ async function handler(
     currency: eventType.currency,
     length: eventType.length,
   };
-
   const teamId = await getTeamIdFromEventType({ eventType });
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
-
   const subscriberOptions: GetSubscriberOptions = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
@@ -1192,7 +1189,6 @@ async function handler(
     : WebhookTriggerEvents.BOOKING_CREATED;
 
   subscriberOptions.triggerEvent = eventTrigger;
-
   const subscriberOptionsMeetingEnded = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
@@ -1201,9 +1197,7 @@ async function handler(
   };
 
   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
   const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
-
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2069,13 +2063,7 @@ async function handler(
   }
 
   let videoCallUrl;
-  console.log({
-    originalRescheduledBooking,
-    rescheduleUid,
-    requiresConfirmation,
-    isOrganizerRescheduling,
-    eventType,
-  });
+
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
@@ -2089,9 +2077,6 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    log.error({
-      updateManager: JSON.stringify(updateManager),
-    });
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
       await prisma.booking.update({
@@ -2120,7 +2105,6 @@ async function handler(
     } else {
       const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
         : calendarResult?.updatedEvent?.iCalUID || undefined;
@@ -2153,7 +2137,6 @@ async function handler(
   } else if (!requiresConfirmation && !paymentAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
-    logger.silly(JSON.stringify({ createManager }));
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.

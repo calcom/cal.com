@@ -312,7 +312,6 @@ export const updateEvent = async (
   } else {
     calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
   }
-  log.silly("updateEvent", { success, uid, updatedResult, originalEvent: calEvent, calError, calWarnings });
   return {
     appName: credential.appId || "",
     type: credential.type,

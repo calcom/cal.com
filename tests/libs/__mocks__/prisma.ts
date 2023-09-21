@@ -1,10 +1,9 @@
+import { PrismockClient } from "prismock";
 import { beforeEach, vi } from "vitest";
-import { mockDeep, mockReset } from "vitest-mock-extended";
 
-import type { PrismaClient } from "@calcom/prisma";
+import logger from "@calcom/lib/logger";
 import * as selects from "@calcom/prisma/selects";
 
-// Explore using https://github.com/morintd/prismock
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   prisma,
@@ -12,16 +11,31 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 beforeEach(() => {
-  mockReset(prisma);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismock.reset();
+  const __update = prismock.booking.update;
+  prismock.booking.update = (...rest) => {
+    // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
+    // In booking flows, we encounter such scenario, so let's fix that here directly till it's fixed in prismock
+    if (rest[0].data.references?.createMany) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      rest[0].data.references.createMany = rest[0].data.references?.createMany.data;
+      logger.silly("Fixed Prismock bug");
+    }
+    if (rest[0].data.references?.create) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      rest[0].data.references.create = rest[0].data.references?.create.data;
+      logger.silly("Fixed Prismock bug");
+    }
+
+    return __update(...rest);
+  };
 });
 
-// const prisma = mockDeep<PrismaClient>(
-// Ensure that all unit tests properly mock the prisma calls that are needed and then enforce this, so that accidental DB queries don't occur
-// {
-//   fallbackMockImplementation: () => {
-//     throw new Error("Unimplemented");
-//   },
-// }
-// );
-const prisma = mockDeep<PrismaClient>();
+const prismock = new PrismockClient();
+
+const prisma = prismock;
 export default prisma;

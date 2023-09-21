@@ -5,6 +5,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { EmailVerifyLink } from "./templates/account-verify-email";
@@ -102,6 +103,7 @@ export const sendScheduledEmails = async (
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
+  logger.silly("sendRescheduledEmails", { calEvent });
   emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent })));
 
   if (calEvent.team) {
