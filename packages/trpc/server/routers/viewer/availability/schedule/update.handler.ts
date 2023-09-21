@@ -1,4 +1,5 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -38,12 +39,22 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
-  if (userSchedule?.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  if (!userSchedule || userSchedule.userId !== user.id) {
+  if (!userSchedule) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
+  }
+
+  if (userSchedule?.userId !== user.id) {
+    const hasEditPermission = await hasEditPermissionForUserID({
+      ctx,
+      input: { memberId: userSchedule.userId },
+    });
+    if (!hasEditPermission) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
   }
 
   let updatedUser;
