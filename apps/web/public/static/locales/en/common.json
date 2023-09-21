@@ -1519,6 +1519,7 @@
   "or_continue_with": "Or continue with",
   "resend_email": "Resend email",
   "member_already_invited": "Member has already been invited",
+  "already_in_use_error": "Username already in use",
   "enter_email_or_username": "Enter an email or username",
   "team_name_taken": "This name is already taken",
   "must_enter_team_name": "Must enter a team name",

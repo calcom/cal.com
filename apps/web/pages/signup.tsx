@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Clock, Info, Loader2, ShieldCheckIcon, StarIcon } from "lucide-react";
+import { CalendarHeart, Clock, Info, ShieldCheckIcon, StarIcon } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -19,7 +19,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -59,35 +59,33 @@ const FEATURES = [
     description: "schedule_for_your_team_description",
     icon: Clock,
   },
-  {
-    title: "scheduling_for_your_team",
-    description: "schedule_for_your_team_description",
-    icon: Clock,
-  },
 ];
 
 function UsernameField({
   username,
   setPremium,
   premium,
+  setUsernameTaken,
+  usernameTaken,
   ...props
 }: React.ComponentProps<typeof TextField> & {
   username: string;
   setPremium: (value: boolean) => void;
   premium: boolean;
+  usernameTaken: boolean;
+  setUsernameTaken: (value: boolean) => void;
 }) {
   const { t } = useLocale();
-  const { watch, register, formState } = useFormContext<FormValues>();
-  const [taken, setTaken] = useState(false);
+  const { register, formState } = useFormContext<FormValues>();
   const [loading, setLoading] = useState(false);
-  const debouncedUsername = useDebounce(username, 500);
+  const debouncedUsername = useDebounce(username, 700);
 
   useEffect(() => {
     async function checkUsername() {
       if (!debouncedUsername) {
         setLoading(false);
         setPremium(false);
-        setTaken(false);
+        setUsernameTaken(false);
         return;
       }
       setLoading(true);
@@ -95,7 +93,7 @@ function UsernameField({
         .then(({ data }) => {
           setPremium(data.premium);
           if (!data.available) {
-            setTaken(true);
+            setUsernameTaken(true);
           }
         })
         .finally(() => {
@@ -103,23 +101,23 @@ function UsernameField({
         });
     }
     checkUsername();
-  }, [debouncedUsername, setPremium, setTaken]);
+  }, [debouncedUsername, setPremium, setUsernameTaken]);
 
   return (
     <div>
-      <TextField {...props} {...register("username")} data-testid="signup-usernamefield" />
+      <TextField
+        {...props}
+        {...register("username")}
+        data-testid="signup-usernamefield"
+        addOnFilled={false}
+      />
       {!formState.isSubmitting && (
         <div className="text-gray text-default flex items-center text-sm">
           <p className="flex items-center text-sm ">
-            {loading ? (
-              <>
-                <Loader2 className="mr-1 inline-block h-4 w-4 animate-spin" />
-                {t("loading")}
-              </>
-            ) : taken ? (
+            {usernameTaken ? (
               <div className="text-error">
                 <Info className="mr-1 inline-block h-4 w-4" />
-                {t("already_taken")}
+                {t("already_in_use_error")}
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning">
@@ -138,6 +136,7 @@ function UsernameField({
 
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
 
   const searchParams = useSearchParams();
   const telemetry = useTelemetry();
@@ -228,7 +227,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <p className="text-subtle text-base font-medium leading-none">{t("cal_signup_description")}</p>
             ) : (
               <p className="text-subtle text-base font-medium leading-none">
-                Meet all your scheduling needs{" "}
+                {t("calcom_explained", {
+                  appName: APP_NAME,
+                })}
               </p>
             )}
           </div>
@@ -245,6 +246,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 label={t("username")}
                 username={watch("username")}
                 premium={premiumUsername}
+                usernameTaken={usernameTaken}
+                setUsernameTaken={(value) => setUsernameTaken(value)}
                 data-testid="signup-usernamefield"
                 setPremium={(value) => setPremiumUsername(value)}
                 addOnLeading={
@@ -268,8 +271,18 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 {...register("password")}
                 hintErrors={["caplow", "min", "num"]}
               />
-              <Button type="submit" className="my-2 w-full justify-center" loading={isSubmitting}>
-                {premiumUsername ? `Create Account for ${getPremiumPlanPriceValue()}` : t("create_account")}
+              <Button
+                type="submit"
+                className="my-2 w-full justify-center"
+                loading={isSubmitting}
+                disabled={
+                  !!formMethods.formState.errors.username ||
+                  !!formMethods.formState.errors.email ||
+                  usernameTaken
+                }>
+                {premiumUsername && !usernameTaken
+                  ? `Create Account for ${getPremiumPlanPriceValue()}`
+                  : t("create_account")}
               </Button>
             </Form>
             {/* Continue with Social Logins */}
@@ -283,7 +296,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               </div>
             </div>
             {/* Social Logins */}
-            <div className="mt-6 grid gap-2 lg:grid-cols-2">
+            <div className="mt-6 grid gap-2 md:grid-cols-2">
               <Button
                 color="secondary"
                 disabled={!!formMethods.formState.errors.username}
@@ -363,15 +376,21 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
         </div>
         <div className="bg-subtle border-subtle my-6 hidden w-full flex-col justify-center rounded-l-2xl py-12 pl-12 lg:flex">
           <img src="/mock-event-type-list.svg" alt="#" />
-          <div className="mr-12 mt-4 grid h-full w-full grid-cols-2 gap-4 overflow-hidden">
+          <div className="mr-12 mt-4 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
             {FEATURES.map((feature) => (
               <>
                 <div className="flex flex-col leading-none">
-                  <div className="text-emphasis flex items-center gap-1">
+                  <div className="text-emphasis items-center gap-1">
                     <feature.icon className="h-4 w-4 " />
                     <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                  <p className="text-subtle text-sm">{t(feature.description)}</p>
+                  <div className="text-subtle text-sm">
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse auctor justo nec
+                      est ultricies, sed auctor mauris iaculis. Pellentesque consectetur metus sed nunc
+                      bibendum,
+                    </p>
+                  </div>
                 </div>
               </>
             ))}
