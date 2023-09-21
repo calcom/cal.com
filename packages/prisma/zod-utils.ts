@@ -115,14 +115,15 @@ export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
+// Note that this validation runs to validate prefill params as well, so it should consider that partial values can be there. e.g. `name` might be empty string
 export const bookingResponses = z
   .object({
     email: z.string(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
     name: z.union([
-      nonEmptyString(),
+      z.string(),
       z.object({
-        firstName: nonEmptyString(),
+        firstName: z.string(),
         lastName: z.string().optional(),
       }),
     ]),
