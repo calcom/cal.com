@@ -39,12 +39,32 @@ export const handlers = [
   }),
   rest.post("https://www.googleapis.com/calendar/v3/calendars/primary/events", async (req, res, ctx) => {
     const eventData = await req.json();
+    const organizer = eventData.attendees.find((attendee: any) => attendee.organizer);
     return res(
       ctx.status(200),
       ctx.json({
-        ...eventData,
+        // ...eventData,
         id: 12345,
         iCalUID: 67890,
+        kind: "calendar#event",
+        etag: "12345",
+        status: "confirmed",
+        reminders: { useDefault: true },
+        summary: eventData.title,
+        location: eventData.location,
+        organizer: {
+          email: organizer.email,
+          displayName: organizer.name,
+          self: true,
+        },
+        start: {
+          dateTime: eventData.startTime,
+          timeZone: organizer.timeZone,
+        },
+        end: {
+          dateTime: eventData.endTime,
+          timeZone: organizer.timeZone,
+        },
       })
     );
   }),

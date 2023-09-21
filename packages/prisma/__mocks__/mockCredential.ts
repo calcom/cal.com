@@ -21,5 +21,8 @@ export const mockCredential = ({
     key,
     appId,
     invalid: false,
-  } as Credential;
+    user: {
+      email: "user@example.com",
+    },
+  } as Credential & { user: { email: string } };
 };

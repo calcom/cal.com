@@ -186,6 +186,7 @@ export default class GoogleCalendarService implements Calendar {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
+      iCalUID: calEventRaw.iCalUID || calEventRaw.uid,
     };
 
     if (calEventRaw.location) {

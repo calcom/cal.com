@@ -1,21 +1,21 @@
-import { default as  CalendarService } from "../lib/CalendarService";
+import { server } from "./__mocks__/server/server";
+import { mockCredential } from "@calcom/prisma/__mocks__/mockCredential";
+
+import type { TFunction } from "next-i18next";
 import { createMocks } from "node-mocks-http";
 import { test, expect, describe, beforeAll, afterAll, afterEach, vi, beforeEach } from "vitest";
 
+import dayjs from "@calcom/dayjs";
+import { default as handleNewBooking } from "@calcom/features/bookings/lib/handleNewBooking";
+import { buildCalendarEvent } from "@calcom/lib/test/builder";
 import { expectFunctionToBeCalledNthTimesWithArgs } from "@calcom/lib/test/expectFunctionToBeCalledNthTimesWithArgs";
 import type { CustomNextApiRequest, CustomNextApiResponse } from "@calcom/lib/test/types";
+import prisma from "@calcom/prisma";
 import { default as prismaMock } from "@calcom/prisma/__mocks__";
-import { mockCredential } from "@calcom/prisma/__mocks__/mockCredential";
-import prisma from "@calcom/prisma"
 
 import { default as addHandler } from "../api/add";
 import { default as callbackHandler } from "../api/callback";
-import { server } from "./__mocks__/server/server";
-import { buildCalendarEvent } from "@calcom/lib/test/builder";
-import type { TFunction } from "next-i18next";
-import dayjs from "@calcom/dayjs";
-import { default as handleNewBooking } from "@calcom/features/bookings/lib/handleNewBooking";
-
+import { default as CalendarService } from "../lib/CalendarService";
 
 vi.mock("@calcom/lib/getIP", () => ({
   _esModule: true,
@@ -182,24 +182,48 @@ describe("Google oauth endpoints", () => {
             email: "test@test.com",
             timeZone: "America/Montevideo",
             language: { translate: mockT, locale: "en" },
-          }
-        ]
+          },
+        ],
       });
+      console.log("🚀 ~ file: gcal.test.ts:188 ~ test ~ calendarEventRaw:", calendarEventRaw);
 
       const googleCalendarService = new CalendarService(credential);
-      const response = await googleCalendarService.createEvent(calendarEventRaw);
-      // console.log("🚀 ~ file: gcal.test.ts:187 ~ test ~ response:", response)
+      const response = await googleCalendarService.createEvent(calendarEventRaw, credential.id);
+      console.log("🚀 ~ file: gcal.test.ts:187 ~ test ~ response:", response);
 
-
-      // expect(response).toEqual(expect.objectContaining({
-      //   uid: "",
-      //   id: "12345",
-      //   iCalUID: "67890",
-      //   type: "google_calendar",
-      //   password: "",
-      //   url: "",
-      // }))
-
+      expect(response).toEqual(
+        expect.objectContaining({
+          uid: "",
+          id: "12345",
+          kind: "calendar#event",
+          etag: "12345",
+          iCalUID: calendarEventRaw.iCalUID,
+          type: "google_calendar",
+          password: "",
+          url: "",
+          summary: calendarEventRaw.title,
+          status: "confirmed",
+          reminders: { useDefault: true },
+          location: calendarEventRaw.location,
+          organizer: {
+            email: calendarEventRaw.organizer.email,
+            displayName: calendarEventRaw.organizer.name,
+            self: true,
+          },
+          additionalInfo: { hangoutLink: "" },
+          start: {
+            dateTime: calendarEventRaw.startTime,
+            timeZone: calendarEventRaw.organizer.timeZone,
+          },
+          end: {
+            dateTime: calendarEventRaw.endTime,
+            timeZone: calendarEventRaw.organizer.timeZone,
+          },
+          attendees: calendarEventRaw.attendees.map((attendee) => ({
+            email: attendee.email,
+          })),
+        })
+      );
     });
     test("API call to handleNewBooking", async () => {
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -228,83 +252,6 @@ describe("Google oauth endpoints", () => {
       console.log({ statusCode: res._getStatusCode(), data: JSON.parse(res._getData()) });
 
       expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
-    })
+    });
   });
 });
-
-  //   test("On successful booking, create one event in Google Calendar", async () => {
-  //     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-  //       method: "POST",
-  //       body: {
-  //         name: "test",
-  //         start: dayjs().add(1, "hour").format(),
-  //         end: dayjs().add(2, "hour").format(),
-  //         eventTypeId: 2,
-  //         email: "test@example.com",
-  //         location: "Cal.com Video",
-  //         timeZone: "America/Montevideo",
-  //         language: "en",
-  //         customInputs: [],
-  //         metadata: {},
-  //         userId: 4,
-  //       },
-  //     });
-
-  //     // Mock getting event type
-  //     getUser.prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType({ id: 1 }));
-
-  //     // Mock getting the user to check for availability
-  //     prismaMock.user.findFirst.mockResolvedValueOnce({
-  //       id: 3,
-  //       timeZone: "America/Montevideo",
-  //       bufferTime: 0,
-  //       startTime: 0,
-  //       username: "organizer",
-  //       endTime: 1440,
-  //       timeFormat: 12,
-  //       availability: [],
-  //       defaultScheduleId: 100,
-  //       schedules: [
-  //         {
-  //           userId: 4,
-  //           timeZone: null,
-  //           availability: [
-  //             {
-  //               id: 162,
-  //               userId: null,
-  //               eventTypeId: null,
-  //               days: [1, 2, 3, 4, 5],
-  //               startTime: "1970-01-01T09:00:00.000Z",
-  //               endTime: "1970-01-01T17:00:00.000Z",
-  //               date: null,
-  //               scheduleId: 100,
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //       selectedCalendars: [
-  //         {
-  //           userId: 152,
-  //           integration: "google_calendar",
-  //           externalId: "j.auyeung419@gmail.com",
-  //         },
-  //       ],
-  //       credentials: [
-  //         {
-  //           id: 113,
-  //           type: "google_calendar",
-  //           key: [Object],
-  //           userId: 152,
-  //           teamId: null,
-  //           appId: "google-calendar",
-  //           invalid: false,
-  //         },
-  //       ],
-  //     });
-
-  //     await handleNewBooking(req, res);
-
-  //     expect(createEvent).toHaveBeenCalledTimes(8);
-  //     console.log("🚀 ~ file: gcal.test.ts:174 ~ test ~ res:", res.JSON);
-  //   });
-  // });
