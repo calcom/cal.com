@@ -302,7 +302,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganization
-    ? tokenTeam.slug || tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug
+    ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
     : null;
 
   // Org context shouldn't check if a username is premium
