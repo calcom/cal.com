@@ -61,6 +61,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const { t } = useLocale();
   const { update } = useSession();
+  const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -74,6 +75,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
+      setIsUpdateBtnLoading(false);
     },
   });
 
@@ -115,6 +117,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
+
   const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState<boolean>(
     user.allowDynamicBooking ?? true
   );
@@ -130,6 +133,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
+          setIsUpdateBtnLoading(true);
           mutation.mutate({
             ...values,
             locale: values.locale.value,
@@ -215,7 +219,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         </div>
 
         <SectionBottomActions align="end">
-          <Button loading={mutation.isLoading} disabled={isDisabled} color="primary" type="submit">
+          <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
             <>{t("update")}</>
           </Button>
         </SectionBottomActions>

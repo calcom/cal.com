@@ -1,7 +1,6 @@
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -12,7 +11,19 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
+import {
+  Alert,
+  Button,
+  Form,
+  Meta,
+  PasswordField,
+  Select,
+  SettingsToggle,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -27,26 +38,30 @@ interface PasswordViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-const cleanMetadataResponse = z
-  .object({
-    cleanMetadata: z
-      .object({
-        data: userMetadataSchema,
-        success: z.boolean(),
-      })
-      .nullable(),
-  })
-  .nullable();
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+  return (
+    <SkeletonContainer>
+      <Meta title={title} description={description} />
+      <div className="border-subtle space-y-6 border-x px-4 py-8 sm:px-6">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+      <div className="rounded-b-xl">
+        <SectionBottomActions align="end">
+          <SkeletonButton className="ml-auto h-8 w-20 rounded-md" />
+        </SectionBottomActions>
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 const PasswordView = ({ user }: PasswordViewProps) => {
   const { data } = useSession();
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const metadata = cleanMetadataResponse.safeParse(user?.metadata);
-  const initialSessionTimeout =
-    metadata.success && metadata.data?.cleanMetadata?.success
-      ? metadata.data.cleanMetadata?.data?.sessionTimeout
-      : undefined;
+  const metadata = userMetadataSchema.safeParse(user?.metadata);
+  const initialSessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
@@ -61,20 +76,16 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
     onMutate: async () => {
       await utils.viewer.me.cancel();
-      const previousValue = utils.viewer.me.getData();
-      const previousMetadata = cleanMetadataResponse.parse(previousValue?.metadata);
+      const previousValue = await utils.viewer.me.getData();
+      const previousMetadata = userMetadataSchema.safeParse(previousValue?.metadata);
 
-      if (previousValue && sessionTimeout) {
+      if (previousValue && sessionTimeout && previousMetadata.success) {
         utils.viewer.me.setData(undefined, {
           ...previousValue,
-          metadata: {
-            cleanMetadata: {
-              data: { ...previousMetadata?.cleanMetadata?.data, sessionTimeout: sessionTimeout },
-            },
-          },
+          metadata: { ...previousMetadata?.data, sessionTimeout: sessionTimeout },
         });
+        return { previousValue };
       }
-      return { previousValue };
     },
     onError: (error, _, context) => {
       if (context?.previousValue) {
@@ -118,6 +129,22 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword } = values;
+
+    if (!oldPassword.length) {
+      formMethods.setError(
+        "oldPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+    if (!newPassword.length) {
+      formMethods.setError(
+        "newPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
     }
@@ -204,9 +231,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                 if (!e) {
                   setSessionTimeout(undefined);
 
-                  if (metadata.success && metadata.data?.cleanMetadata?.success) {
+                  if (metadata.success) {
                     sessionMutation.mutate({
-                      metadata: { ...metadata.data?.cleanMetadata?.data, sessionTimeout: undefined },
+                      metadata: { ...metadata.data, sessionTimeout: undefined },
                     });
                   }
                 } else {
@@ -242,6 +269,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                     color="primary"
                     loading={sessionMutation.isLoading}
                     onClick={() => {
+                      console.log("METADATA", metadata);
                       sessionMutation.mutate({
                         metadata: { ...metadata, sessionTimeout },
                       });
@@ -258,16 +286,6 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               </>
             </SettingsToggle>
           </div>
-          {/* TODO: Why is this Form not submitting? Hacky fix but works */}
-          {/* <Button
-            color="primary"
-            className="mt-8"
-            type="submit"
-            loading={passwordMutation.isLoading || sessionMutation.isLoading}
-            onClick={() => formMethods.clearErrors("apiError")}
-            disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
-            {t("update")}
-          </Button> */}
         </Form>
       )}
     </>
@@ -276,7 +294,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
 const PasswordViewWrapper = () => {
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  if (isLoading || !user) return null;
+  const { t } = useLocale();
+  if (isLoading || !user)
+    return <SkeletonLoader title={t("password")} description={t("password_description")} />;
 
   return <PasswordView user={user} />;
 };
