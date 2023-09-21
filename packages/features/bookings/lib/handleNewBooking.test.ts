@@ -1,7 +1,7 @@
 /**
  * How to ensure that unmocked prisma queries aren't called?
  */
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";

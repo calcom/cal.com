@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { afterEach, expect, test, vi } from "vitest";
 
@@ -74,6 +74,7 @@ test("Calendar Cache is being called", async () => {
     // First call won't have a cache
     .mockResolvedValueOnce(null)
     // Second call will have a cache
+    // @ts-expect-error expects a "null" here due to previous call
     .mockResolvedValueOnce(calendarCacheResponse);
 
   // prismaMock.calendarCache.create.mock.

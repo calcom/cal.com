@@ -14,7 +14,8 @@ const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
   const __findManyWebhook = prismock.webhook.findMany;
 
-  prismock.booking.update = (...rest) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismock.booking.update = (...rest: any[]) => {
     // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
     // In booking flows, we encounter such scenario, so let's fix that here directly till it's fixed in prismock
     if (rest[0].data.references?.createMany) {
@@ -29,16 +30,20 @@ const handlePrismockBugs = () => {
       rest[0].data.references.create = rest[0].data.references?.create.data;
       logger.silly("Fixed Prismock bug-1");
     }
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return __updateBooking(...rest);
   };
 
-  prismock.webhook.findMany = (...rest) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismock.webhook.findMany = (...rest: any[]) => {
     // There is some bug in prismock where it can't handle complex where clauses
     if (rest[0].where?.OR && rest[0].where.AND) {
       rest[0].where = undefined;
       logger.silly("Fixed Prismock bug-2");
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return __findManyWebhook(...rest);
   };
 };

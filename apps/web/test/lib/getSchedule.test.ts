@@ -1,5 +1,5 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
