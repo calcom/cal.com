@@ -6,12 +6,19 @@ import { installGoogleCalendar } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(({ users }) => users.deleteAll());
-
 const GOOGLE_CALENDAR_EMAIL = process.env.E2E_TEST_GOOGLE_CALENDAR_EMAIL!;
 const GOOGLE_CALENDAR_PASSWORD = process.env.E2E_TEST_GOOGLE_CALENDAR_PASSWORD!;
+const GOOGLE_APPNAME = process.env.E2E_TEST_GOOGLE_AUTH_CONSENT_APPNAME!;
 
-const SHOULD_SKIP_TESTS = !GOOGLE_CALENDAR_EMAIL || !GOOGLE_CALENDAR_PASSWORD;
+const SHOULD_SKIP_TESTS = !GOOGLE_CALENDAR_EMAIL || !GOOGLE_CALENDAR_PASSWORD || !GOOGLE_APPNAME;
+
+test.afterEach(async ({ users, page }) => {
+  await page.goto("https://myaccount.google.com/connections?filters=2");
+  await page.locator(`a:has-text("${GOOGLE_APPNAME}")`).click();
+  await page.locator(`div[data-name="${GOOGLE_APPNAME}"][role="button"]`).click();
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await users.deleteAll();
+});
 
 test.describe("Google Calendar", () => {
   // eslint-disable-next-line playwright/no-skipped-test
@@ -39,7 +46,7 @@ test.describe("Google Calendar", () => {
     // await page.waitForURL(/\/warning/);
 
     await page.waitForURL((url) => url.pathname.includes("/warning"));
-    await page.getByText("Continue").click();
+    await page.getByRole("button", { name: "Continue" }).click();
 
     await page.waitForSelector("#submit_approve_access");
 
@@ -47,9 +54,8 @@ test.describe("Google Calendar", () => {
     await page.getByText("Select all").click();
     await page.click("#submit_approve_access");
 
-    await page.waitForURL("api/integrations/googlecalendar/callback");
+    await page.waitForURL("apps/installed/calendar?category=calendar");
 
-    await expect(page.getByText("Google Calendar")).toBeVisible();
-    await expect(page.getByText(GOOGLE_CALENDAR_EMAIL)).toBeVisible();
+    await expect(page.locator(`label[for="${GOOGLE_CALENDAR_EMAIL}"]`)).toBeVisible();
   });
 });
