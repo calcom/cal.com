@@ -15,7 +15,7 @@
       "label": "BigBlueButton"
     }
   },
-  "description": "Turn your meetings into fully-fledged virtual classrooms!",
+  "description": "Turn your meetings into fully-fledged virtual classrooms.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-location-video-static",

@@ -1,6 +1,9 @@
 ---
 items:
-  - main.png
+  - 1.png
+  - 2.png
+  - 3.png
+  - 4.png
 ---
 
 ### Turn your meetings into fully-fledged virtual classrooms!
