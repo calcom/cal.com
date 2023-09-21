@@ -5,49 +5,51 @@ import type { z } from "zod";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import getBookingResponsesSchema from "./getBookingResponsesSchema";
+import getBookingResponsesSchema, { getBookingResponsesPartialSchema } from "./getBookingResponsesSchema";
 
 const CUSTOM_REQUIRED_FIELD_ERROR_MSG = "error_required_field";
 const CUSTOM_PHONE_VALIDATION_ERROR_MSG = "invalid_number";
 const CUSTOM_EMAIL_VALIDATION_ERROR_MSG = "email_validation_error";
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
-test(`should parse booking responses`, async ({}) => {
-  const schema = getBookingResponsesSchema({
-    eventType: {
-      bookingFields: [
-        {
-          name: "name",
-          type: "name",
-          required: true,
-        },
-        {
-          name: "email",
-          type: "email",
-          required: true,
-        },
-        {
-          name: "testField",
-          type: "text",
-          required: true,
-        },
-      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-    },
-    view: "ALL_VIEWS",
-  });
-  const parsedResponses = await schema.parseAsync({
-    testField: "test",
-    email: "test@test.com",
-    name: "test",
-  });
-  expect(parsedResponses).toEqual(
-    expect.objectContaining({
+
+describe("getBookingResponsesSchema", () => {
+  test(`should parse booking responses`, async ({}) => {
+    const schema = getBookingResponsesSchema({
+      eventType: {
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testField",
+            type: "text",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      },
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
       testField: "test",
       email: "test@test.com",
       name: "test",
-    })
-  );
-});
-describe("getBookingResponsesSchema", () => {
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        testField: "test",
+        email: "test@test.com",
+        name: "test",
+      })
+    );
+  });
+
   test(`should error if required fields are missing`, async ({}) => {
     const schema = getBookingResponsesSchema({
       eventType: {
@@ -85,6 +87,7 @@ describe("getBookingResponsesSchema", () => {
       );
     }
   });
+
   describe("System Fields", () => {
     describe(`'name' and 'email' must be considered as required fields`, () => {
       test(`'name' and 'email' must be considered as required fields `, async ({}) => {
@@ -137,6 +140,7 @@ describe("getBookingResponsesSchema", () => {
           })
         );
       });
+
       test(`'email' must be validated `, async () => {
         const schema = getBookingResponsesSchema({
           eventType: {
@@ -176,6 +180,7 @@ describe("getBookingResponsesSchema", () => {
           })
         );
       });
+
       test(`firstName is required and lastName is optional by default`, async () => {
         const schema = getBookingResponsesSchema({
           eventType: {
@@ -218,6 +223,136 @@ describe("getBookingResponsesSchema", () => {
           email: "john@example.com",
         });
       });
+
+      test(`should reject empty fullname`, async ({}) => {
+        const schema = getBookingResponsesSchema({
+          eventType: {
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: true,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          },
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          testField: "test",
+          email: "test@test.com",
+          name: "",
+        });
+
+        expect(parsedResponses.success).toBe(false);
+        // eslint-disable-next-line playwright/no-conditional-in-test
+        if (parsedResponses.success) {
+          throw new Error("Should not reach here");
+        }
+        expect(parsedResponses.error.issues[0]).toEqual(
+          expect.objectContaining({
+            code: "custom",
+            message: `{name}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test(`should reject empty firstName`, async ({}) => {
+        const schema = getBookingResponsesSchema({
+          eventType: {
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+                variant: "firstAndLastName",
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: true,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          },
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          testField: "test",
+          email: "test@test.com",
+          name: {
+            firstName: "  ",
+            lastName: "Doe",
+          },
+        });
+
+        if (parsedResponses.success) {
+          throw new Error("Should not reach here");
+        }
+        expect(parsedResponses.error.issues[0]).toEqual(
+          expect.objectContaining({
+            code: "custom",
+            message: `{name}Invalid string`,
+          })
+        );
+      });
+
+      test(`should accept empty lastname`, async ({}) => {
+        const schema = getBookingResponsesSchema({
+          eventType: {
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+                variant: "firstAndLastName",
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: true,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          },
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.parseAsync({
+          testField: "test",
+          email: "test@test.com",
+          name: {
+            firstName: "John",
+            lastName: "",
+          },
+        });
+
+        expect(parsedResponses).toEqual({
+          testField: "test",
+          email: "test@test.com",
+          name: {
+            firstName: "John",
+            lastName: "",
+          },
+        });
+      });
+
       describe(`'name' can be transformed from one variant to other `, () => {
         test("`firstAndLastName` variant to `fullName`", async () => {
           const schema = getBookingResponsesSchema({
@@ -596,6 +731,7 @@ describe("getBookingResponsesSchema", () => {
         testEmailsList: ["first@example.com"],
       });
     });
+
     test("should fail parsing when one of the emails is invalid", async () => {
       const schema = getBookingResponsesSchema({
         eventType: {
@@ -636,6 +772,7 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
+
     test("should succesfully parse a multiemail type field response, even when the value is just a string[Prefill needs it]", async () => {
       const schema = getBookingResponsesSchema({
         eventType: {
@@ -674,5 +811,215 @@ describe("getBookingResponsesSchema", () => {
         testEmailsList: ["first@example.com"],
       });
     });
+  });
+
+  describe("multiselect field type", () => {
+    test("should succesfully parse a multiselect type field", async () => {
+      const schema = getBookingResponsesSchema({
+        eventType: {
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testMultiselect",
+              type: "multiselect",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        },
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: ["option1", "option-2"],
+      });
+      expect(parsedResponses.success).toBe(true);
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (!parsedResponses.success) {
+        throw new Error("Should not reach here");
+      }
+      expect(parsedResponses.data).toEqual({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: ["option1", "option-2"],
+      });
+    });
+    test("should succesfully parse a multiselect type field", async () => {
+      const schema = getBookingResponsesSchema({
+        eventType: {
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testMultiselect",
+              type: "multiselect",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        },
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: "option1",
+      });
+      expect(parsedResponses.success).toBe(true);
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (!parsedResponses.success) {
+        throw new Error("Should not reach here");
+      }
+      expect(parsedResponses.data).toEqual({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: ["option1"],
+      });
+    });
+    test("should fail parsing if selected options aren't strings", async () => {
+      const schema = getBookingResponsesSchema({
+        eventType: {
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testMultiselect",
+              type: "multiselect",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        },
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: [1, 2],
+      });
+      expect(parsedResponses.success).toBe(false);
+
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (parsedResponses.success) {
+        throw new Error("Should not reach here");
+      }
+
+      expect(parsedResponses.error.issues[0]).toEqual(
+        expect.objectContaining({
+          code: "custom",
+          message: `{testMultiselect}Invalid array of strings`,
+        })
+      );
+    });
+  });
+
+  describe("multiselect field type", () => {
+    test("should succesfully parse a multiselect type field", async () => {
+      const schema = getBookingResponsesSchema({
+        eventType: {
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testMultiselect",
+              type: "multiselect",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        },
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: ["option1", "option-2"],
+      });
+      expect(parsedResponses.success).toBe(true);
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (!parsedResponses.success) {
+        throw new Error("Should not reach here");
+      }
+      expect(parsedResponses.data).toEqual({
+        email: "test@test.com",
+        name: "test",
+        testMultiselect: ["option1", "option-2"],
+      });
+    });
+  });
+
+  test.todo("select");
+  test.todo("textarea");
+  test.todo("number");
+  test.todo("radioInput");
+  test.todo("checkbox");
+  test.todo("radio");
+  test.todo("boolean");
+});
+
+describe("getBookingResponsesPartialSchema - Prefill validation", () => {
+  test(`should be able to get fields prefilled even when name is empty string`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      eventType: {
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testField",
+            type: "text",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      },
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "",
+      testField: "test",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "",
+        testField: "test",
+      })
+    );
   });
 });

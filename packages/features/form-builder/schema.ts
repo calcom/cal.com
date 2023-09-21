@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
-import { nonEmptyString } from "@calcom/prisma/zod-utils";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
+
+const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
 const fieldTypeEnum = z.enum([
   "name",
@@ -290,7 +291,7 @@ export const fieldTypesSchemaMap: Partial<
       if (fields.length === 1) {
         const field = fields[0];
         if (variantSupportedFields.includes(field.type)) {
-          const schema = field.required ? nonEmptyString() : stringSchema;
+          const schema = field.required && !isPartialSchema ? nonEmptyString() : stringSchema;
           if (!schema.safeParse(response).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
@@ -300,7 +301,7 @@ export const fieldTypesSchemaMap: Partial<
         }
       }
       fields.forEach((subField) => {
-        const schema = subField.required ? nonEmptyString() : stringSchema;
+        const schema = subField.required && !isPartialSchema ? nonEmptyString() : stringSchema;
         if (!variantSupportedFields.includes(subField.type)) {
           throw new Error(`Unsupported field.type with variants: ${subField.type}`);
         }

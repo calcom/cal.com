@@ -229,7 +229,7 @@ function preprocess<T extends z.ZodType>({
               optionField?.required &&
               !optionValue
             ) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field2") });
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
               return;
             }
 

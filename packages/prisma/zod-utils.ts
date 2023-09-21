@@ -22,8 +22,6 @@ import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
-export const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
-
 // Let's not import 118kb just to get an enum
 export enum Frequency {
   YEARLY = 0,
