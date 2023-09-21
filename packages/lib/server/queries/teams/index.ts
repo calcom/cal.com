@@ -28,9 +28,18 @@ export async function getTeamWithMembers(args: {
         externalId: true,
       },
     },
+    teams: {
+      select: {
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    },
     selectedCalendars: true,
     credentials: {
-      include: {
+      select: {
         app: {
           select: {
             slug: true,
@@ -68,16 +77,6 @@ export async function getTeamWithMembers(args: {
         name: true,
         logo: true,
         slug: true,
-        members: {
-          select: {
-            user: {
-              select: {
-                name: true,
-                username: true,
-              },
-            },
-          },
-        },
       },
     },
     members: {
@@ -136,15 +135,17 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-
   const members = team.members.map((obj) => {
     return {
       ...obj.user,
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
+      subteams: orgSlug
+        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        : null,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-      connectedApps: obj.user.credentials.map((cred) => {
+      connectedApps: obj?.user?.credentials?.map((cred) => {
         const appSlug = cred.app?.slug;
         let appData = appDataMap.get(appSlug);
 
@@ -153,14 +154,13 @@ export async function getTeamWithMembers(args: {
           appDataMap.set(appSlug, appData);
         }
 
-        const isCalendar = cred?.app?.categories.includes("calendar");
-        const externalId = isCalendar ? cred.destinationCalendars[0]?.externalId : undefined;
-
+        const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
+        const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
         return {
-          name: appData?.name,
-          logo: appData?.logo,
+          name: appData?.name ?? null,
+          logo: appData?.logo ?? null,
           app: cred.app,
-          externalId,
+          externalId: externalId ?? null,
         };
       }),
     };
@@ -172,10 +172,15 @@ export async function getTeamWithMembers(args: {
   }));
   /** Don't leak invite tokens to the frontend */
   const { inviteTokens, ...teamWithoutInviteTokens } = team;
+
   return {
     ...teamWithoutInviteTokens,
     /** To prevent breaking we only return non-email attached token here, if we have one */
-    inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + team.id),
+    inviteToken: inviteTokens.find(
+      (token) =>
+        token.identifier === "invite-link-for-teamId-" + team.id &&
+        token.expires > new Date(new Date().setHours(24))
+    ),
     metadata: teamMetadataSchema.parse(team.metadata),
     eventTypes,
     members,

@@ -25,6 +25,12 @@ export const TeamAndSelfList = () => {
   });
 
   useEffect(() => {
+    const isInitialSetupAlready = !!(
+      filter.initialConfig?.teamId ||
+      filter.initialConfig?.userId ||
+      filter.initialConfig?.isAll
+    );
+    if (isInitialSetupAlready) return;
     if (isSuccess && session.data?.user.id) {
       // We have a team?
       if (data[0]?.id && data && data?.length > 0) {
@@ -49,19 +55,8 @@ export const TeamAndSelfList = () => {
           },
         });
       }
-    } else if (session.data?.user.id) {
-      setConfigFilters({
-        selectedUserId: session.data?.user.id,
-        selectedTeamId: null,
-        isAll: false,
-        initialConfig: {
-          teamId: null,
-          userId: session.data?.user.id,
-          isAll: false,
-        },
-      });
     }
-  }, [data, session.data?.user.id]);
+  }, [data, session.data?.user.id, filter.initialConfig, isSuccess, setConfigFilters]);
 
   const getTextPopover = () => {
     if (isAll) {

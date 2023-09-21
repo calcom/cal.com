@@ -93,6 +93,12 @@
   --cal-brand-text: black;
 }
 
+@layer base {
+  * {
+    @apply border-default 
+  }
+}
+
 ::-moz-selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
@@ -101,6 +107,10 @@
 ::selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 body  {

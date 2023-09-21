@@ -9,38 +9,20 @@ type ListOptions = {
 };
 
 export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
-  const teamsInOrgIamNotPartOf = await prisma.membership.findMany({
+  const teamsInOrgIamNotPartOf = await prisma.team.findMany({
     where: {
-      userId: {
-        not: ctx.user.id,
+      parent: {
+        id: ctx.user?.organization?.id,
       },
-      team: {
-        parent: {
-          is: {
-            id: ctx.user?.organization?.id,
-          },
-        },
-        members: {
-          none: {
-            userId: ctx.user.id,
-          },
+      members: {
+        none: {
+          userId: ctx.user.id,
         },
       },
     },
-    include: {
-      team: true,
-    },
-    orderBy: { role: "desc" },
-    distinct: ["teamId"],
   });
 
-  return teamsInOrgIamNotPartOf.map(({ team, ...membership }) => ({
-    role: membership.role,
-    accepted: membership.accepted,
-    userId: membership.userId,
-    isOrgAdmin: true,
-    ...team,
-  }));
+  return teamsInOrgIamNotPartOf;
 };
 
 export default listOtherTeamHandler;

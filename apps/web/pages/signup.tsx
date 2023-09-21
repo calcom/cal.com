@@ -125,6 +125,24 @@ function UsernameField({
   );
 }
 
+const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
+
+const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
+  const [emailUser, emailDomain] = email.split("@");
+  const username =
+    emailDomain === autoAcceptEmailDomain
+      ? slugify(emailUser)
+      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
+  return username;
+};
+
+function addOrUpdateQueryParam(url: string, key: string, value: string) {
+  const separator = url.includes("?") ? "&" : "?";
+  const param = `${key}=${encodeURIComponent(value)}`;
+  return `${url}${separator}${param}`;
+}
+
 export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -162,6 +180,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
     }
   };
 
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
@@ -178,13 +198,17 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const callBackUrl = `${
+          searchParams?.get("callbackUrl")
+            ? isOrgInviteByLink
+              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
+              : addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup")
+            : `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`
+        }`;
+
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: `${
-            searchParams?.get("callbackUrl")
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : `${WEBAPP_URL}/${verifyOrGettingStarted}`
-          }?from=signup`,
+          callbackUrl: callBackUrl,
         });
       })
       .catch((err) => {
@@ -426,6 +450,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           parent: {
             select: {
               slug: true,
+              metadata: true,
             },
           },
           slug: true,
@@ -480,7 +505,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganization
-    ? tokenTeam.slug || tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug
+    ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
     : null;
 
   // Org context shouldn't check if a username is premium
@@ -491,15 +516,26 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     username = available ? username : suggestion || username;
   }
 
+  const isValidEmail = checkValidEmail(verificationToken.identifier);
+  const isOrgInviteByLink = isOrganization && !isValidEmail;
+  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
+    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
+    : null;
+
   return {
     props: {
       ...props,
       token,
-      prepopulateFormValues: {
-        email: verificationToken.identifier,
-        username: slugify(username),
-      },
+      prepopulateFormValues: !isOrgInviteByLink
+        ? {
+            email: verificationToken.identifier,
+            username: slugify(username),
+          }
+        : null,
       orgSlug,
+      orgAutoAcceptEmail: isOrgInviteByLink
+        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
+        : null,
     },
   };
 };

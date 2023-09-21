@@ -1,4 +1,4 @@
-import type { Credential, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
@@ -6,7 +6,9 @@ import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
 
@@ -20,7 +22,9 @@ type IntegrationsOptions = {
 type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
-    credentials?: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
     name: true;
     logo: true;
     members: {
@@ -63,7 +67,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       },
       select: {
         id: true,
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
         name: true,
         logo: true,
         members: {
@@ -77,7 +83,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         parent: {
           select: {
             id: true,
-            credentials: true,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
             name: true,
             logo: true,
             members: {
@@ -109,7 +117,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
     userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: Credential[] = userTeams.flatMap((teamApp) => {
+    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? teamApp.credentials.flat() : [];
     });
     if (!includeTeamInstalledApps || teamId) {

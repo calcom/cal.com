@@ -59,11 +59,13 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       organizationId: true,
       allowDynamicBooking: true,
       allowSEOIndexing: true,
+      receiveMonthlyDigestEmail: true,
       organization: {
         select: {
           id: true,
           slug: true,
           metadata: true,
+          name: true,
           members: {
             select: { userId: true },
             where: {
