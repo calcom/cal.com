@@ -269,7 +269,6 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
   // To be used after we run query on legacy bookings
   // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
-  console.log(booking);
   const showRecordingsButtons =
     booking.location === "integrations:google:meet" &&
     isPast &&
