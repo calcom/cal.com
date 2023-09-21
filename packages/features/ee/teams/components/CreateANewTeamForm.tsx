@@ -67,7 +67,7 @@ export const CreateANewTeamForm = () => {
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">
-              <Alert severity="error" message={serverErrorMessage} />
+              <Alert severity="error" message={t(serverErrorMessage)} />
             </div>
           )}
 
