@@ -1,5 +1,5 @@
 export { Badge } from "./Badge";
 export { UpgradeTeamsBadge } from "./UpgradeTeamsBadge";
-export { KYCVerificationBadge } from "./KYCVerificationBadge";
+export { UpgradeOrgsBadge } from "./UpgradeOrgsBadge";
 
 export type { BadgeProps } from "./Badge";
