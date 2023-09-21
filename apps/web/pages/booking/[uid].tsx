@@ -513,18 +513,18 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("Session Recording")}</div>
                         <div className="col-span-2 mt-3">
-                          {locationToDisplay.startsWith("http") ? (
+                          {bookingInfo?.recordingLink ? (
                             <a
-                              href={locationToDisplay}
+                              href={bookingInfo?.recordingLink}
                               target="_blank"
-                              title="Sybill.ai"
+                              title="Recording Link"
                               className="text-default flex items-center gap-2 underline"
                               rel="noreferrer">
-                              Link
-                              <ExternalLink className="text-default inline h-4 w-4" />
+                              Recorded Video Link
+                              {/* <ExternalLink className="text-default inline h-4 w-4" /> */}
                             </a>
                           ) : (
-                            locationToDisplay
+                            "Recording Not ready yet."
                           )}
                         </div>
                       </>
@@ -1068,6 +1068,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       cancellationReason: true,
       responses: true,
       rejectionReason: true,
+      recordingLink: true,
       user: {
         select: {
           id: true,

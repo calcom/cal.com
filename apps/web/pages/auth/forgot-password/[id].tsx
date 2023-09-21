@@ -47,7 +47,7 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
               {t("password_updated")}
             </h2>
           </div>
-          <Button href="/auth/login" className="w-full justify-center">
+          <Button href="/auth/login" className="w-full justify-center hover:text-white">
             {t("login")}
           </Button>
         </div>
