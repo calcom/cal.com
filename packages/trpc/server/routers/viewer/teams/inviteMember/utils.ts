@@ -257,7 +257,7 @@ export async function sendVerificationEmail({
       expires: new Date(new Date().setHours(168)), // +1 week
       team: {
         connect: {
-          id: connectionInfo.orgId || input.teamId,
+          id: input.teamId,
         },
       },
     },
