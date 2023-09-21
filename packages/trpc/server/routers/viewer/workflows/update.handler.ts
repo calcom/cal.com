@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import {
   isSMSOrWhatsappAction,
   isTextMessageToAttendeeAction,
+  isTextMessageToSpecificNumber,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
@@ -25,7 +26,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
@@ -84,8 +84,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
-  const kycVerified = await isVerifiedHandler({ ctx });
-  const isKYCVerified = kycVerified.isKYCVerified;
+  const hasOrgsPlan = IS_SELF_HOSTED || ctx.user.organizationId;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
@@ -425,11 +424,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-      if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      // check if step that require team plan already existed before
+      if (
+        !hasPaidPlan &&
+        !isTextMessageToSpecificNumber(oldStep.action) &&
+        isTextMessageToSpecificNumber(newStep.action)
+      ) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      if (!isKYCVerified && isTextMessageToAttendeeAction(newStep.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      // check if step that require org already existed before
+      if (
+        !hasOrgsPlan &&
+        !isTextMessageToAttendeeAction(oldStep.action) &&
+        isTextMessageToAttendeeAction(newStep.action)
+      ) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan required" });
       }
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
@@ -605,11 +614,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //added steps
   const addedSteps = steps.map((s) => {
     if (s.id <= 0) {
-      if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (isSMSOrWhatsappAction(s.action) && !isTextMessageToAttendeeAction(s.action) && !hasPaidPlan) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      if (!isKYCVerified && isTextMessageToAttendeeAction(s.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      if (!hasOrgsPlan && isTextMessageToAttendeeAction(s.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan require" });
       }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;
