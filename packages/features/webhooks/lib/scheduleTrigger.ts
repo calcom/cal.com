@@ -73,7 +73,10 @@ export async function addSubscription({
 
     return createSubscription;
   } catch (error) {
-    log.error(`Error creating subscription for user ${appApiKey.userId} and appId ${appApiKey.appId}.`);
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
+    log.error(`Error creating subscription for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
   }
 }
 
@@ -149,8 +152,13 @@ export async function deleteSubscription({
     }
     return deleteWebhook;
   } catch (err) {
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
     log.error(
-      `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appId ${appId}`
+      `Error deleting subscription for user ${
+        teamId ? `team ${teamId}` : `userId ${userId}`
+      }, webhookId ${webhookId}`
     );
   }
 }
@@ -173,7 +181,7 @@ export async function listBookings(
       } else {
         where.userId = appApiKey.userId;
       }
-    } else {
+    } else if (account) {
       if (!account.isTeam) {
         where.userId = account.id;
         where.eventType = {

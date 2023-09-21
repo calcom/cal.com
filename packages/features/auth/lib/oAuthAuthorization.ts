@@ -4,10 +4,10 @@ import type { NextApiRequest } from "next";
 import prisma from "@calcom/prisma";
 
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = req.headers.authorization?.split(" ")[1] || "";
   let decodedToken: any = null;
   try {
-    decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY);
+    decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY || "");
   } catch {
     return null;
   }
