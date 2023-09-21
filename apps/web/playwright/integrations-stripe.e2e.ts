@@ -2,7 +2,8 @@ import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import type { Fixtures } from "./lib/fixtures";
+import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
