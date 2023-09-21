@@ -1,6 +1,7 @@
 import type { TokenResponse } from "jsforce";
 import jsforce from "jsforce";
 import { RRule } from "rrule";
+import { z } from "zod";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -16,6 +17,8 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -33,6 +36,16 @@ type ContactSearchResult = {
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
+
+const salesforceTokenSchema = z.object({
+  id: z.string(),
+  issued_at: z.string(),
+  instance_url: z.string(),
+  signature: z.string(),
+  access_token: z.string(),
+  scope: z.string(),
+  token_type: z.string(),
+});
 
 export default class SalesforceCalendarService implements Calendar {
   private integrationName = "";
@@ -59,6 +72,29 @@ export default class SalesforceCalendarService implements Calendar {
       throw new HttpError({ statusCode: 400, message: "Salesforce consumer secret missing." });
 
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+
+    const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
+      method: "POST",
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: consumer_key,
+        client_secret: consumer_secret,
+        refresh_token: credentialKey.refresh_token,
+        format: "json",
+      }),
+    });
+
+    if (response.statusText !== "OK") throw new HttpError({ statusCode: 400, message: response.statusText });
+
+    const accessTokenJson = await response.json();
+
+    const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
+      parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
+
+    await prisma.credential.update({
+      where: { id: credential.id },
+      data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
+    });
 
     return new jsforce.Connection({
       clientId: consumer_key,
