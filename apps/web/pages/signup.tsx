@@ -380,8 +380,8 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div className="bg-subtle border-subtle my-6 hidden w-full flex-col justify-center rounded-l-2xl py-12 pl-12 lg:flex">
-          <img src="/mock-event-type-list.svg" alt="#" />
-          <div className="mr-12 mt-4 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
+          <img src="/mock-event-type-list.svg" alt="#" className="scale-y-90" />
+          <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
             {FEATURES.map((feature) => (
               <>
                 <div className="flex flex-col leading-none">
