@@ -21,7 +21,6 @@ export function TimezoneSelect({
   value,
   ...props
 }: SelectProps & { variant?: "default" | "minimal" }) {
-  console.log("props", props);
   const [cities, setCities] = useState<ICity[]>([]);
   const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
     trpc: { context: { skipBatch: true } },
