@@ -1,3 +1,4 @@
+import { AuthContextProvider } from "context/AuthContext";
 import React from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -9,7 +10,11 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
   if (Component.PageWrapper !== undefined) return Component.PageWrapper(props);
-  return <Component {...pageProps} />;
+  return (
+    <AuthContextProvider>
+      <Component {...pageProps} />
+    </AuthContextProvider>
+  );
 }
 
 export default trpc.withTRPC(MyApp);

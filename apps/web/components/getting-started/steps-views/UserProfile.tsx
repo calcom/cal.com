@@ -51,11 +51,7 @@ const UserProfile = () => {
         }
 
         await utils.viewer.me.refetch();
-        router.push(
-          process.env.NODE_ENV === "production"
-            ? "https://borg.id/auth/login"
-            : "http://localhost:3001/auth/login"
-        );
+        router.push("/");
       }
     },
     onError: () => {
