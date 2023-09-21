@@ -22,6 +22,11 @@ export const TeamAndSelfList = () => {
   const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
   });
 
   useEffect(() => {
