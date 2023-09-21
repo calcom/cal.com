@@ -53,6 +53,7 @@ export const TeamAndSelfList = () => {
       } else if (session.data?.user.id) {
         // default to user
         setConfigFilters({
+          selectedUserId: session.data?.user.id,
           initialConfig: {
             teamId: null,
             userId: session.data?.user.id,
