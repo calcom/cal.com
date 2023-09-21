@@ -127,16 +127,6 @@ function UsernameField({
 
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
-const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
-  const [emailUser, emailDomain] = email.split("@");
-  const username =
-    emailDomain === autoAcceptEmailDomain
-      ? slugify(emailUser)
-      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-
-  return username;
-};
-
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
