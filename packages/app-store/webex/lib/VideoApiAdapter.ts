@@ -8,6 +8,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getWebexAppKeys } from "./getWebexAppKeys";
 
 /** @link https://developer.webex.com/docs/meetings **/
@@ -58,18 +59,23 @@ const webexAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getWebexAppKeys();
 
-    const response = await fetch("https://webexapis.com/v1/access_token", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: client_id,
-        client_secret: client_secret,
-        refresh_token: refreshToken,
-      }),
-    });
+    const response = await refreshOAuthTokens(
+      async () =>
+        await fetch("https://webexapis.com/v1/access_token", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            client_id: client_id,
+            client_secret: client_secret,
+            refresh_token: refreshToken,
+          }),
+        }),
+      "webex",
+      credential.userId
+    );
 
     const responseBody = await handleWebexResponse(response, credential.id);
 
