@@ -99,6 +99,8 @@ const instance = axios.create({
       if (!bbbResponse.success) {
         throw new BbbError("INVALID_RESPONSE_SCHEMA");
       }
+
+      // see: https://docs.bigbluebutton.org/development/api#error-handling
       const { response } = bbbResponse.data;
       if (response.returncode !== "FAILED") return response;
 
@@ -139,6 +141,7 @@ export class BbbApi {
     url.search = searchParams.toString();
 
     // sign request
+    // see: https://docs.bigbluebutton.org/development/api#usage
     const hashThis = `${apiCallName}${url.searchParams.toString()}${this.options.secret}`;
     const checksum = crypto.createHash(this.options.hash).update(hashThis).digest("hex");
     url.searchParams.append("checksum", checksum);
@@ -158,6 +161,7 @@ export class BbbApi {
     return { success: false, reason: "Internal server error." } as const;
   }
 
+  // see: https://docs.bigbluebutton.org/development/api#getmeetinginfo
   async checkCredentials() {
     try {
       await instance.get(this.buildUrl("getMeetingInfo", new URLSearchParams()));
@@ -171,6 +175,7 @@ export class BbbApi {
     return { success: true, data: null } as const;
   }
 
+  // see: https://docs.bigbluebutton.org/development/api#create
   async createMeeting(meetingId: string, meetingName: string) {
     try {
       const params = createParamsSchema.parse({
@@ -184,6 +189,7 @@ export class BbbApi {
     }
   }
 
+  // see: https://docs.bigbluebutton.org/development/api#join
   getSignedJoinMeetingUrl(meetingId: string, fullName: string, role: MeetingRole, redirect = true) {
     const params = joinParamsSchema.parse({
       fullName: fullName,
@@ -194,6 +200,7 @@ export class BbbApi {
     return this.buildUrl("join", new URLSearchParams(params));
   }
 
+  // see: https://docs.bigbluebutton.org/development/api#join
   async joinMeeting(meetingId: string, fullName: string, role: MeetingRole, redirect = false) {
     try {
       const params = joinParamsSchema.parse({
