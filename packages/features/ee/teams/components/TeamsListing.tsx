@@ -97,7 +97,7 @@ export function TeamsListing() {
 
       {invites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className=" text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
+          <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
           <TeamList teams={invites} pending />
         </div>
       )}
@@ -133,7 +133,7 @@ export function TeamsListing() {
             buttonRaw={
               <Button
                 color="secondary"
-                disabled={isCreateTeamButtonDisabled}
+                disabled={!!isCreateTeamButtonDisabled}
                 tooltip={
                   isCreateTeamButtonDisabled ? t("org_admins_can_create_new_teams") : t("create_new_team")
                 }
