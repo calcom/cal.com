@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Clock, Info, ShieldCheckIcon, StarIcon } from "lucide-react";
+import { CalendarHeart, Clock, Hexagon, Info, ShieldCheckIcon, StarIcon } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -50,13 +50,13 @@ const FEATURES = [
     icon: CalendarHeart,
   },
   {
-    title: "scheduling_for_your_team",
-    description: "schedule_for_your_team_description",
-    icon: Clock,
+    title: "workflow_automation",
+    description: "workflow_automation_description",
+    icon: Hexagon,
   },
   {
     title: "scheduling_for_your_team",
-    description: "schedule_for_your_team_description",
+    description: "scheduling_for_your_team_description",
     icon: Clock,
   },
 ];
@@ -77,28 +77,19 @@ function UsernameField({
 }) {
   const { t } = useLocale();
   const { register, formState } = useFormContext<FormValues>();
-  const [loading, setLoading] = useState(false);
-  const debouncedUsername = useDebounce(username, 700);
+  const debouncedUsername = useDebounce(username, 600);
 
   useEffect(() => {
     async function checkUsername() {
       if (!debouncedUsername) {
-        setLoading(false);
         setPremium(false);
         setUsernameTaken(false);
         return;
       }
-      setLoading(true);
-      fetchUsername(debouncedUsername)
-        .then(({ data }) => {
-          setPremium(data.premium);
-          if (!data.available) {
-            setUsernameTaken(true);
-          }
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      fetchUsername(debouncedUsername).then(({ data }) => {
+        setPremium(data.premium);
+        setUsernameTaken(!data.available);
+      });
     }
     checkUsername();
   }, [debouncedUsername, setPremium, setUsernameTaken]);
@@ -385,11 +376,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                     <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
                   <div className="text-subtle text-sm">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse auctor justo nec
-                      est ultricies, sed auctor mauris iaculis. Pellentesque consectetur metus sed nunc
-                      bibendum,
-                    </p>
+                    <p>{t(feature.description)}</p>
                   </div>
                 </div>
               </>

@@ -2045,5 +2045,11 @@
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
   "recently_added":"Recently added",
+  "connect_all_calendars":"Connect all your calendars",
+  "connect_all_calendars_description":"Connect all your calendars so you never get double booked",  
+  "workflow_automation":"Workflow automation",
+  "workflow_automation_description":"Personalise your scheduling experience with workflows",
+  "scheduling_for_your_team":"Workflow automation",
+  "scheduling_for_your_team_description":"Schedule for your team with collective and round-robin scheduling",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
