@@ -20,7 +20,7 @@ export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localho
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
-export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://beenthere.com";
+export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://app.beenthere.tech";
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Beenthere.tech";
 export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@beenthere.tech";
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Beenthere.tech, Inc.";
@@ -28,7 +28,7 @@ export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Beenthere";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Beenthere.tech";
 
 // This is the URL from which all Beenthere Links and their assets are served.
-// Use website URL to make links shorter(beenthere.com and not app.beenthere.com)
+// Use website URL to make links shorter(app.beenthere.tech and not app.app.beenthere.tech)
 // As website isn't setup for preview environments, use the webapp url instead
 export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
 
@@ -45,10 +45,10 @@ export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".beenthere-staging.com") ||
   process.env.NODE_ENV !== "production"
     ? `https://console.beenthere.dev`
-    : `https://console.beenthere.com`;
+    : `https://console.app.beenthere.tech`;
 export const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".beenthere.dev") ||
-  new URL(WEBAPP_URL).hostname.endsWith(".beenthere.com")
+  new URL(WEBAPP_URL).hostname.endsWith(".app.beenthere.tech")
 );
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 export const TRIAL_LIMIT_DAYS = 14;
@@ -66,12 +66,12 @@ export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
 export const MSTILE_ICON = "/mstile-150x150.png";
 export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
-export const ROADMAP = "https://beenthere.com/roadmap";
-export const DESKTOP_APP_LINK = "https://beenthere.com/download";
-export const JOIN_DISCORD = "https://go.beenthere.com/discord";
+export const ROADMAP = "https://app.beenthere.tech/roadmap";
+export const DESKTOP_APP_LINK = "https://app.beenthere.tech/download";
+export const JOIN_DISCORD = "https://go.app.beenthere.tech/discord";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
-export const DOCS_URL = "https://beenthere.com/docs";
-export const DEVELOPER_DOCS = "https://developer.beenthere.com";
+export const DOCS_URL = "https://app.beenthere.tech/docs";
+export const DEVELOPER_DOCS = "https://developer.app.beenthere.tech";
 export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query

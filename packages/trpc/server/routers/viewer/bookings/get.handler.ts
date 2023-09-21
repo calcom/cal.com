@@ -181,6 +181,7 @@ async function getBookings({
     uid: true,
     recurringEventId: true,
     location: true,
+    recordingLink: true,
     eventType: {
       select: {
         slug: true,
@@ -202,6 +203,7 @@ async function getBookings({
     },
     status: true,
     paid: true,
+
     payment: {
       select: {
         paymentOption: true,
