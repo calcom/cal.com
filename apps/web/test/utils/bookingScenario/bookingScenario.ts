@@ -1,6 +1,6 @@
 import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
@@ -132,7 +132,7 @@ async function addEventTypesToDb(
   })[]
 ) {
   logger.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
-  await prismaMock.eventType.createMany({
+  await prismock.eventType.createMany({
     data: eventTypes,
   });
 }
@@ -181,7 +181,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
 }
 
 function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
-  prismaMock.bookingReference.createMany({
+  prismock.bookingReference.createMany({
     data: bookingReferences,
   });
 }
@@ -192,14 +192,24 @@ async function addBookingsToDb(
     references: any[];
   })[]
 ) {
-  await prismaMock.booking.createMany({
+  await prismock.booking.createMany({
     data: bookings,
   });
+  logger.silly(
+    "TestData: Booking as in DB",
+    JSON.stringify({
+      bookings: await prismock.booking.findMany({
+        include: {
+          references: true,
+        },
+      }),
+    })
+  );
 }
 
-async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
+async function addBookings(bookings: InputBooking[]) {
   logger.silly("TestData: Creating Bookings", JSON.stringify(bookings));
-  const allBookings = [...bookings].map((booking, index) => {
+  const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
       addBookingReferencesToDB(
         booking.references.map((reference) => {
@@ -219,13 +229,28 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
     };
   });
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  await addBookingsToDb(allBookings);
+  await addBookingsToDb(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    allBookings.map((booking) => {
+      const bookingCreate = booking;
+      if (booking.references) {
+        bookingCreate.references = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          createMany: {
+            data: booking.references,
+          },
+        };
+      }
+      return bookingCreate;
+    })
+  );
 }
 
-async function addWebhooksToDb(webhooks) {
-  await prismaMock.webhook.createMany({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function addWebhooksToDb(webhooks: any[]) {
+  await prismock.webhook.createMany({
     data: webhooks,
   });
 }
@@ -238,7 +263,7 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 
 async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
   logger.silly("TestData: Creating Users", JSON.stringify(users));
-  await prismaMock.user.createMany({
+  await prismock.user.createMany({
     data: users,
   });
 }
@@ -248,6 +273,8 @@ async function addUsers(users: InputUser[]) {
     const newUser = user;
     if (user.schedules) {
       newUser.schedules = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         createMany: {
           data: user.schedules.map((schedule) => {
             return {
@@ -264,6 +291,8 @@ async function addUsers(users: InputUser[]) {
     }
     if (user.credentials) {
       newUser.credentials = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         createMany: {
           data: user.credentials,
         },
@@ -271,7 +300,8 @@ async function addUsers(users: InputUser[]) {
     }
     return newUser;
   });
-
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   await addUsersToDb(prismaUsersCreate);
 }
 
@@ -281,13 +311,13 @@ export async function createBookingScenario(data: ScenarioData) {
 
   const eventType = await addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
-    prismaMock.app.createMany({
+    prismock.app.createMany({
       data: data.apps,
     });
   }
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
-  await addBookings(data.bookings, data.eventTypes);
+  await addBookings(data.bookings);
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
@@ -296,11 +326,11 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
-async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
-  await prismaMock.payment.createMany({
-    data: payments,
-  });
-}
+// async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
+//   await prismaMock.payment.createMany({
+//     data: payments,
+//   });
+// }
 
 /**
  * This fn indents to /ally compute day, month, year for the purpose of testing.
@@ -378,7 +408,6 @@ export function getMockedCredential({
 export function getGoogleCalendarCredential() {
   return getMockedCredential({
     metadataLookupKey: "googlecalendar",
-    credentialType: "google_calendar",
     key: {
       scope:
         "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
@@ -603,7 +632,7 @@ export function getScenarioData({
 }
 
 export function enableEmailFeature() {
-  prismaMock.feature.create({
+  prismock.feature.create({
     data: {
       slug: "emails",
       enabled: false,

@@ -1,7 +1,7 @@
 /**
  * How to ensure that unmocked prisma queries aren't called?
  */
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -9,6 +9,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, beforeEach } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
@@ -157,7 +158,7 @@ describe("handleNewBooking", () => {
         await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: createdBooking.id!,
+          uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
           references: [
@@ -279,7 +280,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
           });
@@ -397,7 +398,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
           });
@@ -510,7 +511,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
           });
@@ -755,7 +756,7 @@ describe("handleNewBooking", () => {
         await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: createdBooking.id!,
+          uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
         });
@@ -876,7 +877,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
           });
@@ -898,7 +899,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
           });
@@ -1017,7 +1018,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
           });
@@ -1038,7 +1039,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            id: createdBooking.id!,
+            uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
           });
@@ -1083,7 +1084,7 @@ describe("handleNewBooking", () => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
         const idOfBookingToBeRescheduled = 101;
-        await await createBookingScenario(
+        await createBookingScenario(
           getScenarioData({
             webhooks: [
               {
@@ -1109,7 +1110,6 @@ describe("handleNewBooking", () => {
             ],
             bookings: [
               {
-                id: idOfBookingToBeRescheduled,
                 uid: uidOfBookingToBeRescheduled,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
@@ -1176,14 +1176,19 @@ describe("handleNewBooking", () => {
 
         const previousBooking = await prismaMock.booking.findUnique({
           where: {
-            id: 101,
+            uid: uidOfBookingToBeRescheduled,
           },
+        });
+
+        logger.silly({
+          previousBooking,
+          allBookings: await prismaMock.booking.findMany(),
         });
 
         // Expect previous booking to be cancelled
         await expectBookingToBeInDatabase({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: idOfBookingToBeRescheduled,
+          uid: uidOfBookingToBeRescheduled,
           status: BookingStatus.CANCELLED,
         });
 
@@ -1207,7 +1212,7 @@ describe("handleNewBooking", () => {
         await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: createdBooking.id!,
+          uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
           references: [
@@ -1413,7 +1418,7 @@ describe("handleNewBooking", () => {
     //     await expectBookingToBeInDatabase({
     //       description: "",
     //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //       id: createdBooking.id!,
+    //     uid: createdBooking.uid!,
     //       eventTypeId: mockBookingData.eventTypeId,
     //       status: BookingStatus.ACCEPTED,
     //       references: [

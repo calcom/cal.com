@@ -106,11 +106,11 @@ export function expectWorkflowToBeTriggered() {
 }
 
 export async function expectBookingToBeInDatabase(
-  booking: Partial<Booking> & Pick<Booking, "id"> & { references?: Partial<BookingReference>[] }
+  booking: Partial<Booking> & Pick<Booking, "uid"> & { references?: Partial<BookingReference>[] }
 ) {
   const actualBooking = await prismaMock.booking.findUnique({
     where: {
-      id: booking.id,
+      uid: booking.uid,
     },
     include: {
       references: true,

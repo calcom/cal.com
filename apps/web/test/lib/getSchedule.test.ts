@@ -1,5 +1,5 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
@@ -144,13 +144,13 @@ const TestData = {
 };
 
 const cleanup = async () => {
-  await prismaMock.eventType.deleteMany();
-  await prismaMock.user.deleteMany();
-  await prismaMock.schedule.deleteMany();
-  await prismaMock.selectedCalendar.deleteMany();
-  await prismaMock.credential.deleteMany();
-  await prismaMock.booking.deleteMany();
-  await prismaMock.app.deleteMany();
+  await prismock.eventType.deleteMany();
+  await prismock.user.deleteMany();
+  await prismock.schedule.deleteMany();
+  await prismock.selectedCalendar.deleteMany();
+  await prismock.credential.deleteMany();
+  await prismock.booking.deleteMany();
+  await prismock.app.deleteMany();
 };
 
 beforeEach(async () => {

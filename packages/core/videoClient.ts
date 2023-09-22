@@ -119,20 +119,22 @@ const updateMeeting = async (
 ): Promise<EventResult<VideoCallData>> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
   let success = true;
-
   const [firstVideoAdapter] = await getVideoAdapters([credential]);
-  const updatedMeeting =
-    credential && bookingRef
-      ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-          await sendBrokenIntegrationEmail(calEvent, "video");
-          log.error("updateMeeting failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
-      : undefined;
+  const canCallUpdateMeeting = !!(credential && bookingRef);
+  const updatedMeeting = canCallUpdateMeeting
+    ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+        await sendBrokenIntegrationEmail(calEvent, "video");
+        log.error("updateMeeting failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
+    : undefined;
 
   if (!updatedMeeting) {
-    log.error("updateMeeting failed", calEvent);
+    log.error(
+      "updateMeeting failed",
+      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+    );
     return {
       appName: credential.appId || "",
       type: credential.type,
