@@ -1,4 +1,4 @@
-import { AuthContextProvider } from "context/AuthContext";
+import { AuthContextProvider } from "context/authContext";
 import React from "react";
 
 import { trpc } from "@calcom/trpc/react";

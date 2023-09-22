@@ -79,14 +79,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
     console.info("signup data", data);
-    const { result, error } = firebaseSignUp(data?.email, data?.password);
-    if (error) {
-      if (error.code === "auth/email-already-in-use") alert("Email already in use 😕");
-      if (error.code === "auth/weak-password") alert("Password should be at least 6 characters 😕");
-      if (error.code === "auth/invalid-email") alert("Invalid email 😕");
+    const res: any = firebaseSignUp(data?.email, data?.password);
+    if (res?.error) {
+      if (res?.error.code === "auth/email-already-in-use") alert("Email already in use 😕");
+      if (res?.error.code === "auth/weak-password") alert("Password should be at least 6 characters 😕");
+      if (res?.error.code === "auth/invalid-email") alert("Invalid email 😕");
       return;
     }
-    console.info({ result, error });
+    console.info({ res });
 
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
