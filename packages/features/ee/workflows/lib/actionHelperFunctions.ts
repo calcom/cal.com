@@ -41,6 +41,9 @@ export function isAttendeeAction(action: WorkflowActions) {
 export function isTextMessageToAttendeeAction(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }
+export function isTextMessageToSpecificNumber(action?: WorkflowActions) {
+  return action === WorkflowActions.SMS_NUMBER || action === WorkflowActions.WHATSAPP_NUMBER;
+}
 
 export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): WorkflowTemplates {
   switch (trigger) {
