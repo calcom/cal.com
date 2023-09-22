@@ -94,7 +94,6 @@ const ProfileView = () => {
         if (team) {
           form.setValue("name", team.name || "");
           form.setValue("slug", team.slug || "");
-          form.setValue("logo", team.logo || "");
           form.setValue("bio", team.bio || "");
           if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
             form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
@@ -165,7 +164,6 @@ const ProfileView = () => {
               handleSubmit={(values) => {
                 if (team) {
                   const variables = {
-                    logo: values.logo,
                     name: values.name,
                     slug: values.slug,
                     bio: values.bio,

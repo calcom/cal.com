@@ -243,6 +243,7 @@
   "all": "כל האפליקציות",
   "yours": "החשבון שלך",
   "available_apps": "אפליקציות זמינות",
+  "available_apps_lower_case": "אפליקציות זמינות",
   "check_email_reset_password": "בדוק/י בתיבת הדוא\"ל – שלחנו לך קישור לאיפוס הסיסמה.",
   "finish": "סיום",
   "organization_general_description": "ניהול הגדרות השפה ואזור הזמן של הצוות",
