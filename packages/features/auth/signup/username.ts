@@ -2,10 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import notEmpty from "@calcom/lib/notEmpty";
+import { isPremiumUserName, generateUsernameSuggestion } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-
-const wordlist = {};
 
 export type RequestWithUsernameStatus = NextApiRequest & {
   usernameStatus: {
@@ -41,18 +40,6 @@ type CustomNextApiHandler<T = unknown> = (
   req: RequestWithUsernameStatus,
   res: NextApiResponse<T>
 ) => void | Promise<void>;
-
-export const isPremiumUserName = (username: string): boolean =>
-  username.length <= 4 || Object.prototype.hasOwnProperty.call(wordlist, username);
-
-const generateUsernameSuggestion = async (users: string[], username: string) => {
-  const limit = username.length < 2 ? 9999 : 999;
-  let rand = 1;
-  while (users.includes(username + String(rand).padStart(4 - rand.toString().length, "0"))) {
-    rand = Math.ceil(1 + Math.random() * (limit - 1));
-  }
-  return username + String(rand).padStart(4 - rand.toString().length, "0");
-};
 
 const usernameHandler =
   (handler: CustomNextApiHandler) =>

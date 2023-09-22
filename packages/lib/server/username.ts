@@ -35,7 +35,7 @@ type CustomNextApiHandler<T = unknown> = (
 export const isPremiumUserName = (username: string): boolean =>
   username.length <= 4 || Object.prototype.hasOwnProperty.call(wordlist, username);
 
-const generateUsernameSuggestion = async (users: string[], username: string) => {
+export const generateUsernameSuggestion = async (users: string[], username: string) => {
   const limit = username.length < 2 ? 9999 : 999;
   let rand = 1;
   while (users.includes(username + String(rand).padStart(4 - rand.toString().length, "0"))) {
