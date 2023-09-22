@@ -125,10 +125,13 @@ const WorkflowListItem = (props: ItemProps) => {
               workflow.name && isActive ? "text-emphasis" : "text-subtle"
             )}>
             {workflow.name
-              ? workflow.name
-              : `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
-                  .charAt(0)
-                  .toUpperCase()}${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)})`}
+              ? workflow.name.includes("GLOBAL")
+                ? workflow.name.replace("GLOBAL_", "")
+                : workflow.name
+              : "Untitled (" +
+                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.charAt(0).toUpperCase() +
+                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
+                ")"}
           </div>
           <>
             <div
@@ -205,10 +208,11 @@ function EventWorkflowsTab(props: Props) {
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-  const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
-    teamId: eventType.team?.id,
-    userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
-  });
+  const { data, isLoading } = trpc.viewer.workflows.global.useQuery({});
+  // const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
+  //   teamId: eventType.team?.id,
+  //   userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
+  // });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 

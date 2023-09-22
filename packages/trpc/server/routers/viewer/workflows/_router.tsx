@@ -23,6 +23,7 @@ type WorkflowsRouterHandlerCache = {
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
+  global?: typeof import("./global.handler").globalHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -211,6 +212,21 @@ export const workflowsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.filteredList({
+      ctx,
+      input,
+    });
+  }),
+  global: authedProcedure.query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.global) {
+      UNSTABLE_HANDLER_CACHE.global = await import("./global.handler").then((mod) => mod.globalHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.global) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.global({
       ctx,
       input,
     });
