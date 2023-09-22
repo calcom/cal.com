@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  synchronize-with-crowdin:
+  upload-translations-to-crowdin:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,11 +23,42 @@ jobs:
         with:
           # upload sources
           upload_sources: true
-          
+
           # upload translations (& auto-approve 'em)
           upload_translations_args: '--auto-approve-imported'
           upload_translations: true
           push_translations: true
+          
+          # avoid downloading, to ensure we upload translations first
+          download_translations: false
+          
+          # GH config
+          commit_message: "New Crowdin translations by Github Action"
+          localization_branch_name: main
+          create_pull_request: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+  download-from-crowdin:
+    runs-on: ubuntu-latest
+    needs: upload-translations-to-crowdin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: crowdin action
+        uses: crowdin/github-action@v1.13.0
+        with:
+          # upload sources
+          upload_sources: true
+
+          # avoid upload translations (& auto-approve 'em)
+          upload_translations: false
+          push_translations: false
           
           # download translations
           download_translations: true
