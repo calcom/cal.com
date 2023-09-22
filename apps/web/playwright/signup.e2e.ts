@@ -11,7 +11,7 @@ test.describe("Signup Flow Test", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
     /**
-     * Delete specicially created users for this test
+     * Delete specifically created users for this test
      * as they are not deleted by the above fixture
      * (As they are not created by the fixture)
      */
