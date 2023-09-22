@@ -11,13 +11,18 @@ import { Info } from "@calcom/ui/components/icon";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
-export default function AlbySetup() {
+export interface IAlbySetupProps {
+  email?: string;
+  lightningAddress?: string;
+}
+
+export default function AlbySetup(props: IAlbySetupProps) {
   const params = globalThis.window && new URLSearchParams(window.location.search);
   if (params?.get("callback") === "true") {
     return <AlbySetupCallback />;
   }
 
-  return <AlbySetupPage />;
+  return <AlbySetupPage {...props} />;
 }
 
 function AlbySetupCallback() {
@@ -56,7 +61,7 @@ function AlbySetupCallback() {
   );
 }
 
-function AlbySetupPage() {
+function AlbySetupPage(props: IAlbySetupProps) {
   const router = useRouter();
   const { t } = useLocale();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "alby" });
@@ -120,21 +125,31 @@ function AlbySetupPage() {
       {showContent ? (
         <div className="flex w-full items-center justify-center p-4">
           <div className="bg-default border-subtle m-auto flex max-w-[43em] flex-col items-center justify-center gap-4 overflow-auto rounded border p-4 md:p-10">
-            <p className="text-default">
-              Create or connect to an existing Alby account to receive lightning payments for your paid
-              bookings.
-            </p>
+            {!props.lightningAddress ? (
+              <>
+                <p className="text-default">
+                  Create or connect to an existing Alby account to receive lightning payments for your paid
+                  bookings.
+                </p>
+                <button
+                  className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
+                  style={{
+                    background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
+                  }}
+                  type="button"
+                  onClick={connectWithAlby}>
+                  <img className="h-8 w-8" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
+                  <span className="mr-2">Connect with Alby</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Alby Connected!</p>
+                <p>Email: {props.email}</p>
+                <p>Lightning Address: {props.lightningAddress}</p>
+              </>
+            )}
 
-            <button
-              className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
-              style={{
-                background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
-              }}
-              type="button"
-              onClick={connectWithAlby}>
-              <img className="h-8 w-8" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
-              <span className="mr-2">Connect with Alby</span>
-            </button>
             {/* TODO: remove when invoices are generated using user identifier */}
             <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700">
               <Info className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be used to

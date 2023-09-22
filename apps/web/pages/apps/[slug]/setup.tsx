@@ -1,9 +1,10 @@
-import type { GetStaticPaths, InferGetStaticPropsType } from "next";
+import type { InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
-import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
+import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
+import type { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import { HeadSeo } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -36,11 +37,4 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
 
 SetupInformation.PageWrapper = PageWrapper;
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  return {
-    paths: [],
-    fallback: "blocking",
-  };
-};
-
-export { getStaticProps };
+export { getServerSideProps };
