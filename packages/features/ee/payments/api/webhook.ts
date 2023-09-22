@@ -15,8 +15,9 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma, bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -175,7 +176,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       name: true,
       locale: true,
       destinationCalendar: true,
-      credentials: true,
+      credentials: { select: credentialForCalendarServiceSelect },
     },
   });
 

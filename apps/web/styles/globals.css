@@ -109,6 +109,10 @@
   background: var(--cal-brand);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

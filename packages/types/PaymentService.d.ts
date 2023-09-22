@@ -13,9 +13,13 @@ export interface IAbstractPaymentService {
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string | null,
     bookerEmail: string,
     paymentOption: PaymentOption,
-    eventTitle?: string
+    eventTitle?: string,
+    bookingTitle?: string
   ): Promise<Payment>;
   /* This method is to collect card details to charge at a later date ex. no-show fees */
   collectCard(

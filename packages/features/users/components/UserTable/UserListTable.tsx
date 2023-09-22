@@ -132,6 +132,7 @@ export function UserListTable() {
     const permissions = {
       canEdit: adminOrOwner,
       canRemove: adminOrOwner,
+      canResendInvitation: adminOrOwner,
       canImpersonate: false,
     };
     const cols: ColumnDef<User>[] = [
@@ -189,7 +190,7 @@ export function UserListTable() {
             <Badge
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
-                table.getColumn("role")?.setFilterValue(role);
+                table.getColumn("role")?.setFilterValue([role]);
               }}>
               {role}
             </Badge>
@@ -233,6 +234,7 @@ export function UserListTable() {
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
             canLeave: user.accepted && isSelf,
+            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
 
           return (

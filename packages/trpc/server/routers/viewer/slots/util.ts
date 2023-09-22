@@ -16,6 +16,7 @@ import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -177,7 +178,7 @@ export async function getEventType(
           isFixed: true,
           user: {
             select: {
-              credentials: true,
+              credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
             },
           },
@@ -185,7 +186,7 @@ export async function getEventType(
       },
       users: {
         select: {
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
         },
       },
@@ -201,7 +202,11 @@ export async function getEventType(
   };
 }
 
-export async function getDynamicEventType(input: TGetScheduleInputSchema) {
+export async function getDynamicEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
   if (!input.eventTypeSlug) {
     throw new TRPCError({
@@ -219,11 +224,14 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
           ? [input.usernameList]
           : [],
       },
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -243,7 +251,9 @@ export function getRegularOrDynamicEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
-  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
+  return isDynamicBooking
+    ? getDynamicEventType(input, organizationDetails)
+    : getEventType(input, organizationDetails);
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
