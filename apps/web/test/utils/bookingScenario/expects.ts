@@ -96,7 +96,7 @@ export function expectWebhookToHaveBeenCalledWith(
     }
     if (data.payload.responses !== undefined)
       expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses, metadata, ...remainingPayload } = data.payload;
+    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
     expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
@@ -177,7 +177,6 @@ export function expectSuccessfulBookingRescheduledEmails({
 }
 export function expectAwaitingPaymentEmails({
   emails,
-  organizer,
   booker,
 }: {
   emails: Fixtures["emails"];
@@ -220,7 +219,6 @@ export function expectBookingRequestedEmails({
 }
 
 export function expectBookingRequestedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -277,7 +275,6 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
 }
 
 export function expectBookingCreatedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -328,11 +325,9 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
 }
 
 export function expectBookingRescheduledWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
-  paidEvent,
   videoCallUrl,
 }: {
   organizer: { email: string; name: string };
@@ -361,7 +356,6 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
 }
 
 export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -394,11 +388,14 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
 
 export function expectSuccessfulCalendarEventCreationInCalendar(
   calendarMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateEventCalls: any[];
   },
   expected: {
     externalCalendarId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calEvent: any;
     uid: string;
   }
@@ -415,11 +412,14 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(
   calendarMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateEventCalls: any[];
   },
   expected: {
     externalCalendarId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calEvent: any;
     uid: string;
   }
@@ -436,11 +436,14 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
 
 export function expectSuccessfulVideoMeetingCreationInCalendar(
   videoMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateMeetingCalls: any[];
   },
   expected: {
     externalCalendarId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calEvent: any;
     uid: string;
   }
@@ -457,11 +460,15 @@ export function expectSuccessfulVideoMeetingCreationInCalendar(
 
 export function expectSuccessfulVideoMeetingUpdationInCalendar(
   videoMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateMeetingCalls: any[];
   },
   expected: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bookingRef: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calEvent: any;
   }
 ) {

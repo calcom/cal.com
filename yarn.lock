@@ -3369,7 +3369,7 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@prisma/client": ^5.3.0
+    "@prisma/client": ^5.0.0
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
     "@types/react": 18.0.26
@@ -3381,7 +3381,7 @@ __metadata:
     next-auth: ^4.22.1
     next-i18next: ^13.2.2
     postcss: ^8.4.18
-    prisma: ^5.3.0
+    prisma: ^5.0.0
     prisma-field-encryption: ^1.4.0
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
@@ -4423,7 +4423,6 @@ __metadata:
     next: ^13.4.6
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
-    next-collect: ^0.2.1
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
     playwright: ^1.31.2
@@ -7834,6 +7833,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/client@npm:^5.0.0":
+  version: 5.3.1
+  resolution: "@prisma/client@npm:5.3.1"
+  dependencies:
+    "@prisma/engines-version": 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
+  peerDependencies:
+    prisma: "*"
+  peerDependenciesMeta:
+    prisma:
+      optional: true
+  checksum: 8017b721a231ab7b2b0f932507b02bf075aae2c6f6e630a69d7089ff33bab44fa50b50dd8a81655b7202092ffc19717d484ae5f183fc4f2a1822b0d228991a7c
+  languageName: node
+  linkType: hard
+
 "@prisma/client@npm:^5.2.0":
   version: 5.2.0
   resolution: "@prisma/client@npm:5.2.0"
@@ -7845,20 +7858,6 @@ __metadata:
     prisma:
       optional: true
   checksum: ad523b7a54e31d365ecac7bdb89f5a89f62e616f5f567f5dd5060e86b122253a4652ea778c0ccbab31906e2170110e808839fbae7ee91a4fd16a8282ee86f5f1
-  languageName: node
-  linkType: hard
-
-"@prisma/client@npm:^5.3.0":
-  version: 5.3.0
-  resolution: "@prisma/client@npm:5.3.0"
-  dependencies:
-    "@prisma/engines-version": 5.3.0-36.e90b936d84779543cbe0e494bc8b9d7337fad8e4
-  peerDependencies:
-    prisma: "*"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-  checksum: 7c12db57dfd07e86841876a7e91ee2307071b6b9e7afed061acac1171ef1f12599fd65ca144abd09ab1e00123304d2103adc9106c73cef61a366cd234ccc9683
   languageName: node
   linkType: hard
 
@@ -7902,10 +7901,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:5.3.0-36.e90b936d84779543cbe0e494bc8b9d7337fad8e4":
-  version: 5.3.0-36.e90b936d84779543cbe0e494bc8b9d7337fad8e4
-  resolution: "@prisma/engines-version@npm:5.3.0-36.e90b936d84779543cbe0e494bc8b9d7337fad8e4"
-  checksum: 7c3680bc4e3147755b7efc094d6b0ad11ba1c59eb0436f81016e8f0b1da886cc7a4bce9dccfe9599811cf986558694ec1b0b60f21c1215bd6cc0e42e3a03569f
+"@prisma/engines-version@npm:5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59":
+  version: 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
+  resolution: "@prisma/engines-version@npm:5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59"
+  checksum: c1adf540c9330a54a000c3005a4621c5d8355f2e3b159121587d33f82bf5992f567ac453f0ce76dd48fac427ec4dbc55942228fcee10d522b0d2c03bddbe422a
+  languageName: node
+  linkType: hard
+
+"@prisma/engines@npm:5.1.1":
+  version: 5.1.1
+  resolution: "@prisma/engines@npm:5.1.1"
+  checksum: 561c85def110279eb7c764e7c1ea1f8f54d9a2948ed5e5db9b11321c2bef362d178b756e39e7e022ee27cb2be5ac8d9b835967ce341ad8f6a1e8502f988140ee
   languageName: node
   linkType: hard
 
@@ -7916,10 +7922,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/engines@npm:5.3.0":
-  version: 5.3.0
-  resolution: "@prisma/engines@npm:5.3.0"
-  checksum: 4735c7a2b1f01a47f5a870cc4bbfaca5632df8a712d20d371e707e9a8d32f92fb808a2031c78504459bdebc562f67156fa8334c258ea47adf073ef4143b52e7f
+"@prisma/engines@npm:5.3.1":
+  version: 5.3.1
+  resolution: "@prisma/engines@npm:5.3.1"
+  checksum: a231adad60ac42569b560ea9782bc181818d8ad15e65283d1317bda5d7aa754e5b536a3f9365ce1eda8961e1eff4eca5978c456fa9764a867fe4339d123e7371
   languageName: node
   linkType: hard
 
@@ -7929,13 +7935,6 @@ __metadata:
   peerDependencies:
     "@prisma/client": ">=4.16.1"
   checksum: bf506942660bd7cff1de0280932be3a9b4233cf6acb7cb07cdd8fcc0e0f2e30a23b261db3a7470b36eaaa1737d14ca59fc72024cab7899ddebfc4aa2056c9838
-  languageName: node
-  linkType: hard
-
-"@prisma/engines@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/engines@npm:5.1.1"
-  checksum: 561c85def110279eb7c764e7c1ea1f8f54d9a2948ed5e5db9b11321c2bef362d178b756e39e7e022ee27cb2be5ac8d9b835967ce341ad8f6a1e8502f988140ee
   languageName: node
   linkType: hard
 
@@ -31326,6 +31325,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prisma@npm:^5.0.0":
+  version: 5.3.1
+  resolution: "prisma@npm:5.3.1"
+  dependencies:
+    "@prisma/engines": 5.3.1
+  bin:
+    prisma: build/index.js
+  checksum: e825adbcb4eec81de276de5507fb7e5486db7788c8c9de36ba6ed73f9e87d9f56b64d0e183a31dc6b80f6737ae1fbcdb110aac44ab89299af646aeb966655bef
+  languageName: node
+  linkType: hard
+
 "prisma@npm:^5.2.0":
   version: 5.2.0
   resolution: "prisma@npm:5.2.0"
@@ -31334,17 +31344,6 @@ __metadata:
   bin:
     prisma: build/index.js
   checksum: 8b99ab5a5f801c72b2eb1809db980bd104dfd699cb14c5d5db5b675566c89e46501267399bb2f02bc3ea8fb86fc2f029cccd7178768109dc4d198bc93552b1da
-  languageName: node
-  linkType: hard
-
-"prisma@npm:^5.3.0":
-  version: 5.3.0
-  resolution: "prisma@npm:5.3.0"
-  dependencies:
-    "@prisma/engines": 5.3.0
-  bin:
-    prisma: build/index.js
-  checksum: e33cb0b7cb6f10693131782d82dec178a4f13d9f8ea5ac39c206e41d3c1957c3e41c3a16bab95ef6572fde1e852f68b780b351a11204e989bcee7d1b91276dfb
   languageName: node
   linkType: hard
 
