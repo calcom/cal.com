@@ -401,7 +401,7 @@ export default class EventManager {
       }
     } else {
       logger.silly(
-        "No destination Calendar found, falling back to first connected calendar",
+        "No destination Calendar found, falling back to first connected calendar's credential",
         JSON.stringify({
           calendarCredentials: this.calendarCredentials,
         })
@@ -658,26 +658,3 @@ export default class EventManager {
       );
     }
   }
-
-  /**
-   * Update event to set a cancelled event placeholder on users calendar
-   * remove if virtual calendar is already done and user availability its read from there
-   * and not only in their calendars
-   * @param event
-   * @param booking
-   * @public
-   */
-  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
-    await this.updateAllCalendarEvents(event, booking);
-  }
-
-  public async rescheduleBookingWithSeats(
-    originalBooking: Booking,
-    newTimeSlotBooking?: Booking,
-    owner?: boolean
-  ) {
-    // Get originalBooking
-    // If originalBooking has only one attendee we should do normal reschedule
-    // Change current event attendees in everyone calendar
-  }
-}

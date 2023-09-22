@@ -185,6 +185,7 @@ export default class GoogleCalendarService implements Calendar {
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     const payload: calendar_v3.Schema$Event = {
       summary: calEventRaw.title,
+      // IssueToBeFiled - Hariom. A CalendarService should ideally be getting prebuilt description and other things that are common across apps.
       description: getRichDescription(calEventRaw),
       start: {
         dateTime: calEventRaw.startTime,
@@ -211,6 +212,7 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
     // Find in calEventRaw.destinationCalendar the one with the same credentialId
 
+    // IssueToBeFiled - Hariom. CalendarService shouldn't be iterating over destination calendar to find the correct one. It's the reponsibility of core to provide that. If not provided due to some reason then it makes sense for the CalendarService to fallback
     const selectedCalendar =
       calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
       "primary";

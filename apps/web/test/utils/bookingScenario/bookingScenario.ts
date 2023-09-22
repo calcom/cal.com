@@ -74,6 +74,7 @@ type InputUser = typeof TestData.users.example & { id: number } & {
     }[];
     timeZone: string;
   }[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 };
 
 export type InputEventType = {
@@ -92,6 +93,7 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
 
 type InputBooking = {
@@ -124,17 +126,31 @@ const Timezones = {
 logger.setSettings({ minLevel: "silly" });
 
 async function addEventTypesToDb(
-  eventTypes: (Prisma.EventTypeCreateInput & {
+  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    destinationCalendar?: any;
   })[]
 ) {
   logger.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
   await prismock.eventType.createMany({
     data: eventTypes,
   });
+  logger.silly(
+    "TestData: All EventTypes in DB are",
+    JSON.stringify({
+      eventTypes: await prismock.eventType.findMany({
+        include: {
+          users: true,
+          workflows: true,
+          destinationCalendar: true,
+        },
+      }),
+    })
+  );
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -174,6 +190,11 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
       ...eventType,
       workflows: [],
       users,
+      destinationCalendar: eventType.destinationCalendar
+        ? {
+            create: eventType.destinationCalendar,
+          }
+        : eventType.destinationCalendar,
     };
   });
   logger.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -569,6 +590,7 @@ export function getOrganizer({
   schedules,
   credentials,
   selectedCalendars,
+  destinationCalendar,
 }: {
   name: string;
   email: string;
@@ -576,6 +598,7 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
     ...TestData.users.example,
@@ -585,6 +608,7 @@ export function getOrganizer({
     schedules,
     credentials,
     selectedCalendars,
+    destinationCalendar,
   };
 }
 
@@ -624,7 +648,17 @@ export function getScenarioData({
         description: `It's a test event type - ${index + 1}`,
       };
     }),
-    users,
+    users: users.map((user) => {
+      const newUser = {
+        ...user,
+      };
+      if (user.destinationCalendar) {
+        newUser.destinationCalendar = {
+          create: user.destinationCalendar,
+        };
+      }
+      return newUser;
+    }),
     apps: [...apps],
     webhooks,
     bookings: bookings || [],
@@ -651,6 +685,10 @@ export function mockNoTranslations() {
   });
 }
 
+/**
+ * @param metadataLookupKey
+ * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
+ */
 export function mockCalendarToHaveNoBusySlots(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {

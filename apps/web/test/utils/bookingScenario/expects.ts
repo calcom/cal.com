@@ -6,8 +6,11 @@ import { expect } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
-
+import type {
+  CalendarEvent,
+} from "@calcom/types/Calendar";
 import type { InputEventType } from "./bookingScenario";
 
 declare global {
@@ -96,7 +99,7 @@ export function expectWebhookToHaveBeenCalledWith(
     }
     if (data.payload.responses !== undefined)
       expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses, metadata, ...remainingPayload } = data.payload;
+    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
     expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
@@ -177,7 +180,6 @@ export function expectSuccessfulBookingRescheduledEmails({
 }
 export function expectAwaitingPaymentEmails({
   emails,
-  organizer,
   booker,
 }: {
   emails: Fixtures["emails"];
@@ -220,7 +222,6 @@ export function expectBookingRequestedEmails({
 }
 
 export function expectBookingRequestedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -277,7 +278,6 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
 }
 
 export function expectBookingCreatedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -328,11 +328,9 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
 }
 
 export function expectBookingRescheduledWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
-  paidEvent,
   videoCallUrl,
 }: {
   organizer: { email: string; name: string };
@@ -361,7 +359,6 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
 }
 
 export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
-  organizer,
   booker,
   location,
   subscriberUrl,
@@ -394,33 +391,42 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
 
 export function expectSuccessfulCalendarEventCreationInCalendar(
   calendarMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateEventCalls: any[];
   },
   expected: {
-    externalCalendarId: string;
-    calEvent: any;
-    uid: string;
+    calendarId: string | null;
+    videoCallUrl: string;
   }
 ) {
   expect(calendarMock.createEventCalls.length).toBe(1);
   const call = calendarMock.createEventCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
-  expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  const calEvent = call[0];
+
+  expect(calEvent).toEqual(expect.objectContaining({
+      destinationCalendar: expected.calendarId ? [
+        expect.objectContaining({
+          externalId:expected.calendarId,
+        }),
+      ] : null,
+      videoCallData: expect.objectContaining({
+        url: expected.videoCallUrl,
+      }),
+  }));
 }
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(
   calendarMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateEventCalls: any[];
   },
   expected: {
     externalCalendarId: string;
-    calEvent: any;
+    calEvent: Partial<CalendarEvent>
     uid: string;
   }
 ) {
@@ -436,12 +442,14 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
 
 export function expectSuccessfulVideoMeetingCreationInCalendar(
   videoMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateMeetingCalls: any[];
   },
   expected: {
     externalCalendarId: string;
-    calEvent: any;
+    calEvent: Partial<CalendarEvent>
     uid: string;
   }
 ) {
@@ -457,12 +465,15 @@ export function expectSuccessfulVideoMeetingCreationInCalendar(
 
 export function expectSuccessfulVideoMeetingUpdationInCalendar(
   videoMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateMeetingCalls: any[];
   },
   expected: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bookingRef: any;
-    calEvent: any;
+    calEvent: Partial<CalendarEvent>
   }
 ) {
   expect(videoMock.updateMeetingCalls.length).toBe(1);

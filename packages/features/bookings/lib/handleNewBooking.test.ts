@@ -44,6 +44,7 @@ import {
   expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventUpdationInCalendar,
   expectSuccessfulVideoMeetingUpdationInCalendar,
+  expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -68,6 +69,7 @@ describe("handleNewBooking", () => {
       `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
           1. Should create a booking in the database
           2. Should send emails to the booker as well as organizer
+          3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
           3. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails }) => {
@@ -119,11 +121,11 @@ describe("handleNewBooking", () => {
           videoMeetingData: {
             id: "MOCK_ID",
             password: "MOCK_PASS",
-            url: `http://mock-dailyvideo.example.com`,
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
           },
         });
 
-        mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             uid: "MOCK_ID",
           },
@@ -167,7 +169,7 @@ describe("handleNewBooking", () => {
               uid: "MOCK_ID",
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASS",
-              meetingUrl: "http://mock-dailyvideo.example.com",
+              meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
             },
             {
               type: "google_calendar",
@@ -180,6 +182,293 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered();
+        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          // We won't be sending evt.destinationCalendar in this case.
+          // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.com/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
+          // Not sure if it's the correct behaviour. Right now, it isn't possible to have an organizer with connected calendar but no destination calendar - As soon as the Google Calendar app is installed, a destination calendar is created.
+          calendarId: null,
+        });
+
+        expectSuccessfulBookingCreationEmails({ booker, organizer, emails });
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:daily",
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+        });
+      },
+      timeout
+    );
+
+    test(
+      `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
+          1. Should create a booking in the database
+          2. Should send emails to the booker as well as organizer
+          3. Should fallback to create a booking in the Organizer Calendar if event doesn't have destination calendar
+          3. Should trigger BOOKING_CREATED webhook
+    `,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+          },
+        });
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+        expect(createdBooking.responses).toContain({
+          email: booker.email,
+          name: booker.name,
+        });
+
+        expect(createdBooking).toContain({
+          location: "integrations:daily",
+        });
+
+        await expectBookingToBeInDatabase({
+          description: "",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          references: [
+            {
+              type: "daily_video",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+            },
+            {
+              type: "google_calendar",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASSWORD",
+              meetingUrl: "https://UNUSED_URL",
+            },
+          ],
+        });
+
+        expectWorkflowToBeTriggered();
+        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+          calendarId: "organizer@google-calendar.com",
+          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+        });
+
+        expectSuccessfulBookingCreationEmails({ booker, organizer, emails });
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:daily",
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+        });
+      },
+      timeout
+    );
+
+    test(
+      `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
+          1. Should create a booking in the database
+          2. Should send emails to the booker as well as organizer
+          3. Should create a booking in the event's destination calendar
+          3. Should trigger BOOKING_CREATED webhook
+    `,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+          },
+        });
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+        expect(createdBooking.responses).toContain({
+          email: booker.email,
+          name: booker.name,
+        });
+
+        expect(createdBooking).toContain({
+          location: "integrations:daily",
+        });
+
+        await expectBookingToBeInDatabase({
+          description: "",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          references: [
+            {
+              type: "daily_video",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+            },
+            {
+              type: "google_calendar",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASSWORD",
+              meetingUrl: "https://UNUSED_URL",
+            },
+          ],
+        });
+
+        expectWorkflowToBeTriggered();
+        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+          calendarId: "event-type-1@google-calendar.com",
+          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+        });
 
         expectSuccessfulBookingCreationEmails({ booker, organizer, emails });
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -675,6 +964,7 @@ describe("handleNewBooking", () => {
       },
       timeout
     );
+
     test(
       `should create a successful booking when location is provided as label of an option(Done for Organizer Address)
       1. Should create a booking in the database
@@ -1055,12 +1345,21 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
+    test.todo("fail booking if there is already a booking at that time");
+    test.todo("fail booking if there is a busy event in Google Calendar at that time");
   });
+
+  describe("Team Events", () => {
+    test.todo("Collective event booking");
+    test.todo("Round Robin booking");
+  });
+
+  test.todo("Dynamic Group Booking");
 
   describe("Reschedule", () => {
     test(
-      `should rechedule a booking successfully with Cal Video(Daily Video) if no explicit location is provided
-          1. Should cancel the booking
+      `should rechedule an existing booking successfully with Cal Video(Daily Video)
+          1. Should cancel the existing booking
           2. Should create a new booking in the database
           3. Should send emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
@@ -1083,7 +1382,6 @@ describe("handleNewBooking", () => {
 
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-        const idOfBookingToBeRescheduled = 101;
         await createBookingScenario(
           getScenarioData({
             webhooks: [
@@ -1225,7 +1523,6 @@ describe("handleNewBooking", () => {
             },
             {
               type: "google_calendar",
-              // IssueToBeFiled-Hariom: It isn' UPDATED_MOCK_ID as references are due to some reason intentionally kept the same after reschedule. See https://github.com/calcom/cal.com/blob/57b48b0a90e13b9eefc1a93abc0044633561b515/packages/core/EventManager.ts#L317
               uid: "MOCK_ID",
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASSWORD",
@@ -1253,6 +1550,211 @@ describe("handleNewBooking", () => {
         expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
           externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
           calEvent: {
+            videoCallData: expect.objectContaining({
+              url: "http://mock-dailyvideo.example.com",
+            }),
+          },
+          uid: "MOCK_ID",
+        });
+
+        expectSuccessfulBookingRescheduledEmails({ booker, organizer, emails });
+        expectBookingRescheduledWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: "integrations:daily",
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+        });
+      },
+      timeout
+    );
+    test(
+      `should rechedule a booking successfully and update the event in the same externalCalendarId as was used in the booking earlier.
+          1. Should cancel the existing booking
+          2. Should create a new booking in the database
+          3. Should send emails to the booker as well as organizer
+          4. Should trigger BOOKING_RESCHEDULED webhook
+    `,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@example.com",
+                },
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  {
+                    type: "daily_video",
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                  },
+                  {
+                    type: "google_calendar",
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "existing-event-type@example.com",
+                    credentialId: undefined,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        const videoMock = mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+          },
+          update: {
+            uid: "UPDATED_MOCK_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T04:00:00.000Z`,
+            end: `${plus1DateString}T04:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+
+        // Expect previous booking to be cancelled
+        await expectBookingToBeInDatabase({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: uidOfBookingToBeRescheduled,
+          status: BookingStatus.CANCELLED,
+        });
+
+        /**
+         *  Booking Time should be new time
+         */
+        expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
+        expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+
+        expect(createdBooking.responses).toContain({
+          email: booker.email,
+          name: booker.name,
+        });
+
+        expect(createdBooking).toContain({
+          location: "integrations:daily",
+        });
+
+        // Expect new booking to be there.
+        await expectBookingToBeInDatabase({
+          description: "",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          references: [
+            {
+              type: "daily_video",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: "http://mock-dailyvideo.example.com",
+            },
+            {
+              type: "google_calendar",
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASSWORD",
+              meetingUrl: "https://UNUSED_URL",
+              externalCalendarId: "existing-event-type@example.com",
+            },
+          ],
+        });
+
+        expectWorkflowToBeTriggered();
+
+        expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
+          calEvent: {
+            location: "http://mock-dailyvideo.example.com",
+          },
+          bookingRef: {
+            type: "daily_video",
+            uid: "MOCK_ID",
+            meetingId: "MOCK_ID",
+            meetingPassword: "MOCK_PASS",
+            meetingUrl: "http://mock-dailyvideo.example.com",
+          },
+        });
+
+        // updateEvent uses existing booking's externalCalendarId to update the event in calendar.
+        // and not the event-type's organizer's which is event-type-1@example.com
+        expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
+          externalCalendarId: "existing-event-type@example.com",
+          calEvent: {
             location: "http://mock-dailyvideo.example.com",
           },
           uid: "MOCK_ID",
@@ -1269,199 +1771,6 @@ describe("handleNewBooking", () => {
       },
       timeout
     );
-    // test(
-    //   `should rechedule a booking successfully with Cal Video(Daily Video) if no explicit location is provided
-    //       1. Should cancel the booking
-    //       2. Should create a new booking in the database
-    //       3. Should send emails to the booker as well as organizer
-    //       4. Should trigger BOOKING_RESCHEDULED webhook
-    // `,
-    //   async ({ emails }) => {
-    //     const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-    //     const booker = getBooker({
-    //       email: "booker@example.com",
-    //       name: "Booker",
-    //     });
-
-    //     const organizer = getOrganizer({
-    //       name: "Organizer",
-    //       email: "organizer@example.com",
-    //       id: 101,
-    //       schedules: [TestData.schedules.IstWorkHours],
-    //       credentials: [getGoogleCalendarCredential()],
-    //       selectedCalendars: [TestData.selectedCalendars.google],
-    //     });
-
-    //     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    //     const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-    //     const idOfBookingToBeRescheduled = 101;
-    //     await createBookingScenario(
-    //       getScenarioData({
-    //         webhooks: [
-    //           {
-    //             userId: organizer.id,
-    //             eventTriggers: ["BOOKING_CREATED"],
-    //             subscriberUrl: "http://my-webhook.example.com",
-    //             active: true,
-    //             eventTypeId: 1,
-    //             appId: null,
-    //           },
-    //         ],
-    //         eventTypes: [
-    //           {
-    //             id: 1,
-    //             slotInterval: 45,
-    //             length: 45,
-    //             users: [
-    //               {
-    //                 id: 101,
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //         bookings: [
-    //           {
-    //             id: idOfBookingToBeRescheduled,
-    //             uid: uidOfBookingToBeRescheduled,
-    //             eventTypeId: 1,
-    //             status: BookingStatus.ACCEPTED,
-    //             startTime: `${plus1DateString}T05:00:00.000Z`,
-    //             endTime: `${plus1DateString}T05:15:00.000Z`,
-    //             references: [
-    //               {
-    //                 type: "daily_video",
-    //                 uid: "MOCK_ID",
-    //                 meetingId: "MOCK_ID",
-    //                 meetingPassword: "MOCK_PASS",
-    //                 meetingUrl: "http://mock-dailyvideo.example.com",
-    //               },
-    //               {
-    //                 type: "google_calendar",
-    //                 uid: "MOCK_ID",
-    //                 meetingId: "MOCK_ID",
-    //                 meetingPassword: "MOCK_PASSWORD",
-    //                 meetingUrl: "https://UNUSED_URL",
-    //                 externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-    //                 credentialId: undefined,
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //         organizer,
-    //         apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-    //       })
-    //     );
-
-    //     mockSuccessfulVideoMeetingCreation({
-    //       metadataLookupKey: "dailyvideo",
-    //     });
-
-    //     const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-    //       create: {
-    //         uid: "MOCK_ID",
-    //       },
-    //       update: {
-    //         uid: "UPDATED_MOCK_ID",
-    //       },
-    //     });
-
-    //     const mockBookingData = getMockRequestDataForBooking({
-    //       data: {
-    //         eventTypeId: 1,
-    //         rescheduleUid: uidOfBookingToBeRescheduled,
-    //         start: `${plus1DateString}T04:00:00.000Z`,
-    //         end: `${plus1DateString}T04:15:00.000Z`,
-    //         responses: {
-    //           email: booker.email,
-    //           name: booker.name,
-    //           location: { optionValue: "", value: "integrations:daily" },
-    //         },
-    //       },
-    //     });
-
-    //     const { req } = createMockNextJsRequest({
-    //       method: "POST",
-    //       body: mockBookingData,
-    //     });
-
-    //     const createdBooking = await handleNewBooking(req);
-
-    //     const previousBooking = await prismaMock.booking.findUnique({
-    //       where: {
-    //         id: 101,
-    //       },
-    //     });
-
-    //     await expectBookingToBeInDatabase({
-    //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //       id: idOfBookingToBeRescheduled,
-    //       status: BookingStatus.CANCELLED,
-    //     });
-
-    //     expect(previousBooking?.status).toBe(BookingStatus.CANCELLED);
-    //     /**
-    //      *  Booking Time should be new time
-    //      */
-    //     expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
-    //     expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
-
-    //     expect(createdBooking.responses).toContain({
-    //       email: booker.email,
-    //       name: booker.name,
-    //     });
-
-    //     expect(createdBooking).toContain({
-    //       location: "integrations:daily",
-    //     });
-
-    //     // Expect new booking to be there.
-    //     await expectBookingToBeInDatabase({
-    //       description: "",
-    //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //     uid: createdBooking.uid!,
-    //       eventTypeId: mockBookingData.eventTypeId,
-    //       status: BookingStatus.ACCEPTED,
-    //       references: [
-    //         {
-    //           type: "daily_video",
-    //           uid: "MOCK_ID",
-    //           meetingId: "MOCK_ID",
-    //           meetingPassword: "MOCK_PASS",
-    //           meetingUrl: "http://mock-dailyvideo.example.com",
-    //         },
-    //         {
-    //           type: "google_calendar",
-    //           // IssueToBeFiled-Hariom: It isn' UPDATED_MOCK_ID as references are due to some reason intentionally kept the same after reschedule. See https://github.com/calcom/cal.com/blob/57b48b0a90e13b9eefc1a93abc0044633561b515/packages/core/EventManager.ts#L317
-    //           uid: "MOCK_ID",
-    //           meetingId: "MOCK_ID",
-    //           meetingPassword: "MOCK_PASSWORD",
-    //           meetingUrl: "https://UNUSED_URL",
-    //           externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-    //           credentialId: undefined,
-    //         },
-    //       ],
-    //     });
-
-    //     expectWorkflowToBeTriggered();
-    //     expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
-    //       externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-    //       calEvent: {
-    //         location: "http://mock-dailyvideo.example.com",
-    //       },
-    //       uid: "MOCK_ID",
-    //     });
-
-    //     expectSuccessfulBookingRescheduledEmails({ booker, organizer, emails });
-    //     expectBookingRescheduledWebhookToHaveBeenFired({
-    //       booker,
-    //       organizer,
-    //       location: "integrations:daily",
-    //       subscriberUrl: "http://my-webhook.example.com",
-    //       videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
-    //     });
-    //   },
-    //   timeout
-    // );
   });
 });
 

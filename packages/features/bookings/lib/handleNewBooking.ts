@@ -1042,7 +1042,9 @@ async function handler(
 
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
-
+  logger.silly({
+    destinationCalendar: organizerUser.destinationCalendar,
+  });
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
