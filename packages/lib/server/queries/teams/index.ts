@@ -15,10 +15,11 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
+  includeTeamLogo?: boolean;
   isTeamView?: boolean;
   isOrgView?: boolean;
 }) {
-  const { id, slug, userId, orgSlug, isTeamView, isOrgView } = args;
+  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -54,6 +55,7 @@ export async function getTeamWithMembers(args: {
     id: true,
     name: true,
     slug: true,
+    ...(!!includeTeamLogo ? { logo: true } : {}),
     bio: true,
     hideBranding: true,
     hideBookATeamMember: true,
