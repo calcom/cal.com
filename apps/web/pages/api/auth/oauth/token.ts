@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
+  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
   const payloadAuthToken = {
     userId: accessCode.userId,

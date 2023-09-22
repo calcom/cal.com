@@ -51,7 +51,7 @@ export const viewerRouter = mergeRouters(
     features: featureFlagRouter,
     appsRouter,
     users: userAdminRouter,
-    oAuthRouter: oAuthRouter,
+    oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
   })

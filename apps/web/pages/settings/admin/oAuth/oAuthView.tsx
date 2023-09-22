@@ -19,12 +19,12 @@ export default function OAuthView() {
   const [logo, setLogo] = useState("");
 
   const mutation = trpc.viewer.oAuth.addClient.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async (data: any) => {
       setClientSecret(data.clientSecret);
       setClientId(data.clientId);
       showToast(`Successfully added ${data.name} as new client`, "success");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       showToast(`Adding clientfailed: ${error.message}`, "error");
     },
   });
