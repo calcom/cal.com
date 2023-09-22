@@ -16,7 +16,6 @@ import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
-import { kycVerificationRouter } from "./kycVerification/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
@@ -53,6 +52,5 @@ export const viewerRouter = mergeRouters(
     users: userAdminRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
-    kycVerification: kycVerificationRouter,
   })
 );
