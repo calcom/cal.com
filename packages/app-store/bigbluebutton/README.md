@@ -1,8 +1,10 @@
 # Setting up the BigBlueButton Integration
 
-## Get the connection details from your server
-
 This assumes you are self-hosting or have full access to a BBB server.
+
+Please see the official bare-metal self-hosting docs [here](https://docs.bigbluebutton.org/administration/install). You can also use [Ansible](https://docs.bigbluebutton.org/administration/install#ansible) and [Docker](https://github.com/bigbluebutton/docker#install) to help you get set up!
+
+## Get the connection details from your server
 
 1. Run the following command on the server:
 ```
