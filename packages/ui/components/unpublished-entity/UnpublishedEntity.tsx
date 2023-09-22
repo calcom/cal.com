@@ -22,8 +22,13 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
         }
         headline={t("team_is_unpublished", {
           team: props.name,
+          defaultValue: `${props.name} is unpublished`,
         })}
-        description={t(`${props.orgSlug ? "org" : "team"}_is_unpublished_description`)}
+        description={t(`${props.orgSlug ? "org" : "team"}_is_unpublished_description`, {
+          defaultValue: `This ${
+            props.orgSlug ? "organization" : "team"
+          } link is currently not available. Please contact the organization owner or ask them to publish it.`,
+        })}
       />
     </div>
   );

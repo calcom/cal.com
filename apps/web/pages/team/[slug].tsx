@@ -8,6 +8,7 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -65,9 +66,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   // slug is a route parameter, we don't want to forward it to the next route
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
-  const EventTypes = () => (
+  const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <ul className="border-subtle rounded-md border">
-      {team.eventTypes.map((type, index) => (
+      {eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
@@ -160,8 +161,14 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
-            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
-            <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">
+              {" " + t("org_no_teams_yet", { defaultValue: "This organization has no teams yet" })}
+            </h2>
+            <p className="text-emphasis mx-auto max-w-md">
+              {t("org_no_teams_yet_description", {
+                defaultValue: "If you are an administrator, be sure to create teams to be shown here.",
+              })}
+            </p>
           </div>
         </div>
       </div>
@@ -174,7 +181,10 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         description={teamName}
         meeting={{
           title: markdownStrippedBio,
-          profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
+          profile: {
+            name: `${team.name}`,
+            image: `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
+          },
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
@@ -182,7 +192,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <div className="relative">
             <Avatar
               alt={teamName}
-              imageSrc={getPlaceholderAvatar(team.parent ? team.parent.logo : team.logo, team.name)}
+              imageSrc={`${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${
+                team.slug
+              }/avatar.png`}
               size="lg"
             />
           </div>
@@ -203,7 +215,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes.length) &&
+            {(showMembers.isOn || !team.eventTypes?.length) &&
               (team.isPrivate ? (
                 <div className="w-full text-center">
                   <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
@@ -211,9 +223,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
               ) : (
                 <Team team={team} />
               ))}
-            {!showMembers.isOn && team.eventTypes.length > 0 && (
+            {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
-                <EventTypes />
+                <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
                 {!team.hideBookATeamMember && !team.isPrivate && (
@@ -263,7 +275,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.params?.orgSlug
   );
   const flags = await getFeatureFlagMap(prisma);
-  const team = await getTeamWithMembers({ slug, orgSlug: currentOrgDomain });
+  const team = await getTeamWithMembers({
+    slug,
+    orgSlug: currentOrgDomain,
+    isTeamView: true,
+    isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
+  });
   const ssr = await ssrInit(context, {
     noI18nPreload: isValidOrgDomain && !team?.parent,
   });
@@ -308,14 +325,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  team.eventTypes = team.eventTypes.map((type) => ({
-    ...type,
-    users: type.users.map((user) => ({
-      ...user,
-      avatar: "/" + user.username + "/avatar.png",
-    })),
-    descriptionAsSafeHTML: markdownToSafeHTML(type.description),
-  }));
+  team.eventTypes =
+    team.eventTypes?.map((type) => ({
+      ...type,
+      users: type.users.map((user) => ({
+        ...user,
+        avatar: "/" + user.username + "/avatar.png",
+      })),
+      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
+    })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
