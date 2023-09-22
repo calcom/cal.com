@@ -26,7 +26,7 @@ const editSchema = z.object({
   email: z.string().email(),
   avatar: z.string(),
   bio: z.string(),
-  role: z.enum(["ADMIN", "MEMBER"]),
+  role: z.enum(["ADMIN", "MEMBER", "OWNER"]),
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),

@@ -1,6 +1,7 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -21,6 +22,11 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  // only OWNER can update the role to OWNER
+  if (input.role === MembershipRole.OWNER && !(await isOrganisationOwner(userId, organizationId))) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   // Is requested user a member of the organization?
   const requestedMember = await prisma.membership.findFirst({
