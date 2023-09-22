@@ -46,6 +46,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     defaultBookerLayouts: user.defaultBookerLayouts,
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
+    receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     organizationId: user.organizationId,
     organization: user.organization,
   };
