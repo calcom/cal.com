@@ -1008,7 +1008,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
-  let userTimeFormat: string | null = null;
+  let userTimeFormat: number | null = null;
 
   if (session) {
     const user = await ssr.viewer.me.fetch();
