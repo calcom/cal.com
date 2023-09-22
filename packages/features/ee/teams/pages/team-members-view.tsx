@@ -149,7 +149,6 @@ const MembersView = () => {
                       {
                         id: team.id,
                         accepted: team.membership.accepted || false,
-                        logo: team.logo,
                         name: team.name,
                         slug: team.slug,
                         role: team.membership.role,
