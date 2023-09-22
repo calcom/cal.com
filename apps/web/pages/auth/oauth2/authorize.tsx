@@ -151,7 +151,6 @@ export default function Authorize() {
           </Button>
           <Button
             onClick={() => {
-              console.log("selectedAccount", selectedAccount?.value);
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
                 scopes,

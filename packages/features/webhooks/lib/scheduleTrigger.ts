@@ -45,13 +45,13 @@ export async function addSubscription({
     });
 
     // todo - add oAuth code ehre
-    if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED && appApiKey) {
+    if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};
       if (teamId) {
-        where.eventType = { teamId: appApiKey.teamId };
+        where.eventType = { teamId };
       } else {
-        where.userId = appApiKey.userId;
+        where.userId = userId;
       }
       const bookings = await prisma.booking.findMany({
         where: {
