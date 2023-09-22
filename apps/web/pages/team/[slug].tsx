@@ -125,7 +125,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <div className="flex items-center px-5 py-5">
                   <Avatar
                     size="md"
-                    imageSrc={`${WEBAPP_URL}/team/${ch.slug}/avatar.png`}
+                    imageSrc={`/team/${ch.slug}/avatar.png`}
                     alt="Team Logo"
                     className="inline-flex justify-center"
                   />

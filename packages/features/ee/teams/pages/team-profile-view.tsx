@@ -167,6 +167,7 @@ const ProfileView = () => {
                     name: values.name,
                     slug: values.slug,
                     bio: values.bio,
+                    logo: values.logo,
                   };
                   objectKeys(variables).forEach((key) => {
                     if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
