@@ -40,11 +40,11 @@ const UserProfile = () => {
       } else {
         try {
           if (eventTypes?.length === 0) {
-            await Promise.all(
-              DEFAULT_EVENT_TYPES.map(async (event) => {
-                return createEventType.mutate(event);
-              })
-            );
+            // await Promise.all(
+            //   DEFAULT_EVENT_TYPES.map(async (event) => {
+            //     return createEventType.mutate(event);
+            //   })
+            // );
           }
         } catch (error) {
           console.error(error);
