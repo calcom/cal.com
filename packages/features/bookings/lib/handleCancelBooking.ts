@@ -9,7 +9,6 @@ import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -71,17 +70,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               hideBranding: true,
-              metadata: true,
-              teams: {
-                select: {
-                  accepted: true,
-                  team: {
-                    select: {
-                      metadata: true,
-                    },
-                  },
-                },
-              },
             },
           },
           teamId: true,
@@ -299,8 +287,6 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  const isKYCVerified = isEventTypeOwnerKYCVerified(bookingToDelete.eventType);
-
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
     await sendCancelledReminders({
@@ -311,7 +297,7 @@ async function handler(req: CustomRequest) {
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
       hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-      isKYCVerified,
+      eventTypeRequiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
     });
   }
 

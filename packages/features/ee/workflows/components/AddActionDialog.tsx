@@ -39,7 +39,6 @@ interface IAddActionDialog {
     senderId?: string,
     senderName?: string
   ) => void;
-  setKYCVerificationDialogOpen: () => void;
 }
 
 interface ISelectActionOption {
@@ -57,7 +56,7 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction, setKYCVerificationDialogOpen } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
@@ -171,14 +170,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       onChange={handleSelectAction}
                       options={actionOptions.map((option) => ({
                         ...option,
-                        verificationAction: () => setKYCVerificationDialogOpen(),
                       }))}
                       isOptionDisabled={(option: {
                         label: string;
                         value: WorkflowActions;
-                        needsUpgrade: boolean;
-                        needsVerification: boolean;
-                      }) => option.needsUpgrade || option.needsVerification}
+                        needsTeamsUpgrade: boolean;
+                        needsOrgsUpgrade: boolean;
+                      }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
                     />
                   );
                 }}
