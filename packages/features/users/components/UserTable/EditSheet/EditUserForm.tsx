@@ -107,10 +107,9 @@ export function EditForm({
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"
-                  buttonMsg="Change avatar"
+                  buttonMsg={t("change_avatar")}
                   handleAvatarChange={(newAvatar) => {
                     form.setValue("avatar", newAvatar, { shouldDirty: true });
-                    console.log(value);
                   }}
                   imageSrc={value || undefined}
                 />
