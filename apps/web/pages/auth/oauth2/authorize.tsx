@@ -137,7 +137,6 @@ export default function Authorize() {
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
             <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
-            {/* How can access be viewed? Access can be removed by uninstalling app */}
           </div>
         </div>
         <div className="border-subtle border- -mx-9 mb-4 border-b" />

@@ -55,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     userId: decodedRefreshToken.userId,
     scope: decodedRefreshToken.scope,
     token_type: "Access Token",
+    clientId: client_id,
   };
 
   const access_token = jwt.sign(payload, secretKey, {

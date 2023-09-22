@@ -9,6 +9,7 @@ export type OAuthTokenPayload = {
   teamId?: number | null;
   token_type: string;
   scope: string[];
+  clientId: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -80,6 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId: accessCode.teamId,
     scope: accessCode.scopes,
     token_type: "Access Token",
+    clientId: client_id,
   };
 
   const payloadRefreshToken: OAuthTokenPayload = {
@@ -87,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId: accessCode.teamId,
     scope: accessCode.scopes,
     token_type: "Refresh Token",
+    clientId: client_id,
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
