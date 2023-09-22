@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
-import selfhostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
+import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -30,8 +30,9 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     ensureReqIsPost(req);
     ensureSignupIsEnabled();
 
-    /**  Im not sure its worth merging these two handlers. They are different enough to be separate.
-     * Calcom handles things like creating a stripe customer - which we dont need to do for self hosted.
+    /**
+     * Im not sure its worth merging these two handlers. They are different enough to be separate.
+     * Calcom handles things like creating a stripe customer - which we don't need to do for self hosted.
      * It also handles things like premium username.
      * TODO: (SEAN) - Extract a lot of the logic from calcomHandler into a separate file and import it into both handlers.
      */
@@ -39,7 +40,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
       return await calcomSignupHandler(req, res);
     }
 
-    return await selfhostedSignupHandler(req, res);
+    return await selfHostedSignupHandler(req, res);
   } catch (e) {
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
