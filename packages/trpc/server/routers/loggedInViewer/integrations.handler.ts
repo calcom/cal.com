@@ -133,7 +133,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   });
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
-    ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
+    ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
       const userCredentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.type === app.type && c.invalid)
@@ -169,6 +169,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         invalidCredentialIds,
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
+        // FIXME: remove hardcoding and add per-app validation
+        isSetup: !!credential?.key?.account_id || app.slug !== "alby",
       };
     }
   );

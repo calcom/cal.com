@@ -1,5 +1,3 @@
-import { Price } from "bookings/components/event-meta/Price";
-import { getPayIcon } from "bookings/components/event-meta/getPayIcon";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -9,6 +7,8 @@ import { useEffect, useState } from "react";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { getPayIcon } from "@calcom/features/bookings/components/event-meta/getPayIcon";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
