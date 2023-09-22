@@ -15,10 +15,11 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
+  includeTeamLogo?: boolean;
   isTeamView?: boolean;
   isOrgView?: boolean;
 }) {
-  const { id, slug, userId, orgSlug, isTeamView, isOrgView } = args;
+  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -54,6 +55,7 @@ export async function getTeamWithMembers(args: {
     id: true,
     name: true,
     slug: true,
+    ...(!!includeTeamLogo ? { logo: true } : {}),
     bio: true,
     hideBranding: true,
     hideBookATeamMember: true,
@@ -64,13 +66,11 @@ export async function getTeamWithMembers(args: {
         id: true,
         slug: true,
         name: true,
-        logo: true,
       },
     },
     children: {
       select: {
         name: true,
-        logo: true,
         slug: true,
       },
     },
@@ -168,8 +168,17 @@ export async function getTeamWithMembers(args: {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
-  /** Don't leak invite tokens to the frontend */
+  // Don't leak invite tokens to the frontend
   const { inviteTokens, ...teamWithoutInviteTokens } = team;
+
+  // Don't leak stripe payment ids
+  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const {
+    paymentId: _,
+    subscriptionId: __,
+    subscriptionItemId: ___,
+    ...restTeamMetadata
+  } = teamMetadata || {};
 
   return {
     ...teamWithoutInviteTokens,
@@ -179,7 +188,7 @@ export async function getTeamWithMembers(args: {
         token.identifier === "invite-link-for-teamId-" + team.id &&
         token.expires > new Date(new Date().setHours(24))
     ),
-    metadata: teamMetadataSchema.parse(team.metadata),
+    metadata: restTeamMetadata,
     eventTypes: !isOrgView ? eventTypes : null,
     members,
   };
