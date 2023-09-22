@@ -44,7 +44,6 @@ export async function addSubscription({
       },
     });
 
-    // todo - add oAuth code ehre
     if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};

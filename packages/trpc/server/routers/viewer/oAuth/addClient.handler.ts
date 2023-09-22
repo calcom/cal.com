@@ -13,7 +13,6 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
 
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
-  //make sure client Secret is created same as API key
 
   const client = await prisma.oAuthClient.create({
     data: {
