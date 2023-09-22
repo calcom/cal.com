@@ -1,6 +1,6 @@
 import { cva } from "class-variance-authority";
 // import { createCheckoutSession } from "lib/stripe";
-import { useAuthContext } from "context/AuthContext";
+import { useAuthContext } from "context/authContext";
 import { getProfile } from "lib/firebase/utils";
 import { NextSeo } from "next-seo";
 import Link from "next/link";
