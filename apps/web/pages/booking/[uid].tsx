@@ -23,6 +23,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -486,12 +487,7 @@ export default function Success(props: SuccessProps) {
                             : t("payment")}
                         </div>
                         <div className="col-span-2 mb-2 mt-3">
-                          {paymentAppData.currency !== "BTC"
-                            ? new Intl.NumberFormat(i18n.language, {
-                                style: "currency",
-                                currency: paymentAppData.currency,
-                              }).format(paymentAppData.price / 100.0)
-                            : `${paymentAppData.price}`}
+                          <Price currency={props.paymentStatus.currency} price={props.paymentStatus.amount} />
                         </div>
                       </>
                     )}

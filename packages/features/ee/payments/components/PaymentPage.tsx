@@ -1,3 +1,5 @@
+import { Price } from "bookings/components/event-meta/Price";
+import { getPayIcon } from "bookings/components/event-meta/getPayIcon";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -13,8 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { CreditCard, Zap } from "@calcom/ui/components/icon";
-import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -73,6 +73,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   }, [isEmbed]);
 
   const eventName = props.booking.title;
+  const PayIcon = getPayIcon(paymentAppData.currency);
 
   return (
     <div className="h-screen">
@@ -99,11 +100,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    {paymentAppData.currency !== "BTC" ? (
-                      <CreditCard className="h-8 w-8 text-green-600" />
-                    ) : (
-                      <Zap className="h-6 w-6 text-green-600" />
-                    )}
+                    <PayIcon className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -132,18 +129,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        {/* TODO: cleanup */}
-                        {paymentAppData.currency !== "BTC" ? (
-                          new Intl.NumberFormat(i18n.language, {
-                            style: "currency",
-                            currency: paymentAppData.currency,
-                          }).format(paymentAppData.price / 100.0)
-                        ) : (
-                          <div className="flex items-center">
-                            <SatSymbol className="h-4 w-4" />
-                            {paymentAppData.price}
-                          </div>
-                        )}
+                        <Price currency={paymentAppData.currency} price={paymentAppData.price} />
                       </div>
                     </div>
                   </div>

@@ -1,20 +1,23 @@
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
-import type { PublicEvent } from "../../types";
+import type { EventPrice } from "../../types";
 
-export const EventPrice = ({ event }: { event: PublicEvent }) => {
-  const paymentAppData = getPaymentAppData(event);
-
-  if (paymentAppData.price === 0) return null;
+export const Price = ({ price, currency, displayAlternateSymbol: displaySymbol = true }: EventPrice) => {
+  if (price === 0) return null;
 
   return (
     <>
-      {paymentAppData.currency !== "BTC"
-        ? Intl.NumberFormat("en", {
-            style: "currency",
-            currency: paymentAppData.currency.toUpperCase(),
-          }).format(paymentAppData.price / 100.0)
-        : `${paymentAppData.price}`}
+      {currency !== "BTC" ? (
+        Intl.NumberFormat("en", {
+          style: "currency",
+          currency: currency.toUpperCase(),
+        }).format(price / 100.0)
+      ) : (
+        <>
+          {displaySymbol && <SatSymbol className="h-4 w-4" />}
+          {price}
+        </>
+      )}
     </>
   );
 };
