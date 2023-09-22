@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import shallow from "zustand/shallow";
+import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
