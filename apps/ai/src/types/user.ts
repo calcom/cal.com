@@ -14,4 +14,5 @@ export type UserList = {
   id?: number;
   email?: string;
   username?: string;
+  type: "fromUsername" | "fromEmail";
 }[];

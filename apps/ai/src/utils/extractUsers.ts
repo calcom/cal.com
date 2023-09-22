@@ -4,7 +4,7 @@
 import type { UserList } from "../types/user";
 
 export const extractUsers = async (text: string) => {
-  const usernames = text.match(/@[a-zA-Z0-9_]+/g)?.map((username) => username.slice(1));
+  const usernames = text.match(/(?<![a-zA-Z0-9_.])@[a-zA-Z0-9_]+/g)?.map((username) => username.slice(1));
   const emails = text.match(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g);
 
   const dbUsersFromUsernames = usernames
@@ -30,11 +30,13 @@ export const extractUsers = async (text: string) => {
               username,
               id: user.id,
               email: user.email,
+              type: "fromUsername",
             }
           : {
               username,
               id: null,
               email: null,
+              type: "fromUsername",
             };
       })
     : [];
@@ -62,11 +64,13 @@ export const extractUsers = async (text: string) => {
               email,
               id: user.id,
               username: user.username,
+              type: "fromEmail",
             }
           : {
               email,
               id: null,
               username: null,
+              type: "fromEmail",
             };
       })
     : [];

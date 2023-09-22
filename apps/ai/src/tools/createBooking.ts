@@ -40,18 +40,6 @@ const createBooking = async ({
 
   const url = `${env.BACKEND_URL}/bookings?${urlParams.toString()}`;
 
-  // const responses = invites.map((invite) => {
-  //   const user = users.find((u) => u.id === invite);
-  //   if (!user) {
-  //     return { error: `User with id ${invite} not found to invite` };
-  //   }
-  //   return {
-  //     id: invite,
-  //     name: user.username,
-  //     email: user.email,
-  //   };
-  // });
-
   const user = users.find((u) => u.id === invite);
 
   if (!user) {
@@ -63,8 +51,6 @@ const createBooking = async ({
     name: user.username,
     email: user.email,
   };
-
-  console.log(responses);
 
   const response = await fetch(url, {
     body: JSON.stringify({

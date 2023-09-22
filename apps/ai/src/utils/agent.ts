@@ -30,7 +30,7 @@ const agent = async (
 ) => {
   const tools = [
     // getEventTypes(apiKey),
-    getAvailability(apiKey, userId),
+    getAvailability(apiKey),
     getBookings(apiKey, userId),
     createBookingIfAvailable(apiKey, userId, users),
     updateBooking(apiKey, userId),
@@ -52,7 +52,7 @@ const agent = async (
       prefix: `You are Cal AI - a bleeding edge scheduling assistant that interfaces via email.
 Make sure your final answers are definitive, complete and well formatted.
 Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
-Tools will always handle times in UTC, but times sent to the user should be formatted per that user's timezone.
+Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone.
 
 The primary user's id is: ${userId}
 The primary user's username is: ${user.username}
@@ -75,8 +75,16 @@ ${
         .map(
           (u) =>
             (u.id ? `, id: ${u.id}` : "id: (non user)") +
-            (u.username ? `, username: @${u.username}` : "(no username)") +
-            (u.email ? `, email: ${u.email}` : "(no email)") +
+            (u.username
+              ? u.type === "fromUsername"
+                ? `, username: @${u.username}`
+                : ", username: REDACTED"
+              : ", (no username)") +
+            (u.email
+              ? u.type === "fromEmail"
+                ? `, email: ${u.email}`
+                : ", email: REDACTED"
+              : ", (no email)") +
             ";"
         )
         .join("\n")}`

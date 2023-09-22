@@ -26,22 +26,17 @@ export const sendBookingLink = async ({
 }) => {
   const url = `${env.FRONTEND_URL}/${user.username}/${eventTypeSlug}?date=${date}`;
 
-  // const toEmails = to.map((userId) => users[userId]?.email || "");
-
-  // if (!toEmails.length) {
-  //   return {
-  //     error: "No emails found",
-  //   };
-  // }
-
   await sendEmail({
     subject,
-    // to: toEmails,
     to,
     cc: user.email,
     from: agentEmail,
-    text: message + "\n" + url,
-    html: message + "<br>" + '<a href="' + url + '">Click here to book a meeting</a>',
+    text: message.split("[[[Booking Link]]]").join(url),
+    html: message
+      .split("\n")
+      .join("<br>")
+      .split("[[[Booking Link]]]")
+      .join(`<a href="${url}">Booking Link</a>`),
   });
 
   return "Booking link sent";
@@ -49,7 +44,7 @@ export const sendBookingLink = async ({
 
 const sendBookingLinkTool = (apiKey: string, user: User, users: UserList, agentEmail: string) => {
   return new DynamicStructuredTool({
-    description: "Send a booking link via email. Useful for scheduling with non cal users to meetings.",
+    description: "Send a booking link via email. Useful for scheduling with non cal users.",
     func: async ({ message, subject, to, eventTypeSlug, date }) => {
       return JSON.stringify(
         await sendBookingLink({
@@ -68,7 +63,11 @@ const sendBookingLinkTool = (apiKey: string, user: User, users: UserList, agentE
     name: "sendBookingLink",
 
     schema: z.object({
-      message: z.string(),
+      message: z
+        .string()
+        .describe(
+          "Make sure to nicely format the message and introduce yourself as the primary user's booking assistant. Make sure to include a spot for the link using: [[[Booking Link]]]"
+        ),
       subject: z.string(),
       to: z
         .array(z.string())
