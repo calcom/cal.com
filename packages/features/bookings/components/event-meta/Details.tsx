@@ -5,6 +5,7 @@ import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -156,7 +157,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
-              <EventMetaBlock key={block} icon={CreditCard}>
+              <EventMetaBlock key={block} icon={paymentAppData.currency !== "BTC" ? CreditCard : SatSymbol}>
                 <EventPrice event={event} />
               </EventMetaBlock>
             );

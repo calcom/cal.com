@@ -13,7 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { CreditCard } from "@calcom/ui/components/icon";
+import { CreditCard, Zap } from "@calcom/ui/components/icon";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -26,6 +27,13 @@ const PaypalPaymentComponent = dynamic(
     import("@calcom/app-store/paypal/components/PaypalPaymentComponent").then(
       (m) => m.PaypalPaymentComponent
     ),
+  {
+    ssr: false,
+  }
+);
+
+const AlbyPaymentComponent = dynamic(
+  () => import("@calcom/app-store/alby/components/AlbyPaymentComponent").then((m) => m.AlbyPaymentComponent),
   {
     ssr: false,
   }
@@ -91,7 +99,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <CreditCard className="h-8 w-8 text-green-600" />
+                    {paymentAppData.currency !== "BTC" ? (
+                      <CreditCard className="h-8 w-8 text-green-600" />
+                    ) : (
+                      <Zap className="h-6 w-6 text-green-600" />
+                    )}
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -120,10 +132,18 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        {new Intl.NumberFormat(i18n.language, {
-                          style: "currency",
-                          currency: paymentAppData.currency,
-                        }).format(paymentAppData.price / 100.0)}
+                        {/* TODO: cleanup */}
+                        {paymentAppData.currency !== "BTC" ? (
+                          new Intl.NumberFormat(i18n.language, {
+                            style: "currency",
+                            currency: paymentAppData.currency,
+                          }).format(paymentAppData.price / 100.0)
+                        ) : (
+                          <div className="flex items-center">
+                            <SatSymbol className="h-4 w-4" />
+                            {paymentAppData.price}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -144,6 +164,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (
                     <PaypalPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "alby" && !props.payment.success && (
+                    <AlbyPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

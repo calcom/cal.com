@@ -281,6 +281,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  // TODO: make this work with every payment app
+  // NOTE: BTC currency is left capitalized here unlike the above
+  if (input.metadata?.apps?.alby?.price) {
+    data.price = input.metadata?.apps?.alby?.price;
+    const paymentCredential = await ctx.prisma.credential.findFirst({
+      where: {
+        userId: ctx.user.id,
+        type: {
+          equals: "alby_payment",
+        },
+      },
+      select: {
+        type: true,
+        key: true,
+      },
+    });
+    if (paymentCredential?.type === "alby_payment" && input.metadata?.apps?.alby?.currency) {
+      data.currency = input.metadata?.apps?.alby?.currency;
+    }
+  }
+
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
     where: {
       eventTypeId: input.id,

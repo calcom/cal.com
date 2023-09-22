@@ -486,10 +486,12 @@ export default function Success(props: SuccessProps) {
                             : t("payment")}
                         </div>
                         <div className="col-span-2 mb-2 mt-3">
-                          {new Intl.NumberFormat(i18n.language, {
-                            style: "currency",
-                            currency: props.paymentStatus.currency,
-                          }).format(props.paymentStatus.amount / 100.0)}
+                          {paymentAppData.currency !== "BTC"
+                            ? new Intl.NumberFormat(i18n.language, {
+                                style: "currency",
+                                currency: paymentAppData.currency,
+                              }).format(paymentAppData.price / 100.0)
+                            : `${paymentAppData.price}`}
                         </div>
                       </>
                     )}

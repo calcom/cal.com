@@ -3,16 +3,18 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import type { PublicEvent } from "../../types";
 
 export const EventPrice = ({ event }: { event: PublicEvent }) => {
-  const stripeAppData = getPaymentAppData(event);
+  const paymentAppData = getPaymentAppData(event);
 
-  if (stripeAppData.price === 0) return null;
+  if (paymentAppData.price === 0) return null;
 
   return (
     <>
-      {Intl.NumberFormat("en", {
-        style: "currency",
-        currency: stripeAppData.currency.toUpperCase(),
-      }).format(stripeAppData.price / 100.0)}
+      {paymentAppData.currency !== "BTC"
+        ? Intl.NumberFormat("en", {
+            style: "currency",
+            currency: paymentAppData.currency.toUpperCase(),
+          }).format(paymentAppData.price / 100.0)
+        : `${paymentAppData.price}`}
     </>
   );
 };

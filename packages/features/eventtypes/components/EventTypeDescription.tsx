@@ -10,6 +10,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
 import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -94,11 +95,15 @@ export const EventTypeDescription = ({
           )}
           {paymentAppData.enabled && (
             <li>
-              <Badge variant="gray" startIcon={CreditCard}>
-                {new Intl.NumberFormat(i18n.language, {
-                  style: "currency",
-                  currency: paymentAppData.currency,
-                }).format(paymentAppData.price / 100)}
+              {/* TODO: cleanup */}
+              <Badge variant="gray" startIcon={paymentAppData.currency !== "BTC" ? CreditCard : SatSymbol}>
+                {/* TODO: cleanup */}
+                {paymentAppData.currency !== "BTC"
+                  ? new Intl.NumberFormat(i18n.language, {
+                      style: "currency",
+                      currency: paymentAppData.currency,
+                    }).format(paymentAppData.price / 100.0)
+                  : `${paymentAppData.price}`}
               </Badge>
             </li>
           )}
