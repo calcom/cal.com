@@ -4,6 +4,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
+export type OAuthTokenPayload = {
+  userId?: number | null;
+  teamId?: number | null;
+  token_type: string;
+  scope: string[];
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Invalid method" });
@@ -68,14 +75,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-  const payloadAuthToken = {
+  const payloadAuthToken: OAuthTokenPayload = {
     userId: accessCode.userId,
     teamId: accessCode.teamId,
     scope: accessCode.scopes,
     token_type: "Access Token",
   };
 
-  const payloadRefreshToken = {
+  const payloadRefreshToken: OAuthTokenPayload = {
     userId: accessCode.userId,
     teamId: accessCode.teamId,
     scope: accessCode.scopes,

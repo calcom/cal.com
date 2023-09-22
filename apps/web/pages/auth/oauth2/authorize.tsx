@@ -23,7 +23,7 @@ export default function Authorize() {
 
   const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
     {
-      clientId: client_id,
+      clientId: client_id as string,
     },
     {
       enabled: router.isReady && status !== "loading",
@@ -34,7 +34,7 @@ export default function Authorize() {
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
-      window.location.href = `${client.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+      window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },
   });
 
@@ -154,9 +154,9 @@ export default function Authorize() {
             onClick={() => {
               console.log("selectedAccount", selectedAccount?.value);
               generateAuthCodeMutation.mutate({
-                clientId: client_id,
+                clientId: client_id as string,
                 scopes,
-                teamSlug: selectedAccount?.value,
+                teamSlug: selectedAccount?.value || "",
               });
             }}>
             {t("allow")}

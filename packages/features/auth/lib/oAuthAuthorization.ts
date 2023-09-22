@@ -2,12 +2,13 @@ import jwt from "jsonwebtoken";
 import type { NextApiRequest } from "next";
 
 import prisma from "@calcom/prisma";
+import type { OAuthTokenPayload } from "@calcom/web/pages/api/auth/oauth/token";
 
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
   const token = req.headers.authorization?.split(" ")[1] || "";
-  let decodedToken: any = null;
+  let decodedToken: OAuthTokenPayload;
   try {
-    decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY || "");
+    decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY || "") as OAuthTokenPayload;
   } catch {
     return null;
   }

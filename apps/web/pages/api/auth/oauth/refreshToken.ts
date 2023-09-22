@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { OAuthTokenPayload } from "pages/api/auth/oauth/token";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
@@ -36,15 +37,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-  const decodedRefreshToken: { userId?: string; teamId?: string; token_type: string; scope: string[] } =
-    jwt.verify(refresh_token, secretKey);
+  let decodedRefreshToken: OAuthTokenPayload;
+
+  try {
+    decodedRefreshToken = jwt.verify(refresh_token, secretKey) as OAuthTokenPayload;
+  } catch {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
 
   if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  const payload = {
+  const payload: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
     scope: decodedRefreshToken.scope,
     token_type: "Access Token",
