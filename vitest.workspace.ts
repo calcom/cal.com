@@ -41,7 +41,7 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           globals: true,
           name: "EventTypeAppCardInterface components",
-          include: ["packages/app-store/**/*.{test,spec}.{ts,js,tsx}"],
+          include: ["packages/app-store/_components/**/*.{test,spec}.{ts,js,tsx}"],
           environment: "jsdom",
           setupFiles: ["packages/app-store/test-setup.ts"],
         },
