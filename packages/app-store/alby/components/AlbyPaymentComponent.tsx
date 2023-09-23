@@ -144,8 +144,6 @@ function PaymentChecker(props: PaymentCheckerProps) {
             eventTypeIds: [props.eventType.id],
           },
         });
-        // TODO: is there a better way than reloading the whole page?
-        // currently props.booking comes from SSR
         if (
           bookingsResult.bookings.some(
             (booking) => booking.id === props.booking.id && booking.status === "ACCEPTED"
@@ -153,6 +151,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
         ) {
           showToast("Payment successful", "success");
 
+          // TODO: add typings here
           const params: {
             [k: string]: any;
           } = {
