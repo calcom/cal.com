@@ -996,15 +996,6 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
-            <KBarTrigger />
-          </span>
-          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-            <span className="sr-only">{t("settings")}</span>
-            <Link href="/settings/my-account/profile">
-              <Settings className="text-default h-4 w-4" aria-hidden="true" />
-            </Link>
-          </button>
           <UserDropdown small />
         </div>
       </nav>
