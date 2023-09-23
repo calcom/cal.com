@@ -9,6 +9,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getTimeFormatStringFromUserTimeFormat } from "../timeFormat";
@@ -34,7 +35,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         select: {
           id: true,
           username: true,
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           timeZone: true,
           timeFormat: true,
           email: true,

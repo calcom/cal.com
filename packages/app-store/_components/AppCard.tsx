@@ -125,7 +125,7 @@ export default function AppCard({
             <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
               <p>This app has not been setup yet</p>
               <Link href={`/apps/${app.slug}/setup`}>
-                <Button startIcon={Settings}>Setup</Button>
+                <Button StartIcon={Settings}>Setup</Button>
               </Link>
             </div>
           )

@@ -170,7 +170,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         // FIXME: remove hardcoding and add per-app validation
-        isSetup: !!credential?.key?.account_id || app.slug !== "alby",
+        isSetup: !!(credential?.key as { account_id: string })?.account_id || app.slug !== "alby",
       };
     }
   );
