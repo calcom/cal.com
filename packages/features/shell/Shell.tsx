@@ -68,14 +68,13 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Users,
   Zap,
 } from "@calcom/ui/components/icon";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
+import { TeamInviteBanner } from "./TeamInviteBadge";
 
 /* TODO: Migate this */
 
@@ -150,6 +149,7 @@ function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateActio
       <ImpersonatingBanner />
       <AdminPasswordBanner />
       <VerifyEmailBanner />
+      <TeamInviteBanner />
     </div>
   );
 }
@@ -504,13 +504,6 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: Clock,
-  },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
   },
   {
     name: "apps",
