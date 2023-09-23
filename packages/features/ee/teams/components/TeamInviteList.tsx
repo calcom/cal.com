@@ -11,7 +11,6 @@ interface Props {
     id?: number;
     name?: string | null;
     slug?: string | null;
-    logo?: string | null;
     bio?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;

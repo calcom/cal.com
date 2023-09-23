@@ -9,8 +9,7 @@ import { Avatar } from "@calcom/ui";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
-type MemberType = MembersType[number] & { safeBio: string | null };
-type TeamTypeWithSafeHtml = Omit<TeamType, "members" | "inviteToken"> & { members: MemberType[] };
+type MemberType = Pick<MembersType[number], "id" | "name" | "bio" | "username"> & { safeBio: string | null };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const routerQuery = useRouterQuery();
@@ -58,10 +57,10 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   );
 };
 
-const Team = ({ team }: { team: TeamTypeWithSafeHtml }) => {
+const Team = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   return (
     <div>
-      <Members members={team.members} teamName={team.name} />
+      <Members members={members} teamName={teamName} />
     </div>
   );
 };
