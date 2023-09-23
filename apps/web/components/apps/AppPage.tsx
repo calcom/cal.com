@@ -89,6 +89,8 @@ export const AppPage = ({
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+  // FIXME: remove hardcoding
+  const showSetupIntegration = slug === "alby";
   const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
     { appType: type },
     {
@@ -213,14 +215,21 @@ export const AppPage = ({
               )}
             </div>
           ) : showDisconnectIntegration ? (
-            <DisconnectIntegration
-              buttonProps={{ color: "secondary" }}
-              label={t("disconnect")}
-              credentialId={existingCredentials[0]}
-              onSuccess={() => {
-                appDbQuery.refetch();
-              }}
-            />
+            <div className="flex gap-2">
+              {showSetupIntegration && (
+                <Link href={`/apps/${slug}/setup`}>
+                  <Button color="secondary">Setup</Button>
+                </Link>
+              )}
+              <DisconnectIntegration
+                buttonProps={{ color: "secondary" }}
+                label={t("disconnect")}
+                credentialId={existingCredentials[0]}
+                onSuccess={() => {
+                  appDbQuery.refetch();
+                }}
+              />
+            </div>
           ) : (
             <InstallAppButton
               type={type}

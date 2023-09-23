@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast } from "@calcom/ui";
+import { Badge, Button, showToast } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
@@ -144,9 +144,10 @@ function AlbySetupPage(props: IAlbySetupProps) {
               </>
             ) : (
               <>
+                <img className="h-16 w-16" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
                 <p>Alby Connected!</p>
-                <p>Email: {props.email}</p>
-                <p>Lightning Address: {props.lightningAddress}</p>
+                <Badge>Email: {props.email}</Badge>
+                <Badge>Lightning Address: {props.lightningAddress}</Badge>
               </>
             )}
 
@@ -156,6 +157,9 @@ function AlbySetupPage(props: IAlbySetupProps) {
               generate invoices. If you update your lightning address, please disconnect and setup the Alby
               app again.
             </div>
+            <Link href="/apps/alby">
+              <Button color="secondary">Go to App Store Listing</Button>
+            </Link>
           </div>
         </div>
       ) : (
