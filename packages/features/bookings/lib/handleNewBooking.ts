@@ -40,7 +40,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import {
   cancelWorkflowReminders,
   scheduleWorkflowReminders,
@@ -261,7 +260,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
-          metadata: true,
         },
       },
       bookingFields: true,
@@ -293,17 +291,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
-          metadata: true,
-          teams: {
-            select: {
-              accepted: true,
-              team: {
-                select: {
-                  metadata: true,
-                },
-              },
-            },
-          },
         },
       },
       workflows: {
@@ -1201,8 +1188,6 @@ async function handler(
 
   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-  const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
-
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -1771,7 +1756,7 @@ async function handler(
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        isKYCVerified,
+        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
@@ -2418,7 +2403,7 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      isKYCVerified,
+      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
