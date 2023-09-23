@@ -5,12 +5,11 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
-import { ExternalLink, AlertTriangle } from "@calcom/ui/components/icon";
+import { AlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
 import { isInterComEnabled, useIntercom } from "../lib/intercom/useIntercom";
-import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
   onHelpItemSelect: () => void;
@@ -46,27 +45,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
 
   return (
     <div className="bg-default border-default w-full rounded-md">
-      <div className="w-full py-5">
-        <p className="text-subtle mb-1 px-5">{t("resources").toUpperCase()}</p>
-        <a
-          onClick={() => onHelpItemSelect()}
-          href="https://cal.com/docs/"
-          target="_blank"
-          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
-          rel="noreferrer">
-          {t("documentation")}
-          <ExternalLink
-            className={classNames(
-              "group-hover:text-subtle text-muted",
-              "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
-            )}
-          />
-        </a>
-        <div>
-          <ContactMenuItem onHelpItemSelect={onHelpItemSelect} />
-        </div>
-      </div>
-
       <hr className="border-muted" />
       <div className="w-full p-5">
         <p className="text-subtle mb-1">{t("feedback").toUpperCase()}</p>
@@ -201,15 +179,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           }}>
           {t("contact_support")}
         </button>
-        <span> {t("or").toLowerCase()} </span>
-        <a
-          onClick={() => onHelpItemSelect()}
-          className="hover:text-emphasis text-defualt font-medium underline"
-          href="https://cal.com/docs"
-          target="_blank"
-          rel="noreferrer">
-          {t("browse_our_docs")}
-        </a>
         .
       </div>
     </div>
