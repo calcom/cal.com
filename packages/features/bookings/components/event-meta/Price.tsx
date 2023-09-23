@@ -13,10 +13,10 @@ export const Price = ({ price, currency, displayAlternateSymbol: displaySymbol =
           currency: currency.toUpperCase(),
         }).format(price / 100.0)
       ) : (
-        <>
+        <div className="inline-flex items-center justify-center">
           {displaySymbol && <SatSymbol className="h-4 w-4" />}
           {price}
-        </>
+        </div>
       )}
     </>
   );
