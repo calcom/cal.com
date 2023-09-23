@@ -21,11 +21,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
-  const props: IAlbySetupProps = {};
+  const props: IAlbySetupProps = {
+    email: null,
+    lightningAddress: null,
+  };
   if (credentials?.key) {
     const { account_lightning_address, account_email } = credentials.key;
-    props.email = account_email;
-    props.lightningAddress = account_lightning_address;
+    if (account_lightning_address) {
+      props.lightningAddress = account_lightning_address;
+    }
+    if (account_email) {
+      props.email = account_email;
+    }
   }
 
   return {

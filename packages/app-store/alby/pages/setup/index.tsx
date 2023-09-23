@@ -12,8 +12,8 @@ import { Info } from "@calcom/ui/components/icon";
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
 export interface IAlbySetupProps {
-  email?: string;
-  lightningAddress?: string;
+  email: string | null;
+  lightningAddress: string | null;
 }
 
 export default function AlbySetup(props: IAlbySetupProps) {
