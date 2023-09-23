@@ -4,7 +4,7 @@
   "slug": "alby",
   "type": "alby_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://getalby.com",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "Alby",
