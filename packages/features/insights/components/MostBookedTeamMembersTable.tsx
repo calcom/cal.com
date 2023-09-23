@@ -11,7 +11,7 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, isAll } = filter;
+  const { dateRange, selectedEventTypeId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -28,6 +28,7 @@ export const MostBookedTeamMembersTable = () => {
       trpc: {
         context: { skipBatch: true },
       },
+      enabled: !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll),
     }
   );
 
