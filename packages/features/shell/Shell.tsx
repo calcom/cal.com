@@ -780,11 +780,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       },
       icon: Copy,
     },
-    {
-      name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: Settings,
-    },
   ];
   return (
     <div className="relative">
