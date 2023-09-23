@@ -1,0 +1,29 @@
+import { fiat } from "@getalby/lightning-tools";
+import React from "react";
+
+import { Tooltip } from "@calcom/ui";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
+
+type AlbyPriceComponentProps = {
+  displaySymbol: boolean;
+  price: number;
+};
+
+export function AlbyPriceComponent({ displaySymbol, price }: AlbyPriceComponentProps) {
+  const [fiatValue, setFiatValue] = React.useState<string>("loading");
+  React.useEffect(() => {
+    (async () => {
+      const unformattedFiatValue = await fiat.getFiatValue({ satoshi: price, currency: "USD" });
+      setFiatValue(`$${unformattedFiatValue.toFixed(2)}`);
+    })();
+  }, [price]);
+
+  return (
+    <Tooltip content={fiatValue}>
+      <div className="inline-flex items-center justify-center">
+        {displaySymbol && <SatSymbol className="h-4 w-4" />}
+        {price}
+      </div>
+    </Tooltip>
+  );
+}

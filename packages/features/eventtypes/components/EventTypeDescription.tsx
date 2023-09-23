@@ -96,7 +96,6 @@ export const EventTypeDescription = ({
           )}
           {paymentAppData.enabled && (
             <li>
-              {/* TODO: cleanup */}
               <Badge variant="gray" startIcon={getPriceIcon(paymentAppData.currency)}>
                 <Price
                   currency={paymentAppData.currency}
