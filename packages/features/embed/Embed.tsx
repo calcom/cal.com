@@ -10,7 +10,6 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimesHeader } from "@calcom/features/bookings";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
@@ -249,9 +248,9 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
             <div className="flex h-full w-full flex-row gap-4">
-              <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
+                date={dayjs(selectedDate)}
                 selectedSlots={
                   eventType.slug &&
                   selectedDatesAndTimes &&
