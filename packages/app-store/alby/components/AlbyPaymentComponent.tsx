@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import z from "zod";
 
+import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 import { ClipboardCheck, Clipboard } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
@@ -13,6 +19,7 @@ interface IAlbyPaymentComponentProps {
     // Will be parsed on render
     data: unknown;
   };
+  paymentPageProps: PaymentPageProps;
 }
 
 // Create zod schema for data
@@ -21,8 +28,7 @@ const PaymentAlbyDataSchema = z.object({
     .object({
       paymentRequest: z.string(),
     })
-    .optional(),
-  capture: z.object({}).optional(),
+    .required(),
 });
 
 export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
@@ -45,6 +51,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
 
   return (
     <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
+      <PaymentChecker {...props.paymentPageProps} />
       {isPaying && <Spinner className="mt-12 h-8 w-8" />}
       {!isPaying && (
         <>
@@ -58,6 +65,9 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 <Button
                   onClick={async () => {
                     try {
+                      if (!window.webln) {
+                        throw new Error("webln not found");
+                      }
                       setPaying(true);
                       await window.webln.enable();
                       window.webln.sendPayment(paymentRequest);
@@ -73,11 +83,15 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
           )}
           {showQRCode && (
             <>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-xs">Waiting for payment...</p>
+                <Spinner className="h-4 w-4" />
+              </div>
               <p className="text-sm">Click or scan the invoice below to pay</p>
               <Link
                 href={`lightning:${paymentRequest}`}
                 className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent p-2
-            font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
+                font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
                 <QRCode size={128} value={paymentRequest} />
               </Link>
 
@@ -100,8 +114,73 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
         <div className="mt-4 flex items-center text-sm">
           Powered by
           <img title="Alby" src="/app-store/alby/icon.svg" alt="Alby" className="h-8 w-8" />
+          Alby
         </div>
       </Link>
     </div>
   );
 };
+
+type PaymentCheckerProps = PaymentPageProps;
+
+function PaymentChecker(props: PaymentCheckerProps) {
+  // This effect checks if the booking status has changed to "ACCEPTED"
+  // then reload the page to show the new payment status
+  // FIXME: subscribe to the exact payment instead of polling bookings
+  // FIXME: booking success is copied from packages/features/ee/payments/components/Payment.tsx
+  const searchParams = useSearchParams();
+  const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (async () => {
+        if (props.booking.status === "ACCEPTED") {
+          return;
+        }
+        const bookingsResult = await utils.viewer.bookings.get.fetch({
+          filters: {
+            status: "upcoming",
+            eventTypeIds: [props.eventType.id],
+          },
+        });
+        // TODO: is there a better way than reloading the whole page?
+        // currently props.booking comes from SSR
+        if (
+          bookingsResult.bookings.some(
+            (booking) => booking.id === props.booking.id && booking.status === "ACCEPTED"
+          )
+        ) {
+          showToast("Payment successful", "success");
+
+          const params: {
+            [k: string]: any;
+          } = {
+            uid: props.booking.uid,
+            email: searchParams.get("email"),
+            location: t("web_conferencing_details_to_follow"),
+          };
+
+          bookingSuccessRedirect({
+            successRedirectUrl: props.eventType.successRedirectUrl,
+            query: params,
+            booking: props.booking,
+          });
+        }
+      })();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [
+    bookingSuccessRedirect,
+    props.booking,
+    props.booking.id,
+    props.booking.status,
+    props.eventType.id,
+    props.eventType.successRedirectUrl,
+    props.payment.success,
+    searchParams,
+    t,
+    utils.viewer.bookings,
+  ]);
+  return null;
+}
