@@ -8,7 +8,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -397,24 +397,7 @@ const SettingsSidebarContainer = ({
                                       disableChevron
                                     />
                                     {/* Hide if there is a parent ID */}
-                                    {!team.parentId ? (
-                                      <>
-                                        <VerticalTabItem
-                                          name={t("billing")}
-                                          href={`/settings/teams/${team.id}/billing`}
-                                          textClassNames="px-3 text-emphasis font-medium text-sm"
-                                          disableChevron
-                                        />
-                                        {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/teams/${team.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
-                                        )}
-                                      </>
-                                    ) : null}
+                                    {!team.parentId ? <></> : null}
                                   </>
                                 )}
                               </CollapsibleContent>
