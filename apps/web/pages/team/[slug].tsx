@@ -261,11 +261,10 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-
-  // return {
-  //   notFound: true,
-  // };
-  const ssr = await ssrInit(context);
+  return {
+    notFound: true,
+  };
+  // const ssr = await ssrInit(context);
 
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
