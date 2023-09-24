@@ -14,7 +14,7 @@ export const metadata = {
   title: "Google Meet",
   variant: "conferencing",
   logo: "logo.webp",
-  publisher: "Beenthere.tech",
+  publisher: "BeenThere.tech",
   url: "https://app.beenthere.tech",
   isGlobal: false,
   email: "help@beenthere.tech",

@@ -17,6 +17,7 @@ const middleware: NextMiddleware = async (req) => {
     "/insights",
     "/apps/routing-forms/forms",
     "/settings/billing",
+    "/settings/security/two-factor-auth",
   ];
   if (startPaths.some((path) => url.pathname.startsWith(path))) {
     req.nextUrl.pathname = `/404`;
@@ -93,6 +94,7 @@ export const config = {
     "/insights",
     "/apps/routing-forms/forms",
     "/settings/billing",
+    "/settings/security/two-factor-auth",
     /**
      * Paths required by routingForms.handle
      */

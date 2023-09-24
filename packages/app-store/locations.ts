@@ -282,7 +282,7 @@ export const getMessageForOrganizer = (location: string, t: TFunction) => {
     return t(defaultLocation.messageForOrganizer);
   }
   if (videoLocation && videoLocation.linkType !== "static" && videoLocation.type !== "integrations:zoom") {
-    return t(`Beenthere will provide a ${videoLocation.label} URL.`);
+    return t(`BeenThere will provide a ${videoLocation.label} URL.`);
   }
   return "";
 };

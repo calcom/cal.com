@@ -140,32 +140,24 @@ export default class GoogleCalendarService implements Calendar {
     return calendar;
   };
 
-  private getAttendees = (event: CalendarEvent, credId?: number, emailId?: string) => {
+  private getAttendees = (event: CalendarEvent) => {
     // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
-      (cal) => cal.credentialId === credId
+      (cal) => cal.credentialId === this.credential.id
     );
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
-
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
         id: String(event.organizer.id),
         responseStatus: "accepted",
-        // organizer: true,
+        organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        email: emailId ?? event.organizer.email,
-      },
-      {
-        email: process.env.BOT_EMAIL,
-        name: "Recording bot",
-        timeZone: event.organizer.timeZone,
-        language: event.organizer.language,
-        responseStatus: "accepted",
+        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
       },
       ...eventAttendees,
     ];
@@ -190,11 +182,7 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
-  async createEvent(
-    calEventRaw: CalendarEvent,
-    credentialId: number,
-    emailId?: string
-  ): Promise<NewCalendarEventType> {
+  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     const payload: calendar_v3.Schema$Event = {
       summary: calEventRaw.title,
       description: getRichDescription(calEventRaw),
@@ -206,7 +194,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: calEventRaw.endTime,
         timeZone: calEventRaw.organizer.timeZone,
       },
-      attendees: this.getAttendees(calEventRaw, credentialId, emailId),
+      attendees: this.getAttendees(calEventRaw),
       reminders: {
         useDefault: true,
       },
@@ -295,7 +283,10 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     const calendar = await this.authedCalendar();
-    const selectedCalendar = process.env.CALENDAR_EMAIL;
+
+    const selectedCalendar = externalCalendarId
+      ? externalCalendarId
+      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
     try {
       const evt = await calendar.events.update({
@@ -342,13 +333,13 @@ export default class GoogleCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     const calendar = await this.authedCalendar();
     const defaultCalendarId = "primary";
-    // const calendarId = externalCalendarId
-    //   ? externalCalendarId
-    //   : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+    const calendarId = externalCalendarId
+      ? externalCalendarId
+      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
 
     try {
       const event = await calendar.events.delete({
-        calendarId: process.env.CALENDAR_EMAIL,
+        calendarId: calendarId ? calendarId : defaultCalendarId,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",

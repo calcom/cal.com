@@ -22,11 +22,11 @@ export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localho
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://app.beenthere.tech";
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Beenthere.tech";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "BeenThere.tech";
 export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@beenthere.tech";
-export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Beenthere.tech, Inc.";
-export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Beenthere";
-export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Beenthere.tech";
+export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "BeenThere.tech, Inc.";
+export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "BeenThere";
+export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "BeenThere.tech";
 
 // This is the URL from which all Beenthere Links and their assets are served.
 // Use website URL to make links shorter(app.beenthere.tech and not app.app.beenthere.tech)

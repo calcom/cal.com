@@ -309,7 +309,7 @@ const BookerComponent = ({
                 <DatePicker />
               </BookerSection>
 
-        ///source
+              {/* ///source
 <!--             </StickyOnDesktop>
 
             <BookerSection
@@ -372,9 +372,9 @@ const BookerComponent = ({
               />
             </BookerSection>
           </AnimatePresence> -->
-              //source ends
+              //source ends */}
 
-  //staging starts
+              {/* //staging starts */}
               <BookerSection
                 key="large-calendar"
                 area="main"
@@ -419,7 +419,7 @@ const BookerComponent = ({
             )}>
             {!hideBranding ? <PoweredBy logoOnly /> : null}
           </m.span>
-  //staging ends
+          {/* //staging ends */}
         </div>
 
         <BookFormAsModal

@@ -23,6 +23,7 @@ export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") {
     posthog?.reset(true);
+    window && window.Intercom("shutdown");
     signOut({ redirect: false });
   }
   const router = useRouter();

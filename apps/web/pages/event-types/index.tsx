@@ -961,6 +961,20 @@ const EventTypesPage = () => {
   // const { user } = ctx;
   useEffect(() => {
     if (user) {
+      if (window && window.Intercom) {
+        window.intercomSettings = {
+          api_base: "https://api-iam.intercom.io",
+          app_id: process.env.NEXT_PUBLIC_INTERCOM_APP_ID,
+          name: user?.name, // Full name
+          email: user?.email, // Email address
+          created_at: user?.createdDate,
+          user_id: user?.id,
+          username: user?.username,
+        };
+
+        // Initialize Intercom
+        window.Intercom("boot", window.intercomSettings);
+      }
       posthog?.identify(user.email, {
         $set: { email: user.email },
       });

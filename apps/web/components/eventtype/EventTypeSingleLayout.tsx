@@ -2,7 +2,7 @@ import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -15,11 +15,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { Dialog, DialogClose, DialogContent, TextAreaField } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  Dialog,
   DropdownMenuSeparator,
   Dropdown,
   DropdownMenuContent,
@@ -61,7 +61,42 @@ type Props = {
   availability?: AvailabilityOption;
   isUserOrganizationAdmin: boolean;
 };
+export const ShowMessageDialog = (props) => {
+  const { t } = useLocale();
+  const { isOpenDialog, setIsOpenDialog, messagetemplate, setMessageTemplate } = props;
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogContent title={t("Copy Message")}>
+        <div>
+          <TextAreaField
+            className="min-h-52"
+            name="messagetemplate"
+            label={
+              <>
+                <span className="text-subtle font-normal">Edit or directly copy the message to share</span>
+              </>
+            }
+            value={messagetemplate}
+            onChange={(e) => setMessageTemplate(e.target.value)}
+          />
+        </div>
 
+        <div className="flex  justify-end  space-x-2  pb-4 pt-4 rtl:space-x-reverse">
+          <DialogClose />
+          <Button
+            data-testid="rejection-confirm"
+            onClick={() => {
+              navigator.clipboard.writeText(messagetemplate);
+              setIsOpenDialog(false);
+              showToast("Message copied to clipboard!", "success");
+            }}>
+            {t("Copy")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 function getNavigation(props: {
   t: TFunction;
   eventType: Props["eventType"];
@@ -222,10 +257,25 @@ function EventTypeSingleLayout({
   const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
     team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
-
+  const [messagetemplate, setMessageTemplate] = useState<string>(
+    `Hey [Name], I’m serious about talking with you about ${
+      eventType?.title
+    } as you’ve been where I’m looking to go. I’ve used BeenThere, a LinkedIn knowledge-sharing platform, to pre-pay ${
+      eventType?.amount ?? ""
+    } dollar to speak with you. You can accept and book a convenient call time at: ${permalink}`
+  );
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
   const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
-
+  const [ShowMessageDialogIsOpen, setShowMessageDialogIsOpen] = useState<boolean>(false);
+  useEffect(() => {
+    setMessageTemplate(
+      `Hey [Name], I’m serious about talking with you about ${
+        eventType?.title
+      } as you’ve been where I’m looking to go. I’ve used BeenThere, a LinkedIn knowledge-sharing platform, to pre-pay ${
+        eventType?.amount ?? ""
+      } dollar to speak with you. You can accept and book a convenient call time at: ${permalink}`
+    );
+  }, [permalink, eventType]);
   return (
     <Shell
       backPath="/event-types"
@@ -318,7 +368,16 @@ function EventTypeSingleLayout({
           </ButtonGroup>
 
           <VerticalDivider className="hidden lg:block" />
-
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            data-testid="update-eventtype"
+            onClick={() => {
+              setShowMessageDialogIsOpen(true);
+            }}>
+            {t("Copy Message")}
+          </Button>
+          <VerticalDivider className="hidden lg:block" />
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
@@ -436,6 +495,12 @@ function EventTypeSingleLayout({
         </ConfirmationDialogContent>
       </Dialog>
       <EventTypeEmbedDialog />
+      <ShowMessageDialog
+        isOpenDialog={ShowMessageDialogIsOpen}
+        messagetemplate={messagetemplate}
+        setMessageTemplate={setMessageTemplate}
+        setIsOpenDialog={setShowMessageDialogIsOpen}
+      />
     </Shell>
   );
 }
