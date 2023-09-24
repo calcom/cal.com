@@ -59,7 +59,9 @@ function AdminOrgTable() {
                 </div>
               </Cell>
               <Cell widthClassNames="w-auto">
-                <span className="break-all">{org.members[0].user.email}</span>
+                <span className="break-all">
+                  {org.members.length ? org.members[0].user.email : "No members"}
+                </span>
               </Cell>
               <Cell>
                 <div className="space-x-2">

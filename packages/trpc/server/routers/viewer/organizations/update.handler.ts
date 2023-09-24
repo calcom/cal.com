@@ -24,11 +24,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
   const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
-  if (!currentOrgId || ctx.user.role !== UserPermissionRole.ADMIN)
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const isUserOrganizationAdmin = currentOrgId && (await isOrganisationAdmin(ctx.user?.id, currentOrgId));
+  const isUserRoleAdmin = ctx.user.role === UserPermissionRole.ADMIN;
 
-  if (!(await isOrganisationAdmin(ctx.user?.id, currentOrgId)) || ctx.user.role !== UserPermissionRole.ADMIN)
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const isUserAuthorizedToUpdate = !!(isUserOrganizationAdmin || isUserRoleAdmin);
+
+  if (!currentOrgId || !isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
     const userConflict = await prisma.team.findMany({

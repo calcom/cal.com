@@ -2,7 +2,6 @@ import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -13,6 +12,7 @@ import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/remind
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -205,10 +205,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(
+          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+        );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+        return deleteMeeting(
+          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          bookingRef.uid
+        );
       }
     })
   );
@@ -237,7 +242,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     uid: bookingToReschedule?.uid,
     location: bookingToReschedule?.location,
-    destinationCalendar: bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
+    destinationCalendar: bookingToReschedule?.destinationCalendar
+      ? [bookingToReschedule?.destinationCalendar]
+      : [],
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
   };
 

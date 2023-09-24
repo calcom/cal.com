@@ -67,7 +67,7 @@ export const CreateANewTeamForm = () => {
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">
-              <Alert severity="error" message={serverErrorMessage} />
+              <Alert severity="error" message={t(serverErrorMessage)} />
             </div>
           )}
 
@@ -115,9 +115,10 @@ export const CreateANewTeamForm = () => {
                     ? orgBranding.fullDomain.replace("https://", "").replace("http://", "") + "/"
                     : `${extractDomainFromWebsiteUrl}/team/`
                 }`}
+                value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");

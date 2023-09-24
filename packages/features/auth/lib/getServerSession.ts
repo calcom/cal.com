@@ -53,6 +53,8 @@ export async function getServerSession(options: {
     include: {
       organization: true,
     },
+    // TODO: Re-enable once we get confirmation from compliance that this is okay.
+    // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!user) {
@@ -80,6 +82,7 @@ export async function getServerSession(options: {
       organizationId: token.organizationId,
       twoFactorEnabled: user.twoFactorEnabled,
       orgRequireTwoFactorAuth: organization ? organization.metadata.orgRequireTwoFactorAuth : false,
+      org: token.org,
       locale: user.locale ?? undefined,
     },
   };

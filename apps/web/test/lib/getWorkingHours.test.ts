@@ -5,7 +5,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
-})
+});
 
 it("correctly translates Availability (UTC+0) to UTC workingHours", async () => {
   expect(

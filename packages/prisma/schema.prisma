@@ -56,6 +56,7 @@ model EventType {
   position                        Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations                       Json?
+  /// @zod.min(1)
   length                          Int
   offsetStart                     Int                     @default(0)
   hidden                          Boolean                 @default(false)
@@ -97,6 +98,7 @@ model EventType {
   afterEventBuffer                Int                     @default(0)
   seatsPerTimeSlot                Int?
   seatsShowAttendees              Boolean?                @default(false)
+  seatsShowAvailabilityCount      Boolean?                @default(true)
   schedulingType                  SchedulingType?
   schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId                      Int?
@@ -135,7 +137,9 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
+  CalendarCache        CalendarCache[]
 
   @@index([userId])
   @@index([appId])
@@ -202,6 +206,7 @@ model User {
   timeFormat          Int?                 @default(12)
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
+  backupCodes         String?
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
   availability        Availability[]
@@ -217,6 +222,9 @@ model User {
 
   // participate in SEO indexing or not
   allowSEOIndexing Boolean? @default(true)
+
+  // receive monthly digest email for teams or not
+  receiveMonthlyDigestEmail Boolean? @default(true)
 
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
@@ -445,10 +453,12 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  integration String
-  externalId  String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  integration  String
+  externalId   String
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId Int?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -661,6 +671,7 @@ model App {
 model App_RoutingForms_Form {
   id          String                          @id @default(cuid())
   description String?
+  position    Int                             @default(0)
   routes      Json?
   createdAt   DateTime                        @default(now())
   updatedAt   DateTime                        @updatedAt
@@ -738,12 +749,14 @@ model WorkflowStep {
   numberRequired            Boolean?
   sender                    String?
   numberVerificationPending Boolean            @default(true)
+  includeCalendarEvent      Boolean            @default(false)
 
   @@index([workflowId])
 }
 
 model Workflow {
   id       Int                     @id @default(autoincrement())
+  position Int                     @default(0)
   name     String
   userId   Int?
   user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -803,6 +816,16 @@ model WorkflowReminder {
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
+}
+
+model WebhookScheduledTriggers {
+  id            Int       @id @default(autoincrement())
+  jobName       String
+  subscriberUrl String
+  payload       String
+  startAfter    DateTime
+  retryCount    Int       @default(0)
+  createdAt     DateTime? @default(now())
 }
 
 enum WorkflowTemplates {
@@ -903,4 +926,16 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+}
+
+model CalendarCache {
+  // The key would be the unique URL that is requested by the user
+  key          String
+  value        Json
+  expiresAt    DateTime
+  credentialId Int
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@id([credentialId, key])
+  @@unique([credentialId, key])
 }

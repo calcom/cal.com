@@ -16,7 +16,13 @@ declare module "next-auth" {
     email_verified?: boolean;
     impersonatedByUID?: number;
     belongsToActiveTeam?: boolean;
-    organizationId?: number | null;
+    org?: {
+      id: number;
+      name?: string;
+      slug: string;
+      fullDomain: string;
+      domainSuffix: string;
+    };
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     twoFactorEnabled: boolean;
@@ -34,6 +40,13 @@ declare module "next-auth/jwt" {
     role?: UserPermissionRole | "INACTIVE_ADMIN" | null;
     impersonatedByUID?: number | null;
     belongsToActiveTeam?: boolean;
+    org?: {
+      id: number;
+      name?: string;
+      slug: string;
+      fullDomain: string;
+      domainSuffix: string;
+    };
     organizationId?: number | null;
     locale?: string;
   }

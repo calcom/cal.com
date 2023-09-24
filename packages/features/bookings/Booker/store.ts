@@ -33,6 +33,7 @@ type SeatedEventData = {
   seatsPerTimeSlot?: number | null;
   attendees?: number;
   bookingUid?: string;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 export type BookerStore = {
@@ -154,6 +155,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
+    // unset selected date
+    if (!selectedDate) {
+      removeQueryParam("date");
+      return;
+    }
+
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
@@ -200,6 +207,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     seatsPerTimeSlot: undefined,
     attendees: undefined,
     bookingUid: undefined,
+    showAvailableSeatsCount: true,
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });

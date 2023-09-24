@@ -10,6 +10,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 
+import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
@@ -19,6 +20,7 @@ type AvailableTimeSlotsProps = {
   prefetchNextMonth: boolean;
   monthCount: number | undefined;
   seatsPerTimeSlot?: number | null;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 /**
@@ -32,6 +34,7 @@ export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
   seatsPerTimeSlot,
+  showAvailableSeatsCount,
   prefetchNextMonth,
   monthCount,
 }: AvailableTimeSlotsProps) => {
@@ -60,6 +63,7 @@ export const AvailableTimeSlots = ({
         seatsPerTimeSlot,
         attendees,
         bookingUid,
+        showAvailableSeatsCount,
       });
 
       if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
@@ -97,32 +101,47 @@ export const AvailableTimeSlots = ({
   }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
-    <div
-      ref={containerRef}
-      className={classNames(
-        limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex h-full w-full flex-row gap-4"
-      )}>
-      {schedule.isLoading
-        ? // Shows exact amount of days as skeleton.
-          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
-        : slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <AvailableTimes
-              className="w-full"
-              key={slots.date}
-              showTimeFormatToggle={!isColumnView}
-              onTimeSelect={onTimeSelect}
-              date={dayjs(slots.date)}
-              slots={slots.slots}
-              seatsPerTimeSlot={seatsPerTimeSlot}
-              availableMonth={
-                dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
-                  ? dayjs(slots.date).format("MMM")
-                  : undefined
-              }
-            />
-          ))}
-    </div>
+    <>
+      <div className="flex">
+        {schedule.isLoading
+          ? // Shows exact amount of days as skeleton.
+            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          : slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimesHeader
+                key={slots.date}
+                date={dayjs(slots.date)}
+                showTimeFormatToggle={!isColumnView}
+                availableMonth={
+                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                    ? dayjs(slots.date).format("MMM")
+                    : undefined
+                }
+              />
+            ))}
+      </div>
+      <div
+        ref={containerRef}
+        className={classNames(
+          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
+          !limitHeight && "flex h-full w-full flex-row gap-4"
+        )}>
+        {schedule.isLoading
+          ? // Shows exact amount of days as skeleton.
+            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          : slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimes
+                className="scroll-bar w-full overflow-auto"
+                key={slots.date}
+                showTimeFormatToggle={!isColumnView}
+                onTimeSelect={onTimeSelect}
+                slots={slots.slots}
+                seatsPerTimeSlot={seatsPerTimeSlot}
+                showAvailableSeatsCount={showAvailableSeatsCount}
+              />
+            ))}
+      </div>
+    </>
   );
 };

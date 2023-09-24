@@ -64,6 +64,7 @@ const formSchema = z.object({
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
       numberRequired: z.boolean().nullable(),
+      includeCalendarEvent: z.boolean().nullable(),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
@@ -268,7 +269,7 @@ function WorkflowPage() {
         CTA={
           !readOnly && (
             <div>
-              <Button data-testid="save-workflow" type="submit">
+              <Button data-testid="save-workflow" type="submit" loading={updateMutation.isLoading}>
                 {t("save")}
               </Button>
             </div>

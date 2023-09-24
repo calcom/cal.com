@@ -11,7 +11,6 @@ export type AvatarGroupProps = {
     href?: string;
   }[];
   className?: string;
-  accepted?: boolean;
   truncateAfter?: number;
 };
 
@@ -36,7 +35,6 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
             imageSrc={item.image}
             title={item.title}
             alt={item.alt || ""}
-            accepted={props.accepted}
             size={props.size}
             href={item.href}
           />

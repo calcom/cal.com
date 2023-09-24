@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -52,7 +53,7 @@ const checkIsOrg = (team: Props["team"]) => {
 };
 
 export default function MemberListItem(props: Props) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
@@ -69,6 +70,15 @@ export default function MemberListItem(props: Props) {
     },
     async onError(err) {
       showToast(err.message, "error");
+    },
+  });
+
+  const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
+    onSuccess: () => {
+      showToast(t("invitation_resent"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     },
   });
 
@@ -105,11 +115,27 @@ export default function MemberListItem(props: Props) {
     !props.member.disableImpersonation &&
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
+  const resendInvitation = editMode && !props.member.accepted;
 
   const bookerUrl = useBookerUrl();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
-
+  const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
+  const appList = props.member.connectedApps?.map(({ logo, name, externalId }) => {
+    return logo ? (
+      externalId ? (
+        <div className="ltr:mr-2 rtl:ml-2 ">
+          <Tooltip content={externalId}>
+            <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
+          </Tooltip>
+        </div>
+      ) : (
+        <div className="ltr:mr-2 rtl:ml-2">
+          <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
+        </div>
+      )
+    ) : null;
+  });
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
@@ -124,9 +150,9 @@ export default function MemberListItem(props: Props) {
 
             <div className="ms-3 inline-block">
               <div className="mb-1 flex">
-                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
-
+                <span className="text-default mr-2 text-sm font-bold leading-4">{name}</span>
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+                {isAdmin && props.member.accepted && appList}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
@@ -208,6 +234,22 @@ export default function MemberListItem(props: Props) {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>
+                    )}
+                    {resendInvitation && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          onClick={() => {
+                            resendInvitationMutation.mutate({
+                              teamId: props.team?.id,
+                              email: props.member.email,
+                              language: i18n.language,
+                            });
+                          }}
+                          StartIcon={SendIcon}>
+                          {t("resend_invitation")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     <DropdownMenuItem>
                       <DropdownItem
