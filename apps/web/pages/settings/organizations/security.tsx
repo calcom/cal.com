@@ -37,7 +37,7 @@ const OrgSecurityView = () => {
     },
   });
 
-  const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     onError: () => {
       router.push("/settings");
     },
@@ -45,13 +45,16 @@ const OrgSecurityView = () => {
 
   if (isLoading) return <SkeletonLoader />;
 
+  const twoFactorEnabled =
+    currentOrg && currentOrg.metadata ? !!currentOrg.metadata.orgRequireTwoFactorAuth : false;
+
   return (
     <>
       <Meta title={t("security")} description={t("organization_settings_description")} />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           data-testid="two-factor-switch"
-          checked={currentOrganisation.metadata.orgRequireTwoFactorAuth}
+          checked={twoFactorEnabled}
           onCheckedChange={(orgRequireTwoFactorAuth) => {
             mutation.mutate({ metadata: { orgRequireTwoFactorAuth } });
           }}
@@ -59,10 +62,8 @@ const OrgSecurityView = () => {
         <div className="!mx-4">
           <div className="flex">
             <p className="text-default font-semibold">{t("require_2fa_auth")}</p>
-            <Badge
-              className="mx-2 text-xs"
-              variant={currentOrganisation.metadata.orgRequireTwoFactorAuth ? "success" : "gray"}>
-              {currentOrganisation.metadata.orgRequireTwoFactorAuth ? t("enabled") : t("disabled")}
+            <Badge className="mx-2 text-xs" variant={twoFactorEnabled ? "success" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
           <p className="text-default text-sm">{t("organization_enforce_two_factor_authentication")}</p>
