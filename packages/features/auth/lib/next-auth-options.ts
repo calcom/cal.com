@@ -473,6 +473,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
                 fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
+                orgRequireTwoFactorAuth: parsedOrgMetadata?.orgRequireTwoFactorAuth ?? false,
               }
             : undefined,
         };

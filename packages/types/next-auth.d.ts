@@ -22,11 +22,11 @@ declare module "next-auth" {
       slug: string;
       fullDomain: string;
       domainSuffix: string;
+      orgRequireTwoFactorAuth: boolean;
     };
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     twoFactorEnabled: boolean;
-    orgRequireTwoFactorAuth: boolean;
     locale?: string | null;
   }
 }
@@ -46,6 +46,7 @@ declare module "next-auth/jwt" {
       slug: string;
       fullDomain: string;
       domainSuffix: string;
+      orgRequireTwoFactorAuth: boolean;
     };
     organizationId?: number | null;
     locale?: string;

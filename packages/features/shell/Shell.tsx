@@ -195,18 +195,18 @@ function useRedirectTo2FAIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const orgRequireTwoFactorAuth =
-    user && user.organization ? user.organization.metadata.orgRequireTwoFactorAuth : false;
-  const userIsAttachedToAnOrganization = user && user.organization;
+  let isRedirectingTo2Fa = false;
 
-  const isRedirectingTo2Fa =
-    user && userIsAttachedToAnOrganization && orgRequireTwoFactorAuth && !user.twoFactorEnabled;
+  if (user && user.organization) {
+    const metadata = user.organization.metadata || {};
+    if (metadata.orgRequireTwoFactorAuth && !user.twoFactorEnabled) {
+      isRedirectingTo2Fa = true;
+    }
+  }
 
   useEffect(() => {
-    if (user) {
-      if (isRedirectingTo2Fa) {
-        router.replace("/settings/security/two-factor-auth");
-      }
+    if (user && isRedirectingTo2Fa) {
+      router.replace("/settings/security/two-factor-auth");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRedirectingTo2Fa, user]);

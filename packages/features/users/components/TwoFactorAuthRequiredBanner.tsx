@@ -9,13 +9,14 @@ function TwoFactorAuthRequiredBanner() {
   const query = useMeQuery();
   const user = query.data;
 
-  const belongsToOrganization = user && user.organization;
-  const orgRequireTwoFactorAuth = belongsToOrganization
-    ? user.organization.metadata.orgRequireTwoFactorAuth
-    : false;
-  const organizationRequiresTwoFactor = belongsToOrganization ? orgRequireTwoFactorAuth : false;
+  let requiresMFA = false;
 
-  const requiresMFA = belongsToOrganization && organizationRequiresTwoFactor && !user.twoFactorEnabled;
+  if (user && user.organization) {
+    const metadata = user.organization.metadata || {};
+    if (metadata.orgRequireTwoFactorAuth && !user.twoFactorEnabled) {
+      requiresMFA = true;
+    }
+  }
 
   if (!requiresMFA) return null;
 
