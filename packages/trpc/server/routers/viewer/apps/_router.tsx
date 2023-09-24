@@ -1,6 +1,7 @@
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
+import { getAppDataSchema } from "./getAppData.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
@@ -15,6 +16,7 @@ type AppsRouterHandlerCache = {
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
+  getAppData?: typeof import("./getAppData.handler").getAppDataHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -139,6 +141,23 @@ export const appsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.checkGlobalKeys({
+      ctx,
+      input,
+    });
+  }),
+  getAppData: authedProcedure.input(getAppDataSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getAppData) {
+      UNSTABLE_HANDLER_CACHE.getAppData = await import("./getAppData.handler").then(
+        (mod) => mod.getAppDataHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getAppData) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getAppData({
       ctx,
       input,
     });
