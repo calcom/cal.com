@@ -8,7 +8,20 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
+  const startPaths = [
+    "/team",
+    "/teams/",
+    "/workflows",
+    "/settings/developer",
+    "/settings/teams",
+    "/insights",
+    "/apps/routing-forms/forms",
+    "/settings/billing",
+  ];
+  if (startPaths.some((path) => url.pathname.startsWith(path))) {
+    req.nextUrl.pathname = `/404`;
+    return NextResponse.rewrite(req.nextUrl);
+  }
   if (!url.pathname.startsWith("/api")) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
@@ -69,6 +82,17 @@ export const config = {
     "/:path*/embed",
     "/api/trpc/:path*",
     "/auth/login",
+    "/team",
+    "/team/:path*",
+    "/teams",
+    "/teams/:path*",
+    "/workflows",
+    "/settings/developer/:path*",
+    "/settings/teams",
+    "/settings/teams/:path*",
+    "/insights",
+    "/apps/routing-forms/forms",
+    "/settings/billing",
     /**
      * Paths required by routingForms.handle
      */

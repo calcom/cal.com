@@ -3,6 +3,7 @@ import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
@@ -429,7 +430,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {!isManagedEventType && (
+                        {/* {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                             <Tooltip
@@ -445,7 +446,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               </div>
                             </Tooltip>
                           </>
-                        )}
+                        )} */}
 
                         <ButtonGroup combined>
                           {!isManagedEventType && (
@@ -496,7 +497,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {!isManagedEventType && !isChildrenManagedEventType && (
+                              {/* {!isManagedEventType && !isChildrenManagedEventType && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
@@ -508,7 +509,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     </DropdownItem>
                                   </DropdownMenuItem>
                                 </>
-                              )}
+                              )} */}
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
@@ -770,8 +771,10 @@ const CreateFirstEventTypeView = () => {
   return (
     <EmptyScreen
       Icon={LinkIcon}
-      headline={t("new_event_type_heading")}
-      description={t("new_event_type_description")}
+      headline={t("Setup your first Session here")}
+      description={t(
+        "Session enable you to share links that show available times on your calendar and allow people to make bookings with you."
+      )}
       className="mb-16"
       buttonRaw={
         <Button href="?dialog=new" variant="button">
@@ -802,6 +805,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
   return (
     <CreateButton
       data-testid="new-event-type"
+      className="bg-[#3662E3]"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
@@ -947,14 +951,31 @@ const EventTypesPage = () => {
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
-
+  const posthog = usePostHog();
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
     refetchOnWindowFocus: false,
     cacheTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
+  // const { user } = ctx;
+  useEffect(() => {
+    if (user) {
+      posthog?.identify(user.email, {
+        $set: { email: user.email },
+      });
+      posthog?.setPersonProperties({ name: user?.name }, { completedOnboarding: user?.completedOnboarding });
+      posthog?.setPersonProperties({ type: "user" }, { timeZone: user?.timeZone });
+      posthog?.setPersonProperties(
+        {
+          username: user?.username,
+        },
+        {
+          createdDate: user?.createdDate,
+        }
+      );
+    }
+  }, [user]);
   function closeBanner() {
     setShowProfileBanner(false);
     document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
@@ -977,16 +998,13 @@ const EventTypesPage = () => {
   return (
     <ShellMain
       withoutSeo
-      heading={t("event_types_page_title")}
+      heading={t("Sessions")}
       hideHeadingOnMobile
-      subtitle={t("event_types_page_subtitle")}
+      subtitle={t("See all your sessions and setup new one here.")}
       afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
       beforeCTAactions={<Actions />}
       CTA={<CTA data={data} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
+      <HeadSeo title="Sessions" description="See all your sessions and setup new one here." />
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );

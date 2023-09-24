@@ -18,18 +18,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import {
-  Button,
-  Label,
-  Select,
-  SettingsToggle,
-  Skeleton,
-  TextField,
-  Editor,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
+import { Label, Select, Skeleton, TextField, Editor, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Check } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
@@ -308,7 +298,7 @@ export const EventSetupTab = (
                         location.teamName ? `(${location.teamName})` : ""
                       }`}</span>
                     </div>
-                    <div className="flex">
+                    {/* <div className="flex">
                       <button
                         type="button"
                         onClick={() => {
@@ -330,7 +320,7 @@ export const EventSetupTab = (
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
                         <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 </li>
               );
@@ -362,7 +352,7 @@ export const EventSetupTab = (
                 </a>
               </p>
             )}
-            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+            {/* {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -372,7 +362,7 @@ export const EventSetupTab = (
                   {t("add_location")}
                 </Button>
               </li>
-            )}
+            )} */}
           </ul>
         )}
       </div>
@@ -397,7 +387,7 @@ export const EventSetupTab = (
         />
         <div>
           <Label>
-            {t("description")}
+            {t("What do you want to discuss ?")}
             {shouldLockIndicator("description")}
           </Label>
           <DescriptionEditor
@@ -497,7 +487,7 @@ export const EventSetupTab = (
             min={1}
           />
         )}
-        {!lengthLockedProps.disabled && (
+        {/* {!lengthLockedProps.disabled && (
           <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
             <SettingsToggle
               title={t("allow_booker_to_select_duration")}
@@ -517,7 +507,9 @@ export const EventSetupTab = (
               }}
             />
           </div>
-        )}
+        )} */}
+        <Label>{t("Price")}</Label>
+        <TextField disabled required label={t("Price")} defaultValue={"$ " + eventType.amount} />
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}

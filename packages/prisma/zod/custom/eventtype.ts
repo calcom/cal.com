@@ -7,6 +7,8 @@ import * as imports from "../../zod-utils";
 export const createEventTypeInput = z.object({
   title: z.string().min(1),
   slug: imports.eventTypeSlug,
+  ques: z.string().optional(),
+  amount:z.number().int(),
   description: z.string().nullish(),
   length: z.number().int(),
   hidden: z.boolean(),

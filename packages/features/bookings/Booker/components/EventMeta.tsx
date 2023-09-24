@@ -76,6 +76,16 @@ export const EventMeta = () => {
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
+          {event.amount && (
+            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4 font-extrabold">
+              <div dangerouslySetInnerHTML={{ __html: "💰 Session Reward : " + event.amount + " USD" }} />
+              <div
+                className=" pt-2 font-extralight"
+                dangerouslySetInnerHTML={{ __html: "Settled immediately after session completion" }}
+              />
+            </EventMetaBlock>
+          )}
+
           <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>

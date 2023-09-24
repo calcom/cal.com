@@ -202,7 +202,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <Controller
           name="allowDynamicBooking"
           control={formMethods.control}
@@ -217,7 +217,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             />
           )}
         />
-      </div>
+      </div> */}
 
       <div className="mt-8">
         <Controller

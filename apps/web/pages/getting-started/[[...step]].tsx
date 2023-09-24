@@ -156,7 +156,6 @@ const OnboardingPage = () => {
                 {currentStep === "user-profile" && <UserProfile />}
               </Suspense>
             </StepCard>
-
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button

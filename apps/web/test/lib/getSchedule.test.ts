@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { v4 as uuid } from "uuid";
 
 import { getDate, getGoogleCalendarCredential, createBookingScenario } from "../utils/bookingScenario";
 
@@ -144,7 +145,6 @@ const TestData = {
     },
   },
 };
-
 const cleanup = async () => {
   await prisma.eventType.deleteMany();
   await prisma.user.deleteMany();
@@ -180,6 +180,7 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
+            uid:uuid(),
             slotInterval: 45,
             length: 45,
             users: [
@@ -233,6 +234,7 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
+            uid:uuid(),
             // If `slotInterval` is set, it supersedes `length`
             slotInterval: 45,
             length: 45,
@@ -359,6 +361,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 30,
+            uid:uuid(),
             users: [
               {
                 id: 101,
@@ -368,6 +371,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             length: 30,
+            uid:uuid(),
             slotInterval: 120,
             users: [
               {
@@ -457,6 +461,7 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
+            uid:uuid(),
             length: 120,
             minimumBookingNotice: 13 * 60, // Would take the minimum bookable time to be 18:30UTC+13 = 7:30AM UTC
             users: [
@@ -468,6 +473,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             length: 120,
+            uid:uuid(),
             minimumBookingNotice: 10 * 60, // Would take the minimum bookable time to be 18:30UTC+10 = 4:30AM UTC
             users: [
               {
@@ -548,6 +554,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 120,
+            uid:uuid(),
             beforeEventBuffer: 120,
             afterEventBuffer: 120,
             users: [
@@ -613,6 +620,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 120,
+            uid:uuid(),
             beforeEventBuffer: 120,
             afterEventBuffer: 120,
             users: [
@@ -680,6 +688,7 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
+            uid:uuid(),
             length: 25,
             offsetStart: 5,
             users: [
@@ -749,6 +758,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 60,
+            uid:uuid(),
             users: [
               {
                 id: 101,
@@ -796,7 +806,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            schedulingType: "COLLECTIVE",
+            schedulingType: "COLLECTIVE", uid:uuid(),
             hosts: [
               {
                 id: 101,
@@ -810,6 +820,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             length: 15,
+            uid: uuid(),
             slotInterval: 45,
             users: [{ id: 101 }],
           },
@@ -892,6 +903,7 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 45,
             schedulingType: "COLLECTIVE",
+            uid:uuid(),
             length: 45,
             users: [
               {
@@ -904,6 +916,7 @@ describe("getSchedule", () => {
           },
           {
             id: 2,
+            uid:uuid(),
             slotInterval: 45,
             length: 45,
             users: [
@@ -1016,7 +1029,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            length: 45,
+            length: 45, uid:uuid(),
             users: [
               {
                 id: 101,
@@ -1031,6 +1044,7 @@ describe("getSchedule", () => {
             id: 2,
             slotInterval: 45,
             length: 45,
+            uid: uuid(),
             users: [
               {
                 id: 102,

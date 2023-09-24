@@ -44,6 +44,7 @@ const BookerComponent = ({
   isTeamEvent,
   entity,
   duration,
+  name,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -216,60 +217,100 @@ const BookerComponent = ({
 
   return (
     <>
-      {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
-          // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
-          "main",
-          "text-default flex min-h-full w-full flex-col items-center",
-          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+          layout === BookerLayouts.MONTH_VIEW ? " flex flex-col items-center justify-center" : ""
         )}>
         <div
-          ref={animationScope}
           className={classNames(
-            // Sets booker size css variables for the size of all the columns.
-            ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
-            !isEmbed && "sm:transition-[width] sm:duration-300",
-            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
+            "block pb-6 text-center font-extrabold",
+            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
-          <AnimatePresence>
-            <BookerSection
-              area="header"
-              className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
-                (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                  "bg-default dark:bg-muted sticky top-0 z-10"
-              )}>
-              <Header
-                enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                isMobile={isMobile}
-                nextSlots={nextSlots}
-              />
-            </BookerSection>
-            <StickyOnDesktop
-              key="meta"
-              className={classNames(
-                "relative z-10 flex [grid-area:meta]",
-                // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
-                layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
-              )}>
+          Help {name} solve this problem and get rewarded.
+        </div>
+        {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
+        <div
+          className={classNames(
+            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+            "main",
+            "text-default flex min-h-full w-full flex-col items-center",
+            layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+          )}>
+          <div
+            ref={animationScope}
+            className={classNames(
+              // Sets booker size css variables for the size of all the columns.
+              ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
+              "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+              // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
+              (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
+              !isEmbed && "sm:transition-[width] sm:duration-300",
+              isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
+              !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
+            )}>
+            <AnimatePresence>
               <BookerSection
-                area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                <EventMeta />
-                {layout !== BookerLayouts.MONTH_VIEW &&
-                  !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3 ">
-                      <DatePicker />
-                    </div>
-                  )}
+                area="header"
+                className={classNames(
+                  layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
+                  (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
+                    "bg-default dark:bg-muted sticky top-0 z-10"
+                )}>
+                <Header
+                  enabledLayouts={bookerLayouts.enabledLayouts}
+                  extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
+                  isMobile={isMobile}
+                  nextSlots={nextSlots}
+                />
               </BookerSection>
-            </StickyOnDesktop>
+              <StickyOnDesktop
+                key="meta"
+                className={classNames(
+                  "relative z-10 flex [grid-area:meta]",
+                  // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
+                  layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
+                )}>
+                <BookerSection
+                  area="meta"
+                  className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                  <EventMeta />
+                  {layout !== BookerLayouts.MONTH_VIEW &&
+                    !(layout === "mobile" && bookerState === "booking") && (
+                      <div className="mt-auto px-5 py-3 ">
+                        <DatePicker />
+                      </div>
+                    )}
+                </BookerSection>
+              </StickyOnDesktop>
+
+              <BookerSection
+                key="book-event-form"
+                area="main"
+                className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+                {...fadeInLeft}
+                visible={bookerState === "booking" && !shouldShowFormInDialog}>
+                <BookEventForm
+                  onCancel={() => {
+                    setSelectedTimeslot(null);
+                    if (seatedEventData.bookingUid) {
+                      setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+                    }
+                  }}
+                />
+              </BookerSection>
+
+              <BookerSection
+                key="datepicker"
+                area="main"
+                visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
+                {...fadeInLeft}
+                initial="visible"
+                className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+                <DatePicker />
+              </BookerSection>
+
+        ///source
+<!--             </StickyOnDesktop>
 
             <BookerSection
               key="book-event-form"
@@ -330,24 +371,62 @@ const BookerComponent = ({
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />
             </BookerSection>
-          </AnimatePresence>
+          </AnimatePresence> -->
+              //source ends
+
+  //staging starts
+              <BookerSection
+                key="large-calendar"
+                area="main"
+                visible={layout === BookerLayouts.WEEK_VIEW}
+                className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
+                {...fadeInLeft}>
+                <LargeCalendar extraDays={extraDays} />
+              </BookerSection>
+
+              <BookerSection
+                key="timeslots"
+                area={{ default: "main", month_view: "timeslots" }}
+                visible={
+                  (layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
+                  layout === BookerLayouts.COLUMN_VIEW
+                }
+                className={classNames(
+                  "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                  layout === BookerLayouts.MONTH_VIEW &&
+                    "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
+                  layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
+                )}
+                ref={timeslotsRef}
+                {...fadeInLeft}>
+                <AvailableTimeSlots
+                  extraDays={extraDays}
+                  limitHeight={layout === BookerLayouts.MONTH_VIEW}
+                  prefetchNextMonth={prefetchNextMonth}
+                  monthCount={monthCount}
+                  seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                />
+              </BookerSection>
+            </AnimatePresence>
+          </div>
+
+          <m.span
+            key="logo"
+            className={classNames(
+              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              hasDarkBackground ? "dark" : "",
+              layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+            )}>
+            {!hideBranding ? <PoweredBy logoOnly /> : null}
+          </m.span>
+  //staging ends
         </div>
 
-        <m.span
-          key="logo"
-          className={classNames(
-            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-            hasDarkBackground ? "dark" : "",
-            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-          )}>
-          {!hideBranding ? <PoweredBy logoOnly /> : null}
-        </m.span>
+        <BookFormAsModal
+          visible={bookerState === "booking" && shouldShowFormInDialog}
+          onCancel={() => setSelectedTimeslot(null)}
+        />
       </div>
-
-      <BookFormAsModal
-        visible={bookerState === "booking" && shouldShowFormInDialog}
-        onCancel={() => setSelectedTimeslot(null)}
-      />
     </>
   );
 };

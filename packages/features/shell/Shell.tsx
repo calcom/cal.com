@@ -21,7 +21,8 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -55,32 +56,22 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  BarChart,
   Calendar,
   ChevronDown,
   Clock,
-  Copy,
-  Download,
+  Users,
   ExternalLink,
-  FileText,
-  Grid,
-  HelpCircle,
   Link as LinkIcon,
   LogOut,
-  Map,
   Moon,
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Users,
-  Zap,
 } from "@calcom/ui/components/icon";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -444,7 +435,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                {/* <DropdownMenuItem>
                   <DropdownItem
                     StartIcon={() => <Discord className="text-default h-4 w-4" />}
                     target="_blank"
@@ -452,25 +443,25 @@ function UserDropdown({ small }: UserDropdownProps) {
                     href={JOIN_DISCORD}>
                     {t("join_our_discord")}
                   </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
+                </DropdownMenuItem> */}
+                {/* <DropdownMenuItem>
                   <DropdownItem StartIcon={Map} target="_blank" href={ROADMAP}>
                     {t("visit_roadmap")}
                   </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
+                </DropdownMenuItem> */}
+                {/* <DropdownMenuItem>
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => <HelpCircle aria-hidden="true" {...props} />}
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                </DropdownMenuItem> */}
+                {/* <DropdownMenuItem className="desktop-hidden hidden lg:flex">
                   <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
                 <DropdownMenuSeparator />
 
@@ -518,77 +509,91 @@ const MORE_SEPARATOR_NAME = "more";
 
 const navigation: NavigationItemType[] = [
   {
-    name: "event_types_page_title",
+    name: "Sessions",
     href: "/event-types",
     icon: LinkIcon,
   },
   {
-    name: "bookings",
+    name: "Upcoming Calls",
     href: "/bookings/upcoming",
+    icon: Users,
+    badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/upcoming"),
+  },
+  {
+    name: "Past Calls",
+    href: "/bookings/past",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/past"),
   },
+  // {
+  //   name: "Cancelled bookings",
+  //   href: "/bookings/cancelled",
+  //   icon: Calendar,
+  //   badge: <UnconfirmedBookingBadge />,
+  //   isCurrent: ({ pathname }) => pathname?.startsWith("/bookings/cancelled"),
+  // },
   {
     name: "availability",
     href: "/availability",
     icon: Clock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
-  {
-    name: "apps",
-    href: "/apps",
-    icon: Grid,
-    isCurrent: ({ pathname: path, item }) => {
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path?.startsWith(item.href) && !path?.includes("routing-forms/");
-    },
-    child: [
-      {
-        name: "app_store",
-        href: "/apps",
-        isCurrent: ({ pathname: path, item }) => {
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            path?.startsWith(item.href) && !path?.includes("routing-forms/") && !path?.includes("/installed")
-          );
-        },
-      },
-      {
-        name: "installed_apps",
-        href: "/apps/installed/calendar",
-        isCurrent: ({ pathname: path }) =>
-          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
-      },
-    ],
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Users,
+  //   onlyDesktop: true,
+  //   badge: <TeamInviteBadge />,
+  // },
+  // {
+  //   name: "apps",
+  //   href: "/apps",
+  //   icon: Grid,
+  //   isCurrent: ({ pathname: path, item }) => {
+  //     // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //     return path?.startsWith(item.href) && !path?.includes("routing-forms/");
+  //   },
+  //   child: [
+  //     {
+  //       name: "app_store",
+  //       href: "/apps",
+  //       isCurrent: ({ pathname: path, item }) => {
+  //         // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //         return (
+  //           path?.startsWith(item.href) && !path?.includes("routing-forms/") && !path?.includes("/installed")
+  //         );
+  //       },
+  //     },
+  //     {
+  //       name: "installed_apps",
+  //       href: "/apps/installed/calendar",
+  //       isCurrent: ({ pathname: path }) =>
+  //         path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
+  //     },
+  //   ],
+  // },
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: MoreHorizontal,
   },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
-    icon: FileText,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Zap,
-  },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: BarChart,
-  },
+  // {
+  //   name: "Routing Forms",
+  //   href: "/apps/routing-forms/forms",
+  //   icon: FileText,
+  //   isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
+  // },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Zap,
+  // },
+  // {
+  //   name: "insights",
+  //   href: "/insights",
+  //   icon: BarChart,
+  // },
 ];
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
@@ -656,12 +661,14 @@ const NavigationItem: React.FC<{
           aria-label={t(item.name)}
           className={classNames(
             "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
-            item.child ? `[&[aria-current='page']]:bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
+            item.child
+              ? `[&[aria-current='page']]:bg-transparent`
+              : ` [&[aria-current='page']]:bg-[#E5E7EB] `,
             isChild
-              ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
+              ? `[&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:text-[#552a2a] ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
-              : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+              : "mt-0.5 text-sm [&[aria-current='page']]:text-black",
             isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
           )}
           aria-current={current ? "page" : undefined}>
@@ -800,21 +807,21 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const bottomNavItems: NavigationItemType[] = [
     {
-      name: "view_public_page",
+      name: "view profile page",
       href: publicPageUrl,
       icon: ExternalLink,
       target: "__blank",
     },
-    {
-      name: "copy_public_page_link",
-      href: "",
-      onClick: (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
-      },
-      icon: Copy,
-    },
+    // {
+    //   name: "copy_public_page_link",
+    //   href: "",
+    //   onClick: (e: { preventDefault: () => void }) => {
+    //     e.preventDefault();
+    //     navigator.clipboard.writeText(publicPageUrl);
+    //     showToast(t("link_copied"), "success");
+    //   },
+    //   icon: Copy,
+    // },
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
@@ -884,7 +891,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         </div>
 
         <div>
-          <Tips />
+          {/* <Tips /> */}
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
@@ -894,7 +901,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+                  "text-default  justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium [&[aria-current='page']]:bg-[red]",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"

@@ -100,7 +100,7 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+  data: any
 ) => {
   const { appId, payloadTemplate: template } = webhook;
 

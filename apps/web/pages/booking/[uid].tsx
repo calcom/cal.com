@@ -145,7 +145,7 @@ export default function Success(props: SuccessProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-
+  const isPast = new Date(props.bookingInfo.endTime) < new Date();
   function setIsCancellationMode(value: boolean) {
     const _searchParams = new URLSearchParams(searchParams);
 
@@ -272,6 +272,12 @@ export default function Success(props: SuccessProps) {
       }
       return t("needs_to_be_confirmed_or_rejected" + titleSuffix);
     }
+    if (isPast) {
+      return t(
+        "Your session with expert was completed successfully. We have sent both details on the email and the payment has been settled." +
+          titleSuffix
+      );
+    }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
@@ -375,7 +381,9 @@ export default function Success(props: SuccessProps) {
                         : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
-                      : t("meeting_is_scheduled")}
+                      : isPast
+                      ? t("Session Complete")
+                      : t("Meeting is Scheduled")}
                   </h3>
                   <div className="mt-3">
                     <p className="text-default">{getTitle()}</p>
@@ -495,7 +503,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {bookingInfo?.description && (
+                    {!isPast && bookingInfo?.description && (
                       <>
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
@@ -503,36 +511,58 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
+                    {isPast && (
+                      <>
+                        <div className="mt-3 font-medium">{t("Session Recording")}</div>
+                        <div className="col-span-2 mt-3">
+                          {bookingInfo?.recordingLink ? (
+                            <a
+                              href={bookingInfo?.recordingLink}
+                              target="_blank"
+                              title="Recording Link"
+                              className="text-default flex items-center gap-2 underline"
+                              rel="noreferrer">
+                              Recorded Video Link
+                              {/* <ExternalLink className="text-default inline h-4 w-4" /> */}
+                            </a>
+                          ) : (
+                            "Recording Not ready yet."
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
-                    {Object.entries(bookingInfo.responses).map(([name, response]) => {
-                      const field = eventType.bookingFields.find((field) => field.name === name);
-                      // We show location in the "where" section
-                      // We show Booker Name, Emails and guests in Who section
-                      // We show notes in additional notes section
-                      // We show rescheduleReason at the top
-                      if (!field) return null;
-                      const isSystemField = SystemField.safeParse(field.name);
-                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
+                    {!isPast &&
+                      Object.entries(bookingInfo.responses).map(([name, response]) => {
+                        const field = eventType.bookingFields.find((field) => field.name === name);
+                        // We show location in the "where" section
+                        // We show Booker Name, Emails and guests in Who section
+                        // We show notes in additional notes section
+                        // We show rescheduleReason at the top
+                        if (!field) return null;
+                        const isSystemField = SystemField.safeParse(field.name);
+                        // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
+                        if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
-                      const label = field.label || t(field.defaultLabel || "");
+                        const label = field.label || t(field.defaultLabel || "");
 
-                      return (
-                        <>
-                          <div className="text-emphasis mt-4 font-medium">{label}</div>
-                          <p
-                            className="text-default break-words"
-                            data-testid="field-response"
-                            data-fob-field={field.name}>
-                            {response.toString()}
-                          </p>
-                        </>
-                      );
-                    })}
+                        return (
+                          <>
+                            <div className="text-emphasis mt-4 font-medium">{label}</div>
+                            <p
+                              className="text-default break-words"
+                              data-testid="field-response"
+                              data-fob-field={field.name}>
+                              {response.toString()}
+                            </p>
+                          </>
+                        );
+                      })}
                   </div>
                 </div>
-                {(!needsConfirmation || !userIsOwner) &&
+                {!isPast &&
+                  (!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
@@ -579,7 +609,8 @@ export default function Success(props: SuccessProps) {
                       />
                     </>
                   ))}
-                {userIsOwner &&
+                {!isPast &&
+                  userIsOwner &&
                   !needsConfirmation &&
                   !isCancellationMode &&
                   !isCancelled &&
@@ -692,7 +723,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   )}
 
-                {session === null && !(userIsOwner || props.hideBranding) && (
+                {!isPast && session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-subtle mt-8" />
                     <div className="text-default pt-8 text-center text-xs">
@@ -728,7 +759,7 @@ export default function Success(props: SuccessProps) {
                   </>
                 )}
               </div>
-              {isGmail && (
+              {!isPast && isGmail && (
                 <Alert
                   className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
@@ -1041,6 +1072,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       cancellationReason: true,
       responses: true,
       rejectionReason: true,
+      recordingLink: true,
       user: {
         select: {
           id: true,

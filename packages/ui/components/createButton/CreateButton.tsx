@@ -1,5 +1,6 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { clearEventDataFromLocalStorage } from "@calcom/lib/eventDatefromStorage";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -30,6 +31,7 @@ export type CreateBtnProps = {
   isLoading?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
+  className?: string;
 };
 
 /**
@@ -68,6 +70,7 @@ export function CreateButton(props: CreateBtnProps) {
     if (!option.teamId) {
       _searchParams.delete("teamId");
     }
+    clearEventDataFromLocalStorage();
     router.push(`${pathname}?${_searchParams.toString()}`);
   };
 

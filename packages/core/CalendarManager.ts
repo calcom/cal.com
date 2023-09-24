@@ -221,6 +221,7 @@ export const createEvent = async (
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
+
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
@@ -233,7 +234,7 @@ export const createEvent = async (
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id)
+        .createEvent(calEvent, credential.id, externalId)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**
@@ -276,6 +277,7 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
+
   const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;

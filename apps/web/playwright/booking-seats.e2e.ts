@@ -15,7 +15,6 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking with Seats", () => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
@@ -37,6 +36,7 @@ test.describe("Booking with Seats", () => {
           title: "My 2-seated event",
           slug,
           length: 60,
+          uid: uuid(),
           seatsPerTimeSlot: 2,
           seatsShowAttendees: true,
         },

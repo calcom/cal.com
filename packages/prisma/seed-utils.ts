@@ -1,5 +1,6 @@
 import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -81,6 +82,7 @@ export async function createUserAndEventType({
       bookingFields = _bookings || [];
     }
     eventTypeData.userId = theUser.id;
+    eventTypeData.uid = uuidv4();
     eventTypeData.users = { connect: { id: theUser.id } };
 
     const eventType = await prisma.eventType.findFirst({

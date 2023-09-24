@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import { useEffect, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -60,7 +61,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
-
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
   const duration = useBookerStore((state) => state.selectedDuration);
@@ -149,7 +149,7 @@ export const BookEventFormChild = ({
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-
+  const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
@@ -167,7 +167,7 @@ export const BookEventFormChild = ({
     // to set generic error messages on. Needed until RHF has implemented root error keys.
     globalError: undefined;
   };
-
+  const posthog = usePostHog();
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: initialValues,
     resolver: zodResolver(
@@ -259,7 +259,30 @@ export const BookEventFormChild = ({
       showToast(t("email_not_sent"), "error");
     },
   });
+  const sortedFields = eventType?.bookingFields.sort((a, b) => {
+    // Define the desired order of field names
+    const desiredOrder = ["name", "email", "location", "guests"];
 
+    // Get the index of each field name in the desired order
+    const indexA = desiredOrder.indexOf(a.name);
+    const indexB = desiredOrder.indexOf(b.name);
+
+    // Compare the indices to determine the sorting order
+    if (indexA === -1 && indexB === -1) {
+      // If both field names are not in the desired order, maintain their original order
+      return 0;
+    } else if (indexA === -1) {
+      // If field A is not in the desired order, it should come after field B
+      return 1;
+    } else if (indexB === -1) {
+      // If field B is not in the desired order, it should come after field A
+      return -1;
+    } else {
+      // Compare the indices to determine the sorting order
+      return indexA - indexB;
+    }
+  });
+  const [fields, setFields] = useState(sortedFields);
   const verifyEmail = () => {
     bookingForm.clearErrors();
 
@@ -351,6 +374,19 @@ export const BookEventFormChild = ({
   const renderConfirmNotVerifyEmailButtonCond =
     !eventType?.requiresBookerEmailVerification || (email && verifiedEmail && verifiedEmail === email);
 
+  function isValidEmail(email: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  const nameMissing = !bookingForm.getValues("responses.name");
+  const emailNotValid = !isValidEmail(bookingForm.getValues("responses.email"));
+  const guestsArray = bookingForm.getValues("responses.guests");
+
+  const updateFields = (updatedFields) => {
+    eventType.bookingFields = updatedFields;
+    setFields(updatedFields);
+  };
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -366,10 +402,12 @@ export const BookEventFormChild = ({
         handleSubmit={renderConfirmNotVerifyEmailButtonCond ? bookEvent : verifyEmail}
         noValidate>
         <BookingFields
+          currentStep={currentStep}
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
-          fields={eventType.bookingFields}
+          fields={fields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
+          updateFields={updateFields}
         />
         {(createBookingMutation.isError ||
           createRecurringBookingMutation.isError ||
@@ -389,24 +427,72 @@ export const BookEventFormChild = ({
             />
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
-          {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
-              {t("back")}
+        {currentStep === 1 && (
+          <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+            {!!onCancel && (
+              <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                {t("back")}
+              </Button>
+            )}
+            <Button
+              type="submit"
+              color="primary"
+              disabled={nameMissing || emailNotValid}
+              // Condition 5: Responses.email is in the guests array or Condition 6: Guests are not unique within the array
+              onClick={() => {
+                if (bookingForm.formState.errors?.responses?.message) {
+                  const errorMessage = bookingForm.formState.errors.responses.message;
+                  if (
+                    errorMessage.includes("name") ||
+                    errorMessage.includes("email") ||
+                    errorMessage.includes("guests")
+                  ) {
+                    return;
+                  }
+                }
+                if (guestsArray && guestsArray.length > 0) {
+                  const uniqueGuestsArray = Array.from(
+                    new Set(
+                      guestsArray.filter((guest) => {
+                        return isValidEmail(guest) && guest !== bookingForm.getValues("responses.email");
+                      })
+                    )
+                  );
+                  bookingForm.setValue("responses.guests", uniqueGuestsArray);
+                }
+                posthog?.identify("expert_" + username + eventSlug, {
+                  $set: { email: bookingForm.getValues("responses.email") },
+                });
+                posthog?.setPersonProperties(
+                  { name: bookingForm.getValues("responses.name") },
+                  { type: "expert" }
+                );
+                setCurrentStep(2);
+              }}>
+              {t("Continue")}
             </Button>
-          )}
-          <Button
-            type="submit"
-            color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
-            data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid
-              ? t("reschedule")
-              : renderConfirmNotVerifyEmailButtonCond
-              ? t("confirm")
-              : t("verify_email_email_button")}
-          </Button>
-        </div>
+          </div>
+        )}
+        {currentStep === 2 && (
+          <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+            {!!onCancel && (
+              <Button color="minimal" type="button" onClick={() => setCurrentStep(1)} data-testid="back">
+                {t("back")}
+              </Button>
+            )}
+            <Button
+              type="submit" // Use type "submit" for the final confirmation button
+              color="primary"
+              loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+              data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
+              {rescheduleUid
+                ? t("reschedule")
+                : renderConfirmNotVerifyEmailButtonCond
+                ? t("confirm")
+                : t("verify_email_email_button")}
+            </Button>
+          </div>
+        )}
       </Form>
       <VerifyCodeDialog
         isOpenDialog={isEmailVerificationModalVisible}

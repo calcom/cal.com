@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { uuid } from "short-uuid";
+import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
@@ -106,6 +107,7 @@ async function main() {
       {
         title: "30min",
         slug: "30min",
+        uid: uuidv4(),
         length: 30,
         hidden: true,
       },
@@ -113,6 +115,7 @@ async function main() {
         title: "60min",
         slug: "60min",
         length: 30,
+        uid: uuidv4(),
       },
     ],
   });
@@ -129,6 +132,7 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        uid: uuidv4(),
         _bookings: [
           {
             uid: uuid(),
@@ -157,11 +161,13 @@ async function main() {
         title: "60min",
         slug: "60min",
         length: 60,
+        uid: uuidv4(),
       },
       {
         title: "Multiple duration",
         slug: "multiple-duration",
         length: 75,
+        uid: uuidv4(),
         metadata: {
           multipleDuration: [30, 75, 90],
         },
@@ -170,36 +176,42 @@ async function main() {
         title: "paid",
         slug: "paid",
         length: 60,
+        uid: uuidv4(),
         price: 100,
       },
       {
         title: "In person meeting",
         slug: "in-person",
         length: 60,
+        uid: uuidv4(),
         locations: [{ type: "inPerson", address: "London" }],
       },
       {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
+        uid: uuidv4(),
         locations: [{ type: zoomMeta.appData?.location?.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
+        uid: uuidv4(),
         locations: [{ type: dailyMeta.appData?.location?.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
+        uid: uuidv4(),
         locations: [{ type: googleMeetMeta.appData?.location?.type }],
       },
       {
         title: "Yoga class",
         slug: "yoga-class",
         length: 30,
+        uid: uuidv4(),
         recurringEvent: { freq: 2, count: 12, interval: 1 },
         _bookings: [
           {
@@ -292,6 +304,7 @@ async function main() {
         title: "Tennis class",
         slug: "tennis-class",
         length: 60,
+        uid: uuidv4(),
         recurringEvent: { freq: 2, count: 10, interval: 2 },
         requiresConfirmation: true,
         _bookings: [
@@ -352,11 +365,13 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        uid: uuidv4(),
       },
       {
         title: "60min",
         slug: "60min",
         length: 60,
+        uid: uuidv4(),
       },
     ],
   });
@@ -373,11 +388,13 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        uid: uuid(),
       },
       {
         title: "60min",
         slug: "60min",
         length: 30,
+        uid: uuidv4(),
       },
     ],
   });
@@ -395,6 +412,7 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        uid: uuidv4(),
       },
     ],
   });
@@ -466,12 +484,14 @@ async function main() {
               title: "Collective Seeded Team Event",
               slug: "collective-seeded-team-event",
               length: 15,
+              uid: uuidv4(),
               schedulingType: "COLLECTIVE",
             },
             {
               title: "Round Robin Seeded Team Event",
               slug: "round-robin-seeded-team-event",
               length: 15,
+              uid: uuidv4(),
               schedulingType: "ROUND_ROBIN",
             },
           ],

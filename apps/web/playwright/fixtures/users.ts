@@ -3,6 +3,7 @@ import type Prisma from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import type { API } from "mailhog";
+import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import stripe from "@calcom/features/ee/payments/server/stripe";
@@ -49,6 +50,7 @@ const createTeamEventType = async (
 ) => {
   return await prisma.eventType.create({
     data: {
+      uid: uuid(),
       team: {
         connect: {
           id: team.id,
@@ -140,14 +142,15 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       });
 
       let defaultEventTypes: SupportedTestEventTypes[] = [
-        { title: "30 min", slug: "30-min", length: 30 },
-        { title: "Paid", slug: "paid", length: 30, price: 1000 },
-        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
-        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        { title: "30 min", slug: "30-min", length: 30, uid: uuid() },
+        { title: "Paid", slug: "paid", length: 30, price: 1000, uid: uuid() },
+        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30, uid: uuid() },
+        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30, uid: uuid() },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
       for (const eventTypeData of defaultEventTypes) {
+        eventTypeData.uid = uuid();
         eventTypeData.owner = { connect: { id: _user.id } };
         eventTypeData.users = { connect: { id: _user.id } };
         await prisma.eventType.create({

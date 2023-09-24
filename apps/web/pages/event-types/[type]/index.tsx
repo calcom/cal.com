@@ -3,6 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import { clearEventDataFromLocalStorage } from "@calcom/lib/eventDatefromStorage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -49,31 +51,31 @@ const EventAvailabilityTab = dynamic(() =>
   import("@components/eventtype/EventAvailabilityTab").then((mod) => mod.EventAvailabilityTab)
 );
 
-const EventTeamTab = dynamic(() =>
-  import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
-);
+// const EventTeamTab = dynamic(() =>
+//   import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
+// );
 
-const EventLimitsTab = dynamic(() =>
-  import("@components/eventtype/EventLimitsTab").then((mod) => mod.EventLimitsTab)
-);
+// const EventLimitsTab = dynamic(() =>
+//   import("@components/eventtype/EventLimitsTab").then((mod) => mod.EventLimitsTab)
+// );
 
-const EventAdvancedTab = dynamic(() =>
-  import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
-);
+// const EventAdvancedTab = dynamic(() =>
+//   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
+// );
 
-const EventRecurringTab = dynamic(() =>
-  import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
-);
+// const EventRecurringTab = dynamic(() =>
+//   import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
+// );
 
-const EventAppsTab = dynamic(() =>
-  import("@components/eventtype/EventAppsTab").then((mod) => mod.EventAppsTab)
-);
+// const EventAppsTab = dynamic(() =>
+//   import("@components/eventtype/EventAppsTab").then((mod) => mod.EventAppsTab)
+// );
 
-const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkfowsTab"));
+// const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkfowsTab"));
 
-const EventWebhooksTab = dynamic(() =>
-  import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
-);
+// const EventWebhooksTab = dynamic(() =>
+//   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
+// );
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
@@ -143,13 +145,13 @@ const querySchema = z.object({
     .enum([
       "setup",
       "availability",
-      "apps",
-      "limits",
-      "recurring",
-      "team",
-      "advanced",
-      "workflows",
-      "webhooks",
+      // "apps",
+      // "limits",
+      // "recurring",
+      // "team",
+      // "advanced",
+      // "workflows",
+      // "webhooks",
     ])
     .optional()
     .default("setup"),
@@ -162,10 +164,19 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const telemetry = useTelemetry();
+  const router = useRouter();
+  const pathname = usePathname();
   const {
     data: { tabName },
   } = useTypedQuery(querySchema);
-
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    clearEventDataFromLocalStorage();
+    if (searchParams.get("payment") === "success") {
+      showToast(t("Session Created Successfully"), "success");
+      router.replace(pathname);
+    }
+  }, []);
   const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: props.eventType.team?.id || props.eventType.parent?.teamId,
@@ -339,18 +350,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: (
-      <EventWorkflowsTab
-        eventType={eventType}
-        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
-      />
-    ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
+    // team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    // limits: <EventLimitsTab eventType={eventType} />,
+    // advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    // recurring: <EventRecurringTab eventType={eventType} />,
+    // apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    // workflows: (
+    //   <EventWorkflowsTab
+    //     eventType={eventType}
+    //     workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
+    //   />
+    // ),
+    // webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
 
   const handleSubmit = async (values: FormValues) => {
@@ -442,6 +453,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     <>
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
+        currentUserMembership={currentUserMembership}
         installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
@@ -449,8 +461,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
-        currentUserMembership={currentUserMembership}
+        disableBorder={false}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}

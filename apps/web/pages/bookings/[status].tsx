@@ -14,7 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { HorizontalTabs } from "@calcom/ui";
 import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
@@ -42,24 +41,24 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     name: "upcoming",
     href: "/bookings/upcoming",
   },
-  {
-    name: "unconfirmed",
-    href: "/bookings/unconfirmed",
-  },
-  {
-    name: "recurring",
-    href: "/bookings/recurring",
-  },
+  // {
+  //   name: "unconfirmed",
+  //   href: "/bookings/unconfirmed",
+  // },
+  // {
+  //   name: "recurring",
+  //   href: "/bookings/recurring",
+  // },
   {
     name: "past",
     href: "/bookings/past",
   },
-  {
-    name: "cancelled",
-    href: "/bookings/cancelled",
-  },
+  // {
+  //   name: "cancelled",
+  //   href: "/bookings/cancelled",
+  // },
 ];
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
+const validStatuses = ["upcoming", "past"] as const;
 
 const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
@@ -106,19 +105,20 @@ export default function Bookings() {
 
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
-      if (!booking.recurringEventId) {
-        return true;
-      }
-      if (
-        shownBookings[booking.recurringEventId] !== undefined &&
-        shownBookings[booking.recurringEventId].length > 0
-      ) {
-        shownBookings[booking.recurringEventId].push(booking);
-        return false;
-      }
-      shownBookings[booking.recurringEventId] = [booking];
-    } else if (status === "upcoming") {
+    // if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+    //   if (!booking.recurringEventId) {
+    //     return true;
+    //   }
+    //   if (
+    //     shownBookings[booking.recurringEventId] !== undefined &&
+    //     shownBookings[booking.recurringEventId].length > 0
+    //   ) {
+    //     shownBookings[booking.recurringEventId].push(booking);
+    //     return false;
+    //   }
+    //   shownBookings[booking.recurringEventId] = [booking];
+    // } else
+    if (status === "upcoming") {
       return new Date(booking.startTime).toDateString() !== new Date().toDateString();
     }
     return true;
@@ -137,12 +137,16 @@ export default function Bookings() {
     )[0] || [];
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
+  const capitalizedWord = status.charAt(0).toUpperCase() + status.slice(1);
 
   return (
-    <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMain
+      hideHeadingOnMobile
+      heading={t(`${capitalizedWord} Calls`)}
+      subtitle={t(`See all your ${capitalizedWord} calls here.`)}>
       <div className="flex flex-col">
-        <div className="flex flex-col flex-wrap lg:flex-row">
-          <HorizontalTabs tabs={tabs} />
+        <div className="flex flex-col flex-wrap justify-end lg:flex-row">
+          {/* <HorizontalTabs tabs={tabs} /> */}
           <div className="max-w-full overflow-x-auto xl:ml-auto">
             <FiltersContainer />
           </div>

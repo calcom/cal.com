@@ -1,4 +1,3 @@
-import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
@@ -39,12 +38,6 @@ import {
 import {
   Link as LinkIcon,
   Calendar,
-  Clock,
-  Sliders,
-  Repeat,
-  Grid,
-  Zap,
-  Users,
   ExternalLink,
   Code,
   Trash,
@@ -88,37 +81,37 @@ function getNavigation(props: {
       icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
-    {
-      name: "event_limit_tab_title",
-      href: `/event-types/${eventType.id}?tabName=limits`,
-      icon: Clock,
-      info: `event_limit_tab_description`,
-    },
-    {
-      name: "event_advanced_tab_title",
-      href: `/event-types/${eventType.id}?tabName=advanced`,
-      icon: Sliders,
-      info: `event_advanced_tab_description`,
-    },
-    {
-      name: "recurring",
-      href: `/event-types/${eventType.id}?tabName=recurring`,
-      icon: Repeat,
-      info: `recurring_event_tab_description`,
-    },
-    {
-      name: "apps",
-      href: `/event-types/${eventType.id}?tabName=apps`,
-      icon: Grid,
-      //TODO: Handle proper translation with count handling
-      info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
-    },
-    {
-      name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Zap,
-      info: `${enabledWorkflowsNumber} ${t("active")}`,
-    },
+    // {
+    //   name: "event_limit_tab_title",
+    //   href: `/event-types/${eventType.id}?tabName=limits`,
+    //   icon: Clock,
+    //   info: `event_limit_tab_description`,
+    // },
+    // {
+    //   name: "event_advanced_tab_title",
+    //   href: `/event-types/${eventType.id}?tabName=advanced`,
+    //   icon: Sliders,
+    //   info: `event_advanced_tab_description`,
+    // },
+    // {
+    //   name: "recurring",
+    //   href: `/event-types/${eventType.id}?tabName=recurring`,
+    //   icon: Repeat,
+    //   info: `recurring_event_tab_description`,
+    // },
+    // {
+    //   name: "apps",
+    //   href: `/event-types/${eventType.id}?tabName=apps`,
+    //   icon: Grid,
+    //   //TODO: Handle proper translation with count handling
+    //   info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
+    // },
+    // {
+    //   name: "workflows",
+    //   href: `/event-types/${eventType.id}?tabName=workflows`,
+    //   icon: Zap,
+    //   info: `${enabledWorkflowsNumber} ${t("active")}`,
+    // },
   ];
 }
 
@@ -200,40 +193,29 @@ function EventTypeSingleLayout({
           : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
-    if (team) {
-      navigation.splice(2, 0, {
-        name: "assignment",
-        href: `/event-types/${eventType.id}?tabName=team`,
-        icon: Users,
-        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
-            : ""
-        }`,
-      });
-    }
-    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
-    if (showWebhooks) {
-      navigation.push({
-        name: "webhooks",
-        href: `/event-types/${eventType.id}?tabName=webhooks`,
-        icon: TbWebhook,
-        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
-      });
-    }
+    // if (team) {
+    //   navigation.splice(2, 0, {
+    //     name: "assignment",
+    //     href: `/event-types/${eventType.id}?tabName=team`,
+    //     icon: Users,
+    //     info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
+    //       isManagedEventType
+    //         ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+    //         : ""
+    //     }`,
+    //   });
+    // }
+    // const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
+    // if (showWebhooks) {
+    //   navigation.push({
+    //     name: "webhooks",
+    //     href: `/event-types/${eventType.id}?tabName=webhooks`,
+    //     icon: TbWebhook,
+    //     info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+    //   });
+    // }
     return navigation;
-  }, [
-    t,
-    eventType,
-    enabledAppsNumber,
-    installedAppsNumber,
-    enabledWorkflowsNumber,
-    availability,
-    isManagedEventType,
-    isChildrenManagedEventType,
-    team,
-    formMethods,
-  ]);
+  }, [t, eventType, availability, isManagedEventType, isChildrenManagedEventType, formMethods]);
 
   const orgBranding = useOrgBranding();
   const isOrgEvent = orgBranding?.fullDomain;
@@ -253,7 +235,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata?.managedEventConfig && (
             <>
-              <div
+              {/* <div
                 className={classNames(
                   "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
                   formMethods.watch("hidden") ? "px-2" : "",
@@ -282,7 +264,7 @@ function EventTypeSingleLayout({
                   </div>
                 </Tooltip>
               </div>
-              <VerticalDivider className="hidden lg:block" />
+              <VerticalDivider className="hidden lg:block" /> */}
             </>
           )}
 

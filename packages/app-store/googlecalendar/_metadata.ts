@@ -13,10 +13,10 @@ export const metadata = {
   category: "calendar",
   categories: ["calendar"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Beenthere.tech",
   slug: "google-calendar",
-  url: "https://cal.com/",
-  email: "help@cal.com",
+  url: "https://app.beenthere.tech",
+  email: "help@beenthere.tech",
   dirName: "googlecalendar",
 } as AppMeta;
 

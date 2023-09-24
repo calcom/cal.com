@@ -34,6 +34,7 @@ export default function Type({
   rescheduleUid,
   entity,
   duration,
+  name,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -46,6 +47,7 @@ export default function Type({
         entity={entity}
       />
       <Booker
+        name={name}
         username={user}
         eventSlug={slug}
         bookingData={booking}
@@ -104,11 +106,20 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: usernames.join("+"),
-    eventSlug: slug,
-    org,
-  });
+  let eventData;
+  if (rescheduleUid) {
+    eventData = await ssr.viewer.public.event.fetch({
+      username: usernames.join("+"),
+      eventSlug: slug,
+      org,
+    });
+  } else {
+    eventData = await ssr.viewer.public.events.fetch({
+      username: usernames.join("+"),
+      eventSlug: slug,
+      org,
+    });
+  }
 
   if (!eventData) {
     return {
@@ -131,6 +142,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
       isSEOIndexable: true,
+      name: usernames.join("+"),
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
@@ -146,7 +158,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
-
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
@@ -155,6 +166,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
+      name: true,
       away: true,
       hideBranding: true,
       allowSEOIndexing: true,
@@ -173,15 +185,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   } else if (bookingUid) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
-
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username,
-    eventSlug: slug,
-    org,
-  });
+
+  const eventData = await (rescheduleUid
+    ? ssr.viewer.public.event.fetch({ username, eventSlug: slug, org })
+    : ssr.viewer.public.events.fetch({ username, eventSlug: slug, org }));
 
   if (!eventData) {
     return {
@@ -203,6 +213,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      name: user?.name?.split(" ")[0],
       isSEOIndexable: user?.allowSEOIndexing,
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,

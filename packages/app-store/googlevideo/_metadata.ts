@@ -14,10 +14,10 @@ export const metadata = {
   title: "Google Meet",
   variant: "conferencing",
   logo: "logo.webp",
-  publisher: "Cal.com",
-  url: "https://cal.com/",
+  publisher: "Beenthere.tech",
+  url: "https://app.beenthere.tech",
   isGlobal: false,
-  email: "help@cal.com",
+  email: "help@beenthere.tech",
   appData: {
     location: {
       linkType: "dynamic",

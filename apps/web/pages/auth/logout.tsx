@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -18,8 +19,12 @@ import { ssrInit } from "@server/lib/ssr";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 export function Logout(props: Props) {
+  const posthog = usePostHog();
   const { status } = useSession();
-  if (status === "authenticated") signOut({ redirect: false });
+  if (status === "authenticated") {
+    posthog?.reset(true);
+    signOut({ redirect: false });
+  }
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
@@ -50,7 +55,9 @@ export function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Button href="/auth/login" className="flex w-full justify-center">
+      <Button
+        href="/auth/login"
+        className="bg-brand-default text-brand flex w-full justify-center hover:bg-black hover:text-white">
         {t("go_back_login")}
       </Button>
     </AuthContainer>

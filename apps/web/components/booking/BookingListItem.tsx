@@ -6,7 +6,6 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
-import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -30,7 +29,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
+import { Check, Clock, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -147,7 +146,7 @@ function BookingListItem(booking: BookingItemProps) {
       id: "view_recordings",
       label: t("view_recordings"),
       onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
+        booking?.recordingLink && router.push(booking?.recordingLink);
       },
       disabled: mutation.isLoading,
     },
@@ -186,14 +185,14 @@ function BookingListItem(booking: BookingItemProps) {
             setIsOpenRescheduleDialog(true);
           },
         },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: MapPin,
-        },
+        // {
+        //   id: "change_location",
+        //   label: t("edit_location"),
+        //   onClick: () => {
+        //     setIsOpenLocationDialog(true);
+        //   },
+        //   icon: MapPin,
+        // },
       ],
     },
   ];
@@ -270,9 +269,12 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
   // To be used after we run query on legacy bookings
   // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
-
   const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+    booking.location === "integrations:google:meet" &&
+    isPast &&
+    isConfirmed &&
+    booking?.recordingLink != null &&
+    booking?.recordingLink !== "";
 
   return (
     <>
@@ -297,14 +299,14 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {/* {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
           timeFormat={user?.timeFormat ?? null}
         />
-      )}
+      )} */}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
