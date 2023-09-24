@@ -65,9 +65,9 @@ export const fillAndConfirmBooking = async (
 
   // if is select or multiselect question and required click in all options, for select just the last option will be checked
   if (isSelect && isRequired) {
-    await eventTypePage.locator("#react-select-3-input").click(); //failling here
+    await eventTypePage.locator(".data-testid-select > .bg-default").click();
     await eventTypePage.getByTestId("select-option-Option 1").click();
-    await eventTypePage.locator("#react-select-3-input").click();
+    await eventTypePage.locator(".data-testid-select > .bg-default").click();
     await eventTypePage.getByTestId("select-option-Option 2").click();
   }
 
