@@ -281,6 +281,18 @@ export default function CreateEventTypeDialog({
                 )}
                 <div className="relative">
                   <TextField
+                    type="number"
+                    required
+                    min="10"
+                    placeholder="15"
+                    label={t("duration")}
+                    className="pr-4"
+                    {...register("length", { valueAsNumber: true })}
+                    addOnSuffix={t("minutes")}
+                  />
+                </div>
+                <div className="relative">
+                  <TextField
                     label={t("Set Price")}
                     required
                     type="number"
@@ -294,18 +306,6 @@ export default function CreateEventTypeDialog({
                         form.setValue("amount", inputValue === "" ? 1 : (parseFloat(inputValue) as number));
                       }
                     }}
-                  />
-                </div>
-                <div className="relative">
-                  <TextField
-                    type="number"
-                    required
-                    min="10"
-                    placeholder="15"
-                    label={t("duration")}
-                    className="pr-4"
-                    {...register("length", { valueAsNumber: true })}
-                    addOnSuffix={t("minutes")}
                   />
                 </div>
               </>

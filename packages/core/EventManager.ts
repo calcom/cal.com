@@ -139,64 +139,11 @@ export default class EventManager {
 
       results.push(result);
     }
+
     // Some calendar libraries may edit the original event so let's clone it
     const clonedCalEvent = cloneDeep(event);
-    let externalemail;
-    for (const destination of clonedCalEvent.destinationCalendar) {
-      if (destination.credentialId) {
-        let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
-        if (!credential) {
-          // Fetch credential from DB
-          const credentialFromDB = await prisma.credential.findUnique({
-            where: {
-              id: destination.credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
-          });
-          if (credentialFromDB && credentialFromDB.appId) {
-            credential = {
-              id: credentialFromDB.id,
-              type: credentialFromDB.type,
-              key: credentialFromDB.key,
-              userId: credentialFromDB.userId,
-              teamId: credentialFromDB.teamId,
-              invalid: credentialFromDB.invalid,
-              appId: credentialFromDB.appId,
-              user: credentialFromDB.user,
-            };
-          }
-        }
-        if (credential) {
-          externalemail = destination.externalId;
-        }
-      } else {
-        const destinationCalendarCredentials = this.calendarCredentials.filter(
-          (c) => c.type === destination.integration
-        );
-        externalemail = destinationCalendarCredentials.externalId;
-      }
-    }
-    const adminCalendar = await prisma.destinationCalendar.findFirst({
-      where: {
-        externalId: process.env.CALENDAR_EMAIL,
-        integration: "google_calendar",
-      },
-      select: {
-        id: true,
-        integration: true,
-        externalId: true,
-        userId: true,
-        eventTypeId: true,
-        credentialId: true,
-      },
-    });
-    delete clonedCalEvent.destinationCalendar;
-
-    if (!clonedCalEvent.destinationCalendar) {
-      clonedCalEvent.destinationCalendar = [];
-    }
-    adminCalendar && clonedCalEvent.destinationCalendar.unshift(adminCalendar);
-    results.push(...(await this.createAllCalendarEvents(clonedCalEvent, externalemail)));
+    // Create the calendar event with the proper video call data
+    results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -391,7 +338,7 @@ export default class EventManager {
    * @param noMail
    * @private
    */
-  private async createAllCalendarEvents(event: CalendarEvent, externalemail?: string) {
+  private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
@@ -437,7 +384,7 @@ export default class EventManager {
             }
           }
           if (credential) {
-            const createdEvent = await createEvent(credential, event, externalemail);
+            const createdEvent = await createEvent(credential, event, destination.externalId);
             if (createdEvent) {
               createdEvents.push(createdEvent);
             }
@@ -447,11 +394,7 @@ export default class EventManager {
             (c) => c.type === destination.integration
           );
           createdEvents = createdEvents.concat(
-            await Promise.all(
-              destinationCalendarCredentials.map(
-                async (c) => await createEvent(c, event, destination.externalId)
-              )
-            )
+            await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
           );
         }
       }

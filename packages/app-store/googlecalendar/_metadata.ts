@@ -13,7 +13,7 @@ export const metadata = {
   category: "calendar",
   categories: ["calendar"],
   logo: "icon.svg",
-  publisher: "Beenthere.tech",
+  publisher: "BeenThere.tech",
   slug: "google-calendar",
   url: "https://app.beenthere.tech",
   email: "help@beenthere.tech",

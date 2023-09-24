@@ -183,6 +183,20 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
+      defaultLabel: "Your Linkedin Profile",
+      type: "text",
+      name: "linkedin",
+      required: false,
+      editable: "system",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
       type: "address",
       // This is the `name` of the main field
       name: "address",

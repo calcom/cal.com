@@ -114,17 +114,34 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   };
   const textValue = value || "";
   return (
-    <TextField
-      containerClassName="w-full"
-      type={type}
-      value={textValue}
-      labelSrOnly={noLabel}
-      placeholder={placeholder}
-      disabled={readOnly}
-      onChange={onChange}
-      {...remainingProps}
-      {...customProps}
-    />
+    <>
+      {props.name === "linkedin" ? (
+        <TextField
+          containerClassName="w-full"
+          type={type}
+          value={textValue}
+          addOnLeading={<>https://linkedin.com/</>}
+          labelSrOnly={noLabel}
+          placeholder={placeholder}
+          disabled={readOnly}
+          onChange={onChange}
+          {...remainingProps}
+          {...customProps}
+        />
+      ) : (
+        <TextField
+          containerClassName="w-full"
+          type={type}
+          value={textValue}
+          labelSrOnly={noLabel}
+          placeholder={placeholder}
+          disabled={readOnly}
+          onChange={onChange}
+          {...remainingProps}
+          {...customProps}
+        />
+      )}
+    </>
   );
 };
 
