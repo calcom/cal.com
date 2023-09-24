@@ -199,7 +199,7 @@ async function processPayload(req: NextApiRequest) {
     const payloadString = requestBuffer.toString();
     const payload = JSON.parse(payloadString);
     if (
-      payload?.channel?.subdomain === "beenther" &&
+      payload?.channel?.subdomain === process.env.REWATCH_SUBDOMAIN &&
       payload?.event === "video.addedToChannel" &&
       payload?.video
     ) {
