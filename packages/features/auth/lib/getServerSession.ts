@@ -50,9 +50,6 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
-    include: {
-      organization: true,
-    },
     // TODO: Re-enable once we get confirmation from compliance that this is okay.
     // cacheStrategy: { ttl: 60, swr: 1 },
   });
@@ -62,8 +59,6 @@ export async function getServerSession(options: {
   }
 
   const hasValidLicense = await checkLicense(prisma);
-
-  const { organization } = user;
 
   const session: Session = {
     hasValidLicense,
