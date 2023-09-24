@@ -236,7 +236,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         />
       </div>
 
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <Controller
           name="receiveMonthlyDigestEmail"
           control={formMethods.control}
@@ -251,7 +251,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             />
           )}
         />
-      </div>
+      </div> */}
 
       <Button
         loading={mutation.isLoading}
