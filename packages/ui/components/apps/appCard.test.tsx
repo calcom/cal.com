@@ -15,7 +15,6 @@ describe("Tests for AppCard component", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 
-  // Abstracted render function
   const renderAppCard = (appProps = {}) => {
     const appData = { ...mockApp, ...appProps };
     render(<AppCard app={appData} />);
