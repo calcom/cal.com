@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import shallow from "zustand/shallow";
+import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
@@ -15,6 +15,7 @@ import {
   Label,
   showToast,
   Avatar,
+  ImageUploader,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
@@ -23,8 +24,9 @@ import { useEditMode } from "./store";
 const editSchema = z.object({
   name: z.string(),
   email: z.string().email(),
+  avatar: z.string(),
   bio: z.string(),
-  role: z.enum(["ADMIN", "MEMBER"]),
+  role: z.enum(["ADMIN", "MEMBER", "OWNER"]),
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
@@ -51,6 +53,7 @@ export function EditForm({
     defaultValues: {
       name: selectedUser?.name ?? "",
       email: selectedUser?.email ?? "",
+      avatar: avatarUrl,
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
@@ -88,12 +91,32 @@ export function EditForm({
           role: values.role as "ADMIN" | "MEMBER", // Cast needed as we dont provide an option for owner
           name: values.name,
           email: values.email,
+          avatar: values.avatar,
           bio: values.bio,
           timeZone: values.timeZone,
         });
       }}>
-      <div className="mt-4 flex items-center gap-2">
-        <Avatar size="lg" alt={`${selectedUser?.name} avatar`} imageSrc={avatarUrl} />
+      <div className="mt-4 flex flex-col gap-2">
+        <Controller
+          control={form.control}
+          name="avatar"
+          render={({ field: { value } }) => (
+            <div className="flex items-center">
+              <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
+              <div className="ml-4">
+                <ImageUploader
+                  target="avatar"
+                  id="avatar-upload"
+                  buttonMsg={t("change_avatar")}
+                  handleAvatarChange={(newAvatar) => {
+                    form.setValue("avatar", newAvatar, { shouldDirty: true });
+                  }}
+                  imageSrc={value || undefined}
+                />
+              </div>
+            </div>
+          )}
+        />
         <div className="space-between flex flex-col leading-none">
           <span className="text-emphasis text-lg font-semibold">{selectedUser?.name ?? "Nameless User"}</span>
           <p className="subtle text-sm font-normal">
