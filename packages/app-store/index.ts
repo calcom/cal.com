@@ -32,6 +32,7 @@ const appStore = {
   exchangecalendar: () => import("./exchangecalendar"),
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
+  zohocalendar: () => import("./zohocalendar"),
   "zoho-bigin": () => import("./zoho-bigin"),
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
