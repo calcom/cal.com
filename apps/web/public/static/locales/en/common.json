@@ -2055,5 +2055,13 @@
   "edit_users_availability":"Edit user's availability: {{username}}",
   "resend_invitation": "Resend invitation",
   "invitation_resent": "The invitation was resent.",
+  "add_an_email": "Add an email",
+  "add_email": "Add email",
+  "add_email_description":"Add an email address to replace your primary or to use as an alternative email on your event types.",
+  "primary": "Primary",
+  "make_primary": "Make primary",
+  "confim_email": "Confirm your email",
+  "confim_email_description":"We sent an email to {{email}} Click the link in the email to verify this address.",
+  "verified":"Verified",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

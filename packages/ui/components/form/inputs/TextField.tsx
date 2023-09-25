@@ -75,6 +75,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     containerClassName,
     readOnly,
     showAsteriskIndicator,
+    badge = false,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -98,7 +99,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {LockedIcon}
         </Skeleton>
       )}
-      {addOnLeading || addOnSuffix ? (
+      {addOnLeading || addOnSuffix || badge ? (
         <div
           dir="ltr"
           className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
@@ -147,6 +148,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               }}
             />
           )}
+          {badge && <>{badge}</>}
         </div>
       ) : (
         <Input

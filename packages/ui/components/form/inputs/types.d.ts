@@ -6,6 +6,7 @@ export type InputFieldProps = {
   label?: ReactNode;
   LockedIcon?: React.ReactNode;
   hint?: ReactNode;
+  badge?: ReactNode;
   hintErrors?: string[];
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;

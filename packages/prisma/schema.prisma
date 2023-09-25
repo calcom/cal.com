@@ -241,6 +241,7 @@ model User {
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  additionalEmail      AdditionalEmail[]
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -315,6 +316,16 @@ model Membership {
   @@index([userId])
 }
 
+model AdditionalEmail {
+  id            Int     @id @default(autoincrement())
+  email         String
+  emailVerified Boolean @default(false)
+  parentUserId  Int
+  user          User    @relation(fields: [parentUserId], references: [id], onDelete: Cascade)
+
+  @@unique([email, parentUserId])
+}
+
 model VerificationToken {
   id            Int      @id @default(autoincrement())
   identifier    String
@@ -325,6 +336,7 @@ model VerificationToken {
   updatedAt     DateTime @updatedAt
   teamId        Int?
   team          Team?    @relation(fields: [teamId], references: [id])
+  parentUserId  Int?
 
   @@unique([identifier, token])
   @@index([token])

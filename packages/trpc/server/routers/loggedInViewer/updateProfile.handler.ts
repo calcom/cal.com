@@ -115,6 +115,21 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     signOutUser = true;
   }
 
+  if (input.additionalEmail) {
+    await prisma.$transaction([
+      prisma.additionalEmail.deleteMany({
+        where: {
+          parentUserId: user.id,
+        },
+      }),
+      prisma.additionalEmail.createMany({
+        data: input.additionalEmail,
+      }),
+    ]);
+
+    delete data.additionalEmail;
+  }
+
   const updatedUser = await prisma.user.update({
     where: {
       id: user.id,

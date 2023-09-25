@@ -25,15 +25,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (dayjs(foundToken?.expires).isBefore(dayjs())) {
     return res.status(401).json({ message: "Token expired" });
   }
-
-  const user = await prisma.user.update({
-    where: {
-      email: foundToken?.identifier,
-    },
-    data: {
-      emailVerified: new Date(),
-    },
-  });
+  let user;
+  if (foundToken.parentUserId) {
+    const res = await prisma.additionalEmail.update({
+      where: {
+        email_parentUserId: { email: foundToken.identifier, parentUserId: foundToken.parentUserId },
+      },
+      data: {
+        emailVerified: true,
+      },
+      select: { user: true },
+    });
+    user = res.user;
+  } else {
+    user = await prisma.user.update({
+      where: {
+        email: foundToken?.identifier,
+      },
+      data: {
+        emailVerified: new Date(),
+      },
+    });
+  }
 
   // Delete token from DB after it has been used
   await prisma.verificationToken.delete({

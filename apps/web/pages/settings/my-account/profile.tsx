@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -17,6 +17,10 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import {
+  ZAdditionalEmailSchema,
+  type TAdditionalEmailSchema,
+} from "@calcom/trpc/server/routers/loggedInViewer/addAdditionalEmail.schema";
 import {
   Alert,
   Button,
@@ -37,8 +41,17 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  Badge,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  EmailField,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
+import { MoreHorizontal } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2, Flag, Mail } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -73,6 +86,7 @@ type FormValues = {
   name: string;
   email: string;
   bio: string;
+  additionalEmail?: TAdditionalEmailSchema[];
 };
 
 const ProfileView = () => {
@@ -113,6 +127,7 @@ const ProfileView = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [confirmEmailModalOpen, setConfirmEmailModalOpen] = useState<boolean>(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
@@ -214,6 +229,7 @@ const ProfileView = () => {
     avatar: user.avatar || "",
     name: user.name || "",
     email: user.email || "",
+    additionalEmail: user.additionalEmail || [],
     bio: user.bio || "",
   };
 
@@ -223,6 +239,7 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
+        setConfirmEmailModalOpen={setConfirmEmailModalOpen}
         isLoading={updateProfileMutation.isLoading}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -357,7 +374,134 @@ const ProfileView = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmEmailModal
+        confirmEmailModalOpen={confirmEmailModalOpen}
+        setConfirmEmailModalOpen={setConfirmEmailModalOpen}
+      />
     </>
+  );
+};
+
+const ConfirmEmailModal = ({
+  confirmEmailModalOpen,
+  setConfirmEmailModalOpen,
+}: {
+  confirmEmailModalOpen: boolean;
+  setConfirmEmailModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const { t } = useLocale();
+  return (
+    <Dialog open={confirmEmailModalOpen} onOpenChange={setConfirmEmailModalOpen}>
+      <DialogContent
+        title={t("confim_email")}
+        description={t(
+          "confim_email_description"
+
+          // { emai: email }
+        )}
+        type="confirmation"
+        Icon={Mail}>
+        <>
+          <DialogFooter showDivider>
+            <DialogClose>
+              <Button color="primary" type="submit">
+                {t("done")}
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const AddAdditionalEmailModal = ({
+  addEmailOpen,
+  setAddEmailOpen,
+  setConfirmEmailModalOpen,
+}: {
+  addEmailOpen: boolean;
+  setAddEmailOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setConfirmEmailModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+
+  const addEmailModalFormSchema = z.object({
+    email: z.string().email({ message: "Please enter a valid email" }),
+  });
+  type addEmailModalFormSchemaType = z.infer<typeof addEmailModalFormSchema>;
+
+  const formMethods = useForm<addEmailModalFormSchemaType>({
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+    },
+    resolver: zodResolver(addEmailModalFormSchema),
+  });
+
+  const {
+    formState: { isDirty, errors },
+    control,
+  } = formMethods;
+
+  const addAdditionalEmailMutaion = trpc.viewer.addAdditionalEmail.useMutation({
+    onSuccess: () => {
+      utils.viewer.me.invalidate();
+      formMethods.reset();
+      setConfirmEmailModalOpen(true);
+      setAddEmailOpen(false);
+    },
+    onError: (err) => {
+      formMethods.setError("email", { message: err.message });
+    },
+  });
+
+  return (
+    <Dialog open={addEmailOpen} onOpenChange={setAddEmailOpen}>
+      <DialogTrigger asChild>
+        <Button StartIcon={Plus} color="secondary">
+          {t("add_an_email")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("add_email")} description={t("add_email_description")} type="creation">
+        <>
+          <div className="mb-10">
+            <Controller
+              name="email"
+              control={control}
+              render={({ field: { onBlur, onChange, value } }) => (
+                <EmailField
+                  value={value || ""}
+                  onBlur={onBlur}
+                  onChange={(e) => onChange(e.target.value)}
+                  className="my-0"
+                  name="email"
+                  placeholder="john.doe@example.com"
+                  required
+                />
+              )}
+            />
+            {errors?.email?.message && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
+          </div>
+          <DialogFooter showDivider>
+            <DialogClose onClick={() => formMethods.reset()} />
+            <Button
+              color="primary"
+              data-testid="delete-account-confirm"
+              disabled={!isDirty || Object.keys(errors).length > 0}
+              onClick={() => {
+                addAdditionalEmailMutaion.mutate({
+                  additionalEmail: formMethods.getValues("email"),
+                });
+              }}>
+              {t("add_email")}
+            </Button>
+          </DialogFooter>
+        </>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -367,15 +511,18 @@ const ProfileForm = ({
   extraField,
   isLoading = false,
   userOrganization,
+  setConfirmEmailModalOpen,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  setConfirmEmailModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  const [addEmailOpen, setAddEmailOpen] = useState<boolean>(false);
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -388,6 +535,7 @@ const ProfileForm = ({
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
     email: z.string().email(),
+    additionalEmail: z.array(ZAdditionalEmailSchema).optional(),
     bio: z.string(),
   });
 
@@ -398,63 +546,161 @@ const ProfileForm = ({
 
   const {
     formState: { isSubmitting, isDirty },
+    control,
   } = formMethods;
+
+  const { fields, remove } = useFieldArray({
+    name: "additionalEmail",
+    keyName: "formId",
+    control,
+  });
 
   const isDisabled = isSubmitting || !isDirty;
 
+  const handleMakePrimary = (field: TAdditionalEmailSchema, index: number) => {
+    const emailemail = Object.assign("", field.email);
+    console.log("emailemail: ", emailemail);
+    formMethods.setValue(
+      `additionalEmail.${index}`,
+      {
+        ...formMethods.getValues(`additionalEmail.${index}`),
+        email: formMethods.getValues("email"),
+        emailVerified: true,
+      },
+      { shouldDirty: true }
+    );
+    formMethods.setValue("email", emailemail, { shouldDirty: true });
+  };
+
   return (
-    <Form form={formMethods} handleSubmit={onSubmit}>
-      <div className="flex items-center">
-        <Controller
-          control={formMethods.control}
-          name="avatar"
-          render={({ field: { value } }) => (
-            <>
-              <OrganizationAvatar
-                alt={formMethods.getValues("username")}
-                imageSrc={value}
-                size="lg"
-                organizationSlug={userOrganization.slug}
-              />
-              <div className="ms-4">
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("change_avatar")}
-                  handleAvatarChange={(newAvatar) => {
-                    formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
-                  }}
-                  imageSrc={value || undefined}
+    <>
+      <Form form={formMethods} handleSubmit={onSubmit}>
+        <div className="flex items-center">
+          <Controller
+            control={formMethods.control}
+            name="avatar"
+            render={({ field: { value } }) => (
+              <>
+                <OrganizationAvatar
+                  alt={formMethods.getValues("username")}
+                  imageSrc={value}
+                  size="lg"
+                  organizationSlug={userOrganization.slug}
                 />
-              </div>
-            </>
-          )}
-        />
-      </div>
-      {extraField}
-      <div className="mt-8">
-        <TextField label={t("full_name")} {...formMethods.register("name")} />
-      </div>
-      <div className="mt-8">
-        <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
-      </div>
-      <div className="mt-8">
-        <Label>{t("about")}</Label>
-        <Editor
-          getText={() => md.render(formMethods.getValues("bio") || "")}
-          setText={(value: string) => {
-            formMethods.setValue("bio", turndown(value), { shouldDirty: true });
-          }}
-          excludedToolbarItems={["blockType"]}
-          disableLists
-          firstRender={firstRender}
-          setFirstRender={setFirstRender}
-        />
-      </div>
-      <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
-        {t("update")}
-      </Button>
-    </Form>
+                <div className="ms-4">
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("change_avatar")}
+                    handleAvatarChange={(newAvatar) => {
+                      formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
+                    }}
+                    imageSrc={value || undefined}
+                  />
+                </div>
+              </>
+            )}
+          />
+        </div>
+        {extraField}
+        <div className="mt-8">
+          <TextField label={t("full_name")} {...formMethods.register("name")} />
+        </div>
+        <div className="mt-8">
+          <TextField
+            label={t("email")}
+            addOnFilled={false}
+            //  hint={t("change_email_hint")}
+            badge={
+              <Badge
+                variant="blue"
+                // style={{ left: `${formMethods.watch("email").length * 10}px` }}
+                className="absolute right-12 top-2">
+                {t("primary")}
+              </Badge>
+            }
+            {...formMethods.register("email")}
+          />
+        </div>
+        {fields.map((field, index) => (
+          <div className="mt-2" key={field.formId}>
+            <TextField
+              label=""
+              badge={
+                field.emailVerified ? (
+                  <Badge className="absolute right-12 top-2 " variant="green">
+                    {t("verified")}
+                  </Badge>
+                ) : (
+                  <Badge className="absolute right-12 top-2 " variant="orange">
+                    {t("pending")}
+                  </Badge>
+                )
+              }
+              addOnClassname="bg-transparent border-l-0"
+              addOnSuffix={
+                <Dropdown>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="radix-state-open:rounded-r-md -mr-3"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon={MoreHorizontal}
+                    />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        className="disabled:opacity-40"
+                        onClick={() => handleMakePrimary(field, index)}
+                        disabled={!field.emailVerified}
+                        StartIcon={Flag}>
+                        {t("make_primary")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => remove(index)}
+                        color="destructive"
+                        StartIcon={Trash2}>
+                        {t("delete")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </Dropdown>
+              }
+              {...formMethods.register(`additionalEmail.${index}.email` as const)}
+            />
+          </div>
+        ))}
+        <div className="mt-2">
+          <AddAdditionalEmailModal
+            addEmailOpen={addEmailOpen}
+            setAddEmailOpen={setAddEmailOpen}
+            setConfirmEmailModalOpen={setConfirmEmailModalOpen}
+          />
+        </div>
+
+        <div className="mt-8">
+          <Label>{t("about")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("bio") || "")}
+            setText={(value: string) => {
+              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+            }}
+            excludedToolbarItems={["blockType"]}
+            disableLists
+            firstRender={firstRender}
+            setFirstRender={setFirstRender}
+          />
+        </div>
+        <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
+          {t("update")}
+        </Button>
+      </Form>
+    </>
   );
 };
 

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
+import { ZAdditionalEmailSchema } from "./addAdditionalEmail.schema";
+
 export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   defaultBookerLayouts: bookerLayouts.optional(),
@@ -27,6 +29,7 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+  additionalEmail: z.array(ZAdditionalEmailSchema).optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

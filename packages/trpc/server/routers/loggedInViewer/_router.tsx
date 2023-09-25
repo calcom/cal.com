@@ -1,5 +1,6 @@
 import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
+import { ZAddAdditionalEmailInputSchema } from "./addAdditionalEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZAwayInputSchema } from "./away.schema";
@@ -44,6 +45,7 @@ type AppsRouterHandlerCache = {
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
+  addAdditionalEmail?: typeof import("./addAdditionalEmail.handler").AddAdditionalEmailHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -416,4 +418,21 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery({ ctx });
   }),
+
+  addAdditionalEmail: authedProcedure
+    .input(ZAddAdditionalEmailInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.addAdditionalEmail) {
+        UNSTABLE_HANDLER_CACHE.addAdditionalEmail = (
+          await import("./addAdditionalEmail.handler")
+        ).AddAdditionalEmailHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.addAdditionalEmail) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.addAdditionalEmail({ ctx, input });
+    }),
 });

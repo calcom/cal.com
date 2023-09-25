@@ -15,9 +15,10 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
+  parentUserId?: number;
 }
 
-export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({ email, language, username, parentUserId }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const flags = await getFeatureFlagMap(prisma);
@@ -32,12 +33,18 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
     identifier: email,
   });
 
+  const data = {
+    identifier: email,
+    token,
+    expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+  };
+
+  if (parentUserId) {
+    data.parentUserId = parentUserId;
+  }
+
   await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
-    },
+    data,
   });
 
   const params = new URLSearchParams({
