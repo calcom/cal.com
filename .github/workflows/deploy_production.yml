@@ -25,6 +25,7 @@ jobs:
           host: ${{ secrets.CALCOM_HOST }}
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
+          script_stop: true
           script: |
             cd calcom
             DOCKER_BUILDKIT=0 docker-compose build
