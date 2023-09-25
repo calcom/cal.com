@@ -6,6 +6,7 @@
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
+      "@ui/*": ["ui/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
