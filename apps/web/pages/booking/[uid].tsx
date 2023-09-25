@@ -357,10 +357,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}
                   {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && <X className="h-5 w-5 text-red-600" />}
+                  {isCancelled && <X className="h-5 w-5 text-red-600 dark:text-red-200" />}
                 </div>
                 <div className="mb-8 mt-6 text-center last:mb-0">
                   <h3
