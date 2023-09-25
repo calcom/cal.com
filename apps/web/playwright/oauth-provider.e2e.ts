@@ -16,7 +16,7 @@ test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
     client = await createTestCLient();
   });
-  test("Should create valid token for user", async ({ page, users }) => {
+  test("Should create valid access toke & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
@@ -64,10 +64,39 @@ test.describe("OAuth Provider", () => {
 
     const meData = await meResponse.json();
 
+    // check if user access token is valid
+    expect(meData.username.startsWith("test user")).toBe(true);
+
+    // request new token with refresh token
+    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
+      body: JSON.stringify({
+        refresh_token: tokenData.refresh_token,
+        client_id: client.clientId,
+        client_secret: client.orginalSecret,
+        grant_type: "refresh_token",
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const refreshTokenData = await refreshTokenResponse.json();
+
+    expect(refreshTokenData.access_token).not.toBe(tokenData.access_token);
+
+    const validTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + tokenData.access_token,
+      },
+    });
+
     expect(meData.username.startsWith("test user")).toBe(true);
   });
 
-  test("Should create valid token for team", async ({ page, users }) => {
+  test("Should create valid access toke & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
@@ -119,6 +148,36 @@ test.describe("OAuth Provider", () => {
     });
 
     const meData = await meResponse.json();
+
+    // check if team access token is valid
+    expect(meData.username.endsWith("Team Team")).toBe(true);
+
+    // request new token with refresh token
+    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
+      body: JSON.stringify({
+        refresh_token: tokenData.refresh_token,
+        client_id: client.clientId,
+        client_secret: client.orginalSecret,
+        grant_type: "refresh_token",
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const refreshTokenData = await refreshTokenResponse.json();
+
+    expect(refreshTokenData.access_token).not.toBe(tokenData.access_token);
+
+    const validTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + tokenData.access_token,
+      },
+    });
+
     expect(meData.username.endsWith("Team Team")).toBe(true);
   });
 });
