@@ -75,9 +75,16 @@ To develop locally:
    ```
 
 3. Install yarn:
+The modern way to use Yarn without binary installation often requires `sudo` or `administrator mode`. 
 
+To enable this modern way, you can use the following command:
+```sh
+corepack enable
+```
+  
+However, the modern version of Yarn doesn’t require this step anymore. If you encounter any errors with Corepack, you can try the following alternative method:
    ```sh
-   npm install -g yarn
+   npm install -g yarn --force
    ```
 
 4. Install the dependencies with:
