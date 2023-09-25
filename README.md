@@ -145,8 +145,8 @@ Here is what you need to be able to run Cal.com.
 
 1. Set up your `.env` file
    - Duplicate `.env.example` to `.env`
-   - Use the following command `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use the following command `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 #### Quick start with `yarn dx`
 
@@ -504,6 +504,9 @@ For example, `Cal.com (support@cal.com)`.
 9. Click the "Save"/ "UPDATE" button at the bottom footer.
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
+### Obtaining Zoho Calendar Client ID and Secret
+
+[Follow these steps](./packages/app-store/zohocalendar/)
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)

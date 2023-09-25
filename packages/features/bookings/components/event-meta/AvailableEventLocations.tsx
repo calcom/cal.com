@@ -22,8 +22,7 @@ function RenderIcon({
     <img
       src={eventLocationType.iconUrl}
       className={classNames(
-        (eventLocationType?.iconUrl?.includes("-dark") || eventLocationType?.iconUrl === "/map-pin.svg") &&
-          "dark:invert",
+        eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
         "me-[10px] h-4 w-4"
       )}
       alt={`${eventLocationType.label} icon`}
@@ -99,9 +98,9 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
   return filteredLocations.length > 1 ? (
     <div className="flex flex-row items-center text-sm font-medium">
       <img
-        src="/map-pin.svg"
+        src="/map-pin-dark.svg"
         className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
-        alt="map-pin"
+        alt="map-pin-dark"
       />
       <Tooltip content={<RenderLocationTooltip locations={locations} />}>
         <p className="line-clamp-1">
