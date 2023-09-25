@@ -1,0 +1,30 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy_calcom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: copy repo via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.CALCOM_HOST }}
+          username: deploy
+          key: ${{ secrets.CALCOM_SSH_KEY }}
+          source: "./, !.private"
+          target: "/home/deploy/calcom"
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.CALCOM_HOST }}
+          username: deploy
+          key: ${{ secrets.CALCOM_SSH_KEY }}
+          script: |
+            cd calcom
+            docker-compose up -d
