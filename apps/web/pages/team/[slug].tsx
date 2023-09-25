@@ -2,7 +2,7 @@ import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -20,6 +20,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { ChevronDown } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -31,12 +32,42 @@ import { ssrInit } from "@server/lib/ssr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
+const Policies = ({ safePolicies }: { safePolicies: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <div className="bg-default border-subtle dark:bg-muted relative mt-5 rounded-md">
+        <div className="block w-full p-5">
+          <div
+            className="flex justify-between"
+            onClick={() => {
+              setIsOpen(!isOpen);
+            }}>
+            <h2 className=" text-default pr-2 text-sm font-semibold">Booking Information &amp; Policies</h2>
+            <ChevronDown
+              className={classNames("text-emphasis h-4 w-4 transition-all", isOpen && "rotate-180")}
+            />
+          </div>
+          {isOpen && (
+            <div
+              className="text-subtle mt-8 break-words text-left text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              dangerouslySetInnerHTML={{ __html: safePolicies }}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
 function TeamPage({
   team,
   isUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
+  safePolicies,
 }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
@@ -47,6 +78,7 @@ function TeamPage({
   const telemetry = useTelemetry();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+  const isPoliciesEmpty = !team.policies || !team.policies.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
   useEffect(() => {
@@ -216,6 +248,7 @@ function TeamPage({
               />
             </>
           )}
+          {!isPoliciesEmpty && <Policies safePolicies={safePolicies} />}
         </div>
         {metadata?.isOrganization ? (
           <SubTeams />
@@ -336,6 +369,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     : [];
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
+  const safePolicies = markdownToSafeHTML(team.policies) || "";
 
   const { inviteToken: _inviteToken, ...serializableTeam } = team;
 
@@ -347,6 +381,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
+      safePolicies,
     },
   } as const;
 };

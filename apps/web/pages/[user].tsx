@@ -2,6 +2,7 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -27,13 +28,42 @@ import type { EventType, User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { Verified, ArrowRight } from "@calcom/ui/components/icon";
+import { Verified, ArrowRight, ChevronDown } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
+
+const Policies = ({ safePolicies }: { safePolicies: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <div className="bg-default border-subtle dark:bg-muted relative mt-5 rounded-md">
+        <div className="block w-full p-5">
+          <div
+            className="flex justify-between"
+            onClick={() => {
+              setIsOpen(!isOpen);
+            }}>
+            <h2 className=" text-default pr-2 text-sm font-semibold">Booking Information &amp; Policies</h2>
+            <ChevronDown
+              className={classNames("text-emphasis h-4 w-4 transition-all", isOpen && "rotate-180")}
+            />
+          </div>
+          {isOpen && (
+            <div
+              className="text-subtle mt-8 break-words text-left text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              dangerouslySetInnerHTML={{ __html: safePolicies }}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
@@ -43,6 +73,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const { t } = useLocale();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
+  const isPoliciesEmpty = !user.policies || !user.policies.replace("<p><br></p>", "").length;
 
   const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
@@ -117,6 +148,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                 />
               </>
             )}
+            {!isPoliciesEmpty && <Policies safePolicies={props.safePolicies} />}
           </div>
 
           <div
@@ -227,9 +259,10 @@ export type UserPageProps = {
     organizationSlug: string | null;
     allowSEOIndexing: boolean;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "policies">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
+  safePolicies: string;
   safeBio: string;
   entity: {
     isUnpublished?: boolean;
@@ -289,6 +322,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       verified: true,
       allowDynamicBooking: true,
       allowSEOIndexing: true,
+      policies: true,
     },
   });
 
@@ -346,6 +380,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   }));
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
+  const safePolicies = markdownToSafeHTML(user.policies) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
   const org = usersWithoutAvatar[0].organization;
@@ -358,6 +393,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         bio: user.bio,
         away: user.away,
         verified: user.verified,
+        policies: user.policies,
       })),
       entity: {
         isUnpublished: org?.slug === null,
@@ -371,6 +407,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       themeBasis: user.username,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
+      safePolicies,
     },
   };
 };

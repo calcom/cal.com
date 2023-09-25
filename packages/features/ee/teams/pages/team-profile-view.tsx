@@ -54,6 +54,7 @@ const teamProfileFormSchema = z.object({
   logo: z.string(),
   bio: z.string(),
   address: z.string(),
+  policies: z.string(),
 });
 
 const ProfileView = () => {
@@ -98,6 +99,7 @@ const ProfileView = () => {
           form.setValue("bio", team.bio || "");
           form.setValue("logo", team.logo || "");
           form.setValue("address", team.address || "");
+          form.setValue("policies", team.policies || "");
           if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
             form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
           }
@@ -112,6 +114,7 @@ const ProfileView = () => {
   const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
+  const isPoliciesEmpty = !team || !team.policies || !team.policies.replace("<p><br></p>", "").length;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
@@ -172,6 +175,7 @@ const ProfileView = () => {
                     bio: values.bio,
                     logo: values.logo,
                     address: values.address,
+                    policies: values.policies,
                   };
                   objectKeys(variables).forEach((key) => {
                     if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
@@ -277,6 +281,17 @@ const ProfileView = () => {
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>
+              <div className="mt-8">
+                <Label>{t("policies")}</Label>
+                <Editor
+                  getText={() => md.render(form.getValues("policies") || "")}
+                  setText={(value: string) => form.setValue("policies", turndown(value))}
+                  excludedToolbarItems={["blockType"]}
+                  disableLists
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                />
+              </div>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
@@ -307,6 +322,15 @@ const ProfileView = () => {
                     <div
                       className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                       dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                    />
+                  </>
+                )}
+                {team && !isPoliciesEmpty && (
+                  <>
+                    <Label className="text-emphasis mt-5">{t("policies")}</Label>
+                    <div
+                      className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.policies)) }}
                     />
                   </>
                 )}

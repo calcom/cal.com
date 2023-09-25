@@ -49,5 +49,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     organizationId: user.organizationId,
     organization: user.organization,
+    policies: user.policies,
   };
 };

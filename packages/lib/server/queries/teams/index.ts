@@ -111,6 +111,7 @@ export async function getTeamWithMembers(args: {
       },
     },
     address: true,
+    policies: true,
   });
 
   const where: Prisma.TeamFindFirstArgs["where"] = {};

@@ -75,6 +75,7 @@ type FormValues = {
   name: string;
   email: string;
   bio: string;
+  policies: string;
 };
 
 const checkIfItFallbackImage = (fetchedImgSrc: string) => {
@@ -236,6 +237,7 @@ const ProfileView = () => {
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
+    policies: user.policies || "",
   };
 
   return (
@@ -421,6 +423,7 @@ const ProfileForm = ({
       }),
     email: z.string().email(),
     bio: z.string(),
+    policies: z.string(),
   });
 
   const formMethods = useForm<FormValues>({
@@ -494,6 +497,19 @@ const ProfileForm = ({
             getText={() => md.render(formMethods.getValues("bio") || "")}
             setText={(value: string) => {
               formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+            }}
+            excludedToolbarItems={["blockType"]}
+            disableLists
+            firstRender={firstRender}
+            setFirstRender={setFirstRender}
+          />
+        </div>
+        <div className="mt-6">
+          <Label>{t("policies")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("policies") || "")}
+            setText={(value: string) => {
+              formMethods.setValue("policies", turndown(value), { shouldDirty: true });
             }}
             excludedToolbarItems={["blockType"]}
             disableLists

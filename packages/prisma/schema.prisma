@@ -227,6 +227,8 @@ model User {
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail Boolean? @default(true)
 
+  policies String?
+
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)
@@ -298,7 +300,8 @@ model Team {
   accessCodes         AccessCode[]
 
   // Sweet Additions
-  address String?
+  address  String?
+  policies String?
 
   @@unique([slug, parentId])
 }

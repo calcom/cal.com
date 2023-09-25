@@ -56,6 +56,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
     address: input.address,
+    policies: input.policies,
   };
 
   if (
