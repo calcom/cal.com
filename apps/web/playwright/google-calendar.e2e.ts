@@ -10,7 +10,7 @@ const GOOGLE_CALENDAR_EMAIL = process.env.E2E_TEST_GOOGLE_CALENDAR_EMAIL!;
 const GOOGLE_CALENDAR_PASSWORD = process.env.E2E_TEST_GOOGLE_CALENDAR_PASSWORD!;
 const GOOGLE_APPNAME = process.env.E2E_TEST_GOOGLE_AUTH_CONSENT_APPNAME!;
 
-const SHOULD_SKIP_TESTS = !GOOGLE_CALENDAR_EMAIL || !GOOGLE_CALENDAR_PASSWORD || !GOOGLE_APPNAME;
+const SHOULD_FAIL_TESTS = !GOOGLE_CALENDAR_EMAIL || !GOOGLE_CALENDAR_PASSWORD || !GOOGLE_APPNAME;
 
 test.afterEach(async ({ users, page }) => {
   await page.goto("https://myaccount.google.com/connections?filters=2");
@@ -22,7 +22,8 @@ test.afterEach(async ({ users, page }) => {
 
 test.describe("Google Calendar", () => {
   // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(SHOULD_SKIP_TESTS, "Skipping due to missing the testing credentials");
+  // test.skip(IS_SELF_HOSTED, "Skipping for SELF HOSTED");
+  expect(SHOULD_FAIL_TESTS).toBeFalsy();
 
   test("Should be able to install and login on Google Calendar", async ({ page, users }) => {
     const user = await users.create();
