@@ -1,6 +1,7 @@
 import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -17,7 +18,7 @@ export interface IAlbySetupProps {
 }
 
 export default function AlbySetup(props: IAlbySetupProps) {
-  const params = globalThis.window && new URLSearchParams(window.location.search);
+  const params = useSearchParams();
   if (params?.get("callback") === "true") {
     return <AlbySetupCallback />;
   }
@@ -27,13 +28,13 @@ export default function AlbySetup(props: IAlbySetupProps) {
 
 function AlbySetupCallback() {
   const [error, setError] = useState<string | null>(null);
-
+  const params = useSearchParams();
   useEffect(() => {
     if (!window.opener) {
       setError("Something went wrong. Opener not available. Please contact support@getalby.com");
       return;
     }
-    const params = new URLSearchParams(window.location.search);
+
     const code = params.get("code");
     const error = params.get("error");
 
@@ -86,7 +87,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
     const authClient = new auth.OAuth2User({
       client_id: process.env.NEXT_PUBLIC_ALBY_CLIENT_ID,
       client_secret: process.env.NEXT_PUBLIC_ALBY_CLIENT_SECRET,
-      callback: process.env.NEXT_PUBLIC_WEBAPP_URL + "/apps/alby/setup?callback=true",
+      callback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/alby/setup?callback=true`,
       scopes: ["invoices:read", "account:read"],
       user_agent: "cal.com",
     });
