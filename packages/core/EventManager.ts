@@ -1,4 +1,4 @@
-import type { Booking, DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -658,3 +658,4 @@ export default class EventManager {
       );
     }
   }
+}

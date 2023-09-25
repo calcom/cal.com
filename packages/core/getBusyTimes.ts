@@ -192,6 +192,7 @@ export async function getBusyTimes(params: {
       selectedCalendars
     );
     const endConnectedCalendarsGet = performance.now();
+    logger.info("All calendarBusyTimes", JSON.stringify({ calendarBusyTimes }));
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet

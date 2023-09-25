@@ -287,6 +287,9 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   await prismock.user.createMany({
     data: users,
   });
+  logger.silly("Added users to Db", {
+    allUsers: await prismock.user.findMany(),
+  });
 }
 
 async function addUsers(users: InputUser[]) {
@@ -316,6 +319,15 @@ async function addUsers(users: InputUser[]) {
         //@ts-ignore
         createMany: {
           data: user.credentials,
+        },
+      };
+    }
+    if (user.selectedCalendars) {
+      newUser.selectedCalendars = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.selectedCalendars,
         },
       };
     }
@@ -623,7 +635,7 @@ export function getScenarioData({
 {
   organizer: ReturnType<typeof getOrganizer>;
   eventTypes: ScenarioData["eventTypes"];
-  apps: ScenarioData["apps"];
+  apps?: ScenarioData["apps"];
   usersApartFromOrganizer?: ScenarioData["users"];
   webhooks?: ScenarioData["webhooks"];
   bookings?: ScenarioData["bookings"];
@@ -689,7 +701,7 @@ export function mockNoTranslations() {
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
  */
-export function mockCalendarToHaveNoBusySlots(
+export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
     create: {
@@ -698,6 +710,7 @@ export function mockCalendarToHaveNoBusySlots(
     update?: {
       uid: string;
     };
+    busySlots: { start: `${string}Z`; end: `${string}Z` }[];
   }
 ) {
   const appStoreLookupKey = metadataLookupKey;
@@ -724,10 +737,7 @@ export function mockCalendarToHaveNoBusySlots(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
             const [calEvent, credentialId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.createEvent",
-              JSON.stringify({ calEvent, credentialId })
-            );
+            logger.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
             createEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
@@ -742,10 +752,7 @@ export function mockCalendarToHaveNoBusySlots(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
             const [uid, event, externalCalendarId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.updateEvent",
-              JSON.stringify({ uid, event, externalCalendarId })
-            );
+            logger.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
             // eslint-disable-next-line prefer-rest-params
             updateEventCalls.push(rest);
             return Promise.resolve({
@@ -761,7 +768,7 @@ export function mockCalendarToHaveNoBusySlots(
           },
           getAvailability: (): Promise<EventBusyDate[]> => {
             return new Promise((resolve) => {
-              resolve([]);
+              resolve(calendarData.busySlots);
             });
           },
         };
@@ -772,6 +779,28 @@ export function mockCalendarToHaveNoBusySlots(
     createEventCalls,
     updateEventCalls,
   };
+}
+
+export function mockCalendarToHaveNoBusySlots(
+  metadataLookupKey: keyof typeof appStoreMetadata,
+  calendarData?: {
+    create: {
+      uid: string;
+    };
+    update?: {
+      uid: string;
+    };
+  }
+) {
+  calendarData = calendarData || {
+    create: {
+      uid: "MOCK_ID",
+    },
+    update: {
+      uid: "UPDATED_MOCK_ID",
+    },
+  };
+  return mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
 }
 
 export function mockSuccessfulVideoMeetingCreation({
