@@ -52,7 +52,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   const responseBody = await response.json();
-  console.log(responseBody);
 
   if (!response.ok || responseBody.error) {
     log.error("get access_token failed", responseBody);
