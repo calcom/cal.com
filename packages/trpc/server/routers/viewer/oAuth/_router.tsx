@@ -1,4 +1,5 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
+
 import { router } from "../../../trpc";
 import { ZAddClientInputSchema } from "./addClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
@@ -30,8 +31,7 @@ export const oAuthRouter = router({
     });
   }),
 
-  //needs to be and adminauthed protected route
-  addClient: authedProcedure.input(ZAddClientInputSchema).mutation(async ({ ctx, input }) => {
+  addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ input }) => {
     if (!UNSTABLE_HANDLER_CACHE.addClient) {
       UNSTABLE_HANDLER_CACHE.addClient = await import("./addClient.handler").then(
         (mod) => mod.addClientHandler
