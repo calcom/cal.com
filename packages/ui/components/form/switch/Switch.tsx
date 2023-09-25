@@ -39,7 +39,11 @@ const Switch = (
           labelOnLeading && "flex-row-reverse",
           classNames?.container
         )}>
-        {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
+        {LockedIcon && (
+          <div data-testid="switch-icon" className="mr-2">
+            {LockedIcon}
+          </div>
+        )}
         <PrimitiveSwitch.Root
           className={cx(
             isChecked ? "bg-brand-default" : "bg-emphasis",
