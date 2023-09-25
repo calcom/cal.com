@@ -1,5 +1,6 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { render, screen, fireEvent } from "@testing-library/react";
+import { vi } from "vitest";
 
 import { Card } from "./Card";
 
@@ -95,5 +96,29 @@ describe("Tests for Card component", () => {
     expect(titleElement).toBeInTheDocument();
     expect(descriptionElement).toBeInTheDocument();
     expect(learnMoreLink).toBeInTheDocument();
+  });
+
+  test("Should render card with images", () => {
+    render(<Card title={title} description={description} image="pic" variant="basic" />);
+    expect(screen.getByTestId("card-img")).toBeInTheDocument();
+  });
+
+  test("Should render card with action Button", () => {
+    const onClick = vi.fn();
+    render(
+      <Card
+        title={title}
+        description={description}
+        variant="SidebarCard"
+        actionButton={{
+          child: <div>Child</div>,
+          onClick: onClick,
+        }}
+      />
+    );
+    const actionBtn = screen.getByTestId("card-action-btn");
+    fireEvent.click(actionBtn);
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Child")).toBeInTheDocument();
   });
 });

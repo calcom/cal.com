@@ -145,6 +145,7 @@ export function Card({
         {icon && icon}
         {image && (
           <img
+            data-testid="card-img"
             src={image}
             // Stops eslint complaining - not smart enough to realise it comes from ...imageProps
             alt={imageProps?.alt}
@@ -224,6 +225,7 @@ export function Card({
           )}
           {actionButton?.child && (
             <button
+              data-testid="card-action-btn"
               className="text-default hover:text-emphasis p-0 text-xs font-normal"
               color="minimal"
               onClick={actionButton?.onClick}>
