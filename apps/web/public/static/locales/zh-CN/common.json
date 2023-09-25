@@ -1276,6 +1276,7 @@
   "personal_cal_url": "我的个人 {{appName}} URL",
   "bio_hint": "请写一段简单的自我介绍，该介绍将会展示在您的个人 url 页面上。",
   "user_has_no_bio": "此用户尚未添加个人简历。",
+  "bio": "个人简历",
   "delete_account_modal_title": "删除账户",
   "confirm_delete_account_modal": "您确定要删除您的 {{appName}} 账户吗？",
   "delete_my_account": "删除我的账户",
