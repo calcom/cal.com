@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  calcom:
+    image: calcom.docker.scarf.sh/calcom/cal.com
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
+        NEXT_PUBLIC_LICENSE_CONSENT: ${NEXT_PUBLIC_LICENSE_CONSENT}
+        CALCOM_TELEMETRY_DISABLED: ${CALCOM_TELEMETRY_DISABLED}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
+        DATABASE_URL: ${DATABASE_URL}
+    restart: always
+    ports:
+      - 444:3000
+      - 82:3000
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
+
+  api:
+    image: calcom.docker.scarf.sh/calcom/cal.com
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: yarn workspace @calcom/api dev
+    restart: always
+    ports:
+      - 3002:3002
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
+
+# # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
+#   studio:
+#     image: calcom.docker.scarf.sh/calcom/cal.com
+#     restart: always
+#     ports:
+#       - 5555:5555
+#     env_file: .env
+#     environment:
+#       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
+#     depends_on:
+#       - database
+#     command:
+#       - npx
+#       - prisma
+#       - studio
+# # END SECTION: Optional use of Prisma Studio.
