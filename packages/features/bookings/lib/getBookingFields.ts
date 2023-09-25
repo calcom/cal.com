@@ -183,7 +183,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "Your Linkedin Profile",
+      defaultLabel: "Linkedin Profile",
       type: "text",
       name: "linkedin",
       required: false,

@@ -118,7 +118,7 @@ async function updateVideoDetailsMutation(videoId: string, description: string) 
     input: {
       videoId: videoId,
       externalSharingEnabled: true,
-      summary: description,
+      description: description,
     },
   };
 
