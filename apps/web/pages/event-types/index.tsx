@@ -108,8 +108,10 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    avatar: orgBranding
+      ? `${orgBranding.fullDomain}${item.teamId ? "/team" : ""}/${item.profile.slug}/avatar.png`
+      : item.profile.image ?? `${WEBAPP_URL + (item.teamId && "/team")}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -117,13 +119,15 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events.length && (
+      {events.length > 0 ? (
         <EventTypeList
           types={events[0].eventTypes}
           group={events[0]}
           groupIndex={0}
           readOnly={events[0].metadata.readOnly}
         />
+      ) : (
+        <CreateFirstEventTypeView />
       )}
     </div>
   );
@@ -358,6 +362,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
+  if (!types.length) {
+    return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
+  }
+
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   const isManagedEventPrefix = () => {
@@ -391,23 +399,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map(
-                            (organizer: { name: string | null; username: string | null }) => ({
-                              alt: organizer.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                organizer.username
-                              }/avatar.png`,
-                              title: organizer.name || "",
-                            })
-                          )}
+                          items={
+                            type?.users
+                              ? type.users.map(
+                                  (organizer: { name: string | null; username: string | null }) => ({
+                                    alt: organizer.name || "",
+                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                      organizer.username
+                                    }/avatar.png`,
+                                    title: organizer.name || "",
+                                  })
+                                )
+                              : []
+                          }
                         />
                       )}
-                      {isManagedEventType && (
+                      {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <AvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={type.children
+                          items={type?.children
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
@@ -703,12 +715,17 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          orgBranding?.fullDomain
+            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
+            : profile.image
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -755,6 +772,12 @@ const CreateFirstEventTypeView = () => {
       Icon={LinkIcon}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
+      className="mb-16"
+      buttonRaw={
+        <Button href="?dialog=new" variant="button">
+          {t("create")}
+        </Button>
+      }
     />
   );
 };
@@ -889,8 +912,10 @@ const Main = ({
                     groupIndex={index}
                     readOnly={group.metadata.readOnly}
                   />
-                ) : (
+                ) : group.teamId ? (
                   <EmptyEventTypeList group={group} />
+                ) : (
+                  <CreateFirstEventTypeView />
                 )}
               </div>
             ))

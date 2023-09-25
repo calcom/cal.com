@@ -191,6 +191,7 @@ async function getBookings({
         currency: true,
         metadata: true,
         seatsShowAttendees: true,
+        seatsShowAvailabilityCount: true,
         team: {
           select: {
             id: true,
