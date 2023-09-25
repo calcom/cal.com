@@ -121,7 +121,7 @@ export default function MemberListItem(props: Props) {
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
   const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
-  const appList = props.member.connectedApps.map(({ logo, name, externalId }) => {
+  const appList = props.member.connectedApps?.map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (
         <div className="ltr:mr-2 rtl:ml-2 ">

@@ -31,13 +31,16 @@ type AddonProps = {
   isFilled?: boolean;
   className?: string;
   error?: boolean;
+  onClickAddon?: () => void;
 };
 
-const Addon = ({ isFilled, children, className, error }: AddonProps) => (
+const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProps) => (
   <div
+    onClick={onClickAddon && onClickAddon}
     className={classNames(
       "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3",
       isFilled && "bg-subtle",
+      onClickAddon && "cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
     <div
@@ -75,6 +78,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     containerClassName,
     readOnly,
     showAsteriskIndicator,
+    onClickAddon,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -133,6 +137,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           />
           {addOnSuffix && (
             <Addon
+              onClickAddon={onClickAddon}
               isFilled={addOnFilled}
               className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
               {addOnSuffix}

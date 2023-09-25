@@ -46,7 +46,7 @@ export function TeamsListing() {
   const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
 
-  const isCreateTeamButtonDisabled = user?.organizationId && !user?.organization?.isOrgAdmin;
+  const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);
 
   const features = [
     {
