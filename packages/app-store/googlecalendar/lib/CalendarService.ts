@@ -528,6 +528,29 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+
+  async watchCalendar() {
+    const calendar = await this.authedCalendar();
+    const res = await calendar.events.watch({
+      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+      calendarId: "primary",
+    });
+    console.log(res.data);
+
+    // Example response
+    // {
+    //   "address": "my_address",
+    //   "expiration": "my_expiration",
+    //   "id": "my_id",
+    //   "kind": "my_kind",
+    //   "params": {},
+    //   "payload": false,
+    //   "resourceId": "my_resourceId",
+    //   "resourceUri": "my_resourceUri",
+    //   "token": "my_token",
+    //   "type": "my_type"
+    // }
+  }
 }
 
 class MyGoogleAuth extends google.auth.OAuth2 {
