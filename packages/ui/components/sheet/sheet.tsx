@@ -150,7 +150,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
         ref={ref}
         {...props}
         className={classNames(sheetVariants({ position, size }), className)}>
-        <div className="h-full overflow-y-scroll">{children}</div>
+        <div className="no-scrollbar h-full overflow-y-auto">{children}</div>
         {bottomActions && (
           <div className="mt-auto flex justify-end">
             <div className="flex gap-2">{bottomActions}</div>
