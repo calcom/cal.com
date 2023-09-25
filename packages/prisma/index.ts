@@ -6,7 +6,7 @@ import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
-if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
+if (!!Number(process.env.NEXT_PUBLIC_DEBUG)) prismaOptions.log = ["query", "error", "warn"];
 
 const prismaWithoutClientExtensions = new PrismaClientWithoutExtension(prismaOptions);
 
