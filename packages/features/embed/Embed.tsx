@@ -503,12 +503,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
+  namespace,
   eventTypeHideOptionDisabled,
   types,
 }: {
   embedType: EmbedType;
   embedUrl: string;
   tabs: EmbedTabs;
+  namespace: string;
   eventTypeHideOptionDisabled: boolean;
   types: EmbedTypes;
 }) => {
@@ -1013,6 +1015,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div className="flex h-[55vh] flex-grow flex-col">
                     {tab.type === "code" ? (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1020,6 +1023,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     ) : (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1101,7 +1105,9 @@ export const EmbedDialog = ({
   eventTypeHideOptionDisabled: boolean;
 }) => {
   const searchParams = useSearchParams();
-  const embedUrl = searchParams?.get("embedUrl") as string;
+  const embedUrl = (searchParams?.get("embedUrl") || "") as string;
+  const namespace = (searchParams?.get("namespace") || "") as string;
+
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!searchParams?.get("embedType") ? (
@@ -1110,6 +1116,7 @@ export const EmbedDialog = ({
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
+          namespace={namespace}
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
@@ -1121,6 +1128,7 @@ export const EmbedDialog = ({
 
 type EmbedButtonProps<T> = {
   embedUrl: string;
+  namespace: string;
   children?: React.ReactNode;
   className?: string;
   as?: T;
@@ -1133,6 +1141,7 @@ export const EmbedButton = <T extends React.ElementType>({
   className = "",
   as,
   eventId,
+  namespace,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const { goto } = useRouterHelpers();
@@ -1141,6 +1150,7 @@ export const EmbedButton = <T extends React.ElementType>({
     goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
+      namespace,
       embedUrl,
     });
   };

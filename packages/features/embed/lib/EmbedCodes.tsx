@@ -12,11 +12,13 @@ export const Codes = {
       uiInstructionCode,
       previewState,
       embedCalOrigin,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
       embedCalOrigin: string;
+      namespace: string;
     }) => {
       const width = getDimension(previewState.inline.width);
       const height = getDimension(previewState.inline.height);
@@ -31,6 +33,7 @@ export const Codes = {
 	  })();
 	}, [])
 	return <Cal
+    ${namespace ? `namespace="${namespace}"` : ""}
 	  calLink="${calLink}"
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
 	  ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
@@ -46,9 +49,11 @@ export const Codes = {
     "floating-popup": ({
       floatingButtonArg,
       uiInstructionCode,
+      namespace,
     }: {
       floatingButtonArg: string;
       uiInstructionCode: string;
+      namespace: string;
     }) => {
       return code`
   import { getCalApi } from "@calcom/embed-react";
@@ -57,7 +62,7 @@ export const Codes = {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
-		cal("floatingButton", ${floatingButtonArg});
+		cal.ns.${namespace}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -68,11 +73,13 @@ export const Codes = {
       uiInstructionCode,
       previewState,
       embedCalOrigin,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
       embedCalOrigin: string;
+      namespace: string;
     }) => {
       return code`
   import { getCalApi } from "@calcom/embed-react";
@@ -85,6 +92,7 @@ export const Codes = {
 	  })();
 	}, [])
 	return <button
+    data-cal-namespace="${namespace}"
 	  data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${embedCalOrigin}"` : ""}
 	  ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
@@ -98,12 +106,14 @@ export const Codes = {
       calLink,
       uiInstructionCode,
       previewState,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      namespace: string;
     }) => {
-      return code`Cal("inline", {
+      return code`Cal.ns.${namespace}("inline", {
 	elementOrSelector:"#my-cal-inline",
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
@@ -115,23 +125,28 @@ export const Codes = {
     "floating-popup": ({
       floatingButtonArg,
       uiInstructionCode,
+      namespace,
     }: {
       floatingButtonArg: string;
       uiInstructionCode: string;
+      namespace: string;
     }) => {
-      return code`Cal("floatingButton", ${floatingButtonArg});
+      return code`Cal.ns.${namespace}("floatingButton", ${floatingButtonArg});
   ${uiInstructionCode}`;
     },
     "element-click": ({
       calLink,
       uiInstructionCode,
       previewState,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      namespace: string;
     }) => {
       return code`
+      data-cal-namespace="${namespace}"
   // Important: Please add following attributes to the element you want to open Cal on click
   // \`data-cal-link="${calLink}"\`
   // \`data-cal-config='${JSON.stringify({

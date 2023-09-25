@@ -22,8 +22,8 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+    >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString();
       const embedCalOrigin = useEmbedCalOrigin();
@@ -56,7 +56,14 @@ export const tabs = [
                 : "") +
               `<script type="text/javascript">
   ${embedSnippetString}
-  ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState, embedCalOrigin })}
+  ${getEmbedTypeSpecificString({
+    embedFramework: "HTML",
+    embedType,
+    calLink,
+    previewState,
+    embedCalOrigin,
+    namespace,
+  })}
   </script>
   <!-- Cal ${embedType} embed code ends -->`
             }
@@ -73,8 +80,8 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -101,7 +108,14 @@ export const tabs = [
   
   /* If you are using npm */
   // npm install @calcom/embed-react
-  ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState, embedCalOrigin })}
+  ${getEmbedTypeSpecificString({
+    embedFramework: "react",
+    embedType,
+    calLink,
+    previewState,
+    embedCalOrigin,
+    namespace,
+  })}
   `}
           />
         </>
@@ -115,7 +129,7 @@ export const tabs = [
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
+      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
     >(function Preview({ calLink, embedType }, ref) {
       const bookerUrl = useBookerUrl();
       if (ref instanceof Function || !ref) {
@@ -144,12 +158,14 @@ const getEmbedTypeSpecificString = ({
   calLink,
   embedCalOrigin,
   previewState,
+  namespace,
 }: {
   embedFramework: EmbedFramework;
   embedType: EmbedType;
   calLink: string;
   previewState: PreviewState;
   embedCalOrigin: string;
+  namespace: string;
 }) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
@@ -189,6 +205,7 @@ const getEmbedTypeSpecificString = ({
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,
       embedCalOrigin,
+      namespace,
     });
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
@@ -197,11 +214,13 @@ const getEmbedTypeSpecificString = ({
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({
+      namespace,
       floatingButtonArg: JSON.stringify(floatingButtonArg),
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
+      namespace,
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,

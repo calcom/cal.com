@@ -512,6 +512,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
+                                    namespace={type.slug}
                                     as={DropdownItem}
                                     type="button"
                                     StartIcon={Code}
