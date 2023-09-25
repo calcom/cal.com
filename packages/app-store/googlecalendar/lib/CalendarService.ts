@@ -534,9 +534,20 @@ export default class GoogleCalendarService implements Calendar {
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId: "primary",
+      requestBody: {
+        // An id property string that uniquely identifies this new notification channel within your project. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. The ID value you set is echoed back in the X-Goog-Channel-Id HTTP header of every notification message that you receive for this channel.
+        id: "my_id",
+        type: "web_hook",
+        address: "https://cal.dev/api/integrations/googlecalendar/webhook",
+      },
     });
     console.log(res.data);
-
+    calendar.channels.stop({
+      requestBody: {
+        id: "my_id",
+        resourceId: "my_resourceId",
+      },
+    });
     // Example response
     // {
     //   "address": "my_address",
