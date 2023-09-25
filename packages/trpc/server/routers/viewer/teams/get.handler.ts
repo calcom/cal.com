@@ -18,6 +18,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const team = await getTeamWithMembers({
     id: input.teamId,
     userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
+    includeTeamLogo: input.includeTeamLogo,
   });
 
   if (!team) {

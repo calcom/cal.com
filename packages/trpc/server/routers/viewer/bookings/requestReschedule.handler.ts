@@ -205,10 +205,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(
+          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+        );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+        return deleteMeeting(
+          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          bookingRef.uid
+        );
       }
     })
   );
