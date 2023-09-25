@@ -153,6 +153,25 @@ test.describe("Manage Booking Questions", () => {
           });
         });
       });
+
+      await test.step("Verify that we can prefill name field with firstName,lastName query params", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("firstName", "John");
+        searchParams.append("lastName", "Doe");
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "John",
+                lastName: "Doe",
+              },
+            },
+          });
+        });
+      });
     });
   });
 
