@@ -16,7 +16,7 @@ test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
     client = await createTestCLient();
   });
-  test("Should create valid access toke & refresh token for user", async ({ page, users }) => {
+  test("should create valid access toke & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
@@ -96,7 +96,7 @@ test.describe("OAuth Provider", () => {
     expect(meData.username.startsWith("test user")).toBe(true);
   });
 
-  test("Should create valid access toke & refresh token for team", async ({ page, users }) => {
+  test("should create valid access toke & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
@@ -181,7 +181,7 @@ test.describe("OAuth Provider", () => {
     expect(meData.username.endsWith("Team Team")).toBe(true);
   });
 
-  test("if not logged-in user is redirected to login page and forwarded to authorization page after login", async ({
+  test("redirect not logged-in users to login page and after forward to authorization page", async ({
     page,
     users,
   }) => {
