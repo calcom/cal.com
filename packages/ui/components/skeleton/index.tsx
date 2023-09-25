@@ -14,7 +14,12 @@ interface SkeletonContainer {
 }
 
 const SkeletonAvatar: React.FC<SkeletonBaseProps> = ({ className }) => {
-  return <div className={classNames(`bg-emphasis me-3 mt-1 rounded-full`, className)} />;
+  return (
+    <div
+      data-testid="skeleton-avatar"
+      className={classNames(`bg-emphasis me-3 mt-1 rounded-full`, className)}
+    />
+  );
 };
 
 type SkeletonProps<T> = {
@@ -50,6 +55,7 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   const Component = as;
   return (
     <Component
+      data-testid="skeleton"
       className={classNames(
         loading
           ? classNames("font-size-0 bg-emphasis animate-pulse rounded-md text-transparent", loadingClassName)
@@ -69,6 +75,7 @@ const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean; style?: 
 }) => {
   return (
     <span
+      data-testid="skeleton-text"
       style={style}
       className={classNames(
         `font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
@@ -82,14 +89,18 @@ const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean; style?: 
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ className }) => {
   return (
     <SkeletonContainer>
-      <div className={classNames(`bg-emphasis rounded-md`, className)} />
+      <div className={classNames(`bg-emphasis rounded-md`, className)} data-testid="skeleton-btn" />
     </SkeletonContainer>
   );
 };
 
 const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, className }) => {
   const Component = as || "div";
-  return <Component className={classNames("animate-pulse", className)}>{children}</Component>;
+  return (
+    <Component data-testid="skeleton-container" className={classNames("animate-pulse", className)}>
+      {children}
+    </Component>
+  );
 };
 
 export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
