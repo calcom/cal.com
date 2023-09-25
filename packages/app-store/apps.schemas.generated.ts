@@ -30,6 +30,7 @@ import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
 import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
+import { appDataSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
 import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
@@ -62,6 +63,7 @@ export const appDataSchemas = {
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
   "zoho-bigin": zoho_bigin_zod_ts,
+  zohocalendar: zohocalendar_zod_ts,
   zohocrm: zohocrm_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

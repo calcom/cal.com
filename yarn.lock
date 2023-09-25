@@ -4488,6 +4488,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/zohocalendar@workspace:packages/app-store/zohocalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/zohocalendar@workspace:packages/app-store/zohocalendar"
+  dependencies:
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/zohocrm@workspace:packages/app-store/zohocrm":
   version: 0.0.0-use.local
   resolution: "@calcom/zohocrm@workspace:packages/app-store/zohocrm"
