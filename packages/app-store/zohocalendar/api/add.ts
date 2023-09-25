@@ -4,8 +4,8 @@ import { stringify } from "querystring";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import config from "../config.json";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
