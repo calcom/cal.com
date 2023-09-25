@@ -27,4 +27,5 @@ jobs:
           key: ${{ secrets.CALCOM_SSH_KEY }}
           script: |
             cd calcom
+            DOCKER_BUILDKIT=0 docker-compose build
             docker-compose up -d
