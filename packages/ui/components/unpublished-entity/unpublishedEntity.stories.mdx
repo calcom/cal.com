@@ -1,0 +1,37 @@
+import { Canvas, Meta, Story } from "@storybook/addon-docs";
+
+import { Title, CustomArgsTable, VariantsTable, VariantRow } from "@calcom/storybook/components";
+
+import { UnpublishedEntity } from "./UnpublishedEntity";
+
+<Meta title="UI/UnpublishedEntity" component={UnpublishedEntity} />
+
+<Title title="UnpublishedEntity" suffix="Brief" subtitle="Version 1.0 — Last Update: 17 Aug 2023" />
+
+## Definition
+
+The `UnpublishedEntity` component is used to display an "empty screen" with relevant information for unpublished teams or organizations.
+
+## Structure
+
+The `UnpublishedEntity` component consists of the following parts:
+
+- An `EmptyScreen` component from `@calcom/ui` that displays a visual representation of an "empty screen."
+- An `Avatar` component from `@calcom/ui` that shows an avatar image associated with the organization or team.
+- Translated text obtained using the `useLocale` hook for displaying messages based on the entity's status.
+
+<CustomArgsTable of={UnpublishedEntity} />
+
+## UnpublishedEntity Story
+
+<Canvas>
+  <Story name="UnpublishedEntity" args={{ name: "TeamExample", teamSlug: "team-example" }}>
+    {(args) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <UnpublishedEntity {...args} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

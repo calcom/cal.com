@@ -18,7 +18,7 @@ export type EventTypeInfo = {
 
 export type WebhookDataType = CalendarEvent &
   EventTypeInfo & {
-    metadata?: { [key: string]: string };
+    metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
@@ -28,9 +28,12 @@ export type WebhookDataType = CalendarEvent &
     triggerEvent: string;
     createdAt: string;
     downloadLink?: string;
+    paymentId?: number;
   };
 
-function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
+function getZapierPayload(
+  data: CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
+): string {
   const attendees = data.attendees.map((attendee) => {
     return {
       name: attendee.name,
@@ -69,16 +72,13 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
       length: data.length,
     },
     attendees: attendees,
+    createdAt: data.createdAt,
   };
   return JSON.stringify(body);
 }
 
 function applyTemplate(template: string, data: WebhookDataType, contentType: ContentType) {
-  const organizer = JSON.stringify(data.organizer);
-  const attendees = JSON.stringify(data.attendees);
-  const formattedData = { ...data, metadata: JSON.stringify(data.metadata), organizer, attendees };
-
-  const compiled = compile(template)(formattedData).replace(/&quot;/g, '"');
+  const compiled = compile(template)(data).replace(/&quot;/g, '"');
 
   if (contentType === "application/json") {
     return JSON.stringify(jsonParse(compiled));
@@ -112,7 +112,7 @@ const sendPayload = async (
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier") {
-    body = getZapierPayload(data);
+    body = getZapierPayload({ ...data, createdAt });
   } else if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {
@@ -123,24 +123,37 @@ const sendPayload = async (
     });
   }
 
-  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, contentType);
+  return _sendPayload(secretKey, webhook, body, contentType);
 };
 
-export const sendGenericWebhookPayload = async (
-  secretKey: string | null,
-  triggerEvent: string,
-  createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Record<string, unknown>
-) => {
-  const body = JSON.stringify(data);
-  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, "application/json");
+export const sendGenericWebhookPayload = async ({
+  secretKey,
+  triggerEvent,
+  createdAt,
+  webhook,
+  data,
+  rootData,
+}: {
+  secretKey: string | null;
+  triggerEvent: string;
+  createdAt: string;
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  data: Record<string, unknown>;
+  rootData?: Record<string, unknown>;
+}) => {
+  const body = JSON.stringify({
+    // Added rootData props first so that using the known(i.e. triggerEvent, createdAt, payload) properties in rootData doesn't override the known properties
+    ...rootData,
+    triggerEvent: triggerEvent,
+    createdAt: createdAt,
+    payload: data,
+  });
+
+  return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
 const _sendPayload = async (
   secretKey: string | null,
-  triggerEvent: string,
-  createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"

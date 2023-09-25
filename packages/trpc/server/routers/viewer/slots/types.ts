@@ -57,3 +57,7 @@ export type Slot = {
   bookingUid?: string;
   users?: string[];
 };
+
+export const removeSelectedSlotSchema = z.object({
+  uid: z.string().nullable(),
+});

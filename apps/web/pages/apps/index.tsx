@@ -12,7 +12,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
-import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
+import {
+  AllApps,
+  AppStoreCategories,
+  HorizontalTabs,
+  TextField,
+  PopularAppsSlider,
+  RecentAppsSlider,
+} from "@calcom/ui";
 import { Search } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -81,6 +88,7 @@ export default function Apps({
           <>
             <AppStoreCategories categories={categories} />
             <PopularAppsSlider items={appStore} />
+            <RecentAppsSlider items={appStore} />
           </>
         )}
         <AllApps

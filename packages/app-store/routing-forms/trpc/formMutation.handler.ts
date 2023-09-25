@@ -59,6 +59,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       fields: true,
       settings: true,
       teamId: true,
+      position: true,
     },
   });
 

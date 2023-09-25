@@ -40,10 +40,10 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
         confirmBtnText={t("confirm_remove_member")}
         onConfirm={() => {
           // Shouldnt ever happen just for type safety
-          if (!session?.user.organizationId || !state?.deleteMember?.user?.id) return;
+          if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
 
           removeMemberMutation.mutate({
-            teamId: session?.user.organizationId,
+            teamId: session?.user.org.id,
             memberId: state?.deleteMember?.user.id,
             isOrg: true,
           });

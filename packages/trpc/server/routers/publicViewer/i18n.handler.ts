@@ -21,3 +21,5 @@ export const i18nHandler = async ({ input }: I18nOptions) => {
     locale,
   };
 };
+
+export default i18nHandler;

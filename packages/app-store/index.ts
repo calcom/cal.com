@@ -26,6 +26,7 @@ const appStore = {
   webexvideo: () => import("./webex"),
   giphy: () => import("./giphy"),
   zapier: () => import("./zapier"),
+  make: () => import("./make"),
   exchange2013calendar: () => import("./exchange2013calendar"),
   exchange2016calendar: () => import("./exchange2016calendar"),
   exchangecalendar: () => import("./exchangecalendar"),

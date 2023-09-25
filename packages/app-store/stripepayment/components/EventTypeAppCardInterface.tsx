@@ -15,7 +15,7 @@ type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
-  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
@@ -37,15 +37,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
   return (
     <AppCard
-      returnTo={WEBAPP_URL + pathname}
-      setAppData={setAppData}
+      returnTo={WEBAPP_URL + pathname + "?tabName=apps"}
       app={app}
-      disableSwitch={disabled}
-      LockedIcon={LockedIcon}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
-      }}>
+      }}
+      teamId={eventType.team?.id || undefined}>
       <>
         {recurringEventDefined && (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />

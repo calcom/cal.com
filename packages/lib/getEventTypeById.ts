@@ -4,6 +4,7 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
+import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -20,6 +21,7 @@ interface getEventTypeByIdProps {
   userId: number;
   prisma: PrismaClient;
   isTrpcCall?: boolean;
+  isUserOrganizationAdmin: boolean;
 }
 
 export default async function getEventTypeById({
@@ -27,6 +29,7 @@ export default async function getEventTypeById({
   userId,
   prisma,
   isTrpcCall = false,
+  isUserOrganizationAdmin,
 }: getEventTypeByIdProps) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
@@ -113,6 +116,11 @@ export default async function getEventTypeById({
           name: true,
           slug: true,
           parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
           members: {
             select: {
               role: true,
@@ -166,6 +174,7 @@ export default async function getEventTypeById({
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       webhooks: {
         select: {
           id: true,
@@ -319,7 +328,9 @@ export default async function getEventTypeById({
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
     (user) => ({
       ...user,
-      avatar: `${CAL_URL}/${user.username}/avatar.png`,
+      avatar: `${eventType.team?.parent?.slug ? getOrgFullDomain(eventType.team?.parent?.slug) : CAL_URL}/${
+        user.username
+      }/avatar.png`,
     })
   );
 
@@ -365,7 +376,11 @@ export default async function getEventTypeById({
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
             ...member.user,
-            avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
+            avatar: `${
+              eventTypeObject.team?.parent?.slug
+                ? getOrgFullDomain(eventTypeObject.team?.parent?.slug)
+                : CAL_URL
+            }/${member.user.username}/avatar.png`,
           };
           return {
             ...user,
@@ -396,6 +411,7 @@ export default async function getEventTypeById({
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,
+    isUserOrganizationAdmin,
   };
   return finalObj;
 }

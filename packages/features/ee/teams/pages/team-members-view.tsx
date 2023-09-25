@@ -80,7 +80,7 @@ const MembersView = () => {
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.organizationId,
+    enabled: !!session.data?.user?.org,
   });
 
   const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
@@ -90,13 +90,14 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null,
+        enabled: searchParams !== null && !!teamId,
       }
     );
 
   const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
+      enabled: !!teamId,
       onError: () => {
         router.push("/settings");
       },
@@ -148,7 +149,6 @@ const MembersView = () => {
                       {
                         id: team.id,
                         accepted: team.membership.accepted || false,
-                        logo: team.logo,
                         name: team.name,
                         slug: team.slug,
                         role: team.membership.role,

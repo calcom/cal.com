@@ -44,6 +44,14 @@ vi.mock("@calcom/lib/OgImages", async () => {
   return {};
 });
 
+vi.mock("@calcom/lib/hooks/useLocale", () => ({
+  useLocale: () => {
+    return {
+      t: (str: string) => str,
+    };
+  },
+}));
+
 expect.extend({
   tabToBeDisabled(received) {
     const isDisabled = received.classList.contains("pointer-events-none");

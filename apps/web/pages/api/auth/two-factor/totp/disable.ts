@@ -43,8 +43,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: ErrorCode.IncorrectPassword });
     }
   }
-  // if user has 2fa
-  if (user.twoFactorEnabled) {
+
+  // if user has 2fa and using backup code
+  if (user.twoFactorEnabled && req.body.backupCode) {
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error("Missing encryption key; cannot proceed with backup code login.");
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    if (!user.backupCodes) {
+      return res.status(400).json({ error: ErrorCode.MissingBackupCodes });
+    }
+
+    const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
+
+    // check if user-supplied code matches one
+    const index = backupCodes.indexOf(req.body.backupCode.replaceAll("-", ""));
+    if (index === -1) {
+      return res.status(400).json({ error: ErrorCode.IncorrectBackupCode });
+    }
+
+    // we delete all stored backup codes at the end, no need to do this here
+
+    // if user has 2fa and NOT using backup code, try totp
+  } else if (user.twoFactorEnabled) {
     if (!req.body.code) {
       return res.status(400).json({ error: ErrorCode.SecondFactorRequired });
       // throw new Error(ErrorCode.SecondFactorRequired);
@@ -82,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: session.user.id,
     },
     data: {
+      backupCodes: null,
       twoFactorEnabled: false,
       twoFactorSecret: null,
     },

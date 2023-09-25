@@ -21,7 +21,7 @@ type ListOptions = {
   input: TListOtherTeamMembersSchema;
 };
 
-export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
+export const listOtherTeamMembers = async ({ input }: ListOptions) => {
   const whereConditional: Prisma.MembershipWhereInput = {
     teamId: input.teamId,
   };

@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import {
   isSMSOrWhatsappAction,
   isTextMessageToAttendeeAction,
+  isTextMessageToSpecificNumber,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
@@ -25,7 +26,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { isVerifiedHandler } from "../kycVerification/isVerified.handler";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
@@ -84,14 +84,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
-  const kycVerified = await isVerifiedHandler({ ctx });
-  const isKYCVerified = kycVerified.isKYCVerified;
+  const hasOrgsPlan = IS_SELF_HOSTED || ctx.user.organizationId;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
       id: {
         in: activeOn,
       },
+      parentId: null,
     },
     select: {
       id: true,
@@ -264,13 +264,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      steps.forEach(async (step) => {
+      const promiseSteps = steps.map(async (step) => {
         if (
           step.action !== WorkflowActions.SMS_ATTENDEE &&
           step.action !== WorkflowActions.WHATSAPP_ATTENDEE
         ) {
           //as we do not have attendees phone number (user is notified about that when setting this action)
-          bookingsForReminders.forEach(async (booking) => {
+          const promiseScheduleReminders = bookingsForReminders.map(async (booking) => {
             const defaultLocale = "en";
             const bookingInfo = {
               uid: booking.uid,
@@ -367,29 +367,28 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               );
             }
           });
+          await Promise.all(promiseScheduleReminders);
         }
       });
+      await Promise.all(promiseSteps);
     }
     //create all workflow - eventtypes relationships
-    activeOnEventTypes.forEach(async (eventType) => {
-      await ctx.prisma.workflowsOnEventTypes.createMany({
-        data: {
-          workflowId: id,
-          eventTypeId: eventType.id,
-        },
-      });
-
-      if (eventType.children.length) {
-        eventType.children.forEach(async (chEventType) => {
-          await ctx.prisma.workflowsOnEventTypes.createMany({
-            data: {
-              workflowId: id,
-              eventTypeId: chEventType.id,
-            },
-          });
-        });
-      }
+    await ctx.prisma.workflowsOnEventTypes.createMany({
+      data: activeOnEventTypes.map((eventType) => ({
+        workflowId: id,
+        eventTypeId: eventType.id,
+      })),
     });
+    await Promise.all(
+      activeOnEventTypes.map((eventType) =>
+        ctx.prisma.workflowsOnEventTypes.createMany({
+          data: eventType.children.map((chEventType) => ({
+            workflowId: id,
+            eventTypeId: chEventType.id,
+          })),
+        })
+      )
+    );
   }
 
   userWorkflow.steps.map(async (oldStep) => {
@@ -425,11 +424,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-      if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      // check if step that require team plan already existed before
+      if (
+        !hasPaidPlan &&
+        !isTextMessageToSpecificNumber(oldStep.action) &&
+        isTextMessageToSpecificNumber(newStep.action)
+      ) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      if (!isKYCVerified && isTextMessageToAttendeeAction(newStep.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      // check if step that require org already existed before
+      if (
+        !hasOrgsPlan &&
+        !isTextMessageToAttendeeAction(oldStep.action) &&
+        isTextMessageToAttendeeAction(newStep.action)
+      ) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan required" });
       }
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
@@ -455,6 +464,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             senderName: newStep.senderName,
           }),
           numberVerificationPending: false,
+          includeCalendarEvent: newStep.includeCalendarEvent,
         },
       });
       //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -465,11 +475,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       //cancel all workflow reminders from steps that were edited
-      remindersToUpdate.forEach(async (reminder) => {
+      // FIXME: async calls into ether
+      remindersToUpdate.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+          deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
         }
       });
       const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
@@ -497,7 +510,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             user: true,
           },
         });
-        bookingsOfEventTypes.forEach(async (booking) => {
+        const promiseScheduleReminders = bookingsOfEventTypes.map(async (booking) => {
           const defaultLocale = "en";
           const bookingInfo = {
             uid: booking.uid,
@@ -594,17 +607,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             );
           }
         });
+        await Promise.all(promiseScheduleReminders);
       }
     }
   });
   //added steps
   const addedSteps = steps.map((s) => {
     if (s.id <= 0) {
-      if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (isSMSOrWhatsappAction(s.action) && !isTextMessageToAttendeeAction(s.action) && !hasPaidPlan) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      if (!isKYCVerified && isTextMessageToAttendeeAction(s.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Account needs to be verified" });
+      if (!hasOrgsPlan && isTextMessageToAttendeeAction(s.action)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan require" });
       }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;
@@ -617,7 +631,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         return activeEventType;
       }
     });
-    addedSteps.forEach(async (step) => {
+    const promiseAddedSteps = addedSteps.map(async (step) => {
       if (step) {
         const { senderName, ...newStep } = step;
         newStep.sender = getSender({
@@ -749,6 +763,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         }
       }
     });
+    await Promise.all(promiseAddedSteps);
   }
 
   //update trigger, name, time, timeUnit

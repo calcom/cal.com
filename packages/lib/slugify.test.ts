@@ -8,10 +8,12 @@ describe("slugify", () => {
     expect(slugify("HELLO")).toEqual("hello");
   });
 
-  it("should convert spaces, _, and any other special character to -", () => {
+  it("should convert spaces, _, +, # and any other special character to -", () => {
     expect(slugify("hello there")).toEqual("hello-there");
     expect(slugify("hello_there")).toEqual("hello-there");
     expect(slugify("hello$there")).toEqual("hello-there");
+    expect(slugify("hello+there")).toEqual("hello-there");
+    expect(slugify("#hellothere")).toEqual("hellothere");
   });
 
   it("should keep numbers as is", () => {

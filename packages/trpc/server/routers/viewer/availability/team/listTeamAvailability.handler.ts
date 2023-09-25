@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -29,22 +27,11 @@ async function getTeamMembers({
   cursor: number | null | undefined;
   limit: number;
 }) {
-  let whereQuery: Prisma.MembershipWhereInput = {
-    teamId,
-  };
-
-  if (teamIds) {
-    whereQuery = {
-      teamId: {
-        in: teamIds,
-      },
-    };
-  }
-
   return await prisma.membership.findMany({
     where: {
-      ...whereQuery,
-      accepted: true,
+      teamId: {
+        in: teamId ? [teamId] : teamIds,
+      },
     },
     select: {
       id: true,
@@ -78,6 +65,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
       email: member.user.email,
       timeZone: member.user.timeZone,
       role: member.role,
+      defaultScheduleId: -1,
       dateRanges: [] as DateRange[],
     };
   }
@@ -101,6 +89,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     email: member.user.email,
     timeZone,
     role: member.role,
+    defaultScheduleId: member.user.defaultScheduleId ?? -1,
     dateRanges,
   };
 }
@@ -116,22 +105,14 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
       },
       select: {
         id: true,
+        teamId: true,
       },
     })
-    .then((memberships) => memberships.map((membership) => membership.id));
+    .then((memberships) => memberships.map((membership) => membership.teamId));
 
   if (!teamIds.length) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization or team." });
   }
-
-  const getTotalMembers = await prisma.$queryRaw<{
-    count: number;
-  }>(Prisma.sql`
-      SELECT
-        COUNT(DISTINCT "userId") as "count"
-      FROM "Membership"
-      WHERE "teamId" IN (${Prisma.join(teamIds)})
-`);
 
   const teamMembers = await getTeamMembers({
     teamIds,
@@ -141,7 +122,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 
   return {
     teamMembers,
-    totalTeamMembers: getTotalMembers.count,
+    totalTeamMembers: teamMembers.length,
   };
 }
 

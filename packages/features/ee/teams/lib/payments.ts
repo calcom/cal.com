@@ -117,10 +117,8 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
       return;
     }
 
-    const newQuantity = membershipCount - subscriptionQuantity;
-
     await stripe.subscriptions.update(subscriptionId, {
-      items: [{ quantity: membershipCount + newQuantity, id: subscriptionItemId }],
+      items: [{ quantity: membershipCount, id: subscriptionItemId }],
     });
     console.info(
       `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`

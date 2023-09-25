@@ -1,6 +1,6 @@
-import { expect, it } from "vitest";
-
 import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
+import { expect, it } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser } from "@calcom/lib/test/builder";
@@ -36,6 +36,7 @@ it("can find lucky user with maximize availability", async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.user.findMany.mockResolvedValue(users);
+  // @ts-expect-error Prisma v5 typings are not yet available
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   await expect(

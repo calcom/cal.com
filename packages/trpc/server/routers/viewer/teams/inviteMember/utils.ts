@@ -5,6 +5,7 @@ import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emai
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
@@ -66,17 +67,21 @@ export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
 
 export async function getUserToInviteOrThrowIfExists({
   usernameOrEmail,
-  orgId,
+  teamId,
   isOrg,
 }: {
   usernameOrEmail: string;
-  orgId: number;
+  teamId: number;
   isOrg?: boolean;
 }) {
   // Check if user exists in ORG or exists all together
+
+  const orgWhere = isOrg && {
+    organizationId: teamId,
+  };
   const invitee = await prisma.user.findFirst({
     where: {
-      OR: [{ username: usernameOrEmail, organizationId: orgId }, { email: usernameOrEmail }],
+      OR: [{ username: usernameOrEmail, ...orgWhere }, { email: usernameOrEmail }],
     },
   });
 
@@ -132,18 +137,28 @@ export async function createNewUserConnectToOrgIfExists({
   usernameOrEmail,
   input,
   parentId,
+  autoAcceptEmailDomain,
   connectionInfo,
 }: {
   usernameOrEmail: string;
   input: InviteMemberOptions["input"];
   parentId?: number | null;
+  autoAcceptEmailDomain?: string;
   connectionInfo: ReturnType<typeof getOrgConnectionInfo>;
 }) {
   const { orgId, autoAccept } = connectionInfo;
 
+  const [emailUser, emailDomain] = usernameOrEmail.split("@");
+  const username =
+    emailDomain === autoAcceptEmailDomain
+      ? slugify(emailUser)
+      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
   const createdUser = await prisma.user.create({
     data: {
+      username,
       email: usernameOrEmail,
+      verified: true,
       invitedTo: input.teamId,
       organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
@@ -235,19 +250,19 @@ export async function sendVerificationEmail({
 }) {
   const token: string = randomBytes(32).toString("hex");
 
-  if (!connectionInfo.autoAccept) {
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-        team: {
-          connect: {
-            id: connectionInfo.orgId || input.teamId,
-          },
+  await prisma.verificationToken.create({
+    data: {
+      identifier: usernameOrEmail,
+      token,
+      expires: new Date(new Date().setHours(168)), // +1 week
+      team: {
+        connect: {
+          id: input.teamId,
         },
       },
-    });
+    },
+  });
+  if (!connectionInfo.autoAccept) {
     await sendTeamInviteEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
@@ -258,15 +273,6 @@ export async function sendVerificationEmail({
       isOrg: input.isOrg,
     });
   } else {
-    // we have already joined the team in createNewUserConnectToOrgIfExists so we dont need to connect via token
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-      },
-    });
-
     await sendOrganizationAutoJoinEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,

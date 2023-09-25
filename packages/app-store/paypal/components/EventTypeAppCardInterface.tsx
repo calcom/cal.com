@@ -16,7 +16,7 @@ type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
   const [selectedCurrency, setSelectedCurrency] = useState(
@@ -38,7 +38,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       returnTo={WEBAPP_URL + asPath}
-      setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {

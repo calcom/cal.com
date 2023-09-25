@@ -59,10 +59,13 @@ export const AnimatedPopover = ({
           ) : (
             <div className="max-w-36 flex items-center">
               <Tooltip content={text}>
-                <div className="select-none truncate font-medium">
+                <div className="flex select-none truncate font-medium">
                   {text}
                   {count && count > 0 && (
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full">{count}</div>
+                    <div className="text-emphasis flex items-center justify-center rounded-full font-semibold">
+                      <span>&nbsp;</span>
+                      {count}
+                    </div>
                   )}
                 </div>
               </Tooltip>

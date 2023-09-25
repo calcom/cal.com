@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Input } from "@calcom/ui";
 
-export default function TwoFactor({ center = true }) {
+export default function TwoFactor({ center = true, autoFocus = true }) {
   const [value, onChange] = useState("");
   const { t } = useLocale();
   const methods = useFormContext();
@@ -40,7 +40,7 @@ export default function TwoFactor({ center = true }) {
             name={`2fa${index + 1}`}
             inputMode="decimal"
             {...digit}
-            autoFocus={index === 0}
+            autoFocus={autoFocus && index === 0}
             autoComplete="one-time-code"
           />
         ))}
