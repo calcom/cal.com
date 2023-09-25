@@ -190,10 +190,14 @@ test.describe("Teams", () => {
       teammates: teamMatesObj,
       schedulingType: SchedulingType.COLLECTIVE,
     });
+
+    await owner.apiLogin();
     const { team } = await owner.getTeam();
 
     // Mark team as private
-    await prisma.team.update({ where: { id: team.id }, data: { isPrivate: true } });
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.click("[data-testid=make-team-private-check]");
+    await expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible();
 
     // Go to Team's page
     await page.goto(`/team/${team.slug}`);
