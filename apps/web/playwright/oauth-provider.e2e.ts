@@ -180,6 +180,28 @@ test.describe("OAuth Provider", () => {
 
     expect(meData.username.endsWith("Team Team")).toBe(true);
   });
+
+  test("if not logged-in user is redirected to login page and forwarded to authorization page after login", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({ username: "test-user", name: "test user" });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+    );
+
+    // check if user is redirected to login page
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await page.locator("#email").fill(user.email);
+    await page.locator("#password").fill(user.username);
+
+    await page.getByRole("button", { name: "Sign in" }).click();
+
+    await page.waitForSelector("#account-select");
+
+    await expect(page.getByText("test user")).toBeVisible();
+  });
 });
 
 const createTestCLient = async () => {
