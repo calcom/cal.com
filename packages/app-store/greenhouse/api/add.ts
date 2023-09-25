@@ -1,6 +1,7 @@
 import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
+import { baseApiUrl } from "../api/callback";
 import appConfig from "../config.json";
 
 const handler: AppDeclarativeHandler = {
@@ -11,7 +12,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: `/apps/${appConfig.slug}/setup`,
+    url: `${baseApiUrl}`, //TODO check this
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),

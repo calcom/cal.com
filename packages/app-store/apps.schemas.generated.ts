@@ -8,6 +8,7 @@ import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
+import { appDataSchema as greenhouse_zod_ts } from "./greenhouse/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
@@ -40,6 +41,7 @@ export const appDataSchemas = {
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
   googlecalendar: googlecalendar_zod_ts,
+  greenhouse: greenhouse_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
