@@ -262,11 +262,7 @@ const ProfileView = () => {
             {t("delete_account")}
           </Button>
         </DialogTrigger>
-        <DialogContent
-          title={t("delete_account_modal_title")}
-          description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-          type="creation"
-          Icon={AlertTriangle}>
+        <DialogContent title={t("delete_account_modal_title")} type="creation" Icon={AlertTriangle}>
           <>
             <div className="mb-10">
               <p className="text-default mb-4">
