@@ -48,7 +48,6 @@ export const oAuthRouter = router({
     });
   }),
 
-  //needs to be and adminauthed protected route
   generateAuthCode: authedProcedure.input(ZGenerateAuthCodeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.generateAuthCode) {
       UNSTABLE_HANDLER_CACHE.generateAuthCode = await import("./generateAuthCode.handler").then(
