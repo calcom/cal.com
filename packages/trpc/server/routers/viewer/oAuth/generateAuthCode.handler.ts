@@ -36,7 +36,25 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
 
   const isTeam = teamSlug.startsWith("team/");
 
-  const team = isTeam ? await prisma.team.findFirst({ where: { slug: teamSlug.substring(5) } }) : undefined;
+  const team = isTeam
+    ? await prisma.team.findFirst({
+        where: {
+          slug: teamSlug.substring(5),
+          members: {
+            some: {
+              userId: ctx.user.id,
+              role: {
+                in: ["OWNER", "ADMIN"],
+              },
+            },
+          },
+        },
+      })
+    : undefined;
+
+  if (isTeam && !team) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   await prisma.accessCode.create({
     data: {
