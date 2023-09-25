@@ -11,7 +11,7 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
   const { t } = useLocale();
   const slug = props.orgSlug || props.teamSlug;
   return (
-    <div className="m-8 flex items-center justify-center">
+    <div data-testid="unpublished-entity" className="m-8 flex items-center justify-center">
       <EmptyScreen
         avatar={
           <Avatar
