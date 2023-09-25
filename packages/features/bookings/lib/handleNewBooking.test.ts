@@ -208,7 +208,7 @@ describe("handleNewBooking", () => {
       timeout
     );
 
-    describe("Calendar events should be created in the approriate calendar", () => {
+    describe("Calendar events should be created in the appropriate calendar", () => {
       test(
         `should create a successful booking in the first connected calendar i.e. using the first credential(in the scenario when there is no event-type or organizer destination calendar)
           1. Should create a booking in the database
@@ -564,7 +564,93 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `should fail a booking if there is already a booking in the organizer calendar(in a scenario when that calendar is chosen)`,
+          `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time`,
+          async () => {
+            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const organizerId = 101;
+            const booker = getBooker({
+              email: "booker@example.com",
+              name: "Booker",
+            });
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: organizerId,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+            });
+            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+            await createBookingScenario(
+              getScenarioData({
+                webhooks: [
+                  {
+                    userId: organizer.id,
+                    eventTriggers: ["BOOKING_CREATED"],
+                    subscriberUrl: "http://my-webhook.example.com",
+                    active: true,
+                    eventTypeId: 1,
+                    appId: null,
+                  },
+                ],
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 45,
+                    length: 45,
+                    users: [
+                      {
+                        id: 101,
+                      },
+                    ],
+                  },
+                ],
+                organizer,
+                apps: [TestData.apps["google-calendar"]],
+              })
+            );
+
+            const calendarMock = mockCalendar("googlecalendar", {
+              create: {
+                uid: "MOCK_ID",
+              },
+              busySlots: [
+                {
+                  start: `${plus1DateString}T05:00:00.000Z`,
+                  end: `${plus1DateString}T05:15:00.000Z`,
+                },
+              ],
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+                end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                  location: { optionValue: "", value: "New York" },
+                },
+              },
+            });
+
+            const { req } = createMockNextJsRequest({
+              method: "POST",
+              body: mockBookingData,
+            });
+
+            await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
+              "No available users found"
+            );
+          },
+          timeout
+        );
+
+        test(
+          `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time`,
           async () => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const organizerId = 101;
@@ -1515,14 +1601,21 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
-    test.todo("fail booking if there is already a booking at that time");
-    test.todo("fail booking if there is a busy event in Google Calendar at that time");
   });
 
   describe("Team Events", () => {
     test.todo("Collective event booking");
     test.todo("Round Robin booking");
   });
+
+  describe("Team Plus Paid Events", () => {
+    test.todo("Collective event booking");
+    test.todo("Round Robin booking");
+  });
+
+  test.todo("Calendar and video Apps installed on a Team  Account");
+
+  test.todo("Managed Event Type booking");
 
   test.todo("Dynamic Group Booking");
 
