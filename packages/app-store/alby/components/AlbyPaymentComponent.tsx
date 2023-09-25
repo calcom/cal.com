@@ -55,7 +55,6 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
       {isPaying && <Spinner className="mt-12 h-8 w-8" />}
       {!isPaying && (
         <>
-          {/* <p className="break-all">Payment {JSON.stringify(payment)}</p> */}
           {!showQRCode && (
             <div className="flex gap-4">
               <Button color="secondary" onClick={() => setShowQRCode(true)}>
