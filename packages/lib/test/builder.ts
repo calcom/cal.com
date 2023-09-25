@@ -223,6 +223,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     weekStart: "",
     organizationId: null,
     allowSEOIndexing: null,
+    receiveMonthlyDigestEmail: null,
     ...user,
   };
 };
