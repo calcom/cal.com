@@ -42,7 +42,7 @@ export default function Authorize() {
     ? data
         .filter((profile) => !profile.readOnly)
         .map((profile) => ({
-          label: profile.name || "",
+          label: profile.name || profile.slug || "",
           value: profile.slug || "",
         }))
     : [];
@@ -156,7 +156,8 @@ export default function Authorize() {
                 scopes,
                 teamSlug: selectedAccount?.value || "",
               });
-            }}>
+            }}
+            data-testid="allow-button">
             {t("allow")}
           </Button>
         </div>
