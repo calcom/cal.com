@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -17,9 +17,20 @@ type Option = { value: string; label: string };
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
+
+  useEffect(() => {
+    if (!getAppData("currency")) {
+      setAppData("currency", currencyOptions[0].value);
+    }
+    if (!getAppData("symbol")) {
+      setAppData("symbol", currencyOptions[0].symbol);
+    }
+  }, [getAppData, setAppData]);
+
   const price = getAppData("price");
   const currency = getAppData("currency");
   const symbol = getAppData("symbol");
+
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
       label: currencyOptions[0].label,
@@ -27,6 +38,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       symbol: currencyOptions[0].symbol,
     }
   );
+
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
@@ -56,8 +68,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <TextField
                   label="Price"
                   labelSrOnly
-                  addOnLeading={symbol || "$"}
-                  addOnSuffix={currency || "No selected currency"}
+                  addOnLeading={symbol}
+                  addOnSuffix={currency}
                   step="0.01"
                   min="0.5"
                   type="number"
