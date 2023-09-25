@@ -292,9 +292,6 @@ export const EventSetupTab = (
 
               const eventLabel =
                 location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
-
-              console.log("eventLocationType", eventLocationType);
-
               return (
                 <li
                   key={`${location.type}${index}`}
