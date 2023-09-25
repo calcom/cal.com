@@ -94,6 +94,10 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
+    "@tiptap/extension-link": "^2.1.11",
+    "@tiptap/pm": "^2.1.11",
+    "@tiptap/react": "^2.1.11",
+    "@tiptap/starter-kit": "^2.1.11",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
