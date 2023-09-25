@@ -8,6 +8,16 @@ const PHONE = "+55 (32) 9832847";
 const scheduleSuccessfullyText = "This meeting is scheduled";
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
 
+type BookingOptions = {
+  hasPlaceholder?: boolean;
+  isReschedule?: boolean;
+  isRequired?: boolean;
+  isCheckbox?: boolean;
+  isBoolean?: boolean;
+  isMultiEmails?: boolean;
+  isSelect?: boolean;
+};
+
 // Logs in a test user and navigates to the event types page.
 export const loginUser = async (page: Page, users: Fixtures["users"]) => {
   const pro = await users.create({ name: "testuser" });
@@ -65,10 +75,8 @@ export const fillAndConfirmBooking = async (
 
   // if is select or multiselect question and required click in all options, for select just the last option will be checked
   if (isSelect && isRequired) {
-    await eventTypePage.locator(".data-testid-select > .bg-default").click();
+    await eventTypePage.locator("#react-select-3-input").click();
     await eventTypePage.getByTestId("select-option-Option 1").click();
-    await eventTypePage.locator(".data-testid-select > .bg-default").click();
-    await eventTypePage.getByTestId("select-option-Option 2").click();
   }
 
   // if the question has placeholder fill, if is number fill as number
@@ -83,8 +91,7 @@ export const fillAndConfirmBooking = async (
   }
 
   await eventTypePage.getByTestId(confirmButton).click();
-  await eventTypePage.getByTestId(confirmButton).click();
-  const scheduleSuccessfullyPage = await eventTypePage.getByText(scheduleSuccessfullyText);
+  const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
   await scheduleSuccessfullyPage.waitFor({ state: "visible" });
   await expect(scheduleSuccessfullyPage).toBeVisible();
 };
@@ -94,13 +101,8 @@ export const initialCommonSteps = async (
   question: string,
   users: Fixtures["users"],
   secondQuestion: string,
-  hasPlaceholder = false,
-  isRequired = true,
   message: string,
-  isCheckbox = false,
-  isBoolean = false,
-  isMultiEmails = false,
-  isSelect = false
+  options: BookingOptions
 ) => {
   //Logs in a test user and navigates to the event types page.
   loginUser(bookingPage, users);
@@ -128,11 +130,11 @@ export const initialCommonSteps = async (
   await bookingPage.getByLabel("Identifier").fill(`${secondQuestion}-test`);
   await bookingPage.getByLabel("Label").click();
   await bookingPage.getByLabel("Label").fill(`${secondQuestion} test`);
-  if (hasPlaceholder) {
+  if (options.hasPlaceholder) {
     await bookingPage.getByLabel("Placeholder").dblclick();
     await bookingPage.getByLabel("Placeholder").fill(`${secondQuestion} test`);
   }
-  if (!isRequired) {
+  if (!options.isRequired) {
     await bookingPage.getByRole("radio", { name: "No" }).click();
   }
   await bookingPage.getByTestId("field-add-save").click();
@@ -154,13 +156,13 @@ export const initialCommonSteps = async (
     "Please share anything that will help prepare for our meeting.",
     message,
     secondQuestion,
-    hasPlaceholder,
-    false,
-    isRequired,
-    isCheckbox,
-    isBoolean,
-    isMultiEmails,
-    isSelect
+    options.hasPlaceholder,
+    options.isReschedule,
+    options.isRequired,
+    options.isCheckbox,
+    options.isBoolean,
+    options.isMultiEmails,
+    options.isSelect
   );
 
   // Go to final steps
@@ -173,8 +175,13 @@ const rescheduleAndCancel = async (eventTypePage: Page) => {
   await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
   await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
   await eventTypePage.getByTestId("confirm-reschedule-button").click();
+
+  // Check if the rescheduled page is visible
   await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
   await eventTypePage.getByTestId("cancel").click();
   await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
   await eventTypePage.getByTestId("confirm_cancel").click();
+
+  // Check if the cancelled page is visible
+  await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
 };

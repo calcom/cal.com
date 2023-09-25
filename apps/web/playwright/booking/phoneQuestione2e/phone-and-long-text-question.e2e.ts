@@ -6,15 +6,15 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and Long text Question", () => {
+  const bookingOptions = { hasPlaceholder: true, isRequired: true };
   test("Phone and Long text required", async ({ page, users }) => {
     await initialCommonSteps(
       page,
       "phone",
       users,
       "textarea",
-      true,
-      true,
-      "Test Phone question and Address question (both required)"
+      "Test Phone question and Long text question (both required)",
+      bookingOptions
     );
   });
 
@@ -24,9 +24,8 @@ test.describe("Booking With Phone Question and Long text Question", () => {
       "phone",
       users,
       "textarea",
-      true,
-      false,
-      "Test Phone question and Address question (only Phone required)"
+      "Test Phone question and Long text question (only Phone required)",
+      { ...bookingOptions, isRequired: false }
     );
   });
 });

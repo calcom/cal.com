@@ -6,15 +6,18 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and Short text question", () => {
+  const bookingOptions = {
+    hasPlaceholder: true,
+    isRequired: true,
+  };
   test("Phone and Short text required", async ({ page, users }) => {
     await initialCommonSteps(
       page,
       "phone",
       users,
       "text",
-      true,
-      true,
-      "Test Phone question and Short Text question (both required)"
+      "Test Phone question and Short Text question (both required)",
+      bookingOptions
     );
   });
 
@@ -24,9 +27,8 @@ test.describe("Booking With Phone Question and Short text question", () => {
       "phone",
       users,
       "text",
-      true,
-      false,
-      "Test Phone question and Short Text question (both required)"
+      "Test Phone question and Short Text question (only phone required)",
+      { ...bookingOptions, isRequired: false }
     );
   });
 });

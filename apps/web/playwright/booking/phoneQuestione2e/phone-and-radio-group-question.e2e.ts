@@ -6,16 +6,19 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and Radio group Question", () => {
+  const bookingOptions = {
+    hasPlaceholder: false,
+    isRequired: true,
+    isCheckbox: true,
+  };
   test("Phone and Radio group required", async ({ page, users }) => {
     await initialCommonSteps(
       page,
       "phone",
       users,
       "radio",
-      false,
-      true,
       "Test Phone question and Radio group question (both required)",
-      true
+      bookingOptions
     );
   });
 
@@ -25,10 +28,8 @@ test.describe("Booking With Phone Question and Radio group Question", () => {
       "phone",
       users,
       "radio",
-      false,
-      false,
-      "Test Phone question and Radio group question (both required)",
-      true
+      "Test Phone question and Radio group question (only phone required)",
+      { ...bookingOptions, isRequired: false }
     );
   });
 });

@@ -6,17 +6,19 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and checkbox Question", () => {
+  const bookingOptions = {
+    hasPlaceholder: false,
+    isRequired: true,
+    isBoolean: true,
+  };
   test("Phone and checkbox required", async ({ page, users }) => {
     await initialCommonSteps(
       page,
       "phone",
       users,
       "boolean",
-      false,
-      true,
       "Test Phone question and checkbox question (both required)",
-      false,
-      true
+      bookingOptions
     );
   });
 
@@ -26,11 +28,8 @@ test.describe("Booking With Phone Question and checkbox Question", () => {
       "phone",
       users,
       "boolean",
-      false,
-      false,
       "Test Phone question and checkbox question (only phone required)",
-      false,
-      true
+      { ...bookingOptions, isRequired: false }
     );
   });
 });
