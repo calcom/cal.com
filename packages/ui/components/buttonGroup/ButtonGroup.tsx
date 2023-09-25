@@ -16,6 +16,7 @@ type Props = { children: React.ReactNode; combined?: boolean; containerProps?: J
 export function ButtonGroup({ children, combined = false, containerProps }: Props) {
   return (
     <div
+      data-testid="button-group"
       {...containerProps}
       className={classNames(
         "flex",
