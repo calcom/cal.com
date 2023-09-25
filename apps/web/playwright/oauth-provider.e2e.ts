@@ -202,8 +202,7 @@ test.describe("OAuth Provider", () => {
     await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
     await page.locator("#email").fill(user.email);
     await page.locator("#password").fill(user.username || "");
-
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.locator('[type="submit"]').click();
 
     await page.waitForSelector("#account-select");
 
