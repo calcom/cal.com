@@ -49,7 +49,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     extendsFeature,
     teamId,
     sortByMostPopular,
-    categories,
     appId,
   } = input;
   let credentials = await getUsersCredentials(user.id);
