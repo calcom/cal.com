@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
 import { test } from "./lib/fixtures";
@@ -23,12 +24,6 @@ test.describe("OAuth Provider", () => {
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
 
-    const baseUrl = page
-      .url()
-      .replace(/^https:\/\//, "")
-      .replace(/^http:\/\//, "")
-      .split("/")[0];
-
     await page.waitForLoadState("networkidle");
     await page.getByTestId("allow-button").click();
 
@@ -42,7 +37,7 @@ test.describe("OAuth Provider", () => {
     const code = url.searchParams.get("code");
 
     // request token with authorization code
-    const tokenResponse = await fetch(`http://${baseUrl}/api/auth/oauth/token`, {
+    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
       body: JSON.stringify({
         code,
         client_id: client.clientId,
@@ -59,7 +54,7 @@ test.describe("OAuth Provider", () => {
     const tokenData = await tokenResponse.json();
 
     // test if token is valid
-    const meResponse = await fetch(`http://${baseUrl}/api/auth/oauth/me`, {
+    const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,11 +64,62 @@ test.describe("OAuth Provider", () => {
 
     const meData = await meResponse.json();
 
-    expect(meData.username && meData.username.startsWith("test user")).toBe(true);
+    expect(meData.username.startsWith("test user")).toBe(true);
   });
 
   test("Should create valid token for team", async ({ page, users }) => {
-    expect(client).toBeDefined();
+    const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
+    await user.apiLogin();
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+    );
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator("#account-select").click();
+
+    await page.locator("#react-select-2-option-1").click();
+
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction(() => {
+      return window.location.href.startsWith("https://example.com");
+    });
+
+    const url = new URL(page.url());
+
+    // authorization code that is returned to client with redirect uri
+    const code = url.searchParams.get("code");
+
+    // request token with authorization code
+    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
+      body: JSON.stringify({
+        code,
+        client_id: client.clientId,
+        client_secret: client.orginalSecret,
+        grant_type: "authorization_code",
+        redirect_uri: client.redirectUri,
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    // test if token is valid
+    const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + tokenData.access_token,
+      },
+    });
+
+    const meData = await meResponse.json();
+    expect(meData.username.endsWith("Team Team")).toBe(true);
   });
 });
 

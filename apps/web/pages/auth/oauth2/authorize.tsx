@@ -96,6 +96,7 @@ export default function Authorize() {
         <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
         <Select
           isSearchable={true}
+          id="account-select"
           onChange={(value) => {
             setSelectedAccount(value);
           }}
