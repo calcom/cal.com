@@ -10,7 +10,14 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-let client;
+let client: {
+  clientId: string;
+  redirectUri: string;
+  orginalSecret: string;
+  name: string;
+  clientSecret: string;
+  logo: string | null;
+};
 
 test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
