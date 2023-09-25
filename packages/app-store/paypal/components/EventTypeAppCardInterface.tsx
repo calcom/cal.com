@@ -19,10 +19,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
+  const symbol = getAppData("symbol");
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
       label: currencyOptions[0].label,
       value: currencyOptions[0].value,
+      symbol: currencyOptions[0].symbol,
     }
   );
   const paymentOption = getAppData("paymentOption");
@@ -54,7 +56,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <TextField
                   label="Price"
                   labelSrOnly
-                  addOnLeading="$"
+                  addOnLeading={symbol || "$"}
                   addOnSuffix={currency || "No selected currency"}
                   step="0.01"
                   min="0.5"
@@ -85,6 +87,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     if (e) {
                       setSelectedCurrency(e);
                       setAppData("currency", e.value);
+                      setAppData("symbol", e.symbol);
                     }
                   }}
                 />
