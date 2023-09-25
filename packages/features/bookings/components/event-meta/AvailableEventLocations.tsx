@@ -82,9 +82,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
             <Link className="text-default ml-[2px] h-4 w-4  ltr:mr-[10px] rtl:ml-[10px] " />
-          ) : (
-            <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
-          )}
+          ) : null}
           <Tooltip content={translatedLocation}>
             <p className="line-clamp-1">{translatedLocation}</p>
           </Tooltip>
