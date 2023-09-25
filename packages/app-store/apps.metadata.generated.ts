@@ -70,6 +70,7 @@ import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metad
 import wordpress_config_json from "./wordpress/config.json";
 import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
 import zoho_bigin_config_json from "./zoho-bigin/config.json";
+import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
@@ -142,6 +143,7 @@ export const appStoreMetadata = {
   wordpress: wordpress_config_json,
   zapier: zapier__metadata_ts,
   "zoho-bigin": zoho_bigin_config_json,
+  zohocalendar: zohocalendar_config_json,
   zohocrm: zohocrm_config_json,
   zoomvideo: zoomvideo__metadata_ts,
 };

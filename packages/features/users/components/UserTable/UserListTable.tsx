@@ -169,7 +169,7 @@ export function UserListTable() {
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle text-sm leading-none">{email}</div>
+                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
               </div>
             </div>
           );

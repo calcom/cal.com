@@ -9,7 +9,6 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -126,7 +125,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 <div className="flex items-center px-5 py-5">
                   <Avatar
                     size="md"
-                    imageSrc={getPlaceholderAvatar(ch?.logo, ch?.name as string)}
+                    imageSrc={`/team/${ch.slug}/avatar.png`}
                     alt="Team Logo"
                     className="inline-flex justify-center"
                   />
@@ -135,7 +134,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                     <span className="text-subtle block text-xs">
                       {t("number_member", {
                         count: memberCount,
-                        defaultValue: `${memberCount} member${memberCount > 1 ? "s" : ""}`,
                       })}
                     </span>
                   </div>
@@ -161,14 +159,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
-            <h2 className="font-cal text-emphasis mb-2 text-3xl">
-              {" " + t("org_no_teams_yet", { defaultValue: "This organization has no teams yet" })}
-            </h2>
-            <p className="text-emphasis mx-auto max-w-md">
-              {t("org_no_teams_yet_description", {
-                defaultValue: "If you are an administrator, be sure to create teams to be shown here.",
-              })}
-            </p>
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
+            <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
       </div>
@@ -221,7 +213,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
                 </div>
               ) : (
-                <Team team={team} />
+                <Team members={team.members} teamName={team.name} />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
@@ -281,9 +273,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
   });
-  const ssr = await ssrInit(context, {
-    noI18nPreload: isValidOrgDomain && !team?.parent,
-  });
+  const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   console.info("gSSP, team/[slug] - ", {
     isValidOrgDomain,
