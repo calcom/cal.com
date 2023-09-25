@@ -11,7 +11,7 @@ const SheetTrigger = SheetPrimitive.Trigger;
 
 const SheetClose = SheetPrimitive.Close;
 
-const portalVariants = cva("fixed inset-0 z-50 flex", {
+export const portalVariants = cva("fixed inset-0 z-50 flex", {
   variants: {
     position: {
       top: "items-start",
@@ -27,7 +27,9 @@ interface SheetPortalProps extends SheetPrimitive.DialogPortalProps, VariantProp
 
 const SheetPortal = ({ position, className, children, ...props }: SheetPortalProps) => (
   <SheetPrimitive.Portal className={classNames(className)} {...props}>
-    <div className={portalVariants({ position })}>{children}</div>
+    <div data-testid="sheet-portal" className={portalVariants({ position })}>
+      {children}
+    </div>
   </SheetPrimitive.Portal>
 );
 SheetPortal.displayName = SheetPrimitive.Portal.displayName;
@@ -48,8 +50,8 @@ const SheetOverlay = React.forwardRef<
 ));
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
-const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border border-default flex flex-col ",
+export const sheetVariants = cva(
+  "fixed z-50 scale-100 gap-4 bg-default m-4 rounded-xl p-6 opacity-100 shadow-lg border border-default flex flex-col",
   {
     variants: {
       position: {
