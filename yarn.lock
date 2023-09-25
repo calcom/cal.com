@@ -3679,6 +3679,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/greenhouse@workspace:packages/app-store/greenhouse":
+  version: 0.0.0-use.local
+  resolution: "@calcom/greenhouse@workspace:packages/app-store/greenhouse"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/gtm@workspace:packages/app-store/gtm":
   version: 0.0.0-use.local
   resolution: "@calcom/gtm@workspace:packages/app-store/gtm"
