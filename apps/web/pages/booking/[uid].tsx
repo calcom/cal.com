@@ -132,7 +132,9 @@ export default function Success(props: SuccessProps) {
 
   const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
 
-  const [is24h, setIs24h] = useState(isBrowserLocale24h());
+  const [is24h, setIs24h] = useState(
+    props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
+  );
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
@@ -215,7 +217,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!getIs24hClockFromLocalStorage());
+    setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
@@ -461,7 +463,7 @@ export default function Success(props: SuccessProps) {
                     {locationToDisplay && !isCancelled && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
-                        <div className="col-span-2 mt-3">
+                        <div className="col-span-2 mt-3" data-testid="where">
                           {locationToDisplay.startsWith("http") ? (
                             <a
                               href={locationToDisplay}
@@ -917,6 +919,7 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
       periodStartDate: true,
       periodEndDate: true,
     },
@@ -940,6 +943,7 @@ const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
+    seatsShowAvailabilityCount: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<
@@ -1004,10 +1008,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
+  let userTimeFormat: number | null = null;
 
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
+    userTimeFormat = user.timeFormat;
   }
 
   const parsedQuery = querySchema.safeParse(context.query);
@@ -1148,6 +1154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingInfo,
       paymentStatus: payment,
       ...(tz && { tz }),
+      userTimeFormat,
     },
   };
 }

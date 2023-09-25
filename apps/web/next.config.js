@@ -226,6 +226,10 @@ const nextConfig = {
   },
   async rewrites() {
     const beforeFiles = [
+      {
+        source: "/login",
+        destination: "/auth/login",
+      },
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
         ? [
@@ -253,6 +257,10 @@ const nextConfig = {
       {
         source: "/org/:slug",
         destination: "/team/:slug",
+      },
+      {
+        source: "/org/:orgSlug/avatar.png",
+        destination: "/api/user/avatar?orgSlug=:orgSlug",
       },
       {
         source: "/team/:teamname/avatar.png",
