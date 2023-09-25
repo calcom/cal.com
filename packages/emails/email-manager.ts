@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
@@ -6,8 +7,11 @@ import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
+import type { OrganizationNotification } from "./templates/admin-organization-notification";
+import AdminOrganizationNotification from "./templates/admin-organization-notification";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -26,6 +30,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
 import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
@@ -374,4 +379,12 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
 
 export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
+};
+
+export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
+  await sendEmail(() => new MonthlyDigestEmail(eventData));
+};
+
+export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
+  await sendEmail(() => new AdminOrganizationNotification(input));
 };

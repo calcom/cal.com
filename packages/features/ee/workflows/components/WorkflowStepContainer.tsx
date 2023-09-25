@@ -67,7 +67,6 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
-  setKYCVerificationDialogOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -331,15 +330,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
-    const templateValue = form.watch(`steps.${step.stepNumber - 1}.template`);
     const actionString = t(`${step.action.toLowerCase()}_action`);
 
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      needsUpgrade: false,
-      needsVerification: false,
-      verificationAction: () => props.setKYCVerificationDialogOpen(true),
+      needsTeamsUpgrade: false,
+      needsOrgsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -530,14 +527,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
-                          verificationAction: () => props.setKYCVerificationDialogOpen(true),
                         }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          needsUpgrade: boolean;
-                          needsVerification: boolean;
-                        }) => option.needsUpgrade || option.needsVerification}
+                          needsTeamsUpgrade: boolean;
+                          needsOrgsUpgrade: boolean;
+                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
                       />
                     );
                   }}
@@ -617,7 +613,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           />
                           <Button
                             color="secondary"
-                            className="-ml-[3px] h-[38px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                            className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
                             disabled={verifyPhoneNumberMutation.isLoading || props.readOnly}
                             onClick={() => {
                               verifyPhoneNumberMutation.mutate({
@@ -861,6 +857,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                     </p>
                   )}
+                {isEmailSubjectNeeded && (
+                  <div className="mt-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                          }
+                          description={t("include_calendar_event")}
+                          onChange={(e) =>
+                            form.setValue(
+                              `steps.${step.stepNumber - 1}.includeCalendarEvent`,
+                              e.target.checked
+                            )
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                )}
                 {!props.readOnly && (
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>

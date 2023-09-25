@@ -23,7 +23,6 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
-  isKYCVerified: boolean;
   eventTypeRequiresConfirmation?: boolean;
 };
 
@@ -48,11 +47,9 @@ const processWorkflowStep = async (
     hideBranding,
     seatReferenceUid,
     eventTypeRequiresConfirmation,
-    isKYCVerified,
   }: ProcessWorkflowStepParams
 ) => {
-  if (isTextMessageToAttendeeAction(step.action) && (!isKYCVerified || !eventTypeRequiresConfirmation))
-    return;
+  if (isTextMessageToAttendeeAction(step.action) && !eventTypeRequiresConfirmation) return;
 
   if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -106,7 +103,8 @@ const processWorkflowStep = async (
       step.template,
       step.sender || SENDER_NAME,
       hideBranding,
-      seatReferenceUid
+      seatReferenceUid,
+      step.includeCalendarEvent
     );
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -142,7 +140,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     hideBranding,
     seatReferenceUid,
     eventTypeRequiresConfirmation = false,
-    isKYCVerified,
   } = args;
   if (isNotConfirmed || !workflows.length) return;
 
@@ -176,7 +173,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         hideBranding,
         seatReferenceUid,
         eventTypeRequiresConfirmation,
-        isKYCVerified,
       });
     }
   }
@@ -207,13 +203,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
-  isKYCVerified: boolean;
   eventTypeRequiresConfirmation?: boolean;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt, hideBranding, isKYCVerified, eventTypeRequiresConfirmation } =
-    args;
+  const { workflows, smsReminderNumber, evt, hideBranding, eventTypeRequiresConfirmation } = args;
   if (!workflows.length) return;
 
   for (const workflowRef of workflows) {
@@ -227,7 +221,6 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         hideBranding,
         calendarEvent: evt,
         eventTypeRequiresConfirmation,
-        isKYCVerified,
       });
     }
   }

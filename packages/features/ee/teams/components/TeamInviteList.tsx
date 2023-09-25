@@ -11,7 +11,6 @@ interface Props {
     id?: number;
     name?: string | null;
     slug?: string | null;
-    logo?: string | null;
     bio?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
@@ -35,6 +34,7 @@ export default function TeamInviteList(props: Props) {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
     },
     async onError(err) {

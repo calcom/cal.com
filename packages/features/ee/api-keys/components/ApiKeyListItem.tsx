@@ -40,7 +40,7 @@ const ApiKeyListItem = ({
   return (
     <div
       key={apiKey.id}
-      className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-b")}>
+      className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-subtle border-b")}>
       <div>
         <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
         <div className="flex items-center space-x-3.5">

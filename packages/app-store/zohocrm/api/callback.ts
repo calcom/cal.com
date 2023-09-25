@@ -5,10 +5,10 @@ import qs from "qs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 let client_id = "";
 let client_secret = "";
@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential(
     { appId: "zohocrm", type: "zohocrm_other_calendar" },
-    zohoCrmTokenInfo.data as any,
+    zohoCrmTokenInfo.data,
     req
   );
 

@@ -1,8 +1,8 @@
-import type { PrismaClient } from "@prisma/client";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -59,6 +59,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       fields: true,
       settings: true,
       teamId: true,
+      position: true,
     },
   });
 

@@ -168,13 +168,15 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       className="text-sm"
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
-                      options={actionOptions}
+                      options={actionOptions.map((option) => ({
+                        ...option,
+                      }))}
                       isOptionDisabled={(option: {
                         label: string;
                         value: WorkflowActions;
-                        needsUpgrade: boolean;
-                        needsVerification: boolean;
-                      }) => option.needsUpgrade || option.needsVerification}
+                        needsTeamsUpgrade: boolean;
+                        needsOrgsUpgrade: boolean;
+                      }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
                     />
                   );
                 }}

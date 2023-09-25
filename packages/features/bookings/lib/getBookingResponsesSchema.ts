@@ -166,6 +166,12 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "multiemail") {
           const emailsParsed = emailSchema.array().safeParse(value);
+
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+
           if (!emailsParsed.success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -223,7 +229,7 @@ function preprocess<T extends z.ZodType>({
             if (optionValue) {
               // `typeOfOptionInput` can be any of the main types. So, we the same validations should run for `optionValue`
               if (typeOfOptionInput === "phone") {
-                if (!phoneSchema.safeParse(optionValue).success) {
+                if (!(await phoneSchema.safeParseAsync(optionValue)).success) {
                   ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
                 }
               }

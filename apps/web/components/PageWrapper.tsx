@@ -6,7 +6,7 @@ import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { WEBAPP_URL, IS_CALCOM } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 
 import type { AppProps } from "@lib/app-providers";
@@ -72,7 +72,7 @@ function PageWrapper(props: AppProps) {
         }
         {...seoConfig.defaultNextSeo}
       />
-      <I18nLanguageHandler />
+      <I18nLanguageHandler locales={props.router.locales || []} />
       <Script
         nonce={nonce}
         id="page-status"

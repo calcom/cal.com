@@ -85,8 +85,9 @@ export const BrokenIntegrationEmail = (
 
   if (type === "calendar") {
     // The calendar name is stored as name_calendar
-    let calendar = calEvent.destinationCalendar
-      ? calEvent.destinationCalendar?.integration.split("_")
+    const [mainHostDestinationCalendar] = calEvent.destinationCalendar ?? [];
+    let calendar = mainHostDestinationCalendar
+      ? mainHostDestinationCalendar?.integration.split("_")
       : "calendar";
 
     if (Array.isArray(calendar)) {

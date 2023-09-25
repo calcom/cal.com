@@ -4,15 +4,9 @@ import { render, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
 import type { UnstyledSelect } from "../../../form/Select";
-import {
-  EmailField,
-  TextAreaField,
-  InputField,
-  PasswordField,
-  NumberInput,
-  FilterSearchField,
-  InputFieldWithSelect,
-} from "./Input";
+import { EmailField, TextAreaField, PasswordField, NumberInput, FilterSearchField } from "./Input";
+import { InputFieldWithSelect } from "./InputFieldWithSelect";
+import { InputField } from "./TextField";
 
 const onChangeMock = vi.fn();
 

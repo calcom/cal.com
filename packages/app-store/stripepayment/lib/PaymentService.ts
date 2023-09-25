@@ -49,8 +49,13 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string,
     bookerEmail: string,
-    paymentOption: PaymentOption
+    paymentOption: PaymentOption,
+    eventTitle?: string,
+    bookingTitle?: string
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
@@ -68,10 +73,6 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
 
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
-
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         bookerEmail,
         this.credentials.stripe_user_id
@@ -82,6 +83,16 @@ export class PaymentService implements IAbstractPaymentService {
         currency: this.credentials.default_currency,
         payment_method_types: ["card"],
         customer: customer.id,
+        metadata: {
+          identifier: "cal.com",
+          bookingId,
+          calAccountId: userId,
+          calUsername: username,
+          bookerName,
+          bookerEmail,
+          eventTitle: eventTitle || "",
+          bookingTitle: bookingTitle || "",
+        },
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -108,7 +119,7 @@ export class PaymentService implements IAbstractPaymentService {
             stripe_publishable_key: this.credentials.stripe_publishable_key,
             stripeAccount: this.credentials.stripe_user_id,
           }) as unknown as Prisma.InputJsonValue,
-          fee: paymentFee,
+          fee: 0,
           refunded: false,
           success: false,
           paymentOption: paymentOption || "ON_BOOKING",
@@ -145,10 +156,6 @@ export class PaymentService implements IAbstractPaymentService {
           slug: "stripe",
         },
       });
-
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         bookerEmail,
@@ -191,7 +198,7 @@ export class PaymentService implements IAbstractPaymentService {
               stripeAccount: this.credentials.stripe_user_id,
             }
           ) as unknown as Prisma.InputJsonValue,
-          fee: paymentFee,
+          fee: 0,
           refunded: false,
           success: false,
           paymentOption: paymentOption || "ON_BOOKING",

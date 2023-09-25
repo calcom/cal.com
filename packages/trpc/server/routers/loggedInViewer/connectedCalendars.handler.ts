@@ -3,6 +3,7 @@ import type { DestinationCalendar } from "@prisma/client";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
@@ -26,6 +27,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
         enabled: true,
       },
     },
+    select: credentialForCalendarServiceSelect,
   });
 
   // get user's credentials + their connected integrations

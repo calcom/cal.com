@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
+import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
 import type { TimeRange } from "@calcom/types/schedule";
 
@@ -30,20 +31,27 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       availability: true,
       timeZone: true,
-      eventType: {
-        select: {
-          _count: true,
-          id: true,
-          eventName: true,
-        },
-      },
     },
   });
-  if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
+
+  if (!schedule) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
   }
+  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({
+    ctx,
+    input: { memberId: schedule?.userId },
+  });
+
+  const isCurrentUserOwner = schedule?.userId === user.id;
+
+  if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+
   const timeZone = schedule.timeZone || user.timeZone;
 
   const schedulesCount = await prisma.schedule.count({
@@ -100,5 +108,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     }, [] as { ranges: TimeRange[] }[]),
     isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
     isLastSchedule: schedulesCount <= 1,
+    readOnly: schedule.userId !== user.id && !input.isManagedEventType,
   };
 };

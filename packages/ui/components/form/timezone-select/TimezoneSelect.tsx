@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
-import BaseSelect, { allTimezones } from "react-timezone-select";
+import BaseSelect from "react-timezone-select";
 
 import { classNames } from "@calcom/lib";
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
@@ -34,13 +34,6 @@ export function TimezoneSelect({
     });
   }, [components]);
 
-  // We use modifiedTimezones in place of the allTimezones object replacing any underscores in the curly braces
-  // with spaces and removing the America/Detroit timezone, adding the America/New_York timezone instead.
-  const modifiedTimezones = useMemo(() => {
-    const { "America/Detroit": _, ...rest } = allTimezones;
-    return { ...rest, "America/New_York": "New York" };
-  }, []);
-
   return (
     <BaseSelect
       className={className}
@@ -48,9 +41,8 @@ export function TimezoneSelect({
       isDisabled={isLoading}
       {...reactSelectProps}
       timezones={{
-        ...modifiedTimezones,
+        ...(data ? addCitiesToDropdown(data) : {}),
         ...addCitiesToDropdown(cities),
-        "America/Asuncion": "Asuncion",
       }}
       onInputChange={handleInputChange}
       {...props}

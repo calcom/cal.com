@@ -34,6 +34,7 @@ import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
+import { useSlotReservationId } from "../../useSlotReservationId";
 import { useEvent } from "../../utils/event";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
@@ -45,8 +46,16 @@ type BookEventFormProps = {
 type DefaultValues = Record<string, unknown>;
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
-    trpc: { context: { skipBatch: true } },
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+    onSuccess: (data) => {
+      setSlotReservationId(data.uid);
+    },
   });
   const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
@@ -82,7 +91,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     return () => {
       if (eventType) {
-        removeSelectedSlot.mutate();
+        removeSelectedSlot.mutate({ uid: slotReservationId });
       }
       clearInterval(interval);
     };
@@ -204,7 +213,7 @@ export const BookEventFormChild = ({
       return bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
-        bookingUid: uid,
+        booking: responseData,
       });
     },
     onError: () => {
@@ -214,7 +223,8 @@ export const BookEventFormChild = ({
 
   const createRecurringBookingMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData) => {
-      const { uid } = responseData[0] || {};
+      const booking = responseData[0] || {};
+      const { uid } = booking;
 
       if (!uid) {
         console.error("No uid returned from createRecurringBookingMutation");
@@ -233,7 +243,7 @@ export const BookEventFormChild = ({
       return bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
-        bookingUid: uid,
+        booking,
       });
     },
   });
@@ -463,8 +473,16 @@ function useInitialFormValues({
         view: rescheduleUid ? "reschedule" : "booking",
       });
 
+      // Routing Forms don't support Split full name(because no Form Builder in there), so user needs to create two fields in there themselves. If they name these fields, `firstName` and `lastName`, we can prefill the Booking Form with them
+      // Once we support formBuilder in Routing Forms, we should be able to forward JSON form of name field value to Booking Form and prefill it there without having these two query params separately.
+      const firstNameQueryParam = searchParams?.get("firstName");
+      const lastNameQueryParam = searchParams?.get("lastName");
+
       const parsedQuery = await querySchema.parseAsync({
         ...routerQuery,
+        name:
+          searchParams?.get("name") ||
+          (firstNameQueryParam ? `${firstNameQueryParam} ${lastNameQueryParam}` : null),
         // `guest` because we need to support legacy URL with `guest` query param support
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),

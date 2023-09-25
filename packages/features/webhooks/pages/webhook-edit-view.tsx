@@ -63,8 +63,8 @@ function Component({ webhookId }: { webhookId: string }) {
         backButton
       />
       <WebhookForm
+        noRoutingFormTriggers={false}
         webhook={webhook}
-        noRoutingFormTriggers={!!webhook.teamId}
         onSubmit={(values: WebhookFormSubmitData) => {
           if (
             subscriberUrlReserved({

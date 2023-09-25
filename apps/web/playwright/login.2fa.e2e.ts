@@ -4,10 +4,13 @@ import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
+import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
+
+// TODO: add more backup code tests, e.g. login + disabling 2fa with backup
 
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
@@ -45,6 +48,8 @@ test.describe("2FA Tests", async () => {
         secret: secret!,
       });
 
+      // FIXME: this passes even when switch is not checked, compare to test
+      // below which checks for data-state="checked" and works as expected
       await page.waitForSelector(`[data-testid=two-factor-switch]`);
       await expect(page.locator(`[data-testid=two-factor-switch]`).isChecked()).toBeTruthy();
 
@@ -57,7 +62,7 @@ test.describe("2FA Tests", async () => {
 
     await test.step("Login with 2FA enabled", async () => {
       await user.login();
-      const userWith2FaSecret = await prisma?.user.findFirst({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },
@@ -103,6 +108,23 @@ test.describe("2FA Tests", async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: secret! });
 
+      // backup codes are now showing, so run a few tests
+
+      // click download button
+      const promise = page.waitForEvent("download");
+      await page.getByTestId("backup-codes-download").click();
+      const download = await promise;
+      expect(download.suggestedFilename()).toBe("cal-backup-codes.txt");
+      // TODO: check file content
+
+      // click copy button
+      await page.getByTestId("backup-codes-copy").click();
+      await page.getByTestId("toast-success").waitFor();
+      // TODO: check clipboard content
+
+      // close backup code dialog
+      await page.getByTestId("backup-codes-close").click();
+
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
 
       return user;
@@ -117,7 +139,7 @@ test.describe("2FA Tests", async () => {
       await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
       await page.fill('input[name="password"]', userPassword);
 
-      const userWith2FaSecret = await prisma?.user.findFirst({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },

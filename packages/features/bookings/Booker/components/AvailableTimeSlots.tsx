@@ -1,19 +1,26 @@
-import { useMemo, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc";
 
+import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
+  prefetchNextMonth: boolean;
+  monthCount: number | undefined;
   seatsPerTimeSlot?: number | null;
+  showAvailableSeatsCount?: boolean | null;
 };
 
 /**
@@ -23,7 +30,15 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  limitHeight,
+  seatsPerTimeSlot,
+  showAvailableSeatsCount,
+  prefetchNextMonth,
+  monthCount,
+}: AvailableTimeSlotsProps) => {
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -31,6 +46,8 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   const isEmbed = useIsEmbed();
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const [layout] = useBookerStore((state) => [state.layout]);
+  const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const onTimeSelect = (
@@ -46,6 +63,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
         seatsPerTimeSlot,
         attendees,
         bookingUid,
+        showAvailableSeatsCount,
       });
 
       if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
@@ -57,29 +75,23 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   };
 
   const schedule = useScheduleForEvent({
-    prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+    prefetchNextMonth,
+    monthCount,
   });
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
+    (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
+  );
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
-  const dates = useMemo(
-    () =>
-      !extraDays
-        ? [date]
-        : [
-            // If NO date is selected yet, we show by default the upcomming `nextDays` days.
-            date,
-            ...Array.from({ length: extraDays }).map((_, index) =>
-              dayjs(date)
-                .add(index + 1, "day")
-                .format("YYYY-MM-DD")
-            ),
-          ],
-    [date, extraDays]
-  );
+  const dates = !extraDays
+    ? [date]
+    : nonEmptyScheduleDaysFromSelectedDate.length > 0
+    ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
+    : [];
 
-  const isMultipleDates = dates.length > 1;
-  const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
+  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
 
   useEffect(() => {
     if (isEmbed) return;
@@ -89,27 +101,47 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
-    <div
-      ref={containerRef}
-      className={classNames(
-        limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex h-full w-full flex-row gap-4"
-      )}>
-      {schedule.isLoading
-        ? // Shows exact amount of days as skeleton.
-          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
-        : slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <AvailableTimes
-              className="w-full"
-              key={slots.date}
-              date={dayjs(slots.date)}
-              slots={slots.slots}
-              onTimeSelect={onTimeSelect}
-              seatsPerTimeSlot={seatsPerTimeSlot}
-              showTimeFormatToggle={!isMultipleDates}
-            />
-          ))}
-    </div>
+    <>
+      <div className="flex">
+        {schedule.isLoading
+          ? // Shows exact amount of days as skeleton.
+            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          : slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimesHeader
+                key={slots.date}
+                date={dayjs(slots.date)}
+                showTimeFormatToggle={!isColumnView}
+                availableMonth={
+                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                    ? dayjs(slots.date).format("MMM")
+                    : undefined
+                }
+              />
+            ))}
+      </div>
+      <div
+        ref={containerRef}
+        className={classNames(
+          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
+          !limitHeight && "flex h-full w-full flex-row gap-4"
+        )}>
+        {schedule.isLoading
+          ? // Shows exact amount of days as skeleton.
+            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+          : slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimes
+                className="scroll-bar w-full overflow-auto"
+                key={slots.date}
+                showTimeFormatToggle={!isColumnView}
+                onTimeSelect={onTimeSelect}
+                slots={slots.slots}
+                seatsPerTimeSlot={seatsPerTimeSlot}
+                showAvailableSeatsCount={showAvailableSeatsCount}
+              />
+            ))}
+      </div>
+    </>
   );
 };
