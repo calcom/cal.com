@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -21,7 +18,7 @@ jobs:
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
           source: "./, !.private"
-          target: "/home/deploy/calcom-docker"
+          target: "/home/deploy/calcom"
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
@@ -29,5 +26,5 @@ jobs:
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
           script: |
-            cd calcom-docker
+            cd calcom
             docker-compose up -d
