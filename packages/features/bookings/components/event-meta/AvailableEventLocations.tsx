@@ -22,7 +22,8 @@ function RenderIcon({
     <img
       src={eventLocationType.iconUrl}
       className={classNames(
-        eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
+        (eventLocationType?.iconUrl?.includes("-dark") || eventLocationType?.iconUrl === "/map-pin.svg") &&
+          "dark:invert",
         "me-[10px] h-4 w-4"
       )}
       alt={`${eventLocationType.label} icon`}
@@ -82,7 +83,9 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
             <Link className="text-default ml-[2px] h-4 w-4  ltr:mr-[10px] rtl:ml-[10px] " />
-          ) : null}
+          ) : (
+            <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
+          )}
           <Tooltip content={translatedLocation}>
             <p className="line-clamp-1">{translatedLocation}</p>
           </Tooltip>

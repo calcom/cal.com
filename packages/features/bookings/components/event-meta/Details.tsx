@@ -4,7 +4,7 @@ import React from "react";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Clock, CheckSquare, RefreshCcw, CreditCard, MapPin } from "@calcom/ui/components/icon";
+import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -128,7 +128,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length) return null;
             return (
-              <EventMetaBlock key={block} icon={MapPin}>
+              <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />
               </EventMetaBlock>
             );
