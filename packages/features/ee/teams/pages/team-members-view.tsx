@@ -91,13 +91,14 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null,
+        enabled: searchParams !== null && !!teamId,
       }
     );
 
   const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
+      enabled: !!teamId,
       onError: () => {
         router.push("/settings");
       },
@@ -155,7 +156,6 @@ const MembersView = () => {
                       {
                         id: team.id,
                         accepted: team.membership.accepted || false,
-                        logo: team.logo,
                         name: team.name,
                         slug: team.slug,
                         role: team.membership.role,

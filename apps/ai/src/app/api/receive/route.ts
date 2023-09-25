@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
+import { extractUsers } from "../../../utils/extractUsers";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
@@ -45,6 +46,7 @@ export const POST = async (request: NextRequest) => {
     select: {
       email: true,
       id: true,
+      username: true,
       timeZone: true,
       credentials: {
         select: {
@@ -53,7 +55,7 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from },
+    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
   });
 
   // User is not a cal.com user or is using an unverified email.
@@ -89,7 +91,7 @@ export const POST = async (request: NextRequest) => {
   const { apiKey } = credential as { apiKey: string };
 
   // Pre-fetch data relevant to most bookings.
-  const [eventTypes, availability] = await Promise.all([
+  const [eventTypes, availability, users] = await Promise.all([
     fetchEventTypes({
       apiKey,
     }),
@@ -99,6 +101,7 @@ export const POST = async (request: NextRequest) => {
       dateFrom: now(user.timeZone),
       dateTo: now(user.timeZone),
     }),
+    extractUsers(`${parsed.text} ${parsed.subject}`),
   ]);
 
   if ("error" in availability) {
@@ -138,9 +141,11 @@ export const POST = async (request: NextRequest) => {
       user: {
         email: user.email,
         eventTypes,
+        username: user.username,
         timeZone: user.timeZone,
         workingHours,
       },
+      users,
     }),
     headers: {
       "Content-Type": "application/json",

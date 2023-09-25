@@ -85,7 +85,7 @@ const ProfileView = () => {
   });
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId },
+    { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
       onError: () => {
@@ -95,8 +95,8 @@ const ProfileView = () => {
         if (team) {
           form.setValue("name", team.name || "");
           form.setValue("slug", team.slug || "");
-          form.setValue("logo", team.logo || "");
           form.setValue("bio", team.bio || "");
+          form.setValue("logo", team.logo || "");
           if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
             form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
           }
@@ -166,10 +166,10 @@ const ProfileView = () => {
               handleSubmit={(values) => {
                 if (team) {
                   const variables = {
-                    logo: values.logo,
                     name: values.name,
                     slug: values.slug,
                     bio: values.bio,
+                    logo: values.logo,
                   };
                   objectKeys(variables).forEach((key) => {
                     if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
