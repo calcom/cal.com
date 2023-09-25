@@ -27,6 +27,10 @@
   padding: 1px;
 }
 
+.editor-container:focus-within {
+  box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) #fff;
+}
+
 .editor-inner {
   background: var(--cal-bg);
   position: relative;
