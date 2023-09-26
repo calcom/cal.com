@@ -68,6 +68,27 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
+/**
+ * JSDOM doesn't implement PointerEvent so we need to mock our own implementation.
+ * Default to mouse left click interaction
+ * @link https://github.com/radix-ui/primitives/issues/1207
+ * @link https://github.com/jsdom/jsdom/pull/2666
+ */
+class MockPointerEvent extends Event {
+  button: number;
+  ctrlKey: boolean;
+  pointerType: string;
+
+  constructor(type: string, props: PointerEventInit) {
+    super(type, props);
+    this.button = props.button || 0;
+    this.ctrlKey = props.ctrlKey || false;
+    this.pointerType = props.pointerType || "mouse";
+  }
+}
+
+window.PointerEvent = MockPointerEvent as any;
+
 expect.extend(matchers);
 
 afterEach(() => {
