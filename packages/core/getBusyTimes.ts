@@ -89,56 +89,54 @@ export async function getBusyTimes(params: {
       in: [BookingStatus.ACCEPTED],
     },
   };
-
+  const matchedBookings = await prisma.booking.findMany({
+    where: {
+      OR: [
+        // User is primary host (individual events, or primary organizer)
+        {
+          ...sharedQuery,
+          userId,
+        },
+        // The current user has a different booking at this time he/she attends
+        {
+          ...sharedQuery,
+          attendees: {
+            some: {
+              email: userEmail,
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      eventType: {
+        select: {
+          id: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+        },
+      },
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    },
+  });
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
   // to avoid potential side effects.
-  const bookings = params.currentBookings
-    ? params.currentBookings
-    : await prisma.booking.findMany({
-        where: {
-          OR: [
-            // User is primary host (individual events, or primary organizer)
-            {
-              ...sharedQuery,
-              userId,
-            },
-            // The current user has a different booking at this time he/she attends
-            {
-              ...sharedQuery,
-              attendees: {
-                some: {
-                  email: userEmail,
-                },
-              },
-            },
-          ],
-        },
-        select: {
-          id: true,
-          uid: true,
-          userId: true,
-          startTime: true,
-          endTime: true,
-          title: true,
-          eventType: {
-            select: {
-              id: true,
-              afterEventBuffer: true,
-              beforeEventBuffer: true,
-              seatsPerTimeSlot: true,
-            },
-          },
-          ...(seatedEvent && {
-            _count: {
-              select: {
-                seatsReferences: true,
-              },
-            },
-          }),
-        },
-      });
+  const bookings = params.currentBookings ? params.currentBookings : matchedBookings;
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
@@ -179,7 +177,14 @@ export async function getBusyTimes(params: {
     []
   );
 
-  logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
+  logger.silly(
+    `Busy Time from Cal Bookings ${JSON.stringify({
+      busyTimes,
+      currentBookings: params.currentBookings,
+      matchedBookings,
+      credentialsLength: credentials?.length,
+    })}`
+  );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
@@ -195,7 +200,10 @@ export async function getBusyTimes(params: {
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet
-      } ms for user ${username}`
+      } ms for user ${username}`,
+      JSON.stringify({
+        calendarBusyTimes,
+      })
     );
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
@@ -241,6 +249,11 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
+  logger.silly(
+    JSON.stringify({
+      allBusyTimes: busyTimes,
+    })
+  );
   return busyTimes;
 }
 

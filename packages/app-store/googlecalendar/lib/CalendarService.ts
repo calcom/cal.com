@@ -298,6 +298,8 @@ export default class GoogleCalendarService implements Calendar {
         conferenceDataVersion: 1,
       });
 
+      this.log.debug("Updated event: ", JSON.stringify(evt?.data));
+
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
         calendar.events.patch({
           // Update the same event but this time we know the hangout link

@@ -224,7 +224,13 @@ export const createEvent = async (
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
-
+  log.debug(
+    "creating calendar event",
+    JSON.stringify({
+      externalId,
+      calEvent,
+    })
+  );
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
@@ -280,7 +286,14 @@ export const updateEvent = async (
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
-
+  log.debug(
+    "Updating calendar event",
+    JSON.stringify({
+      externalCalendarId,
+      bookingRefUid,
+      calEvent,
+    })
+  );
   if (bookingRefUid === "") {
     log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
   }

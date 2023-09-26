@@ -375,6 +375,7 @@ async function ensureAvailableUsers(
       )
     : undefined;
 
+  logger.silly("getUserAvailability for users", JSON.stringify({ users: eventType.users.map((u) => u.id) }));
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
@@ -391,12 +392,15 @@ async function ensureAvailableUsers(
       }
     );
 
+    logger.silly(
+      "calendarBusyTimes==>>>",
+      JSON.stringify({ bufferedBusyTimes, dateRanges, isRecurringEvent: eventType.recurringEvent })
+    );
+
     if (!dateRanges.length) {
       // user does not have availability at this time, skip user.
       continue;
     }
-
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let foundConflict = false;
     try {
@@ -678,6 +682,21 @@ async function handler(
     isNotAnApiCall,
     eventType,
   });
+
+  if (isLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
+    logger.setSettings({ minLevel: "silly" });
+  }
+
+  logger.silly(
+    "handleNewBooking",
+    JSON.stringify({
+      eventTypeId,
+      eventTypeSlug,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      rescheduleUid: reqBody.rescheduleUid,
+    })
+  );
 
   const fullName = getFullName(bookerName);
 
@@ -2497,3 +2516,31 @@ const findBookingQuery = async (bookingId: number) => {
   // Don't leak any sensitive data
   return foundBooking;
 };
+
+function isLoggingEnabled({
+  eventTypeId,
+  usernameOrTeamName,
+}: {
+  eventTypeId?: number | null;
+  usernameOrTeamName?: string | string[];
+}) {
+  const usernameOrTeamnamesList =
+    usernameOrTeamName instanceof Array ? usernameOrTeamName : [usernameOrTeamName];
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const bookingLoggingEventIds = process.env.BOOKING_LOGGING_EVENT_IDS || "";
+  const isEnabled = bookingLoggingEventIds.split(",").some((id) => {
+    if (Number(id.trim()) === eventTypeId) {
+      return true;
+    }
+  });
+
+  if (isEnabled) {
+    return true;
+  }
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const bookingLoggingUsername = process.env.BOOKING_LOGGING_USER_OR_TEAM_NAME || "";
+  return bookingLoggingUsername.split(",").some((u) => {
+    return usernameOrTeamnamesList.some((foundUsername) => foundUsername === u.trim());
+  });
+}
