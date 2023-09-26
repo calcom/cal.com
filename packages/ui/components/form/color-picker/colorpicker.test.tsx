@@ -42,17 +42,14 @@ describe("Tests for ColorPicker component", () => {
 
   test("Should change the color value using the input field", async () => {
     const onChange = vi.fn();
+    const user = userEvent.setup();
     const defaultValue = "#FF0000";
     render(<ColorPicker defaultValue={defaultValue} onChange={onChange} />);
 
     const colorInput = screen.getByRole("textbox");
-    await act(async () => {
-      userEvent.clear(colorInput);
-    });
+    await user.clear(colorInput);
     const newColorValue = "#00FF00";
-    await act(async () => {
-      userEvent.type(colorInput, newColorValue);
-    });
+    await user.type(colorInput, newColorValue);
 
     expect(screen.getByRole("button", { name: "pick colors" })).toHaveStyle(
       `background-color: ${newColorValue}`
