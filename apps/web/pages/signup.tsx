@@ -214,7 +214,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
 
   return (
     <div
-      className="bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center"
+      className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center"
       style={
         {
           "--cal-brand": "#111827",
@@ -330,7 +330,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
 
                   router.push(googleAuthUrl);
                 }}>
-                <img className="mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
+                <img className="text-emphasis mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
                 Google
               </Button>
               <Button
@@ -392,7 +392,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <>
                 <div className="flex flex-col leading-none">
                   <div className="text-emphasis items-center">
-                    <feature.icon className="mb-0.5 h-4 w-4" />
+                    <feature.icon className="mb-1 h-4 w-4" />
                     <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
                   <div className="text-subtle text-sm">
