@@ -6,6 +6,7 @@ import { createMocks } from "node-mocks-http";
 import { afterAll, describe, expect, test, vi } from "vitest";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { buildApp, buildUser } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 
 import handler from "../../../../pages/api/webhook/app-credential";
@@ -47,19 +48,22 @@ describe("app-credential webhook", () => {
       prisma,
     });
 
-    prismaMock.user.findUnique.mockResolvedValue({ id: 1 });
-    prismaMock.app.findUnique.mockResolvedValue({
-      slug: "office365-calendar",
-      dirName: "office365calendar",
-      keys: "test-keys",
-    });
-
-    prismaMock.credential.create.mockImplementation(() => {
-      return {
+    prismaMock.user.findUnique.mockResolvedValue(
+      buildUser({
         id: 1,
-        userId: 1,
-      };
-    });
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+      })
+    );
+
+    prismaMock.app.findUnique.mockResolvedValue(
+      buildApp({
+        slug: "office365-calendar",
+        dirName: "office365calendar",
+        keys: "test-keys",
+      })
+    );
 
     await handler(req, res);
 

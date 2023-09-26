@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
+import type { App, Booking, EventType, Prisma, Webhook } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -225,5 +225,19 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
     ...user,
+  };
+};
+
+export const buildApp = (app?: Partial<App>): App => {
+  return {
+    categories: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    credentials: null,
+    payments: null,
+    Webhook: null,
+    ApiKey: null,
+    enabled: true,
+    ...app,
   };
 };
