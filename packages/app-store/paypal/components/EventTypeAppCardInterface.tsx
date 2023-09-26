@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
+import { defaultCurrency } from "../zod";
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
@@ -18,13 +19,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { asPath } = useRouter();
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
-  const currency = getAppData("currency");
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    currencyOptions.find((c) => c.value === currency) || {
-      label: currencyOptions[0].label,
-      value: currencyOptions[0].value,
-    }
-  );
+
+  const currency = getAppData("currency") || defaultCurrency;
+  const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === currency));
+
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
@@ -55,7 +53,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   label="Price"
                   labelSrOnly
                   addOnLeading="$"
-                  addOnSuffix={currency || "No selected currency"}
+                  addOnSuffix={currency}
                   step="0.01"
                   min="0.5"
                   type="number"
