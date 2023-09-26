@@ -123,9 +123,6 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
 type PaymentCheckerProps = PaymentPageProps;
 
 function PaymentChecker(props: PaymentCheckerProps) {
-  // This effect checks if the booking status has changed to "ACCEPTED"
-  // then reload the page to show the new payment status
-  // FIXME: subscribe to the exact payment instead of polling bookings
   // FIXME: booking success is copied from packages/features/ee/payments/components/Payment.tsx
   const searchParams = useSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -137,22 +134,17 @@ function PaymentChecker(props: PaymentCheckerProps) {
         if (props.booking.status === "ACCEPTED") {
           return;
         }
-        const bookingsResult = await utils.viewer.bookings.get.fetch({
-          filters: {
-            status: "upcoming",
-            eventTypeIds: [props.eventType.id],
-          },
+        const bookingsResult = await utils.viewer.bookings.find.fetch({
+          bookingUid: props.booking.uid,
         });
-        if (
-          bookingsResult.bookings.some(
-            (booking) => booking.id === props.booking.id && booking.status === "ACCEPTED"
-          )
-        ) {
+
+        if (bookingsResult.paid) {
           showToast("Payment successful", "success");
 
-          // TODO: add typings here
           const params: {
-            [k: string]: any;
+            uid: string;
+            email: string | null;
+            location: string;
           } = {
             uid: props.booking.uid,
             email: searchParams.get("email"),

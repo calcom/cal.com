@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const credentials = parseCredentials.data;
 
     const albyInvoice = await parseInvoice(bodyAsString, parsedHeaders, credentials.webhook_endpoint_secret);
-
+    if (!albyInvoice) throw new HttpCode({ statusCode: 204, message: "Invoice not found" });
     if (albyInvoice.amount !== payment.amount) {
       throw new HttpCode({ statusCode: 400, message: "invoice amount does not match payment amount" });
     }

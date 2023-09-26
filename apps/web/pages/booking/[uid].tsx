@@ -94,7 +94,7 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();

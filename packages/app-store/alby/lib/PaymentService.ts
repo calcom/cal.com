@@ -10,10 +10,15 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import { albyCredentialKeysSchema } from "./albyCredentialKeysSchema";
 
 export class PaymentService implements IAbstractPaymentService {
-  private credentials: z.infer<typeof albyCredentialKeysSchema>;
+  private credentials: z.infer<typeof albyCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    this.credentials = albyCredentialKeysSchema.parse(credentials.key);
+    const keyParsing = albyCredentialKeysSchema.safeParse(credentials.key);
+    if (keyParsing.success) {
+      this.credentials = keyParsing.data;
+    } else {
+      this.credentials = null;
+    }
   }
 
   async create(
@@ -30,7 +35,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking) {
+      if (!booking || !this.credentials?.account_lightning_address) {
         throw new Error();
       }
 
@@ -120,5 +125,9 @@ export class PaymentService implements IAbstractPaymentService {
   }
   deletePayment(paymentId: number): Promise<boolean> {
     return Promise.resolve(false);
+  }
+
+  isSetupAlready(): boolean {
+    return !!this.credentials;
   }
 }
