@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Clock, Hexagon, Info, ShieldCheckIcon, StarIcon } from "lucide-react";
+import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -47,17 +47,23 @@ const FEATURES = [
   {
     title: "connect_all_calendars",
     description: "connect_all_calendars_description",
+    i18nOptions: {
+      appName: APP_NAME,
+    },
     icon: CalendarHeart,
   },
   {
-    title: "workflow_automation",
-    description: "workflow_automation_description",
-    icon: Hexagon,
+    title: "set_availability",
+    description: "set_availbility_description",
+    icon: Users,
   },
   {
-    title: "scheduling_for_your_team",
-    description: "scheduling_for_your_team_description",
-    icon: Clock,
+    title: "share_a_link_or_embed",
+    description: "share_a_link_or_embed_description",
+    icon: Link2,
+    i18nOptions: {
+      appName: APP_NAME,
+    },
   },
 ];
 
@@ -390,7 +396,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                     <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
                   <div className="text-subtle text-sm">
-                    <p>{t(feature.description)}</p>
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
                   </div>
                 </div>
               </>
