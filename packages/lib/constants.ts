@@ -6,6 +6,7 @@ export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
 
+/** https://app.cal.com */
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
   VERCEL_URL ||
