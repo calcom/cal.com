@@ -130,7 +130,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        <Price currency={paymentAppData.currency} price={paymentAppData.price} />
+                        <Price
+                          currency={paymentAppData.currency}
+                          price={paymentAppData.price}
+                          displayAlternateSymbol={false}
+                        />
                       </div>
                     </div>
                   </div>

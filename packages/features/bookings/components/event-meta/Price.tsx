@@ -2,6 +2,8 @@ import dynamic from "next/dynamic";
 
 import type { EventPrice } from "../../types";
 
+// TODO: importing dynamically like this makes it difficult
+// to extract currency formatting (currently duplicated in BaseScheduledEmail.tsx)
 const AlbyPriceComponent = dynamic(
   () => import("@calcom/app-store/alby/components/AlbyPriceComponent").then((m) => m.AlbyPriceComponent),
   {

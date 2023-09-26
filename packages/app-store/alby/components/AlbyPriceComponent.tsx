@@ -22,7 +22,7 @@ export function AlbyPriceComponent({ displaySymbol, price }: AlbyPriceComponentP
     <Tooltip content={fiatValue}>
       <div className="inline-flex items-center justify-center">
         {displaySymbol && <SatSymbol className="h-4 w-4" />}
-        {price}
+        {price}&nbsp;sats
       </div>
     </Tooltip>
   );

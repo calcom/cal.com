@@ -185,7 +185,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         invalidCredentialIds,
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
-        // FIXME: remove hardcoding and add per-app validation
         isSetupAlready,
       };
     })

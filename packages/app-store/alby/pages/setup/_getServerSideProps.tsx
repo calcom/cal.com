@@ -11,7 +11,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
-    return res.status(401).json({ message: "You must be logged in to do this" });
+    return res.writeHead(401).end();
   }
 
   const credentials = await prisma.credential.findFirst({
@@ -26,7 +26,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     lightningAddress: null,
   };
   if (credentials?.key) {
-    const { account_lightning_address, account_email } = credentials.key;
+    const { account_lightning_address, account_email } = credentials.key as {
+      account_lightning_address?: string;
+      account_email?: string;
+    };
     if (account_lightning_address) {
       props.lightningAddress = account_lightning_address;
     }
