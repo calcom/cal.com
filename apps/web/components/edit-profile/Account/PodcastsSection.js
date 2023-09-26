@@ -1,11 +1,10 @@
 import { Image } from "@phosphor-icons/react";
+import { Input, Button, Label } from "@shadcdn/ui";
 import Dialog from "@ui/dialog";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import { isValidUrl } from "@ui/utilities/utils";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-
-import { Input, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -57,22 +56,27 @@ const RssFeedModal = ({ profile, setProfile }) => {
     <Dialog
       title="Rss Feed Extractor"
       description="Get latest podcasts episodes from your RSS feed."
-      trigger={<Button type="button" size="sm" label="Extract data from RSS feed" />}
+      trigger={
+        <Button variant="outline" size="sm">
+          Extract data from RSS feed
+        </Button>
+      }
       open={isDialogOpen}
       onOpenChange={setIsDialogOpen}
       content={
         <>
-          <Input label="URL" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <Label>URL</Label>
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} />
           <div className="mt-[25px] flex justify-end">
             <Button
-              type="button"
+              variant="outline"
               size="sm"
               className={!isValidUrl(url) ? "cursor-not-allowed opacity-50" : ""}
-              label="Extract"
               loading={loading}
               disabled={!isValidUrl(url)}
-              onClick={handleExtract}
-            />
+              onClick={handleExtract}>
+              Extract
+            </Button>
           </div>
         </>
       }
@@ -95,38 +99,46 @@ const PodcastsSection = ({
         <EmptyState label="Add your podcast and episodes" />
       ) : (
         <div className="space-y-4">
-          <Input
-            label="Title"
-            required
-            value={profile.podcast.title}
-            onChange={(e) =>
-              setProfile({
-                ...profile,
-                podcast: { ...profile.podcast, title: e.target.value },
-              })
-            }
-          />
-          <Input
-            label="Url"
-            required
-            value={profile.podcast.url}
-            onChange={(e) =>
-              setProfile({
-                ...profile,
-                podcast: { ...profile.podcast, url: e.target.value },
-              })
-            }
-          />
-          <Input
-            label="Cover image URL"
-            value={profile.podcast.cover_image}
-            onChange={(e) =>
-              setProfile({
-                ...profile,
-                podcast: { ...profile.podcast, cover_image: e.target.value },
-              })
-            }
-          />
+          <div>
+            <Label>Title</Label>
+            <Input
+              required
+              value={profile.podcast.title}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  podcast: { ...profile.podcast, title: e.target.value },
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>URL</Label>
+            <Input
+              required
+              value={profile.podcast.url}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  podcast: { ...profile.podcast, url: e.target.value },
+                })
+              }
+            />
+          </div>
+          <div>
+            <Label>Cover Image URL</Label>
+            <Input
+              label="Cover image URL"
+              value={profile.podcast.cover_image}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  podcast: { ...profile.podcast, cover_image: e.target.value },
+                })
+              }
+            />
+          </div>
           {profile.podcast?.cover_image ? (
             <img
               src={profile.podcast?.cover_image}
@@ -142,9 +154,9 @@ const PodcastsSection = ({
             profile?.podcast.episodes.map((podcast, i) => (
               <div key={i} className="space-y-4 pt-2">
                 <div className="sm:col-span-3">
+                  <Label>Episode title</Label>
                   <Input
                     required
-                    label="Episode title"
                     value={podcast.title}
                     onChange={(e) => {
                       const newEpisode = [...profile.podcast.episodes];
@@ -157,6 +169,7 @@ const PodcastsSection = ({
                   />
                 </div>
                 <div className="sm:col-span-3">
+                  <Label>Episode URL</Label>
                   <Input
                     required
                     label="Episode URL"
@@ -183,14 +196,13 @@ const PodcastsSection = ({
       )}
       <div className="col-span-full mt-6 flex items-center gap-x-3">
         {profile?.podcast?.episodes?.length > 0 && (
-          <Button onClick={addPodcastEpisode} type="button" size="sm" label="Add episode" />
+          <Button onClick={addPodcastEpisode} variant="outline" size="sm">
+            Add episode
+          </Button>
         )}
-        <Button
-          onClick={hasPodcast ? deletePodcast : addPodcast}
-          type="button"
-          size="sm"
-          label={hasPodcast ? "Remove podcast" : "Add podcast"}
-        />
+        <Button onClick={hasPodcast ? deletePodcast : addPodcast} variant="outline" size="sm">
+          {hasPodcast ? "Remove podcast" : "Add podcast"}
+        </Button>
         <span>or</span>
         <RssFeedModal setProfile={setProfile} profile={profile} />
       </div>

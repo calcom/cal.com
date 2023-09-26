@@ -1,7 +1,7 @@
+import { Input } from "@shadcdn/ui/input";
+import { Label } from "@shadcdn/ui/label";
 import PhotoUpload from "@ui/fayaz/PhotoUpload";
 import Tiptap from "@ui/tiptap";
-
-import { Input, Label } from "@calcom/ui";
 
 import FormBlock from "./FormBlock";
 
@@ -14,7 +14,7 @@ const ProfileSection = ({ profile, setProfile, setAvatarFile }) => {
           <Input
             className="mt-2"
             name="name"
-            // label="Full name"
+            autoFocus
             value={profile.name}
             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
             required

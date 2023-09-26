@@ -1,7 +1,6 @@
+import { Input, Button, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { Input, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -23,8 +22,8 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                 />
               )}
               <div className="sm:col-span-3">
+                <Label>Company/Institution</Label>
                 <Input
-                  label="Company/Institution"
                   value={company.company}
                   onChange={(e) => {
                     const newExperience = [...profile.experience];
@@ -37,6 +36,7 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                 />
               </div>
               <div className="sm:col-span-3">
+                <Label>URL</Label>
                 <Input
                   label="URL"
                   type="url"
@@ -63,6 +63,7 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                   )}
                   <TimelineBlock trail={true}>
                     <div className="sm:col-span-3">
+                      <Label>Role/Title</Label>
                       <Input
                         label="Role/Title"
                         value={role.title}
@@ -77,8 +78,8 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                       />
                     </div>
                     <div className="sm:col-span-3">
+                      <Label>Start Date</Label>
                       <Input
-                        label="Start Date"
                         type="month"
                         required
                         value={role.start_date}
@@ -93,6 +94,7 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                       />
                     </div>
                     <div className="mt-4 sm:col-span-3">
+                      <Label>End Date</Label>
                       <Input
                         label="End Date"
                         type={role.end_date === "Present" ? "text" : "month"}
@@ -135,7 +137,6 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
               <TimelineBlock trail={false}>
                 <div className="col-span-full">
                   <Button
-                    type="button"
                     onClick={() => {
                       const newExperience = [...profile.experience];
                       newExperience[companyIndex].roles.push({
@@ -149,17 +150,19 @@ const Experience = ({ profile, setProfile, addExperience, removeExperience, remo
                         experience: newExperience,
                       });
                     }}
-                    color="secondary"
-                    size="sm"
-                    label="Add Role"
-                  />
+                    variant="outline"
+                    size="sm">
+                    Add Role
+                  </Button>
                 </div>
               </TimelineBlock>
             </div>
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addExperience} type="button" size="sm" label="Add experience" />
+        <Button onClick={addExperience} variant="outline" size="sm">
+          Add experience
+        </Button>
       </div>
     </FormBlock>
   );

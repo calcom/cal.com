@@ -1,3 +1,4 @@
+import { Button, Input, Label } from "@shadcdn/ui";
 import {
   isValidLinkedInUrl,
   extractUserNameFromLinkedinUrl,
@@ -7,8 +8,6 @@ import {
 } from "@ui/utilities/utils";
 import { useState } from "react";
 import toast from "react-hot-toast";
-
-import { Button, Input } from "@calcom/ui";
 
 import FormBlock from "./FormBlock";
 
@@ -53,16 +52,19 @@ const LinkedinImporter = ({ profile, setProfile }) => {
       title="Linkedin Importer"
       description="Have our robots fill your profile in seconds will the relevant information.">
       <div>
-        <Input label="Linkedin URL" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} />
+        <Label>Linkedin URL</Label>
+        <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} />
         <div className="mt-4">
           <Button
+            variant="primary"
             type="button"
-            label="Start Importing"
+            size="sm"
             disabled={!isValidLinkedInUrl(linkedinUrl)}
             className={!isValidLinkedInUrl(linkedinUrl) && "cursor-not-allowed opacity-50"}
             loading={loading}
-            onClick={() => handleSubmit(linkedinUrl, setLoading, setLinkedinData)}
-          />
+            onClick={() => handleSubmit(linkedinUrl, setLoading, setLinkedinData)}>
+            Start Importing
+          </Button>
         </div>
         <br />
         <hr />
@@ -71,7 +73,9 @@ const LinkedinImporter = ({ profile, setProfile }) => {
             <p className="mb-4 font-mono text-sm">
               ✅ Linkeding profile data available, click the button below to prefill the form.
             </p>
-            <Button type="button" onClick={startAutoFill} label="Confirm and Save" />
+            <Button variant="primary" onClick={startAutoFill}>
+              Confirm and Save
+            </Button>
           </div>
         )}
 

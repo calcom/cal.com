@@ -89,7 +89,7 @@ const Navbar = ({ uid, logOut, email }) => {
         <div className="flex h-16 justify-between">
           <div className="flex">
             <Link href="/" className="flex flex-shrink-0 items-center">
-              <img className="h-6 w-auto sm:h-8" src="/borg-logo.svg" alt="Borg" />
+              <img className="h-6 w-auto sm:h-8" src="/borg/borg-logo.svg" alt="Borg" />
             </Link>
           </div>
           <div className="flex items-center">

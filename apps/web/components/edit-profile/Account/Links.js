@@ -1,4 +1,5 @@
 import { X } from "@phosphor-icons/react";
+import { Input, Label, Button } from "@shadcdn/ui";
 import {
   Facebook,
   Github,
@@ -16,8 +17,6 @@ import {
   Youtube,
   Wikipedia,
 } from "react-bootstrap-icons";
-
-import { Input, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -162,8 +161,9 @@ const LinkSection = ({ profile, setProfile }) => {
             <div key={i} className="space-y-4 pt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-full">
+                  <Label>URL</Label>
                   <Input
-                    label="URL"
+                    placeholder="https://twitter.com/handle"
                     type="url"
                     value={link.url}
                     onChange={(e) => handleLinkUrlChange(e, i)}
@@ -174,7 +174,7 @@ const LinkSection = ({ profile, setProfile }) => {
                   <select
                     value={link.type}
                     onChange={(e) => handleLinkTypeChange(e, i)}
-                    className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                     {linkTypes.map((linkItem, index) => (
                       <option key={index} value={linkItem.type}>
                         {linkItem.label}
@@ -189,18 +189,18 @@ const LinkSection = ({ profile, setProfile }) => {
                     onChange={(e) => handleLinkNameChange(e, i)}
                     disabled={link.type !== "generic_link"}
                   />
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-md border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100">
+                  <Button type="button" variant="icon">
                     <X className="h-5 w-5" onClick={() => removeLink(i)} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addLink} type="button" size="sm" label="Add link" />
+        <Button onClick={addLink} variant="outline" type="button" size="sm">
+          Add link
+        </Button>
       </div>
     </FormBlock>
   );

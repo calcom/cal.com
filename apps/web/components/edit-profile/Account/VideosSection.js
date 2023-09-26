@@ -1,7 +1,6 @@
+import { Textarea, Input, Button, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { TextArea, Input, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -15,8 +14,8 @@ const VideosSection = ({ profile, setProfile, addVideo, removeVideo }) => {
           profile?.videos?.map((video, i) => (
             <div key={i} className="relative space-y-4 pt-4">
               <div className="col-span-full">
+                <Label>Title</Label>
                 <Input
-                  label="Title"
                   value={video.title}
                   onChange={(e) => {
                     const newVideo = profile?.videos?.length ? [...profile.videos] : [];
@@ -29,8 +28,8 @@ const VideosSection = ({ profile, setProfile, addVideo, removeVideo }) => {
                 />
               </div>
               <div className="col-span-2">
+                <Label>URL</Label>
                 <Input
-                  label="URL"
                   value={video.url}
                   onChange={(e) => {
                     const newVideo = profile?.videos?.length ? [...profile.videos] : [];
@@ -43,8 +42,8 @@ const VideosSection = ({ profile, setProfile, addVideo, removeVideo }) => {
                 />
               </div>
               <div className="sm:col-span-3">
-                <TextArea
-                  label="Description"
+                <Label>Description</Label>
+                <Textarea
                   value={video.description}
                   onChange={(e) => {
                     const newVideo = profile?.videos?.length ? [...profile.videos] : [];
@@ -63,7 +62,9 @@ const VideosSection = ({ profile, setProfile, addVideo, removeVideo }) => {
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={() => addVideo("videos")} type="button" size="sm" label="Add section" />
+        <Button onClick={() => addVideo("videos")} variant="outline" size="sm">
+          Add section
+        </Button>
       </div>
     </FormBlock>
   );

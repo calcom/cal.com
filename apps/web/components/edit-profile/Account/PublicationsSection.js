@@ -1,7 +1,6 @@
+import { Input, Textarea, Button, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { Input, TextArea, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -17,8 +16,8 @@ const PublicationsSection = ({ profile, setProfile, addPublication, removePublic
           profile.publications.map((publication, i) => (
             <div key={i} className="space-y-4 pt-2">
               <div className="sm:col-span-3">
+                <Label>Title</Label>
                 <Input
-                  label="Title"
                   value={publication.title}
                   onChange={(e) => {
                     const newPublicationss = [...profile.publications];
@@ -28,6 +27,7 @@ const PublicationsSection = ({ profile, setProfile, addPublication, removePublic
                 />
               </div>
               <div className="sm:col-span-3">
+                <Label>URL</Label>
                 <Input
                   label="URL"
                   type="url"
@@ -40,8 +40,8 @@ const PublicationsSection = ({ profile, setProfile, addPublication, removePublic
                 />
               </div>
               <div className="col-span-full">
-                <TextArea
-                  label="Description"
+                <Label>Description</Label>
+                <Textarea
                   value={publication.description}
                   onChange={(e) => {
                     const newPublicationss = [...profile.publications];
@@ -57,7 +57,9 @@ const PublicationsSection = ({ profile, setProfile, addPublication, removePublic
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addPublication} type="button" size="sm" label="Add publication" />
+        <Button onClick={addPublication} variant="outline" size="sm">
+          Add publication
+        </Button>
       </div>
     </FormBlock>
   );

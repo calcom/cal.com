@@ -1,7 +1,6 @@
+import { Input, Textarea, Button, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { Input, TextArea, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -15,8 +14,8 @@ const ProjectsSection = ({ profile, setProfile, addProject, removeProject }) => 
           profile.projects.map((project, i) => (
             <div key={i} className="space-y-4 pt-2">
               <div className="sm:col-span-3">
+                <Label>Title</Label>
                 <Input
-                  label="Title"
                   value={project.title}
                   onChange={(e) => {
                     const newProjects = [...profile.projects];
@@ -26,8 +25,8 @@ const ProjectsSection = ({ profile, setProfile, addProject, removeProject }) => 
                 />
               </div>
               <div className="sm:col-span-3">
+                <Label>URL</Label>
                 <Input
-                  label="URL"
                   type="url"
                   value={project.url}
                   onChange={(e) => {
@@ -38,8 +37,8 @@ const ProjectsSection = ({ profile, setProfile, addProject, removeProject }) => 
                 />
               </div>
               <div className="col-span-full">
-                <TextArea
-                  label="Description"
+                <Label>Description</Label>
+                <Textarea
                   value={project.description}
                   onChange={(e) => {
                     const newProjects = [...profile.projects];
@@ -55,7 +54,9 @@ const ProjectsSection = ({ profile, setProfile, addProject, removeProject }) => 
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addProject} type="button" size="sm" label="Add project" />
+        <Button onClick={addProject} variant="outline" size="sm">
+          Add project
+        </Button>
       </div>
     </FormBlock>
   );

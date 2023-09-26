@@ -1,12 +1,12 @@
+import { Button } from "@shadcdn/ui/button";
 import Spinner from "@ui/spinner";
+import clsx from "clsx";
 import { useAuthContext } from "context/authContext";
 import { NextSeo } from "next-seo";
 import Link from "next/link";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Linkedin } from "react-bootstrap-icons";
 import toast from "react-hot-toast";
-
-import { Button } from "@calcom/ui";
 
 import { defaultProfile } from "@lib/firebase/constants";
 import { addProfile, uploadPhoto, logOut, getProfile } from "@lib/firebase/utils";
@@ -27,12 +27,11 @@ import ProjectsSection from "@components/edit-profile/Account/ProjectsSection";
 import PublicationsSection from "@components/edit-profile/Account/PublicationsSection";
 import VideosSection from "@components/edit-profile/Account/VideosSection";
 
-import { Container, Button as AlterButton } from "../ui";
+import { Container } from "../ui";
 
 const EditProfile = () => {
   // const router = useRouter();
   const { user } = useAuthContext();
-  const importProfileRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [profile, setProfile] = useState(defaultProfile);
@@ -456,71 +455,19 @@ const EditProfile = () => {
                 {SETTINGS?.map((item) => (
                   <div key={item?.value} className="pb-3 md:w-full md:pb-0">
                     <Button
-                      className="h-auto w-full justify-start px-3 py-2 text-left leading-none"
-                      variant={activeSetting === item?.value ? "primary" : "ghost"}
-                      // className={clsx(
-                      //   "w-full rounded-lg !py-1 text-left text-base md:text-sm",
-                      //   activeSetting === item?.value &&
-                      //     "bg-black font-semibold text-white hover:!bg-black hover:!text-white"
-                      // )}
+                      // className="w-full bg-transparent text-black hover:text-white"
+                      // variant={activeSetting === item?.value ? "link" : "ghost"}
+                      className={clsx(
+                        "h-auto w-full justify-start rounded-lg bg-transparent !py-[6px] text-base text-black hover:bg-gray-100 md:text-sm",
+                        activeSetting === item?.value &&
+                          "bg-black font-semibold text-white hover:!bg-black hover:!text-white"
+                      )}
                       onClick={() => setActiveSetting(item?.value)}
                       suffix={item?.suffix}>
                       {item?.label}
                     </Button>
                   </div>
                 ))}
-                {user?.email?.includes("hive.one") || user?.email?.includes("bord.id") ? (
-                  <div className="mt-auto">
-                    <div className="relative">
-                      <AlterButton
-                        variant="ternary"
-                        className="text-sm"
-                        onClick={() => {
-                          const filename = "data.json";
-                          const jsonStr = JSON.stringify(profile);
-                          let element = document.createElement("a");
-                          element.setAttribute(
-                            "href",
-                            "data:text/plain;charset=utf-8," + encodeURIComponent(jsonStr)
-                          );
-                          element.setAttribute("download", filename);
-                          element.style.display = "none";
-                          document.body.appendChild(element);
-                          element.click();
-                          document.body.removeChild(element);
-                        }}>
-                        Export profile
-                      </AlterButton>
-                    </div>
-                    <div className="relative">
-                      <input
-                        ref={importProfileRef}
-                        type="file"
-                        id="file"
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                        onChange={async (e) => {
-                          const file = e.target.files.item(0);
-                          const text = await file.text();
-                          const importedData = JSON.parse(text);
-                          console.log(importedData);
-                          setProfile((prev) => ({
-                            ...prev,
-                            ...importedData,
-                            uid: user?.uid,
-                          }));
-                        }}
-                      />
-                      <AlterButton
-                        variant="ternary"
-                        className="text-sm"
-                        onClick={() => importProfileRef.current.click()}>
-                        Import profile
-                      </AlterButton>
-                    </div>
-                  </div>
-                ) : (
-                  ""
-                )}
               </div>
               <div className="mt:pt-0 border-t border-gray-200/60 pt-5 md:min-h-screen md:border-l md:border-t-0 md:pl-10 md:pt-0">
                 <form onSubmit={handleSubmit}>

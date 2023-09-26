@@ -1,3 +1,4 @@
+import RichContentParser from "@ui/fayaz/RichContentParser";
 import insertNonBreakingSpaces from "@ui/utilities/insert-non-breaking-spaces";
 import BioLink from "@ui/valery/bio-link";
 import BookItem from "@ui/valery/book-item";
@@ -151,6 +152,7 @@ const ProfilePage = ({ profileData }) => {
               </div>
             )}
           </div>
+
           {/* Button block */}
           <div
             id="call-charges"
@@ -291,11 +293,7 @@ const ProfilePage = ({ profileData }) => {
         </div>
 
         {/* About */}
-        {/* {profileData?.bio ? (
-          <RichContentParser content={profileData.bio} />
-        ) : (
-          ""
-        )} */}
+        {profileData?.bio ? <RichContentParser content={profileData.bio} /> : ""}
       </div>
       {/* Gray section */}
       <div className="relative flex w-full flex-col items-center bg-gray-200 pb-[88px] pt-14">

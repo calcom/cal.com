@@ -1,7 +1,6 @@
+import { Input, TextArea, Button } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { Input, TextArea, Button } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -55,7 +54,9 @@ const FactsSection = ({ profile, setProfile, addFact, removeFact }) => {
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addFact} type="button" size="sm" label="Add fact" />
+        <Button onClick={addFact} size="sm" variant="outline">
+          Add fact
+        </Button>
       </div>
     </FormBlock>
   );

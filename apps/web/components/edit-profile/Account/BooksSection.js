@@ -1,6 +1,5 @@
-import Button from "@ui/fayaz/Button";
+import { Button, Input, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
-import Input from "@ui/fayaz/input";
 import React from "react";
 
 import EmptyState from "./EmptyState";
@@ -15,6 +14,7 @@ const BooksSection = ({ profile, setProfile, addBook, removeBook }) => {
           profile?.books?.map((book, i) => (
             <div key={i} className="relative space-y-4 pt-4">
               <div className="col-span-2">
+                <Label>ISBN</Label>
                 <Input
                   label="ISBN"
                   value={book.isbn}
@@ -35,7 +35,9 @@ const BooksSection = ({ profile, setProfile, addBook, removeBook }) => {
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={() => addBook("books")} type="button" size="sm" label="Add section" />
+        <Button onClick={() => addBook("books")} variant="outline" size="sm">
+          Add section
+        </Button>
       </div>
     </FormBlock>
   );

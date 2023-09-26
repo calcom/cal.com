@@ -1,7 +1,6 @@
+import { Button, Input, Label } from "@shadcdn/ui";
 import RemoveButton from "@ui/fayaz/RemoveButton";
 import React from "react";
-
-import { Button, Input } from "@calcom/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -20,8 +19,8 @@ const PodcastAppearancesSection = ({
           profile.appearances.map((appearance, i) => (
             <div key={i} className="space-y-4 pt-4">
               <div className="col-span-full">
+                <Label>Title</Label>
                 <Input
-                  label="Title"
                   value={appearance.title}
                   onChange={(e) => {
                     const newAppearances = [...profile.appearances];
@@ -34,8 +33,8 @@ const PodcastAppearancesSection = ({
                 />
               </div>
               <div className="sm:col-span-3">
+                <Label>URL</Label>
                 <Input
-                  label="URL"
                   type="url"
                   value={appearance.url}
                   onChange={(e) => {
@@ -55,7 +54,9 @@ const PodcastAppearancesSection = ({
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={() => addPodcastAppearance()} type="button" size="sm" label="Add appearence" />
+        <Button onClick={() => addPodcastAppearance()} variant="outline" size="sm">
+          Add appearence
+        </Button>
       </div>
     </FormBlock>
   );

@@ -1,8 +1,7 @@
+import { Button, Input, Label } from "@shadcdn/ui";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-
-import { Button, Input, Label } from "@calcom/ui";
 
 import FormBlock from "./FormBlock";
 

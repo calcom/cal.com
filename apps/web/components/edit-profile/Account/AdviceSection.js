@@ -1,6 +1,5 @@
 import { X } from "@phosphor-icons/react";
-import Button from "@ui/fayaz/Button";
-import Input from "@ui/fayaz/input";
+import { Input, Button, Label } from "@shadcdn/ui";
 
 import EmptyState from "./EmptyState";
 import FormBlock from "./FormBlock";
@@ -14,10 +13,10 @@ const AdviceSection = ({ profile, setProfile, addAdviceItem, removeAdviceItem })
           profile.advice_on.map((advice, i) => (
             <div key={i} className="space-y-4 pt-2">
               <div>
+                <Label>{`Advice #${i + 1}`}</Label>
                 <div className="flex items-end gap-x-2">
                   <Input
                     value={advice}
-                    label={`Advice #${i + 1}`}
                     onChange={(e) => {
                       const newAdvice = [...profile.advice_on];
                       newAdvice[i] = e.target.value.slice(0, 100);
@@ -38,7 +37,9 @@ const AdviceSection = ({ profile, setProfile, addAdviceItem, removeAdviceItem })
           ))}
       </div>
       <div className="col-span-full mt-6">
-        <Button onClick={addAdviceItem} type="button" size="sm" label="Add advice" />
+        <Button onClick={addAdviceItem} variant="outline" size="sm">
+          Add advice
+        </Button>
       </div>
     </FormBlock>
   );
