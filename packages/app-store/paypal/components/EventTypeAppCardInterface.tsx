@@ -3,7 +3,11 @@ import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import { currencyOptions } from "@calcom/app-store/paypal/lib/currencyOptions";
+import {
+  currencyOptions,
+  currencySymbols,
+  isAcceptedCurrencyCode,
+} from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,6 +26,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   const currency = getAppData("currency") || defaultCurrency;
   const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === currency));
+  const [currencySymbol, setCurrencySymbol] = useState(
+    isAcceptedCurrencyCode(currency) ? currencySymbols[currency] : ""
+  );
 
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
@@ -52,7 +59,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <TextField
                   label="Price"
                   labelSrOnly
-                  addOnLeading="$"
+                  addOnLeading={currencySymbol}
                   addOnSuffix={currency}
                   step="0.01"
                   min="0.5"
@@ -82,6 +89,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   onChange={(e) => {
                     if (e) {
                       setSelectedCurrency(e);
+                      setCurrencySymbol(currencySymbols[e.value]);
                       setAppData("currency", e.value);
                     }
                   }}
