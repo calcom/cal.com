@@ -1,11 +1,13 @@
+import { Redis } from "@upstash/redis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
-import notEmpty from "../../../apps/website/lib/utils/notEmpty";
-import { wordlist } from "../../../apps/website/lib/utils/wordlist/wordlist";
 import { IS_CALCOM } from "../constants";
+import notEmpty from "../notEmpty";
+
+const WORDLIST_PATH = process.env.PREMIUM_WORDLIST_PATH_FROM_SERVER ?? "";
 
 export type RequestWithUsernameStatus = NextApiRequest & {
   usernameStatus: {
@@ -32,8 +34,33 @@ type CustomNextApiHandler<T = unknown> = (
   res: NextApiResponse<T>
 ) => void | Promise<void>;
 
-export const isPremiumUserName = (username: string): boolean =>
-  username.length <= 4 || Object.prototype.hasOwnProperty.call(wordlist, username);
+async function fetchWordlist() {
+  const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!WORDLIST_PATH || !UPSATCH_ENV_FOUND || !IS_CALCOM) {
+    return {};
+  }
+  const redis = Redis.fromEnv();
+
+  const cachedData = await redis.get("premium-username-word-list");
+
+  if (cachedData) {
+    return JSON.parse(cachedData as string);
+  } else {
+    const response = await fetch(WORDLIST_PATH);
+    const data = await response.json();
+    await redis.set("premium-username-word-list", JSON.stringify(data), {
+      ex: 60 * 60 * 24 * 7,
+    });
+
+    return data;
+  }
+}
+
+export const isPremiumUserName = async (username: string) => {
+  const wordlist = await fetchWordlist();
+  return username.length <= 4 || Object.prototype.hasOwnProperty.call(wordlist, username);
+};
 
 export const generateUsernameSuggestion = async (users: string[], username: string) => {
   const limit = username.length < 2 ? 9999 : 999;
@@ -111,7 +138,7 @@ const usernameCheck = async (usernameRaw: string) => {
     response.available = false;
   }
 
-  if (isPremiumUserName(username)) {
+  if (await isPremiumUserName(username)) {
     response.premium = true;
   }
 
