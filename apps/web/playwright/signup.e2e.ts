@@ -7,6 +7,8 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
+const SKIP_PREMIUM_USERNAME = !!IS_CALCOM;
+
 test.describe("Signup Flow Test", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
@@ -89,7 +91,7 @@ test.describe("Signup Flow Test", async () => {
   });
   test("Premium Username Flow - creates stripe checkout", async ({ page, users }) => {
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_CALCOM, "Only run on Cal.com");
+    test.skip(!SKIP_PREMIUM_USERNAME, "Only run on Cal.com");
 
     // Signup with premium username name
     await page.goto("/signup");
@@ -113,7 +115,7 @@ test.describe("Signup Flow Test", async () => {
   });
   test("Premium Username Flow - SelfHosted", async ({ page, users }) => {
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(IS_CALCOM, "Only run on Selfhosted Instances");
+    test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
 
     // Signup with premium username name
     await page.goto("/signup");
