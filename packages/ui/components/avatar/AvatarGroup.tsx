@@ -47,6 +47,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
             props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16"
           )}>
           <span
+            data-testid="truncated-avatars"
             className={classNames(
               "text-inverted m-auto px-1 text-center",
               props.size === "sm" ? "text-[12px]" : "text-2xl"

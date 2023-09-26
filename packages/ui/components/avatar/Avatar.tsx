@@ -38,6 +38,7 @@ export function Avatar(props: AvatarProps) {
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
+      data-testid="avatar-root"
       className={classNames(
         "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full",
         indicator ? "overflow-visible" : "overflow-hidden",
@@ -51,6 +52,7 @@ export function Avatar(props: AvatarProps) {
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
         <AvatarPrimitive.Fallback
+          data-testid="avatar-fallback"
           delayMs={600}
           asChild={props.asChild}
           className="flex h-full items-center justify-center">
@@ -64,12 +66,18 @@ export function Avatar(props: AvatarProps) {
   );
 
   if (href) {
-    avatar = <Link href={href}>{avatar}</Link>;
+    avatar = (
+      <Link data-testid="avatar-link" href={href}>
+        {avatar}
+      </Link>
+    );
   }
 
   return title ? (
     <TooltipPrimitive.Provider>
-      <Tooltip content={title}>{avatar}</Tooltip>
+      <Tooltip data-testid="avatar-tooltip" content={title}>
+        {avatar}
+      </Tooltip>
     </TooltipPrimitive.Provider>
   ) : (
     <>{avatar}</>
