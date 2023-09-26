@@ -118,14 +118,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
 
-  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState<boolean>(
-    user.allowDynamicBooking ?? true
+  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
+    !!user.allowDynamicBooking
   );
-  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState<boolean>(
-    user.allowSEOIndexing ?? true
-  );
-  const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState<boolean>(
-    user.receiveMonthlyDigestEmail ?? true
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(!!user.allowSEOIndexing);
+  const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
+    !!user.receiveMonthlyDigestEmail
   );
 
   return (
@@ -164,7 +162,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             control={formMethods.control}
             render={({ field: { value } }) => (
               <>
-                <Label className="text-emphasis mt-8">
+                <Label className="text-emphasis mt-6">
                   <>{t("timezone")}</>
                 </Label>
                 <TimezoneSelect
@@ -182,7 +180,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             control={formMethods.control}
             render={({ field: { value } }) => (
               <>
-                <Label className="text-emphasis mt-8">
+                <Label className="text-emphasis mt-6">
                   <>{t("time_format")}</>
                 </Label>
                 <Select
@@ -203,7 +201,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             control={formMethods.control}
             render={({ field: { value } }) => (
               <>
-                <Label className="text-emphasis mt-8">
+                <Label className="text-emphasis mt-6">
                   <>{t("start_of_week")}</>
                 </Label>
                 <Select

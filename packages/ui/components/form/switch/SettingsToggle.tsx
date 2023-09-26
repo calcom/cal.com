@@ -55,14 +55,16 @@ function SettingsToggle({
                 </div>
                 {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
               </div>
-              <Switch
-                data-testid={rest["data-testid"]}
-                fitToHeight={true}
-                checked={checked}
-                onCheckedChange={onCheckedChange}
-                disabled={disabled}
-                tooltip={tooltip}
-              />
+              <div className="my-auto h-full">
+                <Switch
+                  data-testid={rest["data-testid"]}
+                  fitToHeight={true}
+                  checked={checked}
+                  onCheckedChange={onCheckedChange}
+                  disabled={disabled}
+                  tooltip={tooltip}
+                />
+              </div>
             </div>
           ) : (
             <div className="flex space-x-3">

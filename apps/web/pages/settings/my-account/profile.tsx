@@ -254,7 +254,7 @@ const ProfileView = () => {
           }
         }}
         extraField={
-          <div className="mt-8">
+          <div className="mt-6">
             <UsernameAvailabilityField
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
@@ -472,13 +472,13 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <div className="mt-8">
+        <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
-        <div className="mt-8">
+        <div className="mt-6">
           <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
         </div>
-        <div className="mt-8">
+        <div className="mt-6">
           <Label>{t("about")}</Label>
           <Editor
             getText={() => md.render(formMethods.getValues("bio") || "")}

@@ -42,7 +42,6 @@ type ModalState = {
 const ConferencingLayout = () => {
   const { t } = useLocale();
 
-
   const [modal, updateModal] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
     {
@@ -92,13 +91,20 @@ const ConferencingLayout = () => {
                       color="secondary"
                       data-testid="connect-conferencing-apps"
                       href="/apps/categories/conferencing">
-                      {t("connect_conferencing_apps")}
+                      {t("connect_conference_apps")}
                     </Button>
                   }
                 />
               );
             }
-            return <AppList handleDisconnect={handleDisconnect} data={data} variant="conferencing" />;
+            return (
+              <AppList
+                listClassName="rounded-xl rounded-t-none border-t-0"
+                handleDisconnect={handleDisconnect}
+                data={data}
+                variant="conferencing"
+              />
+            );
           }}
         />
       </div>

@@ -122,7 +122,7 @@ const WebhookForm = (props: {
           name="active"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="font-sm text-emphasis mt-8 font-medium">
+            <div className="font-sm text-emphasis mt-6 font-medium">
               <Switch
                 label={t("enable_webhook")}
                 checked={value}
@@ -140,8 +140,8 @@ const WebhookForm = (props: {
           render={({ field: { onChange, value } }) => {
             const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
             return (
-              <div className="mt-8">
-                <Label className="font-sm text-emphasis mt-8 font-medium">
+              <div className="mt-6">
+                <Label className="font-sm text-emphasis font-medium">
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
@@ -160,7 +160,7 @@ const WebhookForm = (props: {
           name="secret"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="mt-8 ">
+            <div className="mt-6">
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>
@@ -224,7 +224,7 @@ const WebhookForm = (props: {
           control={formMethods.control}
           render={({ field: { value } }) => (
             <>
-              <Label className="font-sm text-emphasis mt-8">
+              <Label className="font-sm text-emphasis mt-6">
                 <>{t("payload_template")}</>
               </Label>
               <div className="mb-2">

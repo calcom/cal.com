@@ -1,7 +1,7 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
@@ -79,7 +79,7 @@ const CalendarsView = () => {
         externalId: query.data.destinationCalendar.externalId,
       });
     }
-  }, [query?.isLoading]);
+  }, [query?.isLoading, query?.data?.destinationCalendar]);
 
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
