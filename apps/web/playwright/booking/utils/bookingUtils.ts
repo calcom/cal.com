@@ -4,7 +4,7 @@ import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 
 const EMAIL = "test@test.com";
 const EMAIL2 = "test2@test.com";
-const PHONE = "+55 (32) 9832847";
+const PHONE = "+55 (32) 983289947";
 const scheduleSuccessfullyText = "This meeting is scheduled";
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
 
@@ -16,6 +16,7 @@ type BookingOptions = {
   isBoolean?: boolean;
   isMultiEmails?: boolean;
   isSelect?: boolean;
+  isMultiSelect?: boolean;
 };
 
 // Logs in a test user and navigates to the event types page.
@@ -29,6 +30,7 @@ export const loginUser = async (page: Page, users: Fixtures["users"]) => {
 export const fillAndConfirmBooking = async (
   eventTypePage: Page,
   placeholderText: string,
+  question: string,
   fillText: string,
   secondQuestion: string,
   hasPlaceholder = false,
@@ -37,7 +39,8 @@ export const fillAndConfirmBooking = async (
   isCheckbox = false,
   isBoolean = false,
   isMultiEmails = false,
-  isSelect = false
+  isSelect = false,
+  isMultiSelect = false
 ) => {
   const confirmButton = isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
 
@@ -51,42 +54,56 @@ export const fillAndConfirmBooking = async (
   }
   await eventTypePage.getByPlaceholder("Email").click();
   await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
-  await eventTypePage.getByPlaceholder("Phone test").click();
-  await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
-
-  // if is checkbox question and required check
-  if (isCheckbox && isRequired) {
-    await eventTypePage.getByLabel("Option 1").check();
-    await eventTypePage.getByLabel("Option 2").check();
+  await eventTypePage.getByPlaceholder(`${question} test`).click();
+  if (question === "phone") {
+    await eventTypePage.getByPlaceholder(`${question} test`).fill(PHONE);
+  } else {
+    await eventTypePage.getByPlaceholder(`${question} test`).fill(`${question} test`);
   }
 
-  // if is boolean question and required check
-  if (isBoolean && isRequired) {
-    await eventTypePage.getByLabel(`${secondQuestion} test`).check();
-  }
+  if (secondQuestion === "phone" && isRequired) {
+    await eventTypePage.getByPlaceholder(`${secondQuestion} test`).clear();
+    await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(PHONE);
+  } else {
+    // if is checkbox question and required check
+    if (isCheckbox && isRequired) {
+      await eventTypePage.getByLabel("Option 1").check();
+      await eventTypePage.getByLabel("Option 2").check();
+    }
 
-  // if is multiemails question and required add two emails
-  if (isMultiEmails && isRequired) {
-    await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
-    await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
-    await eventTypePage.getByTestId("add-another-guest").nth(1).click();
-    await eventTypePage.getByPlaceholder("multiemail test").nth(1).fill(EMAIL2);
-  }
+    // if is boolean question and required check
+    if (isBoolean && isRequired) {
+      await eventTypePage.getByLabel(`${secondQuestion} test`).check();
+    }
 
-  // if is select or multiselect question and required click in all options, for select just the last option will be checked
-  if (isSelect && isRequired) {
-    await eventTypePage.locator("form svg").nth(2).click();
-    await eventTypePage.getByTestId("select-option-Option 1").click();
-  }
+    // if is multiemails question and required add two emails
+    if (isMultiEmails && isRequired) {
+      await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+      await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+      await eventTypePage.getByTestId("add-another-guest").nth(1).click();
+      await eventTypePage.getByPlaceholder("multiemail test").nth(1).fill(EMAIL2);
+    }
 
-  // if the question has placeholder fill, if is number fill as number
-  if (isRequired && hasPlaceholder && !isMultiEmails) {
-    if (secondQuestion === "number") {
-      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
-      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill("123");
-    } else {
-      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
-      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(secondQuestion);
+    if (isMultiSelect && isRequired) {
+      await eventTypePage.locator("form svg").last().click();
+      await eventTypePage.getByTestId("select-option-Option 1").click();
+    }
+
+    // if is select or multiselect question and required click in all options, for select just the last option will be checked
+    if (isSelect && isRequired) {
+      await eventTypePage.locator("form svg").last().click();
+      await eventTypePage.getByTestId("select-option-Option 1").click();
+    }
+
+    // if the question has placeholder fill, if is number fill as number
+    if (isRequired && hasPlaceholder && !isMultiEmails) {
+      if (secondQuestion === "number") {
+        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
+        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill("123");
+      } else {
+        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
+        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(secondQuestion);
+      }
     }
   }
 
@@ -112,7 +129,7 @@ export const initialCommonSteps = async (
   // Go to advanced tab
   await bookingPage.getByTestId("vertical-tab-event_advanced_tab_title").click();
 
-  // Add phone field and one another question and fill both
+  // Add first and second question and fill both
   await bookingPage.getByTestId("add-field").click();
   await bookingPage.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
   await bookingPage.getByTestId(`select-option-${question}`).click();
@@ -154,6 +171,7 @@ export const initialCommonSteps = async (
   fillAndConfirmBooking(
     eventTypePage,
     "Please share anything that will help prepare for our meeting.",
+    question,
     message,
     secondQuestion,
     options.hasPlaceholder,
@@ -162,7 +180,8 @@ export const initialCommonSteps = async (
     options.isCheckbox,
     options.isBoolean,
     options.isMultiEmails,
-    options.isSelect
+    options.isSelect,
+    options.isMultiSelect
   );
 
   // Go to final steps
