@@ -299,6 +299,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     where: {
       username: {
         in: usernameList,
+        mode: "insensitive",
       },
       organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
