@@ -401,7 +401,21 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: { team: { select: { children: true, metadata: true, name: true } } },
+        include: {
+          team: {
+            select: {
+              children: true,
+              metadata: true,
+              name: true,
+              members: {
+                select: {
+                  role: true,
+                  id: true,
+                },
+              },
+            },
+          },
+        },
       });
     },
     getFirstEventAsOwner: async () =>
