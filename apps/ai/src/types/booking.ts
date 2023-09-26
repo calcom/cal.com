@@ -4,7 +4,6 @@ export enum BOOKING_STATUS {
   CANCELLED = "CANCELLED",
   REJECTED = "REJECTED",
 }
-
 export type Booking = {
   id: number;
   userId: number;
