@@ -11,7 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { refresh_token, client_id, client_secret, grant_type } = req.body;
+  const refreshToken = req.headers.authorization?.split(" ")[1] || "";
+
+  const { client_id, client_secret, grant_type } = req.body;
 
   if (grant_type !== "refresh_token") {
     res.status(400).json({ message: "grant type invalid" });
@@ -40,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let decodedRefreshToken: OAuthTokenPayload;
 
   try {
-    decodedRefreshToken = jwt.verify(refresh_token, secretKey) as OAuthTokenPayload;
+    decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
   } catch {
     res.status(401).json({ message: "Unauthorized" });
     return;
