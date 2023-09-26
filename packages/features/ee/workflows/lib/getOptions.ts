@@ -15,7 +15,7 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "./constants";
 
-export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isKYCVerified?: boolean) {
+export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isOrgsPlan?: boolean) {
   return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode
     .map((action) => {
       const actionString = t(`${action.toLowerCase()}_action`);
@@ -23,8 +23,9 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, is
       return {
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
-        needsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
-        needsVerification: isTextMessageToAttendeeAction(action) && !isKYCVerified,
+        needsTeamsUpgrade:
+          isSMSOrWhatsappAction(action) && !isTextMessageToAttendeeAction(action) && !isTeamsPlan,
+        needsOrgsUpgrade: isTextMessageToAttendeeAction(action) && !isOrgsPlan,
       };
     });
 }

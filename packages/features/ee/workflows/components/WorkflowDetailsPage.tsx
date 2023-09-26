@@ -5,7 +5,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
@@ -19,7 +18,6 @@ import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
-import { KYCVerificationDialog } from "./KYCVerificationDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"];
@@ -41,14 +39,11 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
-  const [isKYCVerificationDialogOpen, setKYCVerificationDialogOpen] = useState(false);
 
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
-
-  const isPartOfTeam = useHasTeamPlan();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -177,7 +172,6 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
-                setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
               />
             </div>
           )}
@@ -194,7 +188,6 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
-                    setKYCVerificationDialogOpen={setKYCVerificationDialogOpen}
                   />
                 );
               })}
@@ -222,12 +215,6 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
-        setKYCVerificationDialogOpen={() => setKYCVerificationDialogOpen(true)}
-      />
-      <KYCVerificationDialog
-        isOpenDialog={isKYCVerificationDialogOpen}
-        setIsOpenDialog={setKYCVerificationDialogOpen}
-        isPartOfTeam={!!isPartOfTeam.hasTeamPlan}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}
