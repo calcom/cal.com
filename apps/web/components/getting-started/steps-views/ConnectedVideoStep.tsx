@@ -5,14 +5,16 @@ import { List } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
+import type { onButtonClick } from "../components/ButtonLogic";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface ConnectedAppStepProps {
   nextStep: () => void;
+  onButtonClick: typeof onButtonClick;
 }
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep } = props;
+  const { nextStep, onButtonClick } = props;
   const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -30,7 +32,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryConnectedVideoApps?.items &&
             queryConnectedVideoApps?.items.map((item) => {
-              if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
+              if (item.slug === "daily-video") return null; // we don't want to show daily here as it is installed by default
               return (
                 <li key={item.name}>
                   {item.name && item.logo && (
@@ -57,7 +59,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
-        onClick={() => nextStep()}>
+        onClick={() => onButtonClick(nextStep, () => true)}>
         {t("next_step_text")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
