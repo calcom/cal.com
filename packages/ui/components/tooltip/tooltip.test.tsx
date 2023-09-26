@@ -41,7 +41,7 @@ describe("Tests for Tooltip component", () => {
   });
 
   test("should render tooltip with given delay", async () => {
-    const { debug } = render(
+    render(
       <TooltipProvider>
         <Tooltip content={<div>This is a tooltip</div>} delayDuration={50}>
           <button data-testid="btn">Hovered text</button>
@@ -53,7 +53,6 @@ describe("Tests for Tooltip component", () => {
     user.hover(button);
     await waitFor(
       () => {
-        debug();
         expect(screen.getByTestId("btn").getAttribute("data-state")).toEqual("delayed-open");
       },
       {

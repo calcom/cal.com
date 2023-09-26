@@ -26,7 +26,7 @@ describe("Tests for ToggleGroup component", () => {
   }
 
   test("render the toggle group", async () => {
-    const { debug } = render(<ToggleGroupExample />);
+    render(<ToggleGroupExample />);
     const opt1 = screen.getByText("Option 1");
     expect(opt1).toBeInTheDocument();
     expect(screen.getByText("Option 2")).toBeInTheDocument();
@@ -36,7 +36,6 @@ describe("Tests for ToggleGroup component", () => {
     const user = userEvent.setup();
     user.hover(opt1);
     await waitFor(() => {
-      debug();
       expect(screen.getByTestId("toggle-group-item-option1").getAttribute("data-state")).toEqual(
         "delayed-open"
       );
