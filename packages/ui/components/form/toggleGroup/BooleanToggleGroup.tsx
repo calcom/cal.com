@@ -75,6 +75,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       }}
       {...passThrough}>
       <ToggleGroupItemPrimitive
+        data-testid="bt-yes"
         className={classNames(boolean(yesNoValue) ? selectedClass : unselectedClass)}
         disabled={disabled}
         value="yes">
@@ -82,6 +83,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       </ToggleGroupItemPrimitive>
 
       <ToggleGroupItemPrimitive
+        data-testid="bt-no"
         disabled={disabled}
         className={classNames(!boolean(yesNoValue) ? selectedClass : unselectedClass)}
         value="no">
