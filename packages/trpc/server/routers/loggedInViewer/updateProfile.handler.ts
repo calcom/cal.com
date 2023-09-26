@@ -131,10 +131,15 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       name: true,
       createdDate: true,
       locale: true,
+      schedules: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
-  if (user.timeZone !== data.timeZone) {
+  if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
     // on timezone change update timezone of default schedule
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
