@@ -1,15 +1,14 @@
-import type { InferGetStaticPropsType } from "next";
+import type { InferGetServerSidePropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
-import type { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import { HeadSeo } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function SetupInformation(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("slug") as string;
