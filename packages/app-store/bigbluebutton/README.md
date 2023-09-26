@@ -29,6 +29,7 @@ supportedChecksumAlgorithms=sha384,sha512
 1. Navigate to the conferencing section of the App Store.
 2. Select BigBlueButton and click the install button.
 3. Enter your details from above on the setup page.
+4. Make sure to select the correct algorithm from the dropdown menu.
 
 ## Using the integration
 

@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appKeysSchema as bigbluebutton_zod_ts } from "./bigbluebutton/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
@@ -36,6 +37,7 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
 export const appKeysSchemas = {
   basecamp3: basecamp3_zod_ts,
+  bigbluebutton: bigbluebutton_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
   ga4: ga4_zod_ts,

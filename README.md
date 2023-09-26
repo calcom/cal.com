@@ -475,7 +475,7 @@ For example, `Cal.com (support@cal.com)`.
 
 ### Obtaining BigBlueButton API Endpoint and Secret
 
-[See BigBlueButton Readme](./packages/app-store/bigbluebutton/)
+[See BigBlueButton Readme](./packages/app-store/bigbluebutton/README.md)
 
 ### Obtaining HubSpot Client ID and Secret
 
