@@ -86,12 +86,18 @@ export const BaseScheduledEmail = (
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses calEvent={props.calEvent} />
       {props.calEvent.paymentInfo?.amount && (
+        // TODO: extract currency handling
+        // see packages/features/bookings/components/event-meta/Price.tsx
         <Info
-          label={props.calEvent.paymentInfo?.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
-          description={new Intl.NumberFormat(props.attendee.language.locale, {
-            style: "currency",
-            currency: props.calEvent.paymentInfo?.currency || "USD",
-          }).format(props.calEvent.paymentInfo?.amount / 100.0)}
+          label={props.calEvent.paymentInfo.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
+          description={
+            props.calEvent.paymentInfo.currency !== "BTC"
+              ? new Intl.NumberFormat(props.attendee.language.locale, {
+                  style: "currency",
+                  currency: props.calEvent.paymentInfo.currency || "USD",
+                }).format(props.calEvent.paymentInfo.amount / 100.0)
+              : `${props.calEvent.paymentInfo.amount} sats`
+          }
           withSpacer
         />
       )}

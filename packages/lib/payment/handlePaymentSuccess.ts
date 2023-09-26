@@ -44,6 +44,13 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
           destinationCalendar: true,
         },
       },
+      payment: {
+        select: {
+          amount: true,
+          currency: true,
+          paymentOption: true,
+        },
+      },
     },
   });
 
@@ -97,6 +104,11 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     uid: booking.uid,
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
+    paymentInfo: booking.payment?.[0] && {
+      amount: booking.payment[0].amount,
+      currency: booking.payment[0].currency,
+      paymentOption: booking.payment[0].paymentOption,
+    },
   };
 
   if (booking.location) evt.location = booking.location;
