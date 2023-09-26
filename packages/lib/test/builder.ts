@@ -235,8 +235,8 @@ export const buildApp = (app?: Partial<App>): App => {
     updatedAt: new Date(),
     credentials: null,
     payments: null,
-    Webhook: null,
-    ApiKey: null,
+    webhooks: null,
+    apiKeys: null,
     enabled: true,
     ...app,
   };
