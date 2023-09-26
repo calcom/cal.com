@@ -94,7 +94,7 @@ const usernameCheck = async (usernameRaw: string) => {
     response.available = false;
   }
 
-  if (isPremiumUserName(username)) {
+  if (await isPremiumUserName(username)) {
     response.premium = true;
   }
 
