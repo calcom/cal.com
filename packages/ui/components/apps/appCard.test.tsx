@@ -1,20 +1,27 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { render, screen } from "@testing-library/react";
 
+import type { AppFrontendPayload } from "@calcom/types/App";
+
 import { AppCard } from "./AppCard";
 
 describe("Tests for AppCard component", () => {
-  const mockApp = {
+  const mockApp: AppFrontendPayload = {
     logo: "/path/to/logo.png",
     name: "Test App",
     slug: "test-app",
     description: "Test description for the app.",
     categories: ["calendar"],
     concurrentMeetings: true,
-    teamsPlanRequired: false,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+    teamsPlanRequired: { upgradeUrl: "test" },
+    type: "test_calendar",
+    variant: "calendar",
+    publisher: "test",
+    url: "test",
+    email: "test",
+  };
 
+  // Abstracted render function
   const renderAppCard = (appProps = {}) => {
     const appData = { ...mockApp, ...appProps };
     render(<AppCard app={appData} />);
