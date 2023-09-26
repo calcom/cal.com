@@ -169,7 +169,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         invalidCredentialIds,
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
-        // FIXME: remove hardcoding and add per-app validation
+        // TODO: remove hardcoding and add per-app validation. We can probably validate using zod schemas.
         isSetup: !!(credential?.key as { account_id: string })?.account_id || app.slug !== "alby",
       };
     }

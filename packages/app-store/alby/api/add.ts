@@ -4,7 +4,8 @@ import prisma from "@calcom/prisma";
 
 import config from "../config.json";
 
-// FIXME: is a custom handler really needed?
+// TODO: is a custom handler really needed?
+// all we need is to redirect to the setup page after installing the app
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });

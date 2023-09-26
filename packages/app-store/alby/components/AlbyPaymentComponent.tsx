@@ -125,8 +125,10 @@ type PaymentCheckerProps = PaymentPageProps;
 function PaymentChecker(props: PaymentCheckerProps) {
   // This effect checks if the booking status has changed to "ACCEPTED"
   // then reload the page to show the new payment status
-  // FIXME: subscribe to the exact payment instead of polling bookings
-  // FIXME: booking success is copied from packages/features/ee/payments/components/Payment.tsx
+  // TODO: subscribe to the exact payment instead of polling bookings
+  //   - we can enable payments for trpc and then you actually listen for any success there
+  // TODO: booking success is copied from packages/features/ee/payments/components/Payment.tsx
+  //   - this code should be extracted into a common lib function.
   const searchParams = useSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const utils = trpc.useContext();
