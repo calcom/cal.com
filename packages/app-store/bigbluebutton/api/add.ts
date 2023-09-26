@@ -1,59 +1,31 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { Prisma } from "@prisma/client";
 
-import checkSession from "@calcom/app-store/_utils/auth";
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
-import { checkInstalled, createDefaultInstallation } from "@calcom/app-store/_utils/installation";
+import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import appConfig from "../config.json";
-import { BbbApi, bbbOptionsSchema } from "../lib/bbbApi";
 
-const getHandler = async () => {
-  return { url: "/apps/bigbluebutton/setup" };
-};
-
-const postHandler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return res
-      .status(500)
-      .json({ error: "Missing Cal.com encryption key. Please contact the server admin." });
-  }
-
-  const session = checkSession(req);
-  const opts = bbbOptionsSchema.parse(req.body);
-
-  const bbbApi = new BbbApi(opts);
-
-  const credentialCheck = await bbbApi.checkCredentials();
-  if (!credentialCheck.success) {
-    return res.status(500).json({ message: credentialCheck.reason });
-  }
-
-  const { slug, variant, type: appType } = appConfig;
-  const teamId = req.query.teamId ? Number(req.query.teamId) : undefined;
-
-  try {
-    await checkInstalled(slug, session.user.id);
-    await createDefaultInstallation({
+const handler: AppDeclarativeHandler = {
+  appType: appConfig.type,
+  variant: appConfig.variant,
+  slug: appConfig.slug,
+  supportsMultipleInstalls: false,
+  handlerType: "add",
+  redirect: {
+    newTab: true,
+    url: `/apps/${appConfig.slug}/setup`,
+  },
+  createCredential: ({ appType, user, slug, teamId }) =>
+    createDefaultInstallation({
       appType,
-      userId: session.user.id,
+      userId: user.id,
       slug,
-      key: symmetricEncrypt(JSON.stringify(opts), process.env.CALENDSO_ENCRYPTION_KEY),
+      keysCustomFunc: (arg0: Prisma.JsonObject) =>
+        symmetricEncrypt(JSON.stringify(arg0), process.env.CALENDSO_ENCRYPTION_KEY),
+      useAppKeys: true,
       teamId,
-    });
-  } catch (reason) {
-    logger.error("Could not add this app:", reason);
-    return res
-      .status(500)
-      .json({ message: "Unexpected error, but credentials are valid. Check server logs for details." });
-  }
-
-  return { url: getInstalledAppPath({ variant, slug }) };
+    }),
 };
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
-  POST: Promise.resolve({ default: defaultResponder(postHandler) }),
-});
+export default handler;
