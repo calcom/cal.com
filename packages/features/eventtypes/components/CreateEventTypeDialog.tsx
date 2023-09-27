@@ -233,6 +233,9 @@ export default function CreateEventTypeDialog({
                     type="number"
                     required
                     min="10"
+                    onKeyDown={(e) => {
+                      ["e", "E", "+", "-"].includes(e.key) && e.preventDefault();
+                    }}
                     placeholder="15"
                     label={t("duration")}
                     className="pr-4"

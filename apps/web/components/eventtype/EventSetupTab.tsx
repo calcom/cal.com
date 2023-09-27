@@ -489,6 +489,9 @@ export const EventSetupTab = (
           <TextField
             required
             type="number"
+            onKeyDown={(e) => {
+              ["e", "E", "+", "-"].includes(e.key) && e.preventDefault();
+            }}
             {...lengthLockedProps}
             label={t("duration")}
             defaultValue={eventType.length ?? 15}
