@@ -2156,7 +2156,7 @@ async function handler(
         message: "Booking failed",
       };
 
-      log.error(`Booking ${organizerUser.username} failed`, error, results);
+      log.error(`Booking ${organizerUser.username} failed`, JSON.stringify({ error, results }));
     } else {
       const metadata: AdditionalInformation = {};
 
