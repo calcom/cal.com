@@ -269,9 +269,7 @@ const ProfileView = () => {
           Icon={AlertTriangle}>
           <>
             <div className="mb-10">
-              <p className="text-default mb-4">
-                {t("delete_account_confirmation_message", { appName: APP_NAME })}
-              </p>
+              <p className="text-default mb-4">{t("delete_account_confirmation_message")}</p>
               {isCALIdentityProvider && (
                 <PasswordField
                   data-testid="password"
