@@ -1,12 +1,11 @@
 export function isValidBase64(input: string): boolean {
   try {
     let base64Data = input;
-    // Check if the input starts with a data URI scheme
+    // Check if the input starts with a data URI scheme (data:content/type;base64,...)
     if (input.startsWith("data:")) {
-      // data:image/jpeg;base64,XYZ
       const parts = input.split(",");
       if (parts.length === 2) {
-        // metadata and data
+        // metadata and base64Data
         base64Data = parts[1]; // Extract the base64 data from the second part
       }
     }
