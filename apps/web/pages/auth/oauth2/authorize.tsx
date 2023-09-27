@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -15,8 +16,13 @@ export default function Authorize() {
   const { status } = useSession();
 
   const router = useRouter();
-  const { state, client_id, scope } = router.query;
-  const queryString = router.asPath.split("?")[1] || "";
+  const searchParams = useSearchParams();
+
+  const client_id = searchParams?.get("client_id") as string;
+  const state = searchParams?.get("state") as string;
+  const scope = searchParams?.get("scope") as string;
+
+  const queryString = searchParams.toString();
 
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
@@ -26,7 +32,7 @@ export default function Authorize() {
       clientId: client_id as string,
     },
     {
-      enabled: router.isReady && status !== "loading",
+      enabled: status !== "loading",
     }
   );
 
@@ -53,7 +59,7 @@ export default function Authorize() {
     }
   }, [isLoadingProfiles]);
 
-  const isLoading = isLoadingGetClient || isLoadingProfiles || !router.isReady || status === "loading";
+  const isLoading = isLoadingGetClient || isLoadingProfiles || status === "loading";
 
   if (isLoading) {
     return <></>;
