@@ -1,8 +1,8 @@
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +20,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
-  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(app);
+  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -50,7 +50,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         )}
         {!recurringEventDefined && requirePayment && (
           <>
-            <div className="mt-2 block items-center justify-start sm:flex sm:space-x-2">
+            <div className="mt-6 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
                 label=""
                 className="h-[38px]"

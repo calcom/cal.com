@@ -241,6 +241,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  // Find a way to handle this 3 payment app better
   if (input.metadata?.apps?.stripe?.price) {
     data.price = input.metadata?.apps?.stripe?.price;
     const paymentCredential = await ctx.prisma.credential.findFirst({
@@ -281,8 +282,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  // TODO: make this work with every payment app
-  // NOTE: BTC currency is left capitalized here unlike the above
   if (input.metadata?.apps?.alby?.price) {
     data.price = input.metadata?.apps?.alby?.price;
     const paymentCredential = await ctx.prisma.credential.findFirst({

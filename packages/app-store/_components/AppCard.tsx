@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
@@ -28,6 +29,7 @@ export default function AppCard({
   teamId?: number;
   LockedIcon?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
 
@@ -123,9 +125,9 @@ export default function AppCard({
             </div>
           ) : (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-              <p>This app has not been setup yet</p>
+              <p>{t("this_app_is_not_setup_already")}</p>
               <Link href={`/apps/${app.slug}/setup`}>
-                <Button StartIcon={Settings}>Setup</Button>
+                <Button StartIcon={Settings}>{t("setup")}</Button>
               </Link>
             </div>
           )
