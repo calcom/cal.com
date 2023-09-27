@@ -542,9 +542,9 @@ test.describe("BOOKING_RESCHEDULED", async () => {
  * We need to do something agnostic to the payment provider here, so we can test it with Stripe, Paypal or other providers
  */
 test.describe("BOOKING_PAID", async () => {
-  todo("should send a booking paid event when the payment is confirmed by Stripe");
+  todo("should send a booking paid event when the payment is confirmed by provider");
 
-  todo("should not send a booking paid event when the payment is not confirmed by Stripe");
+  todo("should not send a booking paid event when the payment is not confirmed by provider");
 });
 
 test.describe("FORM_SUBMITTED", async () => {
