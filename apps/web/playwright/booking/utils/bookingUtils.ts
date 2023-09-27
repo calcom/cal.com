@@ -77,7 +77,7 @@ const fillQuestion = async (
     },
   };
 
-  if (options.isRequired) {
+  if (options.isRequired || questionType !== "secondQuestion") {
     if (questionActions[questionType]) {
       await questionActions[questionType]();
     }
