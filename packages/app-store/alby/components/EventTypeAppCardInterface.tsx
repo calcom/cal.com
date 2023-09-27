@@ -35,7 +35,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   // make sure a currency is selected
   useEffect(() => {
-    if (!currency) {
+    if (!currency && requirePayment) {
       setAppData("currency", selectedCurrency.value);
     }
   }, [currency, selectedCurrency, setAppData]);
@@ -71,7 +71,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       setAppData("currency", currency);
                     }
                   }}
-                  value={price > 0 ? price : undefined}
+                  value={price && price > 0 ? price : undefined}
                 />
               </div>
               <div className="mt-5 w-60">
