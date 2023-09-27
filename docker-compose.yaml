@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   calcom:
-    image: calcom.docker.scarf.sh/calcom/cal.com
+    image: borg-calcom
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,10 +28,10 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
 
   api:
-    image: calcom.docker.scarf.sh/calcom/cal.com
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: borg-calcom
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     command: yarn workspace @calcom/api dev
     restart: always
     ports:
