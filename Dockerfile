@@ -37,6 +37,7 @@ COPY tests ./tests
 COPY apps/web ./apps/web
 COPY apps/api ./apps/api
 COPY packages ./packages
+COPY scripts ./scripts
 
 RUN yarn config set httpTimeout 1200000 && \ 
     npx turbo prune --scope=@calcom/web --docker && \
