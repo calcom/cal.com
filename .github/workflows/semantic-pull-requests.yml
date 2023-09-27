@@ -44,4 +44,5 @@ jobs:
         with:
           header: pr-title-lint-error
           message: |
-            Thank you for following the naming conventions! 🙏
+            Thank you for following the naming conventions! 🙏 Feel free to join our [discord](https://go.cal.com/discord) and post your PR link to [collect XP and win prizes!](https://cal.com/blog/community-incentives)            
+
