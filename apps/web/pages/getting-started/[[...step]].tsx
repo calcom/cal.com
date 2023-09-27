@@ -16,7 +16,7 @@ import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
-import { onButtonClick } from "@components/getting-started/components/ButtonLogic";
+import { OnNextStepLogic } from "@components/getting-started/components/ButtonLogic";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
@@ -144,16 +144,16 @@ const OnboardingPage = () => {
                 {currentStep === "user-settings" && (
                   <UserSettings
                     nextStep={() => goToIndex(1)}
-                    onButtonClick={onButtonClick}
+                    OnNextStepLogic={OnNextStepLogic}
                     hideUsername={from === "signup"}
                   />
                 )}
                 {currentStep === "connected-calendar" && (
-                  <ConnectedCalendars nextStep={() => goToIndex(2)} onButtonClick={onButtonClick} />
+                  <ConnectedCalendars nextStep={() => goToIndex(2)} OnNextStepLogic={OnNextStepLogic} />
                 )}
 
                 {currentStep === "connected-video" && (
-                  <ConnectedVideoStep nextStep={() => goToIndex(3)} onButtonClick={onButtonClick} />
+                  <ConnectedVideoStep nextStep={() => goToIndex(3)} OnNextStepLogic={OnNextStepLogic} />
                 )}
 
                 {currentStep === "setup-availability" && (

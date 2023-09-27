@@ -5,18 +5,18 @@ import { List } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
-import type { onButtonClick } from "../components/ButtonLogic";
+import type { OnNextStepLogic } from "../components/ButtonLogic";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
 import { CreateEventsOnCalendarSelect } from "../components/CreateEventsOnCalendarSelect";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface IConnectCalendarsProps {
   nextStep: () => void;
-  onButtonClick: typeof onButtonClick;
+  OnNextStepLogic: typeof OnNextStepLogic;
 }
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
-  const { nextStep, onButtonClick } = props;
+  const { nextStep, OnNextStepLogic } = props;
   const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery({ onboarding: true });
   const { t } = useLocale();
   const queryIntegrations = trpc.viewer.integrations.useQuery({
@@ -28,6 +28,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(
     (item) => item.calendars && item.calendars?.length > 0
   );
+  const { isButtonDisabled, handleClick } = OnNextStepLogic();
   const disabledNextButton = firstCalendar === undefined;
   const destinationCalendar = queryConnectedCalendars.data?.destinationCalendar;
   return (
@@ -87,8 +88,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
           "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
-        onClick={() => onButtonClick(nextStep, () => true)}
-        disabled={disabledNextButton}>
+        onClick={() => handleClick(nextStep)}
+        disabled={disabledNextButton || isButtonDisabled}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>

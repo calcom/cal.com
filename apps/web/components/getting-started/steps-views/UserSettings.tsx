@@ -12,13 +12,13 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
-import type { onButtonClick } from "@components/getting-started/components/ButtonLogic";
+import type { OnNextStepLogic } from "@components/getting-started/components/ButtonLogic";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
-  onButtonClick: typeof onButtonClick;
+  OnNextStepLogic: typeof OnNextStepLogic;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {

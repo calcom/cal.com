@@ -5,16 +5,16 @@ import { List } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
-import type { onButtonClick } from "../components/ButtonLogic";
+import type { OnNextStepLogic } from "../components/ButtonLogic";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface ConnectedAppStepProps {
   nextStep: () => void;
-  onButtonClick: typeof onButtonClick;
+  OnNextStepLogic: typeof OnNextStepLogic;
 }
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep, onButtonClick } = props;
+  const { nextStep, OnNextStepLogic } = props;
   const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -25,6 +25,8 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
+
+  const { isButtonDisabled, handleClick } = OnNextStepLogic();
 
   return (
     <>
@@ -58,8 +60,8 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
           "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
-        disabled={!hasAnyInstalledVideoApps}
-        onClick={() => onButtonClick(nextStep, () => true)}>
+        disabled={!hasAnyInstalledVideoApps || isButtonDisabled}
+        onClick={() => handleClick(nextStep)}>
         {t("next_step_text")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
