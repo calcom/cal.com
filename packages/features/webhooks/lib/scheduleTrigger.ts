@@ -163,7 +163,7 @@ export async function deleteSubscription({
 }
 
 export async function listBookings(
-  appApiKey: ApiKey,
+  appApiKey?: ApiKey,
   account?: {
     id: number;
     name: string | null;
