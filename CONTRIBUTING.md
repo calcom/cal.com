@@ -92,7 +92,20 @@ To develop locally:
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
-6. Start developing and watch for code changes:
+6. Setup Node
+   If your Node version does not meet project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows to use Node at the version required by the project:
+   ```sh
+   nvm use
+   ```
+   
+   You first might need to install the specific version and then use it:
+   ```sh
+   nvm install && nvm use
+   ```
+
+   You can install nvm from [here](https://github.com/nvm-sh/nvm).
+
+7. Start developing and watch for code changes:
 
    ```sh
    yarn dev
