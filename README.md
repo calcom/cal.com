@@ -259,6 +259,15 @@ yarn test-e2e
 yarn playwright show-report test-results/reports/playwright-html-report
 ```
 
+#### Resolving issues
+##### E2E test browsers not installed
+
+Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
+
+```
+Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
+```
+
 ### Upgrading from earlier versions
 
 1. Pull the current version:
