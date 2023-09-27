@@ -15,12 +15,10 @@ const appCredentialWebhookRequestBodySchema = z.object({
 });
 /** */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Check that credential sharing is enabled
   if (!APP_CREDENTIAL_SHARING_ENABLED) {
     return res.status(403).json({ message: "Credential sharing is not enabled" });
   }
 
-  // Check that the webhook secret matches
   if (
     req.headers[process.env.CALCOM_WEBHOOK_HEADER_NAME || "calcom-webhook-secret"] !==
     process.env.CALCOM_WEBHOOK_SECRET
@@ -30,7 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const reqBody = appCredentialWebhookRequestBodySchema.parse(req.body);
 
-  // Check that the user exists
   const user = await prisma.user.findUnique({ where: { id: reqBody.userId } });
 
   if (!user) {
@@ -39,26 +36,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const app = await prisma.app.findUnique({
     where: { slug: reqBody.appSlug },
-    select: { slug: true },
+    select: { dirName: true },
   });
 
   if (!app) {
     return res.status(404).json({ message: "App not found" });
   }
 
-  //   Search for the app's slug and type
-  const appMetadata = appStoreMetadata[app.slug as keyof typeof appStoreMetadata];
+  const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
 
   if (!appMetadata) {
     return res.status(404).json({ message: "App not found. Ensure that you have the correct app slug" });
   }
 
-  // Decrypt the keys
   const keys = JSON.parse(
     symmetricDecrypt(reqBody.keys, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
   );
 
-  // Can't use prisma upsert as we don't know the id of the credential
+  // INFO: Can't use prisma upsert as we don't know the id of the credential
   const appCredential = await prisma.credential.findFirst({
     where: {
       userId: reqBody.userId,

@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Ja, löschen",
   "delete_account": "Account löschen",
   "confirm_delete_account": "Ja, Account löschen",
-  "delete_account_confirmation_message": "Sind Sie sicher, dass Sie Ihr {{appName}}-Konto löschen möchten? Sie können dann nicht mehr über Ihre geteilten Links gebucht werden und alle Einstellungen werden gelöscht.",
+  "delete_account_confirmation_message": "Sie können dann nicht mehr über Ihre geteilten Links gebucht werden und alle Einstellungen werden gelöscht.",
   "integrations": "Integrationen",
   "apps": "Apps",
   "apps_description": "Hier finden Sie eine Liste Ihrer Apps",

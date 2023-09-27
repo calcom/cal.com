@@ -176,6 +176,38 @@ test.describe("Teams", () => {
       await prisma.team.delete({ where: { id: team?.id } });
     });
   });
+  test("Can create a private team", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+
+    await owner.apiLogin();
+    const { team } = await owner.getTeam();
+
+    // Mark team as private
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.click("[data-testid=make-team-private-check]");
+    await expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible();
+
+    // Go to Team's page
+    await page.goto(`/team/${team.slug}`);
+    await expect(page.locator('[data-testid="book-a-team-member-btn"]')).toBeHidden();
+
+    // Go to members page
+    await page.goto(`/team/${team.slug}?members=1`);
+    await expect(page.locator('[data-testid="you-cannot-see-team-members"]')).toBeVisible();
+    await expect(page.locator('[data-testid="team-members-container"]')).toBeHidden();
+  });
 
   todo("Create a Round Robin with different leastRecentlyBooked hosts");
   todo("Reschedule a Collective EventType booking");
