@@ -99,6 +99,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
 
     const client = new Client(authClient);
     const accountInfo = await client.accountInformation({});
+    // TODO: add a way to delete the endpoint when the app is uninstalled
     const webhookEndpoint = await client.createWebhookEndpoint({
       filter_types: ["invoice.incoming.settled"],
       url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/alby/webhook`,

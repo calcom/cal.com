@@ -123,7 +123,8 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
 type PaymentCheckerProps = PaymentPageProps;
 
 function PaymentChecker(props: PaymentCheckerProps) {
-  // FIXME: booking success is copied from packages/features/ee/payments/components/Payment.tsx
+  // TODO: move booking success code to a common lib function
+  // TODO: subscribe rather than polling
   const searchParams = useSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const utils = trpc.useContext();
@@ -138,7 +139,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
           bookingUid: props.booking.uid,
         });
 
-        if (bookingsResult.paid) {
+        if (bookingsResult.booking.paid) {
           showToast("Payment successful", "success");
 
           const params: {

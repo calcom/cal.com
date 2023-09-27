@@ -15,6 +15,7 @@ export default function parseInvoice(
     return wh.verify(body, headers) as Invoice;
   } catch (err) {
     // Looks like alby might sent multiple webhooks for the same invoice but it should only work once
+    // TODO: remove the Alby webhook when uninstalling the Alby app
     console.error(err);
   }
   return null;
