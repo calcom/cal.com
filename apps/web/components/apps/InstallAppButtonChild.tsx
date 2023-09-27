@@ -76,6 +76,7 @@ export const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
+          className="w-[45vh]"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>
