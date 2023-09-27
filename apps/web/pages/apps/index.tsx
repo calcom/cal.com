@@ -3,14 +3,13 @@ import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/MainLayout";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
   AllApps,
+  Button,
   AppStoreCategories,
   HorizontalTabs,
   TextField,
@@ -55,11 +54,30 @@ function AppsSearch({
   );
 }
 
-export default function Apps({ userId }: inferSSRProps<typeof getServerSideProps>) {
+export default function Apps() {
   const { t } = useLocale();
+
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
-  const { data } = trpc.viewer.appsRouter.getAppData.useQuery({ userId: userId });
+  // const { data } = trpc.viewer.appsRouter.getAppData.useQuery();
+
+  const query = trpc.viewer.appsRouter.getAppData.useInfiniteQuery(
+    {
+      limit: 10, // or any default page size
+    },
+    {
+      enabled: true,
+      // getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage, allPages) => {
+        const nextPageNumber = allPages.length + 1;
+        return { skip: nextPageNumber * 10, take: 10 };
+      },
+    }
+  );
+
+  console.log(query.data?.pages.flatMap((page) => page.appStore));
+
+  const data = query.data?.pages[0];
 
   return (
     <AppsLayout
@@ -92,6 +110,13 @@ export default function Apps({ userId }: inferSSRProps<typeof getServerSideProps
           categories={data?.categories.map((category) => category.name) ?? []}
           userAdminTeams={data?.userAdminTeams}
         />
+        <Button
+          color="minimal"
+          loading={query.isFetchingNextPage}
+          disabled={!query.hasNextPage}
+          onClick={() => query.fetchNextPage()}>
+          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
       </div>
     </AppsLayout>
   );
@@ -101,48 +126,12 @@ Apps.PageWrapper = PageWrapper;
 Apps.getLayout = getLayout;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
   const ssr = await ssrInit(context);
 
-  const session = await getServerSession({ req, res });
-
-  await ssr.viewer.appsRouter.getAppData.prefetch({ userId: session?.user?.id });
-
-  // ssr.viewer.appsRouter.
-  //  prefetchQuery(['getAppData', { userId: session?.user?.id || null, getUserInfo: true }]);
-
-  // let appStore, userAdminTeams: UserAdminTeams;
-  // if (session?.user?.id) {
-  //   userAdminTeams = await getUserAdminTeams({ userId: session.user.id, getUserInfo: true });
-  //   appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeams);
-  // } else {
-  //   appStore = await getAppRegistry();
-  //   userAdminTeams = [];
-  // }
-
-  // const categoryQuery = appStore.map(({ categories }) => ({
-  //   categories: categories || [],
-  // }));
-  // const categories = categoryQuery.reduce((c, app) => {
-  //   for (const category of app.categories) {
-  //     c[category] = c[category] ? c[category] + 1 : 1;
-  //   }
-  //   return c;
-  // }, {} as Record<string, number>);
+  // await ssr.viewer.appsRouter.getAppData.prefetch();
 
   return {
     props: {
-      // categories: Object.entries(categories)
-      //   .map(([name, count]): { name: AppCategories; count: number } => ({
-      //     name: name as AppCategories,
-      //     count,
-      //   }))
-      //   .sort(function (a, b) {
-      //     return b.count - a.count;
-      //   }),
-      // appStore,
-      // userAdminTeams,
-      userId: session?.user?.id,
       trpcState: ssr.dehydrate(),
     },
   };
