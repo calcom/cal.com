@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Meta, Form, Button, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
@@ -17,6 +18,7 @@ export default function OAuthView() {
   const [clientSecret, setClientSecret] = useState("");
   const [clientId, setClientId] = useState("");
   const [logo, setLogo] = useState("");
+  const { t } = useLocale();
 
   const mutation = trpc.viewer.oAuth.addClient.useMutation({
     onSuccess: async (data) => {
@@ -81,7 +83,7 @@ export default function OAuthView() {
             </div>
           </div>
           <Button type="submit" className="mt-3">
-            Add Client
+            {t("add_client")}
           </Button>
         </Form>
       ) : (
@@ -102,7 +104,7 @@ export default function OAuthView() {
                 type="button"
                 className="rounded-l-none text-base"
                 StartIcon={Clipboard}>
-                Copy
+                {t("copy")}
               </Button>
             </Tooltip>
           </div>
@@ -124,13 +126,11 @@ export default function OAuthView() {
                     type="button"
                     className="rounded-l-none text-base"
                     StartIcon={Clipboard}>
-                    Copy
+                    {t("copy")}
                   </Button>
                 </Tooltip>
               </div>
-              <div className="text-subtle text-sm">
-                After copying the secret you won&apos;t be able to view it anymore
-              </div>
+              <div className="text-subtle text-sm">{t("copy_client_secret_info")}</div>
             </>
           ) : (
             <></>
@@ -142,7 +142,7 @@ export default function OAuthView() {
               oAuthForm.reset();
             }}
             className="mt-5">
-            Add new Client
+            {t("add_new_client")}
           </Button>
         </div>
       )}
