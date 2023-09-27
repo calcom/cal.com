@@ -6,7 +6,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and multiselect Question", () => {
-  const bookingOptions = { hasPlaceholder: false, isRequired: true, isSelect: true };
+  const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Phone and multiselect text required", async ({ page, users }) => {
     await initialCommonSteps(
       page,

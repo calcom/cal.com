@@ -6,11 +6,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and checkbox Question", () => {
-  const bookingOptions = {
-    hasPlaceholder: false,
-    isRequired: true,
-    isBoolean: true,
-  };
+  const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Phone and checkbox required", async ({ page, users }) => {
     await initialCommonSteps(
       page,

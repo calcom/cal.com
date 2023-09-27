@@ -6,10 +6,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Phone Question and Short text question", () => {
-  const bookingOptions = {
-    hasPlaceholder: true,
-    isRequired: true,
-  };
+  const bookingOptions = { hasPlaceholder: true, isRequired: true };
   test("Phone and Short text required", async ({ page, users }) => {
     await initialCommonSteps(
       page,

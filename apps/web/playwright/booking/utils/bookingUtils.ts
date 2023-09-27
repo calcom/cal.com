@@ -24,22 +24,17 @@ export const loginUser = async (page: Page, users: Fixtures["users"]) => {
   await page.goto("/event-types");
 };
 
-const fillQuestion = async (
-  eventTypePage: Page,
-  questionType: string,
-  questionText: string,
-  options: BookingOptions
-) => {
+const fillQuestion = async (eventTypePage: Page, questionType: string, options: BookingOptions) => {
   const questionActions: QuestionActions = {
     phone: async () => {
-      await eventTypePage.getByPlaceholder(`${questionText} test`).clear();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill(PHONE);
+      await eventTypePage.getByPlaceholder(`${questionType} test`).clear();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill(PHONE);
     },
     multiemail: async () => {
-      await eventTypePage.getByRole("button", { name: `${questionText} test` }).click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill(EMAIL);
+      await eventTypePage.getByRole("button", { name: `${questionType} test` }).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill(EMAIL);
       await eventTypePage.getByTestId("add-another-guest").last().click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).last().fill(EMAIL2);
+      await eventTypePage.getByPlaceholder(`${questionType} test`).last().fill(EMAIL2);
     },
     checkbox: async () => {
       await eventTypePage.getByLabel("Option 1").click();
@@ -50,7 +45,7 @@ const fillQuestion = async (
       await eventTypePage.getByTestId("select-option-Option 1").click();
     },
     boolean: async () => {
-      await eventTypePage.getByLabel(`${questionText} test`).check();
+      await eventTypePage.getByLabel(`${questionType} test`).check();
     },
     radio: async () => {
       await eventTypePage.locator('[id="radio-test\\.option\\.0\\.radio"]').click();
@@ -60,27 +55,25 @@ const fillQuestion = async (
       await eventTypePage.getByTestId("select-option-Option 1").click();
     },
     number: async () => {
-      await eventTypePage.getByPlaceholder(`${questionText} test`).click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill("123");
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("123");
     },
     address: async () => {
-      await eventTypePage.getByPlaceholder(`${questionText} test`).click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill("address test");
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("address test");
     },
     textarea: async () => {
-      await eventTypePage.getByPlaceholder(`${questionText} test`).click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill("textarea test");
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("textarea test");
     },
     text: async () => {
-      await eventTypePage.getByPlaceholder(`${questionText} test`).click();
-      await eventTypePage.getByPlaceholder(`${questionText} test`).fill("text test");
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("text test");
     },
   };
 
-  if (options.isRequired || questionType !== "secondQuestion") {
-    if (questionActions[questionType]) {
-      await questionActions[questionType]();
-    }
+  if (questionActions[questionType]) {
+    await questionActions[questionType]();
   }
 };
 
@@ -98,10 +91,10 @@ export const fillAndConfirmBooking = async (
   await eventTypePage.getByPlaceholder(placeholderText).fill(fillText);
 
   // Fill the first question
-  await fillQuestion(eventTypePage, question, question, options);
+  await fillQuestion(eventTypePage, question, options);
 
-  // Fill the second question
-  await fillQuestion(eventTypePage, secondQuestion, secondQuestion, options);
+  // Fill the second question if is required
+  options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, options));
 
   await eventTypePage.getByTestId(confirmButton).click();
   const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
