@@ -8,7 +8,7 @@ import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/paymen
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 import { ClipboardCheck, Clipboard } from "@calcom/ui/components/icon";
@@ -135,11 +135,11 @@ function PaymentChecker(props: PaymentCheckerProps) {
         if (props.booking.status === "ACCEPTED") {
           return;
         }
-        const bookingsResult = await utils.viewer.bookings.find.fetch({
+        const { booking: bookingResult } = await utils.viewer.bookings.find.fetch({
           bookingUid: props.booking.uid,
         });
 
-        if (bookingsResult.booking.paid) {
+        if (bookingResult.paid) {
           showToast("Payment successful", "success");
 
           const params: {
