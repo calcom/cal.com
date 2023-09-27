@@ -97,6 +97,7 @@ export const fillAndConfirmBooking = async (
       break;
   }
 
+  // Fill the second question
   if (isRequired) {
     if (secondQuestion === "phone") {
       await eventTypePage.getByPlaceholder(`${secondQuestion} test`).clear();
