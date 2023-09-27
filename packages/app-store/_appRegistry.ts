@@ -31,10 +31,12 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 }
 
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
-export async function getAppRegistry() {
+export async function getAppRegistry(input: { limit?: number; cursor?: number }) {
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
     select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true },
+    take: input.limit ?? 10,
+    skip: input.cursor ?? 0,
   });
   const apps = [] as App[];
   const installCountPerApp = await getInstallCountPerApp();
@@ -56,7 +58,13 @@ export async function getAppRegistry() {
   return apps;
 }
 
-export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
+export async function getAppRegistryWithCredentials(
+  userId: number,
+  userAdminTeams: UserAdminTeams = [],
+  input: { limit?: number; cursor?: number }
+) {
+  const take = input.limit ?? 10;
+  const skip = input.cursor ?? 0;
   // Get teamIds to grab existing credentials
   const teamIds = [];
   for (const team of userAdminTeams) {
@@ -74,12 +82,15 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
         select: safeCredentialSelect,
       },
     },
+    skip: skip || 0,
+    take: take || 10,
     orderBy: {
       credentials: {
         _count: "desc",
       },
     },
   });
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,

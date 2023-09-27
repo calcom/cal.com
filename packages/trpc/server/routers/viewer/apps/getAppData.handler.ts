@@ -13,13 +13,13 @@ type getAppData = {
   input: GetAppDataSchemaType;
 };
 
-export async function getAppDataHandler({ input }: getAppData) {
+export async function getAppDataHandler({ ctx, input }: getAppData) {
   let appStore, userAdminTeams: UserAdminTeams;
-  if (input.userId) {
-    userAdminTeams = await getUserAdminTeams({ userId: input.userId, getUserInfo: true });
-    appStore = await getAppRegistryWithCredentials(input.userId, userAdminTeams);
+  if (ctx.user.id) {
+    userAdminTeams = await getUserAdminTeams({ userId: ctx.user.id, getUserInfo: true });
+    appStore = await getAppRegistryWithCredentials(ctx.user.id, userAdminTeams, input);
   } else {
-    appStore = await getAppRegistry();
+    appStore = await getAppRegistry(input);
     userAdminTeams = [];
   }
 
