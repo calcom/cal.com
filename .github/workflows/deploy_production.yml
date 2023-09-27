@@ -9,6 +9,7 @@ on:
 jobs:
   deploy_calcom:
     timeout-minutes: 30
+    command_timeout: 20m
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
