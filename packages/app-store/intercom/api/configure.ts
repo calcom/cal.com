@@ -86,6 +86,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user && !team) return res.status(200).json(defaultCanvasData);
 
   const list: ListItem[] = eventTypes.map((eventType) => {
+    if (!eventType || !eventType.slug || !user.username || (team && !team.slug)) return null;
+
+    let slug = user.username;
+    if (team && team.slug) {
+      slug = `team/${team.slug}`;
+    }
+    
     return {
       id: `${CAL_URL}/${team ? `team/${team.slug}` : user.username}/${eventType.slug}`,
       type: "item",
@@ -97,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: "submit",
       },
     };
-  });
+  }).filter(item => item !== null); // Remove null items
 
   const components: ListComponent = {
     type: "list",
