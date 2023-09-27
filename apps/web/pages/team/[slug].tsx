@@ -14,6 +14,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -271,7 +272,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({
-    slug,
+    slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
