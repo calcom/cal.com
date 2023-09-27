@@ -10,7 +10,6 @@ import { Avatar } from "@calcom/ui";
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
 type MemberType = Pick<MembersType[number], "id" | "name" | "bio" | "username"> & { safeBio: string | null };
-type TeamTypeWithSafeHtml = Omit<TeamType, "members" | "inviteToken"> & { members: MemberType[] };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const routerQuery = useRouterQuery();
@@ -50,7 +49,9 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   }
 
   return (
-    <section className="lg:min-w-lg mx-auto flex min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
+    <section
+      data-testid="team-members-container"
+      className="lg:min-w-lg mx-auto flex min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}
@@ -58,10 +59,10 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   );
 };
 
-const Team = ({ team }: { team: TeamTypeWithSafeHtml }) => {
+const Team = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   return (
     <div>
-      <Members members={team.members} teamName={team.name} />
+      <Members members={members} teamName={teamName} />
     </div>
   );
 };

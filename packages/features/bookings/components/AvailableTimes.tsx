@@ -1,22 +1,16 @@
 import { CalendarX2 } from "lucide-react";
-import { shallow } from "zustand/shallow";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { nameOfDay } from "@calcom/lib/weekday";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
 import { useTimePreferences } from "../lib";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
-import { TimeFormatToggle } from "./TimeFormatToggle";
 
 type AvailableTimesProps = {
-  date: Dayjs;
   slots: Slots[string];
   onTimeSelect: (
     time: string,
@@ -28,58 +22,25 @@ type AvailableTimesProps = {
   showAvailableSeatsCount?: boolean | null;
   showTimeFormatToggle?: boolean;
   className?: string;
-  availableMonth?: string | undefined;
   selectedSlots?: string[];
 };
 
 export const AvailableTimes = ({
-  date,
   slots,
   onTimeSelect,
   seatsPerTimeSlot,
   showAvailableSeatsCount,
   showTimeFormatToggle = true,
   className,
-  availableMonth,
   selectedSlots,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookingData = useBookerStore((state) => state.bookingData);
   const hasTimeSlots = !!seatsPerTimeSlot;
-  const [layout] = useBookerStore((state) => [state.layout], shallow);
-  const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
-  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
-  const isToday = dayjs().isSame(date, "day");
 
   return (
     <div className={classNames("text-default flex flex-col", className)}>
-      <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
-        <span
-          className={classNames(
-            isColumnView && "w-full text-center",
-            isColumnView ? "text-subtle text-xs uppercase" : "text-emphasis font-semibold"
-          )}>
-          <span className={classNames(isToday && "!text-default")}>
-            {nameOfDay(i18n.language, Number(date.format("d")), "short")}
-          </span>
-          <span
-            className={classNames(
-              isColumnView && isToday && "bg-brand-default text-brand ml-2",
-              "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
-              isMonthView ? "text-default text-sm" : "text-xs"
-            )}>
-            {date.format("DD")}
-            {availableMonth && `, ${availableMonth}`}
-          </span>
-        </span>
-
-        {showTimeFormatToggle && (
-          <div className="ml-auto rtl:mr-auto">
-            <TimeFormatToggle />
-          </div>
-        )}
-      </header>
       <div className="h-full pb-4">
         {!slots.length && (
           <div className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">

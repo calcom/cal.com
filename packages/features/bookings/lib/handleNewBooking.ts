@@ -35,11 +35,11 @@ import {
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import {
   cancelWorkflowReminders,
   scheduleWorkflowReminders,
@@ -260,7 +260,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
-          metadata: true,
         },
       },
       bookingFields: true,
@@ -292,17 +291,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
-          metadata: true,
-          teams: {
-            select: {
-              accepted: true,
-              team: {
-                select: {
-                  metadata: true,
-                },
-              },
-            },
-          },
         },
       },
       workflows: {
@@ -379,7 +367,7 @@ async function ensureAvailableUsers(
   }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, 'minute');
+  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
 
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -745,6 +733,7 @@ async function handler(
         const users = await prisma.user.findMany({
           where: {
             username: { in: dynamicUserList },
+            organization: userOrgQuery(req.headers.host ? req.headers.host.replace(/^https?:\/\//, "") : ""),
           },
           select: {
             ...userSelect.select,
@@ -1198,8 +1187,6 @@ async function handler(
   };
 
   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
-  const isKYCVerified = isEventTypeOwnerKYCVerified(eventType);
 
   const handleSeats = async () => {
     let resultBooking:
@@ -1769,7 +1756,7 @@ async function handler(
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        isKYCVerified,
+        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
@@ -2416,7 +2403,7 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      isKYCVerified,
+      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
