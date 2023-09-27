@@ -15,7 +15,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { joinOrganization, joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
 
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
@@ -124,21 +124,29 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         },
       });
 
-      if (teamMetadata?.isOrganization) {
-        await joinOrganization({
-          organizationId: team.id,
-          userId: user.id,
-        });
-      }
+      const membership = await prisma.$transaction(async (tx) => {
+        if (teamMetadata?.isOrganization) {
+          await tx.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              organizationId: team.id,
+            },
+          });
+        }
 
-      const membership = await prisma.membership.update({
-        where: {
-          userId_teamId: { userId: user.id, teamId: team.id },
-        },
-        data: {
-          accepted: true,
-        },
+        const membership = await tx.membership.update({
+          where: {
+            userId_teamId: { userId: user.id, teamId: team.id },
+          },
+          data: {
+            accepted: true,
+          },
+        });
+        return membership;
       });
+
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
