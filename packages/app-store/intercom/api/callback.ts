@@ -5,9 +5,9 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 
 const log = logger.getChildLogger({ prefix: [`[[intercom/api/callback]`] });
 

@@ -86,12 +86,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user && !team) return res.status(200).json(defaultCanvasData);
 
   const list: ListItem[] = eventTypes.map((eventType) => {
-
     let slug;
     if (team && team.slug) {
       slug = `team/${team.slug}`;
-    }
-    else if (user && user.username) {
+    } else if (user && user.username) {
       slug = user.username;
     }
 
@@ -106,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: "submit",
       },
     };
-  })
+  });
 
   const components: ListComponent = {
     type: "list",
