@@ -98,7 +98,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
-    log.error("createMeeting failed", err, calEvent);
+    log.error("createMeeting failed", JSON.stringify({ err, calEvent }));
 
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
