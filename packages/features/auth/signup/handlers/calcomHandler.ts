@@ -7,6 +7,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
+import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
@@ -14,7 +15,6 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { usernameHandler, type RequestWithUsernameStatus } from "../username";
 import { joinOrganization, joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
 

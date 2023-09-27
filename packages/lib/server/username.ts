@@ -1,4 +1,3 @@
-import { Redis } from "@upstash/redis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import slugify from "@calcom/lib/slugify";
@@ -7,7 +6,7 @@ import prisma from "@calcom/prisma";
 import { IS_CALCOM } from "../constants";
 import notEmpty from "../notEmpty";
 
-const WORDLIST_PATH = process.env.PREMIUM_WORDLIST_PATH_FROM_SERVER ?? "";
+const cachedData: Set<string> = new Set();
 
 export type RequestWithUsernameStatus = NextApiRequest & {
   usernameStatus: {
@@ -34,33 +33,23 @@ type CustomNextApiHandler<T = unknown> = (
   res: NextApiResponse<T>
 ) => void | Promise<void>;
 
-async function fetchWordlist() {
-  const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!WORDLIST_PATH || !UPSATCH_ENV_FOUND || !IS_CALCOM) {
-    return {};
+export async function isBlacklisted(username: string) {
+  // NodeJS forEach is very, very fast (these days) so even though we only have to construct the Set
+  // once every few iterations, it doesn't add much overhead.
+  if (!cachedData.size && process.env.USERNAME_BLACKLIST_URL) {
+    await fetch(process.env.USERNAME_BLACKLIST_URL).then(async (resp) =>
+      (await resp.text()).split("\n").forEach(cachedData.add, cachedData)
+    );
   }
-  const redis = Redis.fromEnv();
-
-  const cachedData = await redis.get("premium-username-word-list");
-
-  if (cachedData) {
-    return JSON.parse(cachedData as string);
-  } else {
-    const response = await fetch(WORDLIST_PATH);
-    const data = await response.json();
-    await redis.set("premium-username-word-list", JSON.stringify(data), {
-      ex: 60 * 60 * 24 * 7,
-    });
-
-    return data;
-  }
+  return cachedData.has(username);
 }
 
-export const isPremiumUserName = async (username: string) => {
-  const wordlist = await fetchWordlist();
-  return username.length <= 4 || Object.prototype.hasOwnProperty.call(wordlist, username);
-};
+export const isPremiumUserName = IS_CALCOM
+  ? async (username: string) => {
+      return username.length <= 4 || isBlacklisted(username);
+    }
+  : // outside of cal.com the concept of premium username needs not exist.
+    () => Promise.resolve(false);
 
 export const generateUsernameSuggestion = async (users: string[], username: string) => {
   const limit = username.length < 2 ? 9999 : 999;
@@ -71,50 +60,49 @@ export const generateUsernameSuggestion = async (users: string[], username: stri
   return username + String(rand).padStart(4 - rand.toString().length, "0");
 };
 
+const processResult = (
+  result: "ok" | "username_exists" | "is_premium"
+): // explicitly assign return value to ensure statusCode is typehinted
+{ statusCode: RequestWithUsernameStatus["usernameStatus"]["statusCode"]; message: string } => {
+  // using a switch statement instead of multiple ifs to make sure typescript knows
+  // there is only limited options
+  switch (result) {
+    case "ok":
+      return {
+        statusCode: 200,
+        message: "Username is available",
+      };
+    case "username_exists":
+      return {
+        statusCode: 418,
+        message: "A user exists with that username",
+      };
+    case "is_premium":
+      return { statusCode: 402, message: "This is a premium username." };
+  }
+};
+
 const usernameHandler =
   (handler: CustomNextApiHandler) =>
   async (req: RequestWithUsernameStatus, res: NextApiResponse): Promise<void> => {
     const username = slugify(req.body.username);
-    // If we're not in Calcom, we don't need to check for premium usernames
-    if (!IS_CALCOM) {
-      req.usernameStatus = {
-        statusCode: 200,
-        requestedUserName: username,
-        json: {
-          available: true,
-          premium: false,
-          message: "Username is available",
-        },
-      };
-      return handler(req, res);
-    }
-
     const check = await usernameCheck(username);
 
+    let result: Parameters<typeof processResult>[0] = "ok";
+    if (check.premium) result = "is_premium";
+    if (!check.available) result = "username_exists";
+
+    const { statusCode, message } = processResult(result);
     req.usernameStatus = {
-      statusCode: 200,
+      statusCode,
       requestedUserName: username,
       json: {
-        available: true,
-        premium: false,
-        message: "Username is available",
+        available: result !== "username_exists",
+        premium: result === "is_premium",
+        message,
+        suggestion: check.suggestedUsername,
       },
     };
-
-    if (check.premium) {
-      req.usernameStatus.statusCode = 402;
-      req.usernameStatus.json.premium = true;
-      req.usernameStatus.json.message = "This is a premium username.";
-    }
-
-    if (!check.available) {
-      req.usernameStatus.statusCode = 418;
-      req.usernameStatus.json.available = false;
-      req.usernameStatus.json.message = "A user exists with that username";
-    }
-
-    req.usernameStatus.json.suggestion = check.suggestedUsername;
-
     return handler(req, res);
   };
 
