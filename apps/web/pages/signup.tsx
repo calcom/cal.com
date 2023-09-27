@@ -386,7 +386,13 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div className="bg-subtle border-subtle hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex">
-          <img src="/mock-event-type-list.svg" alt="#" className="" />
+          <div
+            className="rounded-2xl border-y border-l border-dashed border-[#D1D5DB5A] py-[6px] pl-[6px]"
+            style={{
+              backgroundColor: "rgba(236,237,239,0.9)",
+            }}>
+            <img src="/mock-event-type-list.svg" alt="#" className="" />
+          </div>
           <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
             {FEATURES.map((feature) => (
               <>
