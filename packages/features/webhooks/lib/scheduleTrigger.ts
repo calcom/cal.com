@@ -257,7 +257,10 @@ export async function listBookings(
 
     return updatedBookings;
   } catch (err) {
-    log.error(`Error retrieving list of bookings for user ${appApiKey.userId} and appId ${appApiKey.appId}.`);
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
+    log.error(`Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
   }
 }
 
