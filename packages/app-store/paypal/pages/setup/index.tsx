@@ -1,3 +1,4 @@
+import { AlertCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -79,29 +80,76 @@ export default function PayPalSetup() {
               </div>
             </form>
             <div>
-              <p className="text-lgf text-default mt-5 font-bold">Setup instructions</p>
+              <p className="text-lgf text-default mt-5 font-bold">Getting started with Paypal APP</p>
+              <p className="text-default font-semi mt-2">
+                Here in Cal.com we offer Paypal as one of our payment gateway. You can use your own Paypal
+                Business account to receive payments from your customers enabling and setting up price and
+                currency for each of your event types.
+              </p>
 
-              <ol className="text-default ml-1 list-decimal pl-2">
+              <p className="text-lgf text-default mt-5 inline-flex font-bold">
+                <AlertCircleIcon className="mr-2 mt-1 h-4 w-4" /> Important requirements:
+              </p>
+              <ul className="text-default ml-1 mt-2 list-disc pl-2">
+                <li>Paypal Business account</li>
+                <li>Paypal Developer account</li>
+              </ul>
+
+              <p className="text-default mb-2 mt-5 font-bold">Resources:</p>
+              <a
+                className="text-orange-600 underline"
+                target="_blank"
+                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret">
+                Link to Paypal developer API REST Setup Guide:
+                https://developer.paypal.com/api/rest/#link-getclientidandclientsecret
+              </a>
+
+              <p className="text-lgf text-default mt-5 font-bold">Setup instructions</p>
+              <p className="text-default font-semi mt-2">
+                Remember to only proceed with the following steps if your account has already been upgraded to
+                a business account. Also keep in mind that some of the following steps might be different
+                since Paypal offers different experiences based on your country.
+              </p>
+
+              <ol className="text-default ml-1 mt-5 list-decimal pl-2">
                 {/* @TODO: translate */}
                 <li>
                   Log into your Paypal Developer account and create a new app{" "}
                   <a
                     target="_blank"
-                    href="https://developer.paypal.com/dashboard/applications/"
+                    href="https://developer.paypal.com/dashboard/applications/live"
                     className="text-orange-600 underline">
                     {t("here")}
                   </a>
                   .
                 </li>
                 <li>Choose a name for your application.</li>
-                <li>Select Online payments solution.</li>
-                <li>Choose &quot;No&quot; for &quot;Using online platform&quot;.</li>
-                <li>CheckoutAPI as integration product.</li>
-                <li>Accept terms and Create APP.</li>
-                <li>Go back to dashboard, click on new app and copy the credentials.</li>
+                <li>Click on the Create App button</li>
+
+                <li>
+                  Go back to{" "}
+                  <a
+                    className="text-orange-600 underline"
+                    href="https://developer.paypal.com/dashboard/applications/live">
+                    dashboard
+                  </a>
+                  , click on new app created.
+                </li>
+                <li>Copy the Client ID and Secret Key using copy buttons one by one.</li>
                 <li>Paste them on the required field and save them.</li>
-                <li>You&apos;re all setup.</li>
+                <li>You should be all setup after this.</li>
               </ol>
+              <p className="text-default mt-5 inline-flex font-bold">
+                <AlertCircleIcon className="mr-2 mt-1 h-4 w-4" />
+                Reminder:
+              </p>
+              <p className="text-default mt-2">
+                Our integration creates a specific webhook on your Paypal account that we use to report back
+                transactions to our system. If you delete this webhook, we will not be able to report back and
+                you should Uninstall and Install the app again for this to work again. Uninstalling the app
+                won&apos;t delete your current event type price/currency configuration but you would not be
+                able to receive bookings.
+              </p>
             </div>
           </div>
         </div>

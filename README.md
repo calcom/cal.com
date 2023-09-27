@@ -504,6 +504,9 @@ For example, `Cal.com (support@cal.com)`.
 9. Click the "Save"/ "UPDATE" button at the bottom footer.
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
+### Obtaining Zoho Calendar Client ID and Secret
+
+[Follow these steps](./packages/app-store/zohocalendar/)
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)

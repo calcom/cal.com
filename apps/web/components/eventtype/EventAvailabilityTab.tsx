@@ -1,5 +1,5 @@
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -164,9 +164,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-  const { watch } = useFormContext<FormValues>();
+  const { watch, setValue, getValues } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
-  const formMethods = useFormContext<FormValues>();
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
   const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
@@ -214,7 +213,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
       setOptions(options);
 
-      const scheduleId = formMethods.getValues("schedule");
+      const scheduleId = getValues("schedule");
       const value = options.find((option) =>
         scheduleId
           ? option.value === scheduleId
@@ -223,11 +222,16 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 
-      formMethods.setValue("availability", value);
+      setValue("availability", value);
     },
   });
 
-  const availabilityValue = formMethods.watch("availability");
+  const availabilityValue = watch("availability");
+
+  useEffect(() => {
+    if (!availabilityValue?.value) return;
+    setValue("schedule", availabilityValue.value);
+  }, [availabilityValue, setValue]);
 
   return (
     <div className="space-y-4">
@@ -248,7 +252,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
-                    if (selected?.value) formMethods.setValue("availability", selected);
+                    if (selected?.value) setValue("availability", selected);
                   }}
                   className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                   value={availabilityValue}
@@ -276,7 +280,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
 const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { resetField, setValue } = useFormContext<FormValues>();
+  const { setValue } = useFormContext<FormValues>();
   return (
     <Controller
       name="metadata.config.useHostSchedulesForTeamEvent"
@@ -285,9 +289,7 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
           checked={!value}
           onCheckedChange={(checked) => {
             onChange(!checked);
-            if (checked) {
-              resetField("schedule");
-            } else {
+            if (!checked) {
               setValue("schedule", null);
             }
           }}

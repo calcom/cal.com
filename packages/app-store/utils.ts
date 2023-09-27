@@ -1,11 +1,11 @@
 import type { AppCategories } from "@prisma/client";
-import { Prisma } from "@prisma/client";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { App, AppMeta } from "@calcom/types/App";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
@@ -30,13 +30,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   return store;
 }, {} as Record<string, AppMeta>);
 
-const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, teamId: true, appId: true, invalid: true },
-});
-
-export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
-
-export type CredentialDataWithTeamName = CredentialData & {
+export type CredentialDataWithTeamName = CredentialPayload & {
   team?: {
     name: string;
   } | null;
@@ -64,6 +58,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
+        user: { email: "" },
         teamId: null,
         appId: appMeta.slug,
         invalid: false,
