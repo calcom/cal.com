@@ -14,7 +14,7 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { TeamsFilter, useFilterQuery } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
@@ -882,6 +882,7 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useSearchParams();
   const orgBranding = useOrgBranding();
+  const { data: query } = useFilterQuery();
 
   if (!data || status === "loading") {
     return <SkeletonLoader />;
@@ -900,29 +901,41 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="mt-4 flex flex-col" key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  orgSlug={orgBranding?.slug}
-                />
-
-                {group.eventTypes.length ? (
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
+            data?.eventTypeGroups
+              .filter((teams: EventTypeGroup) => {
+                const userId = teams?.eventTypes[0]?.userId;
+                const teamId = teams?.teamId;
+                if (Object.keys(query).length === 0) {
+                  return true;
+                }
+                if (teamId == null) return userId !== null && query?.userIds?.includes(userId);
+                else {
+                  return query?.teamIds?.includes(teamId);
+                }
+              })
+              ?.map((group: EventTypeGroup, index: number) => (
+                <div className="mt-4 flex flex-col" key={group.profile.slug}>
+                  <EventTypeListHeading
+                    profile={group.profile}
+                    membershipCount={group.metadata.membershipCount}
+                    teamId={group.teamId}
+                    orgSlug={orgBranding?.slug}
                   />
-                ) : group.teamId ? (
-                  <EmptyEventTypeList group={group} />
-                ) : (
-                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
-                )}
-              </div>
-            ))
+
+                  {group.eventTypes.length ? (
+                    <EventTypeList
+                      types={group.eventTypes}
+                      group={group}
+                      groupIndex={index}
+                      readOnly={group.metadata.readOnly}
+                    />
+                  ) : group.teamId ? (
+                    <EmptyEventTypeList group={group} />
+                  ) : (
+                    <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+                  )}
+                </div>
+              ))
           )}
         </>
       ) : (

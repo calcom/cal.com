@@ -17,7 +17,7 @@ import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
 
-function useFilterQuery() {
+export function useFilterQuery() {
   // passthrough allows additional params to not be removed
   return useTypedQuery(filterQuerySchema.passthrough());
 }
