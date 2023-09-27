@@ -47,62 +47,100 @@ export const fillAndConfirmBooking = async (
   await expect(eventTypePage.getByText(`${secondQuestion} test`).first()).toBeVisible();
   await eventTypePage.getByPlaceholder(placeholderText).fill(fillText);
 
-  if (isMultiEmails) {
-    await eventTypePage.getByRole("button", { name: "Add guests" }).click();
-  } else {
-    await eventTypePage.getByTestId("add-guests").click();
-  }
-  await eventTypePage.getByPlaceholder("Email").click();
-  await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
-  await eventTypePage.getByPlaceholder(`${question} test`).click();
-  if (question === "phone") {
-    await eventTypePage.getByPlaceholder(`${question} test`).fill(PHONE);
-  } else {
-    await eventTypePage.getByPlaceholder(`${question} test`).fill(`${question} test`);
-  }
-
-  if (secondQuestion === "phone" && isRequired) {
-    await eventTypePage.getByPlaceholder(`${secondQuestion} test`).clear();
-    await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(PHONE);
-  } else {
-    // if is checkbox question and required check
-    if (isCheckbox && isRequired) {
-      await eventTypePage.getByLabel("Option 1").check();
-      await eventTypePage.getByLabel("Option 2").check();
-    }
-
-    // if is boolean question and required check
-    if (isBoolean && isRequired) {
-      await eventTypePage.getByLabel(`${secondQuestion} test`).check();
-    }
-
-    // if is multiemails question and required add two emails
-    if (isMultiEmails && isRequired) {
+  // Fill the first question
+  switch (question) {
+    case "phone":
+      await eventTypePage.getByPlaceholder(`phone test`).clear();
+      await eventTypePage.getByPlaceholder(`phone test`).fill(PHONE);
+      break;
+    case "multiemail":
       await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+      (await eventTypePage.getByPlaceholder("multiemail test").isHidden()) &&
+        (await eventTypePage.getByRole("button", { name: "multiemail test" }).click());
       await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
-      await eventTypePage.getByTestId("add-another-guest").nth(1).click();
-      await eventTypePage.getByPlaceholder("multiemail test").nth(1).fill(EMAIL2);
-    }
-
-    if (isMultiSelect && isRequired) {
+      await eventTypePage.getByTestId("add-another-guest").last().click();
+      await eventTypePage.getByPlaceholder("multiemail test").last().fill(EMAIL2);
+      break;
+    case "checkbox":
+      await eventTypePage.getByLabel("Option 1").click();
+      await eventTypePage.getByLabel("Option 2").click();
+      break;
+    case "multiselect":
       await eventTypePage.locator("form svg").last().click();
       await eventTypePage.getByTestId("select-option-Option 1").click();
-    }
-
-    // if is select or multiselect question and required click in all options, for select just the last option will be checked
-    if (isSelect && isRequired) {
+      break;
+    case "boolean":
+      await eventTypePage.getByLabel("boolean test").check();
+      break;
+    case "radio":
+      await eventTypePage.getByLabel("radio test").check();
+      break;
+    case "select":
       await eventTypePage.locator("form svg").last().click();
       await eventTypePage.getByTestId("select-option-Option 1").click();
-    }
+      break;
+    case "number":
+      await eventTypePage.getByPlaceholder(`number test`).click();
+      await eventTypePage.getByPlaceholder(`number test`).fill("123");
+      break;
+    case "address":
+      await eventTypePage.getByPlaceholder(`address test`).click();
+      await eventTypePage.getByPlaceholder(`address test`).fill("address test");
+      break;
+    case "textarea":
+      await eventTypePage.getByPlaceholder(`textarea test`).click();
+      await eventTypePage.getByPlaceholder(`textarea test`).fill("textarea test");
+      break;
+    case "text":
+      await eventTypePage.getByPlaceholder(`text test`).click();
+      await eventTypePage.getByPlaceholder(`text test`).fill("text test");
+      break;
+  }
 
-    // if the question has placeholder fill, if is number fill as number
-    if (isRequired && hasPlaceholder && !isMultiEmails) {
-      if (secondQuestion === "number") {
-        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
-        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill("123");
-      } else {
-        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
-        await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(secondQuestion);
+  if (isRequired) {
+    if (secondQuestion === "phone") {
+      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).clear();
+      await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(PHONE);
+    } else {
+      // if is checkbox question and required check
+      if (isCheckbox) {
+        await eventTypePage.getByLabel("Option 1").check();
+        await eventTypePage.getByLabel("Option 2").check();
+      }
+
+      // if is boolean question and required check
+      if (isBoolean) {
+        await eventTypePage.getByLabel(`${secondQuestion} test`).check();
+      }
+
+      // if is multiemails question and required add two emails
+      if (isMultiEmails) {
+        await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+        await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+        await eventTypePage.getByTestId("add-another-guest").last().click();
+        await eventTypePage.getByPlaceholder("multiemail test").nth(1).fill(EMAIL2);
+      }
+
+      if (isMultiSelect) {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
+
+      // if is select or multiselect question and required click in all options, for select just the last option will be checked
+      if (isSelect) {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
+
+      // if the question has placeholder fill, if is number fill as number
+      if (hasPlaceholder && !isMultiEmails) {
+        if (secondQuestion === "number") {
+          await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
+          await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill("123");
+        } else {
+          await eventTypePage.getByPlaceholder(`${secondQuestion} test`).click();
+          await eventTypePage.getByPlaceholder(`${secondQuestion} test`).fill(secondQuestion);
+        }
       }
     }
   }
@@ -126,6 +164,7 @@ export const initialCommonSteps = async (
 
   // Go to event type settings
   await bookingPage.getByRole("link", { name: "30 min" }).click();
+
   // Go to advanced tab
   await bookingPage.getByTestId("vertical-tab-event_advanced_tab_title").click();
 
