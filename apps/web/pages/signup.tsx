@@ -415,6 +415,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   );
 }
 
+const querySchema = z.object({
+  username: z
+    .string()
+    .optional()
+    .transform((val) => val || ""),
+  email: z.string().email().optional(),
+});
+
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
@@ -428,6 +436,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
+  // username + email prepopulated from query params
+  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
+
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
     return {
       notFound: true,
@@ -437,7 +448,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props: JSON.parse(JSON.stringify(props)),
+      props: {
+        ...props,
+        prepopulateFormValues: {
+          username: preFillusername || null,
+          email: prefilEmail || null,
+        },
+      },
     };
   }
 

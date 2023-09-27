@@ -145,6 +145,17 @@ test.describe("Signup Flow Test", async () => {
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
   });
+  test("Signup fields prefilled with query params", async ({ page, users }) => {
+    const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
+    await page.goto(signupUrlWithParams);
+
+    // Fill form
+    const usernameInput = await page.locator('input[name="username"]');
+    const emailInput = await page.locator('input[name="email"]');
+
+    expect(await usernameInput.inputValue()).toBe("rick-jones");
+    expect(await emailInput.inputValue()).toBe("rick-jones@example.com");
+  });
   test("Signup with token prefils correct fields", async ({ page, users, prisma }) => {
     //Create a user and create a token
     const token = randomBytes(32).toString("hex");
