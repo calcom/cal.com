@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   seatsPerTimeSlot: true,
+  seatsShowAvailabilityCount: true,
   bookingFields: true,
   team: {
     select: {

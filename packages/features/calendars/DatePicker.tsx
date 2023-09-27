@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -100,40 +101,6 @@ const NoAvailabilityOverlay = ({
   );
 };
 
-/**
- * Takes care of selecting a valid date in the month if the selected date is not available in the month
- */
-const useHandleInitialDateSelection = ({
-  daysToRenderForTheMonth,
-  selected,
-  onChange,
-}: {
-  daysToRenderForTheMonth: { day: Dayjs | null; disabled: boolean }[];
-  selected: Dayjs | Dayjs[] | null | undefined;
-  onChange: (date: Dayjs | null) => void;
-}) => {
-  // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
-  if (selected instanceof Array) {
-    return;
-  }
-  const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
-
-  const isSelectedDateAvailable = selected
-    ? daysToRenderForTheMonth.some(({ day, disabled }) => {
-        if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
-      })
-    : false;
-
-  if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
-    // If selected date not available in the month, select the first available date of the month
-    onChange(firstAvailableDateOfTheMonth);
-  }
-
-  if (!firstAvailableDateOfTheMonth) {
-    onChange(null);
-  }
-};
-
 const Days = ({
   minDate = dayjs.utc(),
   excludedDates = [],
@@ -218,11 +185,34 @@ const Days = ({
     };
   });
 
-  useHandleInitialDateSelection({
-    daysToRenderForTheMonth,
-    selected,
-    onChange: props.onChange,
-  });
+  /**
+   * Takes care of selecting a valid date in the month if the selected date is not available in the month
+   */
+
+  const useHandleInitialDateSelection = () => {
+    // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+    if (selected instanceof Array) {
+      return;
+    }
+    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+
+    const isSelectedDateAvailable = selected
+      ? daysToRenderForTheMonth.some(({ day, disabled }) => {
+          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+        })
+      : false;
+
+    if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
+      // If selected date not available in the month, select the first available date of the month
+      props.onChange(firstAvailableDateOfTheMonth);
+    }
+
+    if (!firstAvailableDateOfTheMonth) {
+      props.onChange(null);
+    }
+  };
+
+  useEffect(useHandleInitialDateSelection);
 
   return (
     <>

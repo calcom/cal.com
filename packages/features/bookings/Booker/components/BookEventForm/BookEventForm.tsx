@@ -461,7 +461,10 @@ function useInitialFormValues({
   const session = useSession();
   useEffect(() => {
     (async function () {
-      if (Object.keys(formValues).length) return formValues;
+      if (Object.keys(formValues).length) {
+        setDefaultValues(formValues);
+        return;
+      }
 
       if (!eventType?.bookingFields) {
         return {};
@@ -473,8 +476,16 @@ function useInitialFormValues({
         view: rescheduleUid ? "reschedule" : "booking",
       });
 
+      // Routing Forms don't support Split full name(because no Form Builder in there), so user needs to create two fields in there themselves. If they name these fields, `firstName` and `lastName`, we can prefill the Booking Form with them
+      // Once we support formBuilder in Routing Forms, we should be able to forward JSON form of name field value to Booking Form and prefill it there without having these two query params separately.
+      const firstNameQueryParam = searchParams?.get("firstName");
+      const lastNameQueryParam = searchParams?.get("lastName");
+
       const parsedQuery = await querySchema.parseAsync({
         ...routerQuery,
+        name:
+          searchParams?.get("name") ||
+          (firstNameQueryParam ? `${firstNameQueryParam} ${lastNameQueryParam}` : null),
         // `guest` because we need to support legacy URL with `guest` query param support
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),

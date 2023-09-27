@@ -33,7 +33,7 @@ export const SlugReplacementEmail = (
         </Trans>
         <Trans i18nKey="email_body_slug_replacement_info">
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-            Your link will continue to work but somesettings for it may have changed. You can review it in
+            Your link will continue to work but some settings for it may have changed. You can review it in
             event types.
           </p>
         </Trans>

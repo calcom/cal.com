@@ -127,7 +127,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
           readOnly={events[0].metadata.readOnly}
         />
       ) : (
-        <CreateFirstEventTypeView />
+        <CreateFirstEventTypeView slug={eventTypeGroups[0].profile.slug ?? ""} />
       )}
     </div>
   );
@@ -363,7 +363,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }, []);
 
   if (!types.length) {
-    return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
+    return group.teamId ? (
+      <EmptyEventTypeList group={group} />
+    ) : (
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    );
   }
 
   const firstItem = types[0];
@@ -715,14 +719,16 @@ const EventTypeListHeading = ({
     },
   });
   const bookerUrl = useBookerUrl();
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
         imageSrc={
-          `${orgBranding?.fullDomain ?? WEBAPP_URL}${teamId ? "/team" : ""}/${profile.slug}/avatar.png` ||
-          undefined
+          orgBranding?.fullDomain
+            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
+            : profile.image
         }
         size="md"
         className="mt-1 inline-flex justify-center"
@@ -762,7 +768,7 @@ const EventTypeListHeading = ({
   );
 };
 
-const CreateFirstEventTypeView = () => {
+const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
 
   return (
@@ -772,7 +778,7 @@ const CreateFirstEventTypeView = () => {
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
-        <Button href="?dialog=new" variant="button">
+        <Button href={`?dialog=new&eventPage=${slug}`} variant="button">
           {t("create")}
         </Button>
       }
@@ -913,7 +919,7 @@ const Main = ({
                 ) : group.teamId ? (
                   <EmptyEventTypeList group={group} />
                 ) : (
-                  <CreateFirstEventTypeView />
+                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
                 )}
               </div>
             ))
@@ -929,7 +935,7 @@ const Main = ({
           />
         )
       )}
-      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>

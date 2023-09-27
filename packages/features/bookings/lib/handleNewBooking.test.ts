@@ -470,6 +470,128 @@ describe.sequential("handleNewBooking", () => {
       },
       timeout
     );
+    test(
+      `should create a successful booking when location is provided as label of an option(Done for Organizer Address)
+      1. Should create a booking in the database
+      2. Should send emails to the booker as well as organizer
+      3. Should trigger BOOKING_CREATED webhook
+    `,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const scenarioData = getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CREATED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 45,
+              length: 45,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar");
+        createBookingScenario(scenarioData);
+
+        const createdBooking = await handleNewBooking(req);
+        expect(createdBooking.responses).toContain({
+          email: booker.email,
+          name: booker.name,
+        });
+
+        expect(createdBooking).toContain({
+          location: "New York",
+        });
+
+        expectBookingToBeInDatabase({
+          description: "",
+          eventType: {
+            connect: {
+              id: mockBookingData.eventTypeId,
+            },
+          },
+          status: BookingStatus.ACCEPTED,
+        });
+
+        expectWorkflowToBeTriggered();
+
+        const testEmails = emails.get();
+        expect(testEmails[0]).toHaveEmail({
+          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          to: `${organizer.email}`,
+        });
+        expect(testEmails[1]).toHaveEmail({
+          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          to: `${booker.name} <${booker.email}>`,
+        });
+        expect(testEmails[1].html).toContain("<title>confirmed_event_type_subject</title>");
+        expectWebhookToHaveBeenCalledWith("http://my-webhook.example.com", {
+          triggerEvent: "BOOKING_CREATED",
+          payload: {
+            metadata: {
+            },
+            responses: {
+              name: { label: "your_name", value: "Booker" },
+              email: { label: "email_address", value: "booker@example.com" },
+              location: {
+                label: "location",
+                value: { optionValue: "", value: "New York" },
+              },
+              title: { label: "what_is_this_meeting_about" },
+              notes: { label: "additional_notes" },
+              guests: { label: "additional_guests" },
+              rescheduleReason: { label: "reason_for_reschedule" },
+            },
+          },
+        });
+      },
+      timeout
+    );
   });
 });
 
