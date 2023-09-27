@@ -250,6 +250,15 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
+
+    await test.step("from previous input", async () => {
+      await page.locator('[data-testid="back"]').waitFor();
+      await page.click('[data-testid="back"]');
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await expect(page.locator('[name="name"]')).toHaveValue(testName);
+      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
+    });
   });
 
   test("logged out", async ({ page, users }) => {
