@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Oui, supprimer",
   "delete_account": "Supprimer le compte",
   "confirm_delete_account": "Oui, supprimer le compte",
-  "delete_account_confirmation_message": "Voulez-vous vraiment supprimer votre compte {{appName}} ? Toute personne avec qui vous avez partagé le lien de votre compte ne pourra plus réserver en utilisant ce lien et toutes les préférences que vous avez sauvegardées seront perdues.",
+  "delete_account_confirmation_message": "Toute personne avec qui vous avez partagé le lien de votre compte ne pourra plus réserver en utilisant ce lien et toutes les préférences que vous avez sauvegardées seront perdues.",
   "integrations": "Intégrations",
   "apps": "Applications",
   "apps_description": "Vous trouverez ici une liste de vos applications.",
