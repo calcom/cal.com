@@ -249,6 +249,16 @@ model User {
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
 
+  advice_on       String[]         @default([])
+  socialLinks     SocialLink[]
+  facts           Fact[]
+  projects        Project[]
+  workExperiences WorkExperience[]
+  publications    Publication[]
+  books           Book[]
+  podcasts        Podcast[]
+  videos          Video[]
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -938,4 +948,114 @@ model CalendarCache {
 
   @@id([credentialId, key])
   @@unique([credentialId, key])
+}
+
+model SocialLink {
+  id     Int    @id @default(autoincrement())
+  name   String
+  key    String
+  url    String
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Fact {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Project {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Company {
+  id         Int    @id @default(autoincrement())
+  name       String
+  linkedInId String
+  url        String
+
+  workExperience WorkExperience[]
+}
+
+model WorkExperience {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Publication {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Book {
+  isbn        String
+  title       String
+  url         String
+  description String
+  converImage String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([isbn, userId])
+  @@index([userId])
+}
+
+model Podcast {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Video {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
