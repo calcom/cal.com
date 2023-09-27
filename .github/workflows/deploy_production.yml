@@ -29,4 +29,5 @@ jobs:
           script: |
             cd calcom
             DOCKER_BUILDKIT=0 docker-compose build
+            docker-compose down -v --remove-orphans
             docker-compose up -d
