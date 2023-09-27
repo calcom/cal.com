@@ -18,17 +18,24 @@ type BookingOptions = {
   isRequired?: boolean;
 };
 
+type customLocators = {
+  shouldChangeSelectLocator: boolean;
+  shouldUseLastRadioGroupLocator: boolean;
+  shouldUseFirstRadioGroupLocator: boolean;
+  shouldChangeMultiSelectLocator: boolean;
+};
+
 export const loginUser = async (page: Page, users: Fixtures["users"]) => {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
   await page.goto("/event-types");
 };
 
-const fillQuestion = async (eventTypePage: Page, questionType: string, options: BookingOptions) => {
+const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
   const questionActions: QuestionActions = {
     phone: async () => {
-      await eventTypePage.getByPlaceholder(`${questionType} test`).clear();
-      await eventTypePage.getByPlaceholder(`${questionType} test`).fill(PHONE);
+      await eventTypePage.locator('input[name="phone-test"]').clear();
+      await eventTypePage.locator('input[name="phone-test"]').fill(PHONE);
     },
     multiemail: async () => {
       await eventTypePage.getByRole("button", { name: `${questionType} test` }).click();
@@ -37,12 +44,25 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, options: 
       await eventTypePage.getByPlaceholder(`${questionType} test`).last().fill(EMAIL2);
     },
     checkbox: async () => {
-      await eventTypePage.getByLabel("Option 1").click();
-      await eventTypePage.getByLabel("Option 2").click();
+      if (customLocators.shouldUseLastRadioGroupLocator || customLocators.shouldChangeMultiSelectLocator) {
+        await eventTypePage.getByLabel("Option 1").last().click();
+        await eventTypePage.getByLabel("Option 2").last().click();
+      } else if (customLocators.shouldUseFirstRadioGroupLocator) {
+        await eventTypePage.getByLabel("Option 1").first().click();
+        await eventTypePage.getByLabel("Option 2").first().click();
+      } else {
+        await eventTypePage.getByLabel("Option 1").click();
+        await eventTypePage.getByLabel("Option 2").click();
+      }
     },
     multiselect: async () => {
-      await eventTypePage.locator("form svg").last().click();
-      await eventTypePage.getByTestId("select-option-Option 1").click();
+      if (customLocators.shouldChangeMultiSelectLocator) {
+        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      } else {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
     },
     boolean: async () => {
       await eventTypePage.getByLabel(`${questionType} test`).check();
@@ -51,8 +71,13 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, options: 
       await eventTypePage.locator('[id="radio-test\\.option\\.0\\.radio"]').click();
     },
     select: async () => {
-      await eventTypePage.locator("form svg").last().click();
-      await eventTypePage.getByTestId("select-option-Option 1").click();
+      if (customLocators.shouldChangeSelectLocator) {
+        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      } else {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
     },
     number: async () => {
       await eventTypePage.getByPlaceholder(`${questionType} test`).click();
@@ -90,11 +115,31 @@ export const fillAndConfirmBooking = async (
   await expect(eventTypePage.getByText(`${secondQuestion} test`).first()).toBeVisible();
   await eventTypePage.getByPlaceholder(placeholderText).fill(fillText);
 
+  // Change the selector for specifics cases related to select question
+  const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
+    question === "select" && ["multiemail", "multiselect"].includes(secondQuestion);
+
+  const shouldUseLastRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
+    question === "radio" && secondQuestion === "checkbox";
+
+  const shouldUseFirstRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
+    question === "checkbox" && secondQuestion === "radio";
+
+  const shouldChangeMultiSelectLocator = (question: string, secondQuestion: string): boolean =>
+    question === "multiselect" && ["address", "checkbox", "multiemail", "select"].includes(secondQuestion);
+
+  const customLocators = {
+    shouldChangeSelectLocator: shouldChangeSelectLocator(question, secondQuestion),
+    shouldUseLastRadioGroupLocator: shouldUseLastRadioGroupLocator(question, secondQuestion),
+    shouldUseFirstRadioGroupLocator: shouldUseFirstRadioGroupLocator(question, secondQuestion),
+    shouldChangeMultiSelectLocator: shouldChangeMultiSelectLocator(question, secondQuestion),
+  };
+
   // Fill the first question
-  await fillQuestion(eventTypePage, question, options);
+  await fillQuestion(eventTypePage, question, customLocators);
 
   // Fill the second question if is required
-  options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, options));
+  options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
   await eventTypePage.getByTestId(confirmButton).click();
   const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
@@ -110,6 +155,15 @@ export const initialCommonSteps = async (
   message: string,
   options: BookingOptions
 ) => {
+  const firstQuestionHasPlaceholder = [
+    "address",
+    "textarea",
+    "multiemail",
+    "number",
+    "text",
+    "phone",
+  ].includes(question);
+
   //Logs in a test user and navigates to the event types page.
   loginUser(bookingPage, users);
 
@@ -127,8 +181,12 @@ export const initialCommonSteps = async (
   await bookingPage.getByLabel("Identifier").fill(`${question}-test`);
   await bookingPage.getByLabel("Label").click();
   await bookingPage.getByLabel("Label").fill(`${question} test`);
-  await bookingPage.getByLabel("Placeholder").click();
-  await bookingPage.getByLabel("Placeholder").fill(`${question} test`);
+
+  // Fill the placeholder if the question has one
+  if (firstQuestionHasPlaceholder) {
+    await bookingPage.getByLabel("Placeholder").click();
+    await bookingPage.getByLabel("Placeholder").fill(`${question} test`);
+  }
   await bookingPage.getByTestId("field-add-save").click();
   await bookingPage.getByTestId("add-field").click();
   await bookingPage.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();

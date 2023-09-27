@@ -6,10 +6,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Long Text Question and select Question", () => {
-  const bookingOptions = {
-    hasPlaceholder: false,
-    isRequired: true,
-  };
+  const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Long Text and select required", async ({ page, users }) => {
     await initialCommonSteps(
       page,

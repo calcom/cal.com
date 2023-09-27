@@ -6,10 +6,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking With Long Text Question and checkbox group Question", () => {
-  const bookingOptions = {
-    hasPlaceholder: false,
-    isRequired: true,
-  };
+  const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Long Text and checkbox group required", async ({ page, users }) => {
     await initialCommonSteps(
       page,
