@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const app = await prisma.app.findUnique({
     where: { slug: reqBody.appSlug },
-    select: { slug: true },
+    select: { dirName: true },
   });
 
   if (!app) {
