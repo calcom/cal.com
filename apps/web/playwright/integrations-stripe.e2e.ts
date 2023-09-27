@@ -143,7 +143,16 @@ test.describe("Stripe integration", () => {
       expect(await paidBadge.innerText()).toBe("Paid");
     });
 
+    test("Paid and confirmed booking should be able to be rescheduled", async ({ page, users }) => {
+      await Promise.all([page.waitForURL("/booking/*"), page.click('[data-testid="reschedule-link"]')]);
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      await page.click('[data-testid="confirm-reschedule-button"]');
+
+      await expect(page.getByText("This meeting is scheduled")).toBeVisible();
+    });
+
     todo("Payment should trigger a BOOKING_PAID webhook");
-    todo("Paid and confirmed booking should be able to be rescheduled");
   });
 });
