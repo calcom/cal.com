@@ -59,17 +59,18 @@ export default function Authorize() {
     }
   }, [isLoadingProfiles]);
 
-  const isLoading = isLoadingGetClient || isLoadingProfiles || status === "loading";
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const urlSearchParams = new URLSearchParams({
+        callbackUrl: `auth/oauth2/authorize?${queryString}`,
+      });
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
+    }
+  }, [status]);
+
+  const isLoading = isLoadingGetClient || isLoadingProfiles || status !== "authenticated";
 
   if (isLoading) {
-    return <></>;
-  }
-
-  if (status === "unauthenticated") {
-    const urlSearchParams = new URLSearchParams({
-      callbackUrl: `auth/oauth2/authorize?${queryString}`,
-    });
-    router.replace(`/auth/login?${urlSearchParams.toString()}`);
     return <></>;
   }
 
