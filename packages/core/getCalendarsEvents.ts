@@ -20,7 +20,6 @@ const getCalendarsEvents = async (
   logger.silly(
     "getCalendarEvents",
     JSON.stringify({
-      calendars,
       calendarCredentials,
       selectedCalendars,
     })
@@ -40,7 +39,11 @@ const getCalendarsEvents = async (
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
+
+    logger.silly("c.getAvailability", c.getAvailability);
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    logger.silly("c.getAvailabilityAfter", c.getAvailability);
+
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

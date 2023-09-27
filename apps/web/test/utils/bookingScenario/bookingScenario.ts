@@ -704,13 +704,16 @@ export function mockNoTranslations() {
 export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
-    create: {
+    create?: {
       uid: string;
     };
     update?: {
       uid: string;
     };
-    busySlots: { start: `${string}Z`; end: `${string}Z` }[];
+    busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
+    creationCrash?: boolean;
+    updationCrash?: boolean;
+    getAvailabilityCrash?: boolean;
   }
 ) {
   const appStoreLookupKey = metadataLookupKey;
@@ -736,6 +739,9 @@ export function mockCalendar(
         return {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.creationCrash) {
+              throw new Error("MockCalendarService.createEvent fake error");
+            }
             const [calEvent, credentialId] = rest;
             logger.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
             createEventCalls.push(rest);
@@ -743,7 +749,7 @@ export function mockCalendar(
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
-              id: normalizedCalendarData.create.uid,
+              id: normalizedCalendarData.create?.uid,
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
@@ -751,6 +757,9 @@ export function mockCalendar(
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.updationCrash) {
+              throw new Error("MockCalendarService.updateEvent fake error");
+            }
             const [uid, event, externalCalendarId] = rest;
             logger.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
             // eslint-disable-next-line prefer-rest-params
@@ -760,15 +769,18 @@ export function mockCalendar(
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: normalizedCalendarData.update!.uid!,
+              id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
             });
           },
-          getAvailability: (): Promise<EventBusyDate[]> => {
+          getAvailability: async (): Promise<EventBusyDate[]> => {
+            if (calendarData?.getAvailabilityCrash) {
+              throw new Error("MockCalendarService.getAvailability fake error");
+            }
             return new Promise((resolve) => {
-              resolve(calendarData.busySlots);
+              resolve(calendarData?.busySlots || []);
             });
           },
         };
@@ -785,7 +797,7 @@ export function mockCalendarToHaveNoBusySlots(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
     create: {
-      uid: string;
+      uid?: string;
     };
     update?: {
       uid: string;
@@ -803,10 +815,20 @@ export function mockCalendarToHaveNoBusySlots(
   return mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
 }
 
-export function mockSuccessfulVideoMeetingCreation({
+export function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { creationCrash: true });
+}
+
+export function mockCalendarToCrashOnUpdateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { updationCrash: true });
+}
+
+export function mockVideoApp({
   metadataLookupKey,
   appStoreLookupKey,
   videoMeetingData,
+  creationCrash,
+  updationCrash,
 }: {
   metadataLookupKey: string;
   appStoreLookupKey?: string;
@@ -815,6 +837,8 @@ export function mockSuccessfulVideoMeetingCreation({
     id: string;
     url: string;
   };
+  creationCrash?: boolean;
+  updationCrash?: boolean;
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   videoMeetingData = videoMeetingData || {
@@ -839,7 +863,11 @@ export function mockSuccessfulVideoMeetingCreation({
           VideoApiAdapter: () => ({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             createMeeting: (...rest: any[]) => {
+              if (creationCrash) {
+                throw new Error("MockVideoApiAdapter.createMeeting fake error");
+              }
               createMeetingCalls.push(rest);
+
               return Promise.resolve({
                 type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
                 ...videoMeetingData,
@@ -847,6 +875,9 @@ export function mockSuccessfulVideoMeetingCreation({
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             updateMeeting: async (...rest: any[]) => {
+              if (updationCrash) {
+                throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+              }
               const [bookingRef, calEvent] = rest;
               updateMeetingCalls.push(rest);
               if (!bookingRef.type) {
@@ -873,6 +904,40 @@ export function mockSuccessfulVideoMeetingCreation({
     createMeetingCalls,
     updateMeetingCalls,
   };
+}
+
+export function mockSuccessfulVideoMeetingCreation({
+  metadataLookupKey,
+  appStoreLookupKey,
+  videoMeetingData,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+  videoMeetingData?: {
+    password: string;
+    id: string;
+    url: string;
+  };
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    videoMeetingData,
+  });
+}
+
+export function mockVideoAppToCrashOnCreateMeeting({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    creationCrash: true,
+  });
 }
 
 export function mockPaymentApp({

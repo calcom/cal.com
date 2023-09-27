@@ -1,16 +1,14 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { Booking, BookingReference } from "@prisma/client";
-import type { WebhookTriggerEvents } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
+import type { WebhookTriggerEvents, Booking, BookingReference } from "@prisma/client";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
-import type {
-  CalendarEvent,
-} from "@calcom/types/Calendar";
+
 import type { InputEventType } from "./bookingScenario";
 
 declare global {
@@ -33,7 +31,9 @@ expect.extend({
     to: string
   ) {
     const testEmail = emails.get().find((email) => email.to.includes(to));
+    const emailsToLog = emails.get().map((email) => ({ to: email.to, html: email.html }));
     if (!testEmail) {
+      logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
       return {
         pass: false,
         message: () => `No email sent to ${to}`,
@@ -45,6 +45,10 @@ expect.extend({
       isHtmlContained = testEmail.html.includes(expectedEmail.htmlToContain);
     }
     isToAddressExpected = expectedEmail.to === testEmail.to;
+
+    if (!isHtmlContained || !isToAddressExpected) {
+      logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
+    }
 
     return {
       pass: isHtmlContained && isToAddressExpected,
@@ -153,6 +157,59 @@ export function expectSuccessfulBookingCreationEmails({
   );
 }
 
+export function expectBrokenIntegrationEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  // Broken Integration email is only sent to the Organizer
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>broken_integration</title>",
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+
+  // expect(emails).toHaveEmail(
+  //   {
+  //     htmlToContain: "<title>confirmed_event_type_subject</title>",
+  //     to: `${booker.name} <${booker.email}>`,
+  //   },
+  //   `${booker.name} <${booker.email}>`
+  // );
+}
+
+export function expectCalendarEventCreationFailureEmails({
+  emails,
+  organizer,
+  booker,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>broken_integration</title>",
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+
+  expect(emails).toHaveEmail(
+    {
+      htmlToContain: "<title>calendar_event_creation_failure_subject</title>",
+      to: `${booker.name} <${booker.email}>`,
+    },
+    `${booker.name} <${booker.email}>`
+  );
+}
+
 export function expectSuccessfulBookingRescheduledEmails({
   emails,
   organizer,
@@ -178,6 +235,7 @@ export function expectSuccessfulBookingRescheduledEmails({
     `${booker.name} <${booker.email}>`
   );
 }
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
@@ -405,16 +463,20 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
   const call = calendarMock.createEventCalls[0];
   const calEvent = call[0];
 
-  expect(calEvent).toEqual(expect.objectContaining({
-      destinationCalendar: expected.calendarId ? [
-        expect.objectContaining({
-          externalId:expected.calendarId,
-        }),
-      ] : null,
+  expect(calEvent).toEqual(
+    expect.objectContaining({
+      destinationCalendar: expected.calendarId
+        ? [
+            expect.objectContaining({
+              externalId: expected.calendarId,
+            }),
+          ]
+        : null,
       videoCallData: expect.objectContaining({
         url: expected.videoCallUrl,
       }),
-  }));
+    })
+  );
 }
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(
@@ -426,7 +488,7 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
   },
   expected: {
     externalCalendarId: string;
-    calEvent: Partial<CalendarEvent>
+    calEvent: Partial<CalendarEvent>;
     uid: string;
   }
 ) {
@@ -449,7 +511,7 @@ export function expectSuccessfulVideoMeetingCreationInCalendar(
   },
   expected: {
     externalCalendarId: string;
-    calEvent: Partial<CalendarEvent>
+    calEvent: Partial<CalendarEvent>;
     uid: string;
   }
 ) {
@@ -473,7 +535,7 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
   expected: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bookingRef: any;
-    calEvent: Partial<CalendarEvent>
+    calEvent: Partial<CalendarEvent>;
   }
 ) {
   expect(videoMock.updateMeetingCalls.length).toBe(1);
@@ -482,4 +544,20 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
   const calendarEvent = call[1];
   expect(bookingRef).toEqual(expect.objectContaining(expected.bookingRef));
   expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
+}
+
+export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
+  // Expect previous booking to be cancelled
+  await expectBookingToBeInDatabase({
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    ...from,
+    status: BookingStatus.CANCELLED,
+  });
+
+  // Expect new booking to be created
+  await expectBookingToBeInDatabase({
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    ...to,
+    status: BookingStatus.ACCEPTED,
+  });
 }

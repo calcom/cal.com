@@ -74,10 +74,10 @@ export default class GoogleCalendarService implements Calendar {
 
   private googleAuth = (credential: CredentialPayload) => {
     const googleCredentials = googleCredentialSchema.parse(credential.key);
-
     async function getGoogleAuth() {
       const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
       const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
+      logger.debug("Setting Google Auth creds", googleCredentials);
       myGoogleAuth.setCredentials(googleCredentials);
       return myGoogleAuth;
     }
@@ -86,7 +86,9 @@ export default class GoogleCalendarService implements Calendar {
       try {
         const res = await refreshOAuthTokens(
           async () => {
+            logger.debug("Before Google Auth refresh response");
             const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
+            logger.debug("Google Auth refresh response", fetchTokens);
             return fetchTokens.res;
           },
           "google-calendar",
@@ -126,6 +128,7 @@ export default class GoogleCalendarService implements Calendar {
       getToken: async () => {
         const myGoogleAuth = await getGoogleAuth();
         const isExpired = () => myGoogleAuth.isTokenExpiring();
+        logger.silly("isExpired", { isExpired: isExpired() });
         return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
       },
     };
@@ -422,6 +425,7 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    this.log.debug("getAvailability123", { dateFrom, dateTo, selectedCalendars });
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)

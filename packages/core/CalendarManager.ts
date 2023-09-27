@@ -7,6 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
@@ -42,6 +43,11 @@ export const getConnectedCalendars = async (
   destinationCalendarExternalId?: string
 ) => {
   let destinationCalendar: IntegrationCalendar | undefined;
+  logger.silly({
+    calendarCredentials,
+    selectedCalendars,
+    destinationCalendarExternalId,
+  });
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
@@ -101,6 +107,8 @@ export const getConnectedCalendars = async (
             errorMessage = "Access token expired or revoked";
           }
         }
+
+        logger.error("getConnectedCalendars failed", { error, item });
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -210,7 +218,7 @@ export const getBusyCalendarTimes = async (
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
     results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
   } catch (e) {
-    logger.warn(e);
+    log.warn(safeStringify(e));
   }
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
