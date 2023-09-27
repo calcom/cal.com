@@ -7,6 +7,7 @@ import { Settings } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { OverlayCalendarContinueModal } from "../OverlayCalendar/OverlayCalendarContinueModal";
+import { OverlayCalendarSettingsModal } from "../OverlayCalendar/OverlayCalendarSettingsModal";
 
 const SUPPORTED_LAYOUTS = ["month_view"];
 
@@ -22,7 +23,8 @@ function TooltipWrapper({ children, text }: PropsWithChildren<{ text: string }>)
 }
 
 export function OverlayCalendarContainer() {
-  const [connectCalendar, setConnectCalendar] = useState(false);
+  const [continueWithProvider, setContinueWithProvider] = useState(false);
+  const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
   const layout = useBookerStore((state) => state.layout);
 
@@ -36,7 +38,7 @@ export function OverlayCalendarContainer() {
               id="overlayCalendar"
               onCheckedChange={(state) => {
                 if (!session) {
-                  setConnectCalendar(state);
+                  setContinueWithProvider(state);
                 }
               }}
             />
@@ -47,12 +49,28 @@ export function OverlayCalendarContainer() {
             </label>
           </TooltipWrapper>
         </div>
-        {session && <Button size="base" variant="icon" color="secondary" StartIcon={Settings} />}
+        {session && (
+          <Button
+            size="base"
+            variant="icon"
+            color="secondary"
+            StartIcon={Settings}
+            onClick={() => {
+              setCalendarSettingsOverlay(true);
+            }}
+          />
+        )}
       </div>
       <OverlayCalendarContinueModal
-        open={connectCalendar}
+        open={continueWithProvider}
         onClose={(val) => {
-          setConnectCalendar(val);
+          setContinueWithProvider(val);
+        }}
+      />
+      <OverlayCalendarSettingsModal
+        open={calendarSettingsOverlay}
+        onClose={(val) => {
+          setCalendarSettingsOverlay(val);
         }}
       />
     </>
