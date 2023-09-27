@@ -461,10 +461,7 @@ function useInitialFormValues({
   const session = useSession();
   useEffect(() => {
     (async function () {
-      if (Object.keys(formValues).length) {
-        setDefaultValues(formValues);
-        return formValues;
-      }
+      if (Object.keys(formValues).length) return setDefaultValues(formValues);
 
       if (!eventType?.bookingFields) {
         return {};
