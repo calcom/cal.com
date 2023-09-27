@@ -285,7 +285,7 @@ export const updateEvent = async (
   let calWarnings: string[] | undefined = [];
 
   if (bookingRefUid === "") {
-    log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
+    log.error("updateEvent failed", "bookingRefUid is empty", JSON.stringify({ calEvent, credential }));
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
@@ -299,7 +299,7 @@ export const updateEvent = async (
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error("updateEvent failed", e, calEvent);
+            log.error("updateEvent failed", JSON.stringify({ e, calEvent }));
             if (e?.calError) {
               calError = e.calError;
             }
