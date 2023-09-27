@@ -3,7 +3,7 @@ import type Prisma from "@prisma/client";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { todo, selectFirstAvailableTimeSlotNextMonth, waitFor, createWebhookReceiver } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, waitFor, createWebhookReceiver } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
