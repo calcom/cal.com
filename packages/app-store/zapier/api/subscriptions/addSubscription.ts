@@ -8,7 +8,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
 
-  let validKey: any = null;
+  let validKey;
 
   if (apiKey) {
     validKey = await findValidApiKey(apiKey, "zapier");

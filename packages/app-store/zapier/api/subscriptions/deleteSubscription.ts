@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const scopes = ["READ_BOOKING, READ_PROFILE"];
 
-  let validKey: any = null;
+  let validKey;
 
   if (apiKey) {
     validKey = await findValidApiKey(apiKey, "zapier");
