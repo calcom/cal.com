@@ -139,11 +139,13 @@ test.describe("Stripe integration", () => {
   test.describe("When event is paid and confirmed", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
     let eventType: Prisma.EventType;
+    let webhookReceiver: Awaited<ReturnType<typeof createWebhookReceiver>>;
 
     test.beforeEach(async ({ page, users }) => {
       user = await users.create();
       eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
       await user.apiLogin();
+      webhookReceiver = await createWebhookReceiver(page);
       await page.goto("/apps/installed");
 
       await user.getPaymentCredential();
@@ -170,8 +172,6 @@ test.describe("Stripe integration", () => {
     });
 
     test("Payment should trigger a BOOKING_PAID webhook", async ({ page }) => {
-      const webhookReceiver = await createWebhookReceiver(page);
-
       // --- check that webhook was called
       await waitFor(() => {
         expect(webhookReceiver.requestList.length).toBe(2);
