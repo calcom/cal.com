@@ -448,13 +448,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props: {
-        ...props,
-        prepopulateFormValues: {
-          username: preFillusername || null,
-          email: prefilEmail || null,
-        },
-      },
+      props: JSON.parse(
+        JSON.stringify({
+          ...props,
+          prepopulateFormValues: {
+            username: preFillusername || null,
+            email: prefilEmail || null,
+          },
+        })
+      ),
     };
   }
 
