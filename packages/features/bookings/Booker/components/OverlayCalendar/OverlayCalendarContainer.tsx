@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { PropsWithChildren } from "react";
 
 import { Button, Switch, Tooltip } from "@calcom/ui";
@@ -36,18 +36,32 @@ export function OverlayCalendarContainer() {
 
   const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
 
-  const toggleOverlayCalendarQueryParam = (state: boolean) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    if (state) {
-      current.set("overlayCalendar", "true");
-    } else {
-      current.delete("overlayCalendar");
+  const toggleOverlayCalendarQueryParam = useCallback(
+    (state: boolean) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      if (state) {
+        current.set("overlayCalendar", "true");
+      } else {
+        current.delete("overlayCalendar");
+      }
+      // cast to string
+      const value = current.toString();
+      const query = value ? `?${value}` : "";
+      router.push(`${pathname}${query}`);
+    },
+    [searchParams, pathname, router]
+  );
+
+  /**
+   * If a user is not logged in and the overlay calendar query param is true,
+   * show the continue modal so they can login / create an account
+   */
+  useEffect(() => {
+    if (!session && overlayCalendarQueryParam === "true") {
+      toggleOverlayCalendarQueryParam(false);
+      setContinueWithProvider(true);
     }
-    // cast to string
-    const value = current.toString();
-    const query = value ? `?${value}` : "";
-    router.push(`${pathname}${query}`);
-  };
+  }, [session, overlayCalendarQueryParam, toggleOverlayCalendarQueryParam]);
 
   return (
     <>
