@@ -46,6 +46,7 @@ const MakeTeamPrivateSwitch = ({
         <div className="mt-5 sm:mt-0 sm:self-center">
           <Switch
             disabled={disabled}
+            data-testid="make-team-private-check"
             defaultChecked={isPrivate}
             onCheckedChange={(isChecked) => {
               mutation.mutate({ id: teamId, isPrivate: isChecked });
