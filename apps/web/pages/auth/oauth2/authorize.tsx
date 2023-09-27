@@ -79,8 +79,8 @@ export default function Authorize() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="max-w-xl rounded-md bg-white px-9 pb-3 pt-6">
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="mt-2 max-w-xl rounded-md bg-white px-9 pb-3 pt-2">
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
@@ -97,7 +97,7 @@ export default function Authorize() {
             </div>
           </div>
         </div>
-        <h1 className="mt-1 p-5 text-center text-2xl font-bold tracking-tight">
+        <h1 className="px-5 pb-5 pt-3 text-center text-2xl font-bold tracking-tight">
           {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
         <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
