@@ -20,7 +20,7 @@ export default function TeamAvailabilityModal(props: Props) {
   const utils = trpc.useContext();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
+    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London"
   );
 
   const { t } = useLocale();

@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import type { NextMiddleware } from "next-api-middleware";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
+import { customPrisma } from "@calcom/prisma";
 
 const LOCAL_CONSOLE_URL = process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
 
@@ -12,7 +12,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   } = req;
   // If no custom api Id is provided, attach to request the regular cal.com prisma client.
   if (!key) {
-    req.prisma = new PrismaClient();
+    req.prisma = customPrisma();
     await next();
     return;
   }
@@ -26,7 +26,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     res.status(400).json({ error: "no databaseUrl set up at your instance yet" });
     return;
   }
-  req.prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+  req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
   /* @note:
     In order to skip verifyApiKey for customPrisma requests, 
     we pass isAdmin true, and userId 0, if we detect them later, 
