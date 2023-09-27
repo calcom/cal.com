@@ -250,15 +250,23 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
+  });
 
-    await test.step("from previous input", async () => {
-      await page.locator('[data-testid="back"]').waitFor();
-      await page.click('[data-testid="back"]');
+  test("Persist the field values when going back and coming back to the booking form", async ({
+    page,
+    users,
+  }) => {
+    await page.goto("/pro/30min");
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.fill('[name="name"]', "John Doe");
+    await page.fill('[name="email"]', "john@example.com");
+    await page.fill('[name="notes"]', "Test notes");
+    await page.click('[data-testid="back"]');
 
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await expect(page.locator('[name="name"]')).toHaveValue(testName);
-      await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
-    });
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await expect(page.locator('[name="name"]')).toHaveValue("John Doe");
+    await expect(page.locator('[name="email"]')).toHaveValue("john@example.com");
+    await expect(page.locator('[name="notes"]')).toHaveValue("Test notes");
   });
 
   test("logged out", async ({ page, users }) => {
