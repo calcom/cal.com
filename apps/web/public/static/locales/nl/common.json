@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Ja, verwijderen",
   "delete_account": "Account verwijderen",
   "confirm_delete_account": "Ja, account verwijderen",
-  "delete_account_confirmation_message": "Weet u zeker dat u uw {{appName}}-account wilt verwijderen? Iedereen met wie u uw accountlink gedeeld heeft, kan er niet meer mee boeken en alle voorkeuren die u opgeslagen heeft gaan verloren.",
+  "delete_account_confirmation_message": "Iedereen met wie u uw accountlink gedeeld heeft, kan er niet meer mee boeken en alle voorkeuren die u opgeslagen heeft gaan verloren.",
   "integrations": "Integraties",
   "apps": "Apps",
   "apps_description": "Hier vindt u een lijst van uw apps",
