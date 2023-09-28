@@ -15,7 +15,7 @@ import { AppList } from "@components/apps/AppList";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -70,6 +70,7 @@ const ConferencingLayout = () => {
           title={t("conferencing")}
           description={t("conferencing_description")}
           CTA={<AddConferencingButton />}
+          borderInShellHeader={true}
         />
         <QueryCell
           query={query}

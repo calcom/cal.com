@@ -41,7 +41,7 @@ interface PasswordViewProps {
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 border-x px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -162,7 +162,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   return (
     <>
-      <Meta title={t("password")} description={t("password_description")} />
+      <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">

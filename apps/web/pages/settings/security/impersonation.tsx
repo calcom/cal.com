@@ -4,9 +4,20 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Meta, showToast, SettingsToggle, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+  return (
+    <SkeletonContainer>
+      <Meta title={title} description={description} borderInShellHeader={true} />
+      <div className="border-subtle space-y-6 border border-t-0 px-4 py-8 sm:px-6">
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
   const { t } = useLocale();
@@ -41,7 +52,11 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
   return (
     <>
-      <Meta title={t("impersonation")} description={t("impersonation_description")} />
+      <Meta
+        title={t("impersonation")}
+        description={t("impersonation_description")}
+        borderInShellHeader={true}
+      />
       <div>
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
@@ -61,8 +76,11 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
 const ProfileImpersonationViewWrapper = () => {
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { t } = useLocale();
 
-  if (isLoading || !user) return null;
+  if (isLoading || !user)
+    return <SkeletonLoader title={t("impersonation")} description={t("impersonation_description")} />;
+
   return <ProfileImpersonationView user={user} />;
 };
 

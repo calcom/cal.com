@@ -17,9 +17,10 @@ import PageWrapper from "@components/PageWrapper";
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
-const SkeletonLoader = () => {
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -39,13 +40,14 @@ const TwoFactorAuthView = () => {
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading)
+    return <SkeletonLoader title={t("2fa")} description={t("set_up_two_factor_authentication")} />;
 
   const isCalProvider = user?.identityProvider === "CAL";
   const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled;
   return (
     <>
-      <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} />
+      <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} borderInShellHeader={true} />
       {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <SettingsToggle
         toggleSwitchAtTheEnd={true}

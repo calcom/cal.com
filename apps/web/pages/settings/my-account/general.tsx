@@ -28,7 +28,7 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -139,7 +139,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             weekStart: values.weekStart.value,
           });
         }}>
-        <Meta title={t("general")} description={t("general_description")} />
+        <Meta title={t("general")} description={t("general_description")} borderInShellHeader={true} />
         <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
           <Controller
             name="locale"

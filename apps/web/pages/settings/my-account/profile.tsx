@@ -49,7 +49,7 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -233,7 +233,11 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+      <Meta
+        title={t("profile")}
+        description={t("profile_description", { appName: APP_NAME })}
+        borderInShellHeader={true}
+      />
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -269,7 +273,8 @@ const ProfileView = () => {
       />
 
       <div className="border-subtle mt-6 rounded-xl rounded-b-none border border-b-0 p-6">
-        <Label className="text-xl font-semibold text-red-700">{t("danger_zone")}</Label>
+        <Label className="text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+        <p className="text-subtle">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>

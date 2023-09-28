@@ -57,7 +57,11 @@ function Component({ webhookId }: { webhookId: string }) {
 
   return (
     <>
-      <Meta title={t("edit_webhook")} description={t("add_webhook_description", { appName: APP_NAME })} />
+      <Meta
+        title={t("edit_webhook")}
+        description={t("add_webhook_description", { appName: APP_NAME })}
+        borderInShellHeader={true}
+      />
       <WebhookForm
         noRoutingFormTriggers={false}
         webhook={webhook}

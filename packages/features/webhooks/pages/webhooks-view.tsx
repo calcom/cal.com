@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Suspense } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
@@ -8,26 +7,62 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Avatar, CreateButtonWithTeamsList, EmptyScreen, Meta } from "@calcom/ui";
+import {
+  Avatar,
+  CreateButtonWithTeamsList,
+  EmptyScreen,
+  Meta,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
-import { WebhookListItem, WebhookListSkeleton } from "../components";
+import { WebhookListItem } from "../components";
+
+const SkeletonLoader = ({
+  title,
+  description,
+  borderInShellHeader,
+}: {
+  title: string;
+  description: string;
+  borderInShellHeader: boolean;
+}) => {
+  return (
+    <SkeletonContainer>
+      <Meta title={title} description={description} borderInShellHeader={borderInShellHeader} />
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 const WebhooksView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
 
-  const { data } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    suspense: true,
+  const { data, isLoading } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
     enabled: session.status === "authenticated",
   });
+
+  if (isLoading || !data) {
+    return (
+      <SkeletonLoader
+        title={t("webhooks")}
+        description={t("add_webhook_description", { appName: APP_NAME })}
+        borderInShellHeader={!(data && data.webhookGroups.length > 0)}
+      />
+    );
+  }
 
   return (
     <>
       <Meta
-        title="Webhooks"
+        title={t("webhooks")}
         description={t("add_webhook_description", { appName: APP_NAME })}
         CTA={
           data && data.webhookGroups.length > 0 ? (
@@ -43,11 +78,10 @@ const WebhooksView = () => {
             <></>
           )
         }
+        borderInShellHeader={!(data && data.webhookGroups.length > 0)}
       />
       <div>
-        <Suspense fallback={<WebhookListSkeleton />}>
-          {data && <WebhooksList webhooksByViewer={data} />}
-        </Suspense>
+        <WebhooksList webhooksByViewer={data} />
       </div>
     </>
   );
@@ -111,7 +145,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
               Icon={LinkIcon}
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-              className="mt-6"
+              className="rounded-b-md rounded-t-none border-t-0"
               buttonRaw={
                 <CreateButtonWithTeamsList
                   subtitle={t("create_for").toUpperCase()}

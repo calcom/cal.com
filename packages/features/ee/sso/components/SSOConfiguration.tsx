@@ -6,7 +6,20 @@ import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
 import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AppSkeletonLoader as SkeletonLoader, Meta, Alert } from "@calcom/ui";
+import { Meta, Alert, SkeletonContainer, SkeletonText } from "@calcom/ui";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+  return (
+    <SkeletonContainer>
+      <Meta title={title} description={description} borderInShellHeader={true} />
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 export default function SSOConfiguration({ teamId }: { teamId: number | null }) {
   const [errorMessage, setErrorMessage] = useState("");
@@ -22,7 +35,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   );
 
   if (isLoading) {
-    return <SkeletonLoader />;
+    return <SkeletonLoader title={t("sso_configuration")} description={t("sso_configuration_description")} />;
   }
 
   if (errorMessage) {
@@ -31,7 +44,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
         <Meta
           title={t("sso_configuration")}
           description={t("sso_configuration_description")}
-          borderInShellHeader={false}
+          borderInShellHeader={true}
         />
         <Alert severity="warning" message={t(errorMessage)} className="mt-4" />
       </>
