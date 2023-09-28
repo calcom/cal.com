@@ -137,6 +137,8 @@ test.describe("pro user", () => {
       page.click('[data-testid="confirm"]'),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
     ]);
+
+    await page.goto("/bookings/unconfirmed");
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
@@ -227,6 +229,45 @@ test.describe("pro user", () => {
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:00");
   });
+
+  test("Cannot confirm booking for a slot, if another confirmed booking already exists for same slot.", async ({
+    page,
+    users,
+  }) => {
+    // First booking done for first available time slot in next month
+    await bookOptinEvent(page);
+
+    const [pro] = users.get();
+    await page.goto(`/${pro.username}`);
+
+    // Second booking done for same time slot
+    await bookOptinEvent(page);
+
+    await pro.apiLogin();
+
+    await page.goto("/bookings/unconfirmed");
+
+    // Confirm first booking
+    await Promise.all([
+      page.click('[data-testid="confirm"]'),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
+    ]);
+
+    await Promise.all([
+      page.goto("/bookings/unconfirmed"),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/get")),
+    ]);
+
+    // Confirm second booking
+    await page.click('[data-testid="confirm"]');
+    const response = await page.waitForResponse(
+      (response) => response.url().includes("/api/trpc/bookings/confirm") && response.status() !== 200
+    );
+    const responseObj = await response.json();
+
+    expect(responseObj[0]?.error?.json?.data?.code).toEqual("BAD_REQUEST");
+    expect(responseObj[0]?.error?.json?.message).toEqual("Slot already confirmed for other booking");
+  });
 });
 
 test.describe("prefill", () => {
@@ -250,6 +291,23 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
+  });
+
+  test("Persist the field values when going back and coming back to the booking form", async ({
+    page,
+    users,
+  }) => {
+    await page.goto("/pro/30min");
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.fill('[name="name"]', "John Doe");
+    await page.fill('[name="email"]', "john@example.com");
+    await page.fill('[name="notes"]', "Test notes");
+    await page.click('[data-testid="back"]');
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await expect(page.locator('[name="name"]')).toHaveValue("John Doe");
+    await expect(page.locator('[name="email"]')).toHaveValue("john@example.com");
+    await expect(page.locator('[name="notes"]')).toHaveValue("Test notes");
   });
 
   test("logged out", async ({ page, users }) => {

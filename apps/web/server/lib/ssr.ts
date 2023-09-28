@@ -14,7 +14,7 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
  * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
-export async function ssrInit(context: GetServerSidePropsContext) {
+export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
   const ctx = await createContext(context);
   const locale = await getLocaleFromRequest(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
@@ -27,7 +27,9 @@ export async function ssrInit(context: GetServerSidePropsContext) {
 
   await Promise.allSettled([
     // always preload "viewer.public.i18n"
-    ssr.viewer.public.i18n.prefetch({ locale, CalComVersion: CALCOM_VERSION }),
+    !options?.noI18nPreload
+      ? ssr.viewer.public.i18n.prefetch({ locale, CalComVersion: CALCOM_VERSION })
+      : Promise.resolve({}),
     // So feature flags are available on first render
     ssr.viewer.features.map.prefetch(),
     // Provides a better UX to the users who have already upgraded.

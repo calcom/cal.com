@@ -438,7 +438,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
   _bookings?: PrismaType.BookingCreateInput[];
 };
-type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
+type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name" | "email";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -457,7 +457,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
   return {
     username: uname,
     name: opts?.name,
-    email: `${uname}@example.com`,
+    email: opts?.email ?? `${uname}@example.com`,
     password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
@@ -556,6 +556,8 @@ export async function apiLogin(
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
   await page.locator("div > .ml-auto").first().click();
+  await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+  await page.getByTestId("select-option-usd").click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
 }

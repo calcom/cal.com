@@ -1,5 +1,7 @@
 import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 
@@ -8,6 +10,7 @@ import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
@@ -115,23 +118,40 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 )}
                 {webhooks.length ? (
                   <>
-                    <div className="mb-2 rounded-md border">
-                      {webhooks.map((webhook, index) => {
-                        return (
-                          <WebhookListItem
-                            key={webhook.id}
-                            webhook={webhook}
-                            lastItem={webhooks.length === index + 1}
-                            canEditWebhook={!webhookLockedStatus.disabled}
-                            onEditWebhook={() => {
-                              setEditModalOpen(true);
-                              setWebhookToEdit(webhook);
-                            }}
-                          />
-                        );
-                      })}
+                    <div className="border-subtle mb-2 rounded-md border p-8">
+                      <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
+                      <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
+                        {t("add_webhook_description", { appName: APP_NAME })}
+                      </p>
+
+                      <div className="border-subtle mt-8 rounded-md border">
+                        {webhooks.map((webhook, index) => {
+                          return (
+                            <WebhookListItem
+                              key={webhook.id}
+                              webhook={webhook}
+                              lastItem={webhooks.length === index + 1}
+                              canEditWebhook={!webhookLockedStatus.disabled}
+                              onEditWebhook={() => {
+                                setEditModalOpen(true);
+                                setWebhookToEdit(webhook);
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      <p className="text-default mt-8 text-sm font-normal">
+                        <Trans i18nKey="edit_or_manage_webhooks">
+                          If you wish to edit or manage your web hooks, please head over to &nbsp;
+                          <Link
+                            className="cursor-pointer font-semibold underline"
+                            href="/settings/developer/webhooks">
+                            webhooks settings
+                          </Link>
+                        </Trans>
+                      </p>
                     </div>
-                    <NewWebhookButton />
                   </>
                 ) : (
                   <EmptyScreen
