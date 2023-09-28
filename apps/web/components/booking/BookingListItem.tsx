@@ -1,4 +1,3 @@
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -58,7 +57,6 @@ function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useContext();
-  const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
@@ -266,7 +264,7 @@ function BookingListItem(booking: BookingItemProps) {
       allRemainingBookings: isTabRecurring.toString(),
     });
     if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
-    router.push(`/booking/${booking.uid}?${urlSearchParams.toString()}`);
+    window.open(`/booking/${booking.uid}?${urlSearchParams.toString()}`, "_blank");
   };
 
   const title = booking.title;
@@ -340,6 +338,7 @@ function BookingListItem(booking: BookingItemProps) {
 
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
         <td
+          role="a"
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
           <div className="cursor-pointer py-4">
