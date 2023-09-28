@@ -37,7 +37,7 @@ function SettingsToggle({
   switchContainerClassName,
   ...rest
 }: Props) {
-  const animateRef = useAutoAnimate<HTMLDivElement>();
+  const [animateRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
     <>
