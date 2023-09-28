@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "Cal AI is a scheduling assistant powered by GPT. Email hi@cal.ai to chat with your calendar or book, edit and cancel meetings"
+  "description": "Cal.ai is a scheduling assistant powered by GPT. Email hi@cal.ai to chat with your calendar or book, edit and cancel meetings"
 }

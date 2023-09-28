@@ -18,7 +18,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const caller = viewerRouter.createCaller(ctx);
 
   const apiKey = await caller.apiKeys.create({
-    note: "Cal AI",
+    note: "Cal.ai",
     expiresAt: null,
     appId: "cal-ai",
   });
