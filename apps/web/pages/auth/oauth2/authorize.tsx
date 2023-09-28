@@ -162,7 +162,9 @@ export default function Authorize() {
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
                 scopes,
-                teamSlug: selectedAccount?.value || "",
+                teamSlug: selectedAccount?.value.startsWith("team/")
+                  ? selectedAccount?.value.substring(5)
+                  : undefined, // team account starts with /team/<slug>
               });
             }}
             data-testid="allow-button">

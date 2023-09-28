@@ -35,8 +35,8 @@ export async function addSubscription({
     const createSubscription = await prisma.webhook.create({
       data: {
         id: v4(),
-        userId: userId,
-        teamId: teamId,
+        userId,
+        teamId,
         eventTriggers: [triggerEvent],
         subscriberUrl,
         active: true,

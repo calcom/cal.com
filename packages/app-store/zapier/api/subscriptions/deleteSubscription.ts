@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import isAuthorized from "@calcom/features/auth/lib/oAuthAuthorization";
-import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+
+import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
 const querySchema = z.object({
   apiKey: z.string(),
@@ -12,36 +12,13 @@ const querySchema = z.object({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { apiKey, id } = querySchema.parse(req.query);
+  const { id } = querySchema.parse(req.query);
 
-  const scopes = ["READ_BOOKING, READ_PROFILE"];
-
-  let validKey;
-
-  if (apiKey) {
-    validKey = await findValidApiKey(apiKey, "zapier");
-    if (!validKey) {
-      return res.status(401).json({ message: "API key not valid" });
-    }
-  }
-
-  let authorizedAccount: {
-    id: number;
-    name: string | null;
-    isTeam: boolean;
-  } | null = null;
-
-  if (!apiKey) {
-    authorizedAccount = await isAuthorized(req, scopes);
-  }
-
-  if (!authorizedAccount && !validKey) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  const { account, appApiKey } = await validateAccountOrApiKey(req, ["READ_BOOKING", "READ_PROFILE"]);
 
   const deleteEventSubscription = await deleteSubscription({
-    appApiKey: validKey,
-    account: authorizedAccount,
+    appApiKey,
+    account,
     webhookId: id,
     appId: "zapier",
   });

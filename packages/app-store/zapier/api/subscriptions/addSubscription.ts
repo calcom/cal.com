@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { validateAccountOrApiKey } from "zapier/lib/validateAccountOrApiKey";
 
 import { addSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+
+import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { subscriberUrl, triggerEvent } = req.body;
