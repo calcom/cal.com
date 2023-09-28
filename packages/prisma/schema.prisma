@@ -223,6 +223,9 @@ model User {
   // participate in SEO indexing or not
   allowSEOIndexing Boolean? @default(true)
 
+  // receive monthly digest email for teams or not
+  receiveMonthlyDigestEmail Boolean? @default(true)
+
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)

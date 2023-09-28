@@ -1,0 +1,33 @@
+name: Cron - monthlyDigestEmail
+
+on:
+  # "Scheduled workflows run on the latest commit on the default or base branch."
+  # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
+  schedule:
+    # Runs on the 28th, 29th, 30th and 31st of every month (see https://crontab.guru)
+    - cron: "59 23 28-31 * *"
+jobs:
+  cron-monthlyDigestEmail:
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if today is the last day of the month
+        id: check-last-day
+        run: |
+          LAST_DAY=$(date -d tomorrow +%d)
+          if [ "$LAST_DAY" == "01" ]; then
+            echo "::set-output name=is_last_day::true"
+          else
+            echo "::set-output name=is_last_day::false"
+          fi
+
+      - name: cURL request
+        if: ${{ env.APP_URL && env.CRON_API_KEY && steps.check-last-day.outputs.is_last_day == 'true' }}
+        run: |
+          curl ${{ secrets.APP_URL }}/api/cron/monthlyDigestEmail \
+            -X POST \
+            -H 'content-type: application/json' \
+            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            --fail
