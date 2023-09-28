@@ -76,6 +76,7 @@ export const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
+          className="max-w-min"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>

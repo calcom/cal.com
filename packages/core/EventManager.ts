@@ -119,8 +119,9 @@ export default class EventManager {
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
-    const [mainHostDestinationCalendar] = evt.destinationCalendar ?? [];
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar.integration !== "google_calendar") {
+    const [mainHostDestinationCalendar] =
+      (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
