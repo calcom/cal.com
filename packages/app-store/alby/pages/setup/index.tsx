@@ -15,6 +15,8 @@ import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 export interface IAlbySetupProps {
   email: string | null;
   lightningAddress: string | null;
+  clientId: string;
+  clientSecret: string;
 }
 
 export default function AlbySetup(props: IAlbySetupProps) {
@@ -80,13 +82,9 @@ function AlbySetupPage(props: IAlbySetupProps) {
   });
 
   const connectWithAlby = useCallback(async () => {
-    if (!process.env.NEXT_PUBLIC_ALBY_CLIENT_ID || !process.env.NEXT_PUBLIC_ALBY_CLIENT_SECRET) {
-      throw new Error("Alby .env configuration missing");
-    }
-
     const authClient = new auth.OAuth2User({
-      client_id: process.env.NEXT_PUBLIC_ALBY_CLIENT_ID,
-      client_secret: process.env.NEXT_PUBLIC_ALBY_CLIENT_SECRET,
+      client_id: props.clientId,
+      client_secret: props.clientSecret,
       callback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/alby/setup?callback=true`,
       scopes: ["invoices:read", "account:read"],
       user_agent: "cal.com",
@@ -116,7 +114,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
         webhook_endpoint_secret: webhookEndpoint.endpoint_secret,
       }),
     });
-  }, [credentialId, saveKeysMutation]);
+  }, [credentialId, props.clientId, props.clientSecret, saveKeysMutation]);
 
   if (integrations.isLoading) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;

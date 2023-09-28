@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
+import { getAlbyKeys } from "../../lib/getAlbyKeys";
 import type { IAlbySetupProps } from "./index";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -21,9 +22,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
+  const { client_id: clientId, client_secret: clientSecret } = await getAlbyKeys();
+
   const props: IAlbySetupProps = {
     email: null,
     lightningAddress: null,
+    clientId,
+    clientSecret,
   };
   if (credentials?.key) {
     const { account_lightning_address, account_email } = credentials.key as {
