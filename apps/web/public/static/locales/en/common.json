@@ -255,7 +255,7 @@
   "yours": "Your account",
   "available_apps": "Available Apps",
   "available_apps_lower_case": "Available apps",
-  "available_apps_desc": "You have no apps installed. View popular apps below and explore more in our <1>App Store</1>",
+  "available_apps_desc": "View popular apps below and explore more in our <1>App Store</1>",
   "fixed_host_helper": "Add anyone who needs to attend the event. <1>Learn more</1>",
   "round_robin_helper":"People in the group take turns and only one person will show up for the event.",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",

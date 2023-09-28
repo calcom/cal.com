@@ -1,6 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
 
+import { classNames } from "@calcom/lib";
+
 import { Label } from "..";
 import Switch from "./Switch";
 
@@ -11,9 +13,13 @@ type Props = {
   checked: boolean;
   disabled?: boolean;
   LockedIcon?: React.ReactNode;
+  Badge?: React.ReactNode;
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
   tooltip?: string;
+  toggleSwitchAtTheEnd?: boolean;
+  childrenClassName?: string;
+  switchContainerClassName?: string;
 };
 
 function SettingsToggle({
@@ -21,10 +27,14 @@ function SettingsToggle({
   onCheckedChange,
   description,
   LockedIcon,
+  Badge,
   title,
   children,
   disabled,
   tooltip,
+  toggleSwitchAtTheEnd = false,
+  childrenClassName,
+  switchContainerClassName,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -33,27 +43,52 @@ function SettingsToggle({
     <>
       <div className="flex w-full flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
         <fieldset className="block w-full flex-col sm:flex">
-          <div className="flex space-x-3">
-            <Switch
-              data-testid={rest["data-testid"]}
-              fitToHeight={true}
-              checked={checked}
-              onCheckedChange={onCheckedChange}
-              disabled={disabled}
-              tooltip={tooltip}
-            />
-
-            <div>
-              <Label className="text-emphasis text-sm font-semibold leading-none">
-                {title}
-                {LockedIcon}
-              </Label>
-              {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
+          {toggleSwitchAtTheEnd ? (
+            <div className={classNames("flex justify-between space-x-3", switchContainerClassName)}>
+              <div>
+                <div className="flex items-center">
+                  <Label className="text-emphasis text-base font-semibold leading-none">
+                    {title}
+                    {LockedIcon}
+                  </Label>
+                  {Badge}
+                </div>
+                {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
+              </div>
+              <div className="my-auto h-full">
+                <Switch
+                  data-testid={rest["data-testid"]}
+                  fitToHeight={true}
+                  checked={checked}
+                  onCheckedChange={onCheckedChange}
+                  disabled={disabled}
+                  tooltip={tooltip}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex space-x-3">
+              <Switch
+                data-testid={rest["data-testid"]}
+                fitToHeight={true}
+                checked={checked}
+                onCheckedChange={onCheckedChange}
+                disabled={disabled}
+                tooltip={tooltip}
+              />
+
+              <div>
+                <Label className="text-emphasis text-sm font-semibold leading-none">
+                  {title}
+                  {LockedIcon}
+                </Label>
+                {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
+              </div>
+            </div>
+          )}
           {children && (
-            <div className="lg:ml-14" ref={animateRef}>
-              {checked && <div className="mt-4">{children}</div>}
+            <div className={classNames("lg:ml-14", childrenClassName)} ref={animateRef}>
+              {checked && <div className={classNames(!toggleSwitchAtTheEnd && "mt-4")}>{children}</div>}
             </div>
           )}
         </fieldset>
