@@ -4,6 +4,7 @@ import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { subtract } from "@calcom/lib/date-ranges";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -177,12 +178,12 @@ export async function getBusyTimes(params: {
     []
   );
 
-  logger.silly(
+  logger.debug(
     `Busy Time from Cal Bookings ${JSON.stringify({
       busyTimes,
-      currentBookings: params.currentBookings,
-      matchedBookings,
-      credentialsLength: credentials?.length,
+      currentBookings: params.currentBookings?.map((booking) => getPiiFreeBooking(booking)),
+      matchedBookings: matchedBookings.map((booking) => getPiiFreeBooking(booking)),
+      numCredentials: credentials?.length,
     })}`
   );
   performance.mark("prismaBookingGetEnd");
@@ -249,7 +250,8 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
-  logger.silly(
+  logger.debug(
+    "getBusyTimes:",
     JSON.stringify({
       allBusyTimes: busyTimes,
     })

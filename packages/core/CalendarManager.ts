@@ -7,6 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
@@ -224,11 +225,11 @@ export const createEvent = async (
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
+
   log.debug(
-    "creating calendar event",
+    "Creating calendar event",
     JSON.stringify({
-      externalId,
-      calEvent,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
     })
   );
   // Check if the disabledNotes flag is set to true
@@ -289,13 +290,16 @@ export const updateEvent = async (
   log.debug(
     "Updating calendar event",
     JSON.stringify({
-      externalCalendarId,
       bookingRefUid,
-      calEvent,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
     })
   );
   if (bookingRefUid === "") {
-    log.error("updateEvent failed", "bookingRefUid is empty", JSON.stringify({ calEvent, credential }));
+    log.error(
+      "updateEvent failed",
+      "bookingRefUid is empty",
+      JSON.stringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
@@ -309,7 +313,10 @@ export const updateEvent = async (
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error("updateEvent failed", JSON.stringify({ e, calEvent }));
+            log.error(
+              "updateEvent failed",
+              JSON.stringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            );
             if (e?.calError) {
               calError = e.calError;
             }

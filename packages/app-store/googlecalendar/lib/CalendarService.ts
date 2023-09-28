@@ -298,7 +298,10 @@ export default class GoogleCalendarService implements Calendar {
         conferenceDataVersion: 1,
       });
 
-      this.log.debug("Updated event: ", JSON.stringify(evt?.data));
+      this.log.debug("Updated Google Calendar Event", {
+        startTime: evt?.data.start,
+        endTime: evt?.data.end,
+      });
 
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
         calendar.events.patch({

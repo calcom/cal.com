@@ -375,7 +375,7 @@ async function ensureAvailableUsers(
       )
     : undefined;
 
-  log.silly("getUserAvailability for users", JSON.stringify({ users: eventType.users.map((u) => u.id) }));
+  log.debug("getUserAvailability for users", JSON.stringify({ users: eventType.users.map((u) => u.id) }));
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
@@ -392,7 +392,7 @@ async function ensureAvailableUsers(
       }
     );
 
-    log.silly(
+    log.debug(
       "calendarBusyTimes==>>>",
       JSON.stringify({ bufferedBusyTimes, dateRanges, isRecurringEvent: eventType.recurringEvent })
     );
@@ -690,8 +690,8 @@ async function handler(
     logger.setSettings({ minLevel: "silly" });
   }
 
-  loggerWithEventDetails.silly(
-    "handleNewBooking",
+  loggerWithEventDetails.debug(
+    "handleNewBooking called",
     JSON.stringify({
       eventTypeId,
       eventTypeSlug,
@@ -1387,7 +1387,10 @@ async function handler(
               errorCode: "BookingReschedulingMeetingFailed",
               message: "Booking Rescheduling failed",
             };
-            loggerWithEventDetails.error(`Booking ${organizerUser.name} failed`, error, results);
+            loggerWithEventDetails.error(
+              `Booking ${organizerUser.name} failed`,
+              JSON.stringify({ error, results })
+            );
           } else {
             const metadata: AdditionalInformation = {};
             if (results.length) {
@@ -1781,7 +1784,7 @@ async function handler(
         eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
-      loggerWithEventDetails.error("Error while scheduling workflow reminders", error);
+      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData = {
@@ -2082,7 +2085,10 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       await cancelWorkflowReminders(originalRescheduledBooking.workflowReminders);
     } catch (error) {
-      loggerWithEventDetails.error("Error while canceling scheduled workflow reminders", error);
+      loggerWithEventDetails.error(
+        "Error while canceling scheduled workflow reminders",
+        JSON.stringify({ error })
+      );
     }
 
     // Use EventManager to conditionally use all needed integrations.
