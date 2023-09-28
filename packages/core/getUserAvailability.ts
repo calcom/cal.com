@@ -52,7 +52,14 @@ const getEventType = async (id: number) => {
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              days: true,
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
           timeZone: true,
         },
       },
