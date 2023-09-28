@@ -1993,6 +1993,8 @@
   "add_to_team": "הוספה לצוות",
   "remove_users_from_org": "הסרת משתמשים מהארגון",
   "remove_users_from_org_confirm": "בטוח שברצונך להסיר {{userCount}} משתמשים מהארגון הזה?",
+  "user_isnt_in_any_teams": "משתמש זה לא שייך לאף צוות",
+  "requires_booker_email_verification": "מחייב אימות של כתובת הדוא\"ל של המזמין",
   "organizations": "ארגונים",
   "org_admin_other_teams": "צוותים אחרים",
   "attendee_first_name_variable": "השם הפרטי של המשתתף",
