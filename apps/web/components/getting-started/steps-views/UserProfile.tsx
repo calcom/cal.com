@@ -55,7 +55,7 @@ const UserProfile = () => {
         }
 
         await utils.viewer.me.refetch();
-        router.push(`/${user?.username}}`);
+        router.push(`/${user?.username}`);
       }
     },
     onError: () => {

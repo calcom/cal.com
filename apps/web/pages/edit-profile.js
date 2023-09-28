@@ -8,6 +8,9 @@ import React, { useEffect, useState } from "react";
 import { Linkedin } from "react-bootstrap-icons";
 import toast from "react-hot-toast";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import prisma from "@calcom/prisma";
+
 import { defaultProfile } from "@lib/firebase/constants";
 import { addProfile, uploadPhoto, logOut, getProfile } from "@lib/firebase/utils";
 
@@ -27,9 +30,12 @@ import ProjectsSection from "@components/edit-profile/Account/ProjectsSection";
 import PublicationsSection from "@components/edit-profile/Account/PublicationsSection";
 import VideosSection from "@components/edit-profile/Account/VideosSection";
 
+import { ssrInit } from "@server/lib/ssr";
+
 import { Container } from "../ui";
 
-const EditProfile = () => {
+const EditProfile = (props) => {
+  console.log("user", JSON.parse(props.user));
   // const router = useRouter();
   const { user } = useAuthContext();
   const [isLoading, setIsLoading] = useState(true);
@@ -497,6 +503,40 @@ const EditProfile = () => {
       )}
     </main>
   );
+};
+
+export const getServerSideProps = async (context) => {
+  const { req, res } = context;
+
+  const session = await getServerSession({ req, res });
+
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  const ssr = await ssrInit(context);
+
+  await ssr.viewer.me.prefetch();
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+  });
+
+  if (!user) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  // if (!user.completedOnboarding) {
+  //   return { redirect: { permanent: false, destination: "/event-types" } };
+  // }
+
+  return {
+    props: {
+      user: JSON.stringify(user),
+    },
+  };
 };
 
 EditProfile.PageWrapper = PageWrapper;

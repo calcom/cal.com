@@ -14,12 +14,12 @@ import { ArrowRight, X, Plus } from "@calcom/ui/components/icon";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-interface IUserSettingsProps {
-  nextStep: () => void;
-  hideUsername?: boolean;
-}
+// interface IUserSettingsProps {
+//   nextStep: () => void;
+//   hideUsername?: boolean;
+// }
 
-const UserSettings = (props: IUserSettingsProps) => {
+const UserSettings = (props) => {
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
@@ -41,10 +41,10 @@ const UserSettings = (props: IUserSettingsProps) => {
     control,
     setError,
     formState: { errors },
-  } = useForm<z.infer<typeof userSettingsSchema>>({
+  } = useForm({
     defaultValues: {
       name: user?.name || "",
-      advises: user?.advises || [" "],
+      advises: [" "],
     },
     reValidateMode: "onChange",
     resolver: zodResolver(userSettingsSchema),
