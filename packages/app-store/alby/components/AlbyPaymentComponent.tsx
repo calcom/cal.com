@@ -139,7 +139,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
           bookingUid: props.booking.uid,
         });
 
-        if (bookingResult.paid) {
+        if (bookingResult?.paid) {
           showToast("Payment successful", "success");
 
           const params: {
