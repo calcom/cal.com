@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect } from "@playwright/test";
 
+import { IS_PRODUCTION, IS_SELF_HOSTED } from "@calcom/lib/constants";
+
 import { test } from "./lib/fixtures";
 import { installGoogleCalendar } from "./lib/testUtils";
 
@@ -22,7 +24,7 @@ test.afterEach(async ({ users, page }) => {
 
 test.describe("Google Calendar", () => {
   // eslint-disable-next-line playwright/no-skipped-test
-  // test.skip(IS_SELF_HOSTED, "Skipping for SELF HOSTED");
+  test.skip(IS_SELF_HOSTED && IS_PRODUCTION, "Skipping for Self Hosted in Production");
   expect(SHOULD_FAIL_TESTS).toBeFalsy();
 
   test("Should be able to install and login on Google Calendar", async ({ page, users }) => {
