@@ -16,18 +16,27 @@ export async function addSubscription({
   triggerEvent,
   subscriberUrl,
   appId,
+  account,
 }: {
-  appApiKey: ApiKey;
+  appApiKey?: ApiKey;
   triggerEvent: WebhookTriggerEvents;
   subscriberUrl: string;
   appId: string;
+  account?: {
+    id: number;
+    name: string | null;
+    isTeam: boolean;
+  } | null;
 }) {
   try {
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
     const createSubscription = await prisma.webhook.create({
       data: {
         id: v4(),
-        userId: appApiKey.userId,
-        teamId: appApiKey.teamId,
+        userId,
+        teamId,
         eventTriggers: [triggerEvent],
         subscriberUrl,
         active: true,
@@ -38,8 +47,11 @@ export async function addSubscription({
     if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};
-      if (appApiKey.teamId) where.eventType = { teamId: appApiKey.teamId };
-      else where.userId = appApiKey.userId;
+      if (teamId) {
+        where.eventType = { teamId };
+      } else {
+        where.userId = userId;
+      }
       const bookings = await prisma.booking.findMany({
         where: {
           ...where,
@@ -60,7 +72,10 @@ export async function addSubscription({
 
     return createSubscription;
   } catch (error) {
-    log.error(`Error creating subscription for user ${appApiKey.userId} and appId ${appApiKey.appId}.`);
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
+    log.error(`Error creating subscription for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
   }
 }
 
@@ -68,10 +83,16 @@ export async function deleteSubscription({
   appApiKey,
   webhookId,
   appId,
+  account,
 }: {
-  appApiKey: ApiKey;
+  appApiKey?: ApiKey;
   webhookId: string;
   appId: string;
+  account?: {
+    id: number;
+    name: string | null;
+    isTeam: boolean;
+  } | null;
 }) {
   try {
     const webhook = await prisma.webhook.findFirst({
@@ -82,8 +103,21 @@ export async function deleteSubscription({
 
     if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
       const where: Prisma.BookingWhereInput = {};
-      if (appApiKey.teamId) where.eventType = { teamId: appApiKey.teamId };
-      else where.userId = appApiKey.userId;
+
+      if (appApiKey) {
+        if (appApiKey.teamId) {
+          where.eventType = { teamId: appApiKey.teamId };
+        } else {
+          where.userId = appApiKey.userId;
+        }
+      } else if (account) {
+        if (account.isTeam) {
+          where.eventType = { teamId: account.id };
+        } else {
+          where.userId = account.id;
+        }
+      }
+
       const bookingsWithScheduledJobs = await prisma.booking.findMany({
         where: {
           ...where,
@@ -117,22 +151,48 @@ export async function deleteSubscription({
     }
     return deleteWebhook;
   } catch (err) {
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
     log.error(
-      `Error deleting subscription for user ${appApiKey.userId}, webhookId ${webhookId}, appId ${appId}`
+      `Error deleting subscription for user ${
+        teamId ? `team ${teamId}` : `userId ${userId}`
+      }, webhookId ${webhookId}`
     );
   }
 }
 
-export async function listBookings(appApiKey: ApiKey) {
+export async function listBookings(
+  appApiKey?: ApiKey,
+  account?: {
+    id: number;
+    name: string | null;
+    isTeam: boolean;
+  } | null
+) {
   try {
     const where: Prisma.BookingWhereInput = {};
-    if (appApiKey.teamId) {
-      where.eventType = {
-        OR: [{ teamId: appApiKey.teamId }, { parent: { teamId: appApiKey.teamId } }],
-      };
-    } else {
-      where.userId = appApiKey.userId;
+    if (appApiKey) {
+      if (appApiKey.teamId) {
+        where.eventType = {
+          OR: [{ teamId: appApiKey.teamId }, { parent: { teamId: appApiKey.teamId } }],
+        };
+      } else {
+        where.userId = appApiKey.userId;
+      }
+    } else if (account) {
+      if (!account.isTeam) {
+        where.userId = account.id;
+        where.eventType = {
+          teamId: null,
+        };
+      } else {
+        where.eventType = {
+          teamId: account.id,
+        };
+      }
     }
+
     const bookings = await prisma.booking.findMany({
       take: 3,
       where: where,
@@ -197,7 +257,10 @@ export async function listBookings(appApiKey: ApiKey) {
 
     return updatedBookings;
   } catch (err) {
-    log.error(`Error retrieving list of bookings for user ${appApiKey.userId} and appId ${appApiKey.appId}.`);
+    const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+    const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
+    log.error(`Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
   }
 }
 
