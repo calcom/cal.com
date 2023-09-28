@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Form } from "@calcom/ui";
+import { Button, Form, Label } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 interface ISetupAvailabilityProps {
@@ -69,7 +69,10 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           }
         }
       }}>
-      <Schedule control={availabilityForm.control} name="schedule" weekStart={1} />
+      <div>
+        <Label>Setup your availibility</Label>
+        <Schedule control={availabilityForm.control} name="schedule" weekStart={1} />
+      </div>
 
       <div>
         <Button

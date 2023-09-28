@@ -9,8 +9,10 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, showToast, Select } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
+
+import { chargeOptions } from "@lib/firebase/constants";
 
 type FormData = {
   bio: string;
@@ -23,6 +25,8 @@ const UserProfile = () => {
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
+
+  console.log("user", user);
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
@@ -51,11 +55,7 @@ const UserProfile = () => {
         }
 
         await utils.viewer.me.refetch();
-        router.push(
-          process.env.NODE_ENV === "production"
-            ? "https://borg.id/auth/login"
-            : "http://localhost:3001/auth/login"
-        );
+        router.push(`/${user?.username}}`);
       }
     },
     onError: () => {
@@ -154,6 +154,29 @@ const UserProfile = () => {
         />
         <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
           {t("few_sentences_about_yourself")}
+        </p>
+      </fieldset>
+      <fieldset className="mb-3">
+        <Label className="mb-2 mt-8">Add your call charges</Label>
+        <Select
+          required
+          isSearchable={false}
+          className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+          // defaultValue={durationTypeOptions.find(
+          //   (option) => option.value === minimumBookingNoticeDisplayValues.type
+          // )}
+          // onChange={(input) => {
+          //   if (input) {
+          //     setMinimumBookingNoticeDisplayValues({
+          //       ...minimumBookingNoticeDisplayValues,
+          //       type: input.value,
+          //     });
+          //   }
+          // }}
+          options={chargeOptions?.map((item) => ({ label: `$${item.value}`, value: item.priceIdProd }))}
+        />
+        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
+          Select the amount you want to charge per call
         </p>
       </fieldset>
       <Button

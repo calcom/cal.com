@@ -1,3 +1,4 @@
+import { Button } from "@shadcdn/ui";
 import RichContentParser from "@ui/fayaz/RichContentParser";
 import insertNonBreakingSpaces from "@ui/utilities/insert-non-breaking-spaces";
 import BioLink from "@ui/valery/bio-link";
@@ -18,7 +19,7 @@ import Link from "next/link";
 import { CalendarPlus } from "react-bootstrap-icons";
 import { titleCase } from "title-case";
 
-import { Button, Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -257,10 +258,7 @@ const ProfilePage = ({ profileData }) => {
         <div className="flex items-center gap-2">
           {isLoggedInUser ? (
             <Button variant="outline" size="sm" asChild>
-              <Link href="/account">
-                {/* <Pencil className="mr-2" /> */}
-                Edit profile
-              </Link>
+              <Link href="/edit-profile">Edit profile</Link>
             </Button>
           ) : (
             ""
