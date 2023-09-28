@@ -269,7 +269,6 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                     color="primary"
                     loading={sessionMutation.isLoading}
                     onClick={() => {
-                      console.log("METADATA", metadata);
                       sessionMutation.mutate({
                         metadata: { ...metadata, sessionTimeout },
                       });
