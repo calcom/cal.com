@@ -26,11 +26,11 @@ import {
   DialogFooter,
   MeetingTimeInTimezones,
   showToast,
+  Tooltip,
   TableActions,
   TextAreaField,
-  Tooltip,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -74,10 +74,8 @@ function BookingListItem(booking: BookingItemProps) {
       }
       utils.viewer.bookings.invalidate();
     },
-    onError: (e) => {
-      let message = t("booking_confirmation_failed");
-      if ("message" in e) message = e.message;
-      showToast(message, "error");
+    onError: () => {
+      showToast(t("booking_confirmation_failed"), "error");
       utils.viewer.bookings.invalidate();
     },
   });
