@@ -6,6 +6,7 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
@@ -95,7 +96,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
-    console.error("createMeeting failed", err, calEvent);
+    log.error("createMeeting failed", JSON.stringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
 
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
