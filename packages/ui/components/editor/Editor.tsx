@@ -69,7 +69,6 @@ export const Editor = (props: TextEditorProps) => {
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 focus-within:ring-2">
-        
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
