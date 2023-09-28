@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Sim, eliminar",
   "delete_account": "Eliminar conta",
   "confirm_delete_account": "Sim, eliminar conta",
-  "delete_account_confirmation_message": "De certeza que quer eliminar a sua conta {{appName}}? Qualquer pessoa com quem tenha partilhado esta ligação de equipa deixará de poder fazer reservas através da respetiva ligação, e quaisquer preferências que tenha guardado serão perdidas.",
+  "delete_account_confirmation_message": "Qualquer pessoa com quem tenha partilhado esta ligação de equipa deixará de poder fazer reservas através da respetiva ligação, e quaisquer preferências que tenha guardado serão perdidas.",
   "integrations": "Integrações",
   "apps": "Aplicações",
   "apps_description": "Aqui pode encontrar uma lista das suas apps",
