@@ -2059,5 +2059,6 @@
   "edit_users_availability":"Edit user's availability: {{username}}",
   "resend_invitation": "Resend invitation",
   "invitation_resent": "The invitation was resent.",
+  "this_app_is_not_setup_already": "This app has not been setup yet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
