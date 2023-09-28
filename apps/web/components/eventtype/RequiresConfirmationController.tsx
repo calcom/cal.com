@@ -147,7 +147,7 @@ export default function RequiresConfirmationController({
                                           val
                                         );
                                       }}
-                                      className="border-default !m-0 block w-16 rounded-md text-sm [appearance:textfield]"
+                                      className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield]"
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                     />
                                     <label
@@ -159,7 +159,7 @@ export default function RequiresConfirmationController({
                                         options={options}
                                         isSearchable={false}
                                         isDisabled={requiresConfirmationLockedProps.disabled}
-                                        className="ml-2"
+                                        innerClassNames={{ control: "rounded-l-none bg-subtle" }}
                                         onChange={(opt) => {
                                           setRequiresConfirmationSetup({
                                             time:

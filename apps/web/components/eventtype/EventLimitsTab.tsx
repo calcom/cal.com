@@ -17,7 +17,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
-import { Plus, Trash } from "@calcom/ui/components/icon";
+import { Plus, Trash2 } from "@calcom/ui/components/icon";
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
@@ -83,14 +83,14 @@ const MinimumBookingNoticeInput = React.forwardRef<
           type="number"
           placeholder="0"
           min={0}
-          className="mb-0 h-[38px] rounded-[4px] ltr:mr-2 rtl:ml-2"
+          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
       </div>
       <Select
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
-        className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
         )}
@@ -479,7 +479,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
-        switchContainerClassName="border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6"
+        switchContainerClassName={classNames(
+          "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+          offsetToggle && "rounded-b-none"
+        )}
         childrenClassName="lg:ml-0"
         title={t("offset_toggle")}
         description={t("offset_toggle_description")}
@@ -544,19 +547,19 @@ const IntervalLimitItem = ({
   onIntervalSelect,
 }: IntervalLimitItemProps) => {
   return (
-    <div className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
+    <div className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
       <TextField
         required
         type="number"
         containerClassName={textFieldSuffix ? "w-44 -mb-1" : "w-16 mb-0"}
-        className="mb-0 !h-auto"
+        className="mb-0"
         placeholder={`${value}`}
         disabled={disabled}
         min={step}
         step={step}
         defaultValue={value}
         addOnSuffix={textFieldSuffix}
-        onChange={(e) => onLimitChange(limitKey, parseInt(e.target.value))}
+        onChange={(e) => onLimitChange(limitKey, parseInt(e.target.value || "0", 10))}
       />
       <Select
         options={selectOptions}
@@ -564,9 +567,16 @@ const IntervalLimitItem = ({
         isDisabled={disabled}
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
+        className="w-36"
       />
       {hasDeleteButton && !disabled && (
-        <Button variant="icon" StartIcon={Trash} color="destructive" onClick={() => onDelete(limitKey)} />
+        <Button
+          variant="icon"
+          StartIcon={Trash2}
+          color="destructive"
+          className="border-none"
+          onClick={() => onDelete(limitKey)}
+        />
       )}
     </div>
   );

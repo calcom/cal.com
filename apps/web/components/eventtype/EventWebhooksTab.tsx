@@ -144,7 +144,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       <p className="text-default mt-8 text-sm font-normal">
                         <Trans i18nKey="edit_or_manage_webhooks">
                           If you wish to edit or manage your web hooks, please head over to &nbsp;
-                          <Link className="cursor-pointer font-semibold underline" href="/apps">
+                          <Link
+                            className="cursor-pointer font-semibold underline"
+                            href="/settings/developer/webhooks">
                             webhooks settings
                           </Link>
                         </Trans>

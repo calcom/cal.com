@@ -34,7 +34,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui";
-import { Copy, Edit } from "@calcom/ui/components/icon";
+import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -134,7 +134,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
           <div className="flex flex-col">
             <div className="flex justify-between">
-              <Label>{t("add_to_calendar")}</Label>
+              <Label className="font-medium">{t("add_to_calendar")}</Label>
               <Link
                 href="/apps/categories/calendar"
                 target="_blank"
@@ -157,7 +157,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 )}
               />
             </div>
-            <p className="text-default text-sm">{t("select_which_cal")}</p>
+            <p className="text-subtle text-sm">{t("select_which_cal")}</p>
           </div>
         )}
         <div className="w-full">
@@ -295,6 +295,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         childrenClassName="lg:ml-0"
         data-testid="hashedLinkCheck"
         title={t("private_link")}
+        Badge={<Info className="mb-2 ml-1.5 h-4 w-4 cursor-pointer" />}
         {...shouldLockDisableProps("hashedLinkCheck")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
