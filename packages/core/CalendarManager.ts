@@ -7,6 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
@@ -225,6 +226,12 @@ export const createEvent = async (
   let success = true;
   let calError: string | undefined = undefined;
 
+  log.debug(
+    "Creating calendar event",
+    JSON.stringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
@@ -280,9 +287,19 @@ export const updateEvent = async (
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
-
+  log.debug(
+    "Updating calendar event",
+    JSON.stringify({
+      bookingRefUid,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   if (bookingRefUid === "") {
-    log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
+    log.error(
+      "updateEvent failed",
+      "bookingRefUid is empty",
+      JSON.stringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
@@ -296,7 +313,10 @@ export const updateEvent = async (
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error("updateEvent failed", e, calEvent);
+            log.error(
+              "updateEvent failed",
+              JSON.stringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            );
             if (e?.calError) {
               calError = e.calError;
             }

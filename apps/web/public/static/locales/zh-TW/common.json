@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "是，刪除",
   "delete_account": "刪除帳號",
   "confirm_delete_account": "是，刪除帳號",
-  "delete_account_confirmation_message": "確定要刪除 {{appName}} 的帳號？任何分享過帳號連結的人再也無法以此進行預約，而且任何儲存過的偏好設定都會消失。",
+  "delete_account_confirmation_message": "任何分享過帳號連結的人再也無法以此進行預約，而且任何儲存過的偏好設定都會消失。",
   "integrations": "整合",
   "apps": "應用程式",
   "apps_description": "您可以在這裡找到應用程式清單",
