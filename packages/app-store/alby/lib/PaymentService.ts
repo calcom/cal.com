@@ -92,16 +92,16 @@ export class PaymentService implements IAbstractPaymentService {
   }
 
   async collectCard(
-    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: number,
+    _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
+    _bookingId: number,
     _bookerEmail: string,
-    paymentOption: PaymentOption
+    _paymentOption: PaymentOption
   ): Promise<Payment> {
     throw new Error("Method not implemented");
   }
   chargeCard(
-    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: number
+    _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
+    _bookingId: number
   ): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
@@ -112,18 +112,18 @@ export class PaymentService implements IAbstractPaymentService {
     throw new Error("Method not implemented.");
   }
   afterPayment(
-    event: CalendarEvent,
-    booking: {
+    _event: CalendarEvent,
+    _booking: {
       user: { email: string | null; name: string | null; timeZone: string } | null;
       id: number;
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment
+    _paymentData: Payment
   ): Promise<void> {
     return Promise.resolve();
   }
-  deletePayment(paymentId: number): Promise<boolean> {
+  deletePayment(_paymentId: number): Promise<boolean> {
     return Promise.resolve(false);
   }
 
