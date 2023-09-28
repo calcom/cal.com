@@ -6,6 +6,6 @@ export const formatPrice = (price: number, currency: string | undefined, locale 
       return `${Intl.NumberFormat(locale, {
         style: "currency",
         currency: currency?.toUpperCase() || "USD",
-      }).format(price / 100.0)} ${currency.toUpperCase()}`;
+      }).format(price / 100.0)}`;
   }
 };

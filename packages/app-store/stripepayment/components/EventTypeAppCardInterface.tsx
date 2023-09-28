@@ -9,7 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
-import { convertToSmallestCurrencyUnit } from "../lib/currencyConversions";
+import {
+  convertToSmallestCurrencyUnit,
+  convertFromSmallestToPresentableCurrencyUnit,
+} from "../lib/currencyConversions";
 import { currencyOptions } from "../lib/currencyOptions";
 import type { appDataSchema } from "../zod";
 
@@ -22,8 +25,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const currency = getAppData("currency");
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
-      label: currencyOptions[0].label,
-      value: currencyOptions[0].value,
+      label: "",
+      value: "",
     }
   );
   const paymentOption = getAppData("paymentOption");
