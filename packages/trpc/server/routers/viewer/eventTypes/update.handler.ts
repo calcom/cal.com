@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -241,44 +240,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input.metadata?.apps?.stripe?.price) {
-    data.price = input.metadata?.apps?.stripe?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        appId: {
-          equals: "stripe",
-        },
-      },
-      select: {
-        appId: true,
-        key: true,
-      },
-    });
-
-    if (paymentCredential?.appId === "stripe") {
-      const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-      data.currency = default_currency;
-    }
+  /**
+   * Since you can have multiple payment apps we will honor the first one to save in eventType
+   * but the real detail will be inside app metadata, so with this you can have different prices in different apps
+   * So the price and currency inside eventType will be deprecated soon or just keep as reference.
+   */
+  if (input?.metadata?.apps?.stripe?.price || input?.metadata?.apps?.paypal?.price) {
+    data.price = input.metadata.apps.stripe?.price || input.metadata.apps.paypal?.price;
   }
 
-  if (input.metadata?.apps?.paypal?.price) {
-    data.price = input.metadata?.apps?.paypal?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        appId: {
-          equals: "paypal",
-        },
-      },
-      select: {
-        appId: true,
-        key: true,
-      },
-    });
-    if (paymentCredential?.appId === "paypal" && input.metadata?.apps?.paypal?.currency) {
-      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
-    }
+  if (input?.metadata?.apps?.stripe?.currency || input?.metadata?.apps?.paypal?.currency) {
+    data.currency = input.metadata.apps.stripe?.currency || input.metadata.apps.paypal?.currency;
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({

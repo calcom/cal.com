@@ -35,6 +35,7 @@ import {
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -732,6 +733,7 @@ async function handler(
         const users = await prisma.user.findMany({
           where: {
             username: { in: dynamicUserList },
+            organization: userOrgQuery(req.headers.host ? req.headers.host.replace(/^https?:\/\//, "") : ""),
           },
           select: {
             ...userSelect.select,
