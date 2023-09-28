@@ -295,7 +295,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         childrenClassName="lg:ml-0"
         data-testid="hashedLinkCheck"
         title={t("private_link")}
-        Badge={<Info className="mb-2 ml-1.5 h-4 w-4 cursor-pointer" />}
+        Badge={
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://cal.com/docs/core-features/event-types/single-use-private-links">
+            <Info className="mb-2 ml-1.5 h-4 w-4 cursor-pointer" />
+          </a>
+        }
         {...shouldLockDisableProps("hashedLinkCheck")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
