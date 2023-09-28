@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
-import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
+import type { Fixtures } from "./lib/fixtures";
 import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -154,5 +154,55 @@ test.describe("Stripe integration", () => {
     });
 
     todo("Payment should trigger a BOOKING_PAID webhook");
+  });
+
+  test.describe("Change stripe presented currency", () => {
+    test("Should be able to change currency", async ({ page, users }) => {
+      const user = await users.create();
+      const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+      await user.apiLogin();
+
+      await user.getPaymentCredential();
+
+      // Edit currency inside event type page
+      await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
+
+      // Enable Stripe
+      await page.locator("#event-type-form").getByRole("switch").click();
+
+      // Set price
+      await page.getByTestId("price-input-stripe").fill("200");
+
+      // Select currency in dropdown
+      await page.locator("div").filter({ hasText: "United States dollar (USD)" }).nth(1).click();
+      await page.locator("#react-select-2-input").fill("mexi");
+      await page.locator("#react-select-2-option-81").click();
+
+      await page.getByTestId("update-eventtype").click();
+
+      // Book event
+      await page.goto(`${user.username}/${eventType?.slug}`);
+
+      // Confirm MXN currency it's displayed use expect
+      await expect(await page.getByText("MX$200.00")).toBeVisible();
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      // Confirm again in book form page
+      await expect(await page.getByText("MX$200.00")).toBeVisible();
+
+      // --- fill form
+      await page.fill('[name="name"]', "Stripe Stripeson");
+      await page.fill('[name="email"]', "stripe@example.com");
+
+      // Confirm booking
+      await page.click('[data-testid="confirm-book-button"]');
+
+      // wait for url to be payment
+      await page.waitForURL("/payment/*");
+
+      // Confirm again in book form page
+      await expect(await page.getByText("MX$200.00")).toBeVisible();
+    });
   });
 });
