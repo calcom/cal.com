@@ -38,7 +38,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     if (!currency && requirePayment) {
       setAppData("currency", selectedCurrency.value);
     }
-  }, [currency, selectedCurrency, setAppData]);
+  }, [currency, selectedCurrency, setAppData, requirePayment]);
 
   return (
     <AppCard
