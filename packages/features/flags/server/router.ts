@@ -8,6 +8,7 @@ export const featureFlagRouter = router({
     const { prisma } = ctx;
     return prisma.feature.findMany({
       orderBy: { slug: "asc" },
+      cacheStrategy: { swr: 300, ttl: 300 },
     });
   }),
   map: publicProcedure.query(async ({ ctx }) => {

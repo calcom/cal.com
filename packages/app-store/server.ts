@@ -5,6 +5,7 @@ import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { defaultLocations } from "./locations";
 
@@ -62,13 +63,7 @@ export async function getLocationGroupedOptions(
       },
     },
     select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      teamId: true,
-      appId: true,
-      invalid: true,
+      ...credentialForCalendarServiceSelect,
       team: {
         select: {
           name: true,
