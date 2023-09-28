@@ -64,3 +64,8 @@ export function getSlugOrRequestedSlug(slug: string) {
     ],
   } satisfies Prisma.TeamWhereInput;
 }
+
+export function userOrgQuery(hostname: string, fallback?: string | string[]) {
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(hostname, fallback);
+  return isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null;
+}

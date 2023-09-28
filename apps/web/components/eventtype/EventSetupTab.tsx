@@ -387,178 +387,185 @@ export const EventSetupTab = (
 
   return (
     <div>
-      <div className="space-y-8">
-        <TextField
-          required
-          label={t("title")}
-          {...shouldLockDisableProps("title")}
-          defaultValue={eventType.title}
-          {...formMethods.register("title")}
-        />
-        <div>
-          <Label>
-            {t("description")}
-            {shouldLockIndicator("description")}
-          </Label>
-          <DescriptionEditor
-            description={eventType?.description}
-            editable={!descriptionLockedProps.disabled}
-          />
-        </div>
-        <TextField
-          required
-          label={t("URL")}
-          {...shouldLockDisableProps("slug")}
-          defaultValue={eventType.slug}
-          addOnLeading={
-            <>
-              {urlPrefix}/
-              {!isManagedEventType
-                ? team
-                  ? (orgBranding ? "" : "team/") + team.slug
-                  : eventType.users[0].username
-                : t("username_placeholder")}
-              /
-            </>
-          }
-          {...formMethods.register("slug", {
-            setValueAs: (v) => slugify(v),
-          })}
-        />
-        {multipleDuration ? (
-          <div className="space-y-4">
-            <div>
-              <Skeleton as={Label} loadingClassName="w-16">
-                {t("available_durations")}
-              </Skeleton>
-              <Select
-                isMulti
-                defaultValue={selectedMultipleDuration}
-                name="metadata.multipleDuration"
-                isSearchable={false}
-                className="h-auto !min-h-[36px] text-sm"
-                options={multipleDurationOptions}
-                value={selectedMultipleDuration}
-                onChange={(options) => {
-                  let newOptions = [...options];
-                  newOptions = newOptions.sort((a, b) => {
-                    return a?.value - b?.value;
-                  });
-                  const values = newOptions.map((opt) => opt.value);
-                  setMultipleDuration(values);
-                  setSelectedMultipleDuration(newOptions);
-                  if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
-                    if (newOptions.length > 0) {
-                      setDefaultDuration(newOptions[0]);
-                      formMethods.setValue("length", newOptions[0].value);
-                    } else {
-                      setDefaultDuration(null);
-                    }
-                  }
-                  if (newOptions.length === 1 && defaultDuration === null) {
-                    setDefaultDuration(newOptions[0]);
-                    formMethods.setValue("length", newOptions[0].value);
-                  }
-                  formMethods.setValue("metadata.multipleDuration", values);
-                }}
-              />
-            </div>
-            <div>
-              <Skeleton as={Label} loadingClassName="w-16">
-                {t("default_duration")}
-                {shouldLockIndicator("length")}
-              </Skeleton>
-              <Select
-                value={defaultDuration}
-                isSearchable={false}
-                name="length"
-                className="text-sm"
-                isDisabled={lengthLockedProps.disabled}
-                noOptionsMessage={() => t("default_duration_no_options")}
-                options={selectedMultipleDuration}
-                onChange={(option) => {
-                  setDefaultDuration(
-                    selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
-                  );
-                  if (option) formMethods.setValue("length", option.value);
-                }}
-              />
-            </div>
-          </div>
-        ) : (
+      <div className="space-y-4">
+        <div className="border-subtle space-y-6 rounded-md border p-6">
           <TextField
             required
-            type="number"
-            {...lengthLockedProps}
-            label={t("duration")}
-            defaultValue={eventType.length ?? 15}
-            {...formMethods.register("length")}
-            addOnSuffix={<>{t("minutes")}</>}
-            min={1}
+            label={t("title")}
+            {...shouldLockDisableProps("title")}
+            defaultValue={eventType.title}
+            {...formMethods.register("title")}
           />
-        )}
-        {!lengthLockedProps.disabled && (
-          <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
-            <SettingsToggle
-              title={t("allow_booker_to_select_duration")}
-              checked={multipleDuration !== undefined}
-              disabled={seatsEnabled}
-              tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
-              onCheckedChange={() => {
-                if (multipleDuration !== undefined) {
-                  setMultipleDuration(undefined);
-                  formMethods.setValue("metadata.multipleDuration", undefined);
-                  formMethods.setValue("length", eventType.length);
-                } else {
-                  setMultipleDuration([]);
-                  formMethods.setValue("metadata.multipleDuration", []);
-                  formMethods.setValue("length", 0);
-                }
-              }}
+          <div>
+            <Label>
+              {t("description")}
+              {shouldLockIndicator("description")}
+            </Label>
+            <DescriptionEditor
+              description={eventType?.description}
+              editable={!descriptionLockedProps.disabled}
             />
           </div>
-        )}
-        <div>
-          <Skeleton as={Label} loadingClassName="w-16">
-            {t("location")}
-            {shouldLockIndicator("locations")}
-          </Skeleton>
-
-          <Controller
-            name="locations"
-            control={formMethods.control}
-            defaultValue={eventType.locations || []}
-            render={() => <Locations />}
+          <TextField
+            required
+            label={t("URL")}
+            {...shouldLockDisableProps("slug")}
+            defaultValue={eventType.slug}
+            addOnLeading={
+              <>
+                {urlPrefix}/
+                {!isManagedEventType
+                  ? team
+                    ? (orgBranding ? "" : "team/") + team.slug
+                    : eventType.users[0].username
+                  : t("username_placeholder")}
+                /
+              </>
+            }
+            {...formMethods.register("slug", {
+              setValueAs: (v) => slugify(v),
+            })}
           />
         </div>
-      </div>
+        <div className="border-subtle rounded-md border p-6">
+          {multipleDuration ? (
+            <div className="space-y-6">
+              <div>
+                <Skeleton as={Label} loadingClassName="w-16">
+                  {t("available_durations")}
+                </Skeleton>
+                <Select
+                  isMulti
+                  defaultValue={selectedMultipleDuration}
+                  name="metadata.multipleDuration"
+                  isSearchable={false}
+                  className="h-auto !min-h-[36px] text-sm"
+                  options={multipleDurationOptions}
+                  value={selectedMultipleDuration}
+                  onChange={(options) => {
+                    let newOptions = [...options];
+                    newOptions = newOptions.sort((a, b) => {
+                      return a?.value - b?.value;
+                    });
+                    const values = newOptions.map((opt) => opt.value);
+                    setMultipleDuration(values);
+                    setSelectedMultipleDuration(newOptions);
+                    if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                      if (newOptions.length > 0) {
+                        setDefaultDuration(newOptions[0]);
+                        formMethods.setValue("length", newOptions[0].value);
+                      } else {
+                        setDefaultDuration(null);
+                      }
+                    }
+                    if (newOptions.length === 1 && defaultDuration === null) {
+                      setDefaultDuration(newOptions[0]);
+                      formMethods.setValue("length", newOptions[0].value);
+                    }
+                    formMethods.setValue("metadata.multipleDuration", values);
+                  }}
+                />
+              </div>
+              <div>
+                <Skeleton as={Label} loadingClassName="w-16">
+                  {t("default_duration")}
+                  {shouldLockIndicator("length")}
+                </Skeleton>
+                <Select
+                  value={defaultDuration}
+                  isSearchable={false}
+                  name="length"
+                  className="text-sm"
+                  isDisabled={lengthLockedProps.disabled}
+                  noOptionsMessage={() => t("default_duration_no_options")}
+                  options={selectedMultipleDuration}
+                  onChange={(option) => {
+                    setDefaultDuration(
+                      selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
+                    );
+                    if (option) formMethods.setValue("length", option.value);
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <TextField
+              required
+              type="number"
+              {...lengthLockedProps}
+              label={t("duration")}
+              defaultValue={eventType.length ?? 15}
+              {...formMethods.register("length")}
+              addOnSuffix={<>{t("minutes")}</>}
+              min={1}
+            />
+          )}
+          {!lengthLockedProps.disabled && (
+            <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+              <SettingsToggle
+                title={t("allow_booker_to_select_duration")}
+                checked={multipleDuration !== undefined}
+                disabled={seatsEnabled}
+                tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
+                onCheckedChange={() => {
+                  if (multipleDuration !== undefined) {
+                    setMultipleDuration(undefined);
+                    formMethods.setValue("metadata.multipleDuration", undefined);
+                    formMethods.setValue("length", eventType.length);
+                  } else {
+                    setMultipleDuration([]);
+                    formMethods.setValue("metadata.multipleDuration", []);
+                    formMethods.setValue("length", 0);
+                  }
+                }}
+              />
+            </div>
+          )}
+        </div>
 
-      {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
-      <EditLocationDialog
-        isOpenDialog={showLocationModal}
-        setShowLocationModal={setShowLocationModal}
-        saveLocation={saveLocation}
-        defaultValues={formMethods.getValues("locations")}
-        selection={
-          selectedLocation
-            ? selectedLocation.address
-              ? {
-                  value: selectedLocation.value,
-                  label: t(selectedLocation.label),
-                  icon: selectedLocation.icon,
-                  address: selectedLocation.address,
-                }
-              : {
-                  value: selectedLocation.value,
-                  label: t(selectedLocation.label),
-                  icon: selectedLocation.icon,
-                }
-            : undefined
-        }
-        setSelectedLocation={setSelectedLocation}
-        setEditingLocationType={setEditingLocationType}
-        teamId={eventType.team?.id}
-      />
+        <div className="border-subtle rounded-md border p-6">
+          <div>
+            <Skeleton as={Label} loadingClassName="w-16">
+              {t("location")}
+              {shouldLockIndicator("locations")}
+            </Skeleton>
+
+            <Controller
+              name="locations"
+              control={formMethods.control}
+              defaultValue={eventType.locations || []}
+              render={() => <Locations />}
+            />
+          </div>
+        </div>
+
+        {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
+        <EditLocationDialog
+          isOpenDialog={showLocationModal}
+          setShowLocationModal={setShowLocationModal}
+          saveLocation={saveLocation}
+          defaultValues={formMethods.getValues("locations")}
+          selection={
+            selectedLocation
+              ? selectedLocation.address
+                ? {
+                    value: selectedLocation.value,
+                    label: t(selectedLocation.label),
+                    icon: selectedLocation.icon,
+                    address: selectedLocation.address,
+                  }
+                : {
+                    value: selectedLocation.value,
+                    label: t(selectedLocation.label),
+                    icon: selectedLocation.icon,
+                  }
+              : undefined
+          }
+          setSelectedLocation={setSelectedLocation}
+          setEditingLocationType={setEditingLocationType}
+          teamId={eventType.team?.id}
+        />
+      </div>
     </div>
   );
 };

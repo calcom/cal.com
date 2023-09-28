@@ -6,7 +6,7 @@ import { components } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui";
+import { Select, Badge } from "@calcom/ui";
 import { Check } from "@calcom/ui/components/icon";
 
 interface Props {
@@ -133,9 +133,9 @@ const DestinationCalendarSelector = ({
             `${t("create_events_on")}`
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-              {t("default_calendar_selected")}{" "}
+              <Badge variant="blue">Default</Badge>{" "}
               {queryDestinationCalendar.name &&
-                `| ${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
+                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
             </span>
           )
         }
