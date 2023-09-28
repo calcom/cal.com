@@ -255,7 +255,7 @@
   "yours": "Your account",
   "available_apps": "Available Apps",
   "available_apps_lower_case": "Available apps",
-  "available_apps_desc": "You have no apps installed. View popular apps below and explore more in our <1>App Store</1>",
+  "available_apps_desc": "View popular apps below and explore more in our <1>App Store</1>",
   "fixed_host_helper": "Add anyone who needs to attend the event. <1>Learn more</1>",
   "round_robin_helper":"People in the group take turns and only one person will show up for the event.",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",
@@ -829,7 +829,7 @@
   "confirm_delete_event_type": "Yes, delete",
   "delete_account": "Delete account",
   "confirm_delete_account": "Yes, delete account",
-  "delete_account_confirmation_message": "Are you sure you want to delete your {{appName}} account? Anyone who you've shared your account link with will no longer be able to book using it and any preferences you have saved will be lost.",
+  "delete_account_confirmation_message": "Anyone who you've shared your account link with will no longer be able to book using it and any preferences you have saved will be lost.",
   "integrations": "Integrations",
   "apps": "Apps",
   "apps_description": "Here you can find a list of your apps",
@@ -2063,5 +2063,6 @@
   "edit_users_availability":"Edit user's availability: {{username}}",
   "resend_invitation": "Resend invitation",
   "invitation_resent": "The invitation was resent.",
+  "this_app_is_not_setup_already": "This app has not been setup yet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
