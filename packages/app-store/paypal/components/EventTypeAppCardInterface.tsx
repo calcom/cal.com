@@ -25,6 +25,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       value: currencyOptions[0].value,
     }
   );
+
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
@@ -55,7 +56,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   label="Price"
                   labelSrOnly
                   addOnLeading="$"
-                  addOnSuffix={currency || "No selected currency"}
+                  addOnSuffix={selectedCurrency.value || "No selected currency"}
                   step="0.01"
                   min="0.5"
                   type="number"
@@ -64,8 +65,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   placeholder="Price"
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
-                    if (currency) {
-                      setAppData("currency", currency);
+                    if (selectedCurrency) {
+                      setAppData("currency", selectedCurrency.value);
                     }
                   }}
                   value={price > 0 ? price / 100 : undefined}

@@ -158,7 +158,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       {!shouldLockDisableProps("apps").disabled && (
-        <div className="bg-muted rounded-md p-8">
+        <div className="bg-muted mt-6 rounded-md p-8">
           {!isLoading && notInstalledApps?.length ? (
             <>
               <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
@@ -166,7 +166,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               </h2>
               <p className="text-default mb-6 text-sm font-normal">
                 <Trans i18nKey="available_apps_desc">
-                  You have no apps installed. View popular apps below and explore more in our &nbsp;
+                  View popular apps below and explore more in our &nbsp;
                   <Link className="cursor-pointer underline" href="/apps">
                     App Store
                   </Link>

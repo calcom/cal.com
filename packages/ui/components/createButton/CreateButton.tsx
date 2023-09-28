@@ -2,6 +2,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { ButtonColor } from "@calcom/ui";
 import {
   Avatar,
   Button,
@@ -30,6 +31,7 @@ export type CreateBtnProps = {
   isLoading?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
+  color?: ButtonColor;
 };
 
 /**
