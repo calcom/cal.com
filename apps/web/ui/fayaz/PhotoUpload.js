@@ -1,3 +1,4 @@
+import { Button } from "@shadcdn/ui/button";
 import { useState, useEffect } from "react";
 
 import { UserCircle } from "../../ui/icons/user";
@@ -44,12 +45,14 @@ const PhotoUpload = (props) => {
           </span>
         )}
         <input type="file" id="photo" accept="image/*" className="hidden" onChange={handleFileChange} />
-        <button
+        <Button
           type="button"
-          className="rounded-md bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          variant="outline"
+          size="sm"
+          // className="rounded-md bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           onClick={() => document.getElementById("photo").click()}>
           {imageUrl ? "Change" : "Upload"}
-        </button>
+        </Button>
       </div>
     </div>
   );

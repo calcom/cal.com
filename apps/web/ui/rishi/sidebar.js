@@ -1,7 +1,6 @@
 import { CalendarPlus } from "@phosphor-icons/react";
-
-import { Button } from "../../ui";
-import { UserRatings, UserLanguages, SidebarWrapper } from "../../ui/rishi";
+import { Button } from "@ui";
+import { UserRatings, UserLanguages, SidebarWrapper } from "@ui/rishi";
 
 const Sidebar = ({ languages, callLink, callRate, userRating }) => (
   <SidebarWrapper>

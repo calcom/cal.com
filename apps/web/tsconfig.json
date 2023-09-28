@@ -8,7 +8,8 @@
       "@lib/*": ["lib/*"],
       "@ui/*": ["ui/*"],
       "@server/*": ["server/*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@shadcdn/*": ["shadcdn/*"]
     },
     "plugins": [
       {

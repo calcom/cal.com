@@ -1,6 +1,5 @@
 import { ArrowSquareOut } from "@phosphor-icons/react";
-
-import { Button, TextHighlight } from "../../ui";
+import { Button, TextHighlight } from "@ui";
 
 const ProductsBuilt = ({ data }) => {
   const count = data?.projects?.length;

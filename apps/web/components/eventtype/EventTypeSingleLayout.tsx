@@ -1,4 +1,4 @@
-import { Webhook as TbWebhook } from "lucide-react";
+// import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
@@ -212,15 +212,15 @@ function EventTypeSingleLayout({
         }`,
       });
     }
-    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
-    if (showWebhooks) {
-      navigation.push({
-        name: "webhooks",
-        href: `/event-types/${eventType.id}?tabName=webhooks`,
-        icon: TbWebhook,
-        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
-      });
-    }
+    // const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
+    // if (showWebhooks) {
+    //   navigation.push({
+    //     name: "webhooks",
+    //     href: `/event-types/${eventType.id}?tabName=webhooks`,
+    //     icon: TbWebhook,
+    //     info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+    //   });
+    // }
     return navigation;
   }, [
     t,

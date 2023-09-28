@@ -113,7 +113,7 @@ html {
   scrollbar-gutter: stable;
 }
 
-body  {
+body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }

@@ -1,4 +1,4 @@
-import { Button, TextHighlight } from "../../ui";
+import { Button, TextHighlight } from "@ui";
 
 const Investments = ({ data, userData }) => {
   const count = data?.length + 10;
