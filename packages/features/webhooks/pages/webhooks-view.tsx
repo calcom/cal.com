@@ -54,7 +54,7 @@ const WebhooksView = () => {
       <SkeletonLoader
         title={t("webhooks")}
         description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={!(data && data.webhookGroups.length > 0)}
+        borderInShellHeader={true}
       />
     );
   }

@@ -46,7 +46,7 @@ export function MetaProvider({ children }: { children: ReactNode }) {
  * elsewhere (ie. on a Heading, Title, Subtitle, etc.)
  * @example <Meta title="Password" description="Manage settings for your account passwords" />
  */
-export default function Meta({ title, description, backButton, CTA, borderInShellHeader = false }: MetaType) {
+export default function Meta({ title, description, backButton, CTA, borderInShellHeader }: MetaType) {
   const { setMeta, meta } = useMeta();
 
   /* @TODO: maybe find a way to have this data on first render to prevent flicker */

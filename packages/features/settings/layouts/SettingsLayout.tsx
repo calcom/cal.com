@@ -683,7 +683,8 @@ export function ShellHeader() {
       <header
         className={classNames(
           "border-subtle mx-auto block justify-between sm:flex",
-          meta.borderInShellHeader ? " rounded-t-xl border px-4 py-6 sm:px-6" : "mb-8 border-b pb-8"
+          meta.borderInShellHeader && "rounded-t-xl border px-4 py-6 sm:px-6",
+          meta.borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
         <div className="flex w-full items-center">
           {meta.backButton && (
