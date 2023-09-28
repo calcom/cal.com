@@ -1,7 +1,12 @@
 ---
 items:
-  - 1.png
-  - 2.png
+  - 1.jpg
 ---
 
 {DESCRIPTION}
+
+Example questions:
+
+- Send an email with the title: What's my schedule?
+- Forward an email from someone looking to meet you
+- 
