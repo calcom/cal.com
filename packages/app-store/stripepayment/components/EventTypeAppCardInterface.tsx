@@ -9,10 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
-import {
-  convertFromSmallestToPresentableCurrencyUnit,
-  convertToSmallestCurrencyUnit,
-} from "../lib/currencyConvertions";
+import { convertToSmallestCurrencyUnit } from "../lib/currencyConversions";
 import { currencyOptions } from "../lib/currencyOptions";
 import type { appDataSchema } from "../zod";
 

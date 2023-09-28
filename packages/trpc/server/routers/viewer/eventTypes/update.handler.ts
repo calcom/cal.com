@@ -246,25 +246,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
    * So the price and currency inside eventType will be deprecated soon or just keep as reference.
    */
   if (
-    input?.metadata?.apps?.stripe?.price ||
+    input.metadata?.apps?.alby?.price ||
     input?.metadata?.apps?.paypal?.price ||
-    input.metadata?.apps?.alby?.price
+    input?.metadata?.apps?.stripe?.price
   ) {
     data.price =
-      input.metadata.apps.stripe?.price ||
+      input.metadata?.apps?.alby?.price ||
       input.metadata.apps.paypal?.price ||
-      input.metadata?.apps?.alby?.price;
+      input.metadata.apps.stripe?.price;
   }
 
   if (
-    input?.metadata?.apps?.stripe?.currency ||
+    input.metadata?.apps?.alby?.currency ||
     input?.metadata?.apps?.paypal?.currency ||
-    input.metadata?.apps?.alby?.currency
+    input?.metadata?.apps?.stripe?.currency
   ) {
     data.currency =
-      input.metadata.apps.stripe?.currency ||
+      input.metadata?.apps?.alby?.currency ||
       input.metadata.apps.paypal?.currency ||
-      input.metadata?.apps?.alby?.currency;
+      input.metadata.apps.stripe?.currency;
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({

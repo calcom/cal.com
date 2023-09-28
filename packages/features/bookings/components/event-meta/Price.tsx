@@ -17,7 +17,7 @@ export const Price = ({ price, currency, displayAlternateSymbol = true }: EventP
   const formattedPrice = formatPrice(price, currency);
 
   return currency !== "BTC" ? (
-    formattedPrice
+    <>{formattedPrice}</>
   ) : (
     <AlbyPriceComponent
       displaySymbol={displayAlternateSymbol}
