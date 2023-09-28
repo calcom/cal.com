@@ -18,7 +18,7 @@ function setHeader(ctx: NextPageContext, name: string, value: string) {
 }
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
-    const { nonce } = csp(ctx.req || null, ctx.res || null);
+    const { nonce } = csp(ctx.req ?? null, ctx.res ?? null);
     if (!process.env.CSP_POLICY) {
       setHeader(ctx, "x-csp", "not-opted-in");
     } else if (!ctx.res?.getHeader("x-csp")) {
