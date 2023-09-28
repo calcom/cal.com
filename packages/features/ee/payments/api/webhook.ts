@@ -6,13 +6,13 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendAttendeeRequestEmail, sendOrganizerRequestEmail, sendScheduledEmails } from "@calcom/emails";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -129,7 +129,7 @@ async function getBooking(bookingId: number) {
   };
 }
 
-async function handlePaymentSuccess(event: Stripe.Event) {
+async function handleStripePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -145,145 +145,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   }
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: payment.bookingId,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      eventType: true,
-      smsReminderNumber: true,
-      location: true,
-      eventTypeId: true,
-      userId: true,
-      uid: true,
-      paid: true,
-      destinationCalendar: true,
-      status: true,
-      responses: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          credentials: { select: credentialForCalendarServiceSelect },
-          timeZone: true,
-          timeFormat: true,
-          email: true,
-          name: true,
-          locale: true,
-          destinationCalendar: true,
-        },
-      },
-    },
-  });
-
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
-
-  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
-  let eventTypeRaw: EventTypeRaw | null = null;
-  if (booking.eventTypeId) {
-    eventTypeRaw = await getEventType(booking.eventTypeId);
-  }
-
-  const { user: userWithCredentials } = booking;
-
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  const { credentials, ...user } = userWithCredentials;
-
-  const t = await getTranslation(user.locale ?? "en", "common");
-  const attendeesListPromises = booking.attendees.map(async (attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  });
-
-  const attendeesList = await Promise.all(attendeesListPromises);
-  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
-  const evt: CalendarEvent = {
-    type: booking.title,
-    title: booking.title,
-    description: booking.description || undefined,
-    startTime: booking.startTime.toISOString(),
-    endTime: booking.endTime.toISOString(),
-    customInputs: isPrismaObjOrUndefined(booking.customInputs),
-    ...getCalEventResponses({
-      booking: booking,
-      bookingFields: booking.eventType?.bookingFields || null,
-    }),
-    organizer: {
-      email: user.email,
-      name: user.name!,
-      timeZone: user.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-      language: { translate: t, locale: user.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    location: booking.location,
-    uid: booking.uid,
-    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
-    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
-  };
-
-  if (booking.location) evt.location = booking.location;
-
-  const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
-    status: BookingStatus.ACCEPTED,
-  };
-
-  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-  if (isConfirmed) {
-    const eventManager = new EventManager(userWithCredentials);
-    const scheduleResult = await eventManager.create(evt);
-    bookingData.references = { create: scheduleResult.referencesToCreate };
-  }
-
-  if (eventTypeRaw?.requiresConfirmation) {
-    delete bookingData.status;
-  }
-
-  const paymentUpdate = prisma.payment.update({
-    where: {
-      id: payment.id,
-    },
-    data: {
-      success: true,
-    },
-  });
-
-  const bookingUpdate = prisma.booking.update({
-    where: {
-      id: booking.id,
-    },
-    data: bookingData,
-  });
-
-  await prisma.$transaction([paymentUpdate, bookingUpdate]);
-
-  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({
-      user: userWithCredentials,
-      evt,
-      prisma,
-      bookingId: booking.id,
-      booking,
-      paid: true,
-    });
-  } else {
-    await sendScheduledEmails({ ...evt });
-  }
-
-  throw new HttpCode({
-    statusCode: 200,
-    message: `Booking with id '${booking.id}' was paid and confirmed.`,
-  });
+  await handlePaymentSuccess(payment.id, payment.bookingId);
 }
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
@@ -372,7 +234,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
-  "payment_intent.succeeded": handlePaymentSuccess,
+  "payment_intent.succeeded": handleStripePaymentSuccess,
   "setup_intent.succeeded": handleSetupSuccess,
 };
 
