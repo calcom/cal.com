@@ -556,8 +556,6 @@ export async function apiLogin(
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
   await page.locator("div > .ml-auto").first().click();
-  await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
-  await page.getByTestId("select-option-usd").click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
 }

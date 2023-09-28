@@ -1,5 +1,5 @@
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -25,8 +25,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const currency = getAppData("currency");
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
-      label: "",
-      value: "",
+      label: currencyOptions[0].label,
+      value: currencyOptions[0].value,
     }
   );
   const paymentOption = getAppData("paymentOption");
@@ -46,6 +46,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       })
       .replace(/\d/g, "")
       .trim();
+
+  useEffect(() => {
+    if (!getAppData("currency")) {
+      setAppData("currency", currencyOptions[0].value);
+    }
+    if (!getAppData("paymentOption")) {
+      setAppData("paymentOption", paymentOptions[0].value);
+    }
+  }, []);
+
   return (
     <AppCard
       returnTo={WEBAPP_URL + pathname + "?tabName=apps"}
