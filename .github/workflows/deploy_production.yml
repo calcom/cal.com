@@ -8,6 +8,7 @@ on:
 
 jobs:
   deploy_calcom:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +26,10 @@ jobs:
           host: ${{ secrets.CALCOM_HOST }}
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
+          script_stop: true
+          command_timeout: 20m
           script: |
             cd calcom
+            DOCKER_BUILDKIT=0 docker-compose build
+            docker-compose down -v --remove-orphans
             docker-compose up -d

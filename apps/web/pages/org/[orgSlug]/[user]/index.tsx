@@ -5,8 +5,8 @@ import prisma from "@calcom/prisma";
 
 import PageWrapper from "@components/PageWrapper";
 
-import type { UserPageProps } from "../../../[user]";
-import UserPage, { getServerSideProps as GSSUserPage } from "../../../[user]";
+import type { UserPageProps } from "../../../[user]/profile";
+import UserPage, { getServerSideProps as GSSUserPage } from "../../../[user]/profile";
 import type { PageProps as TeamPageProps } from "../../../team/[slug]";
 import TeamPage, { getServerSideProps as GSSTeamPage } from "../../../team/[slug]";
 

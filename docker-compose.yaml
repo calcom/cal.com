@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   calcom:
-    image: calcom.docker.scarf.sh/calcom/cal.com
+    image: borg-calcom
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,6 +13,12 @@ services:
         NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
         CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
         DATABASE_URL: ${DATABASE_URL}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
     restart: always
     ports:
       - 443:3000
@@ -22,10 +28,10 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
 
   api:
-    image: calcom.docker.scarf.sh/calcom/cal.com
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: borg-calcom
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     command: yarn workspace @calcom/api dev
     restart: always
     ports:
