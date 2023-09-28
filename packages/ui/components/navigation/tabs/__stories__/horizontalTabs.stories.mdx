@@ -27,7 +27,7 @@ The HorizontalTabs component is designed to work alongside the HorizontalTabItem
 export const tabs = [
   {
     name: "Tab 1",
-    href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
+    href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
     disabled: false,
     linkShallow: true,
     linkScroll: true,
@@ -35,7 +35,7 @@ export const tabs = [
   },
   {
     name: "Tab 2",
-    href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab2",
+    href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab2",
     disabled: false,
     linkShallow: true,
     linkScroll: true,
@@ -43,7 +43,7 @@ export const tabs = [
   },
   {
     name: "Tab 3",
-    href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab3",
+    href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab3",
     disabled: true,
     linkShallow: true,
     linkScroll: true,
@@ -58,7 +58,7 @@ export const tabs = [
       tabs={[
         {
           name: "tab 1",
-          href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
+          href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
         },
       ]}
     />
@@ -68,7 +68,7 @@ export const tabs = [
       tabs={[
         {
           name: "Tab 1",
-          href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
+          href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
           avatar: "Avatar",
         },
       ]}
@@ -79,7 +79,7 @@ export const tabs = [
       tabs={[
         {
           name: "Tab 1",
-          href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
+          href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
           icon: Plus,
         },
       ]}
@@ -90,7 +90,7 @@ export const tabs = [
       tabs={[
         {
           name: "Tab 1",
-          href: "http://localhost:6006/?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
+          href: "?path=/story/ui-navigation-horizontaltabs--horizontal-tabs/tab1",
           disabled: true,
         },
       ]}
@@ -123,10 +123,10 @@ export const tabs = [
       icon: { control: "text", description: "SVGComponent icon" },
       avatar: { control: "text", description: "Avatar image URL" },
     }}>
-    {({ name, href, disabled, className, linkShallow, linkScroll, icon, avatar }) => (
+    {(...props) => (
       <VariantsTable titles={["Default"]} columnMinWidth={150}>
         <VariantRow>
-          <HorizontalTabs tabs={tabs} actions={<button>Click me</button>} />
+          <HorizontalTabs tabs={tabs} className="overflow-hidden" actions={<button>Click me</button>} />
         </VariantRow>
       </VariantsTable>
     )}
