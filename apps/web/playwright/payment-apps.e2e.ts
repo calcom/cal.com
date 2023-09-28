@@ -144,4 +144,60 @@ test.describe("Payment app", () => {
     await page.goto(`event-types/`);
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
   });
+
+  test("Should display App is not setup already for alby", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+    await prisma.credential.create({
+      data: {
+        type: "alby_payment",
+        userId: user.id,
+        key: {},
+      },
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("#event-type-form").getByRole("switch").click();
+
+    // expect text "This app has not been setup yet" to be displayed
+    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+
+    await page.getByRole("button", { name: "Setup" }).click();
+
+    // Expect "Connect with Alby" to be displayed
+    expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+  });
+
+  test("Should display App is not setup already for paypal", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+    await prisma.credential.create({
+      data: {
+        type: "paypal_payment",
+        userId: user.id,
+        key: {},
+      },
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("#event-type-form").getByRole("switch").click();
+
+    // expect text "This app has not been setup yet" to be displayed
+    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+
+    await page.getByRole("button", { name: "Setup" }).click();
+
+    // Expect "Getting started with Paypal APP" to be displayed
+    expect(await page.locator("text=Getting started with Paypal APP").first()).toBeTruthy();
+  });
 });
