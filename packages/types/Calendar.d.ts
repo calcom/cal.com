@@ -238,7 +238,8 @@ export interface Calendar {
   ): Promise<EventBusyDate[]>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
-  watchCalendar?(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+  watchCalendar?(options: { calendarId: string }): Promise<void>;
+  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
 }
 
 /**

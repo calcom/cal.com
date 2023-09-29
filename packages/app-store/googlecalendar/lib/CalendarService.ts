@@ -9,6 +9,7 @@ import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -529,15 +530,10 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async watchCalendar({ calendarId, credentialId }: { calendarId: string; credentialId: number }) {
+  async watchCalendar({ calendarId }) {
     const calendar = await this.authedCalendar();
-    const id = `${credentialId}_${calendarId}`;
-    await calendar.channels.stop({
-      requestBody: {
-        id,
-        resourceId: "my_resourceId",
-      },
-    });
+    const id = `${this.credential.id}_${slugify(calendarId)}`;
+    await calendar.channels.stop({ requestBody: { id } }).catch(console.warn);
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId,
@@ -547,22 +543,22 @@ export default class GoogleCalendarService implements Calendar {
         type: "web_hook",
         address: "https://435d-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
         // address: "https://cal.dev/api/integrations/googlecalendar/webhook",
+        expiration: null,
       },
     });
-    console.log(res.data);
     // Example response
     // {
-    //   "address": "my_address",
-    //   "expiration": "my_expiration",
-    //   "id": "my_id",
-    //   "kind": "my_kind",
-    //   "params": {},
-    //   "payload": false,
-    //   "resourceId": "my_resourceId",
-    //   "resourceUri": "my_resourceUri",
-    //   "token": "my_token",
-    //   "type": "my_type"
+    //   kind: "api#channel",
+    //   id: "11_c-h96htbde5i6vi532rm25oq9ut4-group-calendar-google-com",
+    //   resourceId: "jTIWK7916gSqPrP_3eqwQX-klFU",
+    //   resourceUri: "https://www.googleapis.com/calendar/v3/calendars/c_xxxxxxxxxxx%40group.calendar.google.com/events?alt=json",
+    //   expiration: "1696631263000",
     // }
+  }
+  async unwatchCalendar({ calendarId }) {
+    const calendar = await this.authedCalendar();
+    const id = `${this.credential.id}_${slugify(calendarId)}`;
+    await calendar.channels.stop({ requestBody: { id } }).catch(console.warn);
   }
 }
 

@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "DELETE") {
     const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
-    await handleWatchCalendar(req);
+    await handleUnwatchCalendar(req);
     await prisma.selectedCalendar.delete({
       where: {
         userId_integration_externalId: {
@@ -112,14 +112,14 @@ function logOnce(message: string) {
   warningDisplayed = true;
 }
 
-async function handleWatchCalendar(req: NextApiRequest) {
+async function getCalendarForRequest(req: NextApiRequest, query: any) {
   const flags = await getFeatureFlagMap(prisma);
   if (!flags["calendar-cache"]) {
     logOnce('[handleWatchCalendar] Skipping watching calendar due to "calendar-cache" flag being disabled');
     return;
   }
-  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-  if (integration !== "google") {
+  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(query);
+  if (integration !== "google_calendar") {
     logOnce('[handleWatchCalendar] Skipping watching calendar due to integration not being "google"');
     return;
   }
@@ -128,7 +128,31 @@ async function handleWatchCalendar(req: NextApiRequest) {
     select: credentialForCalendarServiceSelect,
   });
   const calendar = await getCalendar(credential);
-  calendar?.watchCalendar?({ calendarId: externalId, credentialId: 1 });
-  // return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
-  throw new Error("Function not implemented.");
+  return { calendar, externalId };
+}
+
+async function handleWatchCalendar(req: NextApiRequest) {
+  const result = await getCalendarForRequest(req, req.body);
+  if (!result) return;
+  const { calendar, externalId } = result;
+  if (typeof calendar?.watchCalendar !== "function") {
+    logOnce(
+      '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
+    );
+    return;
+  }
+  await calendar.watchCalendar({ calendarId: externalId });
+}
+
+async function handleUnwatchCalendar(req: NextApiRequest) {
+  const result = await getCalendarForRequest(req, req.query);
+  if (!result) return;
+  const { calendar, externalId } = result;
+  if (typeof calendar?.unwatchCalendar !== "function") {
+    logOnce(
+      '[handleWatchCalendar] Skipping watching calendar due to calendar not having "unwatchCalendar" method'
+    );
+    return;
+  }
+  await calendar.unwatchCalendar({ calendarId: externalId });
 }
