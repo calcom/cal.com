@@ -5,16 +5,16 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import { sendAttendeeRequestEmail, sendOrganizerRequestEmail, sendScheduledEmails } from "@calcom/emails";
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -140,7 +140,7 @@ async function getBooking(bookingId: number) {
   };
 }
 
-export async function handlePaymentSuccess(event: Stripe.Event) {
+async function handleStripePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -156,85 +156,9 @@ export async function handlePaymentSuccess(event: Stripe.Event) {
     log.error(JSON.stringify(paymentIntent), JSON.stringify(payment));
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
+  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
-
-  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
-  let eventTypeRaw: EventTypeRaw | null = null;
-  if (booking.eventTypeId) {
-    eventTypeRaw = await getEventType(booking.eventTypeId);
-  }
-
-  if (booking.location) evt.location = booking.location;
-
-  const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
-    status: BookingStatus.ACCEPTED,
-  };
-
-  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-  if (isConfirmed) {
-    const eventManager = new EventManager(user);
-    const scheduleResult = await eventManager.create(evt);
-    bookingData.references = { create: scheduleResult.referencesToCreate };
-  }
-
-  const requiresConfirmation = doesBookingRequireConfirmation({
-    booking: {
-      ...booking,
-      eventType,
-    },
-  });
-
-  if (requiresConfirmation) {
-    delete bookingData.status;
-  }
-
-  const paymentUpdate = prisma.payment.update({
-    where: {
-      id: payment.id,
-    },
-    data: {
-      success: true,
-    },
-  });
-
-  const bookingUpdate = prisma.booking.update({
-    where: {
-      id: booking.id,
-    },
-    data: bookingData,
-  });
-
-  await prisma.$transaction([paymentUpdate, bookingUpdate]);
-
-  if (!isConfirmed) {
-    if (!requiresConfirmation) {
-      await handleConfirmation({
-        user,
-        evt,
-        prisma,
-        bookingId: booking.id,
-        booking,
-        paid: true,
-      });
-      log.debug("handling confirmation:", JSON.stringify(eventTypeRaw));
-    } else {
-      await handleBookingRequested({
-        evt,
-        booking,
-      });
-      log.debug("handling booking request:", JSON.stringify(eventTypeRaw));
-    }
-  } else {
-    log.debug("Sending Emails only:", JSON.stringify(eventTypeRaw));
-    await sendScheduledEmails({ ...evt });
-  }
-
-  throw new HttpCode({
-    statusCode: 200,
-    message: `Booking with id '${booking.id}' was paid and confirmed.`,
-  });
+  await handlePaymentSuccess(payment.id, payment.bookingId);
 }
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
@@ -305,7 +229,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
-  "payment_intent.succeeded": handlePaymentSuccess,
+  "payment_intent.succeeded": handleStripePaymentSuccess,
   "setup_intent.succeeded": handleSetupSuccess,
 };
 

@@ -145,7 +145,7 @@ const CreateConnectionDialog = ({
               )}
             />
           </div>
-          <DialogFooter showDivider className="mt-10">
+          <DialogFooter showDivider className="relative mt-10">
             <Button
               type="button"
               color="secondary"
