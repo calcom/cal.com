@@ -89,12 +89,15 @@ const ProfileView = () => {
   const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: (userData) => {
-      if (!userData.organization) {
-        fetch(userData.avatar).then((res) => {
+    onSuccess: async (userData) => {
+      try {
+        if (!userData.organization) {
+          const res = await fetch(userData.avatar);
           if (res.url) setFetchedImgSrc(res.url);
-        });
-      } else {
+        } else {
+          setFetchedImgSrc("");
+        }
+      } catch (err) {
         setFetchedImgSrc("");
       }
     },
