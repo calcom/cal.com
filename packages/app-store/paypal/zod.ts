@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
-import { currencyOptions } from "@calcom/app-store/paypal/lib/currencyOptions";
 
 const paymentOptionSchema = z.object({
   label: z.string(),
@@ -29,12 +28,10 @@ const VALUES: [PaymentOption, ...PaymentOption[]] = [
 ];
 export const paymentOptionEnum = z.enum(VALUES);
 
-export const defaultCurrency = currencyOptions[0].value;
-
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     price: z.number(),
-    currency: z.string().default(defaultCurrency),
+    currency: z.string(),
     paymentOption: z.string().optional(),
     enabled: z.boolean().optional(),
   })
