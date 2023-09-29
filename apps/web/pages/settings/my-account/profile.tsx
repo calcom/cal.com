@@ -90,13 +90,12 @@ const ProfileView = () => {
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
     onSuccess: (userData) => {
-      console.log("userData", userData);
       if (!userData.organization) {
         fetch(userData.avatar).then((res) => {
           if (res.url) setFetchedImgSrc(res.url);
         });
       } else {
-        setFetchedImgSrc("test");
+        setFetchedImgSrc("ORG_PROFILE_IMAGE");
       }
     },
   });
