@@ -142,13 +142,15 @@ export default function Bookings() {
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
-  const [isFilterViewOpen, clearActiveFilters] = useBookingMultiFilterStore((state) => [
+  const [isFilterViewOpen, clearActiveFilters, closeFilterView] = useBookingMultiFilterStore((state) => [
     state.isFilterViewOpen,
     state.clearActiveFilters,
+    state.closeFilterView,
   ]);
 
   React.useEffect(() => {
     clearActiveFilters();
+    closeFilterView();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 

@@ -57,9 +57,10 @@ export const TeamsFilter = ({
     return t("all");
   };
 
-  const [addActiveFilter, removeActiveFilter] = useBookingMultiFilterStore((state) => [
+  const [addActiveFilter, removeActiveFilter, clearActiveFilters] = useBookingMultiFilterStore((state) => [
     state.addActiveFilter,
     state.removeActiveFilter,
+    state.clearActiveFilters,
   ]);
 
   if (!teams || !teams.length) return null;
@@ -74,6 +75,7 @@ export const TeamsFilter = ({
             checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
             onChange={(e) => {
               removeAllQueryParams();
+              clearActiveFilters();
             }}
             label={t("all")}
           />
@@ -85,8 +87,12 @@ export const TeamsFilter = ({
             onChange={(e) => {
               if (e.target.checked) {
                 pushItemToKey("userIds", session.data?.user.id || 0);
+                addActiveFilter("people");
               } else if (!e.target.checked) {
                 removeItemByKeyAndValue("userIds", session.data?.user.id || 0);
+                if (query.userIds?.length === 1 || !query.userIds) {
+                  removeActiveFilter("people");
+                }
               }
             }}
             label={t("yours")}

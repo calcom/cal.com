@@ -18,6 +18,7 @@ export type BookingMultiFilterStore = {
   clearActiveFilters: () => void;
   isFilterViewOpen: boolean;
   toggleFilterViewOpen: () => void;
+  closeFilterView: () => void;
 };
 
 export const useBookingMultiFilterStore = create<BookingMultiFilterStore>((set, get) => ({
@@ -65,10 +66,13 @@ export const useBookingMultiFilterStore = create<BookingMultiFilterStore>((set, 
     set({ activeFilters: get().activeFilters.filter((activeFilter) => activeFilter !== filter) });
   },
   clearActiveFilters: () => {
-    set({ activeFilters: [], isFilterViewOpen: false });
+    set({ activeFilters: [] });
   },
   isFilterViewOpen: false,
   toggleFilterViewOpen: () => {
     set({ isFilterViewOpen: !get().isFilterViewOpen });
+  },
+  closeFilterView: () => {
+    set({ isFilterViewOpen: false });
   },
 }));
