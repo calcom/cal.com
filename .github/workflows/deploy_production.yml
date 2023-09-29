@@ -20,13 +20,13 @@ jobs:
           key: ${{ secrets.CALCOM_SSH_KEY }}
           source: "./, !.private"
           target: "/home/deploy/calcom"
+          rm: true
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.CALCOM_HOST }}
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
-          rm: true
           script_stop: true
           command_timeout: 20m
           script: |
