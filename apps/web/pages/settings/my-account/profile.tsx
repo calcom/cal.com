@@ -90,9 +90,14 @@ const ProfileView = () => {
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
     onSuccess: (userData) => {
-      fetch(userData.avatar).then((res) => {
-        if (res.url) setFetchedImgSrc(res.url);
-      });
+      console.log("userData", userData);
+      if (!userData.organization) {
+        fetch(userData.avatar).then((res) => {
+          if (res.url) setFetchedImgSrc(res.url);
+        });
+      } else {
+        setFetchedImgSrc("test");
+      }
     },
   });
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
