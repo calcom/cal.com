@@ -48,13 +48,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
 
   useEffect(() => {
-    if (!getAppData("currency")) {
-      setAppData("currency", currencyOptions[0].value);
+    if (requirePayment) {
+      if (!getAppData("currency")) {
+        setAppData("currency", currencyOptions[0].value);
+      }
+      if (!getAppData("paymentOption")) {
+        setAppData("paymentOption", paymentOptions[0].value);
+      }
     }
-    if (!getAppData("paymentOption")) {
-      setAppData("paymentOption", paymentOptions[0].value);
-    }
-  }, []);
+  }, [requirePayment, getAppData, setAppData]);
 
   return (
     <AppCard
