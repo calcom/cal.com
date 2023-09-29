@@ -262,12 +262,15 @@ test.describe("Insights", async () => {
       .nth(1)
       .click();
     await page.waitForLoadState("networkidle");
-
     // press escape button to close the filter
     await page.keyboard.press("Escape");
 
     await page.getByRole("button", { name: "Clear" }).click();
     await page.waitForLoadState("networkidle");
+    await page.waitForURL((url) => {
+      const memberUserId = url.searchParams.get("memberUserId");
+      return !memberUserId;
+    });
 
     expect(page.url()).not.toContain("memberUserId=");
     expect(page.url()).toContain("isAll=false");
