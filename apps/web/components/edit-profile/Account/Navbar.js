@@ -1,6 +1,6 @@
 "use client";
 
-import { SignOut, LinkSimple, User, GearSix, Calendar } from "@phosphor-icons/react";
+import { SignOut, LinkSimple, User } from "@phosphor-icons/react";
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import { forgotPassword } from "lib/firebase";
 import Link from "next/link";
@@ -15,19 +15,9 @@ const UserMenu = ({ uid, logOut, resetPassword }) => {
       target: "_blank",
     },
     {
-      label: "Reset Password",
-      icon: <GearSix className="mr-2 h-4 w-4" />,
-      onClick: resetPassword,
-    },
-    {
-      label: "Bookings",
-      icon: <Calendar className="mr-2 h-4 w-4" />,
-      href: "/account/bookings",
-    },
-    {
       label: "Signout",
       icon: <SignOut className="mr-2 h-4 w-4" />,
-      onClick: logOut,
+      href: `/auth/logout`,
     },
   ];
 

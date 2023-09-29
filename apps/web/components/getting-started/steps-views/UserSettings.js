@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button as Xbutton } from "@shadcdn/ui";
 import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -9,8 +8,8 @@ import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TimezoneSelect, Label, Input } from "@calcom/ui";
-import { ArrowRight, X, Plus } from "@calcom/ui/components/icon";
+import { Button, TimezoneSelect } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -33,26 +32,20 @@ const UserSettings = (props) => {
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    advises: z.array(z.string().nonempty()),
   });
   const {
     register,
     handleSubmit,
     control,
     setError,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
       name: user?.name || "",
-      advises: [" "],
     },
     reValidateMode: "onChange",
     resolver: zodResolver(userSettingsSchema),
-  });
-
-  const { fields, prepend, remove } = useFieldArray({
-    control,
-    name: "advises",
   });
 
   useEffect(() => {
@@ -69,10 +62,6 @@ const UserSettings = (props) => {
   });
 
   const onSubmit = handleSubmit((data) => {
-    if (!data?.advises?.length) {
-      setError("advises", { type: "custom", message: "This field is required" });
-      return;
-    }
     mutation.mutate({
       name: data.name,
       timeZone: selectedTimeZone,
@@ -123,51 +112,6 @@ const UserSettings = (props) => {
           <p className="text-subtle dark:text-inverted mt-3 flex flex-row font-sans text-xs leading-tight">
             {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
           </p>
-        </div>
-        {/* Things you can advise on */}
-        <div className="w-full">
-          <div className="mb-2 flex items-center gap-x-2">
-            <Label className="mb-0" htmlFor="advises">
-              Things you can advice on
-            </Label>
-            <Xbutton
-              type="button"
-              size="sm"
-              className="h-auto px-2"
-              variant="outline"
-              onClick={() => prepend("")}>
-              <Plus size={12} className="mr-px" />
-              Add
-            </Xbutton>
-          </div>
-
-          <div className="flex flex-col gap-y-2">
-            {fields.map((item, index) => (
-              <section key={item.id} className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <Input
-                    autoFocus
-                    className="border-default mb-0 w-full rounded-md border text-sm"
-                    placeholder="Enter your expertise"
-                    {...register(`advises.${index}`, {
-                      required: true,
-                    })}
-                  />
-
-                  <Xbutton variant="outline" onClick={() => remove(index)}>
-                    <X size={12} />
-                  </Xbutton>
-                </div>
-              </section>
-            ))}
-            {errors?.advises?.length || errors?.advises?.message ? (
-              <p data-testid="required" className="text-xs text-red-500">
-                This field is required
-              </p>
-            ) : (
-              ""
-            )}
-          </div>
         </div>
       </div>
       <Button
