@@ -86,7 +86,7 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const { update } = useSession();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>();
+  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
     onSuccess: (userData) => {
@@ -95,7 +95,7 @@ const ProfileView = () => {
           if (res.url) setFetchedImgSrc(res.url);
         });
       } else {
-        setFetchedImgSrc("ORG_PROFILE_IMAGE");
+        setFetchedImgSrc("");
       }
     },
   });
@@ -222,7 +222,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || !fetchedImgSrc)
+  if (isLoading || !user || fetchedImgSrc === undefined)
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
