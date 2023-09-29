@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,70 +17,17 @@ import {
 } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
+import { useLocalSet } from "../hooks/useLocalSet";
+
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
 }
-interface HasExternalId {
-  externalId: string;
-}
-
-function useLocalStorage<T extends HasExternalId>(key: string, initialValue: T[]) {
-  const [set, setSet] = useState<Set<T>>(() => {
-    const storedValue = localStorage.getItem(key);
-    return storedValue ? new Set(JSON.parse(storedValue)) : new Set(initialValue);
-  });
-
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(Array.from(set)));
-  }, [key, set]);
-
-  const addValue = (value: T) => {
-    setSet((prevSet) => new Set(prevSet).add(value));
-  };
-
-  const removeById = (id: string) => {
-    setSet((prevSet) => {
-      const updatedSet = new Set(prevSet);
-      updatedSet.forEach((item) => {
-        if (item.externalId === id) {
-          updatedSet.delete(item);
-        }
-      });
-      return updatedSet;
-    });
-  };
-
-  const toggleValue = (value: T) => {
-    setSet((prevSet) => {
-      const updatedSet = new Set(prevSet);
-      let itemFound = false;
-
-      updatedSet.forEach((item) => {
-        if (item.externalId === value.externalId) {
-          itemFound = true;
-          updatedSet.delete(item);
-        }
-      });
-
-      if (!itemFound) {
-        updatedSet.add(value);
-      }
-
-      return updatedSet;
-    });
-  };
-
-  const hasItem = (value: T) => {
-    return Array.from(set).some((item) => item.externalId === value.externalId);
-  };
-
-  return { set, addValue, removeById, toggleValue, hasItem };
-}
-
 export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery();
-  const { toggleValue, hasItem } = useLocalStorage<{
+  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
+    enabled: !!props.open,
+  });
+  const { toggleValue, hasItem } = useLocalSet<{
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);

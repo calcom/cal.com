@@ -28,6 +28,17 @@ export const fadeInUp = {
   transition: { ease: "easeInOut", delay: 0.1 },
 };
 
+export const fadeInRight = {
+  variants: {
+    visible: { opacity: 1, x: 0 },
+    hidden: { opacity: 0, x: -20 },
+  },
+  initial: "hidden",
+  exit: "hidden",
+  animate: "visible",
+  transition: { ease: "easeInOut", delay: 0.1 },
+};
+
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
     [key in BookerState | "default"]?: React.CSSProperties;
@@ -128,6 +139,8 @@ export const getBookerSizeClassNames = (
     // Size settings are abstracted on their own lines purely for readability.
     // General sizes, used always
     "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+    // General sizes, used always
+    "[--booker-overlay-width:240px] lg:[--booker-overlay-width:280px]",
     // Small calendar defaults
     layout === BookerLayouts.MONTH_VIEW && getBookerMetaClass("[--booker-meta-width:240px]"),
     // Meta column get's wider in booking view to fit the full date on a single row in case

@@ -35,6 +35,7 @@ const gridAreaClassNameMap: { [key in BookerAreas]: string } = {
   meta: "[grid-area:meta]",
   timeslots: "[grid-area:timeslots]",
   header: "[grid-area:header]",
+  overlay: "[grid-area:overlay]",
 };
 
 /**
@@ -53,6 +54,12 @@ export const BookerSection = forwardRef<HTMLDivElement, BookerSectionProps>(func
     gridClassName = gridAreaClassNameMap[area[layout] || area.default];
   }
 
+  console.log({
+    gridClassName,
+    area,
+    layout,
+    visible,
+  });
   if (!visible && typeof visible !== "undefined") return null;
 
   return (

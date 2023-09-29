@@ -3,12 +3,16 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import type { PropsWithChildren } from "react";
 
+import dayjs from "@calcom/dayjs";
+import { trpc } from "@calcom/trpc/react";
 import { Button, Switch, Tooltip } from "@calcom/ui";
 import { Settings } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { OverlayCalendarContinueModal } from "../OverlayCalendar/OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "../OverlayCalendar/OverlayCalendarSettingsModal";
+import { useLocalSet } from "../hooks/useLocalSet";
+import { useOverlayCalendarStore } from "./store";
 
 const SUPPORTED_LAYOUTS = ["month_view"];
 
@@ -28,14 +32,37 @@ export function OverlayCalendarContainer() {
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
   const layout = useBookerStore((state) => state.layout);
+  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
+  const selectedDate = useBookerStore((state) => state.selectedDate);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { set } = useLocalSet<{
+    credentialId: number;
+    externalId: string;
+  }>("toggledConnectedCalendars", []);
+  const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
+  const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
+    {
+      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
+      dateFrom: selectedDate,
+      dateTo: selectedDate,
+      calendarsToLoad: Array.from(set).map((item) => ({
+        credentialId: item.credentialId,
+        externalId: item.externalId,
+      })),
+    },
+    { enabled: overlayCalendarQueryParam === "true" && !!session }
+  );
+
+  useEffect(() => {
+    if (overlayBusyDates) {
+      setOverlayBusyDates(overlayBusyDates);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlayBusyDates]);
 
   // Toggle query param for overlay calendar
-
-  const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
-
   const toggleOverlayCalendarQueryParam = useCallback(
     (state: boolean) => {
       const current = new URLSearchParams(Array.from(searchParams.entries()));
