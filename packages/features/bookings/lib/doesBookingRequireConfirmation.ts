@@ -20,7 +20,15 @@ export const doesBookingRequireConfirmation = ({
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
   if (rcThreshold) {
-    if (dayjs(dayjs(startTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+    // Convert startTime to UTC and create Day.js instances
+    const startTimeUTC = dayjs(startTime).utc();
+    const currentTime = dayjs();
+
+    // Calculate the time difference in the specified unit
+    const timeDifference = startTimeUTC.diff(currentTime, rcThreshold.unit);
+
+    // Check if the time difference exceeds the threshold
+    if (timeDifference > rcThreshold.time) {
       requiresConfirmation = false;
     }
   }
