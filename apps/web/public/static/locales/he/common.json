@@ -2032,6 +2032,7 @@
   "admin_org_notification_email_cta": "עבור/י אל הגדרות מנהלי המערכת של הארגון",
   "org_has_been_processed": "עיבוד הארגון הושלם",
   "org_error_processing": "היתה שגיאה בעיבוד של ארגון זה",
+  "orgs_page_description": "רשימה של כל הארגונים. קבלת ארגון תאפשר לכל המשתמשים מאותו דומיין דוא\"ל להירשם בלי להצטרך לבצע אימות של כתובת הדוא\"ל.",
   "unverified": "לא אומת",
   "dns_missing": "DNS חסר",
   "mark_dns_configured": "סימון כי DNS הוגדר",
