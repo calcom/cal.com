@@ -1,9 +1,8 @@
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,9 +10,9 @@ import { Alert, Select, TextField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
 import {
-  convertFromSmallestToPresentableCurrencyUnit,
   convertToSmallestCurrencyUnit,
-} from "../lib/currencyConvertions";
+  convertFromSmallestToPresentableCurrencyUnit,
+} from "../lib/currencyConversions";
 import { currencyOptions } from "../lib/currencyOptions";
 import type { appDataSchema } from "../zod";
 
@@ -32,7 +31,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   );
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
-  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(app);
+  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -47,6 +46,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       })
       .replace(/\d/g, "")
       .trim();
+
+  useEffect(() => {
+    if (!getAppData("currency")) {
+      setAppData("currency", currencyOptions[0].value);
+    }
+    if (!getAppData("paymentOption")) {
+      setAppData("paymentOption", paymentOptions[0].value);
+    }
+  }, []);
+
   return (
     <AppCard
       returnTo={WEBAPP_URL + pathname + "?tabName=apps"}

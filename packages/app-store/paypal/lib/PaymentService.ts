@@ -17,10 +17,15 @@ export const paypalCredentialKeysSchema = z.object({
 });
 
 export class PaymentService implements IAbstractPaymentService {
-  private credentials: z.infer<typeof paypalCredentialKeysSchema>;
+  private credentials: z.infer<typeof paypalCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    this.credentials = paypalCredentialKeysSchema.parse(credentials.key);
+    const keyParsing = paypalCredentialKeysSchema.safeParse(credentials.key);
+    if (keyParsing.success) {
+      this.credentials = keyParsing.data;
+    } else {
+      this.credentials = null;
+    }
   }
 
   async create(
@@ -37,7 +42,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking) {
+      if (!booking || !this.credentials) {
         throw new Error();
       }
 
@@ -113,7 +118,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking) {
+      if (!booking || !this.credentials) {
         throw new Error();
       }
 
@@ -191,5 +196,9 @@ export class PaymentService implements IAbstractPaymentService {
   }
   deletePayment(paymentId: number): Promise<boolean> {
     return Promise.resolve(false);
+  }
+
+  isSetupAlready(): boolean {
+    return !!this.credentials;
   }
 }

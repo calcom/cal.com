@@ -244,6 +244,7 @@ model User {
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  accessCodes          AccessCode[]
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -293,6 +294,7 @@ model Team {
   routingForms        App_RoutingForms_Form[]
   apiKeys             ApiKey[]
   credentials         Credential[]
+  accessCodes         AccessCode[]
 
   @@unique([slug, parentId])
 }
@@ -906,6 +908,33 @@ model SelectedSlots {
   isSeat           Boolean  @default(false)
 
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
+}
+
+model OAuthClient {
+  clientId     String       @id @unique
+  redirectUri  String
+  clientSecret String
+  name         String
+  logo         String?
+  accessCodes  AccessCode[]
+}
+
+model AccessCode {
+  id        Int           @id @default(autoincrement())
+  code      String
+  clientId  String?
+  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt DateTime
+  scopes    AccessScope[]
+  userId    Int?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    Int?
+  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+enum AccessScope {
+  READ_BOOKING
+  READ_PROFILE
 }
 
 view BookingTimeStatus {
