@@ -11,7 +11,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  showToast,
 } from "@calcom/ui";
 import { MoreHorizontal, Edit2, Trash } from "@calcom/ui/components/icon";
 
@@ -35,31 +34,22 @@ const ApiKeyListItem = ({
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
-      showToast(t("api_key_deleted"), "success");
-    },
-    onError(err) {
-      console.log(err);
-      showToast(t("something_went_wrong"), "error");
     },
   });
 
   return (
     <div
       key={apiKey.id}
-      className={classNames(
-        "flex w-full justify-between px-4 py-4 sm:px-6",
-        lastItem ? "" : "border-subtle border-b"
-      )}>
+      className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-subtle border-b")}>
       <div>
-        <div className="flex gap-1">
-          <p className="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
+        <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
+        <div className="flex items-center space-x-3.5">
           {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
           {!isExpired && <Badge variant="green">{t("active")}</Badge>}
-        </div>
-        <div className="mt-1 flex items-center space-x-3.5">
-          <p className="text-default text-sm">
+          <p className="text-default text-xs">
+            {" "}
             {neverExpires ? (
-              <div className="flex flex-row space-x-3">{t("api_key_never_expires")}</div>
+              <div className="text-subtle flex flex-row space-x-3">{t("api_key_never_expires")}</div>
             ) : (
               `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
             )}
@@ -81,8 +71,6 @@ const ApiKeyListItem = ({
             <DropdownMenuItem>
               <DropdownItem
                 type="button"
-                color="destructive"
-                disabled={deleteApiKey.isLoading}
                 onClick={() =>
                   deleteApiKey.mutate({
                     id: apiKey.id,

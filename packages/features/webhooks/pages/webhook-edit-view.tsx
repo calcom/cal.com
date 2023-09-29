@@ -60,7 +60,7 @@ function Component({ webhookId }: { webhookId: string }) {
       <Meta
         title={t("edit_webhook")}
         description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
+        backButton
       />
       <WebhookForm
         noRoutingFormTriggers={false}
@@ -80,7 +80,7 @@ function Component({ webhookId }: { webhookId: string }) {
           }
 
           if (values.changeSecret) {
-            values.secret = values.newSecret.trim().length ? values.newSecret : null;
+            values.secret = values.newSecret.length ? values.newSecret : null;
           }
 
           if (!values.payloadTemplate) {

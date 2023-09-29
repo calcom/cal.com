@@ -13,7 +13,7 @@ export const ZUpdateProfileInputSchema = z.object({
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
   bio: z.string().optional(),
-  avatar: z.string().nullable().optional(),
+  avatar: z.string().optional(),
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),

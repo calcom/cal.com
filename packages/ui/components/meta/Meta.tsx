@@ -9,7 +9,6 @@ type MetaType = {
   description: string;
   backButton?: boolean;
   CTA?: ReactNode;
-  borderInShellHeader?: boolean;
 };
 
 const initialMeta: MetaType = {
@@ -17,7 +16,6 @@ const initialMeta: MetaType = {
   description: "",
   backButton: false,
   CTA: null,
-  borderInShellHeader: true,
 };
 
 const MetaContext = createContext({
@@ -46,13 +44,13 @@ export function MetaProvider({ children }: { children: ReactNode }) {
  * elsewhere (ie. on a Heading, Title, Subtitle, etc.)
  * @example <Meta title="Password" description="Manage settings for your account passwords" />
  */
-export default function Meta({ title, description, backButton, CTA, borderInShellHeader }: MetaType) {
+export default function Meta({ title, description, backButton, CTA }: MetaType) {
   const { setMeta, meta } = useMeta();
 
   /* @TODO: maybe find a way to have this data on first render to prevent flicker */
   useEffect(() => {
     if (meta.title !== title || meta.description !== description || meta.CTA !== CTA) {
-      setMeta({ title, description, backButton, CTA, borderInShellHeader });
+      setMeta({ title, description, backButton, CTA });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, description, backButton, CTA]);

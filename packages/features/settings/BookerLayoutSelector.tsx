@@ -12,8 +12,6 @@ import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/z
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Label, CheckboxField, Button } from "@calcom/ui";
 
-import SectionBottomActions from "./SectionBottomActions";
-
 type BookerLayoutSelectorProps = {
   title?: string;
   description?: string;
@@ -32,8 +30,6 @@ type BookerLayoutSelectorProps = {
    * to this boolean.
    */
   isDark?: boolean;
-
-  isDisabled?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -44,7 +40,6 @@ export const BookerLayoutSelector = ({
   name,
   fallbackToUserSettings,
   isDark,
-  isDisabled = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -56,12 +51,10 @@ export const BookerLayoutSelector = ({
 
   return (
     <>
-      <div className="border-subtle rounded-t-xl border p-6">
-        <Label className="mb-0 text-base font-semibold">{title ? title : t("layout")}</Label>
-        <p className="text-subtle max-w-full break-words py-1 text-sm">
-          {description ? description : t("bookerlayout_description")}
-        </p>
-      </div>
+      <Label className="mb-0">{title ? title : t("layout")}</Label>
+      <p className="text-subtle max-w-full break-words py-1 text-sm">
+        {description ? description : t("bookerlayout_description")}
+      </p>
       <Controller
         // If the event does not have any settings, we don't want to register this field in the form.
         // That way the settings won't get saved into the event on save, but remain null. Thus keep using
@@ -69,19 +62,12 @@ export const BookerLayoutSelector = ({
         control={shouldShowUserSettings ? undefined : control}
         name={name || defaultFieldName}
         render={({ field: { value, onChange } }) => (
-          <>
-            <BookerLayoutFields
-              showUserSettings={shouldShowUserSettings}
-              settings={value}
-              onChange={onChange}
-              isDark={isDark}
-            />
-            <SectionBottomActions align="end">
-              <Button type="submit" disabled={isDisabled} color="primary">
-                {t("update")}
-              </Button>
-            </SectionBottomActions>
-          </>
+          <BookerLayoutFields
+            showUserSettings={shouldShowUserSettings}
+            settings={value}
+            onChange={onChange}
+            isDark={isDark}
+          />
         )}
       />
     </>
@@ -155,7 +141,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
   };
 
   return (
-    <div className="border-subtle space-y-5 border-x px-6 py-8">
+    <div className="my-4 space-y-5">
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
