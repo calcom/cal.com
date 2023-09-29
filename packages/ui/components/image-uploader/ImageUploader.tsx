@@ -5,7 +5,6 @@ import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor } from "../..";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
 import { showToast } from "../toast";
 
@@ -66,7 +65,6 @@ type ImageUploaderProps = {
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
-  triggerButtonColor?: ButtonColor;
 };
 
 interface FileEvent<T = Element> extends FormEvent<T> {
@@ -119,7 +117,6 @@ export default function ImageUploader({
   id,
   buttonMsg,
   handleAvatarChange,
-  triggerButtonColor,
   ...props
 }: ImageUploaderProps) {
   const { t } = useLocale();
@@ -172,7 +169,7 @@ export default function ImageUploader({
         (opened) => !opened && setFile(null) // unset file on close
       }>
       <DialogTrigger asChild>
-        <Button color={triggerButtonColor ?? "secondary"} type="button" className="py-1 text-sm">
+        <Button color="secondary" type="button" className="py-1 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>

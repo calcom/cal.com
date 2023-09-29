@@ -19,12 +19,8 @@ const SAMLSSO = () => {
   }, []);
 
   return (
-    <div className="bg-default w-full sm:mx-0">
-      <Meta
-        title={t("sso_configuration")}
-        description={t("sso_configuration_description")}
-        borderInShellHeader={true}
-      />
+    <div className="bg-default w-full sm:mx-0 xl:mt-0">
+      <Meta title={t("sso_configuration")} description={t("sso_configuration_description")} />
       <SSOConfiguration teamId={null} />
     </div>
   );

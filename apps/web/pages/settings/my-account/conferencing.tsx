@@ -15,8 +15,8 @@ import { AppList } from "@components/apps/AppList";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
+      <Meta title={title} description={description} />
+      <div className="divide-subtle mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -28,9 +28,11 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
-      {t("add")}
-    </Button>
+    <>
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
+        {t("add_conferencing_app")}
+      </Button>
+    </>
   );
 };
 
@@ -70,7 +72,6 @@ const ConferencingLayout = () => {
           title={t("conferencing")}
           description={t("conferencing_description")}
           CTA={<AddConferencingButton />}
-          borderInShellHeader={true}
         />
         <QueryCell
           query={query}
@@ -92,20 +93,13 @@ const ConferencingLayout = () => {
                       color="secondary"
                       data-testid="connect-conferencing-apps"
                       href="/apps/categories/conferencing">
-                      {t("connect_conference_apps")}
+                      {t("connect_conferencing_apps")}
                     </Button>
                   }
                 />
               );
             }
-            return (
-              <AppList
-                listClassName="rounded-xl rounded-t-none border-t-0"
-                handleDisconnect={handleDisconnect}
-                data={data}
-                variant="conferencing"
-              />
-            );
+            return <AppList handleDisconnect={handleDisconnect} data={data} variant="conferencing" />;
           }}
         />
       </div>

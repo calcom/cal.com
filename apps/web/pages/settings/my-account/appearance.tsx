@@ -3,10 +3,8 @@ import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -14,7 +12,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
@@ -25,7 +22,7 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  SettingsToggle,
+  Switch,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
@@ -34,9 +31,9 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 space-y-6 rounded-t-xl border border-b-0 px-4 py-6 sm:px-6">
-        <div className="flex items-center justify-center">
+      <Meta title={title} description={description} />
+      <div className="mb-8 mt-6 space-y-6">
+        <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -47,83 +44,49 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
         </div>
 
         <SkeletonText className="h-8 w-full" />
-      </div>
-      <div className="rounded-b-xl">
-        <SectionBottomActions align="end">
-          <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-        </SectionBottomActions>
+
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
 };
 
-const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
-const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
-
-const AppearanceView = ({
-  user,
-  hasPaidPlan,
-}: {
-  user: RouterOutputs["viewer"]["me"];
-  hasPaidPlan: boolean;
-}) => {
+const AppearanceView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
-  const [isCustomBrandColorChecked, setIsCustomBranColorChecked] = useState(
-    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
-  );
-  const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
 
-  const userThemeFormMethods = useForm({
+  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
+
+  const formMethods = useForm({
     defaultValues: {
-      theme: user.theme,
+      theme: user?.theme,
+      brandColor: user?.brandColor || "#292929",
+      darkBrandColor: user?.darkBrandColor || "#fafafa",
+      hideBranding: user?.hideBranding,
+      metadata: user?.metadata as z.infer<typeof userMetadata>,
     },
   });
 
-  const {
-    formState: { isSubmitting: isUserThemeSubmitting, isDirty: isUserThemeDirty },
-    reset: resetUserThemeReset,
-  } = userThemeFormMethods;
-
-  const bookerLayoutFormMethods = useForm({
-    defaultValues: {
-      metadata: user.metadata as z.infer<typeof userMetadata>,
-    },
-  });
-
-  const {
-    formState: { isSubmitting: isBookerLayoutFormSubmitting, isDirty: isBookerLayoutFormDirty },
-    reset: resetBookerLayoutThemeReset,
-  } = bookerLayoutFormMethods;
-
-  const brandColorsFormMethods = useForm({
-    defaultValues: {
-      brandColor: user.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
-      darkBrandColor: user.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
-    },
-  });
-
-  const {
-    formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
-    reset: resetBrandColorsThemeReset,
-  } = brandColorsFormMethods;
-
-  const selectedTheme = userThemeFormMethods.watch("theme");
+  const selectedTheme = formMethods.watch("theme");
   const selectedThemeIsDark =
     selectedTheme === "dark" ||
     (selectedTheme === "" &&
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
 
+  const {
+    formState: { isSubmitting, isDirty },
+    reset,
+  } = formMethods;
+
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       showToast(t("settings_updated_successfully"), "success");
-      resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
-      resetBookerLayoutThemeReset({ metadata: data.metadata });
-      resetUserThemeReset({ theme: data.theme });
+      reset(data);
     },
     onError: (error) => {
       if (error.message) {
@@ -134,180 +97,136 @@ const AppearanceView = ({
     },
   });
 
+  if (isLoading || isTeamPlanStatusLoading)
+    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
+
+  if (!user) return null;
+
+  const isDisabled = isSubmitting || !isDirty;
+
   return (
-    <div>
-      <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+    <Form
+      form={formMethods}
+      handleSubmit={(values) => {
+        const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
+        if (layoutError) throw new Error(t(layoutError));
+
+        mutation.mutate({
+          ...values,
+          // Radio values don't support null as values, therefore we convert an empty string
+          // back to null here.
+          theme: values.theme || null,
+        });
+      }}>
+      <Meta title={t("appearance")} description={t("appearance_description")} />
+      <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("theme")}</p>
+          <p className="text-default font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
-      <Form
-        form={userThemeFormMethods}
-        handleSubmit={(values) => {
-          mutation.mutate({
-            // Radio values don't support null as values, therefore we convert an empty string
-            // back to null here.
-            theme: values.theme || null,
-          });
-        }}>
-        <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
-          <ThemeLabel
-            variant="system"
-            value={null}
-            label={t("theme_system")}
-            defaultChecked={user.theme === null}
-            register={userThemeFormMethods.register}
-          />
-          <ThemeLabel
-            variant="light"
-            value="light"
-            label={t("light")}
-            defaultChecked={user.theme === "light"}
-            register={userThemeFormMethods.register}
-          />
-          <ThemeLabel
-            variant="dark"
-            value="dark"
-            label={t("dark")}
-            defaultChecked={user.theme === "dark"}
-            register={userThemeFormMethods.register}
-          />
-        </div>
-        <SectionBottomActions className="mb-6" align="end">
-          <Button
-            disabled={isUserThemeSubmitting || !isUserThemeDirty}
-            type="submit"
-            data-testid="update-theme-btn"
-            color="primary">
-            {t("update")}
-          </Button>
-        </SectionBottomActions>
-      </Form>
-
-      <Form
-        form={bookerLayoutFormMethods}
-        handleSubmit={(values) => {
-          const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
-          if (layoutError) {
-            showToast(t(layoutError), "error");
-            return;
-          } else {
-            mutation.mutate(values);
-          }
-        }}>
-        <BookerLayoutSelector
-          isDark={selectedThemeIsDark}
-          name="metadata.defaultBookerLayouts"
-          title={t("bookerlayout_user_settings_title")}
-          description={t("bookerlayout_user_settings_description")}
-          isDisabled={isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty}
+      <div className="flex flex-col justify-between sm:flex-row">
+        <ThemeLabel
+          variant="system"
+          value={null}
+          label={t("theme_system")}
+          defaultChecked={user.theme === null}
+          register={formMethods.register}
         />
-      </Form>
+        <ThemeLabel
+          variant="light"
+          value="light"
+          label={t("light")}
+          defaultChecked={user.theme === "light"}
+          register={formMethods.register}
+        />
+        <ThemeLabel
+          variant="dark"
+          value="dark"
+          label={t("dark")}
+          defaultChecked={user.theme === "dark"}
+          register={formMethods.register}
+        />
+      </div>
 
-      <Form
-        form={brandColorsFormMethods}
-        handleSubmit={(values) => {
-          mutation.mutate(values);
-        }}>
-        <div className="mt-6">
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            title={t("custom_brand_colors")}
-            description={t("customize_your_brand_colors")}
-            checked={isCustomBrandColorChecked}
-            onCheckedChange={(checked) => {
-              setIsCustomBranColorChecked(checked);
-              if (!checked) {
-                mutation.mutate({
-                  brandColor: DEFAULT_LIGHT_BRAND_COLOR,
-                  darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
-                });
-              }
-            }}
-            childrenClassName="lg:ml-0"
-            switchContainerClassName={classNames(
-              "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
-              isCustomBrandColorChecked && "rounded-b-none"
-            )}>
-            <div className="border-subtle flex flex-col gap-6 border-x p-6">
-              <Controller
-                name="brandColor"
-                control={brandColorsFormMethods.control}
+      <hr className="border-subtle my-8 border [&:has(+hr)]:hidden" />
+      <BookerLayoutSelector
+        isDark={selectedThemeIsDark}
+        name="metadata.defaultBookerLayouts"
+        title={t("bookerlayout_user_settings_title")}
+        description={t("bookerlayout_user_settings_description")}
+      />
+
+      <hr className="border-subtle my-8 border" />
+      <div className="mb-6 flex items-center text-sm">
+        <div>
+          <p className="text-default font-semibold">{t("custom_brand_colors")}</p>
+          <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
+        </div>
+      </div>
+
+      <div className="block justify-between sm:flex">
+        <Controller
+          name="brandColor"
+          control={formMethods.control}
+          defaultValue={user.brandColor}
+          render={() => (
+            <div>
+              <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
+              <ColorPicker
                 defaultValue={user.brandColor}
-                render={() => (
-                  <div>
-                    <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
-                    <ColorPicker
-                      defaultValue={user.brandColor}
-                      resetDefaultValue="#292929"
-                      onChange={(value) => {
-                        try {
-                          checkWCAGContrastColor("#ffffff", value);
-                          setLightModeError(false);
-                          brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
-                        } catch (err) {
-                          setLightModeError(false);
-                        }
-                      }}
-                    />
-                    {lightModeError ? (
-                      <div className="mt-4">
-                        <Alert
-                          severity="warning"
-                          message="Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-              />
-
-              <Controller
-                name="darkBrandColor"
-                control={brandColorsFormMethods.control}
-                defaultValue={user.darkBrandColor}
-                render={() => (
-                  <div className="mt-6 sm:mt-0">
-                    <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
-                    <ColorPicker
-                      defaultValue={user.darkBrandColor}
-                      resetDefaultValue="#fafafa"
-                      onChange={(value) => {
-                        try {
-                          checkWCAGContrastColor("#101010", value);
-                          setDarkModeError(false);
-                          brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
-                        } catch (err) {
-                          setDarkModeError(true);
-                        }
-                      }}
-                    />
-                    {darkModeError ? (
-                      <div className="mt-4">
-                        <Alert
-                          severity="warning"
-                          message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                resetDefaultValue="#292929"
+                onChange={(value) => {
+                  if (!checkWCAGContrastColor("#ffffff", value)) {
+                    setLightModeError(true);
+                  } else {
+                    setLightModeError(false);
+                  }
+                  formMethods.setValue("brandColor", value, { shouldDirty: true });
+                }}
               />
             </div>
-            <SectionBottomActions align="end">
-              <Button
-                disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
-                color="primary"
-                type="submit">
-                {t("update")}
-              </Button>
-            </SectionBottomActions>
-          </SettingsToggle>
+          )}
+        />
+        <Controller
+          name="darkBrandColor"
+          control={formMethods.control}
+          defaultValue={user.darkBrandColor}
+          render={() => (
+            <div className="mt-6 sm:mt-0">
+              <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
+              <ColorPicker
+                defaultValue={user.darkBrandColor}
+                resetDefaultValue="#fafafa"
+                onChange={(value) => {
+                  if (!checkWCAGContrastColor("#101010", value)) {
+                    setDarkModeError(true);
+                  } else {
+                    setDarkModeError(false);
+                  }
+                  formMethods.setValue("darkBrandColor", value, { shouldDirty: true });
+                }}
+              />
+            </div>
+          )}
+        />
+      </div>
+      {darkModeError ? (
+        <div className="mt-4">
+          <Alert
+            severity="warning"
+            message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
+          />
         </div>
-      </Form>
-
+      ) : null}
+      {lightModeError ? (
+        <div className="mt-4">
+          <Alert
+            severity="warning"
+            message="Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
+          />
+        </div>
+      ) : null}
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
@@ -316,37 +235,51 @@ const AppearanceView = ({
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-
-      <SettingsToggle
-        toggleSwitchAtTheEnd={true}
-        title={t("disable_cal_branding", { appName: APP_NAME })}
-        disabled={!hasPaidPlan || mutation?.isLoading}
-        description={t("removes_cal_branding", { appName: APP_NAME })}
-        checked={hasPaidPlan ? hideBrandingValue : false}
-        Badge={<UpgradeTeamsBadge />}
-        onCheckedChange={(checked) => {
-          setHideBrandingValue(checked);
-          mutation.mutate({ hideBranding: checked });
-        }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      <hr className="border-subtle my-8 border" />
+      <Controller
+        name="hideBranding"
+        control={formMethods.control}
+        defaultValue={user.hideBranding}
+        render={({ field: { value } }) => (
+          <>
+            <div className="flex w-full text-sm">
+              <div className="mr-1 flex-grow">
+                <div className="flex items-center">
+                  <p className="text-default font-semibold ltr:mr-2 rtl:ml-2">
+                    {t("disable_cal_branding", { appName: APP_NAME })}
+                  </p>
+                  <UpgradeTeamsBadge />
+                </div>
+                <p className="text-default  mt-0.5">{t("removes_cal_branding", { appName: APP_NAME })}</p>
+              </div>
+              <div className="flex-none">
+                <Switch
+                  id="hideBranding"
+                  disabled={!hasPaidPlan}
+                  onCheckedChange={(checked) =>
+                    formMethods.setValue("hideBranding", checked, { shouldDirty: true })
+                  }
+                  checked={hasPaidPlan ? value : false}
+                />
+              </div>
+            </div>
+          </>
+        )}
       />
-    </div>
+      <Button
+        disabled={isDisabled}
+        type="submit"
+        loading={mutation.isLoading}
+        color="primary"
+        className="mt-8"
+        data-testid="update-theme-btn">
+        {t("update")}
+      </Button>
+    </Form>
   );
 };
 
-const AppearanceViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
+AppearanceView.getLayout = getLayout;
+AppearanceView.PageWrapper = PageWrapper;
 
-  const { t } = useLocale();
-
-  if (isLoading || isTeamPlanStatusLoading || !user)
-    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
-
-  return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;
-};
-
-AppearanceViewWrapper.getLayout = getLayout;
-AppearanceViewWrapper.PageWrapper = PageWrapper;
-
-export default AppearanceViewWrapper;
+export default AppearanceView;

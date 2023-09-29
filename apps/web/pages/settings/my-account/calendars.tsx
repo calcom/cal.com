@@ -1,12 +1,11 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,13 +34,13 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle mt-8 space-y-6 rounded-xl border px-4 py-6 sm:px-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
 
-        <SkeletonButton className="ml-auto h-8 w-20 rounded-md p-5" />
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
@@ -66,21 +65,6 @@ const CalendarsView = () => {
   const utils = trpc.useContext();
 
   const query = trpc.viewer.connectedCalendars.useQuery();
-
-  const [selectedDestinationCalendarOption, setSelectedDestinationCalendar] = useState<{
-    integration: string;
-    externalId: string;
-  } | null>(null);
-
-  useEffect(() => {
-    if (query?.data?.destinationCalendar) {
-      setSelectedDestinationCalendar({
-        integration: query.data.destinationCalendar.integration,
-        externalId: query.data.destinationCalendar.externalId,
-      });
-    }
-  }, [query?.isLoading, query?.data?.destinationCalendar]);
-
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
@@ -95,58 +79,43 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta
-        title={t("calendars")}
-        description={t("calendars_description")}
-        CTA={<AddCalendarButton />}
-        borderInShellHeader={false}
-      />
+      <Meta title={t("calendars")} description={t("calendars_description")} CTA={<AddCalendarButton />} />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}
         success={({ data }) => {
-          const isDestinationUpdateBtnDisabled =
-            selectedDestinationCalendarOption?.externalId === query?.data?.destinationCalendar?.externalId;
           return data.connectedCalendars.length ? (
             <div>
-              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
-                <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
-                  {t("add_to_calendar")}
-                </h2>
-                <p className="text-default text-sm">{t("add_to_calendar_description")}</p>
-              </div>
-              <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 px-4 py-6 sm:px-6">
-                <DestinationCalendarSelector
-                  hidePlaceholder
-                  value={selectedDestinationCalendarOption?.externalId}
-                  onChange={(option) => {
-                    setSelectedDestinationCalendar(option);
-                  }}
-                  isLoading={mutation.isLoading}
-                />
-              </div>
-              <SectionBottomActions align="end">
-                <Button
-                  loading={mutation.isLoading}
-                  disabled={isDestinationUpdateBtnDisabled}
-                  color="primary"
-                  onClick={() => {
-                    if (selectedDestinationCalendarOption) mutation.mutate(selectedDestinationCalendarOption);
-                  }}>
-                  {t("update")}
-                </Button>
-              </SectionBottomActions>
+              <div className="bg-muted border-subtle mt-4 flex space-x-4 rounded-md p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+                <div className=" bg-default border-subtle flex h-9 w-9 items-center justify-center rounded-md border-2 p-[6px]">
+                  <Calendar className="text-default h-6 w-6" />
+                </div>
 
-              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
-                <h4 className="text-emphasis text-base font-semibold leading-5">
-                  {t("check_for_conflicts")}
-                </h4>
-                <p className="text-default pb-2 text-sm leading-5">{t("select_calendars")}</p>
+                <div className="flex w-full flex-col space-y-3">
+                  <div>
+                    <h4 className=" text-emphasis pb-2 text-base font-semibold leading-5">
+                      {t("add_to_calendar")}
+                    </h4>
+                    <p className=" text-default text-sm leading-5">
+                      <Trans i18nKey="add_to_calendar_description">
+                        Where to add events when you re booked. You can override this on a per-event basis in
+                        advanced settings in the event type.
+                      </Trans>
+                    </p>
+                  </div>
+                  <DestinationCalendarSelector
+                    hidePlaceholder
+                    value={data.destinationCalendar?.externalId}
+                    onChange={mutation.mutate}
+                    isLoading={mutation.isLoading}
+                  />
+                </div>
               </div>
-
-              <List
-                className="border-subtle flex flex-col gap-6 rounded-b-xl border border-t-0 p-6"
-                noBorderTreatment>
+              <h4 className="text-emphasis mt-12 text-base font-semibold leading-5">
+                {t("check_for_conflicts")}
+              </h4>
+              <p className="text-default pb-2 text-sm leading-5">{t("select_calendars")}</p>
+              <List className="flex flex-col gap-6" noBorderTreatment>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
                     {item.error && item.error.message && (
@@ -238,7 +207,6 @@ const CalendarsView = () => {
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push("/apps/categories/calendar")}
-              className="mt-6"
             />
           );
         }}
