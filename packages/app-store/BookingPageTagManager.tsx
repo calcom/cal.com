@@ -64,8 +64,7 @@ export default function BookingPageTagManager({
                 __html: parseValue(script.content) || "",
               }}
               {...parsedAttributes}
-              defer
-            />
+              defer />
           );
         });
       })}
