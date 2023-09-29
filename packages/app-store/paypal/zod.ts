@@ -36,6 +36,7 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     price: z.number(),
     currency: z.string().default(defaultCurrency),
     paymentOption: z.string().optional(),
+    enabled: z.boolean().optional(),
   })
 );
 export const appKeysSchema = z.object({});

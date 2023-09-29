@@ -376,6 +376,7 @@ async function ensureAvailableUsers(
       )
     : undefined;
 
+  log.debug("getUserAvailability for users", JSON.stringify({ users: eventType.users.map((u) => u.id) }));
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
@@ -392,12 +393,15 @@ async function ensureAvailableUsers(
       }
     );
 
+    log.debug(
+      "calendarBusyTimes==>>>",
+      JSON.stringify({ bufferedBusyTimes, dateRanges, isRecurringEvent: eventType.recurringEvent })
+    );
+
     if (!dateRanges.length) {
       // user does not have availability at this time, skip user.
       continue;
     }
-
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let foundConflict = false;
     try {
@@ -638,7 +642,6 @@ async function handler(
   }
 ) {
   const { userId } = req;
-
   const userIp = getIP(req);
 
   await checkRateLimitAndThrowError({
@@ -680,10 +683,29 @@ async function handler(
     eventType,
   });
 
+  const loggerWithEventDetails = logger.getChildLogger({
+    prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
+  });
+
+  if (isLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
+    logger.setSettings({ minLevel: "silly" });
+  }
+
+  loggerWithEventDetails.debug(
+    "handleNewBooking called",
+    JSON.stringify({
+      eventTypeId,
+      eventTypeSlug,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      rescheduleUid: reqBody.rescheduleUid,
+    })
+  );
+
   const fullName = getFullName(bookerName);
 
   const tGuests = await getTranslation("en", "common");
-  log.debug(`Booking eventType ${eventTypeId} started`);
+  loggerWithEventDetails.debug(`Booking eventType ${eventTypeId} started`);
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
@@ -702,12 +724,12 @@ async function handler(
       periodCountCalendarDays: eventType.periodCountCalendarDays,
     });
   } catch (error) {
-    log.warn({
+    loggerWithEventDetails.warn({
       message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
     });
     if (error instanceof BookingDateInPastError) {
       // TODO: HttpError should not bleed through to the console.
-      log.info(`Booking eventType ${eventTypeId} failed`, error);
+      loggerWithEventDetails.info(`Booking eventType ${eventTypeId} failed`, JSON.stringify({ error }));
       throw new HttpError({ statusCode: 400, message: error.message });
     }
   }
@@ -717,7 +739,7 @@ async function handler(
       errorCode: "BookingTimeOutOfBounds",
       message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
     };
-    log.warn({
+    loggerWithEventDetails.warn({
       message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
     });
     throw new HttpError({ statusCode: 400, message: error.message });
@@ -774,7 +796,9 @@ async function handler(
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
-    log.warn({ message: "NewBooking: Some of the users in this group do not allow dynamic booking" });
+    loggerWithEventDetails.warn({
+      message: "NewBooking: Some of the users in this group do not allow dynamic booking",
+    });
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
       statusCode: 400,
@@ -796,7 +820,7 @@ async function handler(
       },
     });
     if (!eventTypeUser) {
-      log.warn({ message: "NewBooking: eventTypeUser.notFound" });
+      loggerWithEventDetails.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
     users.push(eventTypeUser);
@@ -1365,7 +1389,10 @@ async function handler(
               errorCode: "BookingReschedulingMeetingFailed",
               message: "Booking Rescheduling failed",
             };
-            log.error(`Booking ${organizerUser.name} failed`, error, results);
+            loggerWithEventDetails.error(
+              `Booking ${organizerUser.name} failed`,
+              JSON.stringify({ error, results })
+            );
           } else {
             const metadata: AdditionalInformation = {};
             if (results.length) {
@@ -1759,7 +1786,7 @@ async function handler(
         eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
-      log.error("Error while scheduling workflow reminders", error);
+      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData = {
@@ -2002,7 +2029,11 @@ async function handler(
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
+    loggerWithEventDetails.error(
+      `Booking ${eventTypeId} failed`,
+      "Error when saving booking to db",
+      err.message
+    );
     if (err.code === "P2002") {
       throw new HttpError({ statusCode: 409, message: "booking.conflict" });
     }
@@ -2056,7 +2087,10 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       await cancelWorkflowReminders(originalRescheduledBooking.workflowReminders);
     } catch (error) {
-      log.error("Error while canceling scheduled workflow reminders", error);
+      loggerWithEventDetails.error(
+        "Error while canceling scheduled workflow reminders",
+        JSON.stringify({ error })
+      );
     }
 
     // Use EventManager to conditionally use all needed integrations.
@@ -2087,7 +2121,10 @@ async function handler(
         message: "Booking Rescheduling failed",
       };
 
-      log.error(`Booking ${organizerUser.name} failed`, error, results);
+      loggerWithEventDetails.error(
+        `Booking ${organizerUser.name} failed`,
+        JSON.stringify({ error, results })
+      );
     } else {
       const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
@@ -2139,7 +2176,10 @@ async function handler(
         message: "Booking failed",
       };
 
-      log.error(`Booking ${organizerUser.username} failed`, error, results);
+      loggerWithEventDetails.error(
+        `Booking ${organizerUser.username} failed`,
+        JSON.stringify({ error, results })
+      );
     } else {
       const metadata: AdditionalInformation = {};
 
@@ -2294,7 +2334,7 @@ async function handler(
     return { ...booking, message: "Payment required", paymentUid: payment?.uid };
   }
 
-  log.debug(`Booking ${organizerUser.username} completed`);
+  loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
 
   if (booking.location?.startsWith("http")) {
     videoCallUrl = booking.location;
@@ -2335,7 +2375,10 @@ async function handler(
         }
       });
     } catch (error) {
-      log.error("Error while running scheduledJobs for booking", error);
+      loggerWithEventDetails.error(
+        "Error while running scheduledJobs for booking",
+        JSON.stringify({ error })
+      );
     }
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
@@ -2365,7 +2408,7 @@ async function handler(
       });
     }
   } catch (error) {
-    log.error("Error while updating hashed link", error);
+    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
@@ -2385,7 +2428,7 @@ async function handler(
       },
     });
   } catch (error) {
-    log.error("Error while creating booking references", error);
+    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
@@ -2406,7 +2449,7 @@ async function handler(
       eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
-    log.error("Error while scheduling workflow reminders", error);
+    loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
   // booking successful
@@ -2499,3 +2542,31 @@ const findBookingQuery = async (bookingId: number) => {
   // Don't leak any sensitive data
   return foundBooking;
 };
+
+function isLoggingEnabled({
+  eventTypeId,
+  usernameOrTeamName,
+}: {
+  eventTypeId?: number | null;
+  usernameOrTeamName?: string | string[];
+}) {
+  const usernameOrTeamnamesList =
+    usernameOrTeamName instanceof Array ? usernameOrTeamName : [usernameOrTeamName];
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const bookingLoggingEventIds = process.env.BOOKING_LOGGING_EVENT_IDS || "";
+  const isEnabled = bookingLoggingEventIds.split(",").some((id) => {
+    if (Number(id.trim()) === eventTypeId) {
+      return true;
+    }
+  });
+
+  if (isEnabled) {
+    return true;
+  }
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const bookingLoggingUsername = process.env.BOOKING_LOGGING_USER_OR_TEAM_NAME || "";
+  return bookingLoggingUsername.split(",").some((u) => {
+    return usernameOrTeamnamesList.some((foundUsername) => foundUsername === u.trim());
+  });
+}

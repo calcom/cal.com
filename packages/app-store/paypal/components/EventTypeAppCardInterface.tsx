@@ -1,5 +1,9 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
+import {
+  convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
+} from "stripepayment/lib/currencyConversions";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -68,12 +72,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   className="block w-full rounded-sm pl-2 text-sm"
                   placeholder="Price"
                   onChange={(e) => {
-                    setAppData("price", Number(e.target.value) * 100);
-                    if (currency) {
-                      setAppData("currency", currency);
+                    setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
+                    if (selectedCurrency) {
+                      setAppData("currency", selectedCurrency.value);
                     }
                   }}
-                  value={price > 0 ? price / 100 : undefined}
+                  value={
+                    price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined
+                  }
                 />
               </div>
               <div className="mt-5 w-60">
