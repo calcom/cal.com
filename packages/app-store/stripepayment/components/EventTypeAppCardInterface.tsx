@@ -22,7 +22,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const pathname = usePathname();
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
-  const currency = getAppData("currency");
+  const currency = getAppData("currency") || currencyOptions[0].value;
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
       label: currencyOptions[0].label,
