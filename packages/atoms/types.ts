@@ -5,3 +5,8 @@ export interface AtomsGlobalConfigProps {
    */
   webAppUrl?: string;
 }
+
+export interface ConnectButtonProps {
+  buttonText?: string;
+  onButtonClick: () => Promise<void>;
+}
