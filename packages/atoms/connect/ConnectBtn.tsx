@@ -1,7 +1,27 @@
-export default function ConnectBtn() {
+import { useState } from "react";
+import type { ConnectButtonProps } from "types";
+import type { AtomsGlobalConfigProps } from "types";
+
+// TODO: add default styling
+// also a cssClassAssembler function for custom styling
+
+export default function Connect({ buttonText, onButtonClick }: ConnectButtonProps & AtomsGlobalConfigProps) {
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [errMsg, setErrMsg] = useState<string>("");
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
+
+    setIsProcessing(true);
+    onButtonClick();
+  }
+
   return (
     <div>
-      <button>Connect button</button>
+      <button onClick={(event) => handleSubmit(event)} disabled={!isProcessing} type="button">
+        {buttonText || "Install App"}
+      </button>
+      {!!errMsg ? <span>{errMsg}</span> : null}
     </div>
   );
 }
