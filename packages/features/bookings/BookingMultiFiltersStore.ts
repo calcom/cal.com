@@ -12,6 +12,12 @@ export type BookingMultiFilterStore = {
   addFilterOptions: addFilterOption[];
   toggleOption: (option: addFilterOption) => void;
   isFilterActive: (label: addFilterOption["label"]) => boolean;
+  activeFilters: string[];
+  addActiveFilter: (filter: string) => void;
+  removeActiveFilter: (filter: string) => void;
+  clearActiveFilters: () => void;
+  isFilterViewOpen: boolean;
+  toggleFilterViewOpen: () => void;
 };
 
 export const useBookingMultiFilterStore = create<BookingMultiFilterStore>((set, get) => ({
@@ -48,5 +54,21 @@ export const useBookingMultiFilterStore = create<BookingMultiFilterStore>((set, 
     } else {
       set({ addFilterOptions: [...availableOptions, option] });
     }
+  },
+  activeFilters: [],
+  addActiveFilter: (filter: string) => {
+    if (!get().activeFilters.includes(filter)) {
+      set({ activeFilters: [...get().activeFilters, filter] });
+    }
+  },
+  removeActiveFilter: (filter: string) => {
+    set({ activeFilters: get().activeFilters.filter((activeFilter) => activeFilter !== filter) });
+  },
+  clearActiveFilters: () => {
+    set({ activeFilters: [], isFilterViewOpen: false });
+  },
+  isFilterViewOpen: false,
+  toggleFilterViewOpen: () => {
+    set({ isFilterViewOpen: !get().isFilterViewOpen });
   },
 }));

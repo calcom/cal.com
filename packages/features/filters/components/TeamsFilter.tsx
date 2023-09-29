@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import type { ReactNode, InputHTMLAttributes } from "react";
 import { forwardRef } from "react";
 
+import { useBookingMultiFilterStore } from "@calcom/features/bookings/BookingMultiFiltersStore";
 import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -56,6 +57,11 @@ export const TeamsFilter = ({
     return t("all");
   };
 
+  const [addActiveFilter, removeActiveFilter] = useBookingMultiFilterStore((state) => [
+    state.addActiveFilter,
+    state.removeActiveFilter,
+  ]);
+
   if (!teams || !teams.length) return null;
 
   return (
@@ -97,8 +103,12 @@ export const TeamsFilter = ({
                 onChange={(e) => {
                   if (e.target.checked) {
                     pushItemToKey("teamIds", team.id);
+                    addActiveFilter("team");
                   } else if (!e.target.checked) {
                     removeItemByKeyAndValue("teamIds", team.id);
+                    if (query.teamIds?.length === 1 || !query.teamIds) {
+                      removeActiveFilter("team");
+                    }
                   }
                 }}
                 icon={

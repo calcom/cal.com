@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { Fragment, useState } from "react";
 
+import { useBookingMultiFilterStore } from "@calcom/features/bookings/BookingMultiFiltersStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -50,6 +51,11 @@ export const EventTypeFilter = () => {
     enabled: !!user,
   });
 
+  const [addActiveFilter, removeActiveFilter] = useBookingMultiFilterStore((state) => [
+    state.addActiveFilter,
+    state.removeActiveFilter,
+  ]);
+
   if (!eventTypes.data) return null;
   const isEmpty = eventTypes.data.length === 0;
 
@@ -78,8 +84,12 @@ export const EventTypeFilter = () => {
                     onChange={(e) => {
                       if (e.target.checked) {
                         pushItemToKey("eventTypeIds", eventType.id);
+                        addActiveFilter("eventType");
                       } else if (!e.target.checked) {
                         removeItemByKeyAndValue("eventTypeIds", eventType.id);
+                        if (query.eventTypeIds?.length === 1 || !query.eventTypeIds) {
+                          removeActiveFilter("eventType");
+                        }
                       }
                     }}
                     description={eventType.title}

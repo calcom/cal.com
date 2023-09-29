@@ -6,9 +6,13 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { getLayout } from "@calcom/features/MainLayout";
+import { useBookingMultiFilterStore } from "@calcom/features/bookings/BookingMultiFiltersStore";
+import { EventTypeFilter } from "@calcom/features/bookings/components/EventTypeFilter";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
+import { PeopleFilter } from "@calcom/features/bookings/components/PeopleFilter";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -138,14 +142,33 @@ export default function Bookings() {
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
+  const [isFilterViewOpen, clearActiveFilters] = useBookingMultiFilterStore((state) => [
+    state.isFilterViewOpen,
+    state.clearActiveFilters,
+  ]);
+
+  React.useEffect(() => {
+    clearActiveFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
   return (
     <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="flex flex-col flex-wrap lg:flex-row">
-          <HorizontalTabs tabs={tabs} />
-          <div className="max-w-full overflow-x-auto xl:ml-auto">
+        <div className="grid grid-cols-2">
+          <div className="col-span-full w-fit max-w-fit lg:col-span-1">
+            <HorizontalTabs tabs={tabs} />
+          </div>
+          <div className="w-fit max-w-fit overflow-x-auto lg:ml-auto">
             <FiltersContainer />
           </div>
+          {isFilterViewOpen && (
+            <div className="col-span-full flex w-fit max-w-fit space-x-2">
+              <PeopleFilter />
+              <EventTypeFilter />
+              <TeamsFilter />
+            </div>
+          )}
         </div>
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
