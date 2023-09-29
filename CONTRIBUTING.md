@@ -93,7 +93,7 @@ To develop locally:
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 6. Setup Node
-   If your Node version does not meet project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows to use Node at the version required by the project:
+   If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
    ```sh
    nvm use
    ```
