@@ -54,12 +54,6 @@ export const BookerSection = forwardRef<HTMLDivElement, BookerSectionProps>(func
     gridClassName = gridAreaClassNameMap[area[layout] || area.default];
   }
 
-  console.log({
-    gridClassName,
-    area,
-    layout,
-    visible,
-  });
   if (!visible && typeof visible !== "undefined") return null;
 
   return (

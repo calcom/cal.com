@@ -92,8 +92,6 @@ const BookerComponent = ({
     shallow
   );
 
-  const displayOverlay = getQueryParam("overlayCalendar") === "true";
-
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -332,20 +330,6 @@ const BookerComponent = ({
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />
             </BookerSection>
-            {/* <BookerSection
-              key="overlay"
-              area="overlay"
-              visible={displayOverlay}
-              className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
-                layout === BookerLayouts.MONTH_VIEW &&
-                  "h-full overflow-hidden md:w-[var(--booker-overlay-width)]",
-                layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
-              )}
-              ref={timeslotsRef}
-              {...fadeInRight}>
-              <div>Hello</div>
-            </BookerSection> */}
           </AnimatePresence>
         </div>
 
