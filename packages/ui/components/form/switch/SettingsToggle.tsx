@@ -51,7 +51,7 @@ function SettingsToggle({
                     {title}
                     {LockedIcon}
                   </Label>
-                  {Badge}
+                  {Badge && <div className="mb-2">{Badge}</div>}
                 </div>
                 {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
               </div>
