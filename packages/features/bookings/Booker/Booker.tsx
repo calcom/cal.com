@@ -229,7 +229,7 @@ const BookerComponent = ({
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-h-[32rem] max-w-full items-start overflow-hidden dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -293,7 +293,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle ml-[-1px] h-[32rem] px-5 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker />
             </BookerSection>
 
