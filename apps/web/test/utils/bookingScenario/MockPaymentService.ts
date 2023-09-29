@@ -20,7 +20,7 @@ export function getMockPaymentService() {
   // @ts-ignore
   class MockPaymentService implements IAbstractPaymentService {
     // TODO: We shouldn't need to implement adding a row to Payment table but that's a requirement right now.
-    // We should actually delegate table creation the the core app. Here, only the payment app specific logic should come
+    // We should actually delegate table creation to the core app. Here, only the payment app specific logic should come
     async create(
       payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
       bookingId: Booking["id"],
