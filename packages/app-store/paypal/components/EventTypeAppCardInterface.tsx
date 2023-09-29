@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -39,6 +39,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+
+  useEffect(() => {
+    if (!getAppData("currency")) {
+      setAppData("currency", currencyOptions[0].value);
+    }
+    if (!getAppData("paymentOption")) {
+      setAppData("paymentOption", paymentOptions[0].value);
+    }
+  }, []);
 
   return (
     <AppCard
