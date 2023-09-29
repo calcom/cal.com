@@ -34,7 +34,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui";
-import { Copy, Edit } from "@calcom/ui/components/icon";
+import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -124,79 +124,81 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
-    <div className="flex flex-col space-y-8">
+    <div className="flex flex-col space-y-4">
       {/**
        * Only display calendar selector if user has connected calendars AND if it's not
        * a team event. Since we don't have logic to handle each attendee calendar (for now).
        * This will fallback to each user selected destination calendar.
        */}
-      {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
-        <div className="flex flex-col">
-          <div className="flex justify-between">
-            <Label>{t("add_to_calendar")}</Label>
-            <Link
-              href="/apps/categories/calendar"
-              target="_blank"
-              className="hover:text-emphasis text-default text-sm">
-              {t("add_another_calendar")}
-            </Link>
+      <div className="border-subtle space-y-6 rounded-md border p-6">
+        {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
+          <div className="flex flex-col">
+            <div className="flex justify-between">
+              <Label className="font-medium">{t("add_to_calendar")}</Label>
+              <Link
+                href="/apps/categories/calendar"
+                target="_blank"
+                className="hover:text-emphasis text-default text-sm">
+                {t("add_another_calendar")}
+              </Link>
+            </div>
+            <div className="-mt-1 w-full">
+              <Controller
+                control={formMethods.control}
+                name="destinationCalendar"
+                defaultValue={eventType.destinationCalendar || undefined}
+                render={({ field: { onChange, value } }) => (
+                  <DestinationCalendarSelector
+                    destinationCalendar={eventType.destinationCalendar}
+                    value={value ? value.externalId : undefined}
+                    onChange={onChange}
+                    hidePlaceholder
+                  />
+                )}
+              />
+            </div>
+            <p className="text-subtle text-sm">{t("select_which_cal")}</p>
           </div>
-          <div className="-mt-1 w-full">
-            <Controller
-              control={formMethods.control}
-              name="destinationCalendar"
-              defaultValue={eventType.destinationCalendar || undefined}
-              render={({ field: { onChange, value } }) => (
-                <DestinationCalendarSelector
-                  destinationCalendar={eventType.destinationCalendar}
-                  value={value ? value.externalId : undefined}
-                  onChange={onChange}
-                  hidePlaceholder
-                />
-              )}
-            />
-          </div>
-          <p className="text-default text-sm">{t("select_which_cal")}</p>
+        )}
+        <div className="w-full">
+          <TextField
+            label={t("event_name_in_calendar")}
+            type="text"
+            {...shouldLockDisableProps("eventName")}
+            placeholder={eventNamePlaceholder}
+            defaultValue={eventType.eventName || ""}
+            {...formMethods.register("eventName")}
+            addOnSuffix={
+              <Button
+                color="minimal"
+                size="sm"
+                aria-label="edit custom name"
+                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                onClick={() => setShowEventNameTip((old) => !old)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            }
+          />
         </div>
-      )}
-      <div className="w-full">
-        <TextField
-          label={t("event_name_in_calendar")}
-          type="text"
-          {...shouldLockDisableProps("eventName")}
-          placeholder={eventNamePlaceholder}
-          defaultValue={eventType.eventName || ""}
-          {...formMethods.register("eventName")}
-          addOnSuffix={
-            <Button
-              color="minimal"
-              size="sm"
-              aria-label="edit custom name"
-              className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-              onClick={() => setShowEventNameTip((old) => !old)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-          }
+      </div>
+
+      <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
+
+      <div className="border-subtle space-y-6 rounded-md border p-6">
+        <FormBuilder
+          title={t("booking_questions_title")}
+          description={t("booking_questions_description")}
+          addFieldLabel={t("add_a_booking_question")}
+          formProp="bookingFields"
+          {...shouldLockDisableProps("bookingFields")}
+          dataStore={{
+            options: {
+              locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
+            },
+          }}
         />
       </div>
-      <hr className="border-subtle [&:has(+div:empty)]:hidden" />
-      <div>
-        <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
-      </div>
-      <hr className="border-subtle" />
-      <FormBuilder
-        title={t("booking_questions_title")}
-        description={t("booking_questions_description")}
-        addFieldLabel={t("add_a_booking_question")}
-        formProp="bookingFields"
-        {...shouldLockDisableProps("bookingFields")}
-        dataStore={{
-          options: {
-            locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
-          },
-        }}
-      />
-      <hr className="border-subtle" />
+
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
@@ -204,13 +206,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-      <hr className="border-subtle" />
+
       <Controller
         name="requiresBookerEmailVerification"
         control={formMethods.control}
         defaultValue={eventType.requiresBookerEmailVerification}
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
             {...shouldLockDisableProps("requiresBookerEmailVerification")}
             description={t("description_requires_booker_email_verification")}
@@ -219,13 +223,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr className="border-subtle" />
+
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
             title={t("disable_notes")}
             {...shouldLockDisableProps("hideCalendarNotes")}
             description={t("disable_notes_description")}
@@ -234,13 +240,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr className="border-subtle" />
+
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                redirectUrlVisible && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
               title={t("redirect_success_booking")}
               {...successRedirectUrlLocked}
               description={t("redirect_url_description")}
@@ -249,8 +261,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
               }}>
-              {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
-              <div className="lg:-mb-2 lg:-ml-2">
+              <div className="border-subtle rounded-b-md border border-t-0 p-6">
                 <TextField
                   className="w-full"
                   label={t("redirect_success_booking")}
@@ -274,10 +285,24 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <hr className="border-subtle" />
+
       <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle rounded-md border py-6 px-4 sm:px-6",
+          hashedLinkVisible && "rounded-b-none"
+        )}
+        childrenClassName="lg:ml-0"
         data-testid="hashedLinkCheck"
         title={t("private_link")}
+        Badge={
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://cal.com/docs/core-features/event-types/single-use-private-links">
+            <Info className="mb-2 ml-1.5 h-4 w-4 cursor-pointer" />
+          </a>
+        }
         {...shouldLockDisableProps("hashedLinkCheck")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
@@ -285,8 +310,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
           setHashedLinkVisible(e);
         }}>
-        {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
-        <div className="lg:-ml-2">
+        <div className="border-subtle rounded-b-md border border-t-0 p-6">
           {!IS_VISUAL_REGRESSION_TESTING && (
             <TextField
               disabled
@@ -321,7 +345,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         </div>
       </SettingsToggle>
-      <hr className="border-subtle" />
+
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}
@@ -329,6 +353,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                value && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
               {...seatsLocked}
@@ -349,45 +379,49 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 }
                 onChange(e);
               }}>
-              <Controller
-                name="seatsPerTimeSlot"
-                control={formMethods.control}
-                defaultValue={eventType.seatsPerTimeSlot}
-                render={({ field: { value, onChange } }) => (
-                  <div className="lg:-ml-2">
-                    <TextField
-                      required
-                      name="seatsPerTimeSlot"
-                      labelSrOnly
-                      label={t("number_of_seats")}
-                      type="number"
-                      disabled={seatsLocked.disabled}
-                      defaultValue={value || 2}
-                      min={1}
-                      addOnSuffix={<>{t("seats")}</>}
-                      onChange={(e) => {
-                        onChange(Math.abs(Number(e.target.value)));
-                      }}
-                    />
-                    <div className="mt-2">
-                      <CheckboxField
-                        description={t("show_attendees")}
+              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+                <Controller
+                  name="seatsPerTimeSlot"
+                  control={formMethods.control}
+                  defaultValue={eventType.seatsPerTimeSlot}
+                  render={({ field: { value, onChange } }) => (
+                    <div className="lg:-ml-2">
+                      <TextField
+                        required
+                        name="seatsPerTimeSlot"
+                        labelSrOnly
+                        label={t("number_of_seats")}
+                        type="number"
                         disabled={seatsLocked.disabled}
-                        onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
-                        defaultChecked={!!eventType.seatsShowAttendees}
+                        defaultValue={value || 2}
+                        min={1}
+                        addOnSuffix={<>{t("seats")}</>}
+                        onChange={(e) => {
+                          onChange(Math.abs(Number(e.target.value)));
+                        }}
                       />
+                      <div className="mt-2">
+                        <CheckboxField
+                          description={t("show_attendees")}
+                          disabled={seatsLocked.disabled}
+                          onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                          defaultChecked={!!eventType.seatsShowAttendees}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <CheckboxField
+                          description={t("show_available_seats_count")}
+                          disabled={seatsLocked.disabled}
+                          onChange={(e) =>
+                            formMethods.setValue("seatsShowAvailabilityCount", e.target.checked)
+                          }
+                          defaultChecked={!!eventType.seatsShowAvailabilityCount}
+                        />
+                      </div>
                     </div>
-                    <div className="mt-2">
-                      <CheckboxField
-                        description={t("show_available_seats_count")}
-                        disabled={seatsLocked.disabled}
-                        onChange={(e) => formMethods.setValue("seatsShowAvailabilityCount", e.target.checked)}
-                        defaultChecked={!!eventType.seatsShowAvailabilityCount}
-                      />
-                    </div>
-                  </div>
-                )}
-              />
+                  )}
+                />
+              </div>
             </SettingsToggle>
             {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
           </>
@@ -395,13 +429,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
       {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <>
-          <hr className="border-subtle" />
           <Controller
             name="metadata.disableStandardEmails.confirmation.attendee"
             control={formMethods.control}
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
                   title={t("disable_attendees_confirmation_emails")}
                   description={t("disable_attendees_confirmation_emails_description")}
                   checked={value || false}
@@ -417,7 +452,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       )}
       {allowDisablingHostConfirmationEmails(workflows) && (
         <>
-          <hr className="border-subtle" />
           <Controller
             name="metadata.disableStandardEmails.confirmation.host"
             control={formMethods.control}
@@ -425,6 +459,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
                   title={t("disable_host_confirmation_emails")}
                   description={t("disable_host_confirmation_emails_description")}
                   checked={value || false}

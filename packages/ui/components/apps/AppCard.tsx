@@ -68,7 +68,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
-              <span className="bg-yellow-300">
+              <span className="bg-yellow-300" data-testid="highlighted-text">
                 {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
               </span>
               {app.name.substring(searchTextIndex + searchText.length)}

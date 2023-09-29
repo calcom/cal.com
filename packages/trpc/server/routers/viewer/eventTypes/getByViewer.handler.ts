@@ -196,20 +196,22 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
-  eventTypeGroups.push({
-    teamId: null,
-    membershipRole: null,
-    profile: {
-      slug: user.username,
-      name: user.name,
-      image,
-    },
-    eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
-    metadata: {
-      membershipCount: 1,
-      readOnly: false,
-    },
-  });
+  if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
+    eventTypeGroups.push({
+      teamId: null,
+      membershipRole: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+        image,
+      },
+      eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
+      metadata: {
+        membershipCount: 1,
+        readOnly: false,
+      },
+    });
+  }
 
   const teamMemberships = user.teams.map((membership) => ({
     teamId: membership.team.id,
@@ -222,13 +224,19 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     }
     return input?.filters?.teamIds?.includes(eventType?.team?.id || 0) ?? false;
   };
-
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
     user.teams
       .filter((mmship) => {
         const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-        return !metadata?.isOrganization;
+        if (metadata?.isOrganization) {
+          return false;
+        } else {
+          if (!input?.filters || !hasFilter(input?.filters)) {
+            return true;
+          }
+          return input?.filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
+        }
       })
       .map((membership) => {
         const orgMembership = teamMemberships.find(

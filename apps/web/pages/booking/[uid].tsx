@@ -23,6 +23,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -93,7 +94,7 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -490,10 +491,7 @@ export default function Success(props: SuccessProps) {
                             : t("payment")}
                         </div>
                         <div className="col-span-2 mb-2 mt-3">
-                          {new Intl.NumberFormat(i18n.language, {
-                            style: "currency",
-                            currency: props.paymentStatus.currency,
-                          }).format(props.paymentStatus.amount / 100.0)}
+                          <Price currency={props.paymentStatus.currency} price={props.paymentStatus.amount} />
                         </div>
                       </>
                     )}

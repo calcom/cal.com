@@ -89,6 +89,7 @@ export const AppPage = ({
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+
   const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
     { appType: type },
     {
