@@ -267,6 +267,7 @@ test.describe("Insights", async () => {
     await page.keyboard.press("Escape");
 
     await page.getByRole("button", { name: "Clear" }).click();
+    await page.waitForLoadState("networkidle");
 
     expect(page.url()).not.toContain("memberUserId=");
     expect(page.url()).toContain("isAll=false");
