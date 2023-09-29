@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { handlePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -883,10 +883,12 @@ export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntent
 export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
   let webhookResponse = null;
   try {
-    await handlePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
+    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
     if (!(e instanceof HttpError)) {
       logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+    } else {
+      logger.error("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     }
     webhookResponse = e as HttpError;
   }

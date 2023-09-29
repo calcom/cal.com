@@ -895,6 +895,7 @@ describe("handleNewBooking", () => {
 
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
+          logger.info("webhookResponse", webhookResponse);
           expect(webhookResponse?.statusCode).toBe(200);
           await expectBookingToBeInDatabase({
             description: "",
