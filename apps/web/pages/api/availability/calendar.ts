@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -59,11 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // already exists
       update: {},
     });
+    await handleWatchCalendar(req);
     res.status(200).json({ message: "Calendar Selection Saved" });
   }
 
   if (req.method === "DELETE") {
     const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
+    await handleWatchCalendar(req);
     await prisma.selectedCalendar.delete({
       where: {
         userId_integration_externalId: {
@@ -97,4 +101,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     res.status(200).json(selectableCalendars);
   }
+}
+
+let warningDisplayed = false;
+
+/** Prevent flooding the logs while testing/building */
+function logOnce(message: string) {
+  if (warningDisplayed) return;
+  console.warn(message);
+  warningDisplayed = true;
+}
+
+async function handleWatchCalendar(req: NextApiRequest) {
+  const flags = await getFeatureFlagMap(prisma);
+  if (!flags["calendar-cache"]) {
+    logOnce('[handleWatchCalendar] Skipping watching calendar due to "calendar-cache" flag being disabled');
+    return;
+  }
+  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
+  if (integration !== "google") {
+    logOnce('[handleWatchCalendar] Skipping watching calendar due to integration not being "google"');
+    return;
+  }
+  const credential = await prisma.credential.findFirst({
+    where: { id: credentialId },
+    select: credentialForCalendarServiceSelect,
+  });
+  const calendar = await getCalendar(credential);
+  calendar?.watchCalendar?({ calendarId: externalId, credentialId: 1 });
+  // return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+  throw new Error("Function not implemented.");
 }

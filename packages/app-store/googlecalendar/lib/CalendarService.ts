@@ -529,25 +529,27 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async watchCalendar() {
+  async watchCalendar({ calendarId, credentialId }: { calendarId: string; credentialId: number }) {
     const calendar = await this.authedCalendar();
-    const res = await calendar.events.watch({
-      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
-      calendarId: "primary",
+    const id = `${credentialId}_${calendarId}`;
+    await calendar.channels.stop({
       requestBody: {
-        // An id property string that uniquely identifies this new notification channel within your project. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. The ID value you set is echoed back in the X-Goog-Channel-Id HTTP header of every notification message that you receive for this channel.
-        id: "my_id",
-        type: "web_hook",
-        address: "https://cal.dev/api/integrations/googlecalendar/webhook",
-      },
-    });
-    console.log(res.data);
-    calendar.channels.stop({
-      requestBody: {
-        id: "my_id",
+        id,
         resourceId: "my_resourceId",
       },
     });
+    const res = await calendar.events.watch({
+      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+      calendarId,
+      requestBody: {
+        // An id property string that uniquely identifies this new notification channel within your project. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. The ID value you set is echoed back in the X-Goog-Channel-Id HTTP header of every notification message that you receive for this channel.
+        id,
+        type: "web_hook",
+        address: "https://435d-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
+        // address: "https://cal.dev/api/integrations/googlecalendar/webhook",
+      },
+    });
+    console.log(res.data);
     // Example response
     // {
     //   "address": "my_address",
