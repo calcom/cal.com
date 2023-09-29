@@ -21,7 +21,7 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
   // Check if input.password is correct
   const user = await prisma.user.findUnique({
     where: {
-      email: ctx.user.email.toLowerCase(),
+      id: ctx.user.id,
     },
   });
   if (!user) {

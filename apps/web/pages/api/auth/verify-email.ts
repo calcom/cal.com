@@ -26,7 +26,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Token expired" });
   }
 
-  const user = await prisma.user.update({
+  // Find the parent user to verify
+  const user = await prisma.user.findFirst({
+    where: {
+      email: foundToken?.identifier,
+      linkedBy: null,
+    },
+    select: {
+      id: true,
+      completedOnboarding: true,
+    },
+  });
+
+  // Proceeding to update all matching users by email as verified
+  await prisma.user.updateMany({
     where: {
       email: foundToken?.identifier,
     },
@@ -42,7 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const hasCompletedOnboarding = user.completedOnboarding;
+  // Prioritizing parent user to show onboarding or now
+  const hasCompletedOnboarding = user?.completedOnboarding;
 
   res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }

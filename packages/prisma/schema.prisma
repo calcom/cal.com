@@ -246,12 +246,11 @@ model User {
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
   // Linking account code for orgs v2
-  //linkedByUserId       Int?
-  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
-  //linkedUsers          User[]                  @relation("linked_account")*/
+  linkedByUserId       Int?
+  linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
+  linkedUsers          User[]                  @relation("linked_account")
 
-  @@unique([email])
-  @@unique([email, username])
+  @@unique([email, organizationId])
   @@unique([username, organizationId])
   @@index([emailVerified])
   @@index([identityProvider])

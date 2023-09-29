@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // never existed within Cal. In this case we do not want to disclose the email's existence.
   // instead, we just return 404
   try {
-    await prisma.user.update({
+    await prisma.user.updateMany({
       where: {
         email: maybeRequest.email,
       },

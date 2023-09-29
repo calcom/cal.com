@@ -54,9 +54,18 @@ export const deleteAllPaymentsByEmail = async (email: string) => {
 };
 
 export const deleteAllPaymentCredentialsByEmail = async (email: string) => {
-  await prisma.user.update({
+  const user = await prisma.user.findFirst({
     where: {
       email,
+      linkedBy: null,
+    },
+    select: {
+      id: true,
+    },
+  });
+  await prisma.user.update({
+    where: {
+      id: user?.id,
     },
     data: {
       credentials: {

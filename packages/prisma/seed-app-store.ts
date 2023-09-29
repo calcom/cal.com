@@ -143,10 +143,7 @@ async function seedAppData() {
       ],
       user: {
         connect: {
-          email_username: {
-            username: "pro",
-            email: "pro@example.com",
-          },
+          id: proUser.id,
         },
       },
       name: seededForm.name,

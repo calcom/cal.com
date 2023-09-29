@@ -46,9 +46,11 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       email: token.email.toLowerCase(),
+      username: token.username,
+      organizationId: token.org?.id,
     },
     // TODO: Re-enable once we get confirmation from compliance that this is okay.
     // cacheStrategy: { ttl: 60, swr: 1 },

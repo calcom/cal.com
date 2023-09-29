@@ -53,7 +53,7 @@ export async function getStripeCustomerId(user: UserType): Promise<string> {
       customerId = customer.id;
     }
 
-    await prisma.user.update({
+    await prisma.user.updateMany({
       where: {
         email: user.email,
       },

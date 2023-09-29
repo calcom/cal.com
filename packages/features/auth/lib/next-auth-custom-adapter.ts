@@ -11,7 +11,8 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
     createUser: (data: Prisma.UserCreateInput) => prismaClient.user.create({ data }),
     getUser: (id: string | number) =>
       prismaClient.user.findUnique({ where: { id: typeof id === "string" ? parseInt(id) : id } }),
-    getUserByEmail: (email: User["email"]) => prismaClient.user.findUnique({ where: { email } }),
+    getUserByEmail: (email: User["email"]) =>
+      prismaClient.user.findFirst({ where: { email, linkedBy: null } }),
     async getUserByAccount(provider_providerAccountId: {
       providerAccountId: Account["providerAccountId"];
       provider: User["identityProvider"];

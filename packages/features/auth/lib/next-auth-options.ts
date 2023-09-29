@@ -100,9 +100,10 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.user.findFirst({
         where: {
           email: credentials.email.toLowerCase(),
+          linkedBy: null,
         },
         select: {
           role: true,
@@ -715,9 +716,11 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
-            await prisma.user.update({
+            await prisma.user.updateMany({
               where: {
                 email: existingUserWithEmail.email,
+                username: null,
+                emailVerified: null,
               },
               data: {
                 // update the email to the IdP email
@@ -744,8 +747,8 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
+            await prisma.user.updateMany({
+              where: { email: existingUserWithEmail.email, linkedBy: null },
               // also update email to the IdP email
               data: {
                 password: null,

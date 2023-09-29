@@ -13,7 +13,7 @@ type AwayOptions = {
 export const awayHandler = async ({ ctx, input }: AwayOptions) => {
   await prisma.user.update({
     where: {
-      email: ctx.user.email,
+      id: ctx.user.id,
     },
     data: {
       away: input.away,

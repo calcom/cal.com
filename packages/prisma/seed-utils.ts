@@ -49,11 +49,18 @@ export async function createUserAndEventType({
         : undefined,
   };
 
-  const theUser = await prisma.user.upsert({
-    where: { email_username: { email: user.email, username: user.username } },
-    update: userData,
-    create: userData,
-  });
+  let theUser;
+  try {
+    theUser = await prisma.user.create({
+      data: userData,
+    });
+  } catch (e) {
+    theUser = await prisma.user.findFirst({
+      where: {
+        email: user.email,
+      },
+    });
+  }
 
   console.log(
     `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
@@ -88,7 +95,7 @@ export async function createUserAndEventType({
         slug: eventTypeData.slug,
         users: {
           some: {
-            id: eventTypeData.userId,
+            id: eventTypeData.userId!,
           },
         },
       },
@@ -117,7 +124,7 @@ export async function createUserAndEventType({
           ...bookingInput,
           user: {
             connect: {
-              email: user.email,
+              id: theUser.id,
             },
           },
           attendees: {

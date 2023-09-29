@@ -42,7 +42,7 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse("Email missing text and subject", { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     select: {
       email: true,
       id: true,
@@ -55,7 +55,7 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
+    where: { email: envelope.from, linkedBy: null, credentials: { some: { appId: env.APP_ID } } },
   });
 
   // User is not a cal.com user or is using an unverified email.

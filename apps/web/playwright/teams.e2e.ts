@@ -47,7 +47,7 @@ test.describe("Teams", () => {
       await removeMemberButton.waitFor({ state: "hidden" });
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
       // Cleanup here since this user is created without our fixtures.
-      await prisma.user.delete({ where: { email: inviteeEmail } });
+      await prisma.user.deleteMany({ where: { email: inviteeEmail, linkedBy: null } });
     });
 
     await test.step("Can publish team", async () => {

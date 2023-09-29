@@ -35,7 +35,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   });
 
   // Test when a user changes his email after starting the password reset flow
-  await prisma.user.update({
+  await prisma.user.updateMany({
     where: {
       email: `${user.username}@example.com`,
     },
@@ -49,7 +49,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   await page.waitForSelector("text=That request is expired.");
 
   // Change the email back to continue testing.
-  await prisma.user.update({
+  await prisma.user.updateMany({
     where: {
       email: `${user.username}-2@example.com`,
     },
@@ -73,7 +73,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   await expect(page.locator(`text=Password updated`)).toBeVisible();
   // now we check our DB to confirm the password was indeed updated.
   // we're not logging in to the UI to speed up test performance.
-  const updatedUser = await prisma.user.findUniqueOrThrow({
+  const updatedUser = await prisma.user.findFirstOrThrow({
     where: {
       email: `${user.username}@example.com`,
     },

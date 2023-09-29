@@ -14,6 +14,42 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+async function upsertUser(data: {
+  username: string;
+  userEmail: string;
+  orgId?: number | null;
+  hashedPassword: string;
+}) {
+  const { userEmail, username, orgId, hashedPassword } = data;
+  let user = await prisma.user.findFirst({
+    where: { email: userEmail, username, organizationId: orgId },
+    select: { id: true, email: true, name: true, username: true, createdDate: true },
+  });
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        username,
+        email: userEmail,
+        password: hashedPassword,
+        identityProvider: IdentityProvider.CAL,
+        organizationId: orgId,
+      },
+    });
+  } else {
+    await prisma.user.updateMany({
+      where: { email: userEmail, username, organizationId: orgId },
+      data: {
+        username,
+        password: hashedPassword,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+        organizationId: orgId,
+      },
+    });
+  }
+  return user;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).end();
@@ -93,24 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Identify the org id in an org context signup, either the invited team is an org
       // or has a parentId, otherwise parentId will be null, making orgId null
       const orgId = teamMetadata?.isOrganization ? team.id : team.parentId;
-
-      const user = await prisma.user.upsert({
-        where: { email: userEmail },
-        update: {
-          username,
-          password: hashedPassword,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          organizationId: orgId,
-        },
-        create: {
-          username,
-          email: userEmail,
-          password: hashedPassword,
-          identityProvider: IdentityProvider.CAL,
-          organizationId: orgId,
-        },
-      });
+      const user = await upsertUser({ userEmail, username, hashedPassword, orgId });
 
       const membership = await prisma.membership.upsert({
         where: {
@@ -192,21 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
       }
     }
-    await prisma.user.upsert({
-      where: { email: userEmail },
-      update: {
-        username,
-        password: hashedPassword,
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
-      },
-      create: {
-        username,
-        email: userEmail,
-        password: hashedPassword,
-        identityProvider: IdentityProvider.CAL,
-      },
-    });
+    await upsertUser({ userEmail, hashedPassword, username, orgId: undefined });
     await sendEmailVerification({
       email: userEmail,
       username,

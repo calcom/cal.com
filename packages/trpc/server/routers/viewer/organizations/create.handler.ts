@@ -66,12 +66,6 @@ const vercelCreateDomain = async (domain: string) => {
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
-  const userCollisions = await prisma.user.findUnique({
-    where: {
-      email: adminEmail,
-    },
-  });
-
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
@@ -84,7 +78,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
-  if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
   const password = createHash("md5")
     .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
@@ -125,6 +118,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       }
     }
 
+    // Find if there is an existing user to link to the created org owner user
+    const linkedUser = await prisma.user.findFirst({
+      where: { email: adminEmail, linkedByUserId: null },
+      select: { id: true },
+    });
+
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: slugify(adminUsername),
@@ -157,6 +156,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },
+          },
+        },
+        linkedBy: {
+          connect: {
+            id: linkedUser?.id,
           },
         },
       },
