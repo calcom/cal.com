@@ -26,9 +26,12 @@ jobs:
           host: ${{ secrets.CALCOM_HOST }}
           username: deploy
           key: ${{ secrets.CALCOM_SSH_KEY }}
+          rm: true
           script_stop: true
           command_timeout: 20m
           script: |
+            cp .env calcom/.env
+            cp .env.appStore calcom/.env.appStore
             cd calcom
             DOCKER_BUILDKIT=0 docker-compose build
             docker-compose down -v --remove-orphans
