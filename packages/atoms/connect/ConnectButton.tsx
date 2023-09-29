@@ -1,6 +1,7 @@
 import { useState } from "react";
-import type { ConnectButtonProps } from "types";
-import type { AtomsGlobalConfigProps } from "types";
+
+import type { AtomsGlobalConfigProps } from "../types";
+import type { ConnectButtonProps } from "../types";
 
 // TODO: add default styling
 // also a cssClassAssembler function for custom styling
