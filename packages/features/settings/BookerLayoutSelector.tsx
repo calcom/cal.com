@@ -223,18 +223,18 @@ const BookerLayoutFields = ({
       {disableFields && (
         <p className="text-sm">
           <Trans i18nKey="bookerlayout_override_global_settings">
-            You can manage this for all your event types in{" "}
+            You can manage this for all your event types in Settings {"->"}{" "}
             <Link href="/settings/my-account/appearance" className="underline">
-              settings / appearance
+              Appearance
             </Link>{" "}
             or{" "}
             <Button
               onClick={onOverrideSettings}
               color="minimal"
               className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-              override for this event only
+              Override
             </Button>
-            .
+            for this event only.
           </Trans>
         </p>
       )}
