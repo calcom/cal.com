@@ -7,7 +7,6 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -20,7 +19,6 @@ import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentS
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import { getAvailableSlots } from "../slots/util";
 import type { TConfirmInputSchema } from "./confirm.schema";
 import type { BookingsProcedureContext } from "./util";
 
@@ -116,23 +114,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
-  // Check for user's slot availability for current booking start and end time
+  // Check if user has already accepted/confirmed previously a booking request
+  // for the same event and same time slot
   if (confirmed) {
-    const slotsAvailable = await getAvailableSlots({
-      input: {
+    const acceptedBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: booking?.eventType?.id,
+        userId: user?.id,
         startTime: booking?.startTime.toISOString(),
         endTime: booking?.endTime.toISOString(),
-        eventTypeId: booking?.eventType?.id,
-        eventTypeSlug: booking?.eventType?.slug,
-        timeZone: user?.timeZone,
-        usernameList: getUsernameList(user?.username ?? ""),
-        isTeamEvent: !!booking?.eventType?.teamId || false,
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        uid: true,
+        status: true,
       },
     });
 
-    // If no free slot available with current booking request's start time and
-    // end time, then the slot is booked for other booking ,throw error
-    if (slotsAvailable?.slots && Object.keys(slotsAvailable.slots).length === 0) {
+    // If acceptedBooking exists for same time slot and same event,throw error
+    if (acceptedBooking?.uid) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Slot already confirmed for other booking" });
     }
   }
