@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     key = token.res?.data;
   }
 
-  const cred = await prisma.credential.create({
+  const credentials = await prisma.credential.create({
     data: {
       type: "google_calendar",
       key,
@@ -65,15 +65,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: {
       userId_integration_externalId: {
         userId: req.session.user.id,
-        integration: cred?.type, // Match the credential type.
+        integration: credentials?.type, // Match the credential type.
         externalId: userEmail, // Match the user's email.
       },
     },
     create: {
       userId: req.session.user.id,
-      integration: cred?.type, // Set the integration type from the credential.
+      integration: credentials?.type, // Set the integration type from the credential.
       externalId: userEmail, // Set the external ID to the user's email.
-      credentialId: cred?.id, // Associate the credential with this record.
+      credentialId: credentials?.id, // Associate the credential with this record.
     },
     update: {},
   });
