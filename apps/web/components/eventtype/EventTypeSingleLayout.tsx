@@ -66,7 +66,7 @@ export const ShowMessageDialog = (props) => {
   const { isOpenDialog, setIsOpenDialog, messagetemplate, setMessageTemplate } = props;
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("Copy Message")}>
+      <DialogContent title={t("Copy unique message")}>
         <div>
           <TextAreaField
             className="min-h-52"
@@ -369,13 +369,15 @@ function EventTypeSingleLayout({
 
           <VerticalDivider className="hidden lg:block" />
           <Button
-            className="ml-4 lg:ml-0"
+            className="mr-4  bg-[red] pb-6 pt-6 lg:ml-0 lg:mr-0"
             type="submit"
             data-testid="update-eventtype"
             onClick={() => {
               setShowMessageDialogIsOpen(true);
             }}>
-            {t("Copy Message")}
+            {t("Copy unique")}
+            <br />
+            {t("message")}
           </Button>
           <VerticalDivider className="hidden lg:block" />
           <Dropdown>

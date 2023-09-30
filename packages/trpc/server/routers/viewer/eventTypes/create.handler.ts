@@ -57,6 +57,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       message: "Please connect google meet first by navigating to settings",
     });
   }
+  if (input.amount < 1) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Price must be atleast 1 USD",
+    });
+  }
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -142,6 +148,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       paymentUid: payment,
     };
   } catch (e) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: e });
+    throw new TRPCError({ code: "BAD_REQUEST", message: e?.message ? e.message : e });
   }
 };

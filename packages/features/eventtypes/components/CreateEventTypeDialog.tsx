@@ -303,7 +303,7 @@ export default function CreateEventTypeDialog({
                     onChange={(e) => {
                       const inputValue = e?.target.value;
                       if (inputValue === "" || !isNaN(parseFloat(inputValue))) {
-                        form.setValue("amount", inputValue === "" ? 1 : (parseFloat(inputValue) as number));
+                        form.setValue("amount", inputValue === "" ? 0 : (parseFloat(inputValue) as number));
                       }
                     }}
                   />

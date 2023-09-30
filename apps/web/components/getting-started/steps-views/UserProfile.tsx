@@ -163,7 +163,7 @@ const UserProfile = () => {
 
       <fieldset className="mt-8">
         <Label className="text-default mb-2 block text-sm font-medium">{t("LinkedIn Profile")}</Label>
-        <InputField addOnLeading={<>https://linkedin.com/</>} ref={linkedInProfileRef} />
+        <InputField addOnLeading={<>https://linkedin.com/in/</>} ref={linkedInProfileRef} />
       </fieldset>
       <fieldset className="mt-8 flex justify-between">
         <div className="w-[45%]">

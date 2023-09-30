@@ -47,7 +47,8 @@ export function EmptyScreen({
             <Icon className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
           </div>
         )}
-        <div className="flex max-w-[420px] flex-col items-center">
+        {/*  max-w-[420px] */}
+        <div className="flex  flex-col items-center">
           <h2
             className={classNames(
               "text-semibold font-cal text-emphasis text-center text-xl",

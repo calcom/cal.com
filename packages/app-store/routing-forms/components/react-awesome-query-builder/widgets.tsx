@@ -120,7 +120,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
           containerClassName="w-full"
           type={type}
           value={textValue}
-          addOnLeading={<>https://linkedin.com/</>}
+          addOnLeading={<>https://linkedin.com/in/</>}
           labelSrOnly={noLabel}
           placeholder={placeholder}
           disabled={readOnly}

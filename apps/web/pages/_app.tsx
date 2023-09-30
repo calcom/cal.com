@@ -77,6 +77,18 @@ function MyApp(props: AppProps) {
     };
   }, []);
   useEffect(() => {
+    if (window && window.Intercom) {
+      window.intercomSettings = {
+        // api_base: "https://api-iam.intercom.io",
+        // app_id: process.env.NEXT_PUBLIC_INTERCOM_APP_ID,
+        vertical_padding: 80,
+      };
+
+      // Initialize Intercom
+      window.Intercom("boot", window.intercomSettings);
+    }
+  });
+  useEffect(() => {
     // Track page views
     const handleRouteChange = () => posthog?.capture("$pageview");
     router.events.on("routeChangeComplete", handleRouteChange);

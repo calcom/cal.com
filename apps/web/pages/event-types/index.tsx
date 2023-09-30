@@ -771,11 +771,41 @@ const CreateFirstEventTypeView = () => {
   return (
     <EmptyScreen
       Icon={LinkIcon}
-      headline={t("Setup your first Session here")}
-      description={t(
-        "Session enable you to share links that show available times on your calendar and allow people to make bookings with you."
-      )}
-      className="mb-16"
+      headline={t("Setup a session here")}
+      description={
+        <>
+          {" "}
+          {t("Book a Call with a Mentor in these 5 Easy Steps!")}
+          <div className="text-left lg:ml-[20%]">
+            <br />
+            1. {t("Need help choosing a mentor? Check out our guide ")}
+            <Link
+              className="font-bold underline"
+              href="https://beenthere.gumroad.com/l/beenthere"
+              target="_blank"
+              rel="noopener noreferrer">
+              {t("here")}
+            </Link>
+            <br />
+            <div className="font-bold">
+              2. {t("Pick the person you want to chat with on LinkedIn or another site.")}
+            </div>
+            {/* <br /> */}
+            3.{" "}
+            {t(
+              `Before you ask to connect, click "Create" below to set up your up-front escrow payment and calendar with BeenThere.`
+            )}
+            <br />
+            4.{" "}
+            {t(
+              "After you set things up, we'll give you a special LinkedIn message with your unique link in it."
+            )}
+            <br />
+            5. {t("Use this message to connect for the opportunity of life-changing guidance!")}
+          </div>
+        </>
+      }
+      className=" mb-16"
       buttonRaw={
         <Button href="?dialog=new" variant="button">
           {t("create")}
@@ -970,6 +1000,8 @@ const EventTypesPage = () => {
           created_at: user?.createdDate,
           user_id: user?.id,
           username: user?.username,
+
+          vertical_padding: 80,
         };
 
         // Initialize Intercom

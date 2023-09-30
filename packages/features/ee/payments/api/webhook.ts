@@ -12,7 +12,9 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { upsertSmsReminderFieldForBooking } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export const config = {
@@ -142,6 +144,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     where: {
       id: payment.eventId,
     },
+    include: {
+      children: true,
+    },
   });
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
@@ -164,6 +169,166 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+  const eventTypeId = payment.eventId;
+  const loadOrganizer = async () => {
+    const users = await prisma.user.findFirst({
+      where: {
+        email: process.env.HOST_EMAIL ? process.env.HOST_EMAIL : "bot@beenthere.tech",
+      },
+      select: {
+        id: true,
+      },
+    });
+    console.log(users);
+    return users?.id;
+  };
+
+  const userId = await loadOrganizer();
+  const workflows = await prisma.workflow.findMany({
+    where: {
+      userId: userId,
+    },
+    include: {
+      steps: true,
+    },
+  });
+  console.log("workflowwwss");
+  console.log(workflows);
+  for (const eventTypeWorkflow of workflows) {
+    // const bookingsForReminders = await prisma.booking.findMany({
+    //   where: {
+    //     eventTypeId: eventTypeId,
+    //     status: BookingStatus.ACCEPTED,
+    //     startTime: {
+    //       gte: new Date(),
+    //     },
+    //   },
+    //   include: {
+    //     attendees: true,
+    //     eventType: true,
+    //     user: true,
+    //   },
+    // });
+    // console.log("bookingsForReminders");
+    // console.log(bookingsForReminders);
+    // for (const booking of bookingsForReminders) {
+    //   const defaultLocale = "en";
+    //   const bookingInfo = {
+    //     uid: booking.uid,
+    //     attendees: booking.attendees.map((attendee) => {
+    //       return {
+    //         name: attendee.name,
+    //         email: attendee.email,
+    //         timeZone: attendee.timeZone,
+    //         language: { locale: attendee.locale || defaultLocale },
+    //       };
+    //     }),
+    //     organizer: booking.user
+    //       ? {
+    //           name: booking.user.name || "",
+    //           email: booking.user.email,
+    //           timeZone: booking.user.timeZone,
+    //           timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
+    //           language: { locale: booking.user.locale || defaultLocale },
+    //         }
+    //       : { name: "", email: "", timeZone: "", language: { locale: "" } },
+    //     startTime: booking.startTime.toISOString(),
+    //     endTime: booking.endTime.toISOString(),
+    //     title: booking.title,
+    //     language: { locale: booking?.user?.locale || defaultLocale },
+    //     eventType: {
+    //       slug: booking.eventType?.slug,
+    //     },
+    //   };
+    //   for (const step of eventTypeWorkflow.steps) {
+    //     if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
+    //       let sendTo: string[] = [];
+
+    //       switch (step.action) {
+    //         case WorkflowActions.EMAIL_HOST:
+    //           sendTo = [bookingInfo.organizer?.email];
+    //           break;
+    //         case WorkflowActions.EMAIL_ATTENDEE:
+    //           sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
+    //           break;
+    //       }
+
+    //       await scheduleEmailReminder(
+    //         bookingInfo,
+    //         eventTypeWorkflow.trigger,
+    //         step.action,
+    //         {
+    //           time: eventTypeWorkflow.time,
+    //           timeUnit: eventTypeWorkflow.timeUnit,
+    //         },
+    //         sendTo,
+    //         step.emailSubject || "",
+    //         step.reminderBody || "",
+    //         step.id,
+    //         step.template,
+    //         step.sender || SENDER_NAME
+    //       );
+    //     } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
+    //       await scheduleSMSReminder(
+    //         bookingInfo,
+    //         step.sendTo,
+    //         eventTypeWorkflow.trigger,
+    //         step.action,
+    //         {
+    //           time: eventTypeWorkflow.time,
+    //           timeUnit: eventTypeWorkflow.timeUnit,
+    //         },
+    //         step.reminderBody || "",
+    //         step.id,
+    //         step.template,
+    //         step.sender || SENDER_ID,
+    //         booking.userId,
+    //         eventTypeWorkflow.teamId
+    //       );
+    //     } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
+    //       await scheduleWhatsappReminder(
+    //         bookingInfo,
+    //         step.sendTo,
+    //         eventTypeWorkflow.trigger,
+    //         step.action,
+    //         {
+    //           time: eventTypeWorkflow.time,
+    //           timeUnit: eventTypeWorkflow.timeUnit,
+    //         },
+    //         step.reminderBody || "",
+    //         step.id,
+    //         step.template,
+    //         booking.userId,
+    //         eventTypeWorkflow.teamId
+    //       );
+    //     }
+    //   }
+    // }
+    const workflowId = eventTypeWorkflow.id;
+    await prisma.workflowsOnEventTypes.createMany({
+      data: [
+        {
+          workflowId,
+          eventTypeId,
+        },
+      ].concat(booking.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
+    });
+    const requiresAttendeeNumber = (action: WorkflowActions) =>
+      action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+
+    if (eventTypeWorkflow.steps.some((step) => requiresAttendeeNumber(step.action))) {
+      const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
+        return requiresAttendeeNumber(step.action) && step.numberRequired;
+      });
+      [eventTypeId].concat(booking.children.map((ch) => ch.id)).map(async (evTyId) => {
+        await upsertSmsReminderFieldForBooking({
+          workflowId,
+          isSmsReminderNumberRequired,
+          eventTypeId: evTyId,
+        });
+      });
+    }
+  }
   //   await sendScheduledEmails({ ...evt });
   throw new HttpCode({
     statusCode: 200,
