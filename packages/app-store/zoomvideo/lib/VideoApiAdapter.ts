@@ -9,6 +9,9 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
@@ -58,7 +61,8 @@ const zoomTokenSchema = z.object({
 
 type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
-const isTokenValid = (token: ZoomToken) => (token.expires_in || token.expiry_date) < Date.now();
+const isTokenValid = (token: Partial<ZoomToken>) =>
+  zoomTokenSchema.safeParse(token).success && (token.expires_in || token.expiry_date || 0) > Date.now();
 
 /** @link https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
 const zoomRefreshedTokenSchema = z.object({
@@ -74,17 +78,22 @@ const zoomAuth = (credential: CredentialPayload) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
 
-    const response = await fetch("https://zoom.us/oauth/token", {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    });
+    const response = await refreshOAuthTokens(
+      async () =>
+        await fetch("https://zoom.us/oauth/token", {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            refresh_token: refreshToken,
+            grant_type: "refresh_token",
+          }),
+        }),
+      "zoomvideo",
+      credential.userId
+    );
 
     const responseBody = await handleZoomResponse(response, credential.id);
 
@@ -94,40 +103,32 @@ const zoomAuth = (credential: CredentialPayload) => {
       }
     }
     // We check the if the new credentials matches the expected response structure
-    const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
+    const newTokens: ParseRefreshTokenResponse<typeof zoomRefreshedTokenSchema> = parseRefreshTokenResponse(
+      responseBody,
+      zoomRefreshedTokenSchema
+    );
 
-    // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
-    // Expanding on this we can use server-to-server app and create meeting from admin calcom account
-    if (!parsedToken.success) {
-      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
-    }
-    const newTokens = parsedToken.data;
-    const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
-    const parsedKey = zoomTokenSchema.safeParse(oldCredential.key);
-    if (!parsedKey.success) {
-      return Promise.reject(new Error("Invalid credentials were saved in the DB"));
-    }
-
-    const key = parsedKey.data;
-    key.access_token = newTokens.access_token;
-    key.refresh_token = newTokens.refresh_token;
+    const key = credential.key as ZoomToken;
+    key.access_token = newTokens.access_token ?? key.access_token;
+    key.refresh_token = (newTokens.refresh_token as string) ?? key.refresh_token;
     // set expiry date as offset from current time.
-    key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
+    key.expiry_date =
+      typeof newTokens.expires_in === "number"
+        ? Math.round(Date.now() + newTokens.expires_in * 1000)
+        : key.expiry_date;
     // Store new tokens in database.
-    await prisma.credential.update({ where: { id: credential.id }, data: { key } });
+    await prisma.credential.update({
+      where: { id: credential.id },
+      data: { key: { ...key, ...newTokens } },
+    });
     return newTokens.access_token;
   };
 
   return {
     getToken: async () => {
-      let credentialKey: ZoomToken | null = null;
-      try {
-        credentialKey = zoomTokenSchema.parse(credential.key);
-      } catch (error) {
-        return Promise.reject("Zoom credential keys parsing error");
-      }
+      const credentialKey = credential.key as ZoomToken;
 
-      return !isTokenValid(credentialKey)
+      return isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token);
     },

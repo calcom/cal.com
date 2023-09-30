@@ -10,8 +10,7 @@ import {
   getMultipleDurationValue,
 } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -152,7 +151,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      organization: userOrgQuery(context.req.headers.host ?? "", context.params?.orgSlug),
     },
     select: {
       away: true,

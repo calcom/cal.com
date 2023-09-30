@@ -255,16 +255,14 @@ export const Components: Record<FieldType, Component> = {
                       placeholder={placeholder}
                       label={<></>}
                       required
+                      onClickAddon={() => {
+                        value.splice(index, 1);
+                        setValue(value);
+                      }}
                       addOnSuffix={
                         !readOnly ? (
                           <Tooltip content="Remove email">
-                            <button
-                              className="m-1 disabled:hover:cursor-not-allowed"
-                              type="button"
-                              onClick={() => {
-                                value.splice(index, 1);
-                                setValue(value);
-                              }}>
+                            <button className="m-1" type="button">
                               <X width={12} className="text-default" />
                             </button>
                           </Tooltip>
