@@ -76,7 +76,7 @@ export const InstallAppButtonChild = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
-          className="max-w-min"
+          className="w-auto"
           onInteractOutside={(event) => {
             if (mutation.isLoading) event.preventDefault();
           }}>
@@ -95,6 +95,7 @@ export const InstallAppButtonChild = ({
 
             return (
               <DropdownItem
+                className="flex"
                 type="button"
                 data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
                 key={team.id}
