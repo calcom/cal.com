@@ -60,6 +60,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -213,7 +214,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     // Check if time is between start and end times
     if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
       log.error(
-        `NAUF: start between a busy time slot ${JSON.stringify({
+        `NAUF: start between a busy time slot ${safeStringify({
           ...busyTime,
           time: dayjs(time).format(),
         })}`
@@ -223,7 +224,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     // Check if slot end time is between start and end time
     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
       log.error(
-        `NAUF: Ends between a busy time slot ${JSON.stringify({
+        `NAUF: Ends between a busy time slot ${safeStringify({
           ...busyTime,
           time: dayjs(time).add(length, "minutes").format(),
         })}`
@@ -2123,10 +2124,7 @@ async function handler(
         message: "Booking Rescheduling failed",
       };
 
-      loggerWithEventDetails.error(
-        `Booking ${organizerUser.name} failed`,
-        JSON.stringify({ error, results })
-      );
+      loggerWithEventDetails.error(`Booking ${organizerUser.name} failed`, safeStringify({ error, results }));
     } else {
       const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
@@ -2180,7 +2178,7 @@ async function handler(
 
       loggerWithEventDetails.error(
         `Booking ${organizerUser.username} failed`,
-        JSON.stringify({ error, results })
+        safeStringify({ error, results })
       );
     } else {
       const metadata: AdditionalInformation = {};

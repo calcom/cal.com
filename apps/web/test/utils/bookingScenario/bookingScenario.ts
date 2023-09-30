@@ -10,7 +10,7 @@ import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { HttpError } from "@calcom/lib/http-error";
+import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -74,6 +74,7 @@ type InputUser = typeof TestData.users.example & { id: number } & {
     }[];
     timeZone: string;
   }[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 };
 
 export type InputEventType = {
@@ -92,6 +93,7 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
 
 type InputBooking = {
@@ -124,17 +126,31 @@ const Timezones = {
 logger.setSettings({ minLevel: "silly" });
 
 async function addEventTypesToDb(
-  eventTypes: (Prisma.EventTypeCreateInput & {
+  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    destinationCalendar?: any;
   })[]
 ) {
   logger.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
   await prismock.eventType.createMany({
     data: eventTypes,
   });
+  logger.silly(
+    "TestData: All EventTypes in DB are",
+    JSON.stringify({
+      eventTypes: await prismock.eventType.findMany({
+        include: {
+          users: true,
+          workflows: true,
+          destinationCalendar: true,
+        },
+      }),
+    })
+  );
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -174,6 +190,11 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
       ...eventType,
       workflows: [],
       users,
+      destinationCalendar: eventType.destinationCalendar
+        ? {
+            create: eventType.destinationCalendar,
+          }
+        : eventType.destinationCalendar,
     };
   });
   logger.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -266,6 +287,9 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   await prismock.user.createMany({
     data: users,
   });
+  logger.silly("Added users to Db", {
+    allUsers: await prismock.user.findMany(),
+  });
 }
 
 async function addUsers(users: InputUser[]) {
@@ -295,6 +319,15 @@ async function addUsers(users: InputUser[]) {
         //@ts-ignore
         createMany: {
           data: user.credentials,
+        },
+      };
+    }
+    if (user.selectedCalendars) {
+      newUser.selectedCalendars = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.selectedCalendars,
         },
       };
     }
@@ -569,6 +602,7 @@ export function getOrganizer({
   schedules,
   credentials,
   selectedCalendars,
+  destinationCalendar,
 }: {
   name: string;
   email: string;
@@ -576,6 +610,7 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
     ...TestData.users.example,
@@ -585,6 +620,7 @@ export function getOrganizer({
     schedules,
     credentials,
     selectedCalendars,
+    destinationCalendar,
   };
 }
 
@@ -599,7 +635,7 @@ export function getScenarioData({
 {
   organizer: ReturnType<typeof getOrganizer>;
   eventTypes: ScenarioData["eventTypes"];
-  apps: ScenarioData["apps"];
+  apps?: ScenarioData["apps"];
   usersApartFromOrganizer?: ScenarioData["users"];
   webhooks?: ScenarioData["webhooks"];
   bookings?: ScenarioData["bookings"];
@@ -624,7 +660,19 @@ export function getScenarioData({
         description: `It's a test event type - ${index + 1}`,
       };
     }),
-    users,
+    users: users.map((user) => {
+      const newUser = {
+        ...user,
+      };
+      if (user.destinationCalendar) {
+        newUser.destinationCalendar = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          create: user.destinationCalendar,
+        };
+      }
+      return newUser;
+    }),
     apps: [...apps],
     webhooks,
     bookings: bookings || [],
@@ -651,15 +699,23 @@ export function mockNoTranslations() {
   });
 }
 
-export function mockCalendarToHaveNoBusySlots(
+/**
+ * @param metadataLookupKey
+ * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
+ */
+export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
-    create: {
-      uid: string;
+    create?: {
+      uid?: string;
     };
     update?: {
       uid: string;
     };
+    busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
+    creationCrash?: boolean;
+    updationCrash?: boolean;
+    getAvailabilityCrash?: boolean;
   }
 ) {
   const appStoreLookupKey = metadataLookupKey;
@@ -685,17 +741,17 @@ export function mockCalendarToHaveNoBusySlots(
         return {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.creationCrash) {
+              throw new Error("MockCalendarService.createEvent fake error");
+            }
             const [calEvent, credentialId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.createEvent",
-              JSON.stringify({ calEvent, credentialId })
-            );
+            logger.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
             createEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
-              id: normalizedCalendarData.create.uid,
+              id: normalizedCalendarData.create?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
@@ -703,11 +759,11 @@ export function mockCalendarToHaveNoBusySlots(
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.updationCrash) {
+              throw new Error("MockCalendarService.updateEvent fake error");
+            }
             const [uid, event, externalCalendarId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.updateEvent",
-              JSON.stringify({ uid, event, externalCalendarId })
-            );
+            logger.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
             // eslint-disable-next-line prefer-rest-params
             updateEventCalls.push(rest);
             return Promise.resolve({
@@ -715,15 +771,18 @@ export function mockCalendarToHaveNoBusySlots(
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: normalizedCalendarData.update!.uid!,
+              id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
             });
           },
-          getAvailability: (): Promise<EventBusyDate[]> => {
+          getAvailability: async (): Promise<EventBusyDate[]> => {
+            if (calendarData?.getAvailabilityCrash) {
+              throw new Error("MockCalendarService.getAvailability fake error");
+            }
             return new Promise((resolve) => {
-              resolve([]);
+              resolve(calendarData?.busySlots || []);
             });
           },
         };
@@ -736,10 +795,42 @@ export function mockCalendarToHaveNoBusySlots(
   };
 }
 
-export function mockSuccessfulVideoMeetingCreation({
+export function mockCalendarToHaveNoBusySlots(
+  metadataLookupKey: keyof typeof appStoreMetadata,
+  calendarData?: {
+    create: {
+      uid?: string;
+    };
+    update?: {
+      uid: string;
+    };
+  }
+) {
+  calendarData = calendarData || {
+    create: {
+      uid: "MOCK_ID",
+    },
+    update: {
+      uid: "UPDATED_MOCK_ID",
+    },
+  };
+  return mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
+}
+
+export function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { creationCrash: true });
+}
+
+export function mockCalendarToCrashOnUpdateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { updationCrash: true });
+}
+
+export function mockVideoApp({
   metadataLookupKey,
   appStoreLookupKey,
   videoMeetingData,
+  creationCrash,
+  updationCrash,
 }: {
   metadataLookupKey: string;
   appStoreLookupKey?: string;
@@ -748,6 +839,8 @@ export function mockSuccessfulVideoMeetingCreation({
     id: string;
     url: string;
   };
+  creationCrash?: boolean;
+  updationCrash?: boolean;
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   videoMeetingData = videoMeetingData || {
@@ -772,7 +865,11 @@ export function mockSuccessfulVideoMeetingCreation({
           VideoApiAdapter: () => ({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             createMeeting: (...rest: any[]) => {
+              if (creationCrash) {
+                throw new Error("MockVideoApiAdapter.createMeeting fake error");
+              }
               createMeetingCalls.push(rest);
+
               return Promise.resolve({
                 type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
                 ...videoMeetingData,
@@ -780,6 +877,9 @@ export function mockSuccessfulVideoMeetingCreation({
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             updateMeeting: async (...rest: any[]) => {
+              if (updationCrash) {
+                throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+              }
               const [bookingRef, calEvent] = rest;
               updateMeetingCalls.push(rest);
               if (!bookingRef.type) {
@@ -806,6 +906,40 @@ export function mockSuccessfulVideoMeetingCreation({
     createMeetingCalls,
     updateMeetingCalls,
   };
+}
+
+export function mockSuccessfulVideoMeetingCreation({
+  metadataLookupKey,
+  appStoreLookupKey,
+  videoMeetingData,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+  videoMeetingData?: {
+    password: string;
+    id: string;
+    url: string;
+  };
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    videoMeetingData,
+  });
+}
+
+export function mockVideoAppToCrashOnCreateMeeting({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    creationCrash: true,
+  });
 }
 
 export function mockPaymentApp({
@@ -885,11 +1019,8 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
   try {
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
-    if (!(e instanceof HttpError)) {
-      logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    } else {
-      logger.error("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    }
+    logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
