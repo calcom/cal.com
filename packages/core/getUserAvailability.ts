@@ -52,7 +52,14 @@ const getEventType = async (id: number) => {
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              days: true,
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
           timeZone: true,
         },
       },
@@ -237,7 +244,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   const workingHours = getWorkingHours({ timeZone }, availability);
 
   const endGetWorkingHours = performance.now();
-  logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
 
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
@@ -262,10 +268,23 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     end: dayjs(busy.end),
   }));
 
+  const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+
+  logger.debug(
+    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
+    JSON.stringify({
+      workingHoursInUtc: workingHours,
+      dateOverrides,
+      dateRangesAsPerAvailability: dateRanges,
+      dateRangesInWhichUserIsAvailable,
+      detailedBusyTimes,
+    })
+  );
+
   return {
     busy: detailedBusyTimes,
     timeZone,
-    dateRanges: subtract(dateRanges, formattedBusyTimes),
+    dateRanges: dateRangesInWhichUserIsAvailable,
     workingHours,
     dateOverrides,
     currentSeats,

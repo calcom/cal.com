@@ -22,8 +22,7 @@ test.describe("Change username on settings", () => {
     await users.deleteAll();
   });
 
-  /** TODO: Find out why it's timing out */
-  test.fixme("User can change username", async ({ page, users, prisma }) => {
+  test("User can change username", async ({ page, users, prisma }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -36,7 +35,7 @@ test.describe("Change username on settings", () => {
     await page.click("[data-testid=update-username-btn]");
     await Promise.all([
       page.click("[data-testid=save-username]"),
-      page.waitForResponse("**/viewer.updateProfile*"),
+      page.getByTestId("toast-success").waitFor(),
     ]);
 
     const newUpdatedUser = await prisma.user.findUniqueOrThrow({
