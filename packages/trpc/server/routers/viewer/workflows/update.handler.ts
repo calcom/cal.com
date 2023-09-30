@@ -45,6 +45,11 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
+  if (user.role != `ADMIN`) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
   const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
 
   const userWorkflow = await ctx.prisma.workflow.findUnique({

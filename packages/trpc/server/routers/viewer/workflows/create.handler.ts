@@ -28,9 +28,12 @@ type CreateOptions = {
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { teamId } = input;
-
   const userId = ctx.user.id;
-
+  if (ctx.user.role != `ADMIN`) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
   if (teamId) {
     const team = await prisma.team.findFirst({
       where: {
