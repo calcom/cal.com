@@ -497,7 +497,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         <div className="border-subtle rounded-b-md border border-t-0 p-6">
           <TextField
             required
-            type="number"
+            type="formatNumber"
             {...offsetStartLockedProps}
             label={t("offset_start")}
             {...formMethods.register("offsetStart")}
