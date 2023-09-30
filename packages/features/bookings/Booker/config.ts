@@ -75,7 +75,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
       minHeight: "450px",
-      height: "500px",
+      height: "auto",
       gridTemplateAreas: `
       "meta main timeslots"
       "meta main timeslots"
@@ -88,7 +88,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
     default: {
       width: "100vw",
       minHeight: "100vh",
-      height: "500px",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"
@@ -101,7 +101,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
     default: {
       width: "100vw",
       minHeight: "100vh",
-      height: "500px",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"

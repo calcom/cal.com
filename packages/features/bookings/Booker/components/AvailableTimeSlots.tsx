@@ -105,7 +105,7 @@ export const AvailableTimeSlots = ({
       <div className="flex">
         {schedule.isLoading
           ? // Shows exact amount of days as skeleton.
-            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+            Array.from({ length: 0 }).map((_, i) => <AvailableTimesSkeleton key={i} />)
           : slotsPerDay.length > 0 &&
             slotsPerDay.map((slots) => (
               <AvailableTimesHeader
