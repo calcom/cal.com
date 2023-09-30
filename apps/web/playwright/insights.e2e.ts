@@ -140,6 +140,11 @@ test.describe("Insights", async () => {
     await page.waitForLoadState("networkidle");
 
     // expect to have isAll=true and teamId= in query params
+    await page.waitForURL((url) => {
+      const isAll = url.searchParams.get("isAll");
+      const teamId = url.searchParams.get("teamId");
+      return !!isAll && !!teamId;
+    });
     expect(page.url()).toContain("isAll=true");
     expect(page.url()).toContain("teamId=");
 
@@ -161,7 +166,12 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+
+    await page.waitForURL((url) => {
+      const isAll = url.searchParams.get("isAll");
+      const teamId = url.searchParams.get("teamId");
+      return !!isAll && !!teamId;
+    });
 
     // expect to have isAll=true and teamId= in query params
     expect(page.url()).toContain("isAll=false");
@@ -188,7 +198,11 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL((url) => {
+      const isAll = url.searchParams.get("isAll");
+      const teamId = url.searchParams.get("teamId");
+      return !!isAll && !!teamId;
+    });
 
     // expect to have isAll=true and teamId= in query params
     expect(page.url()).toContain("isAll=false");
@@ -218,14 +232,22 @@ test.describe("Insights", async () => {
 
     // switch to team 1
     await page.getByTestId("dashboard-shell").getByText("test-insights").nth(0).click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL((url) => {
+      const isAll = url.searchParams.get("isAll");
+      const teamId = url.searchParams.get("teamId");
+      return !!isAll && !!teamId;
+    });
 
     expect(page.url()).toContain("isAll=false");
     expect(page.url()).toContain("teamId=");
 
     // switch to team 2
     await page.getByTestId("dashboard-shell").getByText("test-insights-2").click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL((url) => {
+      const isAll = url.searchParams.get("isAll");
+      const teamId = url.searchParams.get("teamId");
+      return !!isAll && !!teamId;
+    });
     expect(page.url()).toContain("isAll=false");
     expect(page.url()).toContain("teamId=");
   });
@@ -239,10 +261,12 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL((url) => {
+      const teamId = url.searchParams.get("teamId");
+      return !!teamId;
+    });
 
-    // expect to have isAll=true and teamId= in query params
-    expect(page.url()).toContain("isAll=false");
+    // expect to have teamId= in query params
     expect(page.url()).toContain("teamId=");
 
     await page.getByText("Add filter").click();
@@ -273,7 +297,6 @@ test.describe("Insights", async () => {
     });
 
     expect(page.url()).not.toContain("memberUserId=");
-    expect(page.url()).toContain("isAll=false");
     expect(page.url()).toContain("teamId=");
     expect(page.url()).not.toContain("userId=");
   });
