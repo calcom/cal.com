@@ -778,7 +778,8 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
           {t("Book a Call with a Mentor in these 5 Easy Steps!")}
           <div className="text-left lg:ml-[20%]">
             <br />
-            1. {t("Need help choosing a mentor? Check out our guide ")}
+            <div className="inline font-bold">1.</div>{" "}
+            {t("Need help choosing a mentor? Check out our guide ")}
             <Link
               className="font-bold underline"
               href="https://beenthere.gumroad.com/l/beenthere"
@@ -787,21 +788,21 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
               {t("here")}
             </Link>
             <br />
-            <div className="font-bold">
-              2. {t("Pick the person you want to chat with on LinkedIn or another site.")}
-            </div>
-            {/* <br /> */}
-            3.{" "}
+            <div className="inline font-bold">2.</div>{" "}
+            {t("Pick the person you want to chat with on LinkedIn or another site.")}
+            <br />
+            <div className="inline font-bold">3.</div>{" "}
             {t(
               `Before you ask to connect, click "Create" below to set up your up-front escrow payment and calendar with BeenThere.`
             )}
             <br />
-            4.{" "}
+            <div className="inline font-bold">4.</div>{" "}
             {t(
               "After you set things up, we'll give you a special LinkedIn message with your unique link in it."
             )}
             <br />
-            5. {t("Use this message to connect for the opportunity of life-changing guidance!")}
+            <div className="inline font-bold">5.</div>{" "}
+            {t("Use this message to connect for the opportunity of life-changing guidance!")}
           </div>
         </>
       }
