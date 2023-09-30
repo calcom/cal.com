@@ -46,7 +46,7 @@ export function TeamsListing() {
   const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
 
-  const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);
+  const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.org?.isOrgAdmin);
 
   const features = [
     {
@@ -108,7 +108,7 @@ export function TeamsListing() {
         features={features}
         background="/tips/teams"
         buttons={
-          !user?.organizationId || user?.organization.isOrgAdmin ? (
+          !user?.organizationId || user?.org.isOrgAdmin ? (
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>

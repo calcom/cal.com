@@ -16,6 +16,7 @@ declare module "next-auth" {
     email_verified?: boolean;
     impersonatedByUID?: number;
     belongsToActiveTeam?: boolean;
+    organizationId?: number | null;
     org?: {
       id: number;
       name?: string;

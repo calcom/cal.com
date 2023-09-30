@@ -40,7 +40,7 @@ export const UsernameAvailabilityField = ({
     },
   });
 
-  const UsernameAvailability = getUsernameAvailabilityComponent(!IS_SELF_HOSTED && !user.organization?.id);
+  const UsernameAvailability = getUsernameAvailabilityComponent(!IS_SELF_HOSTED && !user.organizationId);
   const orgBranding = useOrgBranding();
 
   const usernamePrefix = orgBranding
@@ -61,7 +61,7 @@ export const UsernameAvailabilityField = ({
             setInputUsernameValue={onChange}
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
-            disabled={!!user.organization?.id}
+            disabled={!!user.organizationId}
             addOnLeading={`${usernamePrefix}/`}
           />
         );

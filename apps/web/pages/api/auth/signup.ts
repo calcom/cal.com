@@ -7,7 +7,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsernameInTeam, validateUsername } from "@calcom/lib/validateUsername";
+import { validateUsernameInToken, validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -25,14 +25,36 @@ async function upsertUser(data: {
     where: { email: userEmail, username, organizationId: orgId },
     select: { id: true, email: true, name: true, username: true, createdDate: true },
   });
+  const parentUser = await prisma.user.findFirst({
+    where: { email: userEmail, linkedByUserId: null },
+    select: { id: true, emailVerified: true, linkedUsers: { select: { id: true } } },
+  });
   if (!user) {
     user = await prisma.user.create({
       data: {
         username,
         email: userEmail,
+        emailVerified: parentUser?.emailVerified || undefined,
         password: hashedPassword,
         identityProvider: IdentityProvider.CAL,
-        organizationId: orgId,
+        ...(orgId
+          ? {
+              organization: {
+                connect: {
+                  id: orgId,
+                },
+              },
+            }
+          : {}),
+        ...(parentUser
+          ? {
+              linkedBy: {
+                connect: {
+                  id: parentUser?.id,
+                },
+              },
+            }
+          : {}),
       },
     });
   } else {
@@ -43,8 +65,31 @@ async function upsertUser(data: {
         password: hashedPassword,
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
-        organizationId: orgId,
+        ...(orgId
+          ? {
+              organization: {
+                connect: {
+                  id: orgId,
+                },
+              },
+            }
+          : {}),
+        ...(parentUser
+          ? {
+              linkedBy: {
+                connect: {
+                  id: parentUser?.id,
+                },
+              },
+            }
+          : {}),
       },
+    });
+  }
+  if (parentUser) {
+    await prisma.user.updateMany({
+      where: { id: { in: [parentUser.id].concat(parentUser.linkedUsers.map((user) => user.id)) } },
+      data: { password: hashedPassword },
     });
   }
   return user;
@@ -71,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+  let foundToken: { id: number; identifier: string; teamId: number | null; expires: Date } | null = null;
   if (token) {
     foundToken = await prisma.verificationToken.findFirst({
       where: {
@@ -79,6 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: {
         id: true,
+        identifier: true,
         expires: true,
         teamId: true,
       },
@@ -91,8 +137,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (dayjs(foundToken?.expires).isBefore(dayjs())) {
       return res.status(401).json({ message: "Token expired" });
     }
-    if (foundToken?.teamId) {
-      const teamUserValidation = await validateUsernameInTeam(username, userEmail, foundToken?.teamId);
+    if (foundToken?.teamId !== null) {
+      const teamId = foundToken.teamId;
+      const teamUserValidation = await validateUsernameInToken(username, userEmail, {
+        ...foundToken,
+        teamId,
+      });
       if (!teamUserValidation.isValid) {
         return res.status(409).json({ message: "Username or email is already taken" });
       }

@@ -44,6 +44,21 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   const hashedPassword = await hashPassword(newPassword);
+
+  // Get parent user and all linked users
+  const parentUser = await prisma.user.findFirst({
+    where: { email: user.email, linkedByUserId: null },
+    select: { id: true, linkedUsers: { select: { id: true } } },
+  });
+
+  // If there is a parent user and it has linked users, set all passwords to the one provided
+  if (parentUser) {
+    await prisma.user.updateMany({
+      where: { id: { in: [parentUser.id].concat(parentUser.linkedUsers.map((user) => user.id)) } },
+      data: { password: hashedPassword },
+    });
+  }
+
   await prisma.user.update({
     where: {
       id: ctx.user.id,

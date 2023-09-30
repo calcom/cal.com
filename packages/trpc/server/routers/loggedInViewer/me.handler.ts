@@ -48,6 +48,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     organizationId: user.organizationId,
-    organization: user.organization,
+    org: user.organization,
   };
 };

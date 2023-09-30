@@ -13,6 +13,7 @@ import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookin
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { ProfileSwitcher } from "@calcom/features/ee/profiles/components/ProfileSwitcher";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -301,9 +302,10 @@ export default function Shell(props: LayoutProps) {
 
 interface UserDropdownProps {
   small?: boolean;
+  dots?: boolean;
 }
 
-function UserDropdown({ small }: UserDropdownProps) {
+function UserDropdown({ small, dots }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useContext();
@@ -365,35 +367,44 @@ function UserDropdown({ small }: UserDropdownProps) {
             "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
           )}>
-          <span
-            className={classNames(
-              small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full "
-            )}>
-            <Avatar
-              size={small ? "xs" : "xsm"}
-              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
-              alt={user.username || "Nameless User"}
-              className="overflow-hidden"
-            />
-            <span
-              className={classNames(
-                "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                user.away ? "bg-yellow-500" : "bg-green-500",
-                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
-              )}
-            />
-          </span>
-          {!small && (
-            <span className="flex flex-grow items-center gap-2">
-              <span className="line-clamp-1 flex-grow text-sm leading-none">
-                <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+          {!dots ? (
+            <>
+              <span
+                className={classNames(
+                  small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
+                  "relative flex-shrink-0 rounded-full "
+                )}>
+                <Avatar
+                  size={small ? "xs" : "xsm"}
+                  imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
+                  alt={user.username || "Nameless User"}
+                  className="overflow-hidden"
+                />
+                <span
+                  className={classNames(
+                    "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
+                    user.away ? "bg-yellow-500" : "bg-green-500",
+                    small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
+                  )}
+                />
               </span>
-              <ChevronDown
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
-                aria-hidden="true"
-              />
-            </span>
+              {!small && (
+                <span className="flex flex-grow items-center gap-2">
+                  <span className="line-clamp-1 flex-grow text-sm leading-none">
+                    <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+                  </span>
+                  <ChevronDown
+                    className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                    aria-hidden="true"
+                  />
+                </span>
+              )}
+            </>
+          ) : (
+            <MoreHorizontal
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              aria-hidden="true"
+            />
           )}
         </button>
       </DropdownMenuTrigger>
@@ -828,29 +839,14 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="px-1.5">
-                <div className="flex items-center gap-2 font-medium">
-                  <Avatar
-                    alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
-                    size="xsm"
-                  />
-                  <p className="text line-clamp-1 text-sm">
-                    <span>{orgBranding.name}</span>
-                  </p>
-                </div>
-              </Link>
-            ) : (
-              <div data-testid="user-dropdown-trigger">
-                <span className="hidden lg:inline">
-                  <UserDropdown />
-                </span>
-                <span className="hidden md:inline lg:hidden">
-                  <UserDropdown small />
-                </span>
-              </div>
-            )}
+            <div data-testid="user-dropdown-trigger">
+              <span className="hidden lg:flex">
+                <ProfileSwitcher UserDropdown={UserDropdown} />
+              </span>
+              <span className="hidden md:flex lg:hidden">
+                <ProfileSwitcher small UserDropdown={UserDropdown} />
+              </span>
+            </div>
             <div className="flex space-x-0.5 rtl:space-x-reverse">
               <button
                 color="minimal"
@@ -864,11 +860,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
-              {!!orgBranding && (
-                <div data-testid="user-dropdown-trigger" className="flex items-center">
-                  <UserDropdown small />
-                </div>
-              )}
               <KBarTrigger />
             </div>
           </header>

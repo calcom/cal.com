@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { getSession } from "@calcom/features/auth/lib/getSession";
+import { parseOrgData, type OrganizationData } from "@calcom/features/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
 
 const teamIdschema = z.object({
@@ -11,7 +12,9 @@ const teamIdschema = z.object({
 });
 
 const auditAndReturnNextUser = async (
-  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId" | "locale">,
+  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "locale"> & {
+    organization: OrganizationData;
+  },
   impersonatedByUID: number,
   hasTeam?: boolean
 ) => {
@@ -39,7 +42,7 @@ const auditAndReturnNextUser = async (
     role: impersonatedUser.role,
     impersonatedByUID,
     belongsToActiveTeam: hasTeam,
-    organizationId: impersonatedUser.organizationId,
+    org: parseOrgData(impersonatedUser.organization),
     locale: impersonatedUser.locale,
   };
 
@@ -97,6 +100,14 @@ const ImpersonationProvider = CredentialsProvider({
         name: true,
         email: true,
         organizationId: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            metadata: true,
+          },
+        },
         disableImpersonation: true,
         locale: true,
         teams: {

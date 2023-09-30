@@ -135,6 +135,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
           <div className="bg-default mx-2 p-6 shadow sm:rounded-lg lg:p-8">
             <FormProvider {...methods}>
               <form
+                data-testid="signup-form"
                 onSubmit={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -152,11 +153,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                   methods.handleSubmit(signUp)(event);
                 }}
                 className="bg-default space-y-6">
-                {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
+                {errors.apiError && (
+                  <Alert severity="error" data-testid="alert" message={errors.apiError?.message} />
+                )}
                 {}
                 <div className="space-y-4">
                   {!isOrgInviteByLink && (
                     <TextField
+                      id="username"
                       addOnLeading={
                         orgSlug
                           ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
@@ -168,11 +172,13 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     />
                   )}
                   <EmailField
+                    id="email"
                     {...register("email")}
                     disabled={prepopulateFormValues?.email}
                     className="disabled:bg-emphasis disabled:hover:cursor-not-allowed"
                   />
                   <PasswordField
+                    id="password"
                     labelProps={{
                       className: "block text-sm font-medium text-default",
                     }}

@@ -531,6 +531,26 @@ export async function login(
   await page.waitForLoadState("networkidle");
 }
 
+// signup
+export async function signup(user: { username: string; password: string; email: string }, page: Page) {
+  // get locators
+  const signupLocator = page.locator("[data-testid=signup-form]");
+  const usernameLocator = signupLocator.locator("#username");
+  const emailLocator = signupLocator.locator("#email");
+  const passwordLocator = signupLocator.locator("#password");
+  const submitLocator = signupLocator.locator('[type="submit"]');
+
+  //login
+  await page.goto("/signup");
+  await usernameLocator.fill(user.username);
+  await emailLocator.fill(user.email);
+  await passwordLocator.fill(user.password);
+  await submitLocator.click();
+
+  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
+  await page.waitForLoadState("networkidle");
+}
+
 export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
   page: Page

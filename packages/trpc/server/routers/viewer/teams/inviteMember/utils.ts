@@ -89,7 +89,7 @@ export async function getUserToInviteOrThrowIfExists({
   if (isOrg && invitee) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: `Email ${usernameOrEmail} already exists, you can't invite existing users.`,
+      message: `Email ${usernameOrEmail} already exists in the organization.`,
     });
   }
 
@@ -154,13 +154,29 @@ export async function createNewUserConnectToOrgIfExists({
       ? slugify(emailUser)
       : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
 
+  // Check if there is another user with the same email to act as a parent
+  const parentUser = await prisma.user.findFirst({
+    where: { email: usernameOrEmail, linkedByUserId: null },
+    select: { id: true, password: true, emailVerified: true },
+  });
+
   const createdUser = await prisma.user.create({
     data: {
       username,
       email: usernameOrEmail,
       verified: true,
       invitedTo: input.teamId,
-      organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+      emailVerified: parentUser?.emailVerified,
+      password: parentUser?.password,
+      ...(orgId
+        ? {
+            organization: {
+              connect: {
+                id: orgId,
+              },
+            },
+          }
+        : {}),
       teams: {
         create: {
           teamId: input.teamId,
@@ -168,6 +184,15 @@ export async function createNewUserConnectToOrgIfExists({
           accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
         },
       },
+      ...(parentUser
+        ? {
+            linkedBy: {
+              connect: {
+                id: parentUser?.id,
+              },
+            },
+          }
+        : {}),
     },
   });
 

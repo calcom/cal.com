@@ -91,7 +91,7 @@ const ProfileView = () => {
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
     onSuccess: async (userData) => {
       try {
-        if (!userData.organization) {
+        if (!userData.organizationId) {
           const res = await fetch(userData.avatar);
           if (res.url) setFetchedImgSrc(res.url);
         } else {
@@ -251,7 +251,7 @@ const ProfileView = () => {
         isLoading={updateProfileMutation.isLoading}
         isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
         userAvatar={user.avatar}
-        userOrganization={user.organization}
+        userOrganization={user.org}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -404,7 +404,7 @@ const ProfileForm = ({
   isLoading: boolean;
   isFallbackImg: boolean;
   userAvatar: string;
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  userOrganization: RouterOutputs["viewer"]["me"]["org"];
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);

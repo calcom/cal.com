@@ -312,7 +312,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     avatar: `/${user.username}/avatar.png`,
   }));
 
-  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
+  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organization === null))) {
     return {
       notFound: true,
     } as {

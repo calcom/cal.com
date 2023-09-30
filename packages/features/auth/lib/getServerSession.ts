@@ -46,11 +46,9 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: token.email.toLowerCase(),
-      username: token.username,
-      organizationId: token.org?.id,
+      id: Number(token.id),
     },
     // TODO: Re-enable once we get confirmation from compliance that this is okay.
     // cacheStrategy: { ttl: 60, swr: 1 },
@@ -73,9 +71,10 @@ export async function getServerSession(options: {
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
       role: user.role,
-      image: `${CAL_URL}/${user.username}/avatar.png`,
+      image: `${token.org ? token.org.fullDomain : CAL_URL}/${user.username}/avatar.png`,
       impersonatedByUID: token.impersonatedByUID ?? undefined,
       belongsToActiveTeam: token.belongsToActiveTeam,
+      organizationId: token.organizationId,
       org: token.org,
       locale: user.locale ?? undefined,
     },

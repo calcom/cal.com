@@ -46,12 +46,16 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         setShowVerifyCode(true);
       } else if (data.user) {
         telemetry.event(telemetryEventTypes.org_created);
-        await signIn("credentials", {
-          redirect: false,
-          callbackUrl: "/",
-          email: data.user.email,
-          password: data.user.password,
-        });
+        await signIn(
+          "credentials",
+          {
+            redirect: false,
+            callbackUrl: "/",
+            email: data.user.email,
+            password: data.user.password,
+          },
+          { organizationId: data.user.organizationId.toString() }
+        );
         router.push(`/settings/organizations/${data.user.organizationId}/set-password`);
       }
     },

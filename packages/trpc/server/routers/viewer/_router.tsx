@@ -19,6 +19,7 @@ import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
+import { profilesRouter } from "./profiles/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
@@ -54,5 +55,6 @@ export const viewerRouter = mergeRouters(
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
+    profiles: profilesRouter,
   })
 );

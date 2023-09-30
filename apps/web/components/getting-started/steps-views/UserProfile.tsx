@@ -104,7 +104,7 @@ const UserProfile = () => {
             alt={user.username || "user avatar"}
             size="lg"
             imageSrc={imageSrc}
-            organizationSlug={user.organization?.slug}
+            organizationSlug={user.org?.slug}
           />
         )}
         <input

@@ -90,7 +90,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const copyInviteLinkToClipboard = async (token: string) => {
     const isOrgInvite = isOrg;
     const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=getting-started`;
 
     const inviteLink =
       isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;

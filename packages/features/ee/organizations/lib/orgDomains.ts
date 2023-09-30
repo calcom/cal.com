@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 /**
  * return the org slug
@@ -68,4 +69,24 @@ export function getSlugOrRequestedSlug(slug: string) {
 export function userOrgQuery(hostname: string, fallback?: string | string[]) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(hostname, fallback);
   return isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null;
+}
+
+export type OrganizationData = {
+  metadata: Prisma.JsonValue;
+  slug: string | null;
+  id: number;
+  name: string;
+} | null;
+
+export function parseOrgData(organization: OrganizationData) {
+  const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
+  return organization?.id
+    ? {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
+        fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+        domainSuffix: subdomainSuffix(),
+      }
+    : undefined;
 }

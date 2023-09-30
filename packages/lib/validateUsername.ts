@@ -1,17 +1,20 @@
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export const validateUsername = async (username: string, email: string, organizationId?: number) => {
+export const validateUsername = async (
+  username: string,
+  email: string,
+  organizationId?: number,
+  inviteLinkType?: boolean
+) => {
   // There is an existingUser if, within an org context or not, the username matches
   // OR if the email matches AND either the email is verified
   // or both username and password are set
-  const existingUser = await prisma.user.findFirst({
+  const query = {
     where: {
       ...(organizationId ? { organizationId } : {}),
       OR: [
-        // When inviting to org, invited user gets created with username now, so in an org context we
-        // can't check for username as it will exist on signup
-        ...(!organizationId ? [{ username }] : [{}]),
+        { username },
         {
           AND: [
             { email },
@@ -30,15 +33,21 @@ export const validateUsername = async (username: string, email: string, organiza
     select: {
       email: true,
     },
-  });
+  };
+  const existingUser = await prisma.user.findFirst(query);
   return { isValid: !existingUser, email: existingUser?.email };
 };
 
-export const validateUsernameInTeam = async (username: string, email: string, teamId: number) => {
+export const validateUsernameInToken = async (
+  username: string,
+  email: string,
+  tokenTeam: { teamId: number; identifier: string }
+) => {
+  const inviteLinkType = tokenTeam.identifier.indexOf("invite-link-for-teamId") > -1;
   try {
     const team = await prisma.team.findFirst({
       where: {
-        id: teamId,
+        id: tokenTeam.teamId,
       },
       select: {
         metadata: true,
@@ -50,11 +59,17 @@ export const validateUsernameInTeam = async (username: string, email: string, te
 
     if (teamData.metadata?.isOrganization || teamData.parentId) {
       // Organization context -> org-context username check
-      const orgId = teamData.parentId || teamId;
-      return validateUsername(username, email, orgId);
+      const orgId = teamData.parentId || tokenTeam.teamId;
+      // Making sure any email not using org email domain address has appended
+      // the first part of the domain address: acme.com -> free@example.com -> free-example
+      const orgDomain = teamData.metadata?.orgAutoAcceptEmail;
+      if (orgDomain && email.indexOf(orgDomain) === -1) {
+        username = `${username}-${orgDomain?.split(".")[0]}`;
+      }
+      return validateUsername(username, email, orgId, inviteLinkType);
     } else {
       // Regular team context -> regular username check
-      return validateUsername(username, email);
+      return validateUsername(username, email, undefined, inviteLinkType);
     }
   } catch (error) {
     console.error(error);

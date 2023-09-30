@@ -5,10 +5,12 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import z from "zod";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullDomain, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { parseOrgData } from "@calcom/features/ee/organizations/lib/orgDomains";
+import ProfileProvider from "@calcom/features/ee/profiles/lib/ProfileProvider";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -83,6 +85,13 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   return { orgUsername, orgId: existingOrg?.id };
 };
 
+const CalcomCredentialsQueryParams = z.object({
+  organizationId: z
+    .string()
+    .transform((s) => Number(s))
+    .optional(),
+});
+
 const providers: Provider[] = [
   CredentialsProvider({
     id: "credentials",
@@ -94,7 +103,11 @@ const providers: Provider[] = [
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
       backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
-    async authorize(credentials) {
+    async authorize(credentials, req) {
+      // To handle login directly to an org profile or defaulting to the parent user
+      const { organizationId } = CalcomCredentialsQueryParams.parse(req.query);
+      const profileWhere = organizationId ? { organizationId } : { linkedBy: null };
+
       if (!credentials) {
         console.error(`For some reason credentials are missing`);
         throw new Error(ErrorCode.InternalServerError);
@@ -103,7 +116,7 @@ const providers: Provider[] = [
       const user = await prisma.user.findFirst({
         where: {
           email: credentials.email.toLowerCase(),
-          linkedBy: null,
+          ...profileWhere,
         },
         select: {
           role: true,
@@ -122,6 +135,9 @@ const providers: Provider[] = [
           organization: {
             select: {
               id: true,
+              name: true,
+              slug: true,
+              metadata: true,
             },
           },
           teams: {
@@ -243,11 +259,13 @@ const providers: Provider[] = [
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
         organizationId: user.organizationId,
+        org: parseOrgData(user.organization),
         locale: user.locale,
       };
     },
   }),
   ImpersonationProvider,
+  ProfileProvider,
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
@@ -427,14 +445,14 @@ export const AUTH_OPTIONS: AuthOptions = {
         };
       }
       const autoMergeIdentities = async () => {
-        const existingUser = await prisma.user.findFirst({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          where: { email: token.email! },
+        const existingUser = await prisma.user.findUnique({
+          where: { id: Number(token.id) },
           select: {
             id: true,
             username: true,
             name: true,
             email: true,
+            organizationId: true,
             organization: {
               select: {
                 id: true,
@@ -461,21 +479,11 @@ export const AUTH_OPTIONS: AuthOptions = {
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
 
-        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
-
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
-          org: organization
-            ? {
-                id: organization.id,
-                name: organization.name,
-                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-              }
-            : undefined,
+          org: parseOrgData(organization),
         };
       };
       if (!user) {
@@ -499,6 +507,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
+          organizationId: user.organizationId,
           org: user?.org,
           locale: user?.locale,
         };
@@ -538,6 +547,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token.organizationId,
           org: token?.org,
           locale: existingUser.locale,
         };
@@ -558,6 +568,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token?.organizationId,
           org: token?.org,
           locale: token.locale,
         },
@@ -772,6 +783,12 @@ export const AUTH_OPTIONS: AuthOptions = {
         // Associate with organization if enabled by flag and idP is Google (for now)
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
+        // Find if there is an existing user to link to the created org owner user
+        const linkedUser = await prisma.user.findFirst({
+          where: { email: user.email, linkedByUserId: null },
+          select: { id: true },
+        });
+
         const newUser = await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
@@ -789,6 +806,11 @@ export const AUTH_OPTIONS: AuthOptions = {
                 create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
               },
             }),
+            linkedBy: {
+              connect: {
+                id: linkedUser?.id,
+              },
+            },
           },
         });
 

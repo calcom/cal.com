@@ -119,16 +119,16 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     // Find if there is an existing user to link to the created org owner user
-    const linkedUser = await prisma.user.findFirst({
+    const parentUser = await prisma.user.findFirst({
       where: { email: adminEmail, linkedByUserId: null },
-      select: { id: true },
+      select: { id: true, emailVerified: true },
     });
 
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: slugify(adminUsername),
         email: adminEmail,
-        emailVerified: new Date(),
+        emailVerified: parentUser?.emailVerified || new Date(),
         password: hashedPassword,
         // Default schedule
         schedules: {
@@ -158,26 +158,37 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
             },
           },
         },
-        linkedBy: {
-          connect: {
-            id: linkedUser?.id,
-          },
-        },
+        ...(parentUser
+          ? {
+              linkedBy: {
+                connect: {
+                  id: parentUser?.id,
+                },
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        password: true,
+        organizationId: true,
+        email: true,
       },
     });
 
     if (!createOwnerOrg.organizationId) throw Error("User not created");
+    const organizationId = createOwnerOrg.organizationId;
 
     await prisma.membership.create({
       data: {
         userId: createOwnerOrg.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: createOwnerOrg.organizationId,
+        teamId: organizationId,
       },
     });
 
-    return { user: { ...createOwnerOrg, password } };
+    return { user: { ...createOwnerOrg, organizationId, password } };
   } else {
     if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
