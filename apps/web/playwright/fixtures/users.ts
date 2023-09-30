@@ -144,6 +144,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        { title: "Req confirm", slug: "req-conf", requiresConfirmation: true, length: 30 },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);

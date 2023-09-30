@@ -6,6 +6,7 @@ import { test } from "./lib/fixtures";
 import {
   bookFirstEvent,
   bookOptinEvent,
+  bookReqConfirmEvent,
   bookTimeSlot,
   expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
@@ -230,7 +231,7 @@ test.describe("pro user", () => {
     expect(firstSlotAvailableText).toContain("9:00");
   });
 
-  test("Cannot confirm booking for a slot, if another confirmed booking already exists for same slot.", async ({
+  test("Cannot confirm booking for a slot, if another confirmed booking already exists for same slot and same eventtype.", async ({
     page,
     users,
   }) => {
@@ -267,6 +268,49 @@ test.describe("pro user", () => {
 
     expect(responseObj[0]?.error?.json?.data?.code).toEqual("BAD_REQUEST");
     expect(responseObj[0]?.error?.json?.message).toEqual("Slot already confirmed for other booking");
+  });
+
+  test("Can confirm booking for a slot, if another confirmed booking already exists for same slot but different eventtype.", async ({
+    page,
+    users,
+  }) => {
+    // First booking done for first available time slot in next month
+    await bookOptinEvent(page);
+
+    const [pro] = users.get();
+    await page.goto(`/${pro.username}`);
+
+    // Second booking done for same time slot but different eventtype
+    await bookReqConfirmEvent(page);
+
+    await pro.apiLogin();
+
+    await page.goto("/bookings/unconfirmed");
+
+    // Confirm first booking
+    await page.click('[data-testid="confirm"]');
+    const firstResponse = await page.waitForResponse((response) =>
+      response.url().includes("/api/trpc/bookings/confirm")
+    );
+    const firstBookingUid = firstResponse.request().postDataJSON()["0"]?.json?.bookingId;
+
+    await Promise.all([
+      page.goto("/bookings/unconfirmed"),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/get")),
+    ]);
+
+    // Confirm second booking
+    await page.click('[data-testid="confirm"]');
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/trpc/bookings/confirm") &&
+        response.request().postDataJSON()["0"]?.json?.bookingId !== firstBookingUid
+    ); // Retrieve response for second confirmation
+
+    const responseObj = await response.json();
+
+    expect(responseObj[0]?.result?.data?.json?.message).toEqual("confirmed");
+    expect(responseObj[0]?.result?.data?.json?.status).toEqual("ACCEPTED");
   });
 });
 

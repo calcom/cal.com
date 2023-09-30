@@ -121,6 +121,11 @@ export async function bookOptinEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
+export async function bookReqConfirmEvent(page: Page) {
+  await page.locator('[data-testid="event-type-link"]:has-text("Req confirm")').click();
+  await bookEventOnThisPage(page);
+}
+
 export async function bookFirstEvent(page: Page) {
   // Click first event type
   await page.click('[data-testid="event-type-link"]');
