@@ -193,7 +193,7 @@ function WorkflowPage() {
           "success"
         );
       }
-      router.push("/workflows");
+      router.push("/settings/admin/workflows");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -264,7 +264,7 @@ function WorkflowPage() {
         }
       }}>
       <Shell
-        backPath="/workflows"
+        backPath="/settings/admin/workflows"
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
           !readOnly && (
@@ -277,7 +277,6 @@ function WorkflowPage() {
         }
         hideHeadingOnMobile
         heading={
-          session.data?.hasValidLicense &&
           isAllDataLoaded && (
             <div className="flex">
               <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>

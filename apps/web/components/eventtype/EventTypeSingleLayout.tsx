@@ -20,17 +20,13 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  DropdownMenuSeparator,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
   HorizontalTabs,
-  Label,
   showToast,
-  Skeleton,
-  Switch,
   Tooltip,
   VerticalDivider,
   VerticalTabs,
@@ -416,7 +412,7 @@ function EventTypeSingleLayout({
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator />
               <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                 <Skeleton
                   as={Label}
@@ -431,7 +427,7 @@ function EventTypeSingleLayout({
                     formMethods.setValue("hidden", !e);
                   }}
                 />
-              </div>
+              </div> */}
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-default border-l-2" />

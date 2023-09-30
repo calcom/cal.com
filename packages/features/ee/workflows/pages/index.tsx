@@ -34,7 +34,7 @@ function WorkflowsPage() {
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace("/workflows/" + workflow.id);
+      await router.replace("/settings/admin/workflows/" + workflow.id);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -56,17 +56,17 @@ function WorkflowsPage() {
       subtitle={t("workflows_to_automate_notifications")}
       hideHeadingOnMobile
       CTA={
-        session.data?.hasValidLicense ? (
-          <CreateButtonWithTeamsList
-            subtitle={t("new_workflow_subtitle").toUpperCase()}
-            createFunction={(teamId?: number) => {
-              createMutation.mutate({ teamId });
-            }}
-            isLoading={createMutation.isLoading}
-            disableMobileButton={true}
-            onlyShowWithNoTeams={true}
-          />
-        ) : null
+        // session.data?.hasValidLicense ? (
+        <CreateButtonWithTeamsList
+          subtitle={t("new_workflow_subtitle").toUpperCase()}
+          createFunction={(teamId?: number) => {
+            createMutation.mutate({ teamId });
+          }}
+          isLoading={createMutation.isLoading}
+          disableMobileButton={true}
+          onlyShowWithNoTeams={true}
+        />
+        // ) : null
       }>
       <LicenseRequired>
         <>

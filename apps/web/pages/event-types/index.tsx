@@ -48,17 +48,13 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
-  Label,
   showToast,
-  Skeleton,
-  Switch,
   Tooltip,
   ArrowButton,
 } from "@calcom/ui";
 import {
   Clipboard,
   Code,
-  Copy,
   Edit,
   Edit2,
   ExternalLink,
@@ -128,7 +124,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
           readOnly={events[0].metadata.readOnly}
         />
       ) : (
-        <CreateFirstEventTypeView />
+        <CreateFirstEventTypeView slug={eventTypeGroups[0].profile.slug ?? ""} />
       )}
     </div>
   );
@@ -364,7 +360,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }, []);
 
   if (!types.length) {
-    return group.teamId ? <EmptyEventTypeList group={group} /> : <CreateFirstEventTypeView />;
+    return group.teamId ? (
+      <EmptyEventTypeList group={group} />
+    ) : (
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    );
   }
 
   const firstItem = types[0];
@@ -612,7 +612,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </DropdownItem>
                           </DropdownMenuItem>
                         )}
-                        {!isManagedEventType && !isChildrenManagedEventType && (
+                        {/* {!isManagedEventType && !isChildrenManagedEventType && (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
@@ -621,7 +621,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               {t("duplicate")}
                             </DropdownItem>
                           </DropdownMenuItem>
-                        )}
+                        )} */}
                         {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                         {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
                           !isChildrenManagedEventType && (
@@ -641,8 +641,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               </DropdownMenuItem>
                             </>
                           )}
-                        <DropdownMenuSeparator />
-                        {!isManagedEventType && (
+                        {/* <DropdownMenuSeparator /> */}
+                        {/* {!isManagedEventType && (
                           <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                             <Skeleton
                               as={Label}
@@ -659,7 +659,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               }}
                             />
                           </div>
-                        )}
+                        )} */}
                       </DropdownMenuContent>
                     </DropdownMenuPortal>
                   </Dropdown>
@@ -765,7 +765,7 @@ const EventTypeListHeading = ({
   );
 };
 
-const CreateFirstEventTypeView = () => {
+const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
 
   return (
@@ -807,7 +807,7 @@ const CreateFirstEventTypeView = () => {
       }
       className=" mb-16"
       buttonRaw={
-        <Button href="?dialog=new" variant="button">
+        <Button href={`?dialog=new&eventPage=${slug}`} variant="button">
           {t("create")}
         </Button>
       }
@@ -949,7 +949,7 @@ const Main = ({
                 ) : group.teamId ? (
                   <EmptyEventTypeList group={group} />
                 ) : (
-                  <CreateFirstEventTypeView />
+                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
                 )}
               </div>
             ))
@@ -965,7 +965,7 @@ const Main = ({
           />
         )
       )}
-      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
