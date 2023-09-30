@@ -24,6 +24,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
+    logger.silly("getVideoAdapters", JSON.stringify({ appName, cred }));
     const appImportFn = appStore[appName as keyof typeof appStore];
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
@@ -38,6 +39,8 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
       const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       videoAdapters.push(videoAdapter);
+    } else {
+      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
     }
   }
 
@@ -51,7 +54,7 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
 
 const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-
+  log.silly("videoClient:createMeeting", JSON.stringify({ credential, uid, calEvent }));
   if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
@@ -116,21 +119,23 @@ const updateMeeting = async (
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
-
   let success = true;
-
   const [firstVideoAdapter] = await getVideoAdapters([credential]);
-  const updatedMeeting =
-    credential && bookingRef
-      ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-          await sendBrokenIntegrationEmail(calEvent, "video");
-          log.error("updateMeeting failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
-      : undefined;
+  const canCallUpdateMeeting = !!(credential && bookingRef);
+  const updatedMeeting = canCallUpdateMeeting
+    ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+        await sendBrokenIntegrationEmail(calEvent, "video");
+        log.error("updateMeeting failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
+    : undefined;
 
   if (!updatedMeeting) {
+    log.error(
+      "updateMeeting failed",
+      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+    );
     return {
       appName: credential.appId || "",
       type: credential.type,
