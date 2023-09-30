@@ -9,6 +9,7 @@ import useEmbed from "./useEmbed";
 type CalProps = {
   calOrigin?: string;
   calLink: string;
+  key: string;
   initConfig?: {
     debug?: boolean;
     uiDebug?: boolean;
@@ -18,7 +19,7 @@ type CalProps = {
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const Cal = function Cal(props: CalProps) {
-  const { calLink, calOrigin, config, initConfig = {}, embedJsUrl, ...restProps } = props;
+  const { calLink, calOrigin, config, initConfig = {}, key, embedJsUrl, ...restProps } = props;
   if (!calLink) {
     throw new Error("calLink is required");
   }
