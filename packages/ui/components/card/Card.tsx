@@ -171,9 +171,9 @@ export function Card({
           </p>
         )}
       </div>
-      {/* {variant === "SidebarCard" && (
+      {variant === "SidebarCard" && (
         <a
-          onClick={actionButton?.onClick}
+          // onClick={actionButton?.onClick}
           target="_blank"
           rel="noreferrer"
           href={mediaLink}
@@ -199,7 +199,7 @@ export function Card({
           </svg>
           <img alt="play feature video" src={thumbnailUrl} />
         </a>
-      )} */}
+      )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
       <div>
@@ -210,28 +210,27 @@ export function Card({
         )}
       </div>
 
-      {/* {variant === "SidebarCard" && (
+      {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <LinkComponent
               href={learnMore.href}
-              onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-default text-xs font-medium">
+              className="text-default text-xs font-medium underline">
               {learnMore.text}
             </LinkComponent>
           )}
-          {actionButton?.child && (
+          {/* {actionButton?.child && (
             <button
               className="text-default hover:text-emphasis p-0 text-xs font-normal"
               color="minimal"
               onClick={actionButton?.onClick}>
               {actionButton?.child}
             </button>
-          )}
+          )} */}
         </div>
-      )} */}
+      )}
     </div>
   );
 }
