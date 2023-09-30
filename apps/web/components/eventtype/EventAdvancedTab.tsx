@@ -181,9 +181,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </div>
-
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
-
       <div className="border-subtle space-y-6 rounded-md border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
@@ -198,7 +196,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       </div>
-
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
@@ -206,7 +203,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-
       <Controller
         name="requiresBookerEmailVerification"
         control={formMethods.control}
@@ -223,7 +219,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -240,7 +235,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -285,7 +279,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
@@ -345,7 +338,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         </div>
       </SettingsToggle>
-
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}

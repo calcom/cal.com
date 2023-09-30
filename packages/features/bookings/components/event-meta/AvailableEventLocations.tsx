@@ -23,6 +23,7 @@ function RenderIcon({
       src={eventLocationType.iconUrl}
       className={classNames(
         eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
+        !eventLocationType?.iconUrl?.startsWith("/app-store") && "dark:invert",
         "me-[10px] h-4 w-4"
       )}
       alt={`${eventLocationType.label} icon`}
@@ -81,7 +82,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
-            <Link className="text-default ml-[2px] h-4 w-4  ltr:mr-[10px] rtl:ml-[10px] " />
+            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}

@@ -22,7 +22,17 @@ export type GroupOptionType = GroupBase<LocationOption>;
 const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
   return (
     <div className="flex items-center gap-3">
-      {icon && <img src={icon} alt="cover" className="h-3.5 w-3.5 dark:invert-[.65]" />}
+      {icon && (
+        <img
+          src={icon}
+          alt="cover"
+          className={classNames(
+            "h-3.5 w-3.5",
+            !icon?.startsWith("/app-store") && "dark:invert",
+            icon?.includes("-dark") && "dark:invert"
+          )}
+        />
+      )}
       <span className={classNames("text-sm font-medium")}>{label}</span>
     </div>
   );
