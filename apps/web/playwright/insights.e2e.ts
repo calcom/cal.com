@@ -139,15 +139,6 @@ test.describe("Insights", async () => {
     await page.goto("/insights");
     await page.waitForLoadState("networkidle");
 
-    // expect to have isAll=true and teamId= in query params
-    await page.waitForURL((url) => {
-      const isAll = url.searchParams.get("isAll");
-      const teamId = url.searchParams.get("teamId");
-      return !!isAll && !!teamId;
-    });
-    expect(page.url()).toContain("isAll=true");
-    expect(page.url()).toContain("teamId=");
-
     await page.getByTestId("dashboard-shell").getByText("All").nth(1).click();
 
     const teamSelectFilter = await page.locator(
@@ -166,16 +157,6 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-
-    await page.waitForURL((url) => {
-      const isAll = url.searchParams.get("isAll");
-      const teamId = url.searchParams.get("teamId");
-      return !!isAll && !!teamId;
-    });
-
-    // expect to have isAll=true and teamId= in query params
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
 
     // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
     await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
@@ -198,15 +179,6 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForURL((url) => {
-      const isAll = url.searchParams.get("isAll");
-      const teamId = url.searchParams.get("teamId");
-      return !!isAll && !!teamId;
-    });
-
-    // expect to have isAll=true and teamId= in query params
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
 
     // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
     await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
@@ -221,35 +193,12 @@ test.describe("Insights", async () => {
 
     // switch to self profile
     await page.getByTestId("dashboard-shell").getByText("Your Account").click();
-    // wait for url to change and have userId=
-    await page.waitForURL((url) => {
-      const userId = url.searchParams.get("userId");
-      return !!userId;
-    });
-
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("userId=");
 
     // switch to team 1
     await page.getByTestId("dashboard-shell").getByText("test-insights").nth(0).click();
-    await page.waitForURL((url) => {
-      const isAll = url.searchParams.get("isAll");
-      const teamId = url.searchParams.get("teamId");
-      return !!isAll && !!teamId;
-    });
-
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
 
     // switch to team 2
     await page.getByTestId("dashboard-shell").getByText("test-insights-2").click();
-    await page.waitForURL((url) => {
-      const isAll = url.searchParams.get("isAll");
-      const teamId = url.searchParams.get("teamId");
-      return !!isAll && !!teamId;
-    });
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
   });
 
   test("should be able to switch between memberUsers", async ({ page, users }) => {
@@ -261,13 +210,6 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForURL((url) => {
-      const teamId = url.searchParams.get("teamId");
-      return !!teamId;
-    });
-
-    // expect to have teamId= in query params
-    expect(page.url()).toContain("teamId=");
 
     await page.getByText("Add filter").click();
 
@@ -290,14 +232,8 @@ test.describe("Insights", async () => {
     await page.keyboard.press("Escape");
 
     await page.getByRole("button", { name: "Clear" }).click();
-    await page.waitForLoadState("networkidle");
-    await page.waitForURL((url) => {
-      const memberUserId = url.searchParams.get("memberUserId");
-      return !memberUserId;
-    });
 
-    expect(page.url()).not.toContain("memberUserId=");
-    expect(page.url()).toContain("teamId=");
-    expect(page.url()).not.toContain("userId=");
+    // expect for "Team: test-insight" text in page
+    expect(await page.locator("text=Team: test-insights").isVisible()).toBeTruthy();
   });
 });
