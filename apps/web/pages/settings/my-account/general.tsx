@@ -1,6 +1,8 @@
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -13,12 +15,12 @@ import {
   Label,
   Meta,
   Select,
-  SettingsToggle,
   showToast,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   TimezoneSelect,
+  SettingsToggle,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -26,14 +28,14 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
-      <div className="mb-8 mt-6 space-y-6">
+      <Meta title={title} description={description} borderInShellHeader={true} />
+      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
 
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+        <SkeletonButton className="ml-auto h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
@@ -59,6 +61,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const { t } = useLocale();
   const { update } = useSession();
+  const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -72,6 +75,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
+      setIsUpdateBtnLoading(false);
     },
   });
 
@@ -105,9 +109,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
-      allowDynamicBooking: user.allowDynamicBooking ?? true,
-      allowSEOIndexing: user.allowSEOIndexing ?? true,
-      receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail ?? true,
     },
   });
   const {
@@ -117,151 +118,150 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
 
+  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
+    !!user.allowDynamicBooking
+  );
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(!!user.allowSEOIndexing);
+  const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
+    !!user.receiveMonthlyDigestEmail
+  );
+
   return (
-    <Form
-      form={formMethods}
-      handleSubmit={(values) => {
-        mutation.mutate({
-          ...values,
-          locale: values.locale.value,
-          timeFormat: values.timeFormat.value,
-          weekStart: values.weekStart.value,
-        });
-      }}>
-      <Meta title={t("general")} description={t("general_description")} />
-      <Controller
-        name="locale"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <Label className="text-emphasis">
-              <>{t("language")}</>
-            </Label>
-            <Select<{ label: string; value: string }>
-              className="capitalize"
-              options={localeOptions}
-              value={value}
-              onChange={onChange}
-            />
-          </>
-        )}
-      />
-      <Controller
-        name="timeZone"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("timezone")}</>
-            </Label>
-            <TimezoneSelect
-              id="timezone"
-              value={value}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <Controller
-        name="timeFormat"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("time_format")}</>
-            </Label>
-            <Select
-              value={value}
-              options={timeFormatOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <div className="text-gray text-default mt-2 flex items-center text-sm">
-        {t("timeformat_profile_hint")}
-      </div>
-      <Controller
-        name="weekStart"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("start_of_week")}</>
-            </Label>
-            <Select
-              value={value}
-              options={weekStartOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <div className="mt-8">
-        <Controller
-          name="allowDynamicBooking"
-          control={formMethods.control}
-          render={() => (
-            <SettingsToggle
-              title={t("dynamic_booking")}
-              description={t("allow_dynamic_booking")}
-              checked={formMethods.getValues("allowDynamicBooking")}
-              onCheckedChange={(checked) => {
-                formMethods.setValue("allowDynamicBooking", checked, { shouldDirty: true });
-              }}
-            />
-          )}
-        />
-      </div>
+    <div>
+      <Form
+        form={formMethods}
+        handleSubmit={(values) => {
+          setIsUpdateBtnLoading(true);
+          mutation.mutate({
+            ...values,
+            locale: values.locale.value,
+            timeFormat: values.timeFormat.value,
+            weekStart: values.weekStart.value,
+          });
+        }}>
+        <Meta title={t("general")} description={t("general_description")} borderInShellHeader={true} />
+        <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+          <Controller
+            name="locale"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <Label className="text-emphasis">
+                  <>{t("language")}</>
+                </Label>
+                <Select<{ label: string; value: string }>
+                  className="capitalize"
+                  options={localeOptions}
+                  value={value}
+                  onChange={onChange}
+                />
+              </>
+            )}
+          />
+          <Controller
+            name="timeZone"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-6">
+                  <>{t("timezone")}</>
+                </Label>
+                <TimezoneSelect
+                  id="timezone"
+                  value={value}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+          <Controller
+            name="timeFormat"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-6">
+                  <>{t("time_format")}</>
+                </Label>
+                <Select
+                  value={value}
+                  options={timeFormatOptions}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+          <div className="text-gray text-default mt-2 flex items-center text-sm">
+            {t("timeformat_profile_hint")}
+          </div>
+          <Controller
+            name="weekStart"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-6">
+                  <>{t("start_of_week")}</>
+                </Label>
+                <Select
+                  value={value}
+                  options={weekStartOptions}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+        </div>
 
-      <div className="mt-8">
-        <Controller
-          name="allowSEOIndexing"
-          control={formMethods.control}
-          render={() => (
-            <SettingsToggle
-              title={t("seo_indexing")}
-              description={t("allow_seo_indexing")}
-              checked={formMethods.getValues("allowSEOIndexing")}
-              onCheckedChange={(checked) => {
-                formMethods.setValue("allowSEOIndexing", checked, { shouldDirty: true });
-              }}
-            />
-          )}
-        />
-      </div>
+        <SectionBottomActions align="end">
+          <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
+            <>{t("update")}</>
+          </Button>
+        </SectionBottomActions>
+      </Form>
 
-      <div className="mt-8">
-        <Controller
-          name="receiveMonthlyDigestEmail"
-          control={formMethods.control}
-          render={() => (
-            <SettingsToggle
-              title={t("monthly_digest_email")}
-              description={t("monthly_digest_email_for_teams")}
-              checked={formMethods.getValues("receiveMonthlyDigestEmail")}
-              onCheckedChange={(checked) => {
-                formMethods.setValue("receiveMonthlyDigestEmail", checked, { shouldDirty: true });
-              }}
-            />
-          )}
-        />
-      </div>
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("dynamic_booking")}
+        description={t("allow_dynamic_booking")}
+        disabled={mutation.isLoading}
+        checked={isAllowDynamicBookingChecked}
+        onCheckedChange={(checked) => {
+          setIsAllowDynamicBookingChecked(checked);
+          mutation.mutate({ allowDynamicBooking: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
 
-      <Button
-        loading={mutation.isLoading}
-        disabled={isDisabled}
-        color="primary"
-        type="submit"
-        className="mt-8">
-        <>{t("update")}</>
-      </Button>
-    </Form>
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("seo_indexing")}
+        description={t("allow_seo_indexing")}
+        disabled={mutation.isLoading}
+        checked={isAllowSEOIndexingChecked}
+        onCheckedChange={(checked) => {
+          setIsAllowSEOIndexingChecked(checked);
+          mutation.mutate({ allowSEOIndexing: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("monthly_digest_email")}
+        description={t("monthly_digest_email_for_teams")}
+        disabled={mutation.isLoading}
+        checked={isReceiveMonthlyDigestEmailChecked}
+        onCheckedChange={(checked) => {
+          setIsReceiveMonthlyDigestEmailChecked(checked);
+          mutation.mutate({ receiveMonthlyDigestEmail: checked });
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+      />
+    </div>
   );
 };
 

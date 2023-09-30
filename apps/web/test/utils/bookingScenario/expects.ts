@@ -1,11 +1,11 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { BookingStatus } from "@prisma/client";
 import type { WebhookTriggerEvents, Booking, BookingReference } from "@prisma/client";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
@@ -235,7 +235,6 @@ export function expectSuccessfulBookingRescheduledEmails({
     `${booker.name} <${booker.email}>`
   );
 }
-
 export function expectAwaitingPaymentEmails({
   emails,
   booker,

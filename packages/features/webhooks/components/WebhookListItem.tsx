@@ -15,7 +15,7 @@ import {
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { AlertCircle, Edit, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
+import { Edit, MoreHorizontal, Trash, Zap } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -87,7 +87,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={AlertCircle}>
+                startIcon={Zap}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}

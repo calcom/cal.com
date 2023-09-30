@@ -78,6 +78,7 @@
     "@playwright/test": "^1.31.2",
     "@snaplet/copycat": "^0.3.0",
     "@testing-library/jest-dom": "^5.16.5",
+    "@types/jsonwebtoken": "^9.0.3",
     "c8": "^7.13.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",

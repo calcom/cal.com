@@ -74,10 +74,10 @@ export default class GoogleCalendarService implements Calendar {
 
   private googleAuth = (credential: CredentialPayload) => {
     const googleCredentials = googleCredentialSchema.parse(credential.key);
+
     async function getGoogleAuth() {
       const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
       const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
-      logger.debug("Setting Google Auth creds", googleCredentials);
       myGoogleAuth.setCredentials(googleCredentials);
       return myGoogleAuth;
     }
@@ -86,9 +86,7 @@ export default class GoogleCalendarService implements Calendar {
       try {
         const res = await refreshOAuthTokens(
           async () => {
-            logger.debug("Before Google Auth refresh response");
             const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
-            logger.debug("Google Auth refresh response", fetchTokens);
             return fetchTokens.res;
           },
           "google-calendar",
@@ -128,7 +126,6 @@ export default class GoogleCalendarService implements Calendar {
       getToken: async () => {
         const myGoogleAuth = await getGoogleAuth();
         const isExpired = () => myGoogleAuth.isTokenExpiring();
-        logger.silly("isExpired", { isExpired: isExpired() });
         return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
       },
     };
@@ -188,7 +185,6 @@ export default class GoogleCalendarService implements Calendar {
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     const payload: calendar_v3.Schema$Event = {
       summary: calEventRaw.title,
-      // IssueToBeFiled - Hariom. A CalendarService should ideally be getting prebuilt description and other things that are common across apps.
       description: getRichDescription(calEventRaw),
       start: {
         dateTime: calEventRaw.startTime,
@@ -215,7 +211,6 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
     // Find in calEventRaw.destinationCalendar the one with the same credentialId
 
-    // IssueToBeFiled - Hariom. CalendarService shouldn't be iterating over destination calendar to find the correct one. It's the reponsibility of core to provide that. If not provided due to some reason then it makes sense for the CalendarService to fallback
     const selectedCalendar =
       calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
       "primary";
@@ -301,6 +296,11 @@ export default class GoogleCalendarService implements Calendar {
         sendUpdates: "none",
         requestBody: payload,
         conferenceDataVersion: 1,
+      });
+
+      this.log.debug("Updated Google Calendar Event", {
+        startTime: evt?.data.start,
+        endTime: evt?.data.end,
       });
 
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
@@ -425,7 +425,6 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    this.log.debug("getAvailability123", { dateFrom, dateTo, selectedCalendars });
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)

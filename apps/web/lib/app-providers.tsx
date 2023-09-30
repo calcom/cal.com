@@ -233,7 +233,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
-  const { ...restPageProps } = pageProps;
+  const { _nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
     pageProps: {
       ...restPageProps,

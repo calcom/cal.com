@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Da, izbriši",
   "delete_account": "Izbriši nalog",
   "confirm_delete_account": "Da, izbriši nalog",
-  "delete_account_confirmation_message": "Da li ste sigurni da želite izbrisati svoj {{appName}} nalog? S kim god ste podelili link ovog naloga više neće moći da ga koristi za rezervacije i sva podešavanja koja imate neće biti sačuvana.",
+  "delete_account_confirmation_message": "S kim god ste podelili link ovog naloga više neće moći da ga koristi za rezervacije i sva podešavanja koja imate neće biti sačuvana.",
   "integrations": "Integracije",
   "apps": "Aplikacije",
   "apps_description": "Ovde možete pronaći spisak svojih aplikacija",

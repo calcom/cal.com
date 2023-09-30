@@ -7,6 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
@@ -43,11 +44,6 @@ export const getConnectedCalendars = async (
   destinationCalendarExternalId?: string
 ) => {
   let destinationCalendar: IntegrationCalendar | undefined;
-  logger.silly({
-    calendarCredentials,
-    selectedCalendars,
-    destinationCalendarExternalId,
-  });
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
@@ -108,7 +104,7 @@ export const getConnectedCalendars = async (
           }
         }
 
-        logger.error("getConnectedCalendars failed", { error, item });
+        log.error("getConnectedCalendars failed", safeStringify({ error, item }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -233,6 +229,12 @@ export const createEvent = async (
   let success = true;
   let calError: string | undefined = undefined;
 
+  log.debug(
+    "Creating calendar event",
+    JSON.stringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
@@ -291,9 +293,19 @@ export const updateEvent = async (
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
-
+  log.debug(
+    "Updating calendar event",
+    safeStringify({
+      bookingRefUid,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   if (bookingRefUid === "") {
-    log.error("updateEvent failed", "bookingRefUid is empty", JSON.stringify({ calEvent, credential }));
+    log.error(
+      "updateEvent failed",
+      "bookingRefUid is empty",
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
@@ -307,7 +319,10 @@ export const updateEvent = async (
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error("updateEvent failed", JSON.stringify({ e, calEvent }));
+            log.error(
+              "updateEvent failed",
+              safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            );
             if (e?.calError) {
               calError = e.calError;
             }

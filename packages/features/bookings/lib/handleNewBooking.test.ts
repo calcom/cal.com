@@ -931,8 +931,8 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `should not fail a booking if the organizer's selectedCalendars(Single Calendar) throws error during getAvailability`,
-          async ({ emails }) => {
+          `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time`,
+          async () => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const organizerId = 101;
             const booker = getBooker({
@@ -948,6 +948,7 @@ describe("handleNewBooking", () => {
               credentials: [getGoogleCalendarCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
             });
+            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
             await createBookingScenario(
               getScenarioData({
@@ -979,7 +980,15 @@ describe("handleNewBooking", () => {
             );
 
             const calendarMock = mockCalendar("googlecalendar", {
-              getAvailabilityCrash: true,
+              create: {
+                uid: "MOCK_ID",
+              },
+              busySlots: [
+                {
+                  start: `${plus1DateString}T05:00:00.000Z`,
+                  end: `${plus1DateString}T05:15:00.000Z`,
+                },
+              ],
             });
 
             const mockBookingData = getMockRequestDataForBooking({
@@ -1000,31 +1009,9 @@ describe("handleNewBooking", () => {
               body: mockBookingData,
             });
 
-            const createdBooking = await handleNewBooking(req);
-
-            await expectBookingToBeInDatabase({
-              location: "New York",
-              description: "",
-              responses: expect.objectContaining({
-                email: booker.email,
-                name: booker.name,
-              }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              uid: createdBooking.uid!,
-              eventTypeId: mockBookingData.eventTypeId,
-              status: BookingStatus.ACCEPTED,
-            });
-
-            expectWorkflowToBeTriggered();
-
-            expectSuccessfulBookingCreationEmails({ booker, organizer, emails });
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "New York",
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: null,
-            });
+            await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
+              "No available users found"
+            );
           },
           timeout
         );

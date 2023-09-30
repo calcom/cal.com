@@ -2,10 +2,12 @@ import type { SelectedCalendar } from "@prisma/client";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+const log = logger.getChildLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
@@ -16,14 +18,8 @@ const getCalendarsEvents = async (
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
+
   const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
-  logger.silly(
-    "getCalendarEvents",
-    JSON.stringify({
-      calendarCredentials,
-      selectedCalendars,
-    })
-  );
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
@@ -39,11 +35,7 @@ const getCalendarsEvents = async (
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
-
-    logger.silly("c.getAvailability", c.getAvailability);
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
-    logger.silly("c.getAvailabilityAfter", c.getAvailability);
-
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
@@ -60,6 +52,11 @@ const getCalendarsEvents = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
+  log.debug({
+    calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
+    selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
+    calendarEvents: awaitedResults,
+  });
   return awaitedResults;
 };
 

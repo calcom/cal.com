@@ -14,6 +14,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -210,7 +211,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
             {(showMembers.isOn || !team.eventTypes?.length) &&
               (team.isPrivate ? (
                 <div className="w-full text-center">
-                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+                  <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
+                    {t("you_cannot_see_team_members")}
+                  </h2>
                 </div>
               ) : (
                 <Team members={team.members} teamName={team.name} />
@@ -237,6 +240,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                       <Button
                         color="minimal"
                         EndIcon={ArrowRight}
+                        data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{
                           pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
@@ -268,7 +272,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({
-    slug,
+    slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
@@ -327,17 +331,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = team.members.map((member) => {
-    return {
-      name: member.name,
-      id: member.id,
-      bio: member.bio,
-      subteams: member.subteams,
-      username: member.username,
-      accepted: member.accepted,
-      safeBio: markdownToSafeHTML(member.bio || ""),
-    };
-  });
+  const members = !team.isPrivate
+    ? team.members.map((member) => {
+        return {
+          name: member.name,
+          id: member.id,
+          bio: member.bio,
+          subteams: member.subteams,
+          username: member.username,
+          accepted: member.accepted,
+          safeBio: markdownToSafeHTML(member.bio || ""),
+        };
+      })
+    : [];
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 

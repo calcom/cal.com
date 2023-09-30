@@ -9,8 +9,8 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { handlePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { HttpError } from "@calcom/lib/http-error";
+import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -666,6 +666,8 @@ export function getScenarioData({
       };
       if (user.destinationCalendar) {
         newUser.destinationCalendar = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           create: user.destinationCalendar,
         };
       }
@@ -705,7 +707,7 @@ export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
     create?: {
-      uid: string;
+      uid?: string;
     };
     update?: {
       uid: string;
@@ -749,7 +751,7 @@ export function mockCalendar(
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
-              id: normalizedCalendarData.create?.uid,
+              id: normalizedCalendarData.create?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
@@ -1015,11 +1017,10 @@ export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntent
 export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
   let webhookResponse = null;
   try {
-    await handlePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
+    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
-    if (!(e instanceof HttpError)) {
-      logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    }
+    logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
