@@ -260,6 +260,9 @@ export const createEvent = async (
           return undefined;
         })
     : undefined;
+  if (!creationResult) {
+    logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
+  }
 
   return {
     appName: credential.appId || "",
