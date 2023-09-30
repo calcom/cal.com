@@ -134,8 +134,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             })}
             {...(type == "formatNumber" && {
               onChange: (e) => {
-                const numericValue = event.target.value.replace(/[^0-9]/g, "");
-                console.log(numericValue);
+                const numericValue = e.target.value.replace(/[^0-9]/g, "");
                 setInputValue(numericValue);
                 props.onChange && props.onChange(e);
               },
