@@ -230,7 +230,7 @@ export default function CreateEventTypeDialog({
 
                 <div className="relative">
                   <TextField
-                    type="number"
+                    type="Fnumber"
                     required
                     min="10"
                     placeholder="15"

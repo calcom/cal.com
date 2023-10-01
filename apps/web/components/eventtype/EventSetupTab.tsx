@@ -491,7 +491,7 @@ export const EventSetupTab = (
           ) : (
             <TextField
               required
-              type="number"
+              type="Fnumber"
               {...lengthLockedProps}
               label={t("duration")}
               defaultValue={eventType.length ?? 15}
