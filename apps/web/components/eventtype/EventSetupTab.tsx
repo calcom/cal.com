@@ -16,6 +16,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -304,8 +305,7 @@ export const EventSetupTab = (
                         src={eventLocationType.iconUrl}
                         className={classNames(
                           "h-4 w-4",
-                          !eventLocationType.iconUrl?.startsWith("/app-store") && "dark:invert",
-                          eventLocationType.iconUrl?.includes("-dark") && "dark:invert"
+                          classNames(invertLogoOnDark(eventLocationType.iconUrl))
                         )}
                         alt={`${eventLocationType.label} logo`}
                       />
