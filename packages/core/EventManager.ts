@@ -1,4 +1,4 @@
-import type { Booking, DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -10,6 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -403,7 +404,7 @@ export default class EventManager {
     } else {
       logger.silly(
         "No destination Calendar found, falling back to first connected calendar",
-        JSON.stringify({
+        safeStringify({
           calendarCredentials: this.calendarCredentials,
         })
       );
@@ -658,27 +659,5 @@ export default class EventManager {
         `No suitable credentials given for the requested integration name:${event.location}`
       );
     }
-  }
-
-  /**
-   * Update event to set a cancelled event placeholder on users calendar
-   * remove if virtual calendar is already done and user availability its read from there
-   * and not only in their calendars
-   * @param event
-   * @param booking
-   * @public
-   */
-  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
-    await this.updateAllCalendarEvents(event, booking);
-  }
-
-  public async rescheduleBookingWithSeats(
-    originalBooking: Booking,
-    newTimeSlotBooking?: Booking,
-    owner?: boolean
-  ) {
-    // Get originalBooking
-    // If originalBooking has only one attendee we should do normal reschedule
-    // Change current event attendees in everyone calendar
   }
 }
