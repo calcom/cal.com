@@ -9,6 +9,7 @@ type OrganizationAvatarProps = AvatarProps & {
 const OrganizationAvatar = ({ size, imageSrc, alt, organizationSlug, ...rest }: OrganizationAvatarProps) => {
   return (
     <Avatar
+      data-testid="organization-avatar"
       size={size}
       imageSrc={imageSrc}
       alt={alt}
@@ -19,7 +20,7 @@ const OrganizationAvatar = ({ size, imageSrc, alt, organizationSlug, ...rest }: 
             <img
               src={`/org/${organizationSlug}/avatar.png`}
               alt={alt}
-              className="flex h-full items-center justify-center rounded-full ring-2 ring-white"
+              className="flex h-full items-center justify-center rounded-full"
             />
           </div>
         ) : null

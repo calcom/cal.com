@@ -16,7 +16,7 @@ import now from "./now";
 const gptModel = "gpt-4";
 
 /**
- * Core of the Cal AI booking agent: a LangChain Agent Executor.
+ * Core of the Cal.ai booking agent: a LangChain Agent Executor.
  * Uses a toolchain to book meetings, list available slots, etc.
  * Uses OpenAI functions to better enforce JSON-parsable output from the LLM.
  */
@@ -49,7 +49,7 @@ const agent = async (
    */
   const executor = await initializeAgentExecutorWithOptions(tools, model, {
     agentArgs: {
-      prefix: `You are Cal AI - a bleeding edge scheduling assistant that interfaces via email.
+      prefix: `You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email.
 Make sure your final answers are definitive, complete and well formatted.
 Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
 Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone.
