@@ -134,7 +134,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             })}
             {...(type == "Fnumber" && {
               onChange: (e) => {
-                const Fnumber = event.target.value.replace(/[^0-9]/g, "");
+                const Fnumber = e.target.value.replace(/[^0-9]/g, "");
                 setInputValue(Fnumber);
                 props.onChange && props.onChange(e);
               },
