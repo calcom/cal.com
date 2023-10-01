@@ -1,3 +1,5 @@
+import type { Credential, SelectedCalendar } from "@prisma/client";
+
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
@@ -42,5 +44,32 @@ export function getPiiFreeBooking(booking: {
     // Not okay to have title which can have Booker and Organizer names
     title: !!booking.title,
     // .... Add all other props here that we don't want to be logged. It prevents those properties from being logged accidentally
+  };
+}
+
+export function getPiiFreeCredential(credential: Partial<Credential>) {
+  return {
+    id: credential.id,
+    invalid: credential.invalid,
+    appId: credential.appId,
+    userId: credential.userId,
+    type: credential.type,
+    teamId: credential.teamId,
+    /**
+     * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
+     */
+    key: !!credential.key,
+  };
+}
+
+export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCalendar>) {
+  return {
+    integration: selectedCalendar.integration,
+    userId: selectedCalendar.userId,
+    /**
+     * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
+     */
+    externalId: !!selectedCalendar.externalId,
+    credentialId: !!selectedCalendar.credentialId,
   };
 }
