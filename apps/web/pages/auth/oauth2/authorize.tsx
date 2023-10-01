@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Select } from "@calcom/ui";
@@ -86,7 +87,7 @@ export default function Authorize() {
             alt=""
             fallback={<Plus className="text-subtle h-6 w-6" />}
             className="items-center"
-            imageSrc={client.logo}
+            imageSrc={getPlaceholderAvatar(client.logo, client.name as string)}
             size="lg"
           />
           <div className="relative -ml-6 h-24 w-24">

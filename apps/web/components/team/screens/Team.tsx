@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { md } from "@calcom/lib/markdownIt";
@@ -22,7 +23,11 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>
       <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
-        <Avatar size="md" alt={member.name || ""} imageSrc={"/" + member.username + "/avatar.png"} />
+        <Avatar
+          size="md"
+          alt={member.name || ""}
+          imageSrc={getPlaceholderAvatar("/" + member.username + "/avatar.png", member.username)}
+        />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
           <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">

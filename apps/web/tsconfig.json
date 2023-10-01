@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
+    "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
       "~/*": ["modules/*"],

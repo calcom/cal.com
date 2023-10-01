@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import {
@@ -102,7 +103,11 @@ export function EditForm({
           name="avatar"
           render={({ field: { value } }) => (
             <div className="flex items-center">
-              <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
+              <Avatar
+                alt={`${selectedUser?.name} avatar`}
+                imageSrc={getPlaceholderAvatar(value, selectedUser?.name as string)}
+                size="lg"
+              />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"
@@ -111,7 +116,7 @@ export function EditForm({
                   handleAvatarChange={(newAvatar) => {
                     form.setValue("avatar", newAvatar, { shouldDirty: true });
                   }}
-                  imageSrc={value || undefined}
+                  imageSrc={getPlaceholderAvatar(value, selectedUser?.name as string)}
                 />
               </div>
             </div>

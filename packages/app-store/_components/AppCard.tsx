@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar, Button } from "@calcom/ui";
 import { Settings } from "@calcom/ui/components/icon";
@@ -80,7 +81,10 @@ export default function AppCard({
                       className="mr-2"
                       alt={app.credentialOwner.name || "Credential Owner Name"}
                       size="sm"
-                      imageSrc={app.credentialOwner.avatar}
+                      imageSrc={getPlaceholderAvatar(
+                        app.credentialOwner.avatar,
+                        app.credentialOwner.name as string
+                      )}
                     />
                     {app.credentialOwner.name}
                   </div>
