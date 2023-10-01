@@ -2,6 +2,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import type { EndpointRequestQuery } from "@calcom/web/pages/api/insights/download";
 
 interface ITimeRange {
   start: Dayjs;
@@ -212,6 +213,167 @@ class EventsInsights {
       return 0;
     }
     return result;
+  };
+
+  static getCsvData = async (
+    props: EndpointRequestQuery & { organizationId?: number; isOwnerAdminOfParentTeam?: number }
+  ) => {
+    // Obtain the where conditional
+    const whereConditional = await this.obtainWhereConditional(props);
+
+    const csvData = await prisma.bookingTimeStatus.findMany({
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        createdAt: true,
+        timeStatus: true,
+        eventTypeId: true,
+        eventLength: true,
+        startTime: true,
+        endTime: true,
+        paid: true,
+        userEmail: true,
+        username: true,
+      },
+      where: whereConditional,
+    });
+
+    return csvData;
+  };
+
+  /*
+   * This is meant to be used for all functions inside insights router, ideally we should have a view that have all of this data
+   * The order where will be from the most specific to the least specific
+   * starting from the top will be:
+   * - memberUserId
+   * - eventTypeId
+   * - userId
+   * - teamId
+   * Generics will be:
+   * - isAll
+   * - startDate
+   * - endDate
+   * @param props
+   * @returns
+   */
+  static obtainWhereConditional = async (
+    props: EndpointRequestQuery & { organizationId?: number; isOwnerAdminOfParentTeam?: number }
+  ) => {
+    const {
+      startDate,
+      endDate,
+      teamId,
+      userId,
+      memberUserId,
+      isAll,
+      eventTypeId,
+      organizationId,
+      isOwnerAdminOfParentTeam,
+    } = props;
+
+    // Obtain the where conditional
+    let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
+    let teamConditional: Prisma.TeamWhereInput = {};
+
+    if (startDate && endDate) {
+      whereConditional.createdAt = {
+        gte: dayjs(startDate).toISOString(),
+        lte: dayjs(endDate).toISOString(),
+      };
+    }
+
+    if (eventTypeId) {
+      whereConditional["OR"] = [
+        {
+          eventTypeId,
+        },
+        {
+          eventParentId: eventTypeId,
+        },
+      ];
+    }
+    if (memberUserId) {
+      whereConditional["userId"] = memberUserId;
+    }
+    if (userId) {
+      whereConditional["teamId"] = null;
+      whereConditional["userId"] = userId;
+    }
+
+    if (isAll && isOwnerAdminOfParentTeam && organizationId) {
+      const teamsFromOrg = await prisma.team.findMany({
+        where: {
+          parentId: organizationId,
+        },
+        select: {
+          id: true,
+        },
+      });
+      if (teamsFromOrg.length === 0) {
+        return {};
+      }
+      teamConditional = {
+        id: {
+          in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
+        },
+      };
+      const usersFromOrg = await prisma.membership.findMany({
+        where: {
+          team: teamConditional,
+          accepted: true,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
+      whereConditional = {
+        ...whereConditional,
+        OR: [
+          {
+            userId: {
+              in: userIdsFromOrg,
+            },
+            teamId: null,
+          },
+          {
+            teamId: {
+              in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
+            },
+          },
+        ],
+      };
+    }
+
+    if (teamId && !isAll) {
+      const usersFromTeam = await prisma.membership.findMany({
+        where: {
+          teamId: teamId,
+          accepted: true,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+      whereConditional = {
+        ...whereConditional,
+        OR: [
+          {
+            teamId,
+          },
+          {
+            userId: {
+              in: userIdsFromTeam,
+            },
+            teamId: null,
+          },
+        ],
+      };
+    }
+
+    return whereConditional;
   };
 }
 
