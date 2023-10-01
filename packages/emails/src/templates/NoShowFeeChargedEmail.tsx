@@ -24,7 +24,7 @@ export const NoShowFeeChargedEmail = (
       subtitle={
         <>
           {t("no_show_fee_charged_subtitle", {
-            amount: calEvent.paymentInfo.amount / 100,
+            amount: calEvent.paymentInfo.amount / 100 / 2,
             formatParams: { amount: { currency: calEvent.paymentInfo?.currency } },
           })}
         </>

@@ -6,6 +6,7 @@ import z from "zod";
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { PaymentStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -91,6 +92,7 @@ export class PaymentService implements IAbstractPaymentService {
           eventTitle: eventTitle || "",
           bookingTitle: bookingTitle || "",
         },
+        setup_future_usage: "off_session",
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -244,8 +246,10 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
       }
 
+      const price = payment.amount * (50 / 100);
+
       const params = {
-        amount: payment.amount,
+        amount: price,
         currency: payment.currency,
         application_fee_amount: paymentFee,
         customer: setupIntent.customer as string,
@@ -258,18 +262,30 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      const paymentData = await prisma.payment.update({
+      const paymentUpdate = prisma.payment.update({
         where: {
           id: payment.id,
         },
         data: {
           success: true,
+          amount: price,
           data: {
             ...paymentObject,
             paymentIntent,
           } as unknown as Prisma.InputJsonValue,
         },
       });
+
+      const bookingUpdate = prisma.booking.update({
+        where: {
+          id: _bookingId,
+        },
+        data: {
+          paymentStatus: PaymentStatus.PAID,
+        },
+      });
+
+      const [paymentData] = await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
       if (!paymentData) {
         throw new Error();

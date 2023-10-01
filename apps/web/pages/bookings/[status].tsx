@@ -39,6 +39,10 @@ type RecurringInfo = {
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
+    name: "today",
+    href: "/bookings/today",
+  },
+  {
     name: "upcoming",
     href: "/bookings/upcoming",
   },
@@ -59,9 +63,10 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     href: "/bookings/cancelled",
   },
 ];
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
+const validStatuses = ["today", "upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
+  today: "today_bookings",
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
@@ -76,7 +81,7 @@ const querySchema = z.object({
 export default function Bookings() {
   const params = useParamsWithFallback();
   const { data: filterQuery } = useFilterQuery();
-  const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
+  const { status } = params ? querySchema.parse(params) : { status: "today" as const };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(

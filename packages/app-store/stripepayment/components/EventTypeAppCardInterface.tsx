@@ -6,7 +6,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
+import { Alert, Select, TextField, CheckboxField } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
 import {
@@ -29,6 +29,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       value: currencyOptions[0].value,
     }
   );
+  const chargeDeposit = getAppData("chargeDeposit");
+  const depositPercentage = getAppData("depositPercentage");
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
@@ -133,6 +135,37 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 className="mb-1 h-[38px] w-full"
                 isDisabled={seatsEnabled || disabled}
               />
+
+              {paymentOption === "ON_BOOKING" && (
+                <div className="mt-2 block flex flex-col justify-start gap-2">
+                  <CheckboxField
+                    defaultChecked={chargeDeposit}
+                    description={t("Charge a deposit")}
+                    onChange={(e) => {
+                      setAppData("chargeDeposit", e.target.checked);
+                    }}
+                    informationIconText={t("Charge a deposit")}
+                  />
+                  {chargeDeposit && (
+                    <TextField
+                      label=""
+                      className="h-[38px]"
+                      addOnLeading={<>%</>}
+                      addOnClassname="h-[38px]"
+                      step="0.5"
+                      min="0.5"
+                      type="number"
+                      required
+                      placeholder="Deposit Percentage"
+                      disabled={disabled}
+                      onChange={(e) => {
+                        setAppData("depositPercentage", Number(e.target.value));
+                      }}
+                      value={depositPercentage > 0 ? depositPercentage : undefined}
+                    />
+                  )}
+                </div>
+              )}
             </div>
 
             {seatsEnabled && paymentOption === "HOLD" && (

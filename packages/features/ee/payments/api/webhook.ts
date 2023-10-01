@@ -27,6 +27,13 @@ export const config = {
 
 export async function handleStripePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+  if (paymentIntent.metadata.skipWebhook) {
+    throw new HttpCode({
+      statusCode: 200,
+      message: `Skipping webhook.`,
+    });
+  }
   const payment = await prisma.payment.findFirst({
     where: {
       externalId: paymentIntent.id,

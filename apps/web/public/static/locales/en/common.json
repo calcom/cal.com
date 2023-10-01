@@ -1861,7 +1861,7 @@
   "clear": "Clear",
   "hold": "Hold",
   "on_booking_option": "Collect payment on booking",
-  "hold_option": "Charge no-show fee",
+  "hold_option": "Collect card but don't charge",
   "card_held": "Card held",
   "charge_card": "Charge card",
   "card_charged": "Card charged",

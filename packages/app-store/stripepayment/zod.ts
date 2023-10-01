@@ -10,11 +10,14 @@ const VALUES: [PaymentOption, ...PaymentOption[]] = [
   paymentOptions[0].value,
   ...paymentOptions.slice(1).map((option) => option.value),
 ];
+
 export const paymentOptionEnum = z.enum(VALUES);
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     price: z.number(),
+    chargeDeposit: z.boolean().optional(),
+    depositPercentage: z.number().optional(),
     currency: z.string(),
     paymentOption: paymentOptionEnum.optional(),
     enabled: z.boolean().optional(),

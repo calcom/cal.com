@@ -1,14 +1,17 @@
 import type { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import getPaymentAppData, { StripeAppData } from "@calcom/lib/getPaymentAppData";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, PaymentStatus } from "@calcom/prisma/enums";
+import type { EventTypeModel } from "@calcom/prisma/zod";
 
 import logger from "../logger";
 
@@ -18,10 +21,34 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
   if (booking.location) evt.location = booking.location;
 
+  const paymentAppData = getPaymentAppData(
+    eventType as unknown as Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">
+  ) as unknown as StripeAppData;
+
+  console.log({paymentAppData})
+  let paid;
+  let paymentStatus;
+
+  if (paymentAppData.chargeDeposit && paymentAppData.depositPercentage > 0) {
+    paid = true;
+    paymentStatus = PaymentStatus.PARTIAL;
+  } else {
+    paymentStatus = PaymentStatus.PAID;
+    paid = true;
+  }
+
+  console.log({
+    paid,
+    paymentStatus
+  })
+
   const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
+    paid: paid,
+    paymentStatus: paymentStatus,
     status: BookingStatus.ACCEPTED,
   };
+
+  console.log({bookingData})
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {

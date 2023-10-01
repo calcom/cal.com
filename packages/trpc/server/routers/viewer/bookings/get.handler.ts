@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent } from "@calcom/lib";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
@@ -19,11 +20,20 @@ type GetOptions = {
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
+  const today = dayjs().startOf("day").toDate();
+  const tomorrow = dayjs().endOf("day").toDate();
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.status;
   const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
+    today: {
+      startTime: {
+        gte: today,
+        lt: tomorrow,
+      },
+      status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+    },
     upcoming: {
       endTime: { gte: new Date() },
       // These changes are needed to not show confirmed recurring events,
@@ -66,6 +76,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     typeof bookingListingByStatus,
     Prisma.BookingOrderByWithAggregationInput
   > = {
+    today: { startTime: "asc" },
     upcoming: { startTime: "asc" },
     recurring: { startTime: "asc" },
     past: { startTime: "desc" },
@@ -201,6 +212,7 @@ async function getBookings({
       },
     },
     status: true,
+    paymentStatus: true,
     paid: true,
     payment: {
       select: {

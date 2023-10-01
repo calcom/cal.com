@@ -130,11 +130,34 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        <Price
-                          currency={paymentAppData.currency}
-                          price={paymentAppData.price}
-                          displayAlternateSymbol={false}
-                        />
+                        {props.payment.paymentOption === "ON_BOOKING" &&
+                        paymentAppData.chargeDeposit &&
+                        paymentAppData.depositPercentage > 0 ? (
+                          <div className="flex flex-col">
+                            <span>
+                              Total:
+                              <Price
+                                currency={paymentAppData.currency}
+                                price={paymentAppData.price}
+                                displayAlternateSymbol={false}
+                              />
+                            </span>
+                            <span>
+                              Deposit:
+                              <Price
+                                currency={paymentAppData.currency}
+                                price={paymentAppData.price * (paymentAppData.depositPercentage / 100)}
+                                displayAlternateSymbol={false}
+                              />
+                            </span>
+                          </div>
+                        ) : (
+                          <Price
+                            currency={paymentAppData.currency}
+                            price={paymentAppData.price}
+                            displayAlternateSymbol={false}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

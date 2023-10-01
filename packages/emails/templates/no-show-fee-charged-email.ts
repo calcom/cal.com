@@ -11,7 +11,7 @@ export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
       subject: `${this.attendee.language.translate("no_show_fee_charged_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        amount: this.calEvent.paymentInfo.amount / 100,
+        amount: this.calEvent.paymentInfo.amount / 100 / 2,
         formatParams: { amount: { currency: this.calEvent.paymentInfo?.currency } },
       })}`,
       html: renderEmail("NoShowFeeChargedEmail", {

@@ -384,6 +384,12 @@ enum BookingStatus {
   PENDING   @map("pending")
 }
 
+enum PaymentStatus {
+  UNPAID  @map("unpaid")
+  PARTIAL @map("partial")
+  PAID    @map("paid")
+}
+
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
@@ -405,6 +411,7 @@ model Booking {
   updatedAt             DateTime?
   status                BookingStatus        @default(ACCEPTED)
   paid                  Boolean              @default(false)
+  paymentStatus         PaymentStatus        @default(UNPAID)
   payment               Payment[]
   destinationCalendar   DestinationCalendar? @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId Int?

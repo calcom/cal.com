@@ -11,7 +11,14 @@ export default function getPaymentAppData(
 ) {
   const metadataApps = eventType?.metadata?.apps as unknown as EventTypeAppsList;
   if (!metadataApps) {
-    return { enabled: false, price: 0, currency: "usd", appId: null };
+    return {
+      enabled: false,
+      price: 0,
+      currency: "usd",
+      appId: null,
+      chargeDeposit: false,
+      depositPercentage: 0,
+    };
   }
   type appId = keyof typeof metadataApps;
   // @TODO: a lot of unknowns types here can be improved later
@@ -29,6 +36,8 @@ export default function getPaymentAppData(
     appId: EventTypeAppsList | null;
     paymentOption: typeof paymentOptionEnum;
     credentialId?: number;
+    chargeDeposit: boolean;
+    depositPercentage: number;
   } | null = null;
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
@@ -48,7 +57,19 @@ export default function getPaymentAppData(
       currency: "usd",
       appId: null,
       paymentOption: "ON_BOOKING",
+      chargeDeposit: false,
+      depositPercentage: 0,
       credentialId: undefined,
     }
   );
 }
+
+export type StripeAppData = {
+  enabled: boolean;
+  price: number;
+  currency: string;
+  paymentOption: string;
+  credentialId?: number;
+  chargeDeposit: boolean;
+  depositPercentage: number;
+};

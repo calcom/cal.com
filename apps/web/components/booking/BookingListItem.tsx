@@ -11,6 +11,7 @@ import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getRemainingPrice } from "@calcom/lib/payment/price";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -29,11 +30,22 @@ import {
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
+import {
+  Check,
+  Clock,
+  MapPin,
+  RefreshCcw,
+  Send,
+  Ban,
+  X,
+  CreditCard,
+  DollarSign,
+} from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
+import { CompletePaymentDialog } from "@components/dialog/CompletePaymentDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -60,6 +72,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
+  const [completePaymentDialogIsOpen, setCompletePaymentDialogIsOpen] = useState(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
@@ -77,7 +90,17 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
+  const sendPaymentLinkMutation = trpc.viewer.payments.sendPaymentLink.useMutation({
+    onSuccess: () => {
+      showToast("Coming soon", "success");
+    },
+    onError: () => {
+      console.log("Noop");
+    },
+  });
+
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isDuring = new Date(booking.startTime) <= new Date() && new Date(booking.endTime) > new Date();
   const isPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -88,6 +111,15 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const paymentAppData = getPaymentAppData(booking.eventType);
+
+  // console.log({paymentAppData, })
+
+  const paidEvent = booking.eventType.price && booking.eventType.price > 0;
+  const paymentOption = booking.eventType.metadata.apps.stripe.paymentOption;
+  const isDepositType = booking.eventType.metadata.apps.stripe.chargeDeposit;
+  const isHoldType = booking.paid && booking.payment[0]?.paymentOption === "HOLD";
+  const isFullyPaid = booking.paymentStatus === "PAID";
+  const isBookingPaid = booking.paid;
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -139,19 +171,111 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  let bookedActions: ActionType[] = [
-    {
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
-      /* When cancelling we need to let the UI and the API know if the intention is to
-               cancel all remaining bookings or just that booking instance. */
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-      `,
-      icon: X,
-    },
-    {
+  function handleSendPaymentLink(method) {
+    sendPaymentLinkMutation.mutate({
+      bookingId: booking.id,
+      method: method,
+    });
+  }
+
+  let bookedActions: ActionType[] = [];
+
+  if (isTabRecurring && isRecurring) {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
+  }
+
+  if (isPast && isPending && !isConfirmed) {
+    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  const PaymentStatus = () => {
+    switch (paymentOption) {
+      case "HOLD":
+        return <HoldPaymentStatus />;
+
+      case "ON_BOOKING":
+        return <OnBookingPaymentStatus />;
+    }
+
+    return <></>;
+  };
+
+  const HoldPaymentStatus = () => {
+    if (booking.paid && !booking.payment[0]) {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+          {t("error_collecting_card")}
+        </Badge>
+      );
+    }
+
+    /**
+     * When payment type is HOLD should only have one payment
+     * associated with the booking.
+     */
+    const payment = booking.payment[0];
+
+    if (payment.amount < booking.eventType.price) {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange" data-testid="paid_badge">
+          No Show Fee Charged
+        </Badge>
+      );
+    }
+
+    if (payment.amount >= booking.eventType.price) {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+          {t("paid")}
+        </Badge>
+      );
+    }
+
+    return (
+      <>
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+          {t("card_held")}
+        </Badge>
+      </>
+    );
+  };
+
+  const OnBookingPaymentStatus = () => {
+    if (booking.paymentStatus === "PARTIAL") {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+          Deposit Paid
+        </Badge>
+      );
+    }
+
+    if (booking.paymentStatus === "PAID") {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+          Paid
+        </Badge>
+      );
+    }
+
+    return (
+      <>
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+          PS-{booking.paymentStatus}
+        </Badge>
+      </>
+    );
+  };
+
+  const RequestSentMessage = () => {
+    return (
+      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
+        {t("reschedule_request_sent")}
+      </Badge>
+    );
+  };
+
+  const EditActions = () => {
+    const editAction = {
       id: "edit_booking",
       label: t("edit"),
       actions: [
@@ -181,35 +305,110 @@ function BookingListItem(booking: BookingItemProps) {
           icon: MapPin,
         },
       ],
-    },
-  ];
+    };
 
-  const chargeCardActions: ActionType[] = [
-    {
-      id: "charge_card",
-      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-      disabled: cardCharged,
-      onClick: () => {
-        setChargeCardDialogIsOpen(true);
-      },
-      icon: CreditCard,
-    },
-  ];
+    const cancelAction = {
+      id: "cancel",
+      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
+      /* When cancelling we need to let the UI and the API know if the intention is to
+               cancel all remaining bookings or just that booking instance. */
+      href: `/booking/${booking.uid}?cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
+      `,
+      icon: X,
+    };
 
-  if (isTabRecurring && isRecurring) {
-    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
-  }
+    const actions = [];
 
-  if (isPast && isPending && !isConfirmed) {
-    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
-  }
+    if (isPast) {
+      return null;
+    }
 
-  const RequestSentMessage = () => {
-    return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
-        {t("reschedule_request_sent")}
-      </Badge>
-    );
+    if (isPending) {
+      return <TableActions actions={[editAction]} />;
+    }
+
+    if (isFullyPaid) {
+      return <TableActions actions={[editAction]} />;
+    }
+
+    return <TableActions actions={[cancelAction, editAction]} />;
+  };
+
+  const PaymentActions = () => {
+    if (!isConfirmed || !paidEvent) {
+      return null;
+    }
+
+    if (isConfirmed && isDepositType && (!isUpcoming || isDuring) && !isFullyPaid) {
+      const completePaymentAction = {
+        id: "complete_payment",
+        label: "Complete Payment",
+        icon: DollarSign,
+        actions: [
+          // {
+          //   id: "send_email",
+          //   icon: Mail,
+          //   label: "Send email",
+          //   onClick: () => {
+          //     handleSendPaymentLink("email");
+          //   },
+          // },
+          {
+            id: "charge_card",
+            icon: CreditCard,
+            label: "Charge card",
+            onClick: () => {
+              console.log({ booking });
+              setCompletePaymentDialogIsOpen(true);
+            },
+          },
+        ],
+      };
+
+      return <TableActions actions={[completePaymentAction]} />;
+    }
+
+    if (isConfirmed && isHoldType && (!isUpcoming || isDuring) && isBookingPaid && !isFullyPaid) {
+      const completePaymentAction = {
+        id: "complete_payment",
+        label: "Complete Payment",
+        icon: DollarSign,
+        actions: [
+          // {
+          //   id: "send_email",
+          //   icon: Mail,
+          //   label: "Send email",
+          //   onClick: () => {
+          //     handleSendPaymentLink("email");
+          //   },
+          // },
+          {
+            id: "no_show_charge_card",
+            label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+            disabled: cardCharged,
+            onClick: () => {
+              setChargeCardDialogIsOpen(true);
+            },
+            icon: CreditCard,
+          },
+          {
+            id: "charge_card",
+            icon: CreditCard,
+            label: "Charge card",
+            onClick: () => {
+              setCompletePaymentDialogIsOpen(true);
+            },
+          },
+        ],
+      };
+
+      // if (isConfirmed && isHoldType && (!isUpcoming || isDuring) && isFullyPaid) {
+      return <TableActions actions={[completePaymentAction]} />;
+    }
+
+    return null;
   };
 
   const startTime = dayjs(booking.startTime)
@@ -276,10 +475,20 @@ function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={chargeCardDialogIsOpen}
           setIsOpenDialog={setChargeCardDialogIsOpen}
           bookingId={booking.id}
-          paymentAmount={booking.payment[0].amount}
+          paymentAmount={booking.eventType.price / 2}
           paymentCurrency={booking.payment[0].currency}
         />
       )}
+      {booking.payment[0] && (
+        <CompletePaymentDialog
+          isOpenDialog={completePaymentDialogIsOpen}
+          setIsOpenDialog={setCompletePaymentDialogIsOpen}
+          bookingId={booking.id}
+          paymentAmount={getRemainingPrice(paymentAppData)}
+          paymentCurrency={booking.payment[0].currency}
+        />
+      )}
+
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
@@ -337,15 +546,7 @@ function BookingListItem(booking: BookingItemProps) {
                   {booking.eventType.team.name}
                 </Badge>
               )}
-              {booking.paid && !booking.payment[0] ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                  {t("error_collecting_card")}
-                </Badge>
-              ) : booking.paid ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
-                  {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-                </Badge>
-              ) : null}
+              <PaymentStatus />
               {recurringDates !== undefined && (
                 <div className="text-muted mt-2 text-sm">
                   <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
@@ -383,11 +584,7 @@ function BookingListItem(booking: BookingItemProps) {
                   {booking.eventType.team.name}
                 </Badge>
               )}
-              {!!booking?.eventType?.price && !booking.paid && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                  {t("pending_payment")}
-                </Badge>
-              )}
+              <PaymentStatus />
               {recurringDates !== undefined && (
                 <div className="text-muted text-sm sm:hidden">
                   <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
@@ -404,12 +601,6 @@ function BookingListItem(booking: BookingItemProps) {
                 )}>
                 {title}
                 <span> </span>
-
-                {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
-                    {t("pending_payment")}
-                  </Badge>
-                )}
               </div>
               {booking.description && (
                 <div
@@ -433,23 +624,19 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full justify-end gap-4 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
-              {isConfirmed && <TableActions actions={bookedActions} />}
+
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
-          {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          <PaymentActions />
+          <EditActions />
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
-            </div>
-          )}
-          {booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD" && (
-            <div className="ml-2">
-              <TableActions actions={chargeCardActions} />
             </div>
           )}
         </td>

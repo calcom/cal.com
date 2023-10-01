@@ -1971,6 +1971,7 @@ async function handler(
         ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
       };
       newBookingData["paid"] = originalRescheduledBooking.paid;
+      newBookingData["paymentStatus"] = originalRescheduledBooking.paymentStatus;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (originalRescheduledBooking.uid) {
         newBookingData.cancellationReason = rescheduleReason;

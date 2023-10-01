@@ -6,6 +6,9 @@ import type { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
+import { getRemainingPrice } from "./price";
+
+// MARK: Payments Flow
 const handlePayment = async (
   evt: CalendarEvent,
   selectedEventType: Pick<Zod.infer<typeof EventTypeModel>, "metadata" | "title">,
@@ -54,9 +57,10 @@ const handlePayment = async (
       paymentOption
     );
   } else {
+    const price = getRemainingPrice(selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId]);
     paymentData = await paymentInstance.create(
       {
-        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+        amount: price,
         currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
@@ -74,11 +78,12 @@ const handlePayment = async (
     console.error("Payment data is null");
     throw new Error("Payment data is null");
   }
-  try {
-    await paymentInstance.afterPayment(evt, booking, paymentData);
-  } catch (e) {
-    console.error(e);
-  }
+  // try {
+  //   // Dont send this shit.
+  //   await paymentInstance.afterPayment(evt, booking, paymentData);
+  // } catch (e) {
+  //   console.error(e);
+  // }
   return paymentData;
 };
 
