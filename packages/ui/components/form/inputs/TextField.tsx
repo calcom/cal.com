@@ -132,6 +132,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               },
               value: inputValue,
             })}
+            {...(type == "Fnumber" && {
+              onChange: (e) => {
+                const Fnumber = event.target.value.replace(/[^0-9]/g, "");
+                setInputValue(Fnumber);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
             disabled={readOnly || disabled}
             ref={ref}
           />
