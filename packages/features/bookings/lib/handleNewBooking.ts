@@ -644,6 +644,7 @@ async function handler(
     isNotAnApiCall: false,
   }
 ) {
+  console.error("handler");
   const { userId } = req;
   const userIp = getIP(req);
 

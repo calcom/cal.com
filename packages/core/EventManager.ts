@@ -452,7 +452,9 @@ export default class EventManager {
 
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
-
+    logger.debug({
+      videoCredentials: this.videoCredentials,
+    });
     let videoCredential = event.conferenceCredentialId
       ? this.videoCredentials.find((credential) => credential.id === event.conferenceCredentialId)
       : this.videoCredentials

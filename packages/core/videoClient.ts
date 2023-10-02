@@ -55,7 +55,7 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
 
 const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-  log.silly(
+  log.debug(
     "createMeeting",
     safeStringify({
       credential: getPiiFreeCredential(credential),
@@ -105,6 +105,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
+    log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
     log.error("createMeeting failed", safeStringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
