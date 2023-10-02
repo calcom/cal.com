@@ -635,7 +635,7 @@ function getCustomInputsResponses(
 }
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+    req: NextApiRequest & { userId?: number | undefined,userEmail?:string | undefined },
   {
     isNotAnApiCall = false,
   }: {
@@ -646,7 +646,9 @@ async function handler(
 ) {
   const { userId } = req;
   const userIp = getIP(req);
-
+    if (req.userEmail === req.body?.responses?.email) {
+    throw new Error("Can't book the meeting with same Host and User");
+  }
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: userIp,
