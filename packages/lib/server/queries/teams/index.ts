@@ -15,20 +15,26 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
+  includeTeamLogo?: boolean;
+  isTeamView?: boolean;
+  isOrgView?: boolean;
 }) {
-  const { id, slug, userId, orgSlug } = args;
+  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
     name: true,
     id: true,
     bio: true,
-    destinationCalendar: {
+    teams: {
       select: {
-        externalId: true,
+        team: {
+          select: {
+            slug: true,
+          },
+        },
       },
     },
-    selectedCalendars: true,
     credentials: {
       select: {
         app: {
@@ -49,7 +55,7 @@ export async function getTeamWithMembers(args: {
     id: true,
     name: true,
     slug: true,
-    logo: true,
+    ...(!!includeTeamLogo ? { logo: true } : {}),
     bio: true,
     hideBranding: true,
     hideBookATeamMember: true,
@@ -60,24 +66,12 @@ export async function getTeamWithMembers(args: {
         id: true,
         slug: true,
         name: true,
-        logo: true,
       },
     },
     children: {
       select: {
         name: true,
-        logo: true,
         slug: true,
-        members: {
-          select: {
-            user: {
-              select: {
-                name: true,
-                username: true,
-              },
-            },
-          },
-        },
       },
     },
     members: {
@@ -137,30 +131,36 @@ export async function getTeamWithMembers(args: {
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
   const members = team.members.map((obj) => {
+    const { credentials, ...restUser } = obj.user;
     return {
-      ...obj.user,
+      ...restUser,
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
+      subteams: orgSlug
+        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        : null,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-      connectedApps: obj?.user?.credentials?.map((cred) => {
-        const appSlug = cred.app?.slug;
-        let appData = appDataMap.get(appSlug);
+      connectedApps: !isTeamView
+        ? credentials?.map((cred) => {
+            const appSlug = cred.app?.slug;
+            let appData = appDataMap.get(appSlug);
 
-        if (!appData) {
-          appData = getAppFromSlug(appSlug);
-          appDataMap.set(appSlug, appData);
-        }
+            if (!appData) {
+              appData = getAppFromSlug(appSlug);
+              appDataMap.set(appSlug, appData);
+            }
 
-        const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
-        const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
-        return {
-          name: appData?.name ?? null,
-          logo: appData?.logo ?? null,
-          app: cred.app,
-          externalId: externalId ?? null,
-        };
-      }),
+            const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
+            const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
+            return {
+              name: appData?.name ?? null,
+              logo: appData?.logo ?? null,
+              app: cred.app,
+              externalId: externalId ?? null,
+            };
+          })
+        : null,
     };
   });
 
@@ -168,14 +168,28 @@ export async function getTeamWithMembers(args: {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
-  /** Don't leak invite tokens to the frontend */
+  // Don't leak invite tokens to the frontend
   const { inviteTokens, ...teamWithoutInviteTokens } = team;
+
+  // Don't leak stripe payment ids
+  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const {
+    paymentId: _,
+    subscriptionId: __,
+    subscriptionItemId: ___,
+    ...restTeamMetadata
+  } = teamMetadata || {};
+
   return {
     ...teamWithoutInviteTokens,
     /** To prevent breaking we only return non-email attached token here, if we have one */
-    inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + team.id),
-    metadata: teamMetadataSchema.parse(team.metadata),
-    eventTypes,
+    inviteToken: inviteTokens.find(
+      (token) =>
+        token.identifier === "invite-link-for-teamId-" + team.id &&
+        token.expires > new Date(new Date().setHours(24))
+    ),
+    metadata: restTeamMetadata,
+    eventTypes: !isOrgView ? eventTypes : null,
     members,
   };
 }

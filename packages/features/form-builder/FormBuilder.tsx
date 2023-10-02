@@ -112,7 +112,7 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
+        <ul className="border-subtle divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
@@ -155,7 +155,7 @@ export const FormBuilder = function FormBuilder({
                     {index >= 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
                         <ArrowUp className="h-5 w-5" />
                       </button>
@@ -163,7 +163,7 @@ export const FormBuilder = function FormBuilder({
                     {index < fields.length - 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
                         <ArrowDown className="h-5 w-5" />
                       </button>
@@ -628,7 +628,7 @@ function VariantFields({
 
       <ul
         className={classNames(
-          !isSimpleVariant ? "border-default divide-subtle mt-2 divide-y rounded-md border" : ""
+          !isSimpleVariant ? "border-subtle divide-subtle mt-2 divide-y rounded-md border" : ""
         )}>
         {variantFields.map((f, index) => {
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;

@@ -131,7 +131,12 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props: MobileTeamsTabProps) => 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events && events.length && <EventTypeList data={events} readonly={readonly} />}
+      {events && events.length > 0 ? (
+        <EventTypeList data={events} readonly={readonly} />
+      ) : (
+        // @TODO: fix later when we have the context provider
+        <CreateFirstEventTypeView slug="" />
+      )}
     </div>
   );
 };
@@ -377,6 +382,15 @@ export const EventTypeList = ({ data, readonly }: EventTypeListProps): JSX.Eleme
       setNativeShare(false);
     }
   }, []);
+
+  // @TODO: Fix later after we have the context provider
+  // if (!data.length) {
+  //   return data[0].teamId ? (
+  //     <EmptyEventTypeList teamId={data[0].teamId} teamSlugOrUsername={data[0].team.slug || ""} />
+  //   ) : (
+  //     <CreateFirstEventTypeView slug={data[0].team.slug || []} />
+  //   );
+  // }
 
   const firstItem = data[0];
   const lastItem = data[data.length - 1];
@@ -773,7 +787,7 @@ const EventTypeListHeading = ({
   );
 };
 
-const CreateFirstEventTypeView = () => {
+const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
 
   return (
@@ -783,7 +797,7 @@ const CreateFirstEventTypeView = () => {
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
-        <Button href="?dialog=new" variant="button">
+        <Button href={`?dialog=new&eventPage=${slug}`} variant="button">
           {t("create")}
         </Button>
       }
@@ -998,10 +1012,35 @@ const Main = ({ filters }: { filters: ReturnType<typeof getTeamsFiltersFromQuery
   } else if (!!data && data.length === 1) {
     return <EventTypeList data={data} />;
   } else if (!!data && data.length === 0) {
-    return <CreateFirstEventTypeView />;
+    // @TODO:
+    return <CreateFirstEventTypeView slug="fixlater" />;
   } else {
     return <></>;
   }
+  //             ) : group.teamId ? (
+  //               <EmptyEventTypeList group={group} />
+  //             ) : (
+  //               <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+  //             )}
+  //           </div>
+  //         ))
+  //       )}
+  //     </>
+  //   ) : (
+  //     data.eventTypeGroups.length === 1 && (
+  //       <EventTypeList
+  //         types={data.eventTypeGroups[0].eventTypes}
+  //         group={data.eventTypeGroups[0]}
+  //         groupIndex={0}
+  //         readOnly={data.eventTypeGroups[0].metadata.readOnly}
+  //       />
+  //     )
+  //   )}
+  //   {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />}
+  //   <EventTypeEmbedDialog />
+  //   {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
+  // </>
+  // );
 };
 
 const EventTypesPage = () => {
