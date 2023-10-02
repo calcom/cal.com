@@ -35,6 +35,7 @@ import {
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -60,6 +61,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
+import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
@@ -688,25 +690,14 @@ async function handler(
     prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
   });
 
-  if (isLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
+  if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.setSettings({ minLevel: "silly" });
   }
-
-  loggerWithEventDetails.debug(
-    "handleNewBooking called",
-    JSON.stringify({
-      eventTypeId,
-      eventTypeSlug,
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      rescheduleUid: reqBody.rescheduleUid,
-    })
-  );
 
   const fullName = getFullName(bookerName);
 
   const tGuests = await getTranslation("en", "common");
-  loggerWithEventDetails.debug(`Booking eventType ${eventTypeId} started`);
+
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
@@ -714,6 +705,30 @@ async function handler(
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
+  loggerWithEventDetails.debug(
+    `Booking eventType ${eventTypeId} started`,
+    safeStringify({
+      reqBody: {
+        user: reqBody.user,
+        eventTypeId,
+        eventTypeSlug,
+        startTime: reqBody.start,
+        endTime: reqBody.end,
+        rescheduleUid: reqBody.rescheduleUid,
+        location: location,
+      },
+      isTeamEventType,
+      eventType: getPiiFreeEventType(eventType),
+      dynamicUserList,
+      paymentAppData: {
+        enabled: paymentAppData.enabled,
+        price: paymentAppData.price,
+        paymentOption: paymentAppData.paymentOption,
+        currency: paymentAppData.currency,
+        appId: paymentAppData.appId,
+      },
+    })
+  );
 
   let timeOutOfBounds = false;
   try {
@@ -837,6 +852,13 @@ async function handler(
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
+  loggerWithEventDetails.debug(
+    "Concerned users",
+    safeStringify({
+      users: users.map(getPiiFreeUser),
+    })
+  );
+
   let locationBodyString = location;
 
   // TODO: It's definition should be moved to getLocationValueForDb
@@ -921,6 +943,13 @@ async function handler(
 
     const luckyUsers: typeof users = [];
     const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+    loggerWithEventDetails.debug(
+      "Computed available users",
+      safeStringify({
+        availableUsers: availableUsers.map((user) => user.id),
+        luckyUserPool: luckyUserPool.map((user) => user.id),
+      })
+    );
     // loop through all non-fixed hosts and get the lucky users
     while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
       const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -946,6 +975,7 @@ async function handler(
   }
 
   const [organizerUser] = users;
+
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
 
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -1988,6 +2018,17 @@ async function handler(
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
   let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
+  loggerWithEventDetails.debug(
+    "Going to create booking in DB now",
+    safeStringify({
+      organizerUser: organizerUser.id,
+      attendeesList: attendeesList.map((guest) => ({ timeZone: guest.timeZone })),
+      requiresConfirmation,
+      isConfirmedByDefault,
+      userReschedulingIsOwner,
+    })
+  );
+
   try {
     booking = await createBooking();
 
@@ -2177,7 +2218,7 @@ async function handler(
       };
 
       loggerWithEventDetails.error(
-        `Booking ${organizerUser.username} failed`,
+        `Failure in creating events in some of the integrations ${organizerUser.username} failed`,
         safeStringify({ error, results })
       );
     } else {
@@ -2201,6 +2242,7 @@ async function handler(
           const googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
+            loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
             results.push({
               ...googleMeetResult,
               success: false,
@@ -2263,6 +2305,12 @@ async function handler(
           }
         }
 
+        loggerWithEventDetails.debug(
+          "Sending scheduled emails for booking confirmation",
+          safeStringify({
+            calEvent: getPiiFreeCalendarEvent(evt),
+          })
+        );
         await sendScheduledEmails(
           {
             ...evt,
@@ -2285,9 +2333,16 @@ async function handler(
     !!booking;
 
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
+    loggerWithEventDetails.debug(
+      `Booking ${organizerUser.username} requires confirmation, sending request emails`,
+      safeStringify({
+        calEvent: getPiiFreeCalendarEvent(evt),
+      })
+    );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
+
   const metadata = videoCallUrl
     ? {
         videoCallUrl: getVideoCallUrlFromCalEvent(evt),
@@ -2311,6 +2366,7 @@ async function handler(
   };
 
   if (bookingRequiresPayment) {
+    loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
@@ -2555,31 +2611,3 @@ const findBookingQuery = async (bookingId: number) => {
   // Don't leak any sensitive data
   return foundBooking;
 };
-
-function isLoggingEnabled({
-  eventTypeId,
-  usernameOrTeamName,
-}: {
-  eventTypeId?: number | null;
-  usernameOrTeamName?: string | string[];
-}) {
-  const usernameOrTeamnamesList =
-    usernameOrTeamName instanceof Array ? usernameOrTeamName : [usernameOrTeamName];
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
-  const bookingLoggingEventIds = process.env.BOOKING_LOGGING_EVENT_IDS || "";
-  const isEnabled = bookingLoggingEventIds.split(",").some((id) => {
-    if (Number(id.trim()) === eventTypeId) {
-      return true;
-    }
-  });
-
-  if (isEnabled) {
-    return true;
-  }
-
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
-  const bookingLoggingUsername = process.env.BOOKING_LOGGING_USER_OR_TEAM_NAME || "";
-  return bookingLoggingUsername.split(",").some((u) => {
-    return usernameOrTeamnamesList.some((foundUsername) => foundUsername === u.trim());
-  });
-}

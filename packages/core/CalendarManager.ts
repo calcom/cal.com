@@ -266,7 +266,13 @@ export const createEvent = async (
   if (!creationResult) {
     logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
   }
-
+  log.debug(
+    "Created calendar event",
+    JSON.stringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+      creationResult,
+    })
+  );
   return {
     appName: credential.appId || "",
     type: credential.type,
