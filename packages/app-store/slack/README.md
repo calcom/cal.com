@@ -1,1 +1,1 @@
-// TODO
+// TODO - install app, create bot in Slack (correct redirect URIs and scopes), add client_id and client_secret.
