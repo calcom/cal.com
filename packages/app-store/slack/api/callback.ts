@@ -5,8 +5,8 @@ import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { getSlackAppKeys } from "../lib/getSlackAppKeys";
 
 function getReturnToValueFromQueryState(req: NextApiRequest) {
