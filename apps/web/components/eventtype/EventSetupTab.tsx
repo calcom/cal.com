@@ -13,8 +13,10 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -301,7 +303,10 @@ export const EventSetupTab = (
                     <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className="h-4 w-4 dark:invert-[.65]"
+                        className={classNames(
+                          "h-4 w-4",
+                          classNames(invertLogoOnDark(eventLocationType.iconUrl))
+                        )}
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${

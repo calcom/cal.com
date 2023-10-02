@@ -6,6 +6,7 @@ import type {
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Tooltip } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
 
@@ -21,10 +22,7 @@ function RenderIcon({
   return (
     <img
       src={eventLocationType.iconUrl}
-      className={classNames(
-        eventLocationType?.iconUrl?.includes("-dark") && "dark:invert",
-        "me-[10px] h-4 w-4"
-      )}
+      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl), "me-[10px] h-4 w-4")}
       alt={`${eventLocationType.label} icon`}
     />
   );
@@ -81,7 +79,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
-            <Link className="text-default ml-[2px] h-4 w-4  ltr:mr-[10px] rtl:ml-[10px] " />
+            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}
