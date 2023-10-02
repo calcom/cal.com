@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import type { IncomingMessage } from "http";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
@@ -13,5 +14,10 @@ interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
-  return await getAvailableSlots({ ctx, input });
+  try {
+    throw new Error("Let's send this to sentry");
+    return await getAvailableSlots({ ctx, input });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
 };
