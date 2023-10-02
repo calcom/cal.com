@@ -116,7 +116,7 @@ export default function AppCard({
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
 
         {app?.isInstalled && switchChecked ? (
-          app.isSetupAlready ? (
+          app.isSetupAlready === undefined || app.isSetupAlready ? (
             <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
               <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
                 <Settings className="text-default h-4 w-4" aria-hidden="true" />
