@@ -1,10 +1,13 @@
 import type { SelectedCalendar } from "@prisma/client";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import logger from "@calcom/lib/logger";
+import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+const log = logger.getChildLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
@@ -15,6 +18,7 @@ const getCalendarsEvents = async (
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
+
   const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
@@ -48,6 +52,11 @@ const getCalendarsEvents = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
+  log.debug({
+    calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
+    selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
+    calendarEvents: awaitedResults,
+  });
   return awaitedResults;
 };
 
