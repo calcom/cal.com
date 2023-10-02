@@ -73,6 +73,7 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
         id: true,
         uid: true,
         title: true,
+        attendees: true,
         user: {
           select: {
             id: true,
@@ -110,7 +111,21 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
       triggerEvent: eventTrigger,
     };
     const t = await getTranslation(updatedBooking?.user?.locale ?? "en", "common");
-    const evt: CalendarEvent = {
+    const attendeesListPromises = updatedBooking.attendees.map(async (attendee) => {
+      return {
+        id: attendee.id,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+    });
+
+    const attendeesList = await Promise.all(attendeesListPromises);
+    const evt = {
       type: updatedBooking.title,
       title: updatedBooking.title,
       description: updatedBooking.description || undefined,
@@ -122,12 +137,12 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
         timeZone: updatedBooking.user?.timeZone || "Europe/London",
         language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
       },
-      // attendees: [],
+      attendees: attendeesList,
       uid: updatedBooking.uid,
     };
     // Add emails from the "guests" field of the "responses" object (if it exists)
     // Initialize evt.attendees as an empty array
-    evt.attendees = [];
+    // evt.attendees = [];
 
     // Add the user's email to the attendees list if available
     // if (updatedBooking.user?.email) {
@@ -135,24 +150,24 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
     // }
 
     // Iterate through responses and add guest emails to evt.attendees
-    if (updatedBooking.responses) {
-      if (updatedBooking.responses?.guests?.length) {
-        // Add guest emails to evt.attendees
-        for (const guestEmail of updatedBooking.responses.guests) {
-          evt.attendees.push({
-            email: guestEmail,
-            language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
-          });
-        }
-      }
-      if (updatedBooking.responses.email) {
-        // Add the response email to evt.attendees
-        evt.attendees.push({
-          email: updatedBooking.responses.email,
-          language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
-        });
-      }
-    }
+    // if (updatedBooking.responses) {
+    //   if (updatedBooking.responses?.guests?.length) {
+    //     // Add guest emails to evt.attendees
+    //     for (const guestEmail of updatedBooking.responses.guests) {
+    //       evt.attendees.push({
+    //         email: guestEmail,
+    //         language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
+    //       });
+    //     }
+    //   }
+    //   if (updatedBooking.responses.email) {
+    //     // Add the response email to evt.attendees
+    //     evt.attendees.push({
+    //       email: updatedBooking.responses.email,
+    //       language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
+    //     });
+    //   }
+    // }
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData: updatedBooking });
     await sendDailyVideoRecordingEmails(evt, recordingLink);
   } catch (error) {

@@ -1,5 +1,4 @@
 // TODO: We should find a way to keep App specific email templates within the App itself
-import moment from "moment";
 import type { TFunction } from "next-i18next";
 
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -14,7 +13,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   downloadLink: string;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee, downloadLink: string) {
+  constructor(calEvent: CalendarEvent, attendee: Person, downloadLink: string) {
     super();
     this.name = "SEND_RECORDING_DOWNLOAD_LINK";
     this.calEvent = calEvent;
@@ -24,19 +23,17 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
-      to: `${this.attendee.email} <${this.attendee.email}>`,
+      to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       // replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
-      subject: `View Recording: ${this.calEvent.title} at ${moment(this.calEvent.startTime)
-        .toDate()
-        .toLocaleString()}`,
+      subject: `View Recording: ${this.calEvent.title} at ${this.getFormattedDate()}`,
 
       html: renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
-        date: moment(this.calEvent.startTime).toDate().toLocaleString(),
+        date: this.getFormattedDate(),
         downloadLink: this.downloadLink,
         language: this.t,
-        name: this.attendee.email,
+        name: this.attendee.name,
       }),
     };
   }

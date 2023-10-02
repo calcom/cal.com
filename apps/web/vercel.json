@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/calendar-cache-cleanup",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/workflows/ss",
+      "schedule": "0 * * * *"
     }
   ]
 }
