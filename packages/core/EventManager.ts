@@ -1,4 +1,4 @@
-import type { DestinationCalendar, Booking } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -7,22 +7,28 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
-import type { EventResult } from "@calcom/types/EventManager";
-import type { CreateUpdateResult, PartialBooking, PartialReference } from "@calcom/types/EventManager";
+import type {
+  CreateUpdateResult,
+  EventResult,
+  PartialBooking,
+  PartialReference,
+} from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
 
+const log = logger.getChildLogger({ prefix: ["EventManager"] });
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -68,8 +74,8 @@ export type EventManagerUser = {
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export default class EventManager {
-  calendarCredentials: CredentialWithAppName[];
-  videoCredentials: CredentialWithAppName[];
+  calendarCredentials: CredentialPayload[];
+  videoCredentials: CredentialPayload[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -77,6 +83,7 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
+    log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
@@ -116,8 +123,10 @@ export default class EventManager {
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
-    const [mainHostDestinationCalendar] = evt.destinationCalendar ?? [];
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar.integration !== "google_calendar") {
+    const [mainHostDestinationCalendar] =
+      (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
+      log.warn("Falling back to Cal Video integration as Google Calendar not installed");
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -262,6 +271,7 @@ export default class EventManager {
           select: {
             seatsPerTimeSlot: true,
             seatsShowAttendees: true,
+            seatsShowAvailabilityCount: true,
           },
         },
       },
@@ -307,7 +317,6 @@ export default class EventManager {
         },
       });
     }
-
     return {
       results,
       referencesToCreate: [...booking.references],
@@ -337,26 +346,38 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
-      for (const destination of event.destinationCalendar) {
+      // Since GCal pushes events to multiple calendars we only want to create one event per booking
+      let gCalAdded = false;
+      const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
+        (destinationCals, cal) => {
+          if (cal.integration === "google_calendar") {
+            if (gCalAdded) {
+              return destinationCals;
+            } else {
+              gCalAdded = true;
+              destinationCals.push(cal);
+            }
+          } else {
+            destinationCals.push(cal);
+          }
+          return destinationCals;
+        },
+        [] as DestinationCalendar[]
+      );
+      for (const destination of destinationCalendars) {
+        log.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
-              include: {
-                app: {
-                  select: {
-                    slug: true,
-                  },
-                },
-              },
               where: {
                 id: destination.credentialId,
               },
+              select: credentialForCalendarServiceSelect,
             });
-            if (credentialFromDB && credentialFromDB.app?.slug) {
+            if (credentialFromDB && credentialFromDB.appId) {
               credential = {
-                appName: credentialFromDB?.app.slug ?? "",
                 id: credentialFromDB.id,
                 type: credentialFromDB.type,
                 key: credentialFromDB.key,
@@ -364,6 +385,7 @@ export default class EventManager {
                 teamId: credentialFromDB.teamId,
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
+                user: credentialFromDB.user,
               };
             }
           }
@@ -383,13 +405,21 @@ export default class EventManager {
         }
       }
     } else {
+      log.silly(
+        "No destination Calendar found, falling back to first connected calendar",
+        safeStringify({
+          calendarCredentials: this.calendarCredentials,
+        })
+      );
+
       /**
        *  Not ideal but, if we don't find a destination calendar,
-       * fallback to the first connected calendar
+       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
+        log.silly("Created Calendar event", safeStringify({ createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -415,7 +445,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialPayload | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -438,12 +468,12 @@ export default class EventManager {
      * @todo remove location from event types that has missing credentials
      * */
     if (!videoCredential) {
-      logger.warn(
+      log.warn(
         'Falling back to "daily" video integration for event with location: ' +
           event.location +
           " because credential is missing for the app"
       );
-      videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
+      videoCredential = { ...FAKE_DAILY_CREDENTIAL };
     }
 
     return videoCredential;
@@ -486,6 +516,7 @@ export default class EventManager {
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference[] | undefined = undefined,
       credential;
+    log.silly("updateAllCalendarEvents", JSON.stringify({ event, booking, newBookingId }));
     try {
       // If a newBookingId is given, update that calendar event
       let newBooking;
@@ -523,20 +554,13 @@ export default class EventManager {
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
-              include: {
-                app: {
-                  select: {
-                    slug: true,
-                  },
-                },
-              },
               where: {
                 id: reference.credentialId,
               },
+              select: credentialForCalendarServiceSelect,
             });
-            if (credentialFromDB && credentialFromDB.app?.slug) {
+            if (credentialFromDB && credentialFromDB.appId) {
               credential = {
-                appName: credentialFromDB?.app.slug ?? "",
                 id: credentialFromDB.id,
                 type: credentialFromDB.type,
                 key: credentialFromDB.key,
@@ -544,6 +568,7 @@ export default class EventManager {
                 teamId: credentialFromDB.teamId,
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
+                user: credentialFromDB.user,
               };
             }
           }
@@ -553,6 +578,7 @@ export default class EventManager {
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
+            log.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
             result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
           }
         }
@@ -566,6 +592,7 @@ export default class EventManager {
             where: {
               id: oldCalendarEvent.credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
           const calendar = await getCalendar(calendarCredential);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
@@ -581,7 +608,7 @@ export default class EventManager {
 
             if (!calendarReference) {
               return {
-                appName: cred.appName,
+                appName: cred.appId || "",
                 type: cred.type,
                 success: false,
                 uid: "",
@@ -635,27 +662,5 @@ export default class EventManager {
         `No suitable credentials given for the requested integration name:${event.location}`
       );
     }
-  }
-
-  /**
-   * Update event to set a cancelled event placeholder on users calendar
-   * remove if virtual calendar is already done and user availability its read from there
-   * and not only in their calendars
-   * @param event
-   * @param booking
-   * @public
-   */
-  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
-    await this.updateAllCalendarEvents(event, booking);
-  }
-
-  public async rescheduleBookingWithSeats(
-    originalBooking: Booking,
-    newTimeSlotBooking?: Booking,
-    owner?: boolean
-  ) {
-    // Get originalBooking
-    // If originalBooking has only one attendee we should do normal reschedule
-    // Change current event attendees in everyone calendar
   }
 }

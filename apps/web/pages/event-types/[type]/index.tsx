@@ -113,6 +113,7 @@ export type FormValues = {
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
+  seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
@@ -360,6 +361,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       afterBufferTime,
       seatsPerTimeSlot,
       seatsShowAttendees,
+      seatsShowAvailabilityCount,
       bookingLimits,
       durationLimits,
       recurringEvent,
@@ -426,6 +428,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       durationLimits,
       seatsPerTimeSlot,
       seatsShowAttendees,
+      seatsShowAvailabilityCount,
       metadata,
       customInputs,
       children,
@@ -446,7 +449,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        disableBorder={true}
         currentUserMembership={currentUserMembership}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
@@ -460,6 +464,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               afterBufferTime,
               seatsPerTimeSlot,
               seatsShowAttendees,
+              seatsShowAvailabilityCount,
               bookingLimits,
               durationLimits,
               recurringEvent,
@@ -516,6 +521,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
+              seatsShowAvailabilityCount,
               metadata,
               customInputs,
             });

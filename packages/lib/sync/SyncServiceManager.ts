@@ -1,6 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
+import { safeStringify } from "../safeStringify";
 import type { ConsoleUserInfoType, TeamInfoType, WebUserInfoType } from "./ISyncService";
 import services from "./services";
 import CloseComService from "./services/CloseComService";
@@ -9,7 +10,7 @@ const log = logger.getChildLogger({ prefix: [`[[SyncServiceManager] `] });
 
 export const createConsoleUser = async (user: ConsoleUserInfoType | null | undefined) => {
   if (user) {
-    log.debug("createConsoleUser", { user });
+    log.debug("createConsoleUser", safeStringify({ user }));
     try {
       Promise.all(
         services.map(async (serviceClass) => {
@@ -24,16 +25,16 @@ export const createConsoleUser = async (user: ConsoleUserInfoType | null | undef
         })
       );
     } catch (e) {
-      log.warn("createConsoleUser", e);
+      log.warn("createConsoleUser", safeStringify({ error: e }));
     }
   } else {
-    log.warn("createConsoleUser:noUser", { user });
+    log.warn("createConsoleUser:noUser", safeStringify({ user }));
   }
 };
 
 export const createWebUser = async (user: WebUserInfoType | null | undefined) => {
   if (user) {
-    log.debug("createWebUser", { user });
+    log.debug("createWebUser", safeStringify({ user }));
     try {
       Promise.all(
         services.map(async (serviceClass) => {
@@ -48,16 +49,16 @@ export const createWebUser = async (user: WebUserInfoType | null | undefined) =>
         })
       );
     } catch (e) {
-      log.warn("createWebUser", e);
+      log.warn("createWebUser", safeStringify({ error: e }));
     }
   } else {
-    log.warn("createWebUser:noUser", { user });
+    log.warn("createWebUser:noUser", safeStringify({ user }));
   }
 };
 
 export const updateWebUser = async (user: WebUserInfoType | null | undefined) => {
   if (user) {
-    log.debug("updateWebUser", { user });
+    log.debug("updateWebUser", safeStringify({ user }));
     try {
       Promise.all(
         services.map(async (serviceClass) => {
@@ -72,10 +73,10 @@ export const updateWebUser = async (user: WebUserInfoType | null | undefined) =>
         })
       );
     } catch (e) {
-      log.warn("updateWebUser", e);
+      log.warn("updateWebUser", safeStringify({ error: e }));
     }
   } else {
-    log.warn("updateWebUser:noUser", { user });
+    log.warn("updateWebUser:noUser", safeStringify({ user }));
   }
 };
 

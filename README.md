@@ -131,22 +131,35 @@ Here is what you need to be able to run Cal.com.
    > If you are on Windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
    > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
-1. Go to the project folder
+2. Go to the project folder
 
    ```sh
    cd cal.com
    ```
 
-1. Install packages with yarn
+3. Install packages with yarn
 
    ```sh
    yarn
    ```
 
-1. Set up your `.env` file
+4. Set up your `.env` file
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+
+5. Setup Node
+   If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+   ```sh
+   nvm use
+   ```
+   
+   You first might need to install the specific version and then use it:
+   ```sh
+   nvm install && nvm use
+   ```
+
+   You can install nvm from [here](https://github.com/nvm-sh/nvm).
 
 #### Quick start with `yarn dx`
 
@@ -257,6 +270,15 @@ yarn test-e2e
 
 # To open the last HTML report run:
 yarn playwright show-report test-results/reports/playwright-html-report
+```
+
+#### Resolving issues
+##### E2E test browsers not installed
+
+Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
+
+```
+Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
 ```
 
 ### Upgrading from earlier versions
@@ -504,6 +526,9 @@ For example, `Cal.com (support@cal.com)`.
 9. Click the "Save"/ "UPDATE" button at the bottom footer.
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
+### Obtaining Zoho Calendar Client ID and Secret
+
+[Follow these steps](./packages/app-store/zohocalendar/)
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)
@@ -526,7 +551,7 @@ For example, `Cal.com (support@cal.com)`.
 3. Copy Account SID to your `.env` file into the `TWILIO_SID` field
 4. Copy Auth Token to your `.env` file into the `TWILIO_TOKEN` field
 5. Copy your Twilio phone number to your `.env` file into the `TWILIO_PHONE_NUMBER` field
-6. Add your own sender id to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
+6. Add your own sender ID to the `.env` file into the `NEXT_PUBLIC_SENDER_ID` field (fallback is Cal.com)
 7. Create a messaging service (Develop -> Messaging -> Services)
 8. Choose any name for the messaging service
 9. Click 'Add Senders'
