@@ -1,9 +1,9 @@
-import client from "@sendgrid/client";
+import mailchimp from "@mailchimp/mailchimp_transactional";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
-import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
+import moment from "moment";
 import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
@@ -25,28 +25,10 @@ import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
-let sendgridAPIKey, senderEmail: string;
+const apiKey = process.env.MAILCHIMP_API_KEY || "";
+const mailchimpClient = mailchimp(apiKey);
 
 const log = logger.getChildLogger({ prefix: ["[emailReminderManager]"] });
-if (process.env.SENDGRID_API_KEY) {
-  sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-  senderEmail = process.env.SENDGRID_EMAIL as string;
-
-  sgMail.setApiKey(sendgridAPIKey);
-  client.setApiKey(sendgridAPIKey);
-}
-
-async function getBatchId() {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
-    return "DUMMY_BATCH_ID";
-  }
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
-  return batchIdResponse[1].batch_id as string;
-}
 
 function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();
@@ -125,12 +107,6 @@ export const scheduleEmailReminder = async (
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
-
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    console.error("Sendgrid credentials are missing from the .env file");
-  }
-
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
@@ -232,49 +208,39 @@ export const scheduleEmailReminder = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
 
-  const batchId = await getBatchId();
-
   function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.info("No sendgrid API key provided, skipping email");
-      return Promise.resolve();
-    }
-
     const status: ParticipationStatus =
       triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
         ? "COMPLETED"
         : triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
         ? "DECLINED"
         : "ACCEPTED";
-
-    return sgMail.send({
-      to: data.to,
-      from: {
-        email: senderEmail,
-        name: sender,
+    const recipients = data.to.map((email) => ({
+      email: email,
+      type: "to",
+    }));
+    const sendAtMoment = moment.unix(data.sendAt);
+    const dateTimeString = sendAtMoment.format("YYYY-MM-DD HH:mm:ss");
+    const response = mailchimpClient.messages.send({
+      message: {
+        to: recipients,
+        from_email: process.env.EMAIL_FROM,
+        from_name: process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME,
+        subject: emailContent.emailSubject,
+        html: emailContent.emailBody,
+        attachments: includeCalendarEvent
+          ? [
+              {
+                content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
+                filename: "event.ics",
+                type: "text/calendar; method=REQUEST",
+              },
+            ]
+          : [],
       },
-      subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
-      batchId,
-      replyTo: evt.organizer.email,
-      mailSettings: {
-        sandboxMode: {
-          enable: sandboxMode,
-        },
-      },
-      attachments: includeCalendarEvent
-        ? [
-            {
-              content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
-              filename: "event.ics",
-              type: "text/calendar; method=REQUEST",
-              disposition: "attachment",
-              contentId: uuidv4(),
-            },
-          ]
-        : undefined,
-      sendAt: data.sendAt,
+      send_at: dateTimeString,
     });
+    return response;
   }
 
   if (
@@ -299,18 +265,20 @@ export const scheduleEmailReminder = async (
     // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
     if (
-      currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-      !scheduledDate.isAfter(currentDate.add(72, "hour"))
+      // currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
+      !scheduledDate.isAfter(currentDate.add(1, "year"))
     ) {
       try {
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
-        await sendEmail(
+        const id = await sendEmail(
           {
             to: sendTo,
             sendAt: scheduledDate.unix(),
           },
           triggerEvent
         );
+        const ids = id.map((item) => item._id);
+        const referenceId = ids.join(", ");
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
@@ -318,25 +286,26 @@ export const scheduleEmailReminder = async (
             method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
             scheduled: true,
-            referenceId: batchId,
+            referenceId: referenceId,
             seatReferenceId: seatReferenceUid,
           },
         });
       } catch (error) {
         console.log(`Error scheduling email with error ${error}`);
       }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+    } else if (scheduledDate.isAfter(currentDate.add(1, "year"))) {
       // Write to DB and send to CRON if scheduled reminder date is past 72 hours
-      await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.EMAIL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          seatReferenceId: seatReferenceUid,
-        },
-      });
+      // await prisma.workflowReminder.create({
+      //   data: {
+      //     bookingUid: uid,
+      //     workflowStepId: workflowStepId,
+      //     method: WorkflowMethods.EMAIL,
+      //     scheduledDate: scheduledDate.toDate(),
+      //     scheduled: false,
+      //     seatReferenceId: seatReferenceUid,
+      //   },
+      // });
+      console.log("Reminders cannot be book for 1 year in advance");
     }
   }
 };
@@ -352,15 +321,33 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
 
       return;
     }
+    if (referenceId) {
+      const idArray = referenceId.split(",").map((id) => id.trim());
+      const cancelPromises = idArray.map(async (id, index) => {
+        try {
+          await mailchimpClient.messages.cancelScheduled({ id });
+          console.log(`Successfully canceled schedule for ID: ${id}`);
+        } catch (error) {
+          console.error(`Error canceling schedule for ID: ${id}`, error);
+          // Handle the error as needed (e.g., logging or error handling)
+        }
+      });
 
-    await prisma.workflowReminder.update({
+      try {
+        await Promise.all(cancelPromises);
+        console.log("All schedules canceled successfully.");
+      } catch (error) {
+        console.error("Error canceling schedules:", error);
+        // Handle the error for Promise.all as needed
+      }
+    }
+    await prisma.workflowReminder.delete({
       where: {
         id: reminderId,
       },
-      data: {
-        cancelled: true,
-      },
     });
+
+    return;
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }

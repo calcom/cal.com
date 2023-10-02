@@ -1,3 +1,4 @@
+import moment from "moment";
 import type { TFunction } from "next-i18next";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -23,14 +24,14 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
     return {
       to: `${this.calEvent.organizer.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
-      subject: `${this.t("download_recording_subject", {
-        title: this.calEvent.title,
-        date: this.getFormattedDate(),
-      })}`,
+      // replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      subject: `View Recording: ${this.calEvent.title} at ${moment(this.calEvent.startTime)
+        .toDate()
+        .toLocaleString()}`,
+
       html: renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
-        date: this.getFormattedDate(),
+        date: moment(this.calEvent.startTime).toDate().toLocaleString(),
         downloadLink: this.downloadLink,
         language: this.t,
         name: this.calEvent.organizer.name,

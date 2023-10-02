@@ -17,11 +17,7 @@ export const DailyVideoDownloadRecordingEmail = (
 ) => {
   const image = WEBAPP_URL + "/emails/logo.png";
   return (
-    <V2BaseEmailHtml
-      subject={props.language("download_your_recording", {
-        title: props.title,
-        date: props.date,
-      })}>
+    <V2BaseEmailHtml subject={`View Recording: ${props.title} at ${props.date}`}>
       <div style={{ width: "89px", marginBottom: "35px" }}>
         <a href={WEBAPP_URL} target="_blank" rel="noreferrer">
           <img
@@ -49,7 +45,7 @@ export const DailyVideoDownloadRecordingEmail = (
           marginBottom: "40px",
           color: "black",
         }}>
-        <>{props.language("download_your_recording")}</>
+        <>{props.language("View your Recording")}</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("hi_user_name", { name: props.name })},</>
@@ -84,7 +80,7 @@ export const DailyVideoDownloadRecordingEmail = (
           }}>
           {props.date}
         </p>
-        <CallToAction label={props.language("download_recording")} href={props.downloadLink} />
+        <CallToAction label={props.language("View Recording")} href={props.downloadLink} />
       </div>
 
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>

@@ -11,7 +11,6 @@ export type GetSubscriberOptions = {
 
 const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
   const loadOrganizer = async () => {
-    console.log("loading");
     const users = await prisma.user.findFirst({
       where: {
         email: process.env.HOST_EMAIL ? process.env.HOST_EMAIL : "",
@@ -20,7 +19,6 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
         id: true,
       },
     });
-    console.log(users);
     return users?.id;
   };
 

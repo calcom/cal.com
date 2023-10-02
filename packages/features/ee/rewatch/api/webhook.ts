@@ -2,8 +2,10 @@ import crypto from "crypto";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -73,8 +75,12 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
         title: true,
         user: {
           select: {
-            name: true,
+            id: true,
+            timeZone: true,
             email: true,
+            name: true,
+            locale: true,
+            destinationCalendar: true,
           },
         },
         description: true,
@@ -103,7 +109,52 @@ async function updateBookingRecordingLink(bookingId: number, recordingLink: stri
     const subscriberOptions = {
       triggerEvent: eventTrigger,
     };
+    const t = await getTranslation(updatedBooking?.user?.locale ?? "en", "common");
+    const evt: CalendarEvent = {
+      type: updatedBooking.title,
+      title: updatedBooking.title,
+      description: updatedBooking.description || undefined,
+      startTime: updatedBooking.startTime.toISOString(),
+      endTime: updatedBooking.endTime.toISOString(),
+      organizer: {
+        email: updatedBooking.user?.email || "Email-less",
+        name: updatedBooking.user?.name || "Nameless",
+        timeZone: updatedBooking.user?.timeZone || "Europe/London",
+        language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
+      },
+      // attendees: [],
+      uid: updatedBooking.uid,
+    };
+    // Add emails from the "guests" field of the "responses" object (if it exists)
+    // Initialize evt.attendees as an empty array
+    evt.attendees = [];
+
+    // Add the user's email to the attendees list if available
+    // if (updatedBooking.user?.email) {
+    //   evt.attendees.push({ email: updatedBooking.user.email });
+    // }
+
+    // Iterate through responses and add guest emails to evt.attendees
+    if (updatedBooking.responses) {
+      if (updatedBooking.responses?.guests?.length) {
+        // Add guest emails to evt.attendees
+        for (const guestEmail of updatedBooking.responses.guests) {
+          evt.attendees.push({
+            email: guestEmail,
+            language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
+          });
+        }
+      }
+      if (updatedBooking.responses.email) {
+        // Add the response email to evt.attendees
+        evt.attendees.push({
+          email: updatedBooking.responses.email,
+          language: { translate: t, locale: updatedBooking?.user?.locale ?? "en" },
+        });
+      }
+    }
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData: updatedBooking });
+    await sendDailyVideoRecordingEmails(evt, recordingLink);
   } catch (error) {
     console.error("Error in updateBookingRecordingLink:", error);
     throw new HttpCode({

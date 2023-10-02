@@ -9,9 +9,9 @@ export const tips = [
     id: 1,
     thumbnailUrl:
       "https://uploads-ssl.webflow.com/64993244d9a134923703ea96/64a4204da59722730dcfc5de_Step%203.svg",
-    mediaLink: "https://drive.google.com/file/d/111UJ9wps9-yNsQunxv8PfpdkdfdOr9YP/view",
-    title: "How to use BeenThere",
-    description: "Step-by-step guide on how to use BeenThere.",
+    mediaLink: process.env.NEXT_PUBLIC_VIDEO_URL,
+    title: process.env.NEXT_PUBLIC_VIDEO_TITLE || "How to use BeenThere",
+    description: process.env.NEXT_PUBLIC_VIDEO_DESCRIPTION || "Step-by-step guide on how to use BeenThere.",
     href: "https://beenthere.gumroad.com/l/beenthere",
   },
   // {

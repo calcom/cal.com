@@ -1,4 +1,5 @@
 // TODO: We should find a way to keep App specific email templates within the App itself
+import moment from "moment";
 import type { TFunction } from "next-i18next";
 
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -13,7 +14,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   downloadLink: string;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person, downloadLink: string) {
+  constructor(calEvent: CalendarEvent, attendee, downloadLink: string) {
     super();
     this.name = "SEND_RECORDING_DOWNLOAD_LINK";
     this.calEvent = calEvent;
@@ -23,19 +24,19 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
-      to: `${this.attendee.name} <${this.attendee.email}>`,
+      to: `${this.attendee.email} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
-      subject: `${this.t("download_recording_subject", {
-        title: this.calEvent.title,
-        date: this.getFormattedDate(),
-      })}`,
+      // replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      subject: `View Recording: ${this.calEvent.title} at ${moment(this.calEvent.startTime)
+        .toDate()
+        .toLocaleString()}`,
+
       html: renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
-        date: this.getFormattedDate(),
+        date: moment(this.calEvent.startTime).toDate().toLocaleString(),
         downloadLink: this.downloadLink,
         language: this.t,
-        name: this.attendee.name,
+        name: this.attendee.email,
       }),
     };
   }

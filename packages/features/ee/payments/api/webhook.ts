@@ -179,7 +179,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
         id: true,
       },
     });
-    console.log(users);
     return users?.id;
   };
 
@@ -192,8 +191,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       steps: true,
     },
   });
-  console.log("workflowwwss");
-  console.log(workflows);
+
   for (const eventTypeWorkflow of workflows) {
     // const bookingsForReminders = await prisma.booking.findMany({
     //   where: {
