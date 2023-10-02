@@ -8,7 +8,9 @@
     ".": "./index.tsx",
     "./components/toast": "./components/toast/index.tsx",
     "./components/icon": "./components/icon/index.ts",
-    "./components/icon/Discord": "./components/icon/Discord.tsx"
+    "./components/icon/Discord": "./components/icon/Discord.tsx",
+    "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
+    "./components/icon/Spinner": "./components/icon/Spinner.tsx"
   },
   "types": "./index.tsx",
   "license": "MIT",

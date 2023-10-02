@@ -9,6 +9,7 @@ type OrganizationAvatarProps = AvatarProps & {
 const OrganizationAvatar = ({ size, imageSrc, alt, organizationSlug, ...rest }: OrganizationAvatarProps) => {
   return (
     <Avatar
+      data-testid="organization-avatar"
       size={size}
       imageSrc={imageSrc}
       alt={alt}

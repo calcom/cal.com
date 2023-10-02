@@ -40,7 +40,7 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
   }
 
-  if (url.pathname.startsWith("/auth/login")) {
+  if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     requestHeaders.set("x-csp-enforce", "true");
   }
@@ -68,6 +68,7 @@ export const config = {
   matcher: [
     "/:path*/embed",
     "/api/trpc/:path*",
+    "/login",
     "/auth/login",
     /**
      * Paths required by routingForms.handle
