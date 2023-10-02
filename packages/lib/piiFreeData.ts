@@ -1,5 +1,6 @@
-import type { Credential, SelectedCalendar } from "@prisma/client";
+import type { Credential, SelectedCalendar, DestinationCalendar } from "@prisma/client";
 
+import type { EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
@@ -15,6 +16,7 @@ export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
     recurrence: calEvent.recurrence,
     requiresConfirmation: calEvent.requiresConfirmation,
     uid: calEvent.uid,
+    iCalUID: calEvent.iCalUID,
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
@@ -66,10 +68,54 @@ export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCal
   return {
     integration: selectedCalendar.integration,
     userId: selectedCalendar.userId,
+    // Get first 3 characters of externalId, so that we know what it could be but not the full value
+    externalId: selectedCalendar.externalId?.slice(0, 3),
+    credentialId: !!selectedCalendar.credentialId,
+  };
+}
+
+export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<DestinationCalendar>) {
+  return {
+    integration: destinationCalendar.integration,
+    userId: destinationCalendar.userId,
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
-    externalId: !!selectedCalendar.externalId,
-    credentialId: !!selectedCalendar.credentialId,
+    externalId: !!destinationCalendar.externalId,
+    credentialId: !!destinationCalendar.credentialId,
+  };
+}
+
+export function getPiiFreeEventType(eventType: Partial<Omit<EventType, "recurringEvent">>) {
+  return {
+    id: eventType.id,
+    schedulingType: eventType.schedulingType,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+  };
+}
+
+export function getPiiFreeUser(user: {
+  id?: number;
+  username?: string | null;
+  isFixed?: boolean;
+  timeZone?: string;
+  allowDynamicBooking?: boolean | null;
+  defaultScheduleId?: number | null;
+  organizationId?: number | null;
+  credentials?: Credential[];
+  destinationCalendar?: DestinationCalendar | null;
+}) {
+  return {
+    id: user.id,
+    username: user.username,
+    isFixed: user.isFixed,
+    timeZone: user.timeZone,
+    allowDynamicBooking: user.allowDynamicBooking,
+    defaultScheduleId: user.defaultScheduleId,
+    organizationId: user.organizationId,
+    credentials: user.credentials?.map(getPiiFreeCredential),
+    destinationCalendar: user.destinationCalendar
+      ? getPiiFreeDestinationCalendar(user.destinationCalendar)
+      : user.destinationCalendar,
   };
 }
