@@ -471,6 +471,7 @@ export default function Success(props: SuccessProps) {
                         <div className="col-span-2 mt-3" data-testid="where">
                           {reschedule &&
                             !!formerTime &&
+                            locationToDisplay !== rsLocation &&
                             (locationToDisplay.startsWith("http") ? (
                               <a
                                 href={locationToDisplay}
