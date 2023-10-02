@@ -256,7 +256,10 @@ export const createEvent = async (
           if (error?.calError) {
             calError = error.calError;
           }
-          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          log.error(
+            "createEvent failed",
+            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
           // await sendBrokenIntegrationEmail(calEvent, "calendar");

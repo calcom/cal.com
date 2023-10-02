@@ -419,7 +419,7 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event", { createdEvent });
+        log.silly("Created Calendar event", safeStringify({ createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
