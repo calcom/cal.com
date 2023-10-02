@@ -4,10 +4,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { defaultResponder } from "@calcom/lib/server";
 
-async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
+async function handler(req: NextApiRequest & { userId?: number ,userEmail?: string }, res: NextApiResponse) {
   const session = await getServerSession({ req, res });
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
+  req.userEmail = session?.user?.email || "";
   const booking = await handleNewBooking(req, {
     isNotAnApiCall: true,
   });
