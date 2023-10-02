@@ -183,6 +183,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    bundlePagesExternals: true,
+  },
   webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
