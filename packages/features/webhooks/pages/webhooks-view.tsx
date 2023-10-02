@@ -90,7 +90,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                           readOnly={group.metadata?.readOnly ?? false}
                           lastItem={group.webhooks.length === index + 1}
                           onEditWebhook={() =>
-                            router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
+                            router.push(`${WEBAPP_URL}/settings/admin/webhooks/${webhook.id} `)
                           }
                         />
                       ))}

@@ -275,7 +275,7 @@ const WebhookForm = (props: {
             type="button"
             color="minimal"
             onClick={props.onCancel}
-            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
+            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/admin/webhooks` } : {})}>
             {t("cancel")}
           </Button>
           <Button
