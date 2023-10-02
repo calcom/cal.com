@@ -88,7 +88,7 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
-          // address can be edited during reschedul
+          // Address field can be edited during reschedule
           readOnly = false;
         }
 
