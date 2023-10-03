@@ -200,4 +200,38 @@ test.describe("Payment app", () => {
     // Expect "Getting started with Paypal APP" to be displayed
     expect(await page.locator("text=Getting started with Paypal APP").first()).toBeTruthy();
   });
+
+  /**
+   * For now almost all the payment apps show display "This app has not been setup yet"
+   * this can change in the future
+   */
+  test("Should not display App is not setup already for non payment app", async ({ page, users }) => {
+    // We will use google analytics app for this test
+    const user = await users.create();
+    await user.apiLogin();
+    // Any event should work here
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+
+    await prisma.credential.create({
+      data: {
+        type: "ga4_analytics",
+        userId: user.id,
+        appId: "ga4",
+        invalid: false,
+        key: {},
+      },
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("#event-type-form").getByRole("switch").click();
+    // make sure Tracking ID is displayed
+    expect(await page.locator("text=Tracking ID").first()).toBeTruthy();
+    await page.getByLabel("Tracking ID").click();
+    await page.getByLabel("Tracking ID").fill("demo");
+    await page.getByTestId("update-eventtype").click();
+  });
 });
