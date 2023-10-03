@@ -231,7 +231,7 @@ export const createEvent = async (
 
   log.debug(
     "Creating calendar event",
-    JSON.stringify({
+    safeStringify({
       calEvent: getPiiFreeCalendarEvent(calEvent),
     })
   );
@@ -256,7 +256,10 @@ export const createEvent = async (
           if (error?.calError) {
             calError = error.calError;
           }
-          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          log.error(
+            "createEvent failed",
+            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
           // await sendBrokenIntegrationEmail(calEvent, "calendar");
@@ -264,9 +267,24 @@ export const createEvent = async (
         })
     : undefined;
   if (!creationResult) {
-    logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
+    logger.error(
+      "createEvent failed",
+      safeStringify({
+        success,
+        uid,
+        creationResult,
+        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        calError,
+      })
+    );
   }
-
+  log.debug(
+    "Created calendar event",
+    safeStringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+      creationResult,
+    })
+  );
   return {
     appName: credential.appId || "",
     type: credential.type,
