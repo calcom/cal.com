@@ -15,7 +15,7 @@ export function ConnectButton({ buttonText, onButtonClick }: ConnectButtonProps 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errMsg, setErrMsg] = useState<string>("");
 
-  function handleSubmit(e: Event) {
+  function handleSubmit(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.preventDefault();
 
     setIsProcessing(true);
@@ -31,10 +31,10 @@ export function ConnectButton({ buttonText, onButtonClick }: ConnectButtonProps 
 
   return (
     <div>
-      <button onClick={(event) => handleSubmit(event)} disabled={!isProcessing} type="button">
+      <button className="" onClick={(event) => handleSubmit(event)} disabled={!isProcessing} type="button">
         {buttonText || "Install App"}
       </button>
-      {!!errMsg ? <span>{errMsg}</span> : null}
+      {!!errMsg && <span>{errMsg}</span>}
     </div>
   );
 }
