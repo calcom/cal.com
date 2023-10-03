@@ -13,13 +13,10 @@ import { OverlayCalendarSettingsModal } from "../OverlayCalendar/OverlayCalendar
 import { useLocalSet } from "../hooks/useLocalSet";
 import { useOverlayCalendarStore } from "./store";
 
-const SUPPORTED_LAYOUTS = ["month_view"];
-
 export function OverlayCalendarContainer() {
   const [continueWithProvider, setContinueWithProvider] = useState(false);
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
-  const layout = useBookerStore((state) => state.layout);
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const router = useRouter();
@@ -85,7 +82,6 @@ export function OverlayCalendarContainer() {
       <div className="flex gap-2">
         <div className="flex items-center gap-2 pr-2">
           <Switch
-            disabled={layout !== "week_view"}
             checked={overlayCalendarQueryParam === "true"}
             id="overlayCalendar"
             onCheckedChange={(state) => {
