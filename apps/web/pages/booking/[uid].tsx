@@ -146,7 +146,7 @@ export default function Success(props: SuccessProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-
+  const { isCancellable } = props;
   function setIsCancellationMode(value: boolean) {
     const _searchParams = new URLSearchParams(searchParams);
 
@@ -532,7 +532,28 @@ export default function Success(props: SuccessProps) {
                     })}
                   </div>
                 </div>
-                {(!needsConfirmation || !userIsOwner) &&
+                {!isCancellable && (
+                  <>
+                    <hr className="border-subtle mb-8" />
+                    <div className="text-center">
+                      <span className="text-emphasis ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
+                      {/* Login button but redirect to here */}
+                      <span className="text-default inline">
+                        <span className="underline" data-testid="reschedule-link">
+                          <Link
+                            href={`/auth/login?callbackUrl=${encodeURIComponent(
+                              `/booking/${bookingInfo?.uid}`
+                            )}`}
+                            legacyBehavior>
+                            {t("login")}
+                          </Link>
+                        </span>
+                      </span>
+                    </div>
+                  </>
+                )}
+                {isCancellable &&
+                  (!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
@@ -540,28 +561,30 @@ export default function Success(props: SuccessProps) {
                       <div className="text-center last:pb-0">
                         <span className="text-emphasis ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
 
-                        {!props.recurringBookings && (
-                          <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
-                                legacyBehavior>
-                                {t("reschedule")}
-                              </Link>
+                        <>
+                          {!props.recurringBookings && (
+                            <span className="text-default inline">
+                              <span className="underline" data-testid="reschedule-link">
+                                <Link
+                                  href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                  legacyBehavior>
+                                  {t("reschedule")}
+                                </Link>
+                              </span>
+                              <span className="mx-2">{t("or_lowercase")}</span>
                             </span>
-                            <span className="mx-2">{t("or_lowercase")}</span>
-                          </span>
-                        )}
-
-                        <button
-                          data-testid="cancel"
-                          className={classNames(
-                            "text-default underline",
-                            props.recurringBookings && "ltr:mr-2 rtl:ml-2"
                           )}
-                          onClick={() => setIsCancellationMode(true)}>
-                          {t("cancel")}
-                        </button>
+
+                          <button
+                            data-testid="cancel"
+                            className={classNames(
+                              "text-default underline",
+                              props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                            )}
+                            onClick={() => setIsCancellationMode(true)}>
+                            {t("cancel")}
+                          </button>
+                        </>
                       </div>
                     </>
                   ) : (
@@ -1009,7 +1032,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
-
+  let isCancellable = true;
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
@@ -1086,7 +1109,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-
+  console.log("isSeats", eventTypeRaw.seatsPerTimeSlot);
+  console.log("seatReferenceUid", seatReferenceUid);
+  console.log("session", { session });
+  console.log(eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session);
+  if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
+    isCancellable = false;
+  }
+  console.log({ isCancellable });
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
@@ -1155,6 +1185,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
+      isCancellable,
     },
   };
 }

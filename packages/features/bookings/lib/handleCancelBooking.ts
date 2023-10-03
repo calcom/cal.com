@@ -136,6 +136,19 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
+  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+    const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
+      if (host.user.id === userId) return true;
+    });
+
+    const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
+
+    if (!userIsHost && !userIsOwnerOfEventType) {
+      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    }
+  }
+
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
