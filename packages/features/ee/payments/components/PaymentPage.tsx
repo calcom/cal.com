@@ -62,7 +62,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         )?.parentElement;
         if (stripeIframeWrapper) {
           stripeIframeWrapper.style.margin = "0 auto";
-          stripeIframeWrapper.style.width = embedIframeWidth + "px";
+          stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
         }
         requestAnimationFrame(fixStripeIframe);
       });

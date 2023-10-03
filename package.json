@@ -87,6 +87,7 @@
     "jsdom": "^22.0.0",
     "lint-staged": "^12.5.0",
     "mailhog": "^4.16.0",
+    "node-ical": "^0.16.1",
     "prettier": "^2.8.6",
     "prismock": "^1.21.1",
     "tsc-absolute": "^1.0.0",

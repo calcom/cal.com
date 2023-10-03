@@ -364,7 +364,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
-  const message = "Booking " + confirmed ? "confirmed" : "rejected";
+  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };

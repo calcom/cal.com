@@ -3,6 +3,7 @@ import type { SelectedCalendar } from "@prisma/client";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -35,6 +36,13 @@ const getCalendarsEvents = async (
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
+    log.debug(
+      `Getting availability for`,
+      safeStringify({
+        calendarService: c.constructor.name,
+        selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
+      })
+    );
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     performance.mark("eventBusyDatesEnd");
     performance.measure(
@@ -52,11 +60,14 @@ const getCalendarsEvents = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
-  log.debug({
-    calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
-    selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
-    calendarEvents: awaitedResults,
-  });
+  log.debug(
+    "Result",
+    safeStringify({
+      calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
+      selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
+      calendarEvents: awaitedResults,
+    })
+  );
   return awaitedResults;
 };
 

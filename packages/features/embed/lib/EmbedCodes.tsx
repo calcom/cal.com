@@ -33,7 +33,7 @@ export const Codes = {
 	return <Cal
 	  calLink="${calLink}"
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
+	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}${
         IS_SELF_HOSTED
           ? `
 	  calOrigin="${embedCalOrigin}"
@@ -174,7 +174,7 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
     if (indentationMatch) {
       indent = indentationMatch[1];
     }
-    constructedCode.push(partWithoutBlock + indentedBlock.join("\n" + indent));
+    constructedCode.push(partWithoutBlock + indentedBlock.join(`\n${indent}`));
   }
   return constructedCode.join("");
 };
