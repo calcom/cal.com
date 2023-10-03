@@ -1,3 +1,5 @@
+import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -8,7 +10,6 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 import handler from "../../../pages/api/bookings/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;

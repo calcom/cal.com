@@ -102,7 +102,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   items={type.users.map((user) => ({
                     alt: user.name || "",
                     title: user.name || "",
-                    image: "/" + user.username + "/avatar.png" || "",
+                    image: `/${user.username}/avatar.png` || "",
                   }))}
                 />
               </div>
@@ -160,7 +160,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
-            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
             <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
@@ -324,7 +324,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...type,
       users: type.users.map((user) => ({
         ...user,
-        avatar: "/" + user.username + "/avatar.png",
+        avatar: `/${user.username}/avatar.png`,
       })),
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
