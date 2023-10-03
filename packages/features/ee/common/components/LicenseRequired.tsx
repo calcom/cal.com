@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import type { AriaRole, ComponentType } from "react";
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment } from "react";
 
 import { SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,15 +20,6 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
   const { t } = useLocale();
   const Component = as || Fragment;
   const hasValidLicense = true;
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development" && hasValidLicense === false) {
-      // Very few people will see this, so we don't need to translate it
-      console.info(
-        `You're using a feature that requires a valid license. Please go to ${WEBAPP_URL}/auth/setup to enter a license key.`
-      );
-    }
-  }, []);
 
   return (
     <Component {...rest}>

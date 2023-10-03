@@ -208,7 +208,7 @@ function EventWorkflowsTab(props: Props) {
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-  const { data, isLoading } = trpc.viewer.workflows.global.useQuery({});
+  const { data, isLoading } = trpc.viewer.workflows.global.useQuery();
   // const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
   //   teamId: eventType.team?.id,
   //   userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,

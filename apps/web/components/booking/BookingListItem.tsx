@@ -110,13 +110,23 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
-  const paymentAppData = getPaymentAppData(booking.eventType);
+  type StripeAppData = {
+    enabled: boolean;
+    price: number;
+    currency: string;
+    paymentOption: string;
+    credentialId?: number;
+    chargeDeposit: boolean;
+    depositPercentage: number;
+  };
+
+  const paymentAppData = getPaymentAppData(booking.eventType) as StripeAppData;
 
   // console.log({paymentAppData, })
 
   const paidEvent = booking.eventType.price && booking.eventType.price > 0;
-  const paymentOption = booking.eventType.metadata.apps.stripe.paymentOption;
-  const isDepositType = booking.eventType.metadata.apps.stripe.chargeDeposit;
+  const paymentOption = booking?.eventType?.metadata?.apps?.stripe?.paymentOption || "ON_BOOKING";
+  const isDepositType = booking?.eventType?.metadata?.apps?.stripe?.chargeDeposit || false;
   const isHoldType = booking.paid && booking.payment[0]?.paymentOption === "HOLD";
   const isFullyPaid = booking.paymentStatus === "PAID";
   const isBookingPaid = booking.paid;
@@ -171,7 +181,7 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  function handleSendPaymentLink(method) {
+  function handleSendPaymentLink(method: string) {
     sendPaymentLinkMutation.mutate({
       bookingId: booking.id,
       method: method,
