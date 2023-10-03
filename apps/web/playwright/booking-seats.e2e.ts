@@ -636,6 +636,20 @@ test.describe("Reschedule for booking with seats", () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
+    // data displayed in form should be user owner
+    const nameElement = await page.locator("input[name=name]");
+    const name = await nameElement.inputValue();
+    expect(name).toBe(user.username);
+
+    //same for email
+    const emailElement = await page.locator("input[name=email]");
+    const email = await emailElement.inputValue();
+    expect(email).toBe(user.email);
+
+    // reason to reschedule input should be visible textfield with name rescheduleReason
+    const reasonElement = await page.locator("textarea[name=rescheduleReason]");
+    await expect(reasonElement).toBeVisible();
+
     // expect to be redirected to reschedule page
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
@@ -671,6 +685,10 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(`/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
+
+    // expect textarea with name notes to be visible
+    const notesElement = await page.locator("textarea[name=notes]");
+    await expect(notesElement).toBeVisible();
 
     // expect button confirm instead of reschedule
     await expect(page.locator('[data-testid="confirm-book-button"]')).toHaveCount(1);

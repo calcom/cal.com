@@ -494,13 +494,17 @@ function useInitialFormValues({
 
       const defaultUserValues = {
         email:
-          rescheduleUid && bookingData
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].email
-            : parsedQuery["email"] || session.data?.user?.email || "",
+            : !!parsedQuery["email"]
+            ? parsedQuery["email"]
+            : session.data?.user?.email ?? "",
         name:
-          rescheduleUid && bookingData
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
-            : parsedQuery["name"] || session.data?.user?.name || session.data?.user?.username || "",
+            : !!parsedQuery["name"]
+            ? parsedQuery["name"]
+            : session.data?.user?.name ?? session.data?.user?.username ?? "",
       };
 
       if (!isRescheduling) {
@@ -524,13 +528,11 @@ function useInitialFormValues({
         setDefaultValues(defaults);
       }
 
-      if ((!rescheduleUid && !bookingData) || !bookingData?.attendees.length) {
+      if (!rescheduleUid && !bookingData) {
         return {};
       }
-      const primaryAttendee = bookingData.attendees[0];
-      if (!primaryAttendee) {
-        return {};
-      }
+
+      // We should allow current session user as default values for booking form
 
       const defaults = {
         responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
@@ -539,7 +541,7 @@ function useInitialFormValues({
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
-          [field.name]: bookingData.responses[field.name],
+          [field.name]: bookingData?.responses[field.name],
         };
       }, {});
       defaults.responses = {

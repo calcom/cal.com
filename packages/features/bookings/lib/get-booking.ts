@@ -169,6 +169,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
 
   // If we have the booking and not bookingSeat, we need to make sure the booking belongs to the userLoggedIn
   // Otherwise, we return null here.
+  let hasOwnershipOnBooking = false;
   if (theBooking && theBooking?.eventType?.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
     const isOwnerOfBooking = theBooking.userId === userId;
 
@@ -177,6 +178,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
     const isUserIdInBooking = theBooking.userId === userId;
 
     if (!isOwnerOfBooking && !isHostOfEventType && !isUserIdInBooking) return null;
+    hasOwnershipOnBooking = true;
   }
 
   // If we don't have a booking and no rescheduleUid, the ID is invalid,
@@ -191,6 +193,8 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
     ...booking,
     attendees: rescheduleUid
       ? booking.attendees.filter((attendee) => attendee.email === attendeeEmail)
+      : hasOwnershipOnBooking
+      ? []
       : booking.attendees,
   };
 };
