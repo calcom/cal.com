@@ -209,6 +209,14 @@ function BookingListItem(booking: BookingItemProps) {
       );
     }
 
+    if (booking.paymentStatus != "PAID") {
+      return (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+          {t("card_held")}
+        </Badge>
+      );
+    }
+
     /**
      * When payment type is HOLD should only have one payment
      * associated with the booking.
