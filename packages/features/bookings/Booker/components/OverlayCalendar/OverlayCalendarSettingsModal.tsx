@@ -18,12 +18,15 @@ import {
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useLocalSet } from "../hooks/useLocalSet";
+import { useOverlayCalendarStore } from "./store";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
 }
 export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
+  const utils = trpc.useContext();
+  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
     enabled: !!props.open,
   });
@@ -101,6 +104,8 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                                             credentialId: item.credentialId,
                                             externalId: cal.externalId,
                                           });
+                                          setOverlayBusyDates([]);
+                                          utils.viewer.availability.calendarOverlay.reset();
                                         }}
                                       />
                                       <label htmlFor={id}>{cal.name}</label>
