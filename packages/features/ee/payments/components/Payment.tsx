@@ -138,7 +138,7 @@ const PaymentForm = (props: Props) => {
         <div className="bg-info mb-5 mt-2 rounded-md p-3">
           <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
-              amount: props.payment.amount / 100,
+              amount: props.payment.amount / 2 / 100,
               formatParams: { amount: { currency: props.payment.currency } },
             })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
