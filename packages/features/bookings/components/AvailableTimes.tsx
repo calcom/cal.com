@@ -95,7 +95,7 @@ export const AvailableTimes = ({
 };
 
 export const AvailableTimesSkeleton = () => (
-  <div className="mt-8 flex w-[20%] flex-col only:w-full">
+  <div className="flex w-[20%] flex-col only:w-full">
     {/* Random number of elements between 1 and 6. */}
     {Array.from({ length: Math.floor(Math.random() * 6) + 1 }).map((_, i) => (
       <SkeletonText className="mb-4 h-6 w-full" key={i} />

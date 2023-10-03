@@ -86,13 +86,20 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const { update } = useSession();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>();
+  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: (userData) => {
-      fetch(userData.avatar).then((res) => {
-        if (res.url) setFetchedImgSrc(res.url);
-      });
+    onSuccess: async (userData) => {
+      try {
+        if (!userData.organization) {
+          const res = await fetch(userData.avatar);
+          if (res.url) setFetchedImgSrc(res.url);
+        } else {
+          setFetchedImgSrc("");
+        }
+      } catch (err) {
+        setFetchedImgSrc("");
+      }
     },
   });
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
@@ -218,7 +225,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || !fetchedImgSrc)
+  if (isLoading || !user || fetchedImgSrc === undefined)
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
