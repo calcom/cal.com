@@ -1,6 +1,6 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import { AnimatePresence, m } from "framer-motion";
-import { CalendarX2 } from "lucide-react";
+import { CalendarX2, ChevronRight } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -50,6 +50,7 @@ const SlotItem = ({
   const overlayCalendarToggled = getQueryParam("overlayCalendar") === "true";
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookingData = useBookerStore((state) => state.bookingData);
+  const layout = useBookerStore((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -133,10 +134,12 @@ const SlotItem = ({
         {overlapConfirm && isOverlapping && (
           <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
             <Button
+              variant={layout === "column_view" ? "icon" : "button"}
+              StartIcon={layout === "column_view" ? ChevronRight : undefined}
               onClick={() =>
                 onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
               }>
-              {t("confirm")}
+              {layout !== "column_view" && t("confirm")}
             </Button>
           </m.div>
         )}
