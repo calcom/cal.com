@@ -1,4 +1,4 @@
-import type { Booking, DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -10,6 +10,8 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -26,6 +28,7 @@ import type {
 import { createEvent, updateEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
 
+const log = logger.getChildLogger({ prefix: ["EventManager"] });
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -80,6 +83,7 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
+    log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
@@ -119,8 +123,10 @@ export default class EventManager {
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
-    const [mainHostDestinationCalendar] = evt.destinationCalendar ?? [];
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar.integration !== "google_calendar") {
+    const [mainHostDestinationCalendar] =
+      (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
+      log.warn("Falling back to Cal Video integration as Google Calendar not installed");
       evt["location"] = "integrations:daily";
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -311,7 +317,6 @@ export default class EventManager {
         },
       });
     }
-
     return {
       results,
       referencesToCreate: [...booking.references],
@@ -360,6 +365,7 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
+        log.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
@@ -399,13 +405,21 @@ export default class EventManager {
         }
       }
     } else {
+      log.silly(
+        "No destination Calendar found, falling back to first connected calendar",
+        safeStringify({
+          calendarCredentials: this.calendarCredentials,
+        })
+      );
+
       /**
        *  Not ideal but, if we don't find a destination calendar,
-       * fallback to the first connected calendar
+       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
+        log.silly("Created Calendar event", safeStringify({ createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -454,7 +468,7 @@ export default class EventManager {
      * @todo remove location from event types that has missing credentials
      * */
     if (!videoCredential) {
-      logger.warn(
+      log.warn(
         'Falling back to "daily" video integration for event with location: ' +
           event.location +
           " because credential is missing for the app"
@@ -502,6 +516,7 @@ export default class EventManager {
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference[] | undefined = undefined,
       credential;
+    log.silly("updateAllCalendarEvents", JSON.stringify({ event, booking, newBookingId }));
     try {
       // If a newBookingId is given, update that calendar event
       let newBooking;
@@ -563,6 +578,7 @@ export default class EventManager {
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
+            log.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
             result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
           }
         }
@@ -646,27 +662,5 @@ export default class EventManager {
         `No suitable credentials given for the requested integration name:${event.location}`
       );
     }
-  }
-
-  /**
-   * Update event to set a cancelled event placeholder on users calendar
-   * remove if virtual calendar is already done and user availability its read from there
-   * and not only in their calendars
-   * @param event
-   * @param booking
-   * @public
-   */
-  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
-    await this.updateAllCalendarEvents(event, booking);
-  }
-
-  public async rescheduleBookingWithSeats(
-    originalBooking: Booking,
-    newTimeSlotBooking?: Booking,
-    owner?: boolean
-  ) {
-    // Get originalBooking
-    // If originalBooking has only one attendee we should do normal reschedule
-    // Change current event attendees in everyone calendar
   }
 }

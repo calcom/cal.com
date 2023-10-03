@@ -7,6 +7,8 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
@@ -101,6 +103,8 @@ export const getConnectedCalendars = async (
             errorMessage = "Access token expired or revoked";
           }
         }
+
+        log.error("getConnectedCalendars failed", safeStringify({ error, item }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -210,7 +214,7 @@ export const getBusyCalendarTimes = async (
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
     results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
   } catch (e) {
-    logger.warn(e);
+    log.warn(safeStringify(e));
   }
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
@@ -225,6 +229,12 @@ export const createEvent = async (
   let success = true;
   let calError: string | undefined = undefined;
 
+  log.debug(
+    "Creating calendar event",
+    JSON.stringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
@@ -246,14 +256,26 @@ export const createEvent = async (
           if (error?.calError) {
             calError = error.calError;
           }
-          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          log.error(
+            "createEvent failed",
+            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
           // await sendBrokenIntegrationEmail(calEvent, "calendar");
           return undefined;
         })
     : undefined;
-
+  if (!creationResult) {
+    logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
+  }
+  log.debug(
+    "Created calendar event",
+    JSON.stringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+      creationResult,
+    })
+  );
   return {
     appName: credential.appId || "",
     type: credential.type,
@@ -280,9 +302,19 @@ export const updateEvent = async (
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
-
+  log.debug(
+    "Updating calendar event",
+    safeStringify({
+      bookingRefUid,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   if (bookingRefUid === "") {
-    log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
+    log.error(
+      "updateEvent failed",
+      "bookingRefUid is empty",
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
@@ -296,7 +328,10 @@ export const updateEvent = async (
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error("updateEvent failed", e, calEvent);
+            log.error(
+              "updateEvent failed",
+              safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            );
             if (e?.calError) {
               calError = e.calError;
             }
