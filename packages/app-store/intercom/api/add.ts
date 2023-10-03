@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const params = {
       client_id,
-      redirect_uri: WEBAPP_URL_FOR_OAUTH + "/api/integrations/intercom/callback",
+      redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/intercom/callback`,
       state,
       response_type: "code",
     };

@@ -73,7 +73,7 @@ export async function deleteStripeCustomer(user: UserType): Promise<string | nul
   const customerId = await getStripeCustomerId(user);
 
   if (!customerId) {
-    console.warn("No stripe customer found for user:" + user.email);
+    console.warn(`No stripe customer found for user:${user.email}`);
     return null;
   }
 
