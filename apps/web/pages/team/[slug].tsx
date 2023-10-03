@@ -319,14 +319,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  team.eventTypes = team.eventTypes?.map((type) => ({
-    ...type,
-    users: type.users.map((user) => ({
-      ...user,
-      avatar: `/${user.username}/avatar.png`,
-    })),
-    descriptionAsSafeHTML: markdownToSafeHTML(type.description),
-  })) ?? null;
+  team.eventTypes =
+    team.eventTypes?.map((type) => ({
+      ...type,
+      users: type.users.map((user) => ({
+        ...user,
+        avatar: `/${user.username}/avatar.png`,
+      })),
+      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
+    })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
