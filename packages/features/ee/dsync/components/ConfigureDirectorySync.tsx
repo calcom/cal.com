@@ -79,7 +79,7 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
           <Dialog open={deleteDirectoryOpen} onOpenChange={setDeleteDirectoryOpen}>
             <DialogTrigger asChild>
               <Button color="destructive" className="mt-1" StartIcon={Trash2}>
-                {t("delete_connection")}
+                {t("directory_sync_delete_connection")}
               </Button>
             </DialogTrigger>
             <DialogContent
@@ -94,7 +94,7 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
                 <DialogFooter showDivider>
                   <DialogClose />
                   <Button color="primary" data-testid="delete-account-confirm" onClick={onDeleteConfirmation}>
-                    {t("delete_connection")}
+                    {t("directory_sync_delete_connection")}
                   </Button>
                 </DialogFooter>
               </>
