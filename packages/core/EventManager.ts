@@ -10,7 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
+import { getPiiFreeDestinationCalendar, getPiiFreeUser, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -399,13 +399,21 @@ export default class EventManager {
           const destinationCalendarCredentials = this.calendarCredentials.filter(
             (c) => c.type === destination.integration
           );
-          createdEvents = createdEvents.concat(
-            await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
+          // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
+          const firstCalendarCredential = destinationCalendarCredentials[0];
+          log.warn(
+            "No credentialId found for destination calendar, falling back to first found calendar",
+            safeStringify({
+              destination: getPiiFreeDestinationCalendar(destination),
+              firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
+            })
           );
+
+          createdEvents.push(await createEvent(firstCalendarCredential, event));
         }
       }
     } else {
-      log.silly(
+      log.warn(
         "No destination Calendar found, falling back to first connected calendar",
         safeStringify({
           calendarCredentials: this.calendarCredentials,
