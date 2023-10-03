@@ -1,5 +1,4 @@
-import type { GetBookingType } from "bookings/lib/get-booking";
-
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
