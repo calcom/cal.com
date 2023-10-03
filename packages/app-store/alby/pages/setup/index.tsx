@@ -120,6 +120,17 @@ function AlbySetupPage(props: IAlbySetupProps) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
+  const albyIcon = (
+    <>
+      <img className="h-16 w-16 dark:hidden" src="/api/app-store/alby/icon-borderless.svg" alt="Alby Icon" />
+      <img
+        className="hidden h-16 w-16 dark:block"
+        src="/api/app-store/alby/icon-borderless-dark.svg"
+        alt="Alby Icon"
+      />
+    </>
+  );
+
   return (
     <div className="bg-default flex h-screen">
       {showContent ? (
@@ -138,13 +149,13 @@ function AlbySetupPage(props: IAlbySetupProps) {
                   }}
                   type="button"
                   onClick={connectWithAlby}>
-                  <img className="h-8 w-8" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
+                  {albyIcon}
                   <span className="mr-2">Connect with Alby</span>
                 </button>
               </>
             ) : (
               <>
-                <img className="h-16 w-16" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
+                {albyIcon}
                 <p>Alby Connected!</p>
                 <Badge>Email: {props.email}</Badge>
                 <Badge>Lightning Address: {props.lightningAddress}</Badge>
