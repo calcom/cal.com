@@ -1109,14 +1109,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-  console.log("isSeats", eventTypeRaw.seatsPerTimeSlot);
-  console.log("seatReferenceUid", seatReferenceUid);
-  console.log("session", { session });
-  console.log(eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session);
+
   if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
     isCancellable = false;
   }
-  console.log({ isCancellable });
+
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
