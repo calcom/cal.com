@@ -12,6 +12,7 @@ import {
   DialogTrigger,
   Label,
   showToast,
+  EmptyScreen,
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
@@ -21,13 +22,14 @@ import DirectoryInfo from "./DirectoryInfo";
 const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [error, setError] = useState<string | null>(null);
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.dsync.get.useQuery(
     { teamId },
     {
       onError: (err) => {
-        showToast(err.message, "error");
+        setError(err.message);
       },
     }
   );
@@ -56,6 +58,14 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
     deleteMutation.mutate({ teamId, directoryId: directory.id });
   };
 
+  if (error) {
+    return (
+      <div>
+        <EmptyScreen headline="Error" description={t(error)} Icon={AlertTriangle} />
+      </div>
+    );
+  }
+
   return (
     <div>
       {!directory ? (
@@ -63,10 +73,8 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
       ) : (
         <>
           <DirectoryInfo directory={directory} />
-
           <hr className="border-subtle my-6" />
           <Label>{t("danger_zone")}</Label>
-
           {/* Delete directory sync connection */}
           <Dialog open={deleteDirectoryOpen} onOpenChange={setDeleteDirectoryOpen}>
             <DialogTrigger asChild>
