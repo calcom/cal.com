@@ -15519,6 +15519,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:1.4.0":
+  version: 1.4.0
+  resolution: "axios@npm:1.4.0"
+  dependencies:
+    follow-redirects: ^1.15.0
+    form-data: ^4.0.0
+    proxy-from-env: ^1.1.0
+  checksum: 7fb6a4313bae7f45e89d62c70a800913c303df653f19eafec88e56cea2e3821066b8409bc68be1930ecca80e861c52aa787659df0ffec6ad4d451c7816b9386b
+  languageName: node
+  linkType: hard
+
 "axios@npm:>=0.21.2, axios@npm:^0.26.0, axios@npm:^0.26.1":
   version: 0.26.1
   resolution: "axios@npm:0.26.1"
@@ -16677,6 +16688,7 @@ __metadata:
     lint-staged: ^12.5.0
     lucide-react: ^0.171.0
     mailhog: ^4.16.0
+    node-ical: ^0.16.1
     prettier: ^2.8.6
     prismock: ^1.21.1
     tsc-absolute: ^1.0.0
@@ -27381,6 +27393,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"luxon@npm:^1.21.3":
+  version: 1.28.1
+  resolution: "luxon@npm:1.28.1"
+  checksum: 2c62999adea79645fd1e931d685f61aeb33eda7f39fbf79b84261a233b62f9590f48336654ee9efd405848bd9e13dc7fe087c701b7126187201a88998dc68b04
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^1.26.0":
   version: 1.28.0
   resolution: "luxon@npm:1.28.0"
@@ -28729,6 +28748,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moment-timezone@npm:^0.5.31":
+  version: 0.5.43
+  resolution: "moment-timezone@npm:0.5.43"
+  dependencies:
+    moment: ^2.29.4
+  checksum: 8075c897ed8a044f992ef26fe8cdbcad80caf974251db424cae157473cca03be2830de8c74d99341b76edae59f148c9d9d19c1c1d9363259085688ec1cf508d0
+  languageName: node
+  linkType: hard
+
 "moment-timezone@npm:^0.5.34":
   version: 0.5.34
   resolution: "moment-timezone@npm:0.5.34"
@@ -28742,6 +28770,13 @@ __metadata:
   version: 2.29.3
   resolution: "moment@npm:2.29.3"
   checksum: 2e780e36d9a1823c08a1b6313cbb08bd01ecbb2a9062095820a34f42c878991ccba53abaa6abb103fd5c01e763724f295162a8c50b7e95b4f1c992ef0772d3f0
+  languageName: node
+  linkType: hard
+
+"moment@npm:^2.29.4":
+  version: 2.29.4
+  resolution: "moment@npm:2.29.4"
+  checksum: 0ec3f9c2bcba38dc2451b1daed5daded747f17610b92427bebe1d08d48d8b7bdd8d9197500b072d14e326dd0ccf3e326b9e3d07c5895d3d49e39b6803b76e80e
   languageName: node
   linkType: hard
 
@@ -29435,6 +29470,18 @@ __metadata:
   bin:
     node-gyp: bin/node-gyp.js
   checksum: b860e9976fa645ca0789c69e25387401b4396b93c8375489b5151a6c55cf2640a3b6183c212b38625ef7c508994930b72198338e3d09b9d7ade5acc4aaf51ea7
+  languageName: node
+  linkType: hard
+
+"node-ical@npm:^0.16.1":
+  version: 0.16.1
+  resolution: "node-ical@npm:0.16.1"
+  dependencies:
+    axios: 1.4.0
+    moment-timezone: ^0.5.31
+    rrule: 2.6.4
+    uuid: ^9.0.0
+  checksum: be917c2a38b5514d4ae8c3ae6563d298fa772082b76f428c534eaa2a3f30acbf97a4d010a04ac0d39851c838e41fe65b7f2467cb35b70d1587f870361309a8d8
   languageName: node
   linkType: hard
 
@@ -34330,6 +34377,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rrule@npm:2.6.4":
+  version: 2.6.4
+  resolution: "rrule@npm:2.6.4"
+  dependencies:
+    luxon: ^1.21.3
+    tslib: ^1.10.0
+  dependenciesMeta:
+    luxon:
+      optional: true
+  checksum: 510cddbdfae9d91dab84fe484d54cd0a46f2a9cfd58c24fe470b9341f511c3999abc06fd33735884a08b369f700d87cfd49b46999f2f30b11f5b07c43858d695
+  languageName: node
+  linkType: hard
+
 "rrule@npm:^2.7.1":
   version: 2.7.1
   resolution: "rrule@npm:2.7.1"
@@ -37547,7 +37607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.0.0, tslib@npm:^1.11.1, tslib@npm:^1.8.1, tslib@npm:^1.9.3":
+"tslib@npm:^1.0.0, tslib@npm:^1.10.0, tslib@npm:^1.11.1, tslib@npm:^1.8.1, tslib@npm:^1.9.3":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
