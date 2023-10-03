@@ -4,20 +4,22 @@ import getUserAdminTeams from "@calcom/ee/teams/lib/getUserAdminTeams";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import type { GetAppDataSchemaType } from "./getAppData.schema";
 
 type getAppData = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: GetAppDataSchemaType;
 };
 
-export async function getAppDataHandler({ ctx }: getAppData) {
+export async function getAppDataHandler({ ctx, input }: getAppData) {
   let appStore, userAdminTeams: UserAdminTeams;
   if (ctx.user.id) {
     userAdminTeams = await getUserAdminTeams({ userId: ctx.user.id, getUserInfo: true });
-    appStore = await getAppRegistryWithCredentials(ctx.user.id, userAdminTeams);
+    appStore = await getAppRegistryWithCredentials(ctx.user.id, userAdminTeams, input);
   } else {
-    appStore = await getAppRegistry();
+    appStore = await getAppRegistry(input);
     userAdminTeams = [];
   }
 

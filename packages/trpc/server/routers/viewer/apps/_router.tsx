@@ -1,6 +1,7 @@
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
+import { getAppDataSchema } from "./getAppData.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
@@ -144,7 +145,7 @@ export const appsRouter = router({
       input,
     });
   }),
-  getAppData: authedProcedure.query(async ({ ctx }) => {
+  getAppData: authedProcedure.input(getAppDataSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getAppData) {
       UNSTABLE_HANDLER_CACHE.getAppData = await import("./getAppData.handler").then(
         (mod) => mod.getAppDataHandler
@@ -158,6 +159,7 @@ export const appsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getAppData({
       ctx,
+      input,
     });
   }),
 });

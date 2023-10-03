@@ -9,6 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
   AllApps,
+  Button,
   AppStoreCategories,
   HorizontalTabs,
   TextField,
@@ -58,10 +59,25 @@ export default function Apps() {
 
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
-  // TODO: Consider implementing useInfinityQuery and intersection observer to infinitely scroll "All Apps".
-  // This would require seperating calls for popular and recently used so those filters are represented
-  // correctly in the frontend
-  const { data } = trpc.viewer.appsRouter.getAppData.useQuery();
+  // const { data } = trpc.viewer.appsRouter.getAppData.useQuery();
+
+  const query = trpc.viewer.appsRouter.getAppData.useInfiniteQuery(
+    {
+      limit: 10, // or any default page size
+    },
+    {
+      enabled: true,
+      // getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage, allPages) => {
+        const nextPageNumber = allPages.length + 1;
+        return { skip: nextPageNumber * 10, take: 10 };
+      },
+    }
+  );
+
+  console.log(query.data?.pages.flatMap((page) => page.appStore));
+
+  const data = query.data?.pages[0];
 
   return (
     <AppsLayout
@@ -94,6 +110,13 @@ export default function Apps() {
           categories={data?.categories.map((category) => category.name) ?? []}
           userAdminTeams={data?.userAdminTeams}
         />
+        <Button
+          color="minimal"
+          loading={query.isFetchingNextPage}
+          disabled={!query.hasNextPage}
+          onClick={() => query.fetchNextPage()}>
+          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
       </div>
     </AppsLayout>
   );
@@ -105,7 +128,7 @@ Apps.getLayout = getLayout;
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
 
-  await ssr.viewer.appsRouter.getAppData.prefetch();
+  // await ssr.viewer.appsRouter.getAppData.prefetch();
 
   return {
     props: {
