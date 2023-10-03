@@ -382,7 +382,7 @@ const SettingsSidebarContainer = ({
                                       alt={team.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate">{team.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">{team.name}</p>
                                   {!team.accepted && (
                                     <Badge className="ms-3" variant="orange">
                                       Inv.
@@ -526,7 +526,7 @@ const SettingsSidebarContainer = ({
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate">{otherTeam.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">

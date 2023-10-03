@@ -8,6 +8,7 @@ import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,7 +36,10 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 space-y-6 rounded-t-xl border border-b-0 px-4 py-6 sm:px-6">
+      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+        <SkeletonText className="h-8 w-1/3" />
+      </div>
+      <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
         <div className="flex items-center justify-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -56,9 +60,6 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-
-const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
-const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 const AppearanceView = ({
   user,
@@ -241,7 +242,7 @@ const AppearanceView = ({
                     <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                     <ColorPicker
                       defaultValue={user.brandColor}
-                      resetDefaultValue="#292929"
+                      resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
                       onChange={(value) => {
                         try {
                           checkWCAGContrastColor("#ffffff", value);
@@ -273,7 +274,7 @@ const AppearanceView = ({
                     <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                     <ColorPicker
                       defaultValue={user.darkBrandColor}
-                      resetDefaultValue="#fafafa"
+                      resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
                       onChange={(value) => {
                         try {
                           checkWCAGContrastColor("#101010", value);
