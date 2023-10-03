@@ -169,7 +169,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
 
   // If we have the booking and not bookingSeat, we need to make sure the booking belongs to the userLoggedIn
   // Otherwise, we return null here.
-  if (theBooking && theBooking.eventType.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
+  if (theBooking && theBooking?.eventType?.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
     const isOwnerOfBooking = theBooking.userId === userId;
 
     const isHostOfEventType = theBooking?.eventType?.hosts.some((host) => host.userId === userId);
