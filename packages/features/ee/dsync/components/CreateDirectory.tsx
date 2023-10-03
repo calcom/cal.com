@@ -66,7 +66,7 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
               </h2>
               <p className="mt-1 text-sm text-gray-500">{t("directory_sync_configure_description")}</p>
             </div>
-            <fieldset className="space-y-6">
+            <fieldset className="space-y-6 py-2">
               <Controller
                 control={form.control}
                 name="name"
