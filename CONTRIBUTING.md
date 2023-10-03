@@ -94,11 +94,13 @@ To develop locally:
 
 6. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
    ```sh
    nvm use
    ```
-   
+
    You first might need to install the specific version and then use it:
+
    ```sh
    nvm install && nvm use
    ```
@@ -134,6 +136,7 @@ yarn test-e2e
 ```
 
 #### Resolving issues
+
 ##### E2E test browsers not installed
 
 Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:

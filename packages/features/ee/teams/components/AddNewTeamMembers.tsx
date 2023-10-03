@@ -241,7 +241,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       )}
       data-testid="pending-member-item">
       <div className="mr-4 flex max-w-full space-x-2 overflow-hidden rtl:space-x-reverse">
-        <Avatar size="mdLg" imageSrc={bookerUrl + "/" + member.username + "/avatar.png"} alt="owner-avatar" />
+        <Avatar size="mdLg" imageSrc={`${bookerUrl}/${member.username}/avatar.png`} alt="owner-avatar" />
         <div className="max-w-full overflow-hidden">
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>

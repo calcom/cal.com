@@ -17,7 +17,7 @@ const processDate = (date: string | null | Dayjs, language: string, options?: Ex
       ? TimeFormat.TWELVE_HOUR
       : options?.selectedTimeFormat || detectBrowserTimeFormat
   );
-  return formattedTime + ", " + dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" });
+  return `${formattedTime}, ${dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" })}`;
 };
 
 export const parseDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
