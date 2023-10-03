@@ -1,3 +1,4 @@
+import type { GetBookingType } from "bookings/lib/get-booking";
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -13,10 +14,12 @@ export const BookingFields = ({
   locations,
   rescheduleUid,
   isDynamicGroupBooking,
+  bookingData,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
+  bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
 }) => {
   const { t } = useLocale();
@@ -32,7 +35,9 @@ export const BookingFields = ({
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
-          (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+          (field.editable === "system" || field.editable === "system-but-optional") &&
+          !!rescheduleUid &&
+          bookingData !== null;
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;
@@ -42,6 +47,9 @@ export const BookingFields = ({
         }
 
         if (field.name === SystemField.Enum.rescheduleReason) {
+          if (bookingData === null) {
+            return null;
+          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }

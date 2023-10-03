@@ -370,6 +370,7 @@ export const BookEventFormChild = ({
           fields={eventType.bookingFields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
+          bookingData={bookingData}
         />
         {(createBookingMutation.isError ||
           createRecurringBookingMutation.isError ||
@@ -399,8 +400,8 @@ export const BookEventFormChild = ({
             type="submit"
             color="primary"
             loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
-            data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid
+            data-testid={rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"}>
+            {rescheduleUid && bookingData
               ? t("reschedule")
               : renderConfirmNotVerifyEmailButtonCond
               ? t("confirm")
@@ -492,12 +493,14 @@ function useInitialFormValues({
       });
 
       const defaultUserValues = {
-        email: rescheduleUid
-          ? bookingData?.attendees[0].email
-          : parsedQuery["email"] || session.data?.user?.email || "",
-        name: rescheduleUid
-          ? bookingData?.attendees[0].name
-          : parsedQuery["name"] || session.data?.user?.name || "",
+        email:
+          rescheduleUid && bookingData
+            ? bookingData?.attendees[0].email
+            : parsedQuery["email"] || session.data?.user?.email || "",
+        name:
+          rescheduleUid && bookingData
+            ? bookingData?.attendees[0].name
+            : parsedQuery["name"] || session.data?.user?.name || session.data?.user?.username || "",
       };
 
       if (!isRescheduling) {

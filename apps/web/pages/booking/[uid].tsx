@@ -146,7 +146,7 @@ export default function Success(props: SuccessProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-  const { isCancellable } = props;
+  const { requiresLoginToUpdate } = props;
   function setIsCancellationMode(value: boolean) {
     const _searchParams = new URLSearchParams(searchParams);
 
@@ -532,7 +532,7 @@ export default function Success(props: SuccessProps) {
                     })}
                   </div>
                 </div>
-                {!isCancellable && (
+                {requiresLoginToUpdate && (
                   <>
                     <hr className="border-subtle mb-8" />
                     <div className="text-center">
@@ -552,7 +552,7 @@ export default function Success(props: SuccessProps) {
                     </div>
                   </>
                 )}
-                {isCancellable &&
+                {!requiresLoginToUpdate &&
                   (!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
@@ -1032,7 +1032,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
-  let isCancellable = true;
+  let requiresLoginToUpdate = false;
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
@@ -1044,9 +1044,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!parsedQuery.success) return { notFound: true };
   const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
+  const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
-      uid: await maybeGetBookingUidFromSeat(prisma, uid),
+      uid: maybeUid,
     },
     select: {
       title: true,
@@ -1111,7 +1112,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
-    isCancellable = false;
+    requiresLoginToUpdate = true;
   }
 
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
@@ -1182,7 +1183,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
-      isCancellable,
+      requiresLoginToUpdate,
     },
   };
 }

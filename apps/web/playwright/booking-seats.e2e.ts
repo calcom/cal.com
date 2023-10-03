@@ -598,4 +598,95 @@ test.describe("Reschedule for booking with seats", () => {
       .first();
     await expect(foundFirstAttendeeAgain).toHaveCount(1);
   });
+
+  test("Owner shouldn't be able to reschedule booking without login in", async ({
+    page,
+    bookings,
+    users,
+  }) => {
+    const { booking, user } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+    const getBooking = await booking.self();
+
+    await page.goto(`/booking/${booking.uid}`);
+    await expect(page.locator('[data-testid="reschedule"]')).toHaveCount(0);
+
+    // expect login text to be in the page, not data-testid
+    await expect(page.locator("text=Login")).toHaveCount(1);
+
+    // click on login button text
+    await page.locator("text=Login").click();
+
+    // expect to be redirected to login page with query parameter callbackUrl
+    await expect(page).toHaveURL(/\/auth\/login\?callbackUrl=.*/);
+
+    await user.apiLogin();
+
+    // manual redirect to booking page
+    await page.goto(`/booking/${booking.uid}`);
+
+    // expect login button to don't be in the page
+    await expect(page.locator("text=Login")).toHaveCount(0);
+
+    // reschedule-link click
+    await page.locator('[data-testid="reschedule-link"]').click();
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    // expect to be redirected to reschedule page
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    // should wait for URL but that path starts with booking/
+    await page.waitForURL(/\/booking\/.*/);
+
+    await expect(page).toHaveURL(/\/booking\/.*/);
+
+    await page.waitForLoadState("networkidle");
+
+    const updatedBooking = await prisma.booking.findFirst({
+      where: { id: booking.id },
+    });
+
+    expect(updatedBooking).not.toBeNull();
+    expect(getBooking?.startTime).not.toBe(updatedBooking?.startTime);
+    expect(getBooking?.endTime).not.toBe(updatedBooking?.endTime);
+    expect(updatedBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  test("Owner shouldn't be able to reschedule when going directly to booking/rescheduleUid", async ({
+    page,
+    bookings,
+    users,
+  }) => {
+    const { booking, user } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+    const getBooking = await booking.self();
+
+    await page.goto(`/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    // expect button confirm instead of reschedule
+    await expect(page.locator('[data-testid="confirm-book-button"]')).toHaveCount(1);
+
+    // now login and try again
+    await user.apiLogin();
+
+    await page.goto(`/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await expect(page).toHaveTitle(/(?!.*reschedule).*/);
+
+    // expect button reschedule
+    await expect(page.locator('[data-testid="confirm-reschedule-button"]')).toHaveCount(1);
+  });
+
+  // @TODO: force 404 when rescheduleUid is not found
 });
