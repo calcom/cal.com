@@ -3,8 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
-import getAppKeysFromSlug from "./getAppKeysFromSlug";
-
 export async function checkInstalled(slug: string, userId: number) {
   const alreadyInstalled = await prisma.credential.findFirst({
     where: {
@@ -23,22 +21,17 @@ export async function createDefaultInstallation({
   slug,
   key = {},
   teamId,
-  useAppKeys,
-  keysCustomFunc,
 }: {
   appType: string;
   userId: number;
   slug: string;
   key?: Prisma.InputJsonValue;
   teamId?: number;
-  useAppKeys?: boolean;
-  keysCustomFunc?: (arg0: Prisma.JsonObject) => string;
 }) {
-  const appKeys = await getAppKeysFromSlug(slug);
   const installation = await prisma.credential.create({
     data: {
       type: appType,
-      key: useAppKeys && keysCustomFunc ? keysCustomFunc(appKeys) : key,
+      key,
       ...(teamId ? { teamId } : { userId }),
       appId: slug,
     },
