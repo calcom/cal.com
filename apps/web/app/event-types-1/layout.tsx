@@ -1,5 +1,3 @@
-"use client";
-
 import { headers } from "next/headers";
 import { type ReactElement } from "react";
 

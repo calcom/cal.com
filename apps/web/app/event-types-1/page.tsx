@@ -15,6 +15,4 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EventTypesPage(props: Record<string, unknown>) {
-  return <EventTypes {...props} />;
-}
+export default EventTypes;
