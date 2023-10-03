@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (response.status !== 200) {
     log.error("get user_access_token failed", responseBody);
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   // Find the admin id from the accompte thanks to access_token and store it
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (admin.status !== 200) {
     log.error("get admin_id failed", adminBody);
-    return res.redirect("/apps/installed?error=" + JSON.stringify(adminBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(adminBody)}`);
   }
 
   const adminId = adminBody.id;
@@ -86,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   res.redirect(
-    getSafeRedirectUrl(CAL_URL + "/apps/installed/automation?hl=intercom") ??
+    getSafeRedirectUrl(`${CAL_URL}/apps/installed/automation?hl=intercom`) ??
       getInstalledAppPath({ variant: "automation", slug: "intercom" })
   );
 }

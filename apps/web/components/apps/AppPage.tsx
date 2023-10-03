@@ -265,8 +265,8 @@ export const AppPage = ({
 
         {price !== 0 && (
           <span className="block text-right">
-            {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
-            {feeType === "monthly" && "/" + t("month")}
+            {feeType === "usage-based" ? `${commission}% + ${priceInDollar}/booking` : priceInDollar}
+            {feeType === "monthly" && `/${t("month")}`}
           </span>
         )}
 
@@ -286,7 +286,7 @@ export const AppPage = ({
                 currency: "USD",
                 useGrouping: false,
               }).format(price)}
-              {feeType === "monthly" && "/" + t("month")}
+              {feeType === "monthly" && `/${t("month")}`}
             </>
           )}
         </span>
@@ -323,7 +323,7 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={"mailto:" + email}>
+                href={`mailto:${email}`}>
                 <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}

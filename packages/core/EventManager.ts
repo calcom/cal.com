@@ -477,9 +477,7 @@ export default class EventManager {
      * */
     if (!videoCredential) {
       log.warn(
-        'Falling back to "daily" video integration for event with location: ' +
-          event.location +
-          " because credential is missing for the app"
+        `Falling back to "daily" video integration for event with location: ${event.location} because credential is missing for the app`
       );
       videoCredential = { ...FAKE_DAILY_CREDENTIAL };
     }
