@@ -1,4 +1,5 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
+import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { CalendarX2, ChevronRight } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -59,7 +60,9 @@ const SlotItem = ({
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
 
-  const { isOverlapping } = useCheckOverlapWithOverlay(computedDateWithUsersTimezone);
+  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay(
+    computedDateWithUsersTimezone
+  );
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
@@ -132,16 +135,32 @@ const SlotItem = ({
           )}
         </Button>
         {overlapConfirm && isOverlapping && (
-          <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
-            <Button
-              variant={layout === "column_view" ? "icon" : "button"}
-              StartIcon={layout === "column_view" ? ChevronRight : undefined}
-              onClick={() =>
-                onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-              }>
-              {layout !== "column_view" && t("confirm")}
-            </Button>
-          </m.div>
+          <HoverCard.Root>
+            <HoverCard.Trigger asChild>
+              <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+                <Button
+                  variant={layout === "column_view" ? "icon" : "button"}
+                  StartIcon={layout === "column_view" ? ChevronRight : undefined}
+                  onClick={() =>
+                    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                  }>
+                  {layout !== "column_view" && t("confirm")}
+                </Button>
+              </m.div>
+            </HoverCard.Trigger>
+            <HoverCard.Portal>
+              <HoverCard.Content side="top" align="end" sideOffset={2}>
+                <div className="text-emphasis bg-inverted text-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
+                  <div className="flex items-center gap-2">
+                    <p>Busy</p>
+                  </div>
+                  <p className="text-muted">
+                    {overlappingTimeStart} - {overlappingTimeEnd}
+                  </p>
+                </div>
+              </HoverCard.Content>
+            </HoverCard.Portal>
+          </HoverCard.Root>
         )}
       </div>
     </AnimatePresence>
