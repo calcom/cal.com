@@ -3,7 +3,7 @@ import type { Credential, SelectedCalendar, DestinationCalendar } from "@prisma/
 import type { EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-function getBooleanStatus<T extends unknown>(val: T) {
+function getBooleanStatus(val: unknown) {
   if (process.env.NODE_ENV === "production") {
     return `PiiFree:${!!val}`;
   } else {
@@ -24,6 +24,7 @@ export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
     recurrence: calEvent.recurrence,
     requiresConfirmation: calEvent.requiresConfirmation,
     uid: calEvent.uid,
+    conferenceCredentialId: calEvent.conferenceCredentialId,
     iCalUID: calEvent.iCalUID,
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not

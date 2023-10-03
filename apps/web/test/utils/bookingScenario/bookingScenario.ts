@@ -9,12 +9,14 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -52,12 +54,14 @@ type ScenarioData = {
   /**
    * Prisma would return these apps
    */
-  apps?: App[];
+  apps?: Partial<AppMeta>[];
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
 };
 
-type InputCredential = typeof TestData.credentials.google;
+type InputCredential = typeof TestData.credentials.google & {
+  id?: number;
+};
 
 type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 
@@ -141,18 +145,20 @@ async function addEventTypesToDb(
   await prismock.eventType.createMany({
     data: eventTypes,
   });
+  const allEventTypes = await prismock.eventType.findMany({
+    include: {
+      users: true,
+      workflows: true,
+      destinationCalendar: true,
+    },
+  });
   log.silly(
     "TestData: All EventTypes in DB are",
     JSON.stringify({
-      eventTypes: await prismock.eventType.findMany({
-        include: {
-          users: true,
-          workflows: true,
-          destinationCalendar: true,
-        },
-      }),
+      eventTypes: allEventTypes,
     })
   );
+  return allEventTypes;
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -200,7 +206,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  await addEventTypesToDb(eventTypesWithUsers);
+  return await addEventTypesToDb(eventTypesWithUsers);
 }
 
 function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
@@ -292,7 +298,13 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   log.silly(
     "Added users to Db",
     safeStringify({
-      allUsers: await prismock.user.findMany(),
+      allUsers: await prismock.user.findMany({
+        include: {
+          credentials: true,
+          schedules: true,
+          destinationCalendar: true,
+        },
+      }),
     })
   );
 }
@@ -343,16 +355,27 @@ async function addUsers(users: InputUser[]) {
   await addUsersToDb(prismaUsersCreate);
 }
 
+async function addAppsToDb(apps: any[]) {
+  log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
+  await prismock.app.createMany({
+    data: apps,
+  });
+  const allApps = await prismock.app.findMany();
+  log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
+}
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
-
-  const eventType = await addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
-    prismock.app.createMany({
-      data: data.apps,
-    });
+    await addAppsToDb(
+      data.apps.map((app) => {
+        // Enable the app by default
+        return { enabled: true, ...app };
+      })
+    );
   }
+  const eventTypes = await addEventTypes(data.eventTypes, data.users);
+
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
   await addBookings(data.bookings);
@@ -360,7 +383,7 @@ export async function createBookingScenario(data: ScenarioData) {
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
   return {
-    eventType,
+    eventTypes,
   };
 }
 
@@ -532,9 +555,7 @@ export const TestData = {
   },
   apps: {
     "google-calendar": {
-      slug: "google-calendar",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.googlecalendar,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -545,9 +566,7 @@ export const TestData = {
       },
     },
     "daily-video": {
-      slug: "daily-video",
-      dirName: "whatever",
-      enabled: true,
+      ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -560,9 +579,7 @@ export const TestData = {
       },
     },
     zoomvideo: {
-      slug: "zoom",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.zoomvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -575,10 +592,7 @@ export const TestData = {
       },
     },
     "stripe-payment": {
-      //TODO: Read from appStoreMeta
-      slug: "stripe",
-      enabled: true,
-      dirName: "stripepayment",
+      ...appStoreMetadata.stripepayment,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -1036,4 +1050,25 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
+}
+
+export function getExpectedCalEventForBookingRequest({
+  bookingRequest,
+  eventType,
+}: {
+  bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
+  eventType: any;
+}) {
+  return {
+    // keep adding more fields as needed, so that they can be verified in all scenarios
+    type: eventType.title,
+    // Not sure why, but milliseconds are missing in cal Event.
+    startTime: bookingRequest.start.replace(".000Z", "Z"),
+    endTime: bookingRequest.end.replace(".000Z", "Z"),
+  };
+}
+
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
 }

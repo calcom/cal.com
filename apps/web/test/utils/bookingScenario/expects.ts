@@ -616,19 +616,18 @@ export function expectSuccessfulVideoMeetingCreation(
     updateMeetingCalls: any[];
   },
   expected: {
-    externalCalendarId: string;
-    calEvent: Partial<CalendarEvent>;
-    uid: string;
+    credential: any;
+    calEvent: any;
   }
 ) {
   expect(videoMock.createMeetingCalls.length).toBe(1);
   const call = videoMock.createMeetingCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
-  expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  const callArgs = call.args;
+  const calEvent = callArgs[0];
+  const credential = call.credential;
+
+  expect(credential).toEqual(expected.credential);
+  expect(calEvent).toEqual(expected.calEvent);
 }
 
 export function expectSuccessfulVideoMeetingUpdationInCalendar(
@@ -646,8 +645,8 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
 ) {
   expect(videoMock.updateMeetingCalls.length).toBe(1);
   const call = videoMock.updateMeetingCalls[0];
-  const bookingRef = call[0];
-  const calendarEvent = call[1];
+  const bookingRef = call.args[0];
+  const calendarEvent = call.args[1];
   expect(bookingRef).toEqual(expect.objectContaining(expected.bookingRef));
   expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
 }

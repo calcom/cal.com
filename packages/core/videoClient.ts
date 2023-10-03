@@ -100,7 +100,8 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       },
     });
 
-    if (!enabledApp?.enabled) throw "Current location app is not enabled";
+    if (!enabledApp?.enabled)
+      throw `Location app ${credential.appId} is either disabled or not seeded at all`;
 
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
