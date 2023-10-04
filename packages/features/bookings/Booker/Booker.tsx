@@ -102,18 +102,21 @@ const BookerComponent = ({
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const totalWeekDays = 7;
-  const addonDays =
-    nonEmptyScheduleDays.length < extraDays
-      ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
-      : nonEmptyScheduleDays.length === extraDays
-      ? totalWeekDays
-      : 0;
+  const addonDays = nonEmptyScheduleDays.length < extraDays ? extraDays - nonEmptyScheduleDays.length + 2 : 0;
 
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
-      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+      Math.abs(
+        dayjs(selectedDate).diff(
+          availableSlots[
+            availableSlots.length <= extraDays ? availableSlots.length - 1 : availableSlots.length - 2
+          ],
+          "day"
+        )
+      ) + addonDays;
+
   const prefetchNextMonth =
     dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
   const monthCount =
