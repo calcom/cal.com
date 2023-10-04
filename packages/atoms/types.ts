@@ -9,4 +9,5 @@ export interface AtomsGlobalConfigProps {
 export interface ConnectButtonProps {
   buttonText?: string;
   onButtonClick: (payload: { cb: (err: { error: { message: string } } | null) => void }) => Promise<void>;
+  stylesClassname?: string;
 }
