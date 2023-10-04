@@ -3,6 +3,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Switch } from "@calcom/ui";
 import { Settings } from "@calcom/ui/components/icon";
@@ -14,6 +15,7 @@ import { useLocalSet } from "../hooks/useLocalSet";
 import { useOverlayCalendarStore } from "./store";
 
 export function OverlayCalendarContainer() {
+  const { t } = useLocale();
   const [continueWithProvider, setContinueWithProvider] = useState(false);
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
@@ -100,7 +102,7 @@ export function OverlayCalendarContainer() {
           <label
             htmlFor="overlayCalendar"
             className="text-emphasis text-sm font-medium leading-none hover:cursor-pointer">
-            Overlay my calendar
+            {t("overlay_my_calendar")}
           </label>
         </div>
         {session && (

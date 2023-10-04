@@ -1,6 +1,8 @@
 import { CalendarSearch } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { APP_NAME } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
 
 interface IOverlayCalendarContinueModalProps {
@@ -10,14 +12,14 @@ interface IOverlayCalendarContinueModalProps {
 
 export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModalProps) {
   const router = useRouter();
+  const { t } = useLocale();
   return (
     <>
       <Dialog open={props.open} onOpenChange={props.onClose}>
         <DialogContent
           type="creation"
-          title="Overlay my calendar"
-          description="By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke
-            access at any time.">
+          title={t("overlay_my_calendar")}
+          description={t("overlay_my_calendar_toc")}>
           <div className="flex flex-col gap-2">
             <Button
               onClick={() => {
@@ -30,19 +32,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
               }}
               className="gap w-full items-center justify-center font-semibold"
               StartIcon={CalendarSearch}>
-              Continue with Cal.com
-            </Button>
-            <Button
-              className="gap w-full items-center justify-center"
-              StartIcon={CalendarSearch}
-              color="secondary">
-              Continue with Google
-            </Button>
-            <Button
-              className="gap w-full items-center justify-center"
-              StartIcon={CalendarSearch}
-              color="secondary">
-              Continue with Microsoft
+              {t("continue_with", { appName: APP_NAME })}
             </Button>
           </div>
           <DialogFooter>
