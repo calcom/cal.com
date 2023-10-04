@@ -34,7 +34,7 @@ function WorkflowsPage() {
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace("/workflows/" + workflow.id);
+      await router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -120,7 +120,7 @@ const Filter = (props: {
   const userId = session.data?.user.id || 0;
   const user = session.data?.user.name || "";
   const userName = session.data?.user.username;
-  const userAvatar = WEBAPP_URL + "/" + userName + "/avatar.png";
+  const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
 
   const teams = props.profiles.filter((profile) => !!profile.teamId);
   const { checked, setChecked } = props;

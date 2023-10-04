@@ -692,7 +692,7 @@
   "slot_interval_default": "Bruk hendelseslengde (standard)",
   "delete_account": "Slett konto",
   "confirm_delete_account": "Ja, slett konto",
-  "delete_account_confirmation_message": "Er du sikker på at du vil slette {{appName}}-kontoen din? Alle du har delt konto-lenken med, vil ikke lenger kunne booke ved å bruke den, og eventuelle innstillinger du har lagret vil gå tapt.",
+  "delete_account_confirmation_message": "Alle du har delt konto-lenken med, vil ikke lenger kunne booke ved å bruke den, og eventuelle innstillinger du har lagret vil gå tapt.",
   "integrations": "Integrasjoner",
   "apps": "Apper",
   "apps_description": "Her finner du en liste over appene dine",

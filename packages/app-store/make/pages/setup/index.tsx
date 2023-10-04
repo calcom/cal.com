@@ -1,4 +1,4 @@
-import type { InferGetStaticPropsType } from "next";
+import type { InferGetServerSidePropsType } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -9,11 +9,11 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
-import type { getStaticProps } from "./_getStaticProps";
+import type { getServerSideProps } from "./_getServerSideProps";
 
 const MAKE = "make";
 
-export default function MakeSetup({ inviteLink }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
 
   const { t } = useLocale();
