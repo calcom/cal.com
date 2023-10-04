@@ -124,6 +124,7 @@ export const AddNewTeamMembersForm = ({
                 {
                   onSuccess: async (data) => {
                     await utils.viewer.teams.get.invalidate();
+                    await utils.viewer.organizations.getMembers.invalidate();
                     setMemberInviteModal(false);
                     if (data.sendEmailInvitation) {
                       if (Array.isArray(data.usernameOrEmail)) {
@@ -221,6 +222,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
+      await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("member_removed"), "success");
     },
     async onError(err) {
