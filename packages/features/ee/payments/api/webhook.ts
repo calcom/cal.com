@@ -5,21 +5,19 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import dayjs from "@calcom/dayjs";
-import { sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
+import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { getBooking } from "@calcom/lib/payment/getBooking";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { bookingMinimalSelect, prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+
+const log = logger.getChildLogger({ prefix: ["[paymentWebhook]"] });
 
 export const config = {
   api: {
@@ -27,109 +25,7 @@ export const config = {
   },
 };
 
-async function getEventType(id: number) {
-  return prisma.eventType.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      recurringEvent: true,
-      requiresConfirmation: true,
-      metadata: true,
-    },
-  });
-}
-
-async function getBooking(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      eventType: true,
-      smsReminderNumber: true,
-      location: true,
-      eventTypeId: true,
-      userId: true,
-      uid: true,
-      paid: true,
-      destinationCalendar: true,
-      status: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          timeZone: true,
-          timeFormat: true,
-          email: true,
-          name: true,
-          locale: true,
-          destinationCalendar: true,
-        },
-      },
-    },
-  });
-
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
-
-  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
-  let eventTypeRaw: EventTypeRaw | null = null;
-  if (booking.eventTypeId) {
-    eventTypeRaw = await getEventType(booking.eventTypeId);
-  }
-
-  const eventType = { ...eventTypeRaw, metadata: EventTypeMetaDataSchema.parse(eventTypeRaw?.metadata) };
-
-  const { user } = booking;
-
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  const t = await getTranslation(user.locale ?? "en", "common");
-  const attendeesListPromises = booking.attendees.map(async (attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  });
-
-  const attendeesList = await Promise.all(attendeesListPromises);
-  const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
-  const evt: CalendarEvent = {
-    type: booking.title,
-    title: booking.title,
-    description: booking.description || undefined,
-    startTime: booking.startTime.toISOString(),
-    endTime: booking.endTime.toISOString(),
-    customInputs: isPrismaObjOrUndefined(booking.customInputs),
-    organizer: {
-      email: user.email,
-      name: user.name!,
-      timeZone: user.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-      language: { translate: t, locale: user.locale ?? "en" },
-      id: user.id,
-    },
-    attendees: attendeesList,
-    uid: booking.uid,
-    destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
-    recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
-  };
-
-  return {
-    booking,
-    user,
-    evt,
-    eventType,
-  };
-}
-
-async function handleStripePaymentSuccess(event: Stripe.Event) {
+export async function handleStripePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -140,8 +36,10 @@ async function handleStripePaymentSuccess(event: Stripe.Event) {
       bookingId: true,
     },
   });
+
   if (!payment?.bookingId) {
-    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
+    log.error(JSON.stringify(paymentIntent), JSON.stringify(payment));
+    throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
@@ -164,34 +62,16 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     paid: true,
   };
 
-  const userWithCredentials = await prisma.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      email: true,
-      name: true,
-      locale: true,
-      destinationCalendar: true,
-      credentials: { select: credentialForCalendarServiceSelect },
+  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
+
+  const requiresConfirmation = doesBookingRequireConfirmation({
+    booking: {
+      ...booking,
+      eventType,
     },
   });
-
-  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  let requiresConfirmation = eventType?.requiresConfirmation;
-  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
-  if (rcThreshold) {
-    if (dayjs(dayjs(booking.startTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
-      requiresConfirmation = false;
-    }
-  }
-
   if (!requiresConfirmation) {
-    const eventManager = new EventManager(userWithCredentials);
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
@@ -218,7 +98,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!requiresConfirmation) {
     await handleConfirmation({
-      user: userWithCredentials,
+      user,
       evt,
       prisma,
       bookingId: booking.id,
