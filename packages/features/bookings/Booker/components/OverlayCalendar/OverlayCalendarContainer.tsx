@@ -89,6 +89,7 @@ export function OverlayCalendarContainer() {
       <div className="flex gap-2">
         <div className="flex items-center gap-2 pr-2">
           <Switch
+            data-testid="overlay-calendar-switch"
             checked={overlayCalendarQueryParam === "true"}
             id="overlayCalendar"
             onCheckedChange={(state) => {
@@ -108,6 +109,7 @@ export function OverlayCalendarContainer() {
         {session && (
           <Button
             size="base"
+            data-testid="overlay-calendar-settings-button"
             variant="icon"
             color="secondary"
             StartIcon={Settings}

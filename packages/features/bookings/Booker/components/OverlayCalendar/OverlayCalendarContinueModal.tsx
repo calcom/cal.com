@@ -22,6 +22,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
           description={t("overlay_my_calendar_toc")}>
           <div className="flex flex-col gap-2">
             <Button
+              data-testid="overlay-calendar-continue-button"
               onClick={() => {
                 const currentUrl = new URL(window.location.href);
                 currentUrl.pathname = "/login/";
