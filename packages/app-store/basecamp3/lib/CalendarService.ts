@@ -105,14 +105,9 @@ export default class BasecampCalendarService implements Calendar {
       minute: "numeric",
     });
     const baseString = `<div>Event title: ${event.title}<br/>Date and time: ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal.com: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
-    const guestString =
-      "<br/>Guests: " +
-      event.attendees.reduce((acc, attendee) => {
-        return (
-          acc +
-          `<br/><a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`
-        );
-      }, "");
+    const guestString = `<br/>Guests: ${event.attendees.reduce((acc, attendee) => {
+      return `${acc}<br/><a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`;
+    }, "")}`;
 
     const videoString = event.videoCallData
       ? `<br/>Join on video: ${event.videoCallData.url}</div>`

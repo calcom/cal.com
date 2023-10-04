@@ -372,7 +372,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={bookerUrl + "/" + user.username + "/avatar.png"}
+              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />

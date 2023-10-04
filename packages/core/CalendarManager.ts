@@ -231,7 +231,7 @@ export const createEvent = async (
 
   log.debug(
     "Creating calendar event",
-    JSON.stringify({
+    safeStringify({
       calEvent: getPiiFreeCalendarEvent(calEvent),
     })
   );
@@ -267,11 +267,20 @@ export const createEvent = async (
         })
     : undefined;
   if (!creationResult) {
-    logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
+    logger.error(
+      "createEvent failed",
+      safeStringify({
+        success,
+        uid,
+        creationResult,
+        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        calError,
+      })
+    );
   }
   log.debug(
     "Created calendar event",
-    JSON.stringify({
+    safeStringify({
       calEvent: getPiiFreeCalendarEvent(calEvent),
       creationResult,
     })
