@@ -92,7 +92,6 @@ export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<Desti
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
     externalId: getBooleanStatus(destinationCalendar.externalId),
-    credentialId: getBooleanStatus(destinationCalendar.credentialId),
   };
 }
 

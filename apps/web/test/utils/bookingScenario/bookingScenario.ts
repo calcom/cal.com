@@ -61,15 +61,18 @@ type InputCredential = typeof TestData.credentials.google & {
 
 type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 
-type InputUser = typeof TestData.users.example & { id: number } & {
+type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
+  id: number;
+  defaultScheduleId?: number | null;
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
   schedules: {
-    id: number;
+    // Allows giving id in the input directly so that it can be referenced somewhere else as well
+    id?: number;
     name: string;
     availability: {
-      userId: number | null;
-      eventTypeId: number | null;
+      // userId: number | null;
+      // eventTypeId: number | null;
       days: number[];
       startTime: Date;
       endTime: Date;
@@ -97,7 +100,8 @@ export type InputEventType = {
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
+  schedule?: InputUser["schedules"][number];
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
 type InputBooking = {
   id?: number;
@@ -146,8 +150,39 @@ async function addEventTypesToDb(
       users: true,
       workflows: true,
       destinationCalendar: true,
+      schedule: true,
     },
   });
+
+  /**
+   * This is a hack to get the relationship of schedule to be established with eventType. Looks like a prismock bug that creating eventType along with schedule.create doesn't establish the relationship.
+   * HACK STARTS
+   */
+  log.silly("Fixed possible prismock bug by creating schedule separately");
+  for (let i = 0; i < eventTypes.length; i++) {
+    const eventType = eventTypes[i];
+    const createdEventType = allEventTypes[i];
+
+    if (eventType.schedule) {
+      log.silly("TestData: Creating Schedule for EventType", JSON.stringify(eventType));
+      await prismock.schedule.create({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        data: {
+          ...eventType.schedule.create,
+          eventType: {
+            connect: {
+              id: createdEventType.id,
+            },
+          },
+        },
+      });
+    }
+  }
+  /***
+   *  HACK ENDS
+   */
+
   log.silly(
     "TestData: All EventTypes in DB are",
     JSON.stringify({
@@ -199,9 +234,23 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
             create: eventType.destinationCalendar,
           }
         : eventType.destinationCalendar,
+      schedule: eventType.schedule
+        ? {
+            create: {
+              ...eventType.schedule,
+              availability: {
+                createMany: {
+                  data: eventType.schedule.availability,
+                },
+              },
+            },
+          }
+        : eventType.schedule,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   return await addEventTypesToDb(eventTypesWithUsers);
 }
 
@@ -291,13 +340,18 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   await prismock.user.createMany({
     data: users,
   });
+
   log.silly(
     "Added users to Db",
     safeStringify({
       allUsers: await prismock.user.findMany({
         include: {
           credentials: true,
-          schedules: true,
+          schedules: {
+            include: {
+              availability: true,
+            },
+          },
           destinationCalendar: true,
         },
       }),
@@ -351,6 +405,7 @@ async function addUsers(users: InputUser[]) {
   await addUsersToDb(prismaUsersCreate);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addAppsToDb(apps: any[]) {
   log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
   await prismock.app.createMany({
@@ -502,12 +557,11 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
+          // userId: null,
+          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
@@ -516,21 +570,54 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    /**
+     * Has an overlap with IstEveningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstMorningShift: {
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstEveningShift: {
+      name: "5:00PM to 10PM in India - 11:30AM to 16:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T17:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
+          // userId: null,
+          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
         {
-          userId: null,
-          eventTypeId: null,
+          // userId: null,
+          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date(`1970-01-01T14:00:00.000Z`),
           endTime: new Date(`1970-01-01T18:00:00.000Z`),
@@ -618,6 +705,7 @@ export function getOrganizer({
   credentials,
   selectedCalendars,
   destinationCalendar,
+  defaultScheduleId,
 }: {
   name: string;
   email: string;
@@ -625,6 +713,7 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
@@ -636,6 +725,7 @@ export function getOrganizer({
     credentials,
     selectedCalendars,
     destinationCalendar,
+    defaultScheduleId,
   };
 }
 
@@ -866,7 +956,9 @@ export function mockVideoApp({
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
   log.silly("mockSuccessfulVideoMeetingCreation", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createMeetingCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
@@ -1053,6 +1145,7 @@ export function getExpectedCalEventForBookingRequest({
   eventType,
 }: {
   bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   eventType: any;
 }) {
   return {
