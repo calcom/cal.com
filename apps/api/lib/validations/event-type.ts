@@ -74,6 +74,7 @@ const schemaEventTypeCreateParams = z
     seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
     scheduleId: z.number().optional(),
+    parentId: z.number().optional(),
   })
   .strict();
 
