@@ -11,6 +11,7 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -33,6 +34,7 @@ import {
   mockCalendar,
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
+  BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
@@ -47,9 +49,9 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import { createMockNextJsRequest } from "./createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
-import { setupAndTeardown } from "./setupAndTeardown";
+import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
+import { setupAndTeardown } from "./lib/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -59,7 +61,7 @@ const timeout = process.env.CI ? 5000 : 20000;
 describe("handleNewBooking", () => {
   setupAndTeardown();
 
-  describe("Fresh Booking:", () => {
+  describe("Fresh/New Booking:", () => {
     test(
       `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
           1. Should create a booking in the database
@@ -141,7 +143,7 @@ describe("handleNewBooking", () => {
             responses: {
               email: booker.email,
               name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
+              location: { optionValue: "", value: BookingLocations.CalVideo },
             },
           },
         });
@@ -158,7 +160,7 @@ describe("handleNewBooking", () => {
         });
 
         expect(createdBooking).toContain({
-          location: "integrations:daily",
+          location: BookingLocations.CalVideo,
         });
 
         await expectBookingToBeInDatabase({
@@ -169,14 +171,14 @@ describe("handleNewBooking", () => {
           status: BookingStatus.ACCEPTED,
           references: [
             {
-              type: "daily_video",
+              type: appStoreMetadata.dailyvideo.type,
               uid: "MOCK_ID",
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASS",
               meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
             },
             {
-              type: "google_calendar",
+              type: appStoreMetadata.googlecalendar.type,
               uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
@@ -201,7 +203,7 @@ describe("handleNewBooking", () => {
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,
           organizer,
-          location: "integrations:daily",
+          location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
         });
@@ -286,7 +288,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -303,7 +305,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -314,14 +316,14 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -348,7 +350,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
@@ -434,7 +436,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -451,7 +453,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -462,14 +464,14 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -494,7 +496,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
@@ -588,7 +590,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 // A reference is still created in case of event creation failure, with nullish values. Not sure what's the purpose for this.
                 uid: "",
                 meetingId: null,
@@ -695,7 +697,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -712,7 +714,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -723,14 +725,14 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -755,7 +757,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
@@ -823,7 +825,7 @@ describe("handleNewBooking", () => {
                 responses: {
                   email: booker.email,
                   name: booker.name,
-                  location: { optionValue: "", value: "integrations:zoom" },
+                  location: { optionValue: "", value: BookingLocations.ZoomVideo },
                 },
               },
             }),
@@ -841,7 +843,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:zoom",
+            location: BookingLocations.ZoomVideo,
             subscriberUrl,
             videoCallUrl: "http://mock-zoomvideo.example.com",
           });
@@ -908,7 +910,7 @@ describe("handleNewBooking", () => {
                 responses: {
                   email: booker.email,
                   name: booker.name,
-                  location: { optionValue: "", value: "integrations:zoom" },
+                  location: { optionValue: "", value: BookingLocations.ZoomVideo },
                 },
               },
             }),
@@ -920,7 +922,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:zoom",
+            location: BookingLocations.ZoomVideo,
             subscriberUrl,
             videoCallUrl: null,
           });
@@ -1164,7 +1166,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -1181,7 +1183,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -1203,7 +1205,7 @@ describe("handleNewBooking", () => {
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl,
             eventType: scenarioData.eventTypes[0],
           });
@@ -1286,7 +1288,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -1303,7 +1305,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -1326,7 +1328,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl,
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
@@ -1408,7 +1410,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -1425,7 +1427,7 @@ describe("handleNewBooking", () => {
           });
 
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
           });
 
           await expectBookingToBeInDatabase({
@@ -1443,7 +1445,7 @@ describe("handleNewBooking", () => {
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl,
             eventType: scenarioData.eventTypes[0],
           });
@@ -1502,7 +1504,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           }),
@@ -1707,7 +1709,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -1723,7 +1725,7 @@ describe("handleNewBooking", () => {
             name: booker.name,
           });
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             paymentUid: paymentUid,
           });
           await expectBookingToBeInDatabase({
@@ -1739,7 +1741,7 @@ describe("handleNewBooking", () => {
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             paymentId: createdBooking.paymentId!,
@@ -1759,7 +1761,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
             paidEvent: true,
@@ -1849,7 +1851,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -1864,7 +1866,7 @@ describe("handleNewBooking", () => {
             name: booker.name,
           });
           expect(createdBooking).toContain({
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             paymentUid: paymentUid,
           });
           await expectBookingToBeInDatabase({
@@ -1879,7 +1881,7 @@ describe("handleNewBooking", () => {
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             paymentId: createdBooking.paymentId!,
@@ -1898,7 +1900,7 @@ describe("handleNewBooking", () => {
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl,
             paidEvent: true,
             eventType: scenarioData.eventTypes[0],
@@ -1909,13 +1911,5 @@ describe("handleNewBooking", () => {
     });
   });
 
-  test.todo("Managed Event Type booking");
-
-  test.todo("Dynamic Group Booking");
-
   test.todo("CRM calendar events creation verification");
-
-  describe("Booking Limits", () => {
-    test.todo("Test these cases that were failing earlier https://github.com/calcom/cal.com/pull/10480");
-  });
 });

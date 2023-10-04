@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -30,9 +31,9 @@ import {
   expectSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import { createMockNextJsRequest } from "./createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
-import { setupAndTeardown } from "./setupAndTeardown";
+import { createMockNextJsRequest } from "../lib/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "../lib/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../lib/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -67,7 +68,7 @@ describe("handleNewBooking", () => {
               credentials: [getGoogleCalendarCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
               destinationCalendar: {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             },
@@ -81,7 +82,7 @@ describe("handleNewBooking", () => {
             credentials: [getGoogleCalendarCredential()],
             selectedCalendars: [TestData.selectedCalendars.google],
             destinationCalendar: {
-              integration: "google_calendar",
+              integration: TestData.apps["google-calendar"].type,
               externalId: "organizer@google-calendar.com",
             },
           });
@@ -113,7 +114,7 @@ describe("handleNewBooking", () => {
                     },
                   ],
                   destinationCalendar: {
-                    integration: "google_calendar",
+                    integration: TestData.apps["google-calendar"].type,
                     externalId: "event-type-1@google-calendar.com",
                   },
                 },
@@ -125,7 +126,7 @@ describe("handleNewBooking", () => {
           );
 
           mockSuccessfulVideoMeetingCreation({
-            metadataLookupKey: "dailyvideo",
+            metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
             videoMeetingData: {
               id: "MOCK_ID",
               password: "MOCK_PASS",
@@ -160,7 +161,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             responses: expect.objectContaining({
               email: booker.email,
               name: booker.name,
@@ -171,14 +172,14 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
               {
-                type: "google_calendar",
+                type: TestData.apps["google-calendar"].type,
                 uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -191,11 +192,11 @@ describe("handleNewBooking", () => {
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             destinationCalendars: [
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "event-type-1@google-calendar.com",
               },
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             ],
@@ -213,13 +214,14 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
         },
         timeout
       );
+
       test(
         `When Cal Video is the location, it uses global instance credentials and createMeeting is called for it`,
         async ({ emails }) => {
@@ -241,7 +243,7 @@ describe("handleNewBooking", () => {
               credentials: [getGoogleCalendarCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
               destinationCalendar: {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             },
@@ -256,7 +258,7 @@ describe("handleNewBooking", () => {
             credentials: [getGoogleCalendarCredential()],
             selectedCalendars: [TestData.selectedCalendars.google],
             destinationCalendar: {
-              integration: "google_calendar",
+              integration: TestData.apps["google-calendar"].type,
               externalId: "organizer@google-calendar.com",
             },
           });
@@ -288,7 +290,7 @@ describe("handleNewBooking", () => {
                     },
                   ],
                   destinationCalendar: {
-                    integration: "google_calendar",
+                    integration: TestData.apps["google-calendar"].type,
                     externalId: "event-type-1@google-calendar.com",
                   },
                 },
@@ -300,7 +302,7 @@ describe("handleNewBooking", () => {
           );
 
           const videoMock = mockSuccessfulVideoMeetingCreation({
-            metadataLookupKey: "dailyvideo",
+            metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
             videoMeetingData: {
               id: "MOCK_ID",
               password: "MOCK_PASS",
@@ -323,7 +325,7 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                location: { optionValue: "", value: "integrations:daily" },
+                location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
           });
@@ -337,7 +339,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             responses: expect.objectContaining({
               email: booker.email,
               name: booker.name,
@@ -348,14 +350,14 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -368,11 +370,11 @@ describe("handleNewBooking", () => {
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             destinationCalendars: [
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "event-type-1@google-calendar.com",
               },
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             ],
@@ -405,7 +407,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
           });
@@ -434,7 +436,7 @@ describe("handleNewBooking", () => {
               credentials: [getGoogleCalendarCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
               destinationCalendar: {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             },
@@ -457,7 +459,7 @@ describe("handleNewBooking", () => {
             ],
             selectedCalendars: [TestData.selectedCalendars.google],
             destinationCalendar: {
-              integration: "google_calendar",
+              integration: TestData.apps["google-calendar"].type,
               externalId: "organizer@google-calendar.com",
             },
           });
@@ -495,7 +497,7 @@ describe("handleNewBooking", () => {
                     },
                   ],
                   destinationCalendar: {
-                    integration: "google_calendar",
+                    integration: TestData.apps["google-calendar"].type,
                     externalId: "event-type-1@google-calendar.com",
                   },
                 },
@@ -574,11 +576,11 @@ describe("handleNewBooking", () => {
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             destinationCalendars: [
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "event-type-1@google-calendar.com",
               },
               {
-                integration: "google_calendar",
+                integration: TestData.apps["google-calendar"].type,
                 externalId: "other-team-member-1@google-calendar.com",
               },
             ],

@@ -1,7 +1,8 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect } from "vitest";
 
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -17,6 +18,7 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   mockCalendarToCrashOnUpdateEvent,
+  BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
@@ -28,9 +30,9 @@ import {
   expectBookingInDBToBeRescheduledFromTo,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import { createMockNextJsRequest } from "./createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
-import { setupAndTeardown } from "./setupAndTeardown";
+import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
+import { setupAndTeardown } from "./lib/setupAndTeardown";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -97,14 +99,14 @@ describe("handleNewBooking", () => {
                 endTime: `${plus1DateString}T05:15:00.000Z`,
                 references: [
                   {
-                    type: "daily_video",
+                    type: appStoreMetadata.dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: "google_calendar",
+                    type: appStoreMetadata.googlecalendar.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -143,7 +145,7 @@ describe("handleNewBooking", () => {
             responses: {
               email: booker.email,
               name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
+              location: { optionValue: "", value: BookingLocations.CalVideo },
             },
           },
         });
@@ -190,21 +192,21 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             responses: expect.objectContaining({
               email: booker.email,
               name: booker.name,
             }),
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -222,7 +224,7 @@ describe("handleNewBooking", () => {
             location: "http://mock-dailyvideo.example.com",
           },
           bookingRef: {
-            type: "daily_video",
+            type: appStoreMetadata.dailyvideo.type,
             uid: "MOCK_ID",
             meetingId: "MOCK_ID",
             meetingPassword: "MOCK_PASS",
@@ -249,7 +251,7 @@ describe("handleNewBooking", () => {
         expectBookingRescheduledWebhookToHaveBeenFired({
           booker,
           organizer,
-          location: "integrations:daily",
+          location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
         });
@@ -318,14 +320,14 @@ describe("handleNewBooking", () => {
                 endTime: `${plus1DateString}T05:15:00.000Z`,
                 references: [
                   {
-                    type: "daily_video",
+                    type: appStoreMetadata.dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: "google_calendar",
+                    type: appStoreMetadata.googlecalendar.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -364,7 +366,7 @@ describe("handleNewBooking", () => {
             responses: {
               email: booker.email,
               name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
+              location: { optionValue: "", value: BookingLocations.CalVideo },
             },
           },
         });
@@ -392,21 +394,21 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
-            location: "integrations:daily",
+            location: BookingLocations.CalVideo,
             responses: expect.objectContaining({
               email: booker.email,
               name: booker.name,
             }),
             references: [
               {
-                type: "daily_video",
+                type: appStoreMetadata.dailyvideo.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com",
               },
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASSWORD",
@@ -424,7 +426,7 @@ describe("handleNewBooking", () => {
             location: "http://mock-dailyvideo.example.com",
           },
           bookingRef: {
-            type: "daily_video",
+            type: appStoreMetadata.dailyvideo.type,
             uid: "MOCK_ID",
             meetingId: "MOCK_ID",
             meetingPassword: "MOCK_PASS",
@@ -451,7 +453,7 @@ describe("handleNewBooking", () => {
         expectBookingRescheduledWebhookToHaveBeenFired({
           booker,
           organizer,
-          location: "integrations:daily",
+          location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
         });
@@ -516,14 +518,14 @@ describe("handleNewBooking", () => {
                 endTime: `${plus1DateString}T05:15:00.000Z`,
                 references: [
                   {
-                    type: "daily_video",
+                    type: appStoreMetadata.dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: "google_calendar",
+                    type: appStoreMetadata.googlecalendar.type,
                     uid: "ORIGINAL_BOOKING_UID",
                     meetingId: "ORIGINAL_MEETING_ID",
                     meetingPassword: "ORIGINAL_MEETING_PASSWORD",
@@ -577,7 +579,7 @@ describe("handleNewBooking", () => {
             }),
             references: [
               {
-                type: "google_calendar",
+                type: appStoreMetadata.googlecalendar.type,
                 // A reference is still created in case of event creation failure, with nullish values. Not sure what's the purpose for this.
                 uid: "ORIGINAL_BOOKING_UID",
                 meetingId: "ORIGINAL_MEETING_ID",
