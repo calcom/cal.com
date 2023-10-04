@@ -64,6 +64,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (input.avatar) {
     data.avatar = await resizeBase64Image(input.avatar);
   }
+  if (input.avatar === null) {
+    data.avatar = null;
+  }
 
   if (isPremiumUsername) {
     const stripeCustomerId = userMetadata?.stripeCustomerId;
