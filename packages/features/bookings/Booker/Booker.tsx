@@ -118,6 +118,7 @@ const BookerComponent = ({
       ) + addonDays;
 
   const prefetchNextMonth =
+    layout === BookerLayouts.COLUMN_VIEW &&
     dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
   const monthCount =
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
