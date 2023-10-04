@@ -106,7 +106,7 @@ const MembersView = () => {
       } else {
         setLoadMore(true);
       }
-      setMembers(members.concat(membersFetch));
+      setMembers(membersFetch);
     }
   }, [membersFetch]);
 
