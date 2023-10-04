@@ -6,7 +6,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
@@ -52,7 +51,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
         <SkeletonText className="h-8 w-full" />
       </div>
-      <div className="rounded-b-xl">
+      <div className="rounded-b-lg">
         <SectionBottomActions align="end">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
         </SectionBottomActions>
@@ -138,7 +137,7 @@ const AppearanceView = ({
   return (
     <div>
       <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+      <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
@@ -150,13 +149,13 @@ const AppearanceView = ({
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
-            theme: values.theme || null,
+            theme: values.theme ?? null,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
-            value={null}
+            value={undefined}
             label={t("theme_system")}
             defaultChecked={user.theme === null}
             register={userThemeFormMethods.register}
@@ -227,11 +226,7 @@ const AppearanceView = ({
                 });
               }
             }}
-            childrenClassName="lg:ml-0"
-            switchContainerClassName={classNames(
-              "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
-              isCustomBrandColorChecked && "rounded-b-none"
-            )}>
+            childrenClassName="lg:ml-0">
             <div className="border-subtle flex flex-col gap-6 border-x p-6">
               <Controller
                 name="brandColor"
@@ -329,7 +324,7 @@ const AppearanceView = ({
           setHideBrandingValue(checked);
           mutation.mutate({ hideBranding: checked });
         }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+        switchContainerClassName="mt-6"
       />
     </div>
   );
