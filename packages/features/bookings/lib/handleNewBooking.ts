@@ -435,7 +435,7 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    throw new Error("No available users found.");
+      throw new HttpError({ statusCode: 400, message: "No available users found." });
   }
   return availableUsers;
 }
@@ -558,7 +558,8 @@ async function getBookingData({
     return true;
   };
   if (!reqBodyWithEnd(reqBody)) {
-    throw new Error("Internal Error.");
+      throw new HttpError({ statusCode: 500, message: "Internal Error." });
+   
   }
   // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
@@ -579,7 +580,7 @@ async function getBookingData({
     };
   } else {
     if (!reqBody.responses) {
-      throw new Error("`responses` must not be nullish");
+       throw new HttpError({ statusCode: 400, message: "`responses` must not be nullish" });
     }
     const responses = reqBody.responses;
 
@@ -787,7 +788,7 @@ async function handler(
         const hosts = eventType.hosts || [];
 
         if (!Array.isArray(hosts)) {
-          throw new Error("eventType.hosts is not properly defined.");
+            throw new HttpError({ statusCode: 400, message: "eventType.hosts is not properly defined." });
         }
 
         const users = hosts.map(({ user, isFixed }) => ({
@@ -968,7 +969,8 @@ async function handler(
     if (
       availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
     ) {
-      throw new Error("Some users are unavailable for booking.");
+       throw new HttpError({ statusCode: 400, message: "Some users are unavailable for booking." });
+      
     }
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
