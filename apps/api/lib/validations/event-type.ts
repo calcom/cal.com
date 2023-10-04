@@ -45,6 +45,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   disableGuests: true,
   hideCalendarNotes: true,
   minimumBookingNotice: true,
+  parentId: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,
   teamId: true,
