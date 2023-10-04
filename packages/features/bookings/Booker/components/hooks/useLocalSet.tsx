@@ -54,5 +54,11 @@ export function useLocalSet<T extends HasExternalId>(key: string, initialValue: 
     return Array.from(set).some((item) => item.externalId === value.externalId);
   };
 
-  return { set, addValue, removeById, toggleValue, hasItem };
+  const clearSet = () => {
+    setSet(() => new Set());
+    // clear local storage too
+    localStorage.removeItem(key);
+  };
+
+  return { set, addValue, removeById, toggleValue, hasItem, clearSet };
 }

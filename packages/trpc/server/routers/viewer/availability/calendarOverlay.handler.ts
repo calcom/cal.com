@@ -2,6 +2,8 @@ import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 
@@ -50,13 +52,19 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   });
 
   if (credentials.length !== uniqueCredentialIds.length) {
-    throw new Error("Unauthorized");
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized - These credentials do not belong to you",
+    });
   }
 
   const composedSelectedCalendars = calendarsToLoad.map((calendar) => {
     const credential = credentials.find((item) => item.id === calendar.credentialId);
     if (!credential) {
-      throw new Error("Unauthorized");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Unauthorized - These credentials do not belong to you",
+      });
     }
     return {
       ...calendar,
@@ -88,12 +96,6 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       start: busyTimeStartDate,
       end: busyTimeEndDate,
     } as EventBusyDate;
-  });
-
-  console.log({
-    calendarBusyTimesConverted,
-    dateFrom,
-    dateTo,
   });
 
   return calendarBusyTimesConverted;

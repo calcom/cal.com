@@ -24,7 +24,7 @@ export function OverlayCalendarContainer() {
   const searchParams = useSearchParams();
 
   // Move this to a hook
-  const { set } = useLocalSet<{
+  const { set, clearSet } = useLocalSet<{
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
@@ -39,7 +39,12 @@ export function OverlayCalendarContainer() {
         externalId: item.externalId,
       })),
     },
-    { enabled: overlayCalendarQueryParam === "true" && !!session }
+    {
+      enabled: !!session && set.size > 0,
+      onError: () => {
+        clearSet();
+      },
+    }
   );
 
   useEffect(() => {
