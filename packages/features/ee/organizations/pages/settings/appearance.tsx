@@ -233,12 +233,10 @@ const BrandColorsForm = ({
         onCheckedChange={(checked) => {
           setIsCustomBrandColorChecked(checked);
           if (!checked) {
-            handleSubmit(
-              onSubmit({
-                brandColor: DEFAULT_LIGHT_BRAND_COLOR,
-                darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
-              })
-            );
+            onSubmit({
+              brandColor: DEFAULT_LIGHT_BRAND_COLOR,
+              darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
+            });
           }
         }}
         childrenClassName="lg:ml-0"
@@ -255,7 +253,7 @@ const BrandColorsForm = ({
               <div>
                 <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                 <ColorPicker
-                  defaultValue={orgBrandColor}
+                  defaultValue={orgBrandColor || DEFAULT_LIGHT_BRAND_COLOR}
                   resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
                   onChange={(value) => {
                     try {
@@ -287,7 +285,7 @@ const BrandColorsForm = ({
               <div className="mt-6 sm:mt-0">
                 <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                 <ColorPicker
-                  defaultValue={orgDarkBrandColor}
+                  defaultValue={orgDarkBrandColor || DEFAULT_DARK_BRAND_COLOR}
                   resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
                   onChange={(value) => {
                     try {

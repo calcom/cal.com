@@ -43,7 +43,7 @@ const orgProfileFormSchema = z.object({
 
 type FormValues = {
   name: string;
-  logo: string;
+  logo: string | null;
   bio: string;
   slug: string;
 };
@@ -237,7 +237,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         handleAvatarChange={(newLogo) => {
                           form.setValue("logo", newLogo, { shouldDirty: true });
                         }}
-                        imageSrc={value}
+                        imageSrc={value || undefined}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                       />
                       {showRemoveLogoButton && (
