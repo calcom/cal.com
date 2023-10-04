@@ -47,7 +47,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
           description="View your calendar events to prevent clashed booking.">
           <div className="max-h-full overflow-y-scroll ">
             {isLoading ? (
-              <>LOADING</>
+              <EmptyScreen Icon={Calendar} headline={t("no_calendar_installed")} description={t("Loading")} />
             ) : (
               <>
                 {data?.connectedCalendars.length === 0 ? (
