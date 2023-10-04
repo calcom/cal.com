@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // import { debounce } from "lodash";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -106,7 +107,9 @@ const MembersView = () => {
       } else {
         setLoadMore(true);
       }
-      setMembers(membersFetch);
+      if (membersFetch?.length > 0) {
+        setMembers(membersFetch);
+      }
     }
   }, [membersFetch]);
 
