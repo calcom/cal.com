@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -43,6 +43,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const endDate = dayjs(startDate)
     .add(extraDays - 1, "day")
     .toDate();
+
+  // HACK: force rerender when overlay events change
+  // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];
