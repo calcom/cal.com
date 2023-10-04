@@ -5,8 +5,6 @@ import { classNames } from "@calcom/lib";
 import type { AtomsGlobalConfigProps } from "../types";
 import type { ConnectButtonProps } from "../types";
 
-// TODO: add default styling
-
 // we accept two props: buttonText & onButtonClick
 // buttonText is for displaying buttonText
 // onButtonClick is a a method to handle onClick for button
