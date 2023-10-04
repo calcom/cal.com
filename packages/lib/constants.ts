@@ -48,7 +48,9 @@ export const CONSOLE_URL =
     ? `https://console.cal.dev`
     : `https://console.cal.com`;
 export const IS_SELF_HOSTED = !(
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.com") ||
+  Boolean(process.env.DISABLE_SELF_HOSTED_MODE)
 );
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 export const TRIAL_LIMIT_DAYS = 14;
