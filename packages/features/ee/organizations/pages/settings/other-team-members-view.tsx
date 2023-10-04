@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 // import { debounce } from "lodash";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";

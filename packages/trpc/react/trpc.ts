@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
@@ -73,7 +72,7 @@ const resolveEndpoint = (links: any) => {
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
-export const trpc = createTRPCNext<AppRouter, NextPageContext, "z">({
+export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSuspense">({
   config() {
     const url =
       typeof window !== "undefined"
