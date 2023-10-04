@@ -146,7 +146,7 @@ const nextConfig = {
   },
   productionBrowserSourceMaps: true,
   sentry: {
-    autoInstrumentServerFunctions: false,
+    autoInstrumentServerFunctions: true,
     hideSourceMaps: true,
   },
   /* We already do type check on GH actions */
