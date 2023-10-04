@@ -81,7 +81,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams.get("callbackUrl") || "";
+  let callbackUrl = searchParams.get("callbackUrl") || "/edit-profile";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
