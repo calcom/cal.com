@@ -94,7 +94,7 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withAxiom);
 
-if (!!process.env.SENTRY_DSN) {
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push(withSentryConfig);
 }
 
