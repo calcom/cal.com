@@ -52,6 +52,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
     },
     select: {
       id: true,
+      status: true,
       uid: true,
       startTime: true,
       description: true,
@@ -117,6 +118,7 @@ export const getBookingForReschedule = async (uid: string) => {
     },
     select: {
       id: true,
+      status: true,
     },
   });
 
@@ -178,6 +180,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     select: {
       id: true,
       uid: true,
+      status: true,
       startTime: true,
       attendees: {
         select: {

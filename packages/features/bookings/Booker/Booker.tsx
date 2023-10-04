@@ -1,6 +1,7 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -49,6 +50,14 @@ const BookerComponent = ({
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
+  const router = useRouter();
+  const [isCancelled, setIsCancelled] = useState(false);
+  useEffect(() => {
+    if (bookingData && bookingData.status === "CANCELLED") {
+      setIsCancelled(true);
+      return router.replace(`/booking/${bookingData.uid}`);
+    }
+  }, [bookingData, router]);
   const schedule = useScheduleForEvent({
     prefetchNextMonth: false,
     username,
@@ -210,7 +219,7 @@ const BookerComponent = ({
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  if (bookerState === "loading") {
+  if (isCancelled || bookerState === "loading") {
     return null;
   }
 
