@@ -8,12 +8,12 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Dialog,
   DialogContent,
-  Button,
   EmptyScreen,
   ListItem,
   ListItemText,
   ListItemTitle,
   Switch,
+  DialogClose,
 } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -125,8 +125,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
           </div>
 
           <div className="mt-4 flex gap-2 self-end">
-            <Button color="minimal">Cancel</Button>
-            <Button>Done</Button>
+            <DialogClose>{t("done")}</DialogClose>
           </div>
         </DialogContent>
       </Dialog>
