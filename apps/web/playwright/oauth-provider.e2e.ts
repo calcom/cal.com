@@ -65,7 +65,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -96,7 +96,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -150,7 +150,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -181,7 +181,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
