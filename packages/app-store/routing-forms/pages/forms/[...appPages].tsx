@@ -241,7 +241,7 @@ export default function RoutingForms({
                               <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
                             )}
                             <ListLinkItem
-                              href={appUrl + "/form-edit/" + form.id}
+                              href={`${appUrl}/form-edit/${form.id}`}
                               heading={form.name}
                               disabled={readOnly}
                               subHeading={description}

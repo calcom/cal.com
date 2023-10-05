@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { useMemo } from "react";
 import type { z } from "zod";
 
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { getPriceIcon } from "@calcom/features/bookings/components/event-meta/getPriceIcon";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +11,7 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
+import { Clock, Users, RefreshCw, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -94,11 +96,12 @@ export const EventTypeDescription = ({
           )}
           {paymentAppData.enabled && (
             <li>
-              <Badge variant="gray" startIcon={CreditCard}>
-                {new Intl.NumberFormat(i18n.language, {
-                  style: "currency",
-                  currency: paymentAppData.currency,
-                }).format(paymentAppData.price / 100)}
+              <Badge variant="gray" startIcon={getPriceIcon(paymentAppData.currency)}>
+                <Price
+                  currency={paymentAppData.currency}
+                  price={paymentAppData.price}
+                  displayAlternateSymbol={false}
+                />
               </Badge>
             </li>
           )}

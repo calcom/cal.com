@@ -174,7 +174,7 @@ test.describe("Stripe integration", () => {
       await page.getByTestId("price-input-stripe").fill("200");
 
       // Select currency in dropdown
-      await page.locator("div").filter({ hasText: "United States dollar (USD)" }).nth(1).click();
+      await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
       await page.locator("#react-select-2-input").fill("mexi");
       await page.locator("#react-select-2-option-81").click();
 

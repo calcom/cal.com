@@ -15,14 +15,9 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
       const destinationUrlObj = new URL(ssrResponse.redirect.destination, "https://base");
 
       // Make sure that redirect happens to /embed page and pass on embed query param as is for preserving Cal JS API namespace
-      const newDestinationUrl =
-        destinationUrlObj.pathname +
-        "/embed?" +
-        destinationUrlObj.searchParams.toString() +
-        "&layout=" +
-        layout +
-        "&embed=" +
-        embed;
+      const newDestinationUrl = `${
+        destinationUrlObj.pathname
+      }/embed?${destinationUrlObj.searchParams.toString()}&layout=${layout}&embed=${embed}`;
 
       return {
         ...ssrResponse,
