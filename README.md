@@ -144,17 +144,20 @@ Here is what you need to be able to run Cal.com.
    ```
 
 4. Set up your `.env` file
+
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
    ```sh
    nvm use
    ```
-   
+
    You first might need to install the specific version and then use it:
+
    ```sh
    nvm install && nvm use
    ```
@@ -234,6 +237,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
@@ -273,6 +277,7 @@ yarn playwright show-report test-results/reports/playwright-html-report
 ```
 
 #### Resolving issues
+
 ##### E2E test browsers not installed
 
 Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
@@ -492,9 +497,8 @@ following
 4. Select Basecamp 4 as the product to integrate with.
 5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
 6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
-7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
-For example, `Cal.com (support@cal.com)`.
-
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
+   For example, `Cal.com (support@cal.com)`.
 
 ### Obtaining HubSpot Client ID and Secret
 
@@ -529,6 +533,7 @@ For example, `Cal.com (support@cal.com)`.
 ### Obtaining Zoho Calendar Client ID and Secret
 
 [Follow these steps](./packages/app-store/zohocalendar/)
+
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)

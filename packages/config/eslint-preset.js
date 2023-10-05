@@ -42,7 +42,6 @@ module.exports = {
         patterns: ["lodash"],
       },
     ],
-    "prettier/prettier": ["error", { endOfLine: "auto" }],
   },
   overrides: [
     {

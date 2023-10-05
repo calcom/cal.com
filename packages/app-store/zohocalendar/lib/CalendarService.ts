@@ -92,7 +92,7 @@ export default class ZohoCalendarService implements Calendar {
       method: "GET",
       ...init,
       headers: {
-        Authorization: "Bearer " + credentials.access_token,
+        Authorization: `Bearer ${credentials.access_token}`,
         "Content-Type": "application/json",
         ...init?.headers,
       },
@@ -105,7 +105,7 @@ export default class ZohoCalendarService implements Calendar {
     const response = await fetch(`https://accounts.zoho.com/oauth/user/info`, {
       method: "GET",
       headers: {
-        Authorization: "Bearer " + credentials.access_token,
+        Authorization: `Bearer ${credentials.access_token}`,
         "Content-Type": "application/json",
       },
     });
