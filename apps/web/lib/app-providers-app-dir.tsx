@@ -44,16 +44,13 @@ export type AppProps = Omit<
   err?: Error;
 };
 
-type AppPropsWithChildren = AppProps & {
-  children: ReactNode;
-};
-
 const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
   return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
 };
 
+// @ts-expect-error appWithTranslation expects AppProps
 const AppWithTranslationHoc = appWithTranslation(({ children }) => <>{children}</>);
 
 const CustomI18nextProvider = (props: { children: React.ReactElement }) => {
@@ -70,6 +67,7 @@ const CustomI18nextProvider = (props: { children: React.ReactElement }) => {
   }
 
   return (
+    // @ts-expect-error AppWithTranslationHoc expects AppProps
     <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n._nextI18Next }}>
       {props.children}
     </AppWithTranslationHoc>
@@ -148,7 +146,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
 function getThemeProviderProps(props: {
   isBookingPage: boolean;
   themeBasis: string | null;
-  nonce: string;
+  nonce: string | undefined;
   isEmbedMode: boolean;
   embedNamespace: string | null;
   isThemeSupported: boolean;

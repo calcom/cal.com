@@ -14,6 +14,7 @@ export default function EventTypesLayout({ children }: EventTypesLayoutProps) {
   const nonce = h.get("x-nonce") ?? undefined;
 
   return (
+    // @ts-expect-error withTrpc expects AppProps
     <PageWrapper
       getLayout={getLayout}
       requiresLicense={false}
