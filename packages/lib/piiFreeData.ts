@@ -78,11 +78,11 @@ export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<Desti
   return {
     integration: destinationCalendar.integration,
     userId: destinationCalendar.userId,
+    credentialId: destinationCalendar.credentialId,
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
     externalId: !!destinationCalendar.externalId,
-    credentialId: !!destinationCalendar.credentialId,
   };
 }
 
