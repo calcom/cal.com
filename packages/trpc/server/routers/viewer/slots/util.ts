@@ -282,7 +282,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     logger.setSettings({ minLevel: "debug" });
   }
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 

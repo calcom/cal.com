@@ -28,7 +28,7 @@ import type {
 import { createEvent, updateEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
 
-const log = logger.getChildLogger({ prefix: ["EventManager"] });
+const log = logger.getSubLogger({ prefix: ["EventManager"] });
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };

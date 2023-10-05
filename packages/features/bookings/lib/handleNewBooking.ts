@@ -96,7 +96,7 @@ import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
-const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
+const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
@@ -685,7 +685,7 @@ async function handler(
     eventType,
   });
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
   });
 

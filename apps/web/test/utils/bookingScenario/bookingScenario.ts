@@ -23,7 +23,8 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 import { getMockPaymentService } from "./MockPaymentService";
 
 logger.setSettings({ minLevel: "silly" });
-const log = logger.getChildLogger({ prefix: ["[bookingScenario]"] });
+
+const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
   appId: string | null;

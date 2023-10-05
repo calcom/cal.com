@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
+const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 /**
  * Supposed to do whatever is needed when a booking is requested.
