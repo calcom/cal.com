@@ -6,6 +6,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Alert,
   Dialog,
   DialogContent,
   EmptyScreen,
@@ -14,6 +15,8 @@ import {
   ListItemTitle,
   Switch,
   DialogClose,
+  SkeletonContainer,
+  SkeletonText,
 } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -24,6 +27,20 @@ interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
 }
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="border-subtle mt-3 space-y-4 rounded-xl border px-4 py-4 ">
+        <SkeletonText className="h-4 w-full" />
+        <SkeletonText className="h-4 w-full" />
+        <SkeletonText className="h-4 w-full" />
+        <SkeletonText className="h-4 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
+
 export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
   const utils = trpc.useContext();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
@@ -47,7 +64,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
           description="View your calendar events to prevent clashed booking.">
           <div className="max-h-full overflow-y-scroll ">
             {isLoading ? (
-              <EmptyScreen Icon={Calendar} headline={t("no_calendar_installed")} description={t("Loading")} />
+              <SkeletonLoader />
             ) : (
               <>
                 {data?.connectedCalendars.length === 0 ? (
@@ -62,6 +79,9 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                   <>
                     {data?.connectedCalendars.map((item) => (
                       <Fragment key={item.credentialId}>
+                        {item.error && !item.calendars && (
+                          <Alert severity="error" title={item.error.message} />
+                        )}
                         {item?.error === undefined && item.calendars && (
                           <ListItem className="flex-col rounded-md">
                             <div className="flex w-full flex-1 items-center space-x-3 pb-4 rtl:space-x-reverse">
@@ -80,7 +100,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                               }
                               <div className="flex-grow truncate pl-2">
                                 <ListItemTitle component="h3" className="space-x-2 rtl:space-x-reverse">
-                                  <Link href={"/apps/" + item.integration.slug}>
+                                  <Link href={`/apps/${item.integration.slug}`}>
                                     {item.integration.name || item.integration.title}
                                   </Link>
                                 </ListItemTitle>
