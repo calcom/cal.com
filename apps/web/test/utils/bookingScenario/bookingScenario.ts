@@ -71,8 +71,6 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
     id?: number;
     name: string;
     availability: {
-      // userId: number | null;
-      // eventTypeId: number | null;
       days: number[];
       startTime: Date;
       endTime: Date;
@@ -132,13 +130,18 @@ export const Timezones = {
 };
 
 async function addEventTypesToDb(
-  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
+  eventTypes: (Omit<
+    Prisma.EventTypeCreateInput,
+    "users" | "worflows" | "destinationCalendar" | "schedule"
+  > & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     destinationCalendar?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schedule?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -249,8 +252,6 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
   return await addEventTypesToDb(eventTypesWithUsers);
 }
 
@@ -608,16 +609,12 @@ export const TestData = {
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
         {
-          // userId: null,
-          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
         {
-          // userId: null,
-          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date(`1970-01-01T14:00:00.000Z`),
           endTime: new Date(`1970-01-01T18:00:00.000Z`),
