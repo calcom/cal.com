@@ -28,6 +28,7 @@ export const apiHandlers = {
   gtm: import("./gtm/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
+  intercom: import("./intercom/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
   make: import("./make/api"),
@@ -70,6 +71,7 @@ export const apiHandlers = {
   wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
   "zoho-bigin": import("./zoho-bigin/api"),
+  zohocalendar: import("./zohocalendar/api"),
   zohocrm: import("./zohocrm/api"),
   zoomvideo: import("./zoomvideo/api"),
 };

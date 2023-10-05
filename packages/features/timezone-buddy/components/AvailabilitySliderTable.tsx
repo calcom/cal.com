@@ -61,7 +61,7 @@ export function AvailabilitySliderTable() {
   const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
-      loggedInUsersTz: dayjs.tz.guess(),
+      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
     },
@@ -81,7 +81,7 @@ export function AvailabilitySliderTable() {
           const { username, email, timeZone } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
-              <Avatar size="sm" alt={username || email} imageSrc={"/" + username + "/avatar.png"} />
+              <Avatar size="sm" alt={username || email} imageSrc={`/${username}/avatar.png`} />
               <div className="">
                 <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}

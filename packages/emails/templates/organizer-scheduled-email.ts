@@ -81,7 +81,8 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.newSeat ? this.t("new_attendee") + ": " : ""}${this.calEvent.title}`,
+      replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
+      subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: clonedCalEvent,
         attendee: this.calEvent.organizer,
