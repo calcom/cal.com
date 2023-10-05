@@ -4076,7 +4076,9 @@ __metadata:
     autoprefixer: ^10.4.12
     bcp-47-match: ^2.0.3
     bcryptjs: ^2.4.3
+    class-variance-authority: ^0.7.0
     classnames: ^2.3.1
+    clsx: ^2.0.0
     copy-webpack-plugin: ^11.0.0
     detect-port: ^1.3.0
     dotenv-cli: ^6.0.0
@@ -4094,6 +4096,7 @@ __metadata:
     libphonenumber-js: ^1.10.12
     lodash: ^4.17.21
     lottie-react: ^2.3.1
+    lucide-react: ^0.279.0
     markdown-it: ^13.0.1
     md5: ^2.3.0
     memory-cache: ^0.2.0
@@ -4139,8 +4142,9 @@ __metadata:
     short-uuid: ^4.2.0
     stripe: ^9.16.0
     superjson: 1.9.1
+    tailwind-merge: ^1.14.0
     tailwindcss: ^3.3.1
-    tailwindcss-animate: ^1.0.6
+    tailwindcss-animate: ^1.0.7
     tailwindcss-radix: ^2.6.0
     title-case: ^3.0.3
     ts-node: ^10.9.1
@@ -16067,6 +16071,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"class-variance-authority@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "class-variance-authority@npm:0.7.0"
+  dependencies:
+    clsx: 2.0.0
+  checksum: e7fd1fab433ef06f52a1b7b241b70b4a185864deef199d3b0a2c3412f1cc179517288264c383f3b971a00d76811625fc8f7ffe709e6170219e88cd7368f08a20
+  languageName: node
+  linkType: hard
+
 "classnames@npm:^2.2.5, classnames@npm:^2.2.6":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
@@ -16280,6 +16293,13 @@ __metadata:
   version: 1.1.0
   resolution: "clsx@npm:1.1.0"
   checksum: 50e889839a557b8a2fca063ee7ea22ba8c261e7f9f7aadc257065fc77f16fa0a98ce826fb2b126d05fb736560333971dbb882874054df7bb8f4317e224ec1978
+  languageName: node
+  linkType: hard
+
+"clsx@npm:2.0.0, clsx@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "clsx@npm:2.0.0"
+  checksum: a2cfb2351b254611acf92faa0daf15220f4cd648bdf96ce369d729813b85336993871a4bf6978ddea2b81b5a130478339c20d9d0b5c6fc287e5147f0c059276e
   languageName: node
   linkType: hard
 
@@ -25340,6 +25360,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.279.0":
+  version: 0.279.0
+  resolution: "lucide-react@npm:0.279.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+  checksum: d9b9200af359806fcea878221ab054615fc7465d49db45cb5fdd2e9b1c6d59a5dc7431e633095f8db4677918518b54d5fe3e9b4292f96bc26d5268b4b5b6b1be
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^1.26.0":
   version: 1.28.0
   resolution: "luxon@npm:1.28.0"
@@ -33741,6 +33770,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tailwind-merge@npm:^1.14.0":
+  version: 1.14.0
+  resolution: "tailwind-merge@npm:1.14.0"
+  checksum: 8cf5d37f51b3b32e4bdd5544feaed34357bfba2f64f14834cc4a21ac29b0ae22d7255386467a0f1dadb3e38499389efbbabeddcd0b16571af5a0d346a4921877
+  languageName: node
+  linkType: hard
+
 "tailwind-merge@npm:^1.9.1":
   version: 1.10.0
   resolution: "tailwind-merge@npm:1.10.0"
@@ -33757,12 +33793,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss-animate@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "tailwindcss-animate@npm:1.0.6"
+"tailwindcss-animate@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "tailwindcss-animate@npm:1.0.7"
   peerDependencies:
     tailwindcss: "*"
-  checksum: 01471cb5e64d0936b3dc90bdb1d4b379e8b73b3d285553337d8576e5d458e868ddff99c6db0ae454c1be69ce8f88dc0eed44ea62e4d7bca10d7d2479fc4c8ee0
+  checksum: c1760983eb3fec0c8421e95082bf308e6845df43e2f90862386366e82545c801b26b4d189c4cd23d6915252b76d18005c8e5f591f8b119944c7fb8650d0f8bce
   languageName: node
   linkType: hard
 

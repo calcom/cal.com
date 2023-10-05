@@ -1,4 +1,4 @@
-import { TextHighlight } from "../../ui";
+import { TextHighlight } from "@ui";
 
 const textHighlightClass = "!bg-black text-white rounded-md border-none ";
 const HIGHLIGHTS_LIST = [

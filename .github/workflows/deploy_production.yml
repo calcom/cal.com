@@ -20,6 +20,7 @@ jobs:
           key: ${{ secrets.CALCOM_SSH_KEY }}
           source: "./, !.private"
           target: "/home/deploy/calcom"
+          rm: true
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
@@ -29,6 +30,8 @@ jobs:
           script_stop: true
           command_timeout: 20m
           script: |
+            cp .env calcom/.env
+            cp .env.appStore calcom/.env.appStore
             cd calcom
             DOCKER_BUILDKIT=0 docker-compose build
             docker-compose down -v --remove-orphans

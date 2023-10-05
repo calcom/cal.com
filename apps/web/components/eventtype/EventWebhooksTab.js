@@ -1,11 +1,8 @@
-import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WebhookForm } from "@calcom/features/webhooks/components";
-import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 import { Plus, Lock } from "@calcom/ui/components/icon";
 
-export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export const EventWebhooksTab = ({ eventType }) => {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -27,7 +24,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
+  const [webhookToEdit, setWebhookToEdit] = useState();
 
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
@@ -51,7 +48,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     },
   });
 
-  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
+  const onCreateWebhook = async (values) => {
     if (
       subscriberUrlReserved({
         subscriberUrl: values.subscriberUrl,
@@ -175,7 +172,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 webhook={webhookToEdit}
                 apps={installedApps?.items.map((app) => app.slug)}
                 onCancel={() => setEditModalOpen(false)}
-                onSubmit={(values: WebhookFormSubmitData) => {
+                onSubmit={(values) => {
                   if (
                     subscriberUrlReserved({
                       subscriberUrl: values.subscriberUrl,

@@ -1,6 +1,5 @@
 import { ArrowSquareOut } from "@phosphor-icons/react";
-
-import { Button } from "../../ui";
+import { Button } from "@ui";
 
 const Experience = ({ data }) => {
   const count = data?.length;
