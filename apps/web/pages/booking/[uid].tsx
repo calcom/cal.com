@@ -476,8 +476,8 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {locationToDisplay === rescheduleLocationToDisplay &&
-                            (locationToDisplay.startsWith("http") ? (
+                          {locationToDisplay === rescheduleLocationToDisplay ? (
+                            locationToDisplay.startsWith("http") ? (
                               <a
                                 href={locationToDisplay}
                                 target="_blank"
@@ -489,11 +489,11 @@ export default function Success(props: SuccessProps) {
                               </a>
                             ) : (
                               locationToDisplay
-                            ))}
-                          {locationToDisplay !== rescheduleLocationToDisplay &&
-                            (rescheduleLocationToDisplay.startsWith("http") ? (
-                              <>
-                                {locationToDisplay.startsWith("http") ? (
+                            )
+                          ) : (
+                            <>
+                              {!!formerTime &&
+                                (locationToDisplay.startsWith("http") ? (
                                   <a
                                     href={locationToDisplay}
                                     target="_blank"
@@ -505,7 +505,8 @@ export default function Success(props: SuccessProps) {
                                   </a>
                                 ) : (
                                   <p className="line-through">{locationToDisplay}</p>
-                                )}
+                                ))}
+                              {rescheduleLocationToDisplay.startsWith("http") ? (
                                 <a
                                   href={rescheduleLocationToDisplay}
                                   target="_blank"
@@ -515,25 +516,11 @@ export default function Success(props: SuccessProps) {
                                   {rescheduleProviderName || "Link"}
                                   <ExternalLink className="text-default inline h-4 w-4" />
                                 </a>
-                              </>
-                            ) : (
-                              <>
-                                {locationToDisplay.startsWith("http") ? (
-                                  <a
-                                    href={locationToDisplay}
-                                    target="_blank"
-                                    title={locationToDisplay}
-                                    className="text-default flex items-center gap-2 line-through"
-                                    rel="noreferrer">
-                                    {providerName || "Link"}
-                                    <ExternalLink className="text-default inline h-4 w-4" />
-                                  </a>
-                                ) : (
-                                  <p className="line-through">{locationToDisplay}</p>
-                                )}
-                                <p>{rescheduleLocationToDisplay}</p>
-                              </>
-                            ))}
+                              ) : (
+                                rescheduleLocationToDisplay
+                              )}
+                            </>
+                          )}
                         </div>
                       </>
                     )}
