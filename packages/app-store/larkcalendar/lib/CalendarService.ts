@@ -122,7 +122,7 @@ export default class LarkCalendarService implements Calendar {
     return fetch(`${this.url}${endpoint}`, {
       method: "GET",
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         ...init?.headers,
       },

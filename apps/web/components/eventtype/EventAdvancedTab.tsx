@@ -67,7 +67,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   eventType.bookingFields.forEach(({ name }) => {
-    bookingFields[name] = name + " input";
+    bookingFields[name] = `${name} input`;
   });
 
   const eventNameObject: EventNameObjectType = {
