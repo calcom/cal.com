@@ -1,8 +1,9 @@
+import type { RawDataInput } from "insights/server/raw-data.schema";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { EndpointRequestQuery } from "@calcom/web/pages/api/insights/download";
 
 interface ITimeRange {
   start: Dayjs;
@@ -216,7 +217,10 @@ class EventsInsights {
   };
 
   static getCsvData = async (
-    props: EndpointRequestQuery & { organizationId?: number; isOwnerAdminOfParentTeam?: number }
+    props: RawDataInput & {
+      organizationId: number | null;
+      isOrgAdminOrOwner: boolean | null;
+    }
   ) => {
     // Obtain the where conditional
     const whereConditional = await this.obtainWhereConditional(props);
@@ -258,7 +262,7 @@ class EventsInsights {
    * @returns
    */
   static obtainWhereConditional = async (
-    props: EndpointRequestQuery & { organizationId?: number; isOwnerAdminOfParentTeam?: number }
+    props: RawDataInput & { organizationId: number | null; isOrgAdminOrOwner: boolean | null }
   ) => {
     const {
       startDate,
@@ -269,7 +273,7 @@ class EventsInsights {
       isAll,
       eventTypeId,
       organizationId,
-      isOwnerAdminOfParentTeam,
+      isOrgAdminOrOwner,
     } = props;
 
     // Obtain the where conditional
@@ -301,7 +305,7 @@ class EventsInsights {
       whereConditional["userId"] = userId;
     }
 
-    if (isAll && isOwnerAdminOfParentTeam && organizationId) {
+    if (isAll && isOrgAdminOrOwner && organizationId) {
       const teamsFromOrg = await prisma.team.findMany({
         where: {
           parentId: organizationId,
@@ -375,6 +379,71 @@ class EventsInsights {
 
     return whereConditional;
   };
+
+  static userIsOwnerAdminOfTeam = async ({
+    sessionUserId,
+    teamId,
+  }: {
+    sessionUserId: number;
+    teamId: number;
+  }) => {
+    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+      where: {
+        userId: sessionUserId,
+        teamId,
+        accepted: true,
+        role: {
+          in: ["OWNER", "ADMIN"],
+        },
+      },
+    });
+
+    return !!isOwnerAdminOfTeam;
+  };
+
+  static userIsOwnerAdminOfParentTeam = async ({
+    sessionUserId,
+    teamId,
+  }: {
+    sessionUserId: number;
+    teamId: number;
+  }) => {
+    const team = await prisma.team.findFirst({
+      select: {
+        parentId: true,
+      },
+      where: {
+        id: teamId,
+      },
+    });
+
+    if (!team || team.parentId === null) {
+      return false;
+    }
+
+    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+      where: {
+        userId: sessionUserId,
+        teamId: team.parentId,
+        accepted: true,
+        role: {
+          in: ["OWNER", "ADMIN"],
+        },
+      },
+    });
+
+    return !!isOwnerAdminOfParentTeam;
+  };
+
+  static objectToCsv(data: Record<string, unknown>[]) {
+    // if empty data return empty string
+    if (!data.length) {
+      return "";
+    }
+    const header = Object.keys(data[0]).join(",") + "\n";
+    const rows = data.map((obj: any) => Object.values(obj).join(",") + "\n");
+    return header + rows.join("");
+  }
 }
 
 export { EventsInsights };

@@ -1,38 +1,57 @@
 import { FileDownIcon } from "lucide-react";
-import { useState } from "react";
 
 import { useFilterContext } from "@calcom/features/insights/context/provider";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc";
 import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger, Button } from "@calcom/ui";
 
 const Download = () => {
   const { filter } = useFilterContext();
-  const [isLoading, setIsLoading] = useState(false);
+
   const { t } = useLocale();
 
-  const handleDownloadClick = () => {
-    setIsLoading(true);
+  const { data, isLoading } = trpc.viewer.insights.rawData.useQuery(
+    {
+      startDate: filter.dateRange[0].toISOString(),
+      endDate: filter.dateRange[1].toISOString(),
+      teamId: filter.selectedTeamId,
+      userId: filter.selectedUserId,
+      eventTypeId: filter.selectedEventTypeId,
+      memberUserId: filter.selectedMemberUserId,
+    },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: false,
+      staleTime: Infinity,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
-    // Create a new URL object with the base URL
-    const destinationUrl = new URL(`${WEBAPP_URL}/api/insights/download`);
+  type RawData = RouterOutputs["viewer"]["insights"]["rawData"] | undefined;
+  const handleDownloadClick = async (data: RawData) => {
+    if (!data) return;
+    const { data: csvRaw, filename } = data;
 
-    // Set query parameters
-    destinationUrl.searchParams.set("startDate", filter.dateRange[0].toISOString());
-    destinationUrl.searchParams.set("endDate", filter.dateRange[1].toISOString());
-    filter.selectedTeamId && destinationUrl.searchParams.set("teamId", filter.selectedTeamId?.toString());
-    filter.selectedUserId && destinationUrl.searchParams.set("userId", filter.selectedUserId?.toString());
-    filter.selectedEventTypeId &&
-      destinationUrl.searchParams.set("eventType", filter.selectedEventTypeId?.toString());
-    filter.selectedMemberUserId &&
-      destinationUrl.searchParams.set("memberUserId", filter.selectedMemberUserId?.toString());
+    // Create a Blob from the text data
+    const blob = new Blob([csvRaw], { type: "text/plain" });
 
-    // Simulate a loading delay (replace this with your actual download preparation logic)
-    setTimeout(() => {
-      setIsLoading(false);
-      // Trigger the download when the loading is complete
-      window.location.href = destinationUrl.toString();
-    }, 2000); // Simulated 2-second loading delay
+    // Create an Object URL for the Blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a download link
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename; // Specify the filename
+
+    // Simulate a click event to trigger the download
+    a.click();
+
+    // Release the Object URL to free up memory
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -47,11 +66,7 @@ const Download = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownItem>
-          <button onClick={handleDownloadClick} disabled={isLoading}>
-            {t("as_csv")}
-          </button>
-        </DropdownItem>
+        <DropdownItem onClick={() => handleDownloadClick(data)}>{t("as_csv")}</DropdownItem>
       </DropdownMenuContent>
     </Dropdown>
   );
