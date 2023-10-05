@@ -55,7 +55,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!response.ok || responseBody.error) {
     log.error("get access_token failed", responseBody);
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   const key: ZohoAuthCredentials = {
