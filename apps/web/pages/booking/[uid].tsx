@@ -115,8 +115,13 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
-  const rescheduleLocation = (props.bookingInfo.responses.location as { value: string; optionValue: string })
-    .optionValue;
+  let rescheduleLocation: string | undefined;
+  if (
+    typeof props.bookingInfo.responses.location === "object" &&
+    "optionValue" in props.bookingInfo.responses.location
+  ) {
+    rescheduleLocation = props.bookingInfo.responses.location.optionValue;
+  }
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -298,7 +303,7 @@ export default function Success(props: SuccessProps) {
   );
 
   const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
-    rescheduleLocation,
+    rescheduleLocation ?? "",
     t,
     bookingInfo.status
   );
