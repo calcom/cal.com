@@ -23,7 +23,7 @@ test.describe("User can overlay their calendar", async () => {
       const continueWithCalCom = page.locator(`[data-testid=overlay-calendar-continue-button]`);
 
       await expect(continueWithCalCom).toBeVisible();
-      continueWithCalCom.click();
+      await continueWithCalCom.click();
     });
 
     // log in trail user
@@ -42,7 +42,7 @@ test.describe("User can overlay their calendar", async () => {
 
     await test.step("Settings should so no calendars connected", async () => {
       const settingsCog = page.locator(`[data-testid=overlay-calendar-settings-button]`);
-      settingsCog.click();
+      await settingsCog.click();
 
       await page.waitForLoadState("networkidle");
 
