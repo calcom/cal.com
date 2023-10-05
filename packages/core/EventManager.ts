@@ -368,8 +368,9 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
-        loggerWithEventDetails.silly("Creating Calendar event", JSON.stringify({ destination }));
+        loggerWithEventDetails.debug("Creating Calendar event", safeStringify({ destination }));
         if (destination.credentialId) {
+          loggerWithEventDetails.silly("destination has credentialId");
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
             // Fetch credential from DB
@@ -410,7 +411,6 @@ export default class EventManager {
             loggerWithEventDetails.warn(
               `No credentialId found for destination calendar, falling back to first found credential matching  destination.integration=${destination.integration}`,
               safeStringify({
-                event: getPiiFreeEventType(event),
                 destination: getPiiFreeDestinationCalendar(destination),
                 firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
               })

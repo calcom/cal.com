@@ -25,7 +25,7 @@ declare global {
           noIcs?: true;
           ics?: {
             filename: string;
-            iCalUID: string;
+            iCalUID?: string;
           };
         },
         to: string
@@ -41,9 +41,9 @@ expect.extend({
       //TODO: Support email HTML parsing to target specific elements
       htmlToContain?: string;
       to: string;
-      ics: {
+      ics?: {
         filename: string;
-        iCalUID: string;
+        iCalUID?: string;
       };
       noIcs: true;
     },
@@ -66,9 +66,10 @@ expect.extend({
     let isHtmlContained = true;
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
-    const isIcsUIDExpected = expectedEmail.ics
-      ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
-      : true;
+    const isIcsUIDExpected =
+      expectedEmail.ics?.iCalUID !== undefined
+        ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
+        : true;
 
     if (expectedEmail.htmlToContain) {
       isHtmlContained = testEmail.html.includes(expectedEmail.htmlToContain);
@@ -95,12 +96,12 @@ expect.extend({
         }
 
         if (!isIcsFilenameExpected) {
-          return `ICS Filename is not as expected. Expected:${expectedEmail.ics.filename} isn't equal to ${ics?.filename}`;
+          return `ICS Filename is not as expected. Expected:${expectedEmail.ics?.filename} isn't equal to ${ics?.filename}`;
         }
 
         if (!isIcsUIDExpected) {
           return `ICS UID is not as expected. Expected:${
-            expectedEmail.ics.iCalUID
+            expectedEmail.ics?.iCalUID
           } isn't present in ${JSON.stringify(icsObject)}`;
         }
         throw new Error("Unknown error");
@@ -187,7 +188,7 @@ export function expectSuccessfulBookingCreationEmails({
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
-  iCalUID: string;
+  iCalUID?: string;
 }) {
   expect(emails).toHaveEmail(
     {
