@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_secret) return res.status(400).json({ message: "Zoho Crm consumer secret missing." });
 
   const url = `${req.query["accounts-server"]}/oauth/v2/token`;
-  const redirectUri = WEBAPP_URL + "/api/integrations/zohocrm/callback";
+  const redirectUri = `${WEBAPP_URL}/api/integrations/zohocrm/callback`;
   const formData = {
     grant_type: "authorization_code",
     client_id: client_id,
