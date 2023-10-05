@@ -10,8 +10,9 @@ import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { HttpError } from "@calcom/lib/http-error";
+import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -19,6 +20,8 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
+logger.setSettings({ minLevel: "silly" });
+const log = logger.getChildLogger({ prefix: ["[bookingScenario]"] });
 type App = {
   slug: string;
   dirName: string;
@@ -74,6 +77,7 @@ type InputUser = typeof TestData.users.example & { id: number } & {
     }[];
     timeZone: string;
   }[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 };
 
 export type InputEventType = {
@@ -92,6 +96,7 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
 
 type InputBooking = {
@@ -121,20 +126,33 @@ const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
-logger.setSettings({ minLevel: "silly" });
 
 async function addEventTypesToDb(
-  eventTypes: (Prisma.EventTypeCreateInput & {
+  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    destinationCalendar?: any;
   })[]
 ) {
-  logger.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
+  log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
   await prismock.eventType.createMany({
     data: eventTypes,
   });
+  log.silly(
+    "TestData: All EventTypes in DB are",
+    JSON.stringify({
+      eventTypes: await prismock.eventType.findMany({
+        include: {
+          users: true,
+          workflows: true,
+          destinationCalendar: true,
+        },
+      }),
+    })
+  );
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -174,9 +192,14 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
       ...eventType,
       workflows: [],
       users,
+      destinationCalendar: eventType.destinationCalendar
+        ? {
+            create: eventType.destinationCalendar,
+          }
+        : eventType.destinationCalendar,
     };
   });
-  logger.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
+  log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
   await addEventTypesToDb(eventTypesWithUsers);
 }
 
@@ -195,7 +218,7 @@ async function addBookingsToDb(
   await prismock.booking.createMany({
     data: bookings,
   });
-  logger.silly(
+  log.silly(
     "TestData: Booking as in DB",
     JSON.stringify({
       bookings: await prismock.booking.findMany({
@@ -208,7 +231,7 @@ async function addBookingsToDb(
 }
 
 async function addBookings(bookings: InputBooking[]) {
-  logger.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+  log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
       addBookingReferencesToDB(
@@ -256,16 +279,22 @@ async function addWebhooksToDb(webhooks: any[]) {
 }
 
 async function addWebhooks(webhooks: InputWebhook[]) {
-  logger.silly("TestData: Creating Webhooks", webhooks);
+  log.silly("TestData: Creating Webhooks", safeStringify(webhooks));
 
   await addWebhooksToDb(webhooks);
 }
 
 async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
-  logger.silly("TestData: Creating Users", JSON.stringify(users));
+  log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
+  log.silly(
+    "Added users to Db",
+    safeStringify({
+      allUsers: await prismock.user.findMany(),
+    })
+  );
 }
 
 async function addUsers(users: InputUser[]) {
@@ -298,6 +327,15 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+    if (user.selectedCalendars) {
+      newUser.selectedCalendars = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.selectedCalendars,
+        },
+      };
+    }
     return newUser;
   });
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -306,7 +344,7 @@ async function addUsers(users: InputUser[]) {
 }
 
 export async function createBookingScenario(data: ScenarioData) {
-  logger.silly("TestData: Creating Scenario", JSON.stringify({ data }));
+  log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
 
   const eventType = await addEventTypes(data.eventTypes, data.users);
@@ -366,8 +404,8 @@ export const getDate = (
     year = year + 1;
   }
 
-  const date = _date < 10 ? "0" + _date : _date;
-  const month = _month < 10 ? "0" + _month : _month;
+  const date = _date < 10 ? `0${_date}` : _date;
+  const month = _month < 10 ? `0${_month}` : _month;
 
   return {
     date,
@@ -569,6 +607,7 @@ export function getOrganizer({
   schedules,
   credentials,
   selectedCalendars,
+  destinationCalendar,
 }: {
   name: string;
   email: string;
@@ -576,6 +615,7 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
     ...TestData.users.example,
@@ -585,6 +625,7 @@ export function getOrganizer({
     schedules,
     credentials,
     selectedCalendars,
+    destinationCalendar,
   };
 }
 
@@ -599,7 +640,7 @@ export function getScenarioData({
 {
   organizer: ReturnType<typeof getOrganizer>;
   eventTypes: ScenarioData["eventTypes"];
-  apps: ScenarioData["apps"];
+  apps?: ScenarioData["apps"];
   usersApartFromOrganizer?: ScenarioData["users"];
   webhooks?: ScenarioData["webhooks"];
   bookings?: ScenarioData["bookings"];
@@ -624,7 +665,19 @@ export function getScenarioData({
         description: `It's a test event type - ${index + 1}`,
       };
     }),
-    users,
+    users: users.map((user) => {
+      const newUser = {
+        ...user,
+      };
+      if (user.destinationCalendar) {
+        newUser.destinationCalendar = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          create: user.destinationCalendar,
+        };
+      }
+      return newUser;
+    }),
     apps: [...apps],
     webhooks,
     bookings: bookings || [],
@@ -642,6 +695,7 @@ export function enableEmailFeature() {
 }
 
 export function mockNoTranslations() {
+  log.silly("Mocking i18n.getTranslation to return identity function");
   // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
@@ -651,15 +705,27 @@ export function mockNoTranslations() {
   });
 }
 
-export function mockCalendarToHaveNoBusySlots(
+/**
+ * @param metadataLookupKey
+ * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
+ */
+export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
-    create: {
-      uid: string;
+    create?: {
+      id?: string;
+      uid?: string;
+      iCalUID?: string;
     };
     update?: {
+      id?: string;
       uid: string;
+      iCalUID?: string;
     };
+    busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
+    creationCrash?: boolean;
+    updationCrash?: boolean;
+    getAvailabilityCrash?: boolean;
   }
 ) {
   const appStoreLookupKey = metadataLookupKey;
@@ -671,7 +737,7 @@ export function mockCalendarToHaveNoBusySlots(
       uid: "UPDATED_MOCK_ID",
     },
   };
-  logger.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
+  log.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createEventCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -685,17 +751,19 @@ export function mockCalendarToHaveNoBusySlots(
         return {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.creationCrash) {
+              throw new Error("MockCalendarService.createEvent fake error");
+            }
             const [calEvent, credentialId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.createEvent",
-              JSON.stringify({ calEvent, credentialId })
-            );
+            log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
             createEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
-              id: normalizedCalendarData.create.uid,
+              // A Calendar is always expected to return an id.
+              id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
+              iCalUID: normalizedCalendarData.create?.iCalUID,
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
@@ -703,27 +771,32 @@ export function mockCalendarToHaveNoBusySlots(
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+            if (calendarData?.updationCrash) {
+              throw new Error("MockCalendarService.updateEvent fake error");
+            }
             const [uid, event, externalCalendarId] = rest;
-            logger.silly(
-              "mockCalendarToHaveNoBusySlots.updateEvent",
-              JSON.stringify({ uid, event, externalCalendarId })
-            );
+            log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
             // eslint-disable-next-line prefer-rest-params
             updateEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
+              iCalUID: normalizedCalendarData.update?.iCalUID,
+
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: normalizedCalendarData.update!.uid!,
+              id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
             });
           },
-          getAvailability: (): Promise<EventBusyDate[]> => {
+          getAvailability: async (): Promise<EventBusyDate[]> => {
+            if (calendarData?.getAvailabilityCrash) {
+              throw new Error("MockCalendarService.getAvailability fake error");
+            }
             return new Promise((resolve) => {
-              resolve([]);
+              resolve(calendarData?.busySlots || []);
             });
           },
         };
@@ -736,10 +809,35 @@ export function mockCalendarToHaveNoBusySlots(
   };
 }
 
-export function mockSuccessfulVideoMeetingCreation({
+export function mockCalendarToHaveNoBusySlots(
+  metadataLookupKey: keyof typeof appStoreMetadata,
+  calendarData?: Parameters<typeof mockCalendar>[1]
+) {
+  calendarData = calendarData || {
+    create: {
+      uid: "MOCK_ID",
+    },
+    update: {
+      uid: "UPDATED_MOCK_ID",
+    },
+  };
+  return mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
+}
+
+export function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { creationCrash: true });
+}
+
+export function mockCalendarToCrashOnUpdateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return mockCalendar(metadataLookupKey, { updationCrash: true });
+}
+
+export function mockVideoApp({
   metadataLookupKey,
   appStoreLookupKey,
   videoMeetingData,
+  creationCrash,
+  updationCrash,
 }: {
   metadataLookupKey: string;
   appStoreLookupKey?: string;
@@ -748,6 +846,8 @@ export function mockSuccessfulVideoMeetingCreation({
     id: string;
     url: string;
   };
+  creationCrash?: boolean;
+  updationCrash?: boolean;
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   videoMeetingData = videoMeetingData || {
@@ -755,10 +855,7 @@ export function mockSuccessfulVideoMeetingCreation({
     password: "MOCK_PASS",
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
-  logger.silly(
-    "mockSuccessfulVideoMeetingCreation",
-    JSON.stringify({ metadataLookupKey, appStoreLookupKey })
-  );
+  log.silly("mockSuccessfulVideoMeetingCreation", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
   const createMeetingCalls: any[] = [];
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -772,7 +869,11 @@ export function mockSuccessfulVideoMeetingCreation({
           VideoApiAdapter: () => ({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             createMeeting: (...rest: any[]) => {
+              if (creationCrash) {
+                throw new Error("MockVideoApiAdapter.createMeeting fake error");
+              }
               createMeetingCalls.push(rest);
+
               return Promise.resolve({
                 type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
                 ...videoMeetingData,
@@ -780,6 +881,9 @@ export function mockSuccessfulVideoMeetingCreation({
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             updateMeeting: async (...rest: any[]) => {
+              if (updationCrash) {
+                throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+              }
               const [bookingRef, calEvent] = rest;
               updateMeetingCalls.push(rest);
               if (!bookingRef.type) {
@@ -788,7 +892,7 @@ export function mockSuccessfulVideoMeetingCreation({
               if (!calEvent.organizer) {
                 throw new Error("calEvent.organizer is not defined");
               }
-              logger.silly(
+              log.silly(
                 "mockSuccessfulVideoMeetingCreation.updateMeeting",
                 JSON.stringify({ bookingRef, calEvent })
               );
@@ -806,6 +910,40 @@ export function mockSuccessfulVideoMeetingCreation({
     createMeetingCalls,
     updateMeetingCalls,
   };
+}
+
+export function mockSuccessfulVideoMeetingCreation({
+  metadataLookupKey,
+  appStoreLookupKey,
+  videoMeetingData,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+  videoMeetingData?: {
+    password: string;
+    id: string;
+    url: string;
+  };
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    videoMeetingData,
+  });
+}
+
+export function mockVideoAppToCrashOnCreateMeeting({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    creationCrash: true,
+  });
 }
 
 export function mockPaymentApp({
@@ -885,11 +1023,8 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
   try {
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
-    if (!(e instanceof HttpError)) {
-      logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    } else {
-      logger.error("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    }
+    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
