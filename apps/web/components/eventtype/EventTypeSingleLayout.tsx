@@ -247,7 +247,7 @@ function EventTypeSingleLayout({
   return (
     <Shell
       backPath="/event-types"
-      title={eventType.title + " | " + t("event_type")}
+      title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
