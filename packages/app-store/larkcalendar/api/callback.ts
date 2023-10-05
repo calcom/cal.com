@@ -28,7 +28,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const response = await fetch(`https://${LARK_HOST}/open-apis/authen/v1/access_token`, {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + appAccessToken,
+        Authorization: `Bearer ${appAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -41,7 +41,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!response.ok || responseBody.code !== 0) {
       log.error("get user_access_token failed with none 0 code", responseBody);
-      return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+      return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
     }
 
     const key: LarkAuthCredentials = {

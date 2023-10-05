@@ -117,7 +117,7 @@ const CopyButton = ({
       <DropdownMenuContent align="end">
         <CopyTimes
           weekStart={weekStart}
-          disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
+          disabled={parseInt(getValuesFromDayRange.replace(`${fieldArrayName}.`, ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
             setOpen(false);
