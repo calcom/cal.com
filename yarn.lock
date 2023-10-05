@@ -3991,6 +3991,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/intercom@workspace:packages/app-store/intercom":
+  version: 0.0.0-use.local
+  resolution: "@calcom/intercom@workspace:packages/app-store/intercom"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo":
   version: 0.0.0-use.local
   resolution: "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo"
@@ -4398,7 +4407,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
-    "@formkit/auto-animate": ^1.0.0-beta.5
+    "@formkit/auto-animate": ^0.8.0
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-popover": ^1.0.2
@@ -4479,7 +4488,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.37.0
-    "@formkit/auto-animate": ^1.0.0-beta.5
+    "@formkit/auto-animate": ^0.8.0
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
@@ -6016,10 +6025,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@formkit/auto-animate@npm:^1.0.0-beta.5":
-  version: 1.0.0-beta.5
-  resolution: "@formkit/auto-animate@npm:1.0.0-beta.5"
-  checksum: 479a4f694d91e7272b2d8bdf2051fd1ae2dd5fbb522612406eaef55d88b7131402a7d5f683df8eb4e7c00810ebec8d3048483a774b0864c299d2d7af81262eb2
+"@formkit/auto-animate@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@formkit/auto-animate@npm:0.8.0"
+  checksum: fbe4c35e022c0d26435343368a2cac3e63d5579815925632a828797a204ad20ad17738860396a4a08f89c0b0a88c1f0f7f483e9d03c9fc4f1cf05c6c1fa0bf4f
   languageName: node
   linkType: hard
 
