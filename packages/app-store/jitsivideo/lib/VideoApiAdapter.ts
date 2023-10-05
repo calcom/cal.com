@@ -33,7 +33,7 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
         type: metadata.type,
         id: meetingID,
         password: "",
-        url: hostUrl + "/" + encodeURIComponent(meetingID),
+        url: `${hostUrl}/${encodeURIComponent(meetingID)}`,
       });
     },
     deleteMeeting: async (): Promise<void> => {

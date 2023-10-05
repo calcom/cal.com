@@ -291,7 +291,7 @@ export class Cal {
     urlInstance.searchParams.set("embed", this.namespace);
 
     if (config.debug) {
-      urlInstance.searchParams.set("debug", "" + config.debug);
+      urlInstance.searchParams.set("debug", `${config.debug}`);
     }
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
@@ -367,7 +367,7 @@ export class Cal {
         // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
         // This case is reproducible when viewing in ModalBox on Mobile.
         const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
-        iframe.style.maxHeight = window.innerHeight - spacingTopPlusBottom + "px";
+        iframe.style.maxHeight = `${window.innerHeight - spacingTopPlusBottom}px`;
       }
     });
 
@@ -554,10 +554,10 @@ class CalApi {
     }
     const dataset = el.dataset;
     dataset["buttonText"] = buttonText;
-    dataset["hideButtonIcon"] = "" + hideButtonIcon;
-    dataset["buttonPosition"] = "" + buttonPosition;
-    dataset["buttonColor"] = "" + buttonColor;
-    dataset["buttonTextColor"] = "" + buttonTextColor;
+    dataset["hideButtonIcon"] = `${hideButtonIcon}`;
+    dataset["buttonPosition"] = `${buttonPosition}`;
+    dataset["buttonColor"] = `${buttonColor}`;
+    dataset["buttonTextColor"] = `${buttonTextColor}`;
   }
 
   modal({
@@ -738,7 +738,7 @@ window.addEventListener("message", (e) => {
   globalCal.__logQueue.push({ ...parsedAction, data: detail.data });
 
   if (!actionManager) {
-    throw new Error("Unhandled Action" + parsedAction);
+    throw new Error(`Unhandled Action ${parsedAction}`);
   }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore

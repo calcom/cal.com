@@ -133,12 +133,12 @@ export const EventSetupTab = (
     };
   });
 
-  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180].map(
-    (mins) => ({
-      value: mins,
-      label: t("multiple_duration_mins", { count: mins }),
-    })
-  );
+  const multipleDurationOptions = [
+    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 480,
+  ].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{

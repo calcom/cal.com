@@ -63,14 +63,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
-  const eventPage =
-    (eventType.team
-      ? "team/" + eventType.team.slug
+  const eventPage = `${
+    eventType.team
+      ? `team/${eventType.team.slug}`
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick") /* This shouldn't happen */ +
-    "/" +
-    eventType?.slug;
+      : booking.user?.username || "rick" /* This shouldn't happen */
+  }/${eventType?.slug}`;
   const destinationUrl = new URLSearchParams();
 
   destinationUrl.set("rescheduleUid", seatReferenceUid || bookingId);
