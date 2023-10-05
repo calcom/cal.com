@@ -115,7 +115,8 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
-  const rsLocation = props.bookingInfo.responses.location.optionValue as string;
+  const rsLocation = (props.bookingInfo.responses.location as { value: string; optionValue: string })
+    .optionValue;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
