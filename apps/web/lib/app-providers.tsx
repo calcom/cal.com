@@ -179,14 +179,14 @@ function getThemeProviderProps({
     );
   }
 
-  const appearanceIdSuffix = themeBasis ? ":" + themeBasis : "";
+  const appearanceIdSuffix = themeBasis ? `:${themeBasis}` : "";
   const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   let embedExplicitlySetThemeSuffix = "";
 
   if (typeof window !== "undefined") {
     const embedTheme = window.getEmbedTheme();
     if (embedTheme) {
-      embedExplicitlySetThemeSuffix = ":" + embedTheme;
+      embedExplicitlySetThemeSuffix = `:${embedTheme}`;
     }
   }
 
