@@ -1622,7 +1622,7 @@
   "verified_successfully": "Ověřeno",
   "wrong_code": "Nesprávný ověřovací kód",
   "not_verified": "Zatím neověřeno",
-  "cannot_book_this_far_into_the_future": "Žádná dostupnost pro {{month}}",
+  "cannot_book_this_far_into_the_future": "Nemůžete rezervovat tak daleko do budoucnosti",
   "send_code": "Odeslat kód",
   "number_verified": "Číslo ověřeno",
   "create_your_first_team_webhook_description": "Vytvořte svůj první webhook pro tento typ týmové události",

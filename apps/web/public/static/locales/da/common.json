@@ -1418,7 +1418,7 @@
   "verified_successfully": "Bekræftet",
   "wrong_code": "Forkert bekræftelseskode",
   "not_verified": "Endnu ikke bekræftet",
-  "cannot_book_this_far_into_the_future": "Ingen tilgængelighed i {{month}}",
+  "cannot_book_this_far_into_the_future": "Du kan ikke booke så langt ud i fremtiden",
   "send_code": "Send kode",
   "number_verified": "Nummer Bekræftet",
   "create_your_first_team_webhook_description": "Opret din første webhook for denne teambegivenhedstype",

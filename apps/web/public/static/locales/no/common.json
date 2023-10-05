@@ -1373,7 +1373,7 @@
   "verified_successfully": "Verifiseringen var vellykket",
   "wrong_code": "Feil verifiseringskode",
   "not_verified": "Ikke verifisert ennå",
-  "cannot_book_this_far_into_the_future": "Ingen tilgjengelighet i {{month}}",
+  "cannot_book_this_far_into_the_future": "Du kan ikke bestille så langt inn i fremtiden",
   "send_code": "Send kode",
   "number_verified": "Nummer Bekreftet",
   "create_your_first_team_webhook_description": "Opprett din første webhook for denne team-hendelsestypen",

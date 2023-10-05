@@ -1622,7 +1622,7 @@
   "verified_successfully": "Har verifierats",
   "wrong_code": "Fel verifieringskod",
   "not_verified": "Har inte verifierats än",
-  "cannot_book_this_far_into_the_future": "Ingen tillgänglighet i {{month}}",
+  "cannot_book_this_far_into_the_future": "Du kan inte boka så här långt in i framtiden",
   "send_code": "Skicka kod",
   "number_verified": "Numret har verifierats",
   "create_your_first_team_webhook_description": "Skapa din första webhook för denna teamhändelsetyp",

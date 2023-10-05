@@ -1622,7 +1622,7 @@
   "verified_successfully": "Başarıyla doğrulandı",
   "wrong_code": "Yanlış doğrulama kodu",
   "not_verified": "Henüz doğrulanmadı",
-  "cannot_book_this_far_into_the_future": "{{month}} ayında müsaitlik yok",
+  "cannot_book_this_far_into_the_future": "Bu kadar uzak bir geleceğe rezervasyon yapamazsınız",
   "send_code": "Kod gönder",
   "number_verified": "Numara Doğrulandı",
   "create_your_first_team_webhook_description": "Bu ekip etkinliği türü için ilk web kancanızı oluşturun",

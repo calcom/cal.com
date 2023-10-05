@@ -1622,7 +1622,7 @@
   "verified_successfully": "Vérification réussie",
   "wrong_code": "Code de vérification incorrect",
   "not_verified": "Pas encore vérifié",
-  "cannot_book_this_far_into_the_future": "Aucune disponibilité en {{month}}",
+  "cannot_book_this_far_into_the_future": "Vous ne pouvez pas réserver aussi loin dans le futur",
   "send_code": "Envoyer le code",
   "number_verified": "Numéro vérifié",
   "create_your_first_team_webhook_description": "Créez votre premier webhook pour ce type d'événement d'équipe",

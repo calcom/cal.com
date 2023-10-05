@@ -1622,7 +1622,7 @@
   "verified_successfully": "تم التحقق بنجاح",
   "wrong_code": "رمز التحقق غير صحيح",
   "not_verified": "لم يتم التحقق منه بعد",
-  "cannot_book_this_far_into_the_future": "غير متاح في شهر {{month}}",
+  "cannot_book_this_far_into_the_future": "لا يمكنك حجز هذا في المستقبل البعيد",
   "send_code": "إرسال الرمز",
   "number_verified": "تم التحقق من الرقم",
   "create_your_first_team_webhook_description": "قم بإنشاء أول شبكة ويب هوك لهذا النوع من فعاليات الفريق",

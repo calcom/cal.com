@@ -1622,7 +1622,7 @@
   "verified_successfully": "已成功驗證",
   "wrong_code": "驗證碼錯誤",
   "not_verified": "尚未驗證",
-  "cannot_book_this_far_into_the_future": "{{month}}不開放預約",
+  "cannot_book_this_far_into_the_future": "您無法預訂這麼遠的未來",
   "send_code": "傳送驗證碼",
   "number_verified": "號碼已驗證",
   "create_your_first_team_webhook_description": "為此團隊活動類型建立第一個 Webhook",

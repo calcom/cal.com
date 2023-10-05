@@ -1622,7 +1622,7 @@
   "verified_successfully": "Geverifieerd",
   "wrong_code": "Onjuiste verificatiecode",
   "not_verified": "Nog niet geverifieerd",
-  "cannot_book_this_far_into_the_future": "Geen beschikbaarheid in {{month}}",
+  "cannot_book_this_far_into_the_future": "Zo ver in de toekomst kunt u niet boeken",
   "send_code": "Code verzenden",
   "number_verified": "Nummer geverifieerd",
   "create_your_first_team_webhook_description": "Maak uw eerste webhook voor dit teamgebeurtenistype",

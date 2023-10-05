@@ -1622,7 +1622,7 @@
   "verified_successfully": "Перевірено",
   "wrong_code": "Неправильний код перевірки",
   "not_verified": "Ще не перевірено",
-  "cannot_book_this_far_into_the_future": "Недоступний(-а) у такому місяці: {{month}}",
+  "cannot_book_this_far_into_the_future": "Ви не можете забронювати так далеко в майбутньому",
   "send_code": "Надіслати код",
   "number_verified": "Номер перевірено",
   "create_your_first_team_webhook_description": "Створіть свій перший вебгук для цього типу командного заходу",

@@ -1623,7 +1623,7 @@
   "verified_successfully": "验证成功",
   "wrong_code": "验证码错误",
   "not_verified": "尚未验证",
-  "cannot_book_this_far_into_the_future": "在 {{month}}不可预约",
+  "cannot_book_this_far_into_the_future": "您无法预订这么远的未来",
   "send_code": "发送代码",
   "number_verified": "号码已验证",
   "create_your_first_team_webhook_description": "为此团队活动类型创建第一个 Webhook",

@@ -1622,7 +1622,7 @@
   "verified_successfully": "Verificare efectuată cu succes",
   "wrong_code": "Cod de verificare incorect",
   "not_verified": "Încă nu a fost verificat",
-  "cannot_book_this_far_into_the_future": "Nicio disponibilitate în {{month}}",
+  "cannot_book_this_far_into_the_future": "Nu puteți rezerva atât de departe în viitor",
   "send_code": "Trimite codul",
   "number_verified": "Număr verificat",
   "create_your_first_team_webhook_description": "Creează primul tău webhook pentru acest tip de eveniment pentru echipă",

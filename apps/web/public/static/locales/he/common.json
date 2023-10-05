@@ -1622,7 +1622,7 @@
   "verified_successfully": "האימות בוצע בהצלחה",
   "wrong_code": "קוד האימות שגוי",
   "not_verified": "האימות עדיין לא בוצע",
-  "cannot_book_this_far_into_the_future": "אין זמינות ב{{month}}",
+  "cannot_book_this_far_into_the_future": "אתה לא יכול להזמין כל כך רחוק בעתיד",
   "send_code": "שליחת קוד",
   "number_verified": "המספר אומת",
   "create_your_first_team_webhook_description": "צור/צרי את ה-Webhook הראשון שלך עבור סוג זה של אירוע צוות",

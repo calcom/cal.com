@@ -1622,7 +1622,7 @@
   "verified_successfully": "Верификация пройдена успешно",
   "wrong_code": "Неправильный код подтверждения",
   "not_verified": "Еще не подтвержден",
-  "cannot_book_this_far_into_the_future": "В этом месяце ({{month}}) нет свободных мест",
+  "cannot_book_this_far_into_the_future": "Вы не можете забронировать так далеко в будущем",
   "send_code": "Отправить код",
   "number_verified": "Номер подтвержден",
   "create_your_first_team_webhook_description": "Создайте первый вебхук для этого командного типа событий",

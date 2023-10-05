@@ -1622,7 +1622,7 @@
   "verified_successfully": "Erfolgreich bestätigt",
   "wrong_code": "Bestätigungscode falsch",
   "not_verified": "Noch nicht bestätigt",
-  "cannot_book_this_far_into_the_future": "Keine Verfügbarkeit im {{month}}",
+  "cannot_book_this_far_into_the_future": "So weit in die Zukunft können Sie nicht buchen",
   "send_code": "Code senden",
   "number_verified": "Nummer bestätigt",
   "create_your_first_team_webhook_description": "Erstellen Sie Ihren ersten Webhook für diesen Team-Ereignistyp",
