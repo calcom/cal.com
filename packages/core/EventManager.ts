@@ -344,6 +344,9 @@ export default class EventManager {
    * @private
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
+    const loggerWithEventDetails = log.getChildLogger({
+      prefix: [`eventTypeId:${event.eventTypeId ?? "unknown"}`],
+    });
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
@@ -365,7 +368,7 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
-        log.silly("Creating Calendar event", JSON.stringify({ destination }));
+        loggerWithEventDetails.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
@@ -404,9 +407,10 @@ export default class EventManager {
             destinationCalendarCredentials[0];
           // It is seen in the production that there are `destinationCalendars` with no calendar credential at all.
           if (firstCalendarCredential) {
-            log.warn(
-              "No credentialId found for destination calendar, falling back to first found calendar",
+            loggerWithEventDetails.warn(
+              `No credentialId found for destination calendar, falling back to first found credential matching  destination.integration=${destination.integration}`,
               safeStringify({
+                event: getPiiFreeEventType(event),
                 destination: getPiiFreeDestinationCalendar(destination),
                 firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
               })
@@ -414,7 +418,7 @@ export default class EventManager {
 
             createdEvents.push(await createEvent(firstCalendarCredential, event));
           } else {
-            log.error(
+            loggerWithEventDetails.error(
               `No credential found matching destination.integration=${destination.integration}  - So, we won't be able to create the event in the destination calendar`,
               safeStringify({
                 destination: getPiiFreeDestinationCalendar(destination),
@@ -425,7 +429,7 @@ export default class EventManager {
         }
       }
     } else {
-      log.warn(
+      loggerWithEventDetails.warn(
         "No destination Calendar found, falling back to first connected calendar",
         safeStringify({
           calendarCredentials: this.calendarCredentials,
@@ -439,7 +443,7 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event", safeStringify({ createdEvent }));
+        loggerWithEventDetails.silly("Created Calendar event", safeStringify({ createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
