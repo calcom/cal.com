@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://github.com/vachmara",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Valentin Chmara",
   "email": "valentinchmara@gmail.com",
   "description": "Enhance your scheduling and appointment management experience with the Intercom Integration for Cal.com.",

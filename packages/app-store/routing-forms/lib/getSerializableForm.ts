@@ -30,7 +30,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const fieldsParsed = zodFields.safeParse(form.fields);
 
   if (!fieldsParsed.success) {
-    throw new Error("Error parsing fields" + fieldsParsed.error);
+    throw new Error(`Error parsing fields: ${fieldsParsed.error}`);
   }
 
   const settings = RoutingFormSettings.parse(
@@ -91,7 +91,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
           },
         });
         if (!router) {
-          throw new Error("Form -" + route.id + ", being used as router, not found");
+          throw new Error(`Form - ${route.id}, being used as router, not found`);
         }
 
         const parsedRouter = await getSerializableForm({ form: router });
