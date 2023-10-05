@@ -4,9 +4,9 @@ Welcome to the first stage of Cal.ai!
 
 This app lets you chat with your calendar via email:
 
-  - Turn informal emails into bookings eg. forward "wanna meet tmrw at 2pm?"
-  - List and rearrange your bookings eg. "Cancel my next meeting"
-  - Answer basic questions about your busiest times eg. "How does my Tuesday look?"
+- Turn informal emails into bookings eg. forward "wanna meet tmrw at 2pm?"
+- List and rearrange your bookings eg. "Cancel my next meeting"
+- Answer basic questions about your busiest times eg. "How does my Tuesday look?"
 
 The core logic is contained in [agent/route.ts](/apps/ai/src/app/api/agent/route.ts). Here, a [LangChain Agent Executor](https://docs.langchain.com/docs/components/agents/agent-executor) is tasked with following your instructions. Given your last-known timezone, working hours, and busy times, it attempts to CRUD your bookings.
 
@@ -24,10 +24,10 @@ If you haven't yet, please run the [root setup](/README.md) steps.
 
 Before running the app, please see [env.mjs](./src/env.mjs) for all required environment variables. You'll need:
 
-  - An [OpenAI API key](https://platform.openai.com/account/api-keys) with access to GPT-4
-  - A [SendGrid API key](https://app.sendgrid.com/settings/api_keys)
-  - A default sender email (for example, `ai@cal.dev`)
-  - The Cal.ai's app ID and URL (see [add.ts](/packages/app-store/cal-ai/api/index.ts))
+- An [OpenAI API key](https://platform.openai.com/account/api-keys) with access to GPT-4
+- A [SendGrid API key](https://app.sendgrid.com/settings/api_keys)
+- A default sender email (for example, `ai@cal.dev`)
+- The Cal.ai's app ID and URL (see [add.ts](/packages/app-store/cal-ai/api/index.ts))
 
 To stand up the API and AI apps simultaneously, simply run `yarn dev:ai`.
 
