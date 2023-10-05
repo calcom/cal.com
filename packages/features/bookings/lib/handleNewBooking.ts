@@ -2148,6 +2148,7 @@ async function handler(
           id: originalRescheduledBooking.id,
         },
         data: {
+          rescheduled: true,
           status: BookingStatus.CANCELLED,
         },
       });
