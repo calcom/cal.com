@@ -18,7 +18,7 @@ import {
 import { ExternalLink, MoreHorizontal } from "@calcom/ui/components/icon";
 
 interface Props {
-  member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"][number];
+  member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
 }
 
 export default function MemberListItem(props: Props) {
