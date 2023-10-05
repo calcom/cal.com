@@ -233,6 +233,22 @@ export function expectSuccessfulBookingCreationEmails({
       );
     });
   }
+
+  if (guests) {
+    guests.forEach((guest) => {
+      expect(emails).toHaveEmail(
+        {
+          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          to: `${guest.email}`,
+          ics: {
+            filename: "event.ics",
+            iCalUID: iCalUID,
+          },
+        },
+        `${guest.name} <${guest.email}`
+      );
+    });
+  }
 }
 
 export function expectBrokenIntegrationEmails({
