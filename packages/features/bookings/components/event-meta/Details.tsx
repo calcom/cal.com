@@ -4,14 +4,15 @@ import React from "react";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
+import { Clock, CheckSquare, RefreshCcw } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
-import { EventPrice } from "./Price";
+import { Price } from "./Price";
+import { getPriceIcon } from "./getPriceIcon";
 
 type EventDetailsPropsBase = {
   event: PublicEvent;
@@ -156,8 +157,12 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
-              <EventMetaBlock key={block} icon={CreditCard}>
-                <EventPrice event={event} />
+              <EventMetaBlock key={block} icon={getPriceIcon(event.currency)}>
+                <Price
+                  price={paymentAppData.price}
+                  currency={event.currency}
+                  displayAlternateSymbol={false}
+                />
               </EventMetaBlock>
             );
         }

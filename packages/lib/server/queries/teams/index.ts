@@ -185,7 +185,7 @@ export async function getTeamWithMembers(args: {
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>
-        token.identifier === "invite-link-for-teamId-" + team.id &&
+        token.identifier === `invite-link-for-teamId-${team.id}` &&
         token.expires > new Date(new Date().setHours(24))
     ),
     metadata: restTeamMetadata,

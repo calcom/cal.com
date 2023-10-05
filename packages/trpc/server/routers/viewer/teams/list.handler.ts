@@ -41,7 +41,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       isOrgAdmin,
       ..._team,
       /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));
   }
 
@@ -69,6 +69,6 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       accepted: membership.accepted,
       ..._team,
       /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + _team.id),
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));
 };
