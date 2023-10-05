@@ -400,16 +400,28 @@ export default class EventManager {
             (c) => c.type === destination.integration
           );
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
-          const firstCalendarCredential = destinationCalendarCredentials[0];
-          log.warn(
-            "No credentialId found for destination calendar, falling back to first found calendar",
-            safeStringify({
-              destination: getPiiFreeDestinationCalendar(destination),
-              firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
-            })
-          );
+          const firstCalendarCredential: (typeof destinationCalendarCredentials)[number] | undefined =
+            destinationCalendarCredentials[0];
+          // It is seen in the production that there are `destinationCalendars` with no calendar credential at all.
+          if (firstCalendarCredential) {
+            log.warn(
+              "No credentialId found for destination calendar, falling back to first found calendar",
+              safeStringify({
+                destination: getPiiFreeDestinationCalendar(destination),
+                firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
+              })
+            );
 
-          createdEvents.push(await createEvent(firstCalendarCredential, event));
+            createdEvents.push(await createEvent(firstCalendarCredential, event));
+          } else {
+            log.error(
+              `No credential found matching destination.integration=${destination.integration}  - So, we won't be able to create the event in the destination calendar`,
+              safeStringify({
+                destination: getPiiFreeDestinationCalendar(destination),
+                allCalendarCredentials: this.calendarCredentials.map(getPiiFreeCredential),
+              })
+            );
+          }
         }
       }
     } else {
