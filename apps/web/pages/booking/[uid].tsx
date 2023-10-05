@@ -298,7 +298,7 @@ export default function Success(props: SuccessProps) {
   );
 
   const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
-    locationVideoCallUrl ?? rescheduleLocation,
+    rescheduleLocation,
     t,
     bookingInfo.status
   );
@@ -476,7 +476,7 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {locationToDisplay === rescheduleLocationToDisplay ? (
+                          {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
                             locationToDisplay.startsWith("http") ? (
                               <a
                                 href={locationToDisplay}
