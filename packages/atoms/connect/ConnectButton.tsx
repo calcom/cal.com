@@ -36,9 +36,10 @@ export function ConnectButton({
     <div>
       <button
         className={classNames(
+          "bg-default text-default dark:text-muted dark:bg-muted rounded-md p-3",
           stylesClassname
-            ? `bg-default dark:bg-muted rounded-md ${stylesClassname}`
-            : `bg-default dark:bg-muted text-default dark:text-muted rounded-md`
+            ? stylesClassname
+            : "bg-default text-default dark:text-muted dark:bg-muted rounded-md p-3"
         )}
         onClick={(event) => handleSubmit(event)}
         disabled={!isProcessing}
