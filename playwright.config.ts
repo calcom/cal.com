@@ -178,7 +178,7 @@ expect.extend({
       };
     }
     const pathname = u.pathname;
-    const expectedPathname = expectedUrlDetails.pathname + "/embed";
+    const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
     if (expectedPathname && expectedPathname !== pathname) {
       return {
         pass: false,
