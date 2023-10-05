@@ -23,7 +23,7 @@ test.describe("Event Types tests", () => {
       await users.deleteAll();
     });
 
-    test("headers", async ({ page }) => {
+    test("sees proper metadata", async ({ page }) => {
       {
         const locator = page.locator('meta[name="viewport"]');
 
