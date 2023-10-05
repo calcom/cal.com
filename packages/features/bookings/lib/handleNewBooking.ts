@@ -690,7 +690,7 @@ async function handler(
   });
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 0;
   }
 
   const fullName = getFullName(bookerName);
