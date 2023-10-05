@@ -23,6 +23,179 @@ test.describe("Event Types tests", () => {
       await users.deleteAll();
     });
 
+    test("headers", async ({ page }) => {
+      {
+        const locator = page.locator('meta[name="viewport"]');
+
+        await expect(locator).toHaveAttribute(
+          "content",
+          "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+        );
+      }
+
+      {
+        const locator = page.locator('meta[name="twitter:card"]');
+
+        await expect(locator).toHaveAttribute("content", "summary_large_image");
+      }
+
+      {
+        const locator = page.locator('meta[name="twitter:site"]');
+
+        await expect(locator).toHaveAttribute("content", "@calcom");
+      }
+
+      {
+        const locator = page.locator('meta[name="twitter:creator"]');
+
+        await expect(locator).toHaveAttribute("content", "@calcom");
+      }
+
+      {
+        const locator = page.locator('meta[name="robots"]');
+
+        await expect(locator).toHaveAttribute("content", "index,follow");
+      }
+
+      {
+        const locator = page.locator('meta[property="og:description"]');
+
+        await expect(locator).toHaveAttribute(
+          "content",
+          "Create events to share for people to book on your calendar."
+        );
+      }
+
+      {
+        const locator = page.locator('meta[property="og:url"]');
+
+        await expect(locator).toHaveAttribute("content", "http://localhost:3000/event-types");
+      }
+
+      {
+        const locator = page.locator('meta[property="og:type"]');
+
+        await expect(locator).toHaveAttribute("content", "website");
+      }
+
+      {
+        const locator = page.locator('meta[property="og:site_name"]');
+
+        await expect(locator).toHaveAttribute("content", "Cal.com");
+      }
+
+      {
+        const locator = page.locator('link[rel="canonical"]');
+
+        await expect(locator).toHaveAttribute("href", "http://localhost:3000/event-types");
+      }
+
+      {
+        const locator = page.locator('meta[property="og:title"]');
+
+        const content = await locator.getAttribute("content");
+
+        expect(content).toMatch(/(Event Types|Cal\.com) \| Cal\.com/);
+      }
+
+      {
+        const locator = page.locator('meta[property="og:image"]');
+        const content = await locator.getAttribute("content");
+
+        const optionA =
+          "http://localhost:3000/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dgeneric%26title%3DCal.com%26description%3D";
+
+        const optionB =
+          "http://localhost:3000/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dgeneric%26title%3DEvent%2520Types%26description%3DCreate%2520events%2520to%2520share%2520for%2520people%2520to%2520book%2520on%2520your%2520calendar.";
+
+        expect(content === optionA || content === optionB).toBeTruthy();
+      }
+
+      {
+        const locator = page.locator("title");
+
+        const innerText = await locator.innerText();
+
+        expect(innerText).toMatch(/(Event Types|Cal\.com) \| Cal\.com/);
+      }
+
+      {
+        const locator = page.locator('link[rel="apple-touch-icon"]');
+
+        const href = await locator.getAttribute("href");
+
+        expect(href).toEqual("/api/logo?type=apple-touch-icon");
+      }
+
+      {
+        const locator = page.locator('link[sizes="32x32"]');
+
+        const href = await locator.getAttribute("href");
+
+        expect(href).toEqual("/api/logo?type=favicon-32");
+      }
+
+      {
+        const locator = page.locator('link[sizes="16x16"]');
+
+        const href = await locator.getAttribute("href");
+
+        expect(href).toEqual("/api/logo?type=favicon-16");
+      }
+
+      {
+        const locator = page.locator('link[rel="manifest"]');
+
+        const href = await locator.getAttribute("href");
+
+        expect(href).toEqual("/site.webmanifest");
+      }
+
+      {
+        const locator = page.locator('link[rel="mask-icon"]');
+
+        const href = await locator.getAttribute("href");
+
+        expect(href).toEqual("/safari-pinned-tab.svg");
+
+        const color = await locator.getAttribute("color");
+
+        expect(color).toEqual("#000000");
+      }
+
+      {
+        const locator = page.locator('meta[name="msapplication-TileColor"]');
+
+        const content = await locator.getAttribute("content");
+
+        expect(content).toEqual("#ff0000");
+      }
+
+      {
+        const locator = page.locator('meta[media="(prefers-color-scheme: light)"]');
+
+        const name = await locator.getAttribute("name");
+
+        expect(name).toEqual("theme-color");
+
+        const content = await locator.getAttribute("content");
+
+        expect(content).toEqual("#f9fafb");
+      }
+
+      {
+        const locator = page.locator('meta[media="(prefers-color-scheme: dark)"]');
+
+        const name = await locator.getAttribute("name");
+
+        expect(name).toEqual("theme-color");
+
+        const content = await locator.getAttribute("content");
+
+        expect(content).toEqual("#1C1C1C");
+      }
+    });
+
     test("has at least 2 events", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const count = await $eventTypes.count();
