@@ -212,7 +212,10 @@ export const initialCommonSteps = async (
   await bookingPage.getByTestId("preview-button").click();
   const eventTypePage = await eventtypePromise;
 
-  // Select the first available time
+  while (await bookingPage.getByRole("button", { name: "View next" }).isVisible()) {
+    await bookingPage.getByRole("button", { name: "View next" }).click();
+  }
+
   await eventTypePage.getByTestId("time").first().click();
   fillAndConfirmBooking(
     eventTypePage,
@@ -228,6 +231,9 @@ export const initialCommonSteps = async (
 };
 const rescheduleAndCancel = async (eventTypePage: Page) => {
   await eventTypePage.getByText("Reschedule").click();
+  while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
+    await eventTypePage.getByRole("button", { name: "View next" }).click();
+  }
   await eventTypePage.getByTestId("time").first().click();
   await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
   await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
