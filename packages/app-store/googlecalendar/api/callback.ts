@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
 
-  const redirect_uri = WEBAPP_URL_FOR_OAUTH + "/api/integrations/googlecalendar/callback";
+  const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       res.redirect(
-        getSafeRedirectUrl(CAL_URL + "/apps/installed/conferencing?hl=google-meet") ??
+        getSafeRedirectUrl(`${CAL_URL}/apps/installed/conferencing?hl=google-meet`) ??
           getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
       );
     }
