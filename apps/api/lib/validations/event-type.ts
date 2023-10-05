@@ -24,6 +24,10 @@ const hostSchema = _HostModel.pick({
   userId: true,
 });
 
+export const childrenSchema = z.object({
+  id: z.number().int(),
+});
+
 export const schemaEventTypeBaseBodyParams = EventType.pick({
   title: true,
   description: true,
@@ -57,7 +61,12 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   bookingLimits: true,
   durationLimits: true,
 })
-  .merge(z.object({ hosts: z.array(hostSchema).optional().default([]) }))
+  .merge(
+    z.object({
+      children: z.array(childrenSchema).optional().default([]),
+      hosts: z.array(hostSchema).optional().default([]),
+    })
+  )
   .partial()
   .strict();
 
@@ -127,6 +136,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   price: true,
   currency: true,
   slotInterval: true,
+  parentId: true,
   successRedirectUrl: true,
   description: true,
   locations: true,
@@ -139,6 +149,8 @@ export const schemaEventTypeReadPublic = EventType.pick({
   durationLimits: true,
 }).merge(
   z.object({
+    children: z.array(childrenSchema).optional().default([]),
+    hosts: z.array(hostSchema).optional().default([]),
     locations: z
       .array(
         z.object({
