@@ -37,6 +37,7 @@ import TeamPill, { TeamRole } from "./TeamPill";
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
   member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  isOrgAdminOrOwner: boolean | undefined;
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -109,7 +110,8 @@ export default function MemberListItem(props: Props) {
       (props.member.role !== MembershipRole.OWNER ||
         ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
-    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
+    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER) ||
+    props.isOrgAdminOrOwner;
   const impersonationMode =
     editMode &&
     !props.member.disableImpersonation &&
