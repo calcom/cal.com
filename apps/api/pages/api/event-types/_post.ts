@@ -118,10 +118,13 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               schedulingType:
  *                 type: string
  *                 description: The type of scheduling if a Team event. Required for team events only
- *                 enum: [ROUND_ROBIN, COLLECTIVE]
+ *                 enum: [ROUND_ROBIN, COLLECTIVE, MANAGED]
  *               price:
  *                 type: integer
  *                 description: Price of the event type booking
+ *               parentId:
+ *                 type: integer
+ *                 description: EventTypeId of the parent managed event
  *               currency:
  *                 type: string
  *                 description: Currency acronym. Eg- usd, eur, gbp, etc.
