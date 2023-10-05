@@ -36,10 +36,10 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="flex items-center justify-end space-x-2">
+    <div className="bg-default sticky top-[3rem] z-10 flex items-center justify-end space-x-2 py-4 md:top-0">
       {searchKey && (
         <Input
-          className="max-w-64 mb-0 mr-auto"
+          className="max-w-64 mb-0 mr-auto rounded-md"
           placeholder="Search"
           value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
