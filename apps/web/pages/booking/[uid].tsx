@@ -115,7 +115,7 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
-  const rsLocation = (props.bookingInfo.responses.location as { value: string; optionValue: string })
+  const rescheduleLocation = (props.bookingInfo.responses.location as { value: string; optionValue: string })
     .optionValue;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
@@ -297,8 +297,14 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ?? rescheduleLocation,
+    t,
+    bookingInfo.status
+  );
+
   const providerName = guessEventLocationType(location)?.label;
-  const rsProviderName = guessEventLocationType(rsLocation)?.label;
+  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -470,35 +476,64 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {reschedule &&
-                            !!formerTime &&
-                            locationToDisplay !== rsLocation &&
+                          {locationToDisplay === rescheduleLocationToDisplay &&
                             (locationToDisplay.startsWith("http") ? (
                               <a
                                 href={locationToDisplay}
                                 target="_blank"
                                 title={locationToDisplay}
-                                className="text-default flex items-center gap-2 line-through"
+                                className="text-default flex items-center gap-2"
                                 rel="noreferrer">
                                 {providerName || "Link"}
                                 <ExternalLink className="text-default inline h-4 w-4" />
                               </a>
                             ) : (
-                              <p className="line-through">{locationToDisplay}</p>
+                              locationToDisplay
                             ))}
-                          {rsLocation.startsWith("http") ? (
-                            <a
-                              href={rsLocation}
-                              target="_blank"
-                              title={rsLocation}
-                              className="text-default flex items-center gap-2 underline"
-                              rel="noreferrer">
-                              {rsProviderName || "Link"}
-                              <ExternalLink className="text-default inline h-4 w-4" />
-                            </a>
-                          ) : (
-                            rsLocation
-                          )}
+                          {locationToDisplay !== rescheduleLocationToDisplay &&
+                            (rescheduleLocationToDisplay.startsWith("http") ? (
+                              <>
+                                {locationToDisplay.startsWith("http") ? (
+                                  <a
+                                    href={locationToDisplay}
+                                    target="_blank"
+                                    title={locationToDisplay}
+                                    className="text-default flex items-center gap-2 line-through"
+                                    rel="noreferrer">
+                                    {providerName || "Link"}
+                                    <ExternalLink className="text-default inline h-4 w-4" />
+                                  </a>
+                                ) : (
+                                  <p className="line-through">{locationToDisplay}</p>
+                                )}
+                                <a
+                                  href={rescheduleLocationToDisplay}
+                                  target="_blank"
+                                  title={rescheduleLocationToDisplay}
+                                  className="text-default flex items-center gap-2"
+                                  rel="noreferrer">
+                                  {rescheduleProviderName || "Link"}
+                                  <ExternalLink className="text-default inline h-4 w-4" />
+                                </a>
+                              </>
+                            ) : (
+                              <>
+                                {locationToDisplay.startsWith("http") ? (
+                                  <a
+                                    href={locationToDisplay}
+                                    target="_blank"
+                                    title={locationToDisplay}
+                                    className="text-default flex items-center gap-2 line-through"
+                                    rel="noreferrer">
+                                    {providerName || "Link"}
+                                    <ExternalLink className="text-default inline h-4 w-4" />
+                                  </a>
+                                ) : (
+                                  <p className="line-through">{locationToDisplay}</p>
+                                )}
+                                <p>{rescheduleLocationToDisplay}</p>
+                              </>
+                            ))}
                         </div>
                       </>
                     )}

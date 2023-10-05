@@ -69,6 +69,11 @@ export const BookingFields = ({
           return null;
         }
 
+        // Location field can be edited during reschedule
+        if (field.name === SystemField.Enum.location) {
+          readOnly = false;
+        }
+
         // Dynamically populate location field options
         if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
@@ -88,8 +93,6 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
-          // Address field can be edited during reschedule
-          readOnly = false;
         }
 
         return (
