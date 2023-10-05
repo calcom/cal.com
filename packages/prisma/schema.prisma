@@ -249,15 +249,16 @@ model User {
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
 
-  advice_on       String[]         @default([])
-  socialLinks     SocialLink[]
-  facts           Fact[]
-  projects        Project[]
-  workExperiences WorkExperience[]
-  publications    Publication[]
-  books           Book[]
-  podcasts        Podcast[]
-  videos          Video[]
+  advice_on        String[]          @default([])
+  socialLinks      SocialLink[]
+  facts            Fact[]
+  projects         Project[]
+  workExperiences  WorkExperience[]
+  publications     Publication[]
+  books            Book[]
+  podcasts         Podcast[]
+  videos           Video[]
+  mediaAppearences MediaAppearence[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1008,6 +1009,7 @@ model WorkExperience {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([companyId])
 }
 
 model Publication {
@@ -1016,24 +1018,19 @@ model Publication {
   url         String
   description String
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  author User[]
 
-  @@index([userId])
+  @@unique([title, url])
 }
 
 model Book {
-  isbn        String
+  isbn        String @id
   title       String
   url         String
   description String
   converImage String
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([isbn, userId])
-  @@index([userId])
+  authors User[]
 }
 
 model Podcast {
@@ -1042,10 +1039,8 @@ model Podcast {
   url         String
   description String
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+  hosts            User[]
+  mediaAppearences MediaAppearence[]
 }
 
 model Video {
@@ -1054,8 +1049,25 @@ model Video {
   url         String
   description String
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hosts            User[]
+  mediaAppearences MediaAppearence[]
+}
 
-  @@index([userId])
+model MediaAppearence {
+  id          Int    @id @default(autoincrement())
+  title       String
+  url         String
+  description String
+  mediaType   String
+
+  podcastId Int?
+  podcast   Podcast? @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  videoId Int?
+  video   Video? @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  guests User[]
+
+  @@index([podcastId])
+  @@index([videoId])
 }
