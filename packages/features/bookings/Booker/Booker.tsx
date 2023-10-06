@@ -44,6 +44,7 @@ const BookerComponent = ({
   isTeamEvent,
   entity,
   duration,
+  hashedLink,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -285,6 +286,7 @@ const BookerComponent = ({
                     setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
                   }
                 }}
+                hashedLink={hashedLink}
               />
             </BookerSection>
 
