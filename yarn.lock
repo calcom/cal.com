@@ -3637,7 +3637,7 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@prisma/client": ^5.0.0
+    "@prisma/client": ^5.2.0
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
     "@types/react": 18.0.26
@@ -3649,7 +3649,7 @@ __metadata:
     next-auth: ^4.22.1
     next-i18next: ^13.2.2
     postcss: ^8.4.18
-    prisma: ^5.0.0
+    prisma: ^5.2.0
     prisma-field-encryption: ^1.4.0
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
@@ -3985,6 +3985,15 @@ __metadata:
 "@calcom/huddle01video@workspace:packages/app-store/huddle01video":
   version: 0.0.0-use.local
   resolution: "@calcom/huddle01video@workspace:packages/app-store/huddle01video"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/intercom@workspace:packages/app-store/intercom":
+  version: 0.0.0-use.local
+  resolution: "@calcom/intercom@workspace:packages/app-store/intercom"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -4693,7 +4702,7 @@ __metadata:
     next-axiom: ^0.17.0
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
-    playwright: ^1.31.2
+    playwright-core: ^1.38.1
     postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
@@ -8147,20 +8156,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^5.0.0":
-  version: 5.3.1
-  resolution: "@prisma/client@npm:5.3.1"
-  dependencies:
-    "@prisma/engines-version": 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
-  peerDependencies:
-    prisma: "*"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-  checksum: 8017b721a231ab7b2b0f932507b02bf075aae2c6f6e630a69d7089ff33bab44fa50b50dd8a81655b7202092ffc19717d484ae5f183fc4f2a1822b0d228991a7c
-  languageName: node
-  linkType: hard
-
 "@prisma/client@npm:^5.2.0":
   version: 5.2.0
   resolution: "@prisma/client@npm:5.2.0"
@@ -8226,13 +8221,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59":
-  version: 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
-  resolution: "@prisma/engines-version@npm:5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59"
-  checksum: c1adf540c9330a54a000c3005a4621c5d8355f2e3b159121587d33f82bf5992f567ac453f0ce76dd48fac427ec4dbc55942228fcee10d522b0d2c03bddbe422a
-  languageName: node
-  linkType: hard
-
 "@prisma/engines@npm:5.1.1":
   version: 5.1.1
   resolution: "@prisma/engines@npm:5.1.1"
@@ -8244,13 +8232,6 @@ __metadata:
   version: 5.2.0
   resolution: "@prisma/engines@npm:5.2.0"
   checksum: c4d0a424b211ab5f02c977bd87e03a151a7d297d8448b08ef9de931a0dcebbbea76cdefc15a17fd06dacac692b164fd88b32c23eb84f7822dbaf3d0885b700a7
-  languageName: node
-  linkType: hard
-
-"@prisma/engines@npm:5.3.1":
-  version: 5.3.1
-  resolution: "@prisma/engines@npm:5.3.1"
-  checksum: a231adad60ac42569b560ea9782bc181818d8ad15e65283d1317bda5d7aa754e5b536a3f9365ce1eda8961e1eff4eca5978c456fa9764a867fe4339d123e7371
   languageName: node
   linkType: hard
 
@@ -31226,27 +31207,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.38.1":
+"playwright-core@npm:^1.38.1":
   version: 1.38.1
   resolution: "playwright-core@npm:1.38.1"
   bin:
     playwright-core: cli.js
   checksum: 66e83fe040f309b13ad94ba39dea40ac207bfcbbc22de13141af88dbdedd64e1c4e3ce1d0cb070d4efd8050d7e579953ec3681dd8a0acf2c1cc738d9c50e545e
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.31.2":
-  version: 1.38.1
-  resolution: "playwright@npm:1.38.1"
-  dependencies:
-    fsevents: 2.3.2
-    playwright-core: 1.38.1
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: 4e01d4ee52d9ccf75a80d8492829106802590721d56bff7c5957ff1f21eb3c328ee5bc3c1784a59c4b515df1b98d08ef92e4a35a807f454cd00dc481d30fadc2
   languageName: node
   linkType: hard
 
@@ -31853,17 +31819,6 @@ __metadata:
   bin:
     prisma-field-encryption: dist/generator/main.js
   checksum: 530bd970c5015c8c587bdca24136262d746093dd3d0793c892f4a1c377633182ae95e0ef5659465f914e4cc9bd7b24bf45551aa9c624a05942570f5b650fc065
-  languageName: node
-  linkType: hard
-
-"prisma@npm:^5.0.0":
-  version: 5.3.1
-  resolution: "prisma@npm:5.3.1"
-  dependencies:
-    "@prisma/engines": 5.3.1
-  bin:
-    prisma: build/index.js
-  checksum: e825adbcb4eec81de276de5507fb7e5486db7788c8c9de36ba6ed73f9e87d9f56b64d0e183a31dc6b80f6737ae1fbcdb110aac44ab89299af646aeb966655bef
   languageName: node
   linkType: hard
 
