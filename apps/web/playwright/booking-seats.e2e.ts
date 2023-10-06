@@ -147,14 +147,14 @@ test.describe("Booking with Seats", () => {
     await test.step("Attendee #2 shouldn't be able to cancel booking using only booking/uid", async () => {
       await page.goto(`/booking/${booking.uid}`);
 
-      await expect(page.locator('[text=Cancel"]')).toHaveCount(0);
+      await expect(page.locator("[text=Cancel]")).toHaveCount(0);
     });
 
     await test.step("Attendee #2 shouldn't be able to cancel booking using randomString for seatReferenceUId", async () => {
       await page.goto(`/booking/${booking.uid}?seatReferenceUid=${randomString(10)}`);
 
       // expect cancel button to don't be in the page
-      await expect(page.locator('[text=Cancel"]')).toHaveCount(0);
+      await expect(page.locator("[text=Cancel]")).toHaveCount(0);
     });
 
     await test.step("All attendees cancelling should delete the booking for the user", async () => {
@@ -188,7 +188,7 @@ test.describe("Booking with Seats", () => {
       { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
     await page.goto(`/booking/${booking.uid}?cancel=true`);
-    await expect(page.locator('[text=Cancel"]')).toHaveCount(0);
+    await expect(page.locator("[text=Cancel]")).toHaveCount(0);
 
     // expect login text to be in the page, not data-testid
     await expect(page.locator("text=Login")).toHaveCount(1);
