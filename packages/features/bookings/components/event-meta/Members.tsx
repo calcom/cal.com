@@ -61,7 +61,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     image: "logo" in profile && profile.logo ? `${profile.logo}` : undefined,
     alt: profile.name || undefined,
     href: profile.username
-      ? `${CAL_URL}` + (pathname.indexOf("/team/") !== -1 ? "/team" : "") + `/${profile.username}`
+      ? `${CAL_URL}${pathname.indexOf("/team/") !== -1 ? "/team" : ""}/${profile.username}`
       : undefined,
   });
 
