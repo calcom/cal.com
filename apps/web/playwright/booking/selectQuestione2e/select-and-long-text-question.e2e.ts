@@ -1,10 +1,6 @@
 import { test } from "../../lib/fixtures";
 import { initialCommonSteps } from "../utils/bookingUtils";
 
-test.describe.configure({ mode: "parallel" });
-
-test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking With Select Question and Long text Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
   test("Select and Long text required", async ({ page, users }) => {

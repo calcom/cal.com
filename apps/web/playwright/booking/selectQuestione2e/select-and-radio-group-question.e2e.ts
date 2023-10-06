@@ -1,10 +1,6 @@
 import { test } from "../../lib/fixtures";
 import { initialCommonSteps } from "../utils/bookingUtils";
 
-test.describe.configure({ mode: "parallel" });
-
-test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking With Select Question and Radio group Question", () => {
   const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Select and Radio group required", async ({ page, users }) => {
