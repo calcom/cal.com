@@ -6,7 +6,9 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
+import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
+import checkUserMembership from "./_utils/checkUserMembership";
 import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
 
 /**
@@ -118,10 +120,13 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               schedulingType:
  *                 type: string
  *                 description: The type of scheduling if a Team event. Required for team events only
- *                 enum: [ROUND_ROBIN, COLLECTIVE]
+ *                 enum: [ROUND_ROBIN, COLLECTIVE, MANAGED]
  *               price:
  *                 type: integer
  *                 description: Price of the event type booking
+ *               parentId:
+ *                 type: integer
+ *                 description: EventTypeId of the parent managed event
  *               currency:
  *                 type: string
  *                 description: Currency acronym. Eg- usd, eur, gbp, etc.
@@ -275,6 +280,11 @@ async function postHandler(req: NextApiRequest) {
   };
 
   await checkPermissions(req);
+
+  if (parsedBody.parentId) {
+    await checkParentEventOwnership(parsedBody.parentId, userId);
+    await checkUserMembership(parsedBody.parentId, parsedBody.userId);
+  }
 
   if (isAdmin && parsedBody.userId) {
     data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };

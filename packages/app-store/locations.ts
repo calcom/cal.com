@@ -91,7 +91,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     attendeeInputType: "attendeeAddress",
     attendeeInputPlaceholder: "enter_address",
     defaultValueVariable: "attendeeAddress",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {
@@ -103,7 +103,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     // HACK:
     variable: "locationAddress",
     defaultValueVariable: "address",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -43,6 +44,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
+  const orgBranding = useOrgBranding();
 
   useEffect(() => {
     telemetry.event(
@@ -124,12 +126,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
             <li key={i} className="hover:bg-muted w-full">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
-                  <Avatar
-                    size="md"
-                    imageSrc={`/team/${ch.slug}/avatar.png`}
-                    alt="Team Logo"
-                    className="inline-flex justify-center"
-                  />
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
                     <span className="text-subtle block text-xs">
@@ -185,9 +181,11 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <div className="relative">
             <Avatar
               alt={teamName}
-              imageSrc={`${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${
-                team.slug
-              }/avatar.png`}
+              imageSrc={
+                !!team.parent && !!orgBranding
+                  ? `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`
+                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
+              }
               size="lg"
             />
           </div>
