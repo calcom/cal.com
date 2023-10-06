@@ -1,7 +1,17 @@
 import { HttpError } from "@calcom/lib/http-error";
 
+/**
+ * Checks if a user, identified by the provided userId, is a member of the team associated
+ * with the event type identified by the parentId.
+ *
+ * @param parentId - The ID of the event type.
+ * @param userId - The ID of the user.
+ *
+ * @throws {HttpError} If the event type is not found,
+ *                     if the event type doesn't belong to any team,
+ *                     or if the user isn't a member of the associated team.
+ */
 export default async function checkUserMembership(parentId: number, userId: number) {
-  // Get the event type with the given parentId
   const parentEventType = await prisma.eventType.findUnique({
     where: {
       id: parentId,
@@ -11,7 +21,6 @@ export default async function checkUserMembership(parentId: number, userId: numb
     },
   });
 
-  // If the parent event type is not found, throw an error
   if (!parentEventType) {
     throw new HttpError({
       statusCode: 404,
@@ -19,7 +28,6 @@ export default async function checkUserMembership(parentId: number, userId: numb
     });
   }
 
-  // If the parent event type doesn't have an associated teamId, throw an error
   if (!parentEventType.teamId) {
     throw new HttpError({
       statusCode: 403,
@@ -27,7 +35,6 @@ export default async function checkUserMembership(parentId: number, userId: numb
     });
   }
 
-  // Check if the user is a member of the team associated with the parent event type
   const teamMember = await prisma.membership.findFirst({
     where: {
       teamId: parentEventType.teamId,
@@ -36,7 +43,6 @@ export default async function checkUserMembership(parentId: number, userId: numb
     },
   });
 
-  // If the user is not a member of the team, throw an error
   if (!teamMember) {
     throw new HttpError({
       statusCode: 403,
