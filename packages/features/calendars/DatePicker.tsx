@@ -86,7 +86,7 @@ const NoAvailabilityOverlay = () => {
 
   return (
     <div className=" bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis font-medium">You cannot book this far into the future</h4>
+      <h4 className="text-emphasis font-medium">{t("cannot_book_this_far_into_the_future")}</h4>
     </div>
   );
 };
