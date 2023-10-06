@@ -86,9 +86,9 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_CHANNEL: ${{ inputs.environment == 'staging' && 'deploys-staging' || 'deploys' }}
-          SLACK_ICON_EMOJI: ':family:'
-          SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'TODO' || 'TODO' }}
-          SLACK_USERNAME: cal
+          SLACK_ICON_EMOJI: ':calendar:'
+          SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'https://cal-staging.tlservers.com' || 'https://cal.tlservers.com' }}
+          SLACK_USERNAME: calcom
           MSG_MINIMAL: commit
           SLACK_WEBHOOK: ${{ secrets.SLACK_URL }}
           SLACK_MESSAGE: ${{ steps.git_message.outputs.short }}
