@@ -50,6 +50,7 @@ const SlotItem = ({
 
   const overlayCalendarToggled = getQueryParam("overlayCalendar") === "true";
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
@@ -61,7 +62,8 @@ const SlotItem = ({
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay(
-    computedDateWithUsersTimezone
+    computedDateWithUsersTimezone,
+    selectedDuration
   );
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 

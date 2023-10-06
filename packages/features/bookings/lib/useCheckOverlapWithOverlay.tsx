@@ -9,32 +9,23 @@ function getCurrentTime(date: Date) {
   return `${hours}:${minutes}`;
 }
 
-export function useCheckOverlapWithOverlay(start: Dayjs) {
+export function useCheckOverlapWithOverlay(start: Dayjs, selectedDuration: number | null) {
   const overlayBusyDates = useOverlayCalendarStore((state) => state.overlayBusyDates);
-  let overlappingTimeStart: string | null = null;
-  let overlappingTimeEnd: string | null = null;
+
+  const overlappingTimeStart: string | null = null;
+  const overlappingTimeEnd: string | null = null;
 
   const isOverlapping =
     overlayBusyDates &&
-    overlayBusyDates
-      .filter((value) => dayjs(value.start).isSame(start, "day"))
-      .some((busyDate) => {
-        const busyDateStart = new Date(busyDate.start);
-        const busyDateEnd = new Date(busyDate.end);
-        const startDate = start.toDate();
+    overlayBusyDates.some((busyDate) => {
+      const busyDateStart = dayjs(busyDate.start);
+      const busyDateEnd = dayjs(busyDate.end);
+      const selectedEndTime = dayjs(start).add(selectedDuration ?? 0, "minute");
 
-        const overlap =
-          startDate >= busyDateStart &&
-          startDate <= busyDateEnd &&
-          dayjs(startDate).format("HH:mm") !== dayjs(busyDateEnd).format("HH:mm");
+      const isOverlapping = selectedEndTime.isAfter(busyDateStart) && start < busyDateEnd;
 
-        if (overlap) {
-          overlappingTimeStart = getCurrentTime(busyDateStart);
-          overlappingTimeEnd = getCurrentTime(busyDateEnd);
-        }
-
-        return overlap;
-      });
+      return isOverlapping;
+    });
 
   return { isOverlapping, overlappingTimeStart, overlappingTimeEnd } as {
     isOverlapping: boolean;
