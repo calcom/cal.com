@@ -1,10 +1,6 @@
 import { test } from "../../lib/fixtures";
 import { initialCommonSteps } from "../utils/bookingUtils";
 
-test.describe.configure({ mode: "parallel" });
-
-test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking With Checkbox Question and Select Question", () => {
   const bookingOptions = { hasPlaceholder: false, isRequired: true };
   test("Checkbox and Select required", async ({ page, users }) => {
