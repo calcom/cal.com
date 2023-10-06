@@ -62,7 +62,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
           title="Calendar Settings"
           className="pb-4"
           description="View your calendar events to prevent clashed booking.">
-          <div className="max-h-full overflow-y-scroll ">
+          <div className="no-scrollbar max-h-full overflow-y-scroll ">
             {isLoading ? (
               <SkeletonLoader />
             ) : (
