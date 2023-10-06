@@ -52,7 +52,7 @@ export async function handleConfirmation(args: {
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, error, results);
+    log.error(`Booking ${user.username} failed`, JSON.stringify({ error, results }));
   } else {
     const metadata: AdditionalInformation = {};
 

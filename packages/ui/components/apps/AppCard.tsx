@@ -55,7 +55,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <div className="flex">
         <img
           src={app.logo}
-          alt={app.name + " Logo"}
+          alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
             "mb-4 h-12 w-12 rounded-sm",
@@ -68,7 +68,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
-              <span className="bg-yellow-300">
+              <span className="bg-yellow-300" data-testid="highlighted-text">
                 {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
               </span>
               {app.name.substring(searchTextIndex + searchText.length)}

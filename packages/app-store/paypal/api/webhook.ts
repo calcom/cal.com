@@ -1,23 +1,14 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
 import * as z from "zod";
 
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
-import EventManager from "@calcom/core/EventManager";
-import { sendScheduledEmails } from "@calcom/emails";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
+import prisma from "@calcom/prisma";
 
 export const config = {
   api: {
@@ -25,19 +16,7 @@ export const config = {
   },
 };
 
-async function getEventType(id: number) {
-  return prisma.eventType.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      recurringEvent: true,
-      requiresConfirmation: true,
-    },
-  });
-}
-
-export async function handlePaymentSuccess(
+export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
   rawPayload: string,
   webhookHeaders: WebHookHeadersType
@@ -49,7 +28,6 @@ export async function handlePaymentSuccess(
     select: {
       id: true,
       bookingId: true,
-      success: true,
     },
   });
 
@@ -60,31 +38,7 @@ export async function handlePaymentSuccess(
       id: payment.bookingId,
     },
     select: {
-      ...bookingMinimalSelect,
-      eventType: true,
-      smsReminderNumber: true,
-      location: true,
-      eventTypeId: true,
-      userId: true,
-      uid: true,
-      paid: true,
-      destinationCalendar: true,
-      status: true,
-      responses: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          },
-          timeZone: true,
-          email: true,
-          name: true,
-          locale: true,
-          destinationCalendar: true,
-        },
-      },
+      id: true,
     },
   });
 
@@ -108,106 +62,7 @@ export async function handlePaymentSuccess(
     },
   });
 
-  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
-  let eventTypeRaw: EventTypeRaw | null = null;
-  if (booking.eventTypeId) {
-    eventTypeRaw = await getEventType(booking.eventTypeId);
-  }
-
-  const { user } = booking;
-
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
-
-  const t = await getTranslation(user.locale ?? "en", "common");
-  const attendeesListPromises = booking.attendees.map(async (attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  });
-
-  const attendeesList = await Promise.all(attendeesListPromises);
-
-  const evt: CalendarEvent = {
-    type: booking.title,
-    title: booking.title,
-    description: booking.description || undefined,
-    startTime: booking.startTime.toISOString(),
-    endTime: booking.endTime.toISOString(),
-    customInputs: isPrismaObjOrUndefined(booking.customInputs),
-    ...getCalEventResponses({
-      booking: booking,
-      bookingFields: booking.eventType?.bookingFields || null,
-    }),
-    organizer: {
-      email: user.email,
-      name: user.name!,
-      timeZone: user.timeZone,
-      language: { translate: t, locale: user.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    uid: booking.uid,
-    destinationCalendar: booking.destinationCalendar
-      ? [booking.destinationCalendar]
-      : user.destinationCalendar
-      ? [user.destinationCalendar]
-      : [],
-    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
-  };
-
-  if (booking.location) evt.location = booking.location;
-
-  const bookingData: Prisma.BookingUpdateInput = {
-    paid: true,
-    status: BookingStatus.ACCEPTED,
-  };
-
-  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-  if (isConfirmed) {
-    const eventManager = new EventManager(user);
-    const scheduleResult = await eventManager.create(evt);
-    bookingData.references = { create: scheduleResult.referencesToCreate };
-  }
-
-  if (eventTypeRaw?.requiresConfirmation) {
-    delete bookingData.status;
-  }
-
-  if (!payment?.success) {
-    await prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        success: true,
-      },
-    });
-  }
-
-  if (booking.status === "PENDING") {
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: bookingData,
-    });
-  }
-
-  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
-  } else {
-    await sendScheduledEmails({ ...evt });
-  }
-
-  throw new HttpCode({
-    statusCode: 200,
-    message: `Booking with id '${booking.id}' was paid and confirmed.`,
-  });
+  return await handlePaymentSuccess(payment.id, payment.bookingId);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -234,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
-      return await handlePaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
+      return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);

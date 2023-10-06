@@ -6,7 +6,7 @@ import Row from "./Row";
 const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<![endif]-->`} />;
 
 const EmailBodyLogo = () => {
-  const image = WEBAPP_URL + "/emails/logo.png";
+  const image = `${WEBAPP_URL}/emails/logo.png`;
 
   return (
     <>
