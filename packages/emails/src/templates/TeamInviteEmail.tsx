@@ -42,7 +42,7 @@ export const TeamInviteEmail = (
         }}
         src={
           IS_PRODUCTION
-            ? WEBAPP_URL + "/emails/calendar-email-hero.png"
+            ? `${WEBAPP_URL}/emails/calendar-email-hero.png`
             : "http://localhost:3000/emails/calendar-email-hero.png"
         }
         alt=""
@@ -91,7 +91,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_one")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/choose-username@2x.png"
+                ? `${WEBAPP_URL}/emails/choose-username@2x.png`
                 : "http://localhost:3000/emails/choose-username@2x.png"
             }
           />
@@ -99,7 +99,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_two")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/calendar@2x.png"
+                ? `${WEBAPP_URL}/emails/calendar@2x.png`
                 : "http://localhost:3000/emails/calendar@2x.png"
             }
           />
@@ -107,7 +107,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_three")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/clock@2x.png"
+                ? `${WEBAPP_URL}/emails/clock@2x.png`
                 : "http://localhost:3000/emails/clock@2x.png"
             }
           />
@@ -115,7 +115,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_four", { teamName: props.teamName })}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/user-check@2x.png"
+                ? `${WEBAPP_URL}/emails/user-check@2x.png`
                 : "http://localhost:3000/emails/user-check@2x.png"
             }
           />

@@ -255,7 +255,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
             slug: membership.team.slug
               ? !membership.team.parentId
                 ? `team/${membership.team.slug}`
-                : "" + membership.team.slug
+                : `${membership.team.slug}`
               : null,
           },
           metadata: {

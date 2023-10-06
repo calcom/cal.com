@@ -47,6 +47,11 @@ export default function RecurringEventController({
           <Alert severity="warning" title={t("warning_payment_recurring_event")} />
         ) : (
           <>
+            <Alert
+              className="mb-4"
+              severity="warning"
+              title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
+            />
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
