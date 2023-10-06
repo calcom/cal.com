@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
+import { apiKeysRouter } from "@calcom/trpc/server/routers/viewer/apiKeys/_router";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -15,9 +15,9 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const appType = appConfig.type;
 
   const ctx = await createContext({ req, res });
-  const caller = viewerRouter.createCaller(ctx);
+  const caller = apiKeysRouter.createCaller(ctx);
 
-  const apiKey = await caller.apiKeys.create({
+  const apiKey = await caller.create({
     note: "Cal.ai",
     expiresAt: null,
     appId: "cal-ai",
