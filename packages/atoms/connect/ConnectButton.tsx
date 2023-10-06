@@ -39,7 +39,7 @@ export function ConnectButton({
           "bg-default text-default dark:text-muted dark:bg-muted relative inline-flex h-9 items-center whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed",
           stylesClassname
             ? stylesClassname
-            : "bg-default text-default dark:text-muted dark:bg-muted rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed"
+            : "bg-default text-default dark:text-muted dark:bg-muted relative inline-flex h-9 items-center whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed"
         )}
         onClick={(event) => handleSubmit(event)}
         disabled={!isProcessing}
