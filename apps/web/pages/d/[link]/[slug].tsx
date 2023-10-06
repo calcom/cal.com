@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
@@ -57,6 +58,7 @@ Type.PageWrapper = PageWrapper;
 Type.isBookingPage = true;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context);
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
@@ -119,7 +121,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
