@@ -58,10 +58,11 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
     <>
       <Dialog open={props.open} onOpenChange={props.onClose}>
         <DialogContent
+          enableOverflow
           type="creation"
           title="Calendar Settings"
           className="pb-4"
-          description="View your calendar events to prevent clashed booking.">
+          description={t("view_overlay_calendar_events")}>
           <div className="no-scrollbar max-h-full overflow-y-scroll ">
             {isLoading ? (
               <SkeletonLoader />
