@@ -42,7 +42,7 @@
     "autoprefixer": "^10.4.12",
     "babel-loader": "^8.2.5",
     "fs": "^0.0.1-security",
-    "postcss": "^8.4.18",
+    "postcss": "^8.4.31",
     "postcss-pseudo-companion-classes": "^0.1.1",
     "rollup-plugin-polyfill-node": "^0.10.2",
     "storybook-addon-designs": "^6.3.1",
