@@ -64,6 +64,10 @@ export interface BookerProps {
    * otherwise, the default value is selected
    */
   duration?: number | null;
+  /**
+   * Refers to the private link from event types page.
+   */
+  hashedLink?: string | null;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

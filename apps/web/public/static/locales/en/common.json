@@ -1535,6 +1535,7 @@
   "problem_registering_domain": "There was a problem with registering the subdomain, please try again or contact an administrator",
   "team_publish": "Publish team",
   "number_text_notifications": "Phone number (Text notifications)",
+  "number_sms_notifications": "Phone number (SMS notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
