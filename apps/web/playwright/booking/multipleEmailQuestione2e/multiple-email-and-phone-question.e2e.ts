@@ -1,10 +1,6 @@
 import { test } from "../../lib/fixtures";
 import { initialCommonSteps } from "../utils/bookingUtils";
 
-test.describe.configure({ mode: "parallel" });
-
-test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking With Multiple email Question and Phone Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
   test("Multiple email and Phone required", async ({ page, users }) => {
