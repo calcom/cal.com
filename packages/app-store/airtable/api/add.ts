@@ -11,6 +11,9 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
+  redirect: {
+    url: "/apps/airtable/setup",
+  },
 };
 
 export default handler;
