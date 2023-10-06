@@ -3,9 +3,6 @@ on:
   pull_request: # So we can test on forks
     branches:
       - main
-    paths:
-      - apps/web/**
-      - packages/**
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
