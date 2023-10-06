@@ -78,17 +78,17 @@ jobs:
         run: make deploy_to_${{ env.ENVIRONMENT }}
         shell: bash
 
-      #- id: git_message
-        #shell: bash
-        #run: echo "::set-output name=short::$(echo "${{ github.event.head_commit.message }}" | head -1)"
+      - id: git_message
+        shell: bash
+        run: echo "::set-output name=short::$(echo "${{ github.event.head_commit.message }}" | head -1)"
 
-      #- name: Slack Notification
-        #uses: rtCamp/action-slack-notify@v2
-        #env:
-          #SLACK_CHANNEL: ${{ inputs.environment == 'staging' && 'deploys-staging' || 'deploys' }}
-          #SLACK_ICON_EMOJI: ':family:'
-          #SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'TODO' || 'TODO' }}
-          #SLACK_USERNAME: cal
-          #MSG_MINIMAL: commit
-          #SLACK_WEBHOOK: ${{ secrets.SLACK_URL }}
-          #SLACK_MESSAGE: ${{ steps.git_message.outputs.short }}
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: ${{ inputs.environment == 'staging' && 'deploys-staging' || 'deploys' }}
+          SLACK_ICON_EMOJI: ':family:'
+          SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'TODO' || 'TODO' }}
+          SLACK_USERNAME: cal
+          MSG_MINIMAL: commit
+          SLACK_WEBHOOK: ${{ secrets.SLACK_URL }}
+          SLACK_MESSAGE: ${{ steps.git_message.outputs.short }}
