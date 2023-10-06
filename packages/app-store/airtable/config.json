@@ -1,0 +1,17 @@
+{
+  "name": "Airtable",
+  "slug": "airtable",
+  "type": "airtable_crm",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "crm",
+  "categories": ["crm"],
+  "publisher": "Nafees Nazik",
+  "email": "nafeesnazik21@gmail.com",
+  "description": "hello",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "airtable"
+}
