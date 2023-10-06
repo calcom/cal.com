@@ -6,7 +6,9 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
+import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
+import checkUserMembership from "./_utils/checkUserMembership";
 import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
 
 /**
@@ -278,6 +280,11 @@ async function postHandler(req: NextApiRequest) {
   };
 
   await checkPermissions(req);
+
+  if (isAdmin && parsedBody.parentId) {
+    await checkParentEventOwnership(parsedBody.parentId, userId);
+    await checkUserMembership(parsedBody.parentId, parsedBody.userId);
+  }
 
   if (isAdmin && parsedBody.userId) {
     data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
