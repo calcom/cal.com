@@ -80,10 +80,10 @@ export const getEmbedIframe = async ({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const embedIframe = page.frame(`cal-embed=${calNamespace}`)!;
   const u = new URL(embedIframe.url());
-  if (u.pathname === pathname + "/embed") {
+  if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
   }
-  console.log('Embed iframe url pathname match. Expected: "' + pathname + '/embed"', "Actual: " + u.pathname);
+  console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
 };
 

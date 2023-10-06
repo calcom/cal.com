@@ -8,7 +8,6 @@ import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
@@ -256,14 +255,9 @@ export default async function getEventTypeById({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
+
   newMetadata.apps = {
     ...apps,
-    stripe: {
-      ...stripeMetaData,
-      paymentOption: stripeMetaData.paymentOption as string,
-      currency: getStripeCurrency(stripeMetaData, credentials),
-    },
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
   };
 

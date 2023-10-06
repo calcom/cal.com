@@ -27,6 +27,7 @@ export default function Type({
   isTeamEvent,
   entity,
   duration,
+  hashedLink,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -46,6 +47,7 @@ export default function Type({
         isTeamEvent={isTeamEvent}
         entity={entity}
         duration={duration}
+        hashedLink={hashedLink}
       />
     </main>
   );
@@ -149,6 +151,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
+      hashedLink: link,
     },
   };
 }
