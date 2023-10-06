@@ -30,8 +30,8 @@ export default async function checkUserMembership(parentId: number, userId: numb
 
   if (!parentEventType.teamId) {
     throw new HttpError({
-      statusCode: 403,
-      message: "Event type doesn't belong to any team.",
+      statusCode: 400,
+      message: "This event type is not capable of having children.",
     });
   }
 
@@ -45,8 +45,8 @@ export default async function checkUserMembership(parentId: number, userId: numb
 
   if (!teamMember) {
     throw new HttpError({
-      statusCode: 403,
-      message: "User is not a member of the team associated with the event type.",
+      statusCode: 400,
+      message: "User is not a team member.",
     });
   }
 }

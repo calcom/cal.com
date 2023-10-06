@@ -30,8 +30,8 @@ export default async function checkParentEventOwnership(parentId: number, userId
 
   if (!parentEventType.teamId) {
     throw new HttpError({
-      statusCode: 403,
-      message: "Parent event type doesn't belong to any team.",
+      statusCode: 400,
+      message: "This event type is not capable of having children",
     });
   }
 
