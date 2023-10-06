@@ -3548,6 +3548,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/intercom@workspace:packages/app-store/intercom":
+  version: 0.0.0-use.local
+  resolution: "@calcom/intercom@workspace:packages/app-store/intercom"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo":
   version: 0.0.0-use.local
   resolution: "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo"
