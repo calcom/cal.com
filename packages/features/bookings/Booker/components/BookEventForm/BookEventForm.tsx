@@ -41,11 +41,12 @@ import { FormSkeleton } from "./Skeleton";
 
 type BookEventFormProps = {
   onCancel?: () => void;
+  hashedLink?: string | null;
 };
 
 type DefaultValues = Record<string, unknown>;
 
-export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -114,6 +115,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       isRescheduling={isRescheduling}
       eventQuery={eventQuery}
       rescheduleUid={rescheduleUid}
+      hashedLink={hashedLink}
     />
   );
 };
@@ -124,11 +126,13 @@ export const BookEventFormChild = ({
   isRescheduling,
   eventQuery,
   rescheduleUid,
+  hashedLink,
 }: BookEventFormProps & {
   initialValues: DefaultValues;
   isRescheduling: boolean;
   eventQuery: ReturnType<typeof useEvent>;
   rescheduleUid: string | null;
+  hashedLink?: string | null;
 }) => {
   const eventType = eventQuery.data;
   const bookingFormSchema = z
@@ -332,6 +336,7 @@ export const BookEventFormChild = ({
           }),
           {}
         ),
+      hashedLink,
     };
 
     if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
