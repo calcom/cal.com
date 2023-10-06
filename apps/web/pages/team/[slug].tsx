@@ -45,7 +45,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
   const orgBranding = useOrgBranding();
-  console.log("orgBranding", !!orgBranding, !!team.parent);
 
   useEffect(() => {
     telemetry.event(
