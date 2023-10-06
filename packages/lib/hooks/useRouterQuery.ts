@@ -3,8 +3,13 @@ import { useSearchParams } from "next/navigation";
 /**
  * An alternative to Object.fromEntries that allows duplicate keys.
  */
-function fromEntriesWithDuplicateKeys(entries: ReturnType<ReturnType<typeof useSearchParams>["entries"]>) {
+function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]> | null) {
   const result: Record<string, string | string[]> = {};
+
+  if (entries === null) {
+    return result;
+  }
+
   // Consider setting atleast ES2015 as target
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -31,6 +36,6 @@ function fromEntriesWithDuplicateKeys(entries: ReturnType<ReturnType<typeof useS
  */
 export const useRouterQuery = () => {
   const searchParams = useSearchParams();
-  const routerQuery = fromEntriesWithDuplicateKeys(searchParams.entries());
+  const routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
   return routerQuery;
 };
