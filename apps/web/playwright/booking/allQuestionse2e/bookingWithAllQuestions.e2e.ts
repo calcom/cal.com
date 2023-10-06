@@ -1,10 +1,6 @@
 import { test } from "../../lib/fixtures";
 import { scheduleAllQuestionsBooking } from "../utils/scheduleAllBookings";
 
-test.describe.configure({ mode: "parallel" });
-
-test.afterEach(({ users }) => users.deleteAll());
-
 test.describe("Booking With All Questions", () => {
   const bookingOptions = { isAllRequired: true };
 
