@@ -26,6 +26,7 @@ const hostSchema = _HostModel.pick({
 
 export const childrenSchema = z.object({
   id: z.number().int(),
+  userId: z.number().int(),
 });
 
 export const schemaEventTypeBaseBodyParams = EventType.pick({
