@@ -3220,43 +3220,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/console@workspace:apps/console":
-  version: 0.0.0-use.local
-  resolution: "@calcom/console@workspace:apps/console"
-  dependencies:
-    "@calcom/dayjs": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-    "@calcom/tsconfig": "*"
-    "@calcom/ui": "*"
-    "@headlessui/react": ^1.5.0
-    "@heroicons/react": ^1.0.6
-    "@prisma/client": ^5.2.0
-    "@tailwindcss/forms": ^0.5.2
-    "@types/node": 16.9.1
-    "@types/react": 18.0.26
-    autoprefixer: ^10.4.12
-    chart.js: ^3.7.1
-    client-only: ^0.0.1
-    eslint: ^8.34.0
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    next-i18next: ^13.2.2
-    postcss: ^8.4.18
-    prisma: ^5.2.0
-    prisma-field-encryption: ^1.4.0
-    react: ^18.2.0
-    react-chartjs-2: ^4.0.1
-    react-dom: ^18.2.0
-    react-hook-form: ^7.43.3
-    react-live-chat-loader: ^2.8.1
-    swr: ^1.2.2
-    tailwindcss: ^3.3.1
-    typescript: ^4.9.4
-    zod: ^3.22.2
-  languageName: unknown
-  linkType: soft
-
 "@calcom/core@*, @calcom/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@calcom/core@workspace:packages/core"
@@ -4094,6 +4057,7 @@ __metadata:
     "@radix-ui/react-collapsible": ^1.0.0
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-dropdown-menu": ^2.0.5
+    "@radix-ui/react-hover-card": ^1.0.7
     "@radix-ui/react-id": ^1.0.0
     "@radix-ui/react-popover": ^1.0.2
     "@radix-ui/react-radio-group": ^1.0.0
@@ -4217,113 +4181,6 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/website@workspace:apps/website":
-  version: 0.0.0-use.local
-  resolution: "@calcom/website@workspace:apps/website"
-  dependencies:
-    "@algora/sdk": ^0.1.2
-    "@calcom/app-store": "*"
-    "@calcom/config": "*"
-    "@calcom/dayjs": "*"
-    "@calcom/embed-react": "workspace:^"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/tsconfig": "*"
-    "@calcom/ui": "*"
-    "@datocms/cma-client-node": ^2.0.0
-    "@floating-ui/react-dom": ^1.0.0
-    "@graphql-codegen/cli": ^5.0.0
-    "@graphql-codegen/typed-document-node": ^5.0.1
-    "@graphql-codegen/typescript": ^4.0.1
-    "@graphql-codegen/typescript-operations": ^4.0.1
-    "@graphql-typed-document-node/core": ^3.2.0
-    "@headlessui/react": ^1.5.0
-    "@heroicons/react": ^1.0.6
-    "@hookform/resolvers": ^2.9.7
-    "@juggle/resize-observer": ^3.4.0
-    "@next/bundle-analyzer": ^13.1.6
-    "@radix-ui/react-accordion": ^1.0.0
-    "@radix-ui/react-dropdown-menu": ^2.0.5
-    "@radix-ui/react-navigation-menu": ^1.0.0
-    "@radix-ui/react-portal": ^1.0.0
-    "@radix-ui/react-slider": ^1.0.0
-    "@radix-ui/react-tabs": ^1.0.0
-    "@radix-ui/react-tooltip": ^1.0.0
-    "@stripe/stripe-js": ^1.35.0
-    "@tanstack/react-query": ^4.3.9
-    "@typeform/embed-react": ^1.2.4
-    "@types/bcryptjs": ^2.4.2
-    "@types/debounce": ^1.2.1
-    "@types/gtag.js": ^0.0.10
-    "@types/micro": 7.3.7
-    "@types/node": 16.9.1
-    "@types/react": 18.0.26
-    "@types/react-gtm-module": ^2.0.1
-    "@types/xml2js": ^0.4.11
-    "@vercel/analytics": ^0.1.6
-    "@vercel/edge-functions-ui": ^0.2.1
-    "@vercel/og": ^0.5.0
-    autoprefixer: ^10.4.12
-    bcryptjs: ^2.4.3
-    clsx: ^1.2.1
-    cobe: ^0.4.1
-    concurrently: ^7.6.0
-    cross-env: ^7.0.3
-    datocms-structured-text-to-plain-text: ^2.0.4
-    datocms-structured-text-utils: ^2.0.4
-    debounce: ^1.2.1
-    dotenv: ^16.3.1
-    enquirer: ^2.4.1
-    env-cmd: ^10.1.0
-    eslint: ^8.34.0
-    fathom-client: ^3.5.0
-    globby: ^13.1.3
-    graphql: ^16.8.0
-    graphql-request: ^6.1.0
-    gray-matter: ^4.0.3
-    gsap: ^3.11.0
-    i18n-unused: ^0.13.0
-    iframe-resizer-react: ^1.1.0
-    keen-slider: ^6.8.0
-    lucide-react: ^0.171.0
-    micro: ^10.0.1
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    next-axiom: ^0.17.0
-    next-i18next: ^13.2.2
-    next-seo: ^6.0.0
-    playwright-core: ^1.38.1
-    postcss: ^8.4.18
-    prism-react-renderer: ^1.3.5
-    react: ^18.2.0
-    react-confetti: ^6.0.1
-    react-datocms: ^3.1.0
-    react-device-detect: ^2.2.2
-    react-dom: ^18.2.0
-    react-fast-marquee: ^1.3.5
-    react-github-btn: ^1.4.0
-    react-hook-form: ^7.43.3
-    react-hot-toast: ^2.3.0
-    react-live-chat-loader: ^2.8.1
-    react-merge-refs: 1.1.0
-    react-twemoji: ^0.3.0
-    react-use-measure: ^2.1.1
-    react-wrap-balancer: ^1.0.0
-    remark: ^14.0.2
-    remark-html: ^14.0.1
-    remeda: ^1.24.1
-    stripe: ^9.16.0
-    tailwind-merge: ^1.13.2
-    tailwindcss: ^3.3.1
-    ts-node: ^10.9.1
-    typescript: ^4.9.4
-    wait-on: ^7.0.1
-    xml2js: ^0.6.0
-    zod: ^3.22.2
   languageName: unknown
   linkType: soft
 
@@ -7706,6 +7563,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-dismissable-layer@npm:1.0.5":
+  version: 1.0.5
+  resolution: "@radix-ui/react-dismissable-layer@npm:1.0.5"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@radix-ui/primitive": 1.0.1
+    "@radix-ui/react-compose-refs": 1.0.1
+    "@radix-ui/react-primitive": 1.0.3
+    "@radix-ui/react-use-callback-ref": 1.0.1
+    "@radix-ui/react-use-escape-keydown": 1.0.3
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: e73cf4bd3763f4d55b1bea7486a9700384d7d94dc00b1d5a75e222b2f1e4f32bc667a206ca4ed3baaaf7424dce7a239afd0ba59a6f0d89c3462c4e6e8d029a04
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-dropdown-menu@npm:^2.0.5":
   version: 2.0.5
   resolution: "@radix-ui/react-dropdown-menu@npm:2.0.5"
@@ -7806,6 +7687,34 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: e5b1a089071fbe77aca11124a4ad9623fc2bcaf4c019759b0cd044bf0878ecc924131ee09c6a22d38a3f094684ef68ed18fa65c8d891918412e0afc685a464e0
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-hover-card@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@radix-ui/react-hover-card@npm:1.0.7"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@radix-ui/primitive": 1.0.1
+    "@radix-ui/react-compose-refs": 1.0.1
+    "@radix-ui/react-context": 1.0.1
+    "@radix-ui/react-dismissable-layer": 1.0.5
+    "@radix-ui/react-popper": 1.1.3
+    "@radix-ui/react-portal": 1.0.4
+    "@radix-ui/react-presence": 1.0.1
+    "@radix-ui/react-primitive": 1.0.3
+    "@radix-ui/react-use-controllable-state": 1.0.1
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 812c348d8331348774b0460cd9058fdb34e0a4e167cc3ab7350d60d0ac374c673e8159573919da299f58860b8eeb9d43c21ccb679cf6db70f5db0386359871ef
   languageName: node
   linkType: hard
 
@@ -7964,6 +7873,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-popper@npm:1.1.3":
+  version: 1.1.3
+  resolution: "@radix-ui/react-popper@npm:1.1.3"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@floating-ui/react-dom": ^2.0.0
+    "@radix-ui/react-arrow": 1.0.3
+    "@radix-ui/react-compose-refs": 1.0.1
+    "@radix-ui/react-context": 1.0.1
+    "@radix-ui/react-primitive": 1.0.3
+    "@radix-ui/react-use-callback-ref": 1.0.1
+    "@radix-ui/react-use-layout-effect": 1.0.1
+    "@radix-ui/react-use-rect": 1.0.1
+    "@radix-ui/react-use-size": 1.0.1
+    "@radix-ui/rect": 1.0.1
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: b18a15958623f9222b6ed3e24b9fbcc2ba67b8df5a5272412f261de1592b3f05002af1c8b94c065830c3c74267ce00cf6c1d70d4d507ec92ba639501f98aa348
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-portal@npm:0.1.4":
   version: 0.1.4
   resolution: "@radix-ui/react-portal@npm:0.1.4"
@@ -8008,6 +7946,26 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: d352bcd6ad65eb43c9e0d72d0755c2aae85e03fb287770866262be3a2d5302b2885aee3cd99f2bbf62ecd14fcb1460703f1dcdc40351f77ad887b931c6f0012a
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-portal@npm:1.0.4":
+  version: 1.0.4
+  resolution: "@radix-ui/react-portal@npm:1.0.4"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@radix-ui/react-primitive": 1.0.3
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: c4cf35e2f26a89703189d0eef3ceeeb706ae0832e98e558730a5e929ca7c72c7cb510413a24eca94c7732f8d659a1e81942bec7b90540cb73ce9e4885d040b64
   languageName: node
   linkType: hard
 
@@ -28411,15 +28369,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:^1.38.1":
-  version: 1.38.1
-  resolution: "playwright-core@npm:1.38.1"
-  bin:
-    playwright-core: cli.js
-  checksum: 66e83fe040f309b13ad94ba39dea40ac207bfcbbc22de13141af88dbdedd64e1c4e3ce1d0cb070d4efd8050d7e579953ec3681dd8a0acf2c1cc738d9c50e545e
-  languageName: node
-  linkType: hard
-
 "pngjs@npm:^3.0.0, pngjs@npm:^3.3.3":
   version: 3.4.0
   resolution: "pngjs@npm:3.4.0"
@@ -28985,33 +28934,6 @@ __metadata:
   bin:
     printj: bin/printj.njs
   checksum: 3bb8976e02c2a5943f86bf7d1cbe7764fa9fb6fb177cbc9fe0044adbd7be11dbf82e4c72d381f4d2ddc578fada92ea24ab263069549254cb796a252f11fd1ddf
-  languageName: node
-  linkType: hard
-
-"prism-react-renderer@npm:^1.3.5":
-  version: 1.3.5
-  resolution: "prism-react-renderer@npm:1.3.5"
-  peerDependencies:
-    react: ">=0.14.9"
-  checksum: c18806dcbc4c0b4fd6fd15bd06b4f7c0a6da98d93af235c3e970854994eb9b59e23315abb6cfc29e69da26d36709a47e25da85ab27fed81b6812f0a52caf6dfa
-  languageName: node
-  linkType: hard
-
-"prisma-field-encryption@npm:^1.4.0":
-  version: 1.5.0
-  resolution: "prisma-field-encryption@npm:1.5.0"
-  dependencies:
-    "@47ng/cloak": ^1.1.0
-    "@prisma/generator-helper": ^5.0.0
-    debug: ^4.3.4
-    immer: ^10.0.2
-    object-path: ^0.11.8
-    zod: ^3.21.4
-  peerDependencies:
-    "@prisma/client": ">= 4.7"
-  bin:
-    prisma-field-encryption: dist/generator/main.js
-  checksum: 530bd970c5015c8c587bdca24136262d746093dd3d0793c892f4a1c377633182ae95e0ef5659465f914e4cc9bd7b24bf45551aa9c624a05942570f5b650fc065
   languageName: node
   linkType: hard
 
