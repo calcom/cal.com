@@ -16,6 +16,10 @@ import {
 } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
+/**
+ * This component verifies the code for org creation as well as for Booker Email verification which both use different endpoints to verify
+ * TODO: We should create separate components for these two tasks, sharing whatever is needed
+ */
 export const VerifyCodeDialog = ({
   isOpenDialog,
   setIsOpenDialog,
@@ -42,6 +46,7 @@ export const VerifyCodeDialog = ({
     onChange,
   });
 
+  // Used by org creation as it passes isUserSessionRequiredToVerify=true
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
       setIsLoading(false);
@@ -55,6 +60,7 @@ export const VerifyCodeDialog = ({
     },
   });
 
+  // Used by Booker Email verification as it passes isUserSessionRequiredToVerify=false
   const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
       setIsLoading(false);

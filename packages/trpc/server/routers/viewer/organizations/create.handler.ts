@@ -10,9 +10,10 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import {
   IS_TEAM_BILLING_ENABLED,
   RESERVED_SUBDOMAINS,
-  IS_PRODUCTION,
   WEBAPP_URL,
+  IS_PRODUCTION,
 } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -23,6 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateInputSchema } from "./create.schema";
 
+const log = logger.getChildLogger({ prefix: ["organizations.create.handler"] });
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -121,7 +123,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           t,
         });
       } else {
-        console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+        log.warn("Organization created: subdomain not configured and couldn't notify administrators");
       }
     }
 
@@ -175,7 +177,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
-    if (!IS_PRODUCTION) return { checked: true };
+    if (!IS_PRODUCTION) {
+      log.warn(
+        "Being in Non Production env, organization will be created without requiring email verification. Use any digits for OTP verification"
+      );
+      return { checked: true };
+    }
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")
