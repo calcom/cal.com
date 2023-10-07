@@ -413,13 +413,14 @@ async function ensureAvailableUsers(
         recurringDatesInfo?.currentRecurringIndex === 0 &&
         recurringDatesInfo.allRecurringDates
       ) {
-        const allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
+        const firstTwoRecurringDates = recurringDatesInfo.allRecurringDates.slice(0, 2);
+        const firstTwoBookingDates = firstTwoRecurringDates.map((strDate) => new Date(strDate));
         // Go through each date for the recurring event and check if each one's availability
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
         let i = 0;
-        while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
+        while (!foundConflict && i < firstTwoBookingDates.length) {
+          foundConflict = checkForConflicts(bufferedBusyTimes, firstTwoBookingDates[i++], duration);
         }
       } else {
         foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
