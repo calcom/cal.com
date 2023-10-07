@@ -404,8 +404,8 @@ export const getDate = (
     year = year + 1;
   }
 
-  const date = _date < 10 ? "0" + _date : _date;
-  const month = _month < 10 ? "0" + _month : _month;
+  const date = _date < 10 ? `0${_date}` : _date;
+  const month = _month < 10 ? `0${_month}` : _month;
 
   return {
     date,
