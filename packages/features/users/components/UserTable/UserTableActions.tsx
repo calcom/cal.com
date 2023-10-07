@@ -47,7 +47,7 @@ export function TableActions({
     },
   });
 
-  const usersProfileUrl = domain + "/" + user.username;
+  const usersProfileUrl = `${domain}/${user.username}`;
 
   if (!session?.user.org?.id) return null;
 

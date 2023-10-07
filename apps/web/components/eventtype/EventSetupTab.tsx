@@ -13,8 +13,10 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -131,12 +133,12 @@ export const EventSetupTab = (
     };
   });
 
-  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180].map(
-    (mins) => ({
-      value: mins,
-      label: t("multiple_duration_mins", { count: mins }),
-    })
-  );
+  const multipleDurationOptions = [
+    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 480,
+  ].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{
@@ -292,7 +294,6 @@ export const EventSetupTab = (
 
               const eventLabel =
                 location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
-
               return (
                 <li
                   key={`${location.type}${index}`}
@@ -301,7 +302,10 @@ export const EventSetupTab = (
                     <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className="h-4 w-4 dark:invert-[.65]"
+                        className={classNames(
+                          "h-4 w-4",
+                          classNames(invertLogoOnDark(eventLocationType.iconUrl))
+                        )}
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${

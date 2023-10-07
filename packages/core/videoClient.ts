@@ -6,7 +6,7 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
@@ -25,7 +25,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    logger.silly("getVideoAdapters", JSON.stringify({ appName, cred }));
+    log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
     const appImportFn = appStore[appName as keyof typeof appStore];
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
@@ -55,7 +55,14 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
 
 const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-  log.silly("videoClient:createMeeting", JSON.stringify({ credential, uid, calEvent }));
+  log.silly(
+    "createMeeting",
+    safeStringify({
+      credential: getPiiFreeCredential(credential),
+      uid,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
@@ -159,7 +166,10 @@ const updateMeeting = async (
 const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
-    logger.debug("videoAdapter inside deleteMeeting", { credential, uid });
+    log.debug(
+      "Calling deleteMeeting for",
+      safeStringify({ credential: getPiiFreeCredential(credential), uid })
+    );
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
