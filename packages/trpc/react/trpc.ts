@@ -24,6 +24,7 @@ const ENDPOINTS = [
   "auth",
   "availability",
   "appBasecamp3",
+  "appAirtable",
   "bookings",
   "deploymentSetup",
   "eventTypes",
