@@ -3,6 +3,7 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { globalWorkflows } from "@calcom/features/ee/workflows/lib/defaultWorkflows";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -173,6 +174,7 @@ export async function handleConfirmation(args: {
       select: {
         eventType: {
           select: {
+            id: true,
             slug: true,
             bookingFields: true,
             owner: {
@@ -210,29 +212,39 @@ export async function handleConfirmation(args: {
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
-      if (updatedBookings[index].eventType?.workflows) {
-        const evtOfBooking = evt;
-        evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
-        evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-        evtOfBooking.uid = updatedBookings[index].uid;
-        const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      // if (updatedBookings[index].eventType?.workflows) {
+      const evtOfBooking = evt;
+      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+      evtOfBooking.uid = updatedBookings[index].uid;
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
 
-        const isFirstBooking = index === 0;
-        const videoCallUrl =
-          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
+      const isFirstBooking = index === 0;
+      const videoCallUrl =
+        bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
-        await scheduleWorkflowReminders({
-          workflows: updatedBookings[index]?.eventType?.workflows || [],
-          smsReminderNumber: updatedBookings[index].smsReminderNumber,
-          calendarEvent: {
-            ...evtOfBooking,
-            ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
-          },
-          isFirstRecurringEvent: isFirstBooking,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-          eventTypeRequiresConfirmation: true,
-        });
-      }
+      const ownerNumber = await prisma.verifiedNumber.findFirst({
+        where: {
+          userId: updatedBookings[index]?.eventType?.userId,
+        },
+      });
+
+      const workflows = await globalWorkflows({ eventTypeId: updatedBookings[index]?.eventType?.id });
+
+      await scheduleWorkflowReminders({
+        workflows: workflows || updatedBookings[index]?.eventType?.workflows || [],
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: {
+          ...evtOfBooking,
+          ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
+        },
+        isFirstRecurringEvent: isFirstBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        eventTypeRequiresConfirmation: true,
+        isKYCVerified,
+        ownerNumber: ownerNumber?.phoneNumber,
+      });
+      // }
     }
   } catch (error) {
     // Silently fail

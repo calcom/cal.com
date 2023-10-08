@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { globalWorkflows } from "@calcom/features/ee/workflows/lib/defaultWorkflows";
 import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -30,6 +31,9 @@ async function getEventType(eventTypeId: EventType["id"]) {
   if (!rawEventType) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
+
+  const workflows = await globalWorkflows({ eventTypeId: rawEventType.id });
+  rawEventType.workflows = workflows;
 
   const eventType = {
     ...rawEventType,

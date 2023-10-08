@@ -6,6 +6,7 @@ import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { globalWorkflows } from "@calcom/features/ee/workflows/lib/defaultWorkflows";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -229,6 +230,8 @@ export default async function getEventTypeById({
       throw new Error("Event type not found");
     }
   }
+  const workflows = await globalWorkflows({ eventTypeId: rawEventType.id });
+  rawEventType.workflows = workflows;
 
   const { locations, metadata, ...restEventType } = rawEventType;
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};

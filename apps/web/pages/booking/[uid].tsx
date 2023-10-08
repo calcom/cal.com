@@ -27,6 +27,7 @@ import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { globalWorkflows } from "@calcom/features/ee/workflows/lib/defaultWorkflows";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
@@ -952,6 +953,9 @@ const getEventTypesFromDB = async (id: number) => {
   if (!eventType) {
     return eventType;
   }
+
+  const workflows = await globalWorkflows({ eventTypeId: eventType.id });
+  eventType.workflows = workflows;
 
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 

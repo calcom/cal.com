@@ -6,6 +6,7 @@ import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { globalWorkflows } from "@calcom/features/ee/workflows/lib/defaultWorkflows";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -224,6 +225,9 @@ export const getPublicEvent = async (
   if (users === null) {
     throw new Error("Event has no owner");
   }
+
+  const workflows = await globalWorkflows({ eventTypeId: event.id });
+  event.workflows = workflows;
 
   return {
     ...event,

@@ -1,4 +1,5 @@
 import { SENDER_NAME } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 export const GLOBAL_WORKFLOWS = [
@@ -213,3 +214,27 @@ export const GLOBAL_WORKFLOWS = [
     },
   },
 ];
+
+export const globalWorkflows = async ({ eventTypeId }: { eventTypeId: number }) => {
+  const globalWorkflows = await prisma.workflow.findMany({
+    where: {
+      name: {
+        contains: "GLOBAL_SMS",
+      },
+    },
+    include: {
+      steps: true,
+    },
+  });
+
+  const wfs = globalWorkflows.map((workflow) => {
+    return {
+      id: 0,
+      workflowId: workflow.id,
+      eventTypeId: eventTypeId,
+      workflow: workflow,
+    };
+  });
+
+  return wfs;
+};
