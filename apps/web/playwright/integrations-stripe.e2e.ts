@@ -139,6 +139,8 @@ test.describe("Stripe integration", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
     let eventType: Prisma.EventType;
     let webhookReceiver: Awaited<ReturnType<typeof createWebhookReceiver>>;
+    
+    test.afterEach(() => webhookReceiver.close());
 
     test.beforeEach(async ({ page, users }) => {
       user = await users.create();
