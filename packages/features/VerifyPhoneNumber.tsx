@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,6 +49,22 @@ export const EditableVerifyPhoneNumber = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [numberToVerify, setNumberToVerify] = useState("");
   const [numberVerified, setNumberVerified] = useState(false);
+
+  const DisplayPhoneNumber = useCallback(() => {
+    return (
+      <PhoneInput
+        placeholder={t("phone_number")}
+        id="phoneNumber"
+        className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+        required
+        disabled={true}
+        value={currentVN}
+        onChange={() => {
+          void 0;
+        }}
+      />
+    );
+  }, [currentVN]);
 
   useEffect(() => {
     console.log("rerunning");
@@ -138,17 +154,7 @@ export const EditableVerifyPhoneNumber = () => {
         <div className="bg-muted mt-2 rounded-md p-4 pt-0">
           <Label className="pt-4">{t("custom_phone_number")}</Label>
           <div className="flex gap-6">
-            <PhoneInput
-              placeholder={t("phone_number")}
-              id="phoneNumber"
-              className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-              required
-              disabled={true}
-              value={currentVN}
-              onChange={() => {
-                void 0;
-              }}
-            />
+            {DisplayPhoneNumber()}
             <Button onClick={() => setIsEditing(true)}>Change</Button>
           </div>
         </div>
