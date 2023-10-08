@@ -47,19 +47,17 @@ export const tabs = [
             className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
-            value={
-              `<!-- Cal ${embedType} embed code begins -->\n` +
-              (embedType === "inline"
+            value={`<!-- Cal ${embedType} embed code begins -->\n${
+              embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
                   )};overflow:scroll" id="my-cal-inline"></div>\n`
-                : "") +
-              `<script type="text/javascript">
+                : ""
+            }<script type="text/javascript">
   ${embedSnippetString}
   ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState, embedCalOrigin })}
   </script>
-  <!-- Cal ${embedType} embed code ends -->`
-            }
+  <!-- Cal ${embedType} embed code ends -->`}
           />
           <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
         </>
@@ -95,10 +93,10 @@ export const tabs = [
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
-  
+
   /* If you are using yarn */
   // yarn add @calcom/embed-react
-  
+
   /* If you are using npm */
   // npm install @calcom/embed-react
   ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState, embedCalOrigin })}
@@ -126,6 +124,7 @@ export const tabs = [
       }
       return (
         <iframe
+          key={EMBED_PREVIEW_HTML_URL}
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
           className="h-[100vh] border"
