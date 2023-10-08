@@ -14,7 +14,7 @@ export const getVerifiedNumbersHandler = async ({ ctx, input }: GetVerifiedNumbe
   const { user } = ctx;
   const verifiedNumbers = await prisma.verifiedNumber.findMany({
     where: {
-      OR: [{ userId: user.id }, { teamId: input.teamId }],
+      OR: [{ userId: user.id }, { teamId: input?.teamId }],
     },
   });
 

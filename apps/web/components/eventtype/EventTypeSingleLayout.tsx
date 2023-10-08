@@ -43,7 +43,6 @@ import {
   Sliders,
   Repeat,
   Grid,
-  Zap,
   Users,
   ExternalLink,
   Code,
@@ -112,12 +111,6 @@ function getNavigation(props: {
       icon: Grid,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
-    },
-    {
-      name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Zap,
-      info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
 }

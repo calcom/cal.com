@@ -302,8 +302,34 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
+    const ownerNumber = await prisma.verifiedNumber.findFirst({
+      where: {
+        userId: bookingToDelete.userId,
+      },
+    });
+
+    const globalWorkflows = await prisma.workflow.findMany({
+      where: {
+        name: {
+          contains: "GLOBAL_SMS",
+        },
+      },
+      include: {
+        steps: true,
+      },
+    });
+
+    const wfs = globalWorkflows.map((workflow) => {
+      return {
+        id: 0,
+        workflowId: workflow.id,
+        eventTypeId: 0,
+        workflow: workflow,
+      };
+    });
+
     await sendCancelledReminders({
-      workflows: bookingToDelete.eventType?.workflows,
+      workflows: wfs,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {
         ...evt,
@@ -311,6 +337,7 @@ async function handler(req: CustomRequest) {
       },
       hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
       eventTypeRequiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
+      ownerNumber: ownerNumber?.phoneNumber,
     });
   }
 

@@ -13,6 +13,9 @@ import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
+import { smsEventCancelledTemplate } from "./templates/smsEventCancelledTemplate";
+import { smsEventCompletedTemplate } from "./templates/smsEventCompletedTemplate";
+import { smsEventRescheduledTemplate } from "./templates/smsEventRescheduledTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -146,18 +149,78 @@ export const scheduleSMSReminder = async (
     };
     const customMessage = customTemplate(message, variables, locale, evt.organizer.timeFormat);
     message = customMessage.text;
-  } else if (template === WorkflowTemplates.REMINDER) {
-    message =
-      smsReminderTemplate(
-        false,
-        action,
-        evt.organizer.timeFormat,
-        evt.startTime,
-        evt.title,
-        timeZone,
-        attendeeName,
-        name
-      ) || message;
+  } else {
+    switch (template) {
+      case WorkflowTemplates.REMINDER:
+        message =
+          smsReminderTemplate(
+            false,
+            action,
+            evt.organizer.timeFormat,
+            evt.startTime,
+            evt.title,
+            timeZone,
+            attendeeName,
+            name
+          ) || message;
+        break;
+
+      case WorkflowTemplates.CANCELLED:
+        message =
+          smsEventCancelledTemplate(
+            false,
+            action,
+            evt.organizer.timeFormat,
+            evt.startTime,
+            evt.title,
+            timeZone,
+            attendeeName,
+            name
+          ) || message;
+        break;
+
+      case WorkflowTemplates.RESCHEDULED:
+        message =
+          smsEventRescheduledTemplate(
+            false,
+            action,
+            evt.organizer.timeFormat,
+            evt.startTime,
+            evt.title,
+            timeZone,
+            attendeeName,
+            name
+          ) || message;
+        break;
+
+      case WorkflowTemplates.COMPLETED:
+        message =
+          smsEventCompletedTemplate(
+            false,
+            action,
+            evt.organizer.timeFormat,
+            evt.startTime,
+            evt.title,
+            timeZone,
+            attendeeName,
+            name
+          ) || message;
+        break;
+
+      default:
+        message =
+          smsReminderTemplate(
+            false,
+            action,
+            evt.organizer.timeFormat,
+            evt.startTime,
+            evt.title,
+            timeZone,
+            attendeeName,
+            name
+          ) || message;
+        break;
+    }
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails

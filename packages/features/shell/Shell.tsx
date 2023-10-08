@@ -68,7 +68,6 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Zap,
 } from "@calcom/ui/components/icon";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
@@ -536,11 +535,6 @@ const navigation: NavigationItemType[] = [
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: MoreHorizontal,
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Zap,
   },
   {
     name: "insights",

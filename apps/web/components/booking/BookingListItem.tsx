@@ -199,15 +199,17 @@ function BookingListItem(booking: BookingItemProps) {
   }
 
   const PaymentStatus = () => {
-    switch (paymentOption) {
-      case "HOLD":
-        return <HoldPaymentStatus />;
+    if (paidEvent) {
+      switch (paymentOption) {
+        case "HOLD":
+          return <HoldPaymentStatus />;
 
-      case "ON_BOOKING":
-        return <OnBookingPaymentStatus />;
+        case "ON_BOOKING":
+          return <OnBookingPaymentStatus />;
+      }
     }
 
-    return <></>;
+    return null;
   };
 
   const HoldPaymentStatus = () => {

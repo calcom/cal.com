@@ -17,6 +17,12 @@ export const verifyPhoneNumber = async (
   const verificationStatus = await twilio.verifyNumber(phoneNumber, code);
 
   if (verificationStatus === "approved") {
+    await prisma.verifiedNumber.deleteMany({
+      where: {
+        userId,
+      },
+    });
+
     await prisma.verifiedNumber.create({
       data: {
         userId,

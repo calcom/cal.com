@@ -1868,6 +1868,8 @@ async function handler(
 
     return resultBooking;
   };
+  /** ENDMARK: handleSeats */
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
     const newBooking = await handleSeats();
@@ -2531,8 +2533,34 @@ async function handler(
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
 
   try {
+    const ownerNumber = await prisma.verifiedNumber.findFirst({
+      where: {
+        userId: eventType.userId,
+      },
+    });
+
+    const globalWorkflows = await prisma.workflow.findMany({
+      where: {
+        name: {
+          contains: "GLOBAL_SMS",
+        },
+      },
+      include: {
+        steps: true,
+      },
+    });
+
+    const wfs = globalWorkflows.map((workflow) => {
+      return {
+        id: 0,
+        workflowId: workflow.id,
+        eventTypeId: eventType.id,
+        workflow: workflow,
+      };
+    });
+
     await scheduleWorkflowReminders({
-      workflows: eventType.workflows,
+      workflows: wfs,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: {
         ...evt,
@@ -2544,6 +2572,7 @@ async function handler(
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       eventTypeRequiresConfirmation: eventType.requiresConfirmation,
+      ownerNumber: ownerNumber?.phoneNumber,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

@@ -5,6 +5,7 @@ import React, { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { EditableVerifyPhoneNumber } from "@calcom/features/VerifyPhoneNumber";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -490,6 +491,9 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        </div>
+        <div className="mt-6">
+          <EditableVerifyPhoneNumber />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
