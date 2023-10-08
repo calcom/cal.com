@@ -52,17 +52,9 @@ export const EditableVerifyPhoneNumber = () => {
 
   const DisplayPhoneNumber = useCallback(() => {
     return (
-      <PhoneInput
-        placeholder={t("phone_number")}
-        id="phoneNumber"
-        className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-        required
-        disabled={true}
-        value={currentVN}
-        onChange={() => {
-          void 0;
-        }}
-      />
+      <div className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed">
+        {currentVN}
+      </div>
     );
   }, [currentVN]);
 
