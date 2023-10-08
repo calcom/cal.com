@@ -132,7 +132,7 @@ test.describe("Stripe integration", () => {
       expect(err.message).toBe("waitFor timed out");
     });
 
-    expect(webhookReceiver.requestList).toHaveLength(0);
+    expect(webhookReceiver.requestList).toHaveLength(1);
   });
 
   test.describe("When event is paid and confirmed", () => {
