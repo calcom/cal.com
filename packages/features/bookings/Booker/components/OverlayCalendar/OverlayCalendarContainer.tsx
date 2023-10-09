@@ -3,6 +3,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Switch } from "@calcom/ui";
@@ -21,6 +22,7 @@ export function OverlayCalendarContainer() {
   const { data: session } = useSession();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
 
+  const layout = useBookerStore((state) => state.layout);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const router = useRouter();
   const pathname = usePathname();
@@ -88,7 +90,7 @@ export function OverlayCalendarContainer() {
 
   return (
     <>
-      <div className="hidden gap-2 lg:flex">
+      <div className={classNames("hidden gap-2", layout === "week_view" ? "lg:flex" : "md:flex")}>
         <div className="flex items-center gap-2 pr-2">
           <Switch
             data-testid="overlay-calendar-switch"
