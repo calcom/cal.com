@@ -236,7 +236,7 @@ export default function Login({
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="w-full justify-center dark:bg-white dark:text-black">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
             </div>
@@ -348,7 +348,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   };
 };
 
-Login.isThemeSupported = false;
 Login.PageWrapper = PageWrapper;
 
 export const getServerSideProps = withNonce(_getServerSideProps);
