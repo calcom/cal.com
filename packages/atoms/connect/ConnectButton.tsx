@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -34,18 +35,18 @@ export function ConnectButton({
 
   return (
     <div>
-      <button
+      <Button
         className={classNames(
           "bg-default text-default dark:text-muted dark:bg-muted relative inline-flex h-9 items-center whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed",
           stylesClassname
             ? stylesClassname
             : "bg-default text-default dark:text-muted dark:bg-muted relative inline-flex h-9 items-center whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed"
         )}
-        onClick={(event) => handleSubmit(event)}
+        type="button"
         disabled={!isProcessing}
-        type="button">
+        onClick={(event) => handleSubmit(event)}>
         {buttonText || "Install App"}
-      </button>
+      </Button>
       {!!errMsg && <span>{errMsg}</span>}
     </div>
   );
