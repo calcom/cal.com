@@ -96,7 +96,13 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: Person[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  // TODO Use `scheduleAgent` once https://github.com/adamgibbons/ics/pull/248 is merged rather
+  // than forcing the value into the partstat string.
+  attendees.map(({ email, name }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION;SCHEDULE-AGENT=CLIENT" as any,
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
@@ -152,7 +158,10 @@ export default abstract class BaseCalendarService implements Calendar {
         title: event.title,
         description: getRichDescription(event),
         location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
+        // TODO Use `name`, `email`, and `scheduleAgent` once https://github.com/adamgibbons/ics/pull/248 is merged
+        organizer: {
+          name: `${event.organizer.name}:MAILTO:${event.organizer.email}:SCHEDULE-AGENT=CLIENT`,
+        },
         attendees: this.getAttendees(event),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
@@ -228,7 +237,10 @@ export default abstract class BaseCalendarService implements Calendar {
         title: event.title,
         description: getRichDescription(event),
         location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
+        // TODO Use `name`, `email`, and `scheduleAgent` once https://github.com/adamgibbons/ics/pull/248 is merged
+        organizer: {
+          name: `${event.organizer.name}:MAILTO:${event.organizer.email}:SCHEDULE-AGENT=CLIENT`,
+        },
         attendees: this.getAttendees(event),
       });
 
