@@ -37,6 +37,7 @@ const appStore = {
   "zoho-bigin": () => import("./zoho-bigin"),
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
+  airtable: () => import("./airtable"),
 };
 
 export default appStore;
