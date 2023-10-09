@@ -236,7 +236,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Setting up your first user
 
-Approach 1
+##### Approach 1
 
 1. Open [Prisma Studio](https://prisma.io/studio) to look at or modify the database content:
 
