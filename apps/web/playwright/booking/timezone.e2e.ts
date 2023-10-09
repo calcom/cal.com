@@ -19,8 +19,8 @@ test.describe("Test the timezone behavior in specific cases", () => {
 
   test("Change timezone in booking page", async ({ page }) => {
     await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-    await page.goto("/event-types");
     const eventTypesPage = page;
+    await eventTypesPage.goto("/event-types");
 
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (await eventTypesPage.getByRole("button", { name: "Update timezone" }).isVisible()) {
