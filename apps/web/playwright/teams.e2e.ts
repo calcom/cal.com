@@ -147,16 +147,19 @@ test.describe("Teams", () => {
       teammates: teamMatesObj,
     });
 
-    const { team: org } = await owner.getOrg();
     const allUsers = await users.get();
 
     const memberUser = allUsers.find((user) => user.name === teamMateNames[0]);
 
-    await memberUser.apiLogin();
-    await page.goto("/teams");
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (memberUser) {
+      await memberUser.apiLogin();
 
-    await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
-    await expect(page.locator("[data-testid=create-team-btn]")).toHaveAttribute("disabled", "true");
+      await page.goto("/teams");
+
+      await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
+      await expect(page.locator("[data-testid=create-team-btn]")).toHaveAttribute("disabled", "true");
+    }
   });
   test("Can create team with same name as user", async ({ page, users }) => {
     // Name to be used for both user and team

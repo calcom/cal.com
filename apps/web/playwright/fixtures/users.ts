@@ -402,21 +402,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: {
-          team: {
-            select: {
-              children: true,
-              metadata: true,
-              name: true,
-              members: {
-                select: {
-                  role: true,
-                  id: true,
-                },
-              },
-            },
-          },
-        },
+        include: { team: { select: { children: true, metadata: true, name: true } } },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -550,6 +536,7 @@ export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
   page: Page
 ) {
+  console.log("Page_API", page);
   const csrfToken = await page
     .context()
     .request.get("/api/auth/csrf")
