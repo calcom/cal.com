@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +28,7 @@ export function OverlayCalendarContainer() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { timezone } = useTimePreferences();
 
   // Move this to a hook
   const { set, clearSet } = useLocalSet<{
@@ -34,7 +36,7 @@ export function OverlayCalendarContainer() {
     externalId: string;
   }>("toggledConnectedCalendars", []);
   const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
-  const { timezone } = useTimePreferences();
+
   const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
     {
       loggedInUsersTz: timezone || "Europe/London",
@@ -46,7 +48,7 @@ export function OverlayCalendarContainer() {
       })),
     },
     {
-      enabled: !!session && set.size > 0,
+      enabled: !!session && set.size > 0 && overlayCalendarQueryParam === "true",
       onError: () => {
         clearSet();
       },
@@ -55,7 +57,18 @@ export function OverlayCalendarContainer() {
 
   useEffect(() => {
     if (overlayBusyDates) {
-      setOverlayBusyDates(overlayBusyDates);
+      const nowDate = dayjs();
+      const usersTimezoneDate = nowDate.tz(timezone);
+
+      const offset = (nowDate.utcOffset() - usersTimezoneDate.utcOffset()) / 60;
+      const offsettedArray = overlayBusyDates.map((item) => {
+        return {
+          ...item,
+          start: dayjs(item.start).add(offset, "hours").toDate(),
+          end: dayjs(item.end).add(offset, "hours").toDate(),
+        };
+      });
+      setOverlayBusyDates(offsettedArray);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlayBusyDates]);
