@@ -126,8 +126,9 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center"
+                className="w-full justify-center dark:bg-white dark:text-black"
                 type="submit"
+                color="primary"
                 disabled={loading}
                 aria-label={t("request_password_reset")}
                 loading={loading}>
@@ -141,7 +142,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-ForgotPassword.isThemeSupported = false;
 ForgotPassword.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
