@@ -94,7 +94,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -120,6 +124,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
+    // TODO
+    /** permission to allow transcription using cal-ai @link https://docs.daily.co/reference/rn-daily-js/instance-methods/start-transcription#main */
+    /** Need to add` permissions: { canAdmin: ["transcription"] },` */
     if (scalePlan === "true" && !!hasTeamPlan === true) {
       return {
         privacy: "public",
@@ -130,6 +137,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_chat: true,
           exp: exp,
           enable_recording: "cloud",
+          enable_transcription: "deepgram:<api-key-here>",
+          permissions: { canAdmin: ["transcription"] },
         },
       };
     }

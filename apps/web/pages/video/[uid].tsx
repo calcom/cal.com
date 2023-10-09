@@ -68,6 +68,8 @@ export default function JoinCall(props: JoinCallPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
+
   const onRecordingStopped = () => {
     const data = { recordingId: recordingId.current, bookingUID: booking.uid };
 
