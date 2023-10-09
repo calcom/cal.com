@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogClose,
   Switch,
+  showToast,
   Form,
   Button,
 } from "@calcom/ui";
@@ -177,6 +178,9 @@ const DateOverrideForm = ({
                 className="ml-2"
                 color="primary"
                 type="submit"
+                onClick={() => {
+                  showToast(t("date_successfully_added"), "success");
+                }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">
                 {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
