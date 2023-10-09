@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 
+import { Button } from "../src/components/ui/button";
 import type { AtomsGlobalConfigProps } from "../types";
 import type { ConnectButtonProps } from "../types";
 
