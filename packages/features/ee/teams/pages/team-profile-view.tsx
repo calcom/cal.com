@@ -176,30 +176,37 @@ const ProfileView = () => {
                   mutation.mutate({ id: team.id, ...variables });
                 }
               }}>
-              <div className="flex items-center">
-                <Controller
-                  control={form.control}
-                  name="logo"
-                  render={({ field: { value } }) => (
-                    <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
-                      <div className="ms-4">
-                        <ImageUploader
-                          target="avatar"
-                          id="avatar-upload"
-                          buttonMsg={t("update")}
-                          handleAvatarChange={(newLogo) => {
-                            form.setValue("logo", newLogo);
-                          }}
-                          imageSrc={value}
-                        />
-                      </div>
-                    </>
-                  )}
-                />
-              </div>
-
-              <hr className="border-subtle my-8" />
+              {!team.parent && (
+                <>
+                  <div className="flex items-center">
+                    <Controller
+                      control={form.control}
+                      name="logo"
+                      render={({ field: { value } }) => (
+                        <>
+                          <Avatar
+                            alt=""
+                            imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                            size="lg"
+                          />
+                          <div className="ms-4">
+                            <ImageUploader
+                              target="avatar"
+                              id="avatar-upload"
+                              buttonMsg={t("update")}
+                              handleAvatarChange={(newLogo) => {
+                                form.setValue("logo", newLogo);
+                              }}
+                              imageSrc={value}
+                            />
+                          </div>
+                        </>
+                      )}
+                    />
+                  </div>
+                  <hr className="border-subtle my-8" />
+                </>
+              )}
 
               <Controller
                 control={form.control}
