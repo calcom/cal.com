@@ -1619,6 +1619,7 @@
   "date_overrides_mark_all_day_unavailable_other": "Mark unavailable on selected dates",
   "date_overrides_add_btn": "Add Override",
   "date_overrides_update_btn": "Update Override",
+  "date_successfully_added": "Date override added successfully",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
   "hide_eventtype_details": "Hide event type details",
