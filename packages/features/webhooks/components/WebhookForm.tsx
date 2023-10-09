@@ -5,18 +5,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  Button,
-  Form,
-  Label,
-  Select,
-  Switch,
-  TextArea,
-  TextField,
-  ToggleGroup,
-  DialogFooter,
-} from "@calcom/ui";
+import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 
+import SectionBottomActions from "../../settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
@@ -44,6 +35,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_CREATED, label: "booking_created" },
     { value: WebhookTriggerEvents.BOOKING_REJECTED, label: "booking_rejected" },
     { value: WebhookTriggerEvents.BOOKING_REQUESTED, label: "booking_requested" },
+    { value: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, label: "booking_payment_initiated" },
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.BOOKING_PAID, label: "booking_paid" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
@@ -87,7 +79,7 @@ const WebhookForm = (props: {
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(false);
   const [newSecret, setNewSecret] = useState("");
-  const [changeSecret, setChangeSecret] = useState(false);
+  const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
   // const currentSecret = props?.webhook?.secret;
 
@@ -98,10 +90,10 @@ const WebhookForm = (props: {
   }, [changeSecret, formMethods]);
 
   return (
-    <>
-      <Form
-        form={formMethods}
-        handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+    <Form
+      form={formMethods}
+      handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+      <div className="border-subtle border-x p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -115,10 +107,12 @@ const WebhookForm = (props: {
                 required
                 type="url"
                 onChange={(e) => {
-                  formMethods.setValue("subscriberUrl", e?.target.value);
+                  formMethods.setValue("subscriberUrl", e?.target.value, { shouldDirty: true });
                   if (hasTemplateIntegration({ url: e.target.value })) {
                     setUseCustomTemplate(true);
-                    formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+                    formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }), {
+                      shouldDirty: true,
+                    });
                   }
                 }}
               />
@@ -129,13 +123,13 @@ const WebhookForm = (props: {
           name="active"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="font-sm text-emphasis mt-8 font-medium">
+            <div className="font-sm text-emphasis mt-6 font-medium">
               <Switch
                 label={t("enable_webhook")}
                 checked={value}
                 // defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
                 onCheckedChange={(value) => {
-                  formMethods.setValue("active", value);
+                  formMethods.setValue("active", value, { shouldDirty: true });
                 }}
               />
             </div>
@@ -147,8 +141,8 @@ const WebhookForm = (props: {
           render={({ field: { onChange, value } }) => {
             const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
             return (
-              <div className="mt-8">
-                <Label className="font-sm text-emphasis mt-8 font-medium">
+              <div className="mt-6">
+                <Label className="font-sm text-emphasis font-medium">
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
@@ -167,7 +161,7 @@ const WebhookForm = (props: {
           name="secret"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="mt-8 ">
+            <div className="mt-6">
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>
@@ -218,7 +212,7 @@ const WebhookForm = (props: {
                   labelClassName="font-medium text-emphasis font-sm"
                   value={value}
                   onChange={(e) => {
-                    formMethods.setValue("secret", e?.target.value);
+                    formMethods.setValue("secret", e?.target.value, { shouldDirty: true });
                   }}
                 />
               )}
@@ -231,7 +225,7 @@ const WebhookForm = (props: {
           control={formMethods.control}
           render={({ field: { value } }) => (
             <>
-              <Label className="font-sm text-emphasis mt-8">
+              <Label className="font-sm text-emphasis mt-6">
                 <>{t("payload_template")}</>
               </Label>
               <div className="mb-2">
@@ -239,7 +233,7 @@ const WebhookForm = (props: {
                   onValueChange={(val) => {
                     if (val === "default") {
                       setUseCustomTemplate(false);
-                      formMethods.setValue("payloadTemplate", undefined);
+                      formMethods.setValue("payloadTemplate", undefined, { shouldDirty: true });
                     } else {
                       setUseCustomTemplate(true);
                     }
@@ -258,33 +252,34 @@ const WebhookForm = (props: {
                   rows={3}
                   value={value}
                   onChange={(e) => {
-                    formMethods.setValue("payloadTemplate", e?.target.value);
+                    formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true });
                   }}
                 />
               )}
             </>
           )}
         />
-        <div className="bg-subtle mt-8 rounded-md p-6">
-          <WebhookTestDisclosure />
-        </div>
+      </div>
+      <SectionBottomActions align="end">
+        <Button
+          type="button"
+          color="minimal"
+          onClick={props.onCancel}
+          {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
+          {t("cancel")}
+        </Button>
+        <Button
+          type="submit"
+          disabled={!formMethods.formState.isDirty && !changeSecret}
+          loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
+          {props?.webhook?.id ? t("save") : t("create_webhook")}
+        </Button>
+      </SectionBottomActions>
 
-        <DialogFooter showDivider>
-          <Button
-            type="button"
-            color="minimal"
-            onClick={props.onCancel}
-            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
-            {t("cancel")}
-          </Button>
-          <Button
-            type="submit"
-            loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
-            {props?.webhook?.id ? t("save") : t("create_webhook")}
-          </Button>
-        </DialogFooter>
-      </Form>
-    </>
+      <div className="mt-6 rounded-md">
+        <WebhookTestDisclosure />
+      </div>
+    </Form>
   );
 };
 

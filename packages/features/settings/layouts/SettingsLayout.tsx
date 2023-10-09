@@ -117,6 +117,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
 ];
@@ -374,11 +375,13 @@ const SettingsSidebarContainer = ({
                                       <ChevronRight className="h-4 w-4" />
                                     )}
                                   </div>
-                                  <img
-                                    src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                    alt={team.name || "Team logo"}
-                                  />
+                                  {!team.parentId && (
+                                    <img
+                                      src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      alt={team.name || "Team logo"}
+                                    />
+                                  )}
                                   <p className="w-1/2 truncate">{team.name}</p>
                                   {!team.accepted && (
                                     <Badge className="ms-3" variant="orange">
@@ -516,11 +519,13 @@ const SettingsSidebarContainer = ({
                                       <ChevronRight className="h-4 w-4" />
                                     )}
                                   </div>
-                                  <img
-                                    src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
-                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                    alt={otherTeam.name || "Team logo"}
-                                  />
+                                  {!otherTeam.parentId && (
+                                    <img
+                                      src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      alt={otherTeam.name || "Team logo"}
+                                    />
+                                  )}
                                   <p className="w-1/2 truncate">{otherTeam.name}</p>
                                 </div>
                               </CollapsibleTrigger>
@@ -632,7 +637,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center md:max-w-4xl">
+        <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Loader />}>{children}</Suspense>
@@ -675,33 +680,40 @@ type SidebarContainerElementProps = {
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
-function ShellHeader() {
+export function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="border-subtle mb-8 flex w-full items-center border-b pb-6">
-        {meta.backButton && (
-          <a href="javascript:history.back()">
-            <ArrowLeft className="mr-7" />
-          </a>
-        )}
-        <div>
-          {meta.title && isLocaleReady ? (
-            <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
-              {t(meta.title)}
-            </h1>
-          ) : (
-            <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
+    <>
+      <header
+        className={classNames(
+          "border-subtle mx-auto block justify-between sm:flex",
+          meta.borderInShellHeader && "rounded-t-xl border px-4 py-6 sm:px-6",
+          meta.borderInShellHeader === undefined && "mb-8 border-b pb-8"
+        )}>
+        <div className="flex w-full items-center">
+          {meta.backButton && (
+            <a href="javascript:history.back()">
+              <ArrowLeft className="mr-7" />
+            </a>
           )}
-          {meta.description && isLocaleReady ? (
-            <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
-          ) : (
-            <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
-          )}
+          <div>
+            {meta.title && isLocaleReady ? (
+              <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
+                {t(meta.title)}
+              </h1>
+            ) : (
+              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
+            )}
+            {meta.description && isLocaleReady ? (
+              <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+            ) : (
+              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
+            )}
+          </div>
+          <div className="ms-auto flex-shrink-0">{meta.CTA}</div>
         </div>
-        <div className="ms-auto flex-shrink-0">{meta.CTA}</div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

@@ -102,7 +102,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   return {
     ...user,
     avatar:
-      `${WEBAPP_URL}/${user.username}/avatar.png?` + user.organizationId && `orgId=${user.organizationId}`,
+      `${WEBAPP_URL}/${user.username}/avatar.png?${user.organizationId}` && `orgId=${user.organizationId}`,
     organization: {
       ...user.organization,
       isOrgAdmin,

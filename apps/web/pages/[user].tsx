@@ -125,7 +125,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             {user.away ? (
               <div className="overflow-hidden rounded-sm border ">
                 <div className="text-muted  p-8 text-center">
-                  <h2 className="font-cal text-default mb-2 text-3xl">😴{" " + t("user_away")}</h2>
+                  <h2 className="font-cal text-default mb-2 text-3xl">😴{` ${t("user_away")}`}</h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>

@@ -67,7 +67,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
     ...nonOrgTeams.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
-      slug: membership.team.slug ? "team/" + membership.team.slug : null,
+      slug: membership.team.slug ? `team/${membership.team.slug}` : null,
       image: `${bookerUrl}${membership.team.slug ? "/team" : ""}/${membership.team.slug}/avatar.png`,
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),

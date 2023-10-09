@@ -4,6 +4,7 @@ import { components } from "react-select";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { classNames } from "@calcom/lib";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select } from "@calcom/ui";
 
 export type LocationOption = {
@@ -22,7 +23,7 @@ export type GroupOptionType = GroupBase<LocationOption>;
 const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
   return (
     <div className="flex items-center gap-3">
-      {icon && <img src={icon} alt="cover" className="h-3.5 w-3.5 dark:invert-[.65]" />}
+      {icon && <img src={icon} alt="cover" className={classNames("h-3.5 w-3.5", invertLogoOnDark(icon))} />}
       <span className={classNames("text-sm font-medium")}>{label}</span>
     </div>
   );
