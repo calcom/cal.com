@@ -7,6 +7,7 @@ import type { API } from "mailhog";
 import dayjs from "@calcom/dayjs";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
@@ -557,7 +558,7 @@ export async function apiLogin(
   const data = {
     email: user.email ?? `${user.username}@example.com`,
     password: user.password ?? user.username,
-    callbackURL: "http://localhost:3000/",
+    callbackURL: WEBAPP_URL,
     redirect: "false",
     json: "true",
     csrfToken,

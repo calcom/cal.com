@@ -136,26 +136,23 @@ test.describe("Teams", () => {
     // TODO: Assert whether the user received an email
   });
   test("Non admin team members cannot create team in org", async ({ page, users }) => {
-    const teamMatesObj = [
-      { name: "teammate-1" },
-      { name: "teammate-2" },
-      { name: "teammate-3" },
-      { name: "teammate-4" },
-    ];
+    const teamMateNames = ["teammate-1", "teammate-2", "teammate-3", "teammate-4"];
+    const teamMatesObj = teamMateNames.map((name) => {
+      return { name };
+    });
     const owner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
       hasSubteam: true,
       teammates: teamMatesObj,
     });
+
     const { team: org } = await owner.getOrg();
     const allUsers = await users.get();
-    console.log("ORG", org);
 
-    const teammateOneOfRoleMember = allUsers.find(
-      (user) => user.name === "teammate-1" && !!org.members.find((member) => member.id === user.id)
-    );
-    await teammateOneOfRoleMember?.apiLogin();
+    const memberUser = allUsers.find((user) => user.name === teamMateNames[0]);
+
+    await memberUser.apiLogin();
     await page.goto("/teams");
 
     await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
