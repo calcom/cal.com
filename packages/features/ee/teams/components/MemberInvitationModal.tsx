@@ -149,7 +149,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         const lines = contents.split("\n");
         const validEmails = [];
         for (const line of lines) {
-          const columns = line.split(",");
+          const columns = line.split(/,|;|\|| /);
           for (const column of columns) {
             const email = column.trim().toLowerCase();
 
