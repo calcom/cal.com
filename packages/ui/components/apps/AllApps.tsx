@@ -109,12 +109,10 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
           <li
             key={pos}
             onClick={() => {
-              if (pathname === null) {
-                return;
-              }
-
               if (selectedCategory === cat) {
-                router.replace(pathname);
+                if (pathname !== null) {
+                  router.replace(pathname);
+                }
               } else {
                 const _searchParams = new URLSearchParams(searchParams ?? undefined);
                 _searchParams.set("category", cat);

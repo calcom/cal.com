@@ -54,5 +54,5 @@ export const buildCanonical = ({
   origin: Location["origin"];
   path: Router["asPath"] | null;
 }) => {
-  return `${origin}${path === "/" ? "" : path ?? ""}`.split("?")[0];
+  return `${origin}${path === "/" ? "" : path}`.split("?")[0];
 };
