@@ -288,6 +288,7 @@
   "when": "Wann",
   "where": "Wo",
   "add_to_calendar": "Zum Kalender hinzufügen",
+  "add_to_calendar_description": "Legen Sie fest, wo neue Termine hinzugefügt werden sollen, wenn Sie gebucht werden.",
   "add_another_calendar": "Einen weiteren Kalender hinzufügen",
   "other": "Sonstige",
   "email_sign_in_subject": "Ihr Anmelde-Link für {{appName}}",
@@ -1278,6 +1279,7 @@
   "personal_cal_url": "Meine persönliche {{appName}}-URL",
   "bio_hint": "Schreiben Sie eine kurze Beschreibung, welche auf Ihrer persönlichen Profil-Seite erscheinen wird.",
   "user_has_no_bio": "Dieser Benutzer hat noch keine Bio hinzugefügt.",
+  "bio": "Biografie",
   "delete_account_modal_title": "Account löschen",
   "confirm_delete_account_modal": "Sind Sie sicher, dass Sie Ihr {{appName}}-Konto löschen möchten?",
   "delete_my_account": "Meinen Account löschen",
@@ -2056,8 +2058,12 @@
   "unauthorized": "Nicht authorisiert",
   "access_cal_account": "{{clientName}} möchte auf Ihr {{appName}} Konto zugreifen",
   "select_account_team": "Konto oder Team auswählen",
+  "allow_client_to": "Dies wird {{clientName}} erlauben",
   "view_only_edit_availability_not_onboarded": "Dieser Benutzer hat das Onboarding noch nicht abgeschlossen. Sie können seine Verfügbarkeit erst festlegen, wenn er das Onboarding abgeschlossen hat.",
   "view_only_edit_availability": "Sie sehen die Verfügbarkeit dieses Benutzers. Sie können nur Ihre eigene Verfügbarkeit bearbeiten.",
   "edit_users_availability": "Benutzerverfügbarkeit bearbeiten: {{username}}",
+  "resend_invitation": "Einladung erneut senden",
+  "invitation_resent": "Die Einladung wurde erneut gesendet.",
+  "this_app_is_not_setup_already": "Diese App wurde noch nicht eingerichtet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
