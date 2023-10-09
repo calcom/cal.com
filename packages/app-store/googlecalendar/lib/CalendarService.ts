@@ -284,9 +284,10 @@ export default class GoogleCalendarService implements Calendar {
 
     const calendar = await this.authedCalendar();
 
-    const selectedCalendar = externalCalendarId
-      ? externalCalendarId
-      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+    const selectedCalendar =
+      (externalCalendarId
+        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        : undefined) || "primary";
 
     try {
       const evt = await calendar.events.update({
@@ -337,14 +338,15 @@ export default class GoogleCalendarService implements Calendar {
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     const calendar = await this.authedCalendar();
-    const defaultCalendarId = "primary";
-    const calendarId = externalCalendarId
-      ? externalCalendarId
-      : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+
+    const selectedCalendar =
+      (externalCalendarId
+        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        : undefined) || "primary";
 
     try {
       const event = await calendar.events.delete({
-        calendarId: calendarId ? calendarId : defaultCalendarId,
+        calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",
