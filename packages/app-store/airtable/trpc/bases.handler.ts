@@ -5,7 +5,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getAirtableToken } from "../lib/getAirtableToken";
 
-interface ProjectsHandlerOptions {
+interface BasesHandlerOptions {
   ctx: {
     prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
@@ -28,12 +28,10 @@ const fetchBases = async (key: string) => {
   return ZBases.parse(res);
 };
 
-export const getBasesHandler = async ({ ctx }: ProjectsHandlerOptions) => {
+export const basesHandler = async ({ ctx }: BasesHandlerOptions) => {
   const token = await getAirtableToken(ctx.user.id);
 
   const bases = await fetchBases(token.personalAccessToken);
 
-  return bases;
+  return bases.bases;
 };
-
-export default getBasesHandler;
