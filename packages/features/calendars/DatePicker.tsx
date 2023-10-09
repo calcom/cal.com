@@ -98,8 +98,6 @@ const Days = ({
   weekStart,
   DayComponent = Day,
   selected,
-  month,
-  nextMonthButton,
   eventSlug,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
