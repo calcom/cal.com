@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -14,6 +15,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -42,6 +44,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
+  const orgBranding = useOrgBranding();
 
   useEffect(() => {
     telemetry.event(
@@ -101,7 +104,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   items={type.users.map((user) => ({
                     alt: user.name || "",
                     title: user.name || "",
-                    image: "/" + user.username + "/avatar.png" || "",
+                    image: `/${user.username}/avatar.png` || "",
                   }))}
                 />
               </div>
@@ -123,12 +126,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
             <li key={i} className="hover:bg-muted w-full">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
-                  <Avatar
-                    size="md"
-                    imageSrc={`/team/${ch.slug}/avatar.png`}
-                    alt="Team Logo"
-                    className="inline-flex justify-center"
-                  />
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
                     <span className="text-subtle block text-xs">
@@ -159,7 +156,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
       <div className="space-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
-            <h2 className="font-cal text-emphasis mb-2 text-3xl">{" " + t("org_no_teams_yet")}</h2>
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
             <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
@@ -184,9 +181,11 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <div className="relative">
             <Avatar
               alt={teamName}
-              imageSrc={`${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${
-                team.slug
-              }/avatar.png`}
+              imageSrc={
+                !!team.parent && !!orgBranding
+                  ? `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`
+                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
+              }
               size="lg"
             />
           </div>
@@ -210,7 +209,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
             {(showMembers.isOn || !team.eventTypes?.length) &&
               (team.isPrivate ? (
                 <div className="w-full text-center">
-                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+                  <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
+                    {t("you_cannot_see_team_members")}
+                  </h2>
                 </div>
               ) : (
                 <Team members={team.members} teamName={team.name} />
@@ -237,6 +238,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                       <Button
                         color="minimal"
                         EndIcon={ArrowRight}
+                        data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{
                           pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
@@ -268,7 +270,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   );
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({
-    slug,
+    slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
@@ -320,24 +322,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...type,
       users: type.users.map((user) => ({
         ...user,
-        avatar: "/" + user.username + "/avatar.png",
+        avatar: `/${user.username}/avatar.png`,
       })),
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = team.members.map((member) => {
-    return {
-      name: member.name,
-      id: member.id,
-      bio: member.bio,
-      subteams: member.subteams,
-      username: member.username,
-      accepted: member.accepted,
-      safeBio: markdownToSafeHTML(member.bio || ""),
-    };
-  });
+  const members = !team.isPrivate
+    ? team.members.map((member) => {
+        return {
+          name: member.name,
+          id: member.id,
+          bio: member.bio,
+          subteams: member.subteams,
+          username: member.username,
+          accepted: member.accepted,
+          safeBio: markdownToSafeHTML(member.bio || ""),
+        };
+      })
+    : [];
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 

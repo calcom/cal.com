@@ -1,10 +1,11 @@
 import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 
+import type { PaymentService } from "@calcom/app-store/paypal/lib/PaymentService";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export interface PaymentApp {
   lib?: {
-    PaymentService: IAbstractPaymentService;
+    PaymentService: typeof PaymentService;
   };
 }
 
@@ -32,6 +33,7 @@ export interface IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId?: Booking["id"]
   ): Promise<Payment>;
+
   update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
   refund(paymentId: Payment["id"]): Promise<Payment>;
   getPaymentPaidStatus(): Promise<string>;
@@ -47,4 +49,5 @@ export interface IAbstractPaymentService {
     paymentData: Payment
   ): Promise<void>;
   deletePayment(paymentId: Payment["id"]): Promise<boolean>;
+  isSetupAlready(): boolean;
 }

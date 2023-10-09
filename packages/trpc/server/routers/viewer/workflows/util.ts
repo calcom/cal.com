@@ -108,7 +108,7 @@ export async function removeSmsReminderFieldForBooking({
       name: SMS_REMINDER_NUMBER_FIELD,
     },
     {
-      id: "" + workflowId,
+      id: `${workflowId}`,
       type: "workflow",
     },
     eventTypeId

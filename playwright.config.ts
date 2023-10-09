@@ -172,7 +172,7 @@ expect.extend({
     const u = new URL(iframe.url());
 
     const pathname = u.pathname;
-    const expectedPathname = expectedUrlDetails.pathname + "/embed";
+    const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
     if (expectedPathname && expectedPathname !== pathname) {
       return {
         pass: false,

@@ -151,7 +151,7 @@ export default function Availability() {
   return (
     <Shell
       backPath={fromEventType ? true : "/availability"}
-      title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
+      title={schedule?.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}

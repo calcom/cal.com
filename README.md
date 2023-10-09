@@ -131,22 +131,38 @@ Here is what you need to be able to run Cal.com.
    > If you are on Windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
    > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
-1. Go to the project folder
+2. Go to the project folder
 
    ```sh
    cd cal.com
    ```
 
-1. Install packages with yarn
+3. Install packages with yarn
 
    ```sh
    yarn
    ```
 
-1. Set up your `.env` file
+4. Set up your `.env` file
+
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+
+5. Setup Node
+   If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
+   ```sh
+   nvm use
+   ```
+
+   You first might need to install the specific version and then use it:
+
+   ```sh
+   nvm install && nvm use
+   ```
+
+   You can install nvm from [here](https://github.com/nvm-sh/nvm).
 
 #### Quick start with `yarn dx`
 
@@ -221,6 +237,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
@@ -236,6 +253,8 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Setting up your first user
 
+##### Approach 1
+
 1. Open [Prisma Studio](https://prisma.io/studio) to look at or modify the database content:
 
    ```sh
@@ -247,6 +266,17 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
+##### Approach 2
+
+Seed the local db by running
+
+```sh
+cd packages/prisma
+yarn db-seed
+```
+
+The above command will populate the local db with dummy users.
+
 ### E2E-Testing
 
 Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
@@ -257,6 +287,16 @@ yarn test-e2e
 
 # To open the last HTML report run:
 yarn playwright show-report test-results/reports/playwright-html-report
+```
+
+#### Resolving issues
+
+##### E2E test browsers not installed
+
+Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
+
+```
+Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
 ```
 
 ### Upgrading from earlier versions
@@ -470,9 +510,8 @@ following
 4. Select Basecamp 4 as the product to integrate with.
 5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
 6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
-7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
-For example, `Cal.com (support@cal.com)`.
-
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
+   For example, `Cal.com (support@cal.com)`.
 
 ### Obtaining HubSpot Client ID and Secret
 
@@ -507,6 +546,7 @@ For example, `Cal.com (support@cal.com)`.
 ### Obtaining Zoho Calendar Client ID and Secret
 
 [Follow these steps](./packages/app-store/zohocalendar/)
+
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)
