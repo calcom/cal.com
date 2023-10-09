@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~/*": ["/*"]
+      "~/*": ["/*"],
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true
   },
