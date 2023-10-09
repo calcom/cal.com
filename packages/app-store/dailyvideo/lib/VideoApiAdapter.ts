@@ -60,6 +60,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: 0,
+  user: { email: "" },
   appId: "daily-video",
   invalid: false,
   teamId: null,
@@ -70,7 +71,7 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
   return fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",
     headers: {
-      Authorization: "Bearer " + api_key,
+      Authorization: `Bearer ${api_key}`,
       "Content-Type": "application/json",
       ...init?.headers,
     },

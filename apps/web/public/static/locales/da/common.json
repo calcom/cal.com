@@ -703,7 +703,7 @@
   "slot_interval_default": "Brug begivenhedslængde (standard)",
   "delete_account": "Slet konto",
   "confirm_delete_account": "Ja, slet konto",
-  "delete_account_confirmation_message": "Er du sikker på, at du vil slette din {{appName}} konto? Alle, som du har delt dit konto-link med, vil ikke længere kunne booke ved hjælp af det, og eventuelle præferencer du har gemt, vil gå tabt.",
+  "delete_account_confirmation_message": "Alle, som du har delt dit konto-link med, vil ikke længere kunne booke ved hjælp af det, og eventuelle præferencer du har gemt, vil gå tabt.",
   "integrations": "Integrationer",
   "apps": "Apps",
   "apps_description": "Her kan du finde en liste over dine apps",

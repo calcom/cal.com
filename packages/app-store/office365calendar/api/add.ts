@@ -3,8 +3,8 @@ import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
 
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       response_type: "code",
       scope: scopes.join(" "),
       client_id,
-      redirect_uri: WEBAPP_URL + "/api/integrations/office365calendar/callback",
+      redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
       state,
     };
     const query = stringify(params);

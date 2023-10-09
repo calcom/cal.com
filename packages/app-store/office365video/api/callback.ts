@@ -4,10 +4,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
-      .map((key) => key + "=" + encodeURIComponent(payload[key]))
+      .map((key) => `${key}=${encodeURIComponent(payload[key])}`)
       .join("&");
 
   const body = toUrlEncoded({
@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: WEBAPP_URL + "/api/integrations/office365video/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/office365video/callback`,
     client_secret,
   });
 
@@ -53,11 +53,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const responseBody = await response.json();
 
   if (!response.ok) {
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   const whoami = await fetch("https://graph.microsoft.com/v1.0/me", {
-    headers: { Authorization: "Bearer " + responseBody.access_token },
+    headers: { Authorization: `Bearer ${responseBody.access_token}` },
   });
   const graphUser = await whoami.json();
 

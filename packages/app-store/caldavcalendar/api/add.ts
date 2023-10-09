@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: {
         id: true,
+        email: true,
       },
     });
 
@@ -36,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const dav = new CalendarService({
         id: 0,
         ...data,
+        user: { email: user.email },
       });
       await dav?.listCalendars();
       await prisma.credential.create({
@@ -47,12 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let message = e.message;
         if (e.message.indexOf("Invalid credentials") > -1 && url.indexOf("dav.php") > -1) {
           const parsedUrl = new URL(url);
-          const adminUrl =
-            parsedUrl.protocol +
-            "//" +
-            parsedUrl.hostname +
-            (parsedUrl.port ? ":" + parsedUrl.port : "") +
-            "/admin/?/settings/standard/";
+          const adminUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${
+            parsedUrl.port ? `:${parsedUrl.port}` : ""
+          }/admin/?/settings/standard/`;
           message = `Couldn\'t connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
           return res.status(500).json({ message, actionUrl: adminUrl });
         }

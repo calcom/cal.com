@@ -14,6 +14,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
@@ -51,7 +52,14 @@ const getEventType = async (id: number) => {
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              days: true,
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
           timeZone: true,
         },
       },
@@ -81,7 +89,9 @@ const getUser = (where: Prisma.UserWhereInput) =>
     where,
     select: {
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
 
@@ -234,7 +244,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   const workingHours = getWorkingHours({ timeZone }, availability);
 
   const endGetWorkingHours = performance.now();
-  logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
 
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
@@ -259,10 +268,23 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     end: dayjs(busy.end),
   }));
 
+  const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+
+  logger.debug(
+    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
+    JSON.stringify({
+      workingHoursInUtc: workingHours,
+      dateOverrides,
+      dateRangesAsPerAvailability: dateRanges,
+      dateRangesInWhichUserIsAvailable,
+      detailedBusyTimes,
+    })
+  );
+
   return {
     busy: detailedBusyTimes,
     timeZone,
-    dateRanges: subtract(dateRanges, formattedBusyTimes),
+    dateRanges: dateRangesInWhichUserIsAvailable,
     workingHours,
     dateOverrides,
     currentSeats,

@@ -125,7 +125,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             {user.away ? (
               <div className="overflow-hidden rounded-sm border ">
                 <div className="text-muted  p-8 text-center">
-                  <h2 className="font-cal text-default mb-2 text-3xl">😴{" " + t("user_away")}</h2>
+                  <h2 className="font-cal text-default mb-2 text-3xl">😴{` ${t("user_away")}`}</h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>
@@ -154,7 +154,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                       <div className="flex flex-wrap items-center">
                         <h2 className=" text-default pr-2 text-sm font-semibold">{type.title}</h2>
                       </div>
-                      <EventTypeDescription eventType={type} isPublic={true} />
+                      <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                     </Link>
                   </div>
                 </div>

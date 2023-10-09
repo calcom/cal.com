@@ -9,7 +9,28 @@ function setupEnvs({ WEBAPP_URL = "https://app.cal.com" } = {}) {
     value: ["cal.com", "cal.dev", "cal-staging.com", "cal.community", "cal.local:3000", "localhost:3000"],
   });
   Object.defineProperty(constants, "RESERVED_SUBDOMAINS", {
-    value: [ "app", "auth", "docs", "design", "console", "go", "status", "api", "saml", "www", "matrix", "developer", "cal", "my", "team", "support", "security", "blog", "learn", "admin"],
+    value: [
+      "app",
+      "auth",
+      "docs",
+      "design",
+      "console",
+      "go",
+      "status",
+      "api",
+      "saml",
+      "www",
+      "matrix",
+      "developer",
+      "cal",
+      "my",
+      "team",
+      "support",
+      "security",
+      "blog",
+      "learn",
+      "admin",
+    ],
   });
 }
 

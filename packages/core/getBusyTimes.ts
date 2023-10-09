@@ -1,17 +1,19 @@
-import type { Booking, Credential, EventType } from "@prisma/client";
+import type { Booking, EventType } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { subtract } from "@calcom/lib/date-ranges";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 export async function getBusyTimes(params: {
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   userId: number;
   userEmail: string;
   username: string;
@@ -88,7 +90,6 @@ export async function getBusyTimes(params: {
       in: [BookingStatus.ACCEPTED],
     },
   };
-
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
@@ -143,7 +144,7 @@ export async function getBusyTimes(params: {
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
       if (rest._count?.seatsReferences) {
-        const bookedAt = dayjs(startTime).utc().format() + "<>" + dayjs(endTime).utc().format();
+        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
         // Seat references on the current event are non-blocking until the event is fully booked.
@@ -178,7 +179,13 @@ export async function getBusyTimes(params: {
     []
   );
 
-  logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
+  logger.debug(
+    `Busy Time from Cal Bookings ${JSON.stringify({
+      busyTimes,
+      bookings: bookings?.map((booking) => getPiiFreeBooking(booking)),
+      numCredentials: credentials?.length,
+    })}`
+  );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
@@ -194,7 +201,10 @@ export async function getBusyTimes(params: {
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet
-      } ms for user ${username}`
+      } ms for user ${username}`,
+      JSON.stringify({
+        calendarBusyTimes,
+      })
     );
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
@@ -240,6 +250,12 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
+  logger.debug(
+    "getBusyTimes:",
+    JSON.stringify({
+      allBusyTimes: busyTimes,
+    })
+  );
   return busyTimes;
 }
 

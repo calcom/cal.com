@@ -33,7 +33,7 @@ export default function OIDCConnection({
         </div>
         {!connection && (
           <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
-            <Button color="secondary" onClick={() => setOpenModal(true)}>
+            <Button data-testid="sso-oidc-configure" color="secondary" onClick={() => setOpenModal(true)}>
               {t("configure")}
             </Button>
           </div>
@@ -100,6 +100,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="clientId"
                   label="Client id"
+                  data-testid="sso-oidc-client-id"
                   value={value}
                   onChange={(e) => {
                     form.setValue("clientId", e?.target.value);
@@ -116,6 +117,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="clientSecret"
                   label="Client secret"
+                  data-testid="sso-oidc-client-secret"
                   value={value}
                   onChange={(e) => {
                     form.setValue("clientSecret", e?.target.value);
@@ -132,6 +134,7 @@ const CreateConnectionDialog = ({
                 <TextField
                   name="wellKnownUrl"
                   label="Well-Known URL"
+                  data-testid="sso-oidc-well-known-url"
                   value={value}
                   onChange={(e) => {
                     form.setValue("wellKnownUrl", e?.target.value);
@@ -142,7 +145,7 @@ const CreateConnectionDialog = ({
               )}
             />
           </div>
-          <DialogFooter showDivider className="mt-10">
+          <DialogFooter showDivider className="relative mt-10">
             <Button
               type="button"
               color="secondary"
@@ -152,7 +155,7 @@ const CreateConnectionDialog = ({
               tabIndex={-1}>
               {t("cancel")}
             </Button>
-            <Button type="submit" loading={form.formState.isSubmitting}>
+            <Button type="submit" data-testid="sso-oidc-save" loading={form.formState.isSubmitting}>
               {t("save")}
             </Button>
           </DialogFooter>

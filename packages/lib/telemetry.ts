@@ -32,7 +32,7 @@ export function collectPageParameters(
   return {
     page_url: route,
     doc_encoding: document.characterSet,
-    url: document.location.protocol + "//" + host + (docPath ?? ""),
+    url: `${document.location.protocol}//${host}${docPath ?? ""}`,
     ...extraData,
   };
 }
