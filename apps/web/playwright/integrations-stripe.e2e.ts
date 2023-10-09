@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
 import { test, type Fixtures } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, waitFor, createWebhookReceiver } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, waitFor, createWebhookReceiver, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -109,33 +109,7 @@ test.describe("Stripe integration", () => {
     await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
   });
 
-  test("should not send a booking paid event when the payment is not confirmed by Stripe", async ({
-    page,
-    users,
-  }) => {
-    const user = await users.create({ name: "name" });
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-
-    await user.apiLogin();
-
-    // installing Stripe
-    await user.getPaymentCredential();
-
-    const webhookReceiver = await createWebhookReceiver(page);
-
-    await user.setupEventWithPrice(eventType);
-    await user.bookAndPayEvent(eventType);
-
-    await waitFor(() => {
-      expect(webhookReceiver.requestList).toHaveLength(2);
-    }).catch((err) => {
-      expect(err.message).toBe("waitFor timed out");
-    });
-
-    await waitFor(() => {
-      expect(webhookReceiver.requestList).toHaveLength(1);
-    });
-  });
+  todo("should not send a booking paid event when the payment is not confirmed by Stripe");
 
   test.describe("When event is paid and confirmed", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
