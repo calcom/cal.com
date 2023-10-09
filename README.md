@@ -249,7 +249,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
-Approach 2
+##### Approach 2
 
 Seed the local db by running
 
