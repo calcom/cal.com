@@ -63,7 +63,6 @@ export function Logout(props: Props) {
   );
 }
 
-Logout.isThemeSupported = false;
 Logout.PageWrapper = PageWrapper;
 export default Logout;
 
