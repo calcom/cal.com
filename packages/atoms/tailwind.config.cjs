@@ -1,12 +1,16 @@
+const base = require("@calcom/config/tailwind-preset");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  ...base,
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-	],
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "./bookings/**/*.tsx",
+  ],
   theme: {
     container: {
       center: true,
@@ -73,4 +77,4 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};
