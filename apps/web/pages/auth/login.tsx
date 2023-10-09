@@ -15,11 +15,12 @@ import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
 
@@ -160,6 +161,16 @@ export default function Login({
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
+  const { data, isLoading } = trpc.viewer.public.ssoConnections.useQuery(undefined, {
+    onError: (err) => {
+      setErrorMessage(err.message);
+    },
+  });
+
+  const displaySSOLogin = HOSTED_CAL_FEATURES
+    ? true
+    : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
+
   return (
     <div
       style={
@@ -232,7 +243,7 @@ export default function Login({
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="border-subtle my-8" />}
+              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -247,7 +258,7 @@ export default function Login({
                     {t("signin_with_google")}
                   </Button>
                 )}
-                {isSAMLLoginEnabled && (
+                {displaySSOLogin && (
                   <SAMLLogin
                     samlTenantID={samlTenantID}
                     samlProductID={samlProductID}
