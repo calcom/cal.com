@@ -137,7 +137,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_chat: true,
           exp: exp,
           enable_recording: "cloud",
-          enable_transcription: "deepgram:<api-key-here>",
+          enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
           permissions: { canAdmin: ["transcription"] },
         },
       };
