@@ -127,12 +127,14 @@ test.describe("Stripe integration", () => {
     await user.bookAndPayEvent(eventType);
 
     await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(2);
+      expect(webhookReceiver.requestList).toHaveLength(2);
     }).catch((err) => {
       expect(err.message).toBe("waitFor timed out");
     });
 
-    expect(webhookReceiver.requestList).toHaveLength(1);
+    await waitFor(() => {
+      expect(webhookReceiver.requestList).toHaveLength(1);
+    });
   });
 
   test.describe("When event is paid and confirmed", () => {
