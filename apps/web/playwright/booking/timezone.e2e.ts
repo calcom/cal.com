@@ -31,7 +31,7 @@ test.describe("Test the timezone behavior in specific cases", () => {
     await eventTypesPage.getByTestId("new-event-type").click();
     await eventTypesPage.getByPlaceholder("Quick Chat").click();
     await eventTypesPage.getByPlaceholder("Quick Chat").fill("15 min test timezone");
-    await eventTypesPage.getByRole("button", { name: "Continue" }).click();
+    await eventTypesPage.getByRole("button", { name: "Continue" }).dblclick();
     await eventTypesPage.getByTestId("update-eventtype").click();
 
     // Schedule a booking changing the timezone to America/New_York
