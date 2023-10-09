@@ -102,21 +102,9 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div
-        className="border-subtle rounded-md border"
-        ref={tableContainerRef}
-        onScroll={onScroll}
-        style={{
-          height: "calc(100vh - 30vh)",
-          overflow: "auto",
-        }}>
+      <div className="border-subtle border" ref={tableContainerRef} onScroll={onScroll}>
         <Table>
-          <TableHeader
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-            }}>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
