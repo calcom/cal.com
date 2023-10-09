@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
-import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Switch } from "@calcom/ui";
@@ -20,6 +20,7 @@ export function OverlayCalendarContainer() {
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
+
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const router = useRouter();
   const pathname = usePathname();
@@ -31,9 +32,10 @@ export function OverlayCalendarContainer() {
     externalId: string;
   }>("toggledConnectedCalendars", []);
   const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
+  const { timezone } = useTimePreferences();
   const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
     {
-      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
+      loggedInUsersTz: timezone || "Europe/London",
       dateFrom: selectedDate,
       dateTo: selectedDate,
       calendarsToLoad: Array.from(set).map((item) => ({
