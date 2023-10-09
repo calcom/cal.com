@@ -1,20 +1,20 @@
 import { headers } from "next/headers";
 import { type ReactElement } from "react";
 
+// default layout
 import { getLayout } from "@calcom/features/MainLayout";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
-type EventTypesLayoutProps = {
+type LayoutProps = {
   children: ReactElement;
 };
 
-export default function EventTypesLayout({ children }: EventTypesLayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  console.log(h.get("x-locale"), nonce);
+
   return (
-    // @ts-expect-error withTrpc expects AppProps
     <PageWrapper
       getLayout={getLayout}
       requiresLicense={false}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers as nextHeaders } from "next/headers";
 import Script from "next/script";
 import React from "react";
+import { TrpcProvider } from "utils/Provider";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
@@ -89,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
-        {children}
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );

@@ -2,14 +2,19 @@ import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
 import { NextResponse } from "next/server";
+import { type NextApiRequest } from "next/types";
 
+import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "@lib/csp";
 
 const middleware: NextMiddleware = async (req) => {
+  console.log("HELLO!!!!");
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+  const locale = await getLocaleFromRequest(req as unknown as NextApiRequest);
+  requestHeaders.set("x-locale", locale);
 
   requestHeaders.set("x-url", req.url);
 
@@ -40,12 +45,12 @@ const middleware: NextMiddleware = async (req) => {
   const { nonce } = csp(req, res ?? null);
 
   if (!process.env.CSP_POLICY) {
-    req.headers.set("x-csp", "not-opted-in");
+    requestHeaders.set("x-csp", "not-opted-in");
   } else if (!req.headers.get("x-csp")) {
     // If x-csp not set by gSSP, then it's initialPropsOnly
-    req.headers.set("x-csp", "initialPropsOnly");
+    requestHeaders.set("x-csp", "initialPropsOnly");
   } else {
-    req.headers.set("x-csp", nonce ?? "");
+    requestHeaders.set("x-csp", nonce ?? "");
   }
 
   if (res) {
