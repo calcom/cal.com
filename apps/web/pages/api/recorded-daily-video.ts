@@ -4,11 +4,9 @@ import { z } from "zod";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
-import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -63,9 +61,11 @@ const triggerWebhook = async ({
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return res.status(405).json({ message: "No SendGrid API key or email" });
-  }
+  // *********************************START: We don't need to send email, only need using webhook*********************************
+  // if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
+  //   return res.status(405).json({ message: "No SendGrid API key or email" });
+  // }
+  // *********************************END: We don't need to send email, only need using webhook*********************************
   const response = schema.safeParse(JSON.parse(req.body));
 
   if (!response.success) {
@@ -192,15 +192,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
+    // *********************************START: We don't need to send email, only need using webhook*********************************
 
-    // send emails to all attendees only when user has team plan
-    if (isSendingEmailsAllowed) {
-      await sendDailyVideoRecordingEmails(evt, downloadLink);
-      return res.status(200).json({ message: "Success" });
-    }
+    // const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
-    return res.status(403).json({ message: "User does not have team plan to send out emails" });
+    // // send emails to all attendees only when user has team plan
+    // if (isSendingEmailsAllowed) {
+    //   await sendDailyVideoRecordingEmails(evt, downloadLink);
+    //   return res.status(200).json({ message: "Success" });
+    // }
+
+    // return res.status(403).json({ message: "User does not have team plan to send out emails" });
+
+    // *********************************END: We don't need to send email, only need using webhook*********************************
+
+    return res.status(200).json({ message: "triggerWebhook Successfully!" });
   } catch (err) {
     console.warn("something_went_wrong", err);
     return res.status(500).json({ message: "something went wrong" });
