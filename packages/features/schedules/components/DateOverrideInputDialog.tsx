@@ -9,14 +9,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { WorkingHours } from "@calcom/types/schedule";
 import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogHeader,
-  DialogClose,
-  Switch,
-  Form,
   Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+  Form,
+  Switch,
+  showToast,
 } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
@@ -185,6 +186,9 @@ const DateOverrideForm = ({
               className="ml-2"
               color="primary"
               type="submit"
+              onClick={() => {
+                showToast(t("date_timings_overridden"), "success");
+              }}
               disabled={selectedDates.length === 0}
               data-testid="add-override-submit-btn">
               {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
