@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -23,15 +22,11 @@ import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
 const DateOverrideForm = ({
   value,
   workingHours,
   excludedDates,
   onChange,
-  onClose = noop,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -137,14 +132,10 @@ const DateOverrideForm = ({
               })
             : datesInRanges
         );
-        onClose();
+        setSelectedDates([]);
       }}
       className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
-      <div
-        className={classNames(
-          selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
-          "sm:p-4 md:p-8"
-        )}>
+      <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
@@ -160,39 +151,45 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {selectedDates[0] && (
-        <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
-          <div className="mb-4 flex-grow space-y-4">
-            <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
-            <div>
-              {datesUnavailable ? (
-                <p className="text-subtle border-default rounded border p-2 text-sm">
-                  {t("date_overrides_unavailable")}
-                </p>
-              ) : (
-                <DayRanges name="range" />
-              )}
+      <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
+        {selectedDates[0] ? (
+          <>
+            <div className="mb-4 flex-grow space-y-4">
+              <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
+              <div>
+                {datesUnavailable ? (
+                  <p className="text-subtle border-default rounded border p-2 text-sm">
+                    {t("date_overrides_unavailable")}
+                  </p>
+                ) : (
+                  <DayRanges name="range" />
+                )}
+              </div>
+              <Switch
+                label={t("date_overrides_mark_all_day_unavailable_one")}
+                checked={datesUnavailable}
+                onCheckedChange={setDatesUnavailable}
+                data-testid="date-override-mark-unavailable"
+              />
             </div>
-            <Switch
-              label={t("date_overrides_mark_all_day_unavailable_one")}
-              checked={datesUnavailable}
-              onCheckedChange={setDatesUnavailable}
-              data-testid="date-override-mark-unavailable"
-            />
+            <div className="mt-4 flex flex-row-reverse sm:mt-0">
+              <Button
+                className="ml-2"
+                color="primary"
+                type="submit"
+                disabled={selectedDates.length === 0}
+                data-testid="add-override-submit-btn">
+                {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
+              </Button>
+              <DialogClose />
+            </div>
+          </>
+        ) : (
+          <div className="bottom-7 right-8 flex flex-row-reverse sm:absolute">
+            <DialogClose />
           </div>
-          <div className="mt-4 flex flex-row-reverse sm:mt-0">
-            <Button
-              className="ml-2"
-              color="primary"
-              type="submit"
-              disabled={selectedDates.length === 0}
-              data-testid="add-override-submit-btn">
-              {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
-            </Button>
-            <DialogClose onClick={onClose} />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </Form>
   );
 };
@@ -220,7 +217,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0 md:w-auto">
+      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
