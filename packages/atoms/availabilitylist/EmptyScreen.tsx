@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import type { LucideIcon as IconType } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
@@ -58,6 +59,7 @@ export function EmptyScreen({
               {description}
             </div>
           )}
+          {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
           {buttonRaw}
         </div>
       </div>
