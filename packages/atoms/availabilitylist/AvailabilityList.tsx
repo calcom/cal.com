@@ -2,7 +2,7 @@ import { Clock } from "@calcom/ui/components/icon";
 
 import { EmptyScreen } from "./EmptyScreen";
 
-export function AvailabilityList({ schedules }: { schedules: [] }) {
+export function AvailabilityList({ schedules }: { schedules: { id: string }[] }) {
   return (
     <>
       {schedules.length === 0 ? (
