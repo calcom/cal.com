@@ -1,6 +1,6 @@
+import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
@@ -21,11 +21,11 @@ export async function getLocationGroupedOptions(
       disabled?: boolean;
       icon?: string;
       slug?: string;
-      credential?: CredentialDataWithTeamName;
     }[]
   > = {};
 
-  let idToSearchObject = {};
+  // don't default to {}, when you do TS no longer determines the right types.
+  let idToSearchObject: Prisma.CredentialWhereInput;
 
   if ("teamId" in userOrTeamId) {
     const teamId = userOrTeamId.teamId;
