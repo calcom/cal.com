@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, PasswordField, showToast } from "@calcom/ui";
+import { Button, PasswordField, showToast, Badge } from "@calcom/ui";
 
 import type { TAppKeysSchema } from "../../zod";
 
@@ -26,7 +26,6 @@ export default function AirtableSetup() {
     register,
     handleSubmit,
     formState: { isSubmitting },
-    setError,
   } = useForm<Inputs>();
   const router = useRouter();
   const { t } = useLocale();
@@ -68,8 +67,8 @@ export default function AirtableSetup() {
     <div className="bg-default flex h-screen">
       {showContent ? (
         <div className="bg-default border-subtle m-auto max-w-[43em] overflow-auto rounded  border pb-10 md:p-10">
-          <div className="md:flex md:flex-row">
-            <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="w-full ">
+            <form className="flex w-full flex-col" onSubmit={handleSubmit(onSubmit)}>
               <PasswordField
                 {...register("personalAccessToken")}
                 autoComplete="off"
@@ -81,6 +80,25 @@ export default function AirtableSetup() {
                 </Button>
               </div>
             </form>
+          </div>
+          <div>
+            <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
+              <li>
+                Go to{" "}
+                <a className="underline underline-offset-2" href="https://airtable.com/create/tokens">
+                  Airtable developer hub
+                </a>
+              </li>
+              <li>Click create a new token button</li>
+              <li>
+                Create a token with the scopes <Badge>data.records:read</Badge>{" "}
+                <Badge>data.records:write</Badge> <Badge>schema.bases:read</Badge>{" "}
+                <Badge>schema.bases:write</Badge>
+              </li>
+              <li>Create your token and paste it here</li>
+              <li>Click save</li>
+              <li>You&apos;re set!</li>
+            </ol>
           </div>
         </div>
       ) : (
