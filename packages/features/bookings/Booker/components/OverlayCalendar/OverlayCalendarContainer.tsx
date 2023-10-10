@@ -60,7 +60,8 @@ export function OverlayCalendarContainer() {
       const nowDate = dayjs();
       const usersTimezoneDate = nowDate.tz(timezone);
 
-      const offset = (nowDate.utcOffset() - usersTimezoneDate.utcOffset()) / 60;
+      const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
+
       const offsettedArray = overlayBusyDates.map((item) => {
         return {
           ...item,
