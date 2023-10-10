@@ -43,4 +43,6 @@ export const ZTables = z.object({
   ),
 });
 
+export type TTables = z.infer<typeof ZTables>;
+
 export type TAppKeysSchema = z.infer<typeof appKeysSchema>;
