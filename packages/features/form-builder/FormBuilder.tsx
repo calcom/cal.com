@@ -69,7 +69,7 @@ export const FormBuilder = function FormBuilder({
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
-
+  const [parent] = useAutoAnimate<HTMLUListElement>();
   const { t } = useLocale();
 
   const { fields, swap, remove, update, append } = useFieldArray({
@@ -112,7 +112,7 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-subtle divide-subtle mt-2 divide-y rounded-md border">
+        <ul ref={parent} className="border-subtle divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options

@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
@@ -126,8 +127,9 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center"
+                className="w-full justify-center dark:bg-white dark:text-black"
                 type="submit"
+                color="primary"
                 disabled={loading}
                 aria-label={t("request_password_reset")}
                 loading={loading}>
@@ -141,7 +143,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-ForgotPassword.isThemeSupported = false;
 ForgotPassword.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -154,11 +155,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     res.end();
     return { props: {} };
   }
+  const locale = await getLocale(context.req);
 
   return {
     props: {
       csrfToken: await getCsrfToken(context),
-      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };
