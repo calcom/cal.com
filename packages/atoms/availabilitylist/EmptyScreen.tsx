@@ -27,7 +27,7 @@ export function EmptyScreen({
   buttonRaw?: ReactNode; // Used incase you want to provide your own button.
   border?: boolean;
   dashedBorder?: boolean;
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <>
       <div
