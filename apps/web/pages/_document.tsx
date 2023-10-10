@@ -50,9 +50,18 @@ class MyDocument extends Document<Props> {
 
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
+
+    const intlLocale = new Intl.Locale(newLocale);
+    // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
+    const direction = intlLocale.textInfo?.direction;
+    if (!direction) {
+      throw new Error("NodeJS major breaking change detected, use getTextInfo() instead.");
+    }
+
     return (
       <Html
         lang={newLocale}
+        dir={direction}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
           <script
