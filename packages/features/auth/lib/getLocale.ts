@@ -20,7 +20,7 @@ export const getLocale = async (req: GetTokenParams["req"]): Promise<string> => 
 
   const tokenLocale = token?.["locale"];
 
-  if (tokenLocale !== undefined) {
+  if (tokenLocale) {
     return tokenLocale;
   }
 
@@ -29,5 +29,5 @@ export const getLocale = async (req: GetTokenParams["req"]): Promise<string> => 
 
   const languages = acceptLanguage ? parse(acceptLanguage) : [];
 
-  return languages[0]?.code ?? "en";
+  return languages[0]?.code || "en";
 };
