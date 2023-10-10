@@ -379,7 +379,6 @@ async function ensureAvailableUsers(
       )
     : undefined;
 
-  log.debug("getUserAvailability for users", JSON.stringify({ users: eventType.users.map((u) => u.id) }));
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
@@ -968,7 +967,7 @@ async function handler(
     if (
       availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
     ) {
-      throw new Error("Some users are unavailable for booking.");
+      throw new Error("Some of the hosts are unavailable for booking.");
     }
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
