@@ -1,8 +1,14 @@
 import { expect, type Page } from "@playwright/test";
 
-import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
-
-import { loginUser, rescheduleAndCancel } from "./bookingUtils";
+import {
+  goToEventType,
+  goToTab,
+  addQuestion,
+  updateEventType,
+  previewEventType,
+  selectFirstAvailableTime,
+  rescheduleAndCancel,
+} from "../../fixtures/regularBookings";
 
 const EMAIL = "test@test.com";
 const PHONE = "+55 (32) 9832847";
@@ -88,29 +94,18 @@ export const fillAllQuestionsBooking = async (
 export const scheduleAllQuestionsBooking = async (
   bookingPage: Page,
   questions: string[],
-  users: Fixtures["users"],
   options: BookingOptions
 ) => {
-  // Logs in a test user and navigates to the event types page.
-  await loginUser(bookingPage, users);
-
   // Go to event type settings
-  await bookingPage.getByRole("link", { name: "30 min" }).click();
+  await goToEventType(bookingPage, "30 min");
 
   // Go to advanced tab
-  await bookingPage.getByTestId("vertical-tab-event_advanced_tab_title").click();
+  await goToTab(bookingPage, "event_advanced_tab_title");
 
   // Add multiple fields based on the questions array
   for (const question of questions) {
     // Check if all questions have isRequired set to true
     if (options.isAllRequired) {
-      await bookingPage.getByTestId("add-field").click();
-      await bookingPage.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
-      await bookingPage.getByTestId(`select-option-${question}`).click();
-      await bookingPage.getByLabel("Identifier").dblclick();
-      await bookingPage.getByLabel("Identifier").fill(`${question}-test`);
-      await bookingPage.getByLabel("Label").click();
-      await bookingPage.getByLabel("Label").fill(`${question} test`);
       if (
         question !== "number" &&
         question !== "multiemails" &&
@@ -120,23 +115,21 @@ export const scheduleAllQuestionsBooking = async (
         question !== "multiselect" &&
         question !== "radio"
       ) {
-        await bookingPage.getByLabel("Placeholder").dblclick();
-        await bookingPage.getByLabel("Placeholder").fill(`${question} test`);
+        await addQuestion(bookingPage, question, `${question}-test`, `${question} test`, `${question} test`);
+      } else {
+        await addQuestion(bookingPage, question, `${question}-test`, `${question} test`);
       }
-      await bookingPage.getByTestId("field-add-save").click();
       await expect(bookingPage.getByTestId(`field-${question}-test`)).toBeVisible();
     }
   }
 
-  await bookingPage.getByTestId("update-eventtype").click();
+  await updateEventType(bookingPage);
 
   // Go to booking page
-  const eventtypePromise = bookingPage.waitForEvent("popup");
-  await bookingPage.getByTestId("preview-button").click();
-  const eventTypePage = await eventtypePromise;
+  const eventTypePage = await previewEventType(bookingPage);
 
   // Select the first available time
-  await eventTypePage.getByTestId("time").first().click();
+  await selectFirstAvailableTime(eventTypePage);
 
   fillAllQuestionsBooking(eventTypePage, questions, options);
 
