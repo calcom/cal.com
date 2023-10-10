@@ -268,6 +268,8 @@ async function postHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
+    /** FIXME: Adding event-type children from API not supported for now  */
+    children: _,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
 

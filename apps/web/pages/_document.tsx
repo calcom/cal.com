@@ -1,13 +1,15 @@
+import type { IncomingMessage } from "http";
 import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { csp } from "@lib/csp";
 
-type Props = Record<string, unknown> & DocumentProps;
+type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 function setHeader(ctx: NextPageContext, name: string, value: string) {
   try {
     ctx.res?.setHeader(name, value);
@@ -26,6 +28,10 @@ class MyDocument extends Document<Props> {
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
 
+    const newLocale = ctx.req
+      ? await getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+      : "en";
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
@@ -36,17 +42,26 @@ class MyDocument extends Document<Props> {
       !isEmbedSnippetGeneratorPath;
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, nonce, ...initialProps };
+    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
   }
 
   render() {
-    const { locale } = this.props.__NEXT_DATA__;
-    const { isEmbed, embedColorScheme } = this.props;
+    const { isEmbed, embedColorScheme, newLocale } = this.props;
+
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
     return (
-      <Html lang={locale} style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+      <Html
+        lang={newLocale}
+        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
+          <script
+            nonce={nonce}
+            id="newLocale"
+            dangerouslySetInnerHTML={{
+              __html: `window.calNewLocale = "${newLocale}";`,
+            }}
+          />
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
           <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
           <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
