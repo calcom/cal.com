@@ -209,15 +209,23 @@ export async function patchHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
-    /** FIXME: Updating event-type children from API not supported for now  */
-    children: _,
+    children: parsedChildren,
     ...parsedBody
   } = schemaEventTypeEditBodyParams.parse(body);
+
+  // validate children ownership
 
   const data: Prisma.EventTypeUpdateArgs["data"] = {
     ...parsedBody,
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    ...(parsedChildren
+      ? {
+          children: {
+            connect: parsedChildren.map((child) => ({ id: child.id })),
+          },
+        }
+      : {}),
   };
 
   if (hosts) {

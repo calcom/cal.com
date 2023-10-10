@@ -10,6 +10,7 @@ import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
 import checkUserMembership from "./_utils/checkUserMembership";
 import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
+import isUserMemberOfTeam from "./_utils/isUserMemberOfTeam";
 
 /**
  * @swagger
@@ -268,10 +269,15 @@ async function postHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
-    /** FIXME: Adding event-type children from API not supported for now  */
-    children: _,
+    children: parsedChildren,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
+
+  // validate that these child event type owners are members of parent
+  const validatedChildren =
+    parsedBody.teamId && parsedChildren
+      ? parsedChildren.filter((child) => isUserMemberOfTeam(parsedBody.teamId, child.userId))
+      : [];
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
@@ -279,6 +285,13 @@ async function postHandler(req: NextApiRequest) {
     users: { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    ...(validatedChildren
+      ? {
+          children: {
+            connect: validatedChildren.map((child) => ({ id: child.id })),
+          },
+        }
+      : {}),
   };
 
   await checkPermissions(req);

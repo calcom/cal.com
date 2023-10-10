@@ -12,6 +12,12 @@ import { HttpError } from "@calcom/lib/http-error";
  *                     or if the user isn't a member of the associated team.
  */
 export default async function checkUserMembership(parentId: number, userId?: number) {
+  if (!userId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Invalid request.",
+    });
+  }
   const parentEventType = await prisma.eventType.findUnique({
     where: {
       id: parentId,
