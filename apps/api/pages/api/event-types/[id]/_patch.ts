@@ -213,16 +213,19 @@ export async function patchHandler(req: NextApiRequest) {
     ...parsedBody
   } = schemaEventTypeEditBodyParams.parse(body);
 
-  // validate children ownership
+  const validatedChildren =
+    parsedBody.teamId && parsedChildren
+      ? parsedChildren.filter((child) => isUserMemberOfTeam(parsedBody.teamId, child.userId))
+      : [];
 
   const data: Prisma.EventTypeUpdateArgs["data"] = {
     ...parsedBody,
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
-    ...(parsedChildren
+    ...(validatedChildren
       ? {
           children: {
-            connect: parsedChildren.map((child) => ({ id: child.id })),
+            connect: validatedChildren.map((child) => ({ id: child.id })),
           },
         }
       : {}),

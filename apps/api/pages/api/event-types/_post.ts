@@ -273,7 +273,6 @@ async function postHandler(req: NextApiRequest) {
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
 
-  // validate that these child event type owners are members of parent
   const validatedChildren =
     parsedBody.teamId && parsedChildren
       ? parsedChildren.filter((child) => isUserMemberOfTeam(parsedBody.teamId, child.userId))
