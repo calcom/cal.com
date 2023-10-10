@@ -9,6 +9,7 @@ import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
@@ -25,6 +26,7 @@ import type {
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 
+const log = logger.getChildLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
     dateFrom: stringToDayjs,
@@ -161,7 +163,12 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   if (userId) where.id = userId;
 
   const user = initialData?.user || (await getUser(where));
+
   if (!user) throw new HttpError({ statusCode: 404, message: "No user found" });
+  log.debug(
+    "getUserAvailability for user",
+    safeStringify({ user: { id: user.id }, slot: { dateFrom, dateTo } })
+  );
 
   let eventType: EventType | null = initialData?.eventType || null;
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
@@ -225,10 +232,17 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const schedule =
-    !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
-      ? eventType.schedule
-      : userSchedule;
+  const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
+  const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+  log.debug(
+    "Using schedule:",
+    safeStringify({
+      chosenSchedule: schedule,
+      eventTypeSchedule: eventType?.schedule,
+      userSchedule: userSchedule,
+      useHostSchedulesForTeamEvent: eventType?.metadata?.config?.useHostSchedulesForTeamEvent,
+    })
+  );
 
   const startGetWorkingHours = performance.now();
 
@@ -270,7 +284,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
-  logger.debug(
+  log.debug(
     `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
     JSON.stringify({
       workingHoursInUtc: workingHours,

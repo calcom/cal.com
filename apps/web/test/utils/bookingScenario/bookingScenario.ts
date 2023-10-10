@@ -9,12 +9,14 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -22,10 +24,6 @@ import { getMockPaymentService } from "./MockPaymentService";
 
 logger.setSettings({ minLevel: "silly" });
 const log = logger.getChildLogger({ prefix: ["[bookingScenario]"] });
-type App = {
-  slug: string;
-  dirName: string;
-};
 
 type InputWebhook = {
   appId: string | null;
@@ -52,24 +50,27 @@ type ScenarioData = {
   /**
    * Prisma would return these apps
    */
-  apps?: App[];
+  apps?: Partial<AppMeta>[];
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
 };
 
-type InputCredential = typeof TestData.credentials.google;
+type InputCredential = typeof TestData.credentials.google & {
+  id?: number;
+};
 
 type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 
-type InputUser = typeof TestData.users.example & { id: number } & {
+type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
+  id: number;
+  defaultScheduleId?: number | null;
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
   schedules: {
-    id: number;
+    // Allows giving id in the input directly so that it can be referenced somewhere else as well
+    id?: number;
     name: string;
     availability: {
-      userId: number | null;
-      eventTypeId: number | null;
       days: number[];
       startTime: Date;
       endTime: Date;
@@ -97,7 +98,8 @@ export type InputEventType = {
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
+  schedule?: InputUser["schedules"][number];
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
 type InputBooking = {
   id?: number;
@@ -122,37 +124,75 @@ type InputBooking = {
   }[];
 };
 
-const Timezones = {
+export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
 
 async function addEventTypesToDb(
-  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
+  eventTypes: (Omit<
+    Prisma.EventTypeCreateInput,
+    "users" | "worflows" | "destinationCalendar" | "schedule"
+  > & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     destinationCalendar?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schedule?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
   await prismock.eventType.createMany({
     data: eventTypes,
   });
+  const allEventTypes = await prismock.eventType.findMany({
+    include: {
+      users: true,
+      workflows: true,
+      destinationCalendar: true,
+      schedule: true,
+    },
+  });
+
+  /**
+   * This is a hack to get the relationship of schedule to be established with eventType. Looks like a prismock bug that creating eventType along with schedule.create doesn't establish the relationship.
+   * HACK STARTS
+   */
+  log.silly("Fixed possible prismock bug by creating schedule separately");
+  for (let i = 0; i < eventTypes.length; i++) {
+    const eventType = eventTypes[i];
+    const createdEventType = allEventTypes[i];
+
+    if (eventType.schedule) {
+      log.silly("TestData: Creating Schedule for EventType", JSON.stringify(eventType));
+      await prismock.schedule.create({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        data: {
+          ...eventType.schedule.create,
+          eventType: {
+            connect: {
+              id: createdEventType.id,
+            },
+          },
+        },
+      });
+    }
+  }
+  /***
+   *  HACK ENDS
+   */
+
   log.silly(
     "TestData: All EventTypes in DB are",
     JSON.stringify({
-      eventTypes: await prismock.eventType.findMany({
-        include: {
-          users: true,
-          workflows: true,
-          destinationCalendar: true,
-        },
-      }),
+      eventTypes: allEventTypes,
     })
   );
+  return allEventTypes;
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -197,10 +237,22 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
             create: eventType.destinationCalendar,
           }
         : eventType.destinationCalendar,
+      schedule: eventType.schedule
+        ? {
+            create: {
+              ...eventType.schedule,
+              availability: {
+                createMany: {
+                  data: eventType.schedule.availability,
+                },
+              },
+            },
+          }
+        : eventType.schedule,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  await addEventTypesToDb(eventTypesWithUsers);
+  return await addEventTypesToDb(eventTypesWithUsers);
 }
 
 function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
@@ -289,10 +341,21 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   await prismock.user.createMany({
     data: users,
   });
+
   log.silly(
     "Added users to Db",
     safeStringify({
-      allUsers: await prismock.user.findMany(),
+      allUsers: await prismock.user.findMany({
+        include: {
+          credentials: true,
+          schedules: {
+            include: {
+              availability: true,
+            },
+          },
+          destinationCalendar: true,
+        },
+      }),
     })
   );
 }
@@ -343,16 +406,28 @@ async function addUsers(users: InputUser[]) {
   await addUsersToDb(prismaUsersCreate);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function addAppsToDb(apps: any[]) {
+  log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
+  await prismock.app.createMany({
+    data: apps,
+  });
+  const allApps = await prismock.app.findMany();
+  log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
+}
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
-
-  const eventType = await addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
-    prismock.app.createMany({
-      data: data.apps,
-    });
+    await addAppsToDb(
+      data.apps.map((app) => {
+        // Enable the app by default
+        return { enabled: true, ...app };
+      })
+    );
   }
+  const eventTypes = await addEventTypes(data.eventTypes, data.users);
+
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
   await addBookings(data.bookings);
@@ -360,7 +435,7 @@ export async function createBookingScenario(data: ScenarioData) {
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
   return {
-    eventType,
+    eventTypes,
   };
 }
 
@@ -483,12 +558,11 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
+          // userId: null,
+          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
@@ -497,21 +571,50 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    /**
+     * Has an overlap with IstEveningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstMorningShift: {
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstEveningShift: {
+      name: "5:00PM to 10PM in India - 11:30AM to 16:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T17:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
         {
-          userId: null,
-          eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date(`1970-01-01T14:00:00.000Z`),
           endTime: new Date(`1970-01-01T18:00:00.000Z`),
@@ -532,9 +635,7 @@ export const TestData = {
   },
   apps: {
     "google-calendar": {
-      slug: "google-calendar",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.googlecalendar,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -545,9 +646,7 @@ export const TestData = {
       },
     },
     "daily-video": {
-      slug: "daily-video",
-      dirName: "whatever",
-      enabled: true,
+      ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -560,9 +659,7 @@ export const TestData = {
       },
     },
     zoomvideo: {
-      slug: "zoom",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.zoomvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -575,10 +672,7 @@ export const TestData = {
       },
     },
     "stripe-payment": {
-      //TODO: Read from appStoreMeta
-      slug: "stripe",
-      enabled: true,
-      dirName: "stripepayment",
+      ...appStoreMetadata.stripepayment,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -608,6 +702,7 @@ export function getOrganizer({
   credentials,
   selectedCalendars,
   destinationCalendar,
+  defaultScheduleId,
 }: {
   name: string;
   email: string;
@@ -615,6 +710,7 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
@@ -626,6 +722,7 @@ export function getOrganizer({
     credentials,
     selectedCalendars,
     destinationCalendar,
+    defaultScheduleId,
   };
 }
 
@@ -856,7 +953,9 @@ export function mockVideoApp({
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
   log.silly("mockSuccessfulVideoMeetingCreation", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createMeetingCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
@@ -866,42 +965,50 @@ export function mockVideoApp({
         lib: {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
-          VideoApiAdapter: () => ({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            createMeeting: (...rest: any[]) => {
-              if (creationCrash) {
-                throw new Error("MockVideoApiAdapter.createMeeting fake error");
-              }
-              createMeetingCalls.push(rest);
+          VideoApiAdapter: (credential) => {
+            return {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              createMeeting: (...rest: any[]) => {
+                if (creationCrash) {
+                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
+                }
+                createMeetingCalls.push({
+                  credential,
+                  args: rest,
+                });
 
-              return Promise.resolve({
-                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                ...videoMeetingData,
-              });
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updateMeeting: async (...rest: any[]) => {
-              if (updationCrash) {
-                throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-              }
-              const [bookingRef, calEvent] = rest;
-              updateMeetingCalls.push(rest);
-              if (!bookingRef.type) {
-                throw new Error("bookingRef.type is not defined");
-              }
-              if (!calEvent.organizer) {
-                throw new Error("calEvent.organizer is not defined");
-              }
-              log.silly(
-                "mockSuccessfulVideoMeetingCreation.updateMeeting",
-                JSON.stringify({ bookingRef, calEvent })
-              );
-              return Promise.resolve({
-                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                ...videoMeetingData,
-              });
-            },
-          }),
+                return Promise.resolve({
+                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                  ...videoMeetingData,
+                });
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              updateMeeting: async (...rest: any[]) => {
+                if (updationCrash) {
+                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+                }
+                const [bookingRef, calEvent] = rest;
+                updateMeetingCalls.push({
+                  credential,
+                  args: rest,
+                });
+                if (!bookingRef.type) {
+                  throw new Error("bookingRef.type is not defined");
+                }
+                if (!calEvent.organizer) {
+                  throw new Error("calEvent.organizer is not defined");
+                }
+                log.silly(
+                  "mockSuccessfulVideoMeetingCreation.updateMeeting",
+                  JSON.stringify({ bookingRef, calEvent })
+                );
+                return Promise.resolve({
+                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                  ...videoMeetingData,
+                });
+              },
+            };
+          },
         },
       });
     });
@@ -1028,4 +1135,26 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
+}
+
+export function getExpectedCalEventForBookingRequest({
+  bookingRequest,
+  eventType,
+}: {
+  bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventType: any;
+}) {
+  return {
+    // keep adding more fields as needed, so that they can be verified in all scenarios
+    type: eventType.title,
+    // Not sure why, but milliseconds are missing in cal Event.
+    startTime: bookingRequest.start.replace(".000Z", "Z"),
+    endTime: bookingRequest.end.replace(".000Z", "Z"),
+  };
+}
+
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
 }
