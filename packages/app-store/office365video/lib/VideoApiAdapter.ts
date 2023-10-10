@@ -9,6 +9,7 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 
 let client_id = "";
 let client_secret = "";
@@ -57,16 +58,21 @@ const o365Auth = async (credential: CredentialPayload) => {
   const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
 
   const refreshAccessToken = async (refreshToken: string) => {
-    const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-        client_secret,
-      }),
-    });
+    const response = await refreshOAuthTokens(
+      async () =>
+        await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id,
+            refresh_token: refreshToken,
+            grant_type: "refresh_token",
+            client_secret,
+          }),
+        }),
+      "msteams",
+      credential.userId
+    );
 
     const responseBody = await handleErrorsJson<ITokenResponse>(response);
 
@@ -122,7 +128,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),
@@ -146,7 +152,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),

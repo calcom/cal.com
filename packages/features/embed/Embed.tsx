@@ -10,6 +10,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { AvailableTimesHeader } from "@calcom/features/bookings";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
@@ -81,12 +82,6 @@ function useRouterHelpers() {
   return { goto, removeQueryParams };
 }
 
-const getQueryParam = (queryParam: string) => {
-  const params = new URLSearchParams(window.location.search);
-
-  return params.get(queryParam);
-};
-
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
@@ -136,8 +131,6 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
   const { t, i18n } = useLocale();
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
-
-  const [selectTime, setSelectTime] = useState(false);
 
   useInitializeBookerStore({
     username,
@@ -248,11 +241,11 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       </div>
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
-          {selectTime && selectedDate ? (
+          {selectedDate ? (
             <div className="flex h-full w-full flex-row gap-4">
+              <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
-                date={dayjs(selectedDate)}
                 selectedSlots={
                   eventType.slug &&
                   selectedDatesAndTimes &&
@@ -527,7 +520,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = getQueryParam("eventId");
+  const eventId = searchParams.get("eventId");
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parseInt(eventId as string) },

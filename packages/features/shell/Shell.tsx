@@ -372,7 +372,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={bookerUrl + "/" + user.username + "/avatar.png"}
+              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -833,7 +833,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/avatar.png`}
+                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
                     size="xsm"
                   />
                   <p className="text line-clamp-1 text-sm">
@@ -1008,7 +1008,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 py-4 md:py-8 lg:px-12">
+      <div className="max-w-full px-2 py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

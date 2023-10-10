@@ -15,9 +15,10 @@ interface ICalendarSwitchProps {
   name: string;
   isLastItemInList?: boolean;
   destination?: boolean;
+  credentialId: number;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
+  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -40,14 +41,14 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...body, credentialId }),
         });
 
         if (!res.ok) {
           throw new Error("Something went wrong");
         }
       } else {
-        const res = await fetch("/api/availability/calendar?" + new URLSearchParams(body), {
+        const res = await fetch(`/api/availability/calendar?${new URLSearchParams(body)}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

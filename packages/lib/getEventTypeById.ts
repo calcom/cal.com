@@ -8,9 +8,9 @@ import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Credential } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole, AppCategories } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -255,18 +255,9 @@ export default async function getEventTypeById({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
+
   newMetadata.apps = {
     ...apps,
-    stripe: {
-      ...stripeMetaData,
-      paymentOption: stripeMetaData.paymentOption as string,
-      currency:
-        (
-          credentials.find((integration) => integration.type === "stripe_payment")
-            ?.key as unknown as StripeData
-        )?.default_currency || "usd",
-    },
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
   };
 
@@ -415,3 +406,19 @@ export default async function getEventTypeById({
   };
   return finalObj;
 }
+
+const getStripeCurrency = (stripeMetadata: { currency: string }, credentials: Credential[]) => {
+  // Favor the currency from the metadata as EventType.currency was not always set and should be deprecated
+  if (stripeMetadata.currency) {
+    return stripeMetadata.currency;
+  }
+
+  // Legacy support for EventType.currency
+  const stripeCredential = credentials.find((integration) => integration.type === "stripe_payment");
+  if (stripeCredential) {
+    return (stripeCredential.key as unknown as StripeData)?.default_currency || "usd";
+  }
+
+  // Fallback to USD but should not happen
+  return "usd";
+};

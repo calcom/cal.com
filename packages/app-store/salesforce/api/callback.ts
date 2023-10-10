@@ -4,10 +4,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 let consumer_key = "";
 let consumer_secret = "";
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const conn = new jsforce.Connection({
     clientId: consumer_key,
     clientSecret: consumer_secret,
-    redirectUri: WEBAPP_URL + "/api/integrations/salesforce/callback",
+    redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
   });
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);

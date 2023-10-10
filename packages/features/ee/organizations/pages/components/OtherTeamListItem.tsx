@@ -5,6 +5,9 @@ import {
   Avatar,
   Button,
   ButtonGroup,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -13,7 +16,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { Edit2, ExternalLink, Link as LinkIcon, MoreHorizontal } from "@calcom/ui/components/icon";
+import { Edit2, ExternalLink, Link as LinkIcon, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
@@ -74,7 +77,7 @@ export default function OtherTeamListItem(props: Props) {
                         `${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
                         }/${team.slug}`
                       );
                       showToast(t("link_copied"), "success");
@@ -98,7 +101,7 @@ export default function OtherTeamListItem(props: Props) {
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      href={"/settings/teams/other/" + team.id + "/profile"}
+                      href={`/settings/teams/other/${team.id}/profile`}
                       StartIcon={Edit2}>
                       {t("edit_team") as string}
                     </DropdownItem>
@@ -119,6 +122,32 @@ export default function OtherTeamListItem(props: Props) {
                       </DropdownItem>
                     </DropdownMenuItem>
                   )}
+
+                  <DropdownMenuItem>
+                    <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
+                      <DialogTrigger asChild>
+                        <DropdownItem
+                          color="destructive"
+                          type="button"
+                          StartIcon={Trash}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}>
+                          {t("disband_team")}
+                        </DropdownItem>
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        variety="danger"
+                        title={t("disband_team")}
+                        confirmBtnText={t("confirm_disband_team")}
+                        isLoading={props.isLoading}
+                        onConfirm={() => {
+                          props.onActionSelect("disband");
+                        }}>
+                        {t("disband_team_confirmation_message")}
+                      </ConfirmationDialogContent>
+                    </Dialog>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </Dropdown>
             </ButtonGroup>

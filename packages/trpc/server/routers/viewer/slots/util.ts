@@ -8,6 +8,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -15,6 +16,8 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -159,7 +162,14 @@ export async function getEventType(
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              date: true,
+              startTime: true,
+              endTime: true,
+              days: true,
+            },
+          },
           timeZone: true,
         },
       },
@@ -176,7 +186,7 @@ export async function getEventType(
           isFixed: true,
           user: {
             select: {
-              credentials: true,
+              credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
             },
           },
@@ -184,12 +194,13 @@ export async function getEventType(
       },
       users: {
         select: {
-          credentials: true,
+          credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
         },
       },
     },
   });
+
   if (!eventType) {
     return null;
   }
@@ -200,7 +211,11 @@ export async function getEventType(
   };
 }
 
-export async function getDynamicEventType(input: TGetScheduleInputSchema) {
+export async function getDynamicEventType(
+  input: TGetScheduleInputSchema,
+  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+) {
+  const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
   if (!input.eventTypeSlug) {
     throw new TRPCError({
@@ -218,11 +233,14 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
           ? [input.usernameList]
           : [],
       },
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -242,30 +260,37 @@ export function getRegularOrDynamicEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
-  return isDynamicBooking ? getDynamicEventType(input) : getEventType(input, organizationDetails);
+  return isDynamicBooking
+    ? getDynamicEventType(input, organizationDetails)
+    : getEventType(input, organizationDetails);
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
-
-  if (input.debug === true) {
-    logger.setSettings({ minLevel: "debug" });
-  }
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
-  logger.debug(
-    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
-      input.eventTypeId
-    }`
-  );
+
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
+    logger.setSettings({ minLevel: "debug" });
+  }
+
+  const loggerWithEventDetails = logger.getChildLogger({
+    prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
+  });
+
+  loggerWithEventDetails.debug(
+    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
+      input.eventTypeId
+    }`
+  );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
     const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
@@ -291,6 +316,73 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
+  const durationToUse = input.duration || 0;
+
+  const startTimeDate =
+    input.rescheduleUid && durationToUse
+      ? startTime.subtract(durationToUse, "minute").toDate()
+      : startTime.toDate();
+
+  const endTimeDate =
+    input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
+
+  const sharedQuery = {
+    startTime: { gte: startTimeDate },
+    endTime: { lte: endTimeDate },
+    status: {
+      in: [BookingStatus.ACCEPTED],
+    },
+  };
+
+  const currentBookingsAllUsers = await prisma.booking.findMany({
+    where: {
+      OR: [
+        // User is primary host (individual events, or primary organizer)
+        {
+          ...sharedQuery,
+          userId: {
+            in: usersWithCredentials.map((user) => user.id),
+          },
+        },
+        // The current user has a different booking at this time he/she attends
+        {
+          ...sharedQuery,
+          attendees: {
+            some: {
+              email: {
+                in: usersWithCredentials.map((user) => user.email),
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      attendees: true,
+      eventType: {
+        select: {
+          id: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+        },
+      },
+      ...(!!eventType?.seatsPerTimeSlot && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    },
+  });
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -310,7 +402,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
         },
-        { user: currentUser, eventType, currentSeats, rescheduleUid: input.rescheduleUid }
+        {
+          user: currentUser,
+          eventType,
+          currentSeats,
+          rescheduleUid: input.rescheduleUid,
+          currentBookings: currentBookingsAllUsers
+            .filter(
+              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
+            )
+            .map((bookings) => {
+              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+              return bookingWithoutAttendees;
+            }),
+        }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
@@ -499,12 +604,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     Object.create(null)
   );
 
-  logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
+  loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
-  logger.debug(
+  loggerWithEventDetails.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
   return {
     slots: computedAvailableSlots,

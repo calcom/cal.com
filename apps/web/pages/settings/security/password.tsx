@@ -1,13 +1,29 @@
 import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
+import {
+  Alert,
+  Button,
+  Form,
+  Meta,
+  PasswordField,
+  Select,
+  SettingsToggle,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -18,34 +34,58 @@ type ChangePasswordSessionFormValues = {
   apiError: string;
 };
 
-const PasswordView = () => {
+interface PasswordViewProps {
+  user: RouterOutputs["viewer"]["me"];
+}
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+  return (
+    <SkeletonContainer>
+      <Meta title={title} description={description} borderInShellHeader={true} />
+      <div className="border-subtle space-y-6 border-x px-4 py-8 sm:px-6">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+      <div className="rounded-b-xl">
+        <SectionBottomActions align="end">
+          <SkeletonButton className="ml-auto h-8 w-20 rounded-md" />
+        </SectionBottomActions>
+      </div>
+    </SkeletonContainer>
+  );
+};
+
+const PasswordView = ({ user }: PasswordViewProps) => {
   const { data } = useSession();
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user } = trpc.viewer.me.useQuery();
-  const metadata = userMetadata.safeParse(user?.metadata);
-  const sessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
+  const metadata = userMetadataSchema.safeParse(user?.metadata);
+  const initialSessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
+
+  const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
   const sessionMutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
+      setSessionTimeout(data.metadata?.sessionTimeout);
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
     },
     onMutate: async () => {
       await utils.viewer.me.cancel();
-      const previousValue = utils.viewer.me.getData();
-      const previousMetadata = userMetadata.parse(previousValue?.metadata);
+      const previousValue = await utils.viewer.me.getData();
+      const previousMetadata = userMetadataSchema.safeParse(previousValue?.metadata);
 
-      if (previousValue && sessionTimeout) {
+      if (previousValue && sessionTimeout && previousMetadata.success) {
         utils.viewer.me.setData(undefined, {
           ...previousValue,
-          metadata: { ...previousMetadata, sessionTimeout: sessionTimeout },
+          metadata: { ...previousMetadata?.data, sessionTimeout: sessionTimeout },
         });
+        return { previousValue };
       }
-      return { previousValue };
     },
     onError: (error, _, context) => {
       if (context?.previousValue) {
@@ -84,19 +124,29 @@ const PasswordView = () => {
     defaultValues: {
       oldPassword: "",
       newPassword: "",
-      sessionTimeout,
     },
   });
 
-  const sessionTimeoutWatch = formMethods.watch("sessionTimeout");
-
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
-    const { oldPassword, newPassword, sessionTimeout: newSessionTimeout } = values;
+    const { oldPassword, newPassword } = values;
+
+    if (!oldPassword.length) {
+      formMethods.setError(
+        "oldPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+    if (!newPassword.length) {
+      formMethods.setError(
+        "newPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
-    }
-    if (sessionTimeout !== newSessionTimeout) {
-      sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout: newSessionTimeout } });
     }
   };
 
@@ -112,7 +162,7 @@ const PasswordView = () => {
 
   return (
     <>
-      <Meta title={t("password")} description={t("password_description")} />
+      <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
@@ -130,87 +180,127 @@ const PasswordView = () => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          {formMethods.formState.errors.apiError && (
-            <div className="pb-6">
-              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+          <div className="border-x px-4 py-6 sm:px-6">
+            {formMethods.formState.errors.apiError && (
+              <div className="pb-6">
+                <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+              </div>
+            )}
+            <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
+              <div>
+                <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
+              </div>
+              <div>
+                <PasswordField
+                  {...formMethods.register("newPassword", {
+                    minLength: {
+                      message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                      value: passwordMinLength,
+                    },
+                    pattern: {
+                      message: "Should contain a number, uppercase and lowercase letters",
+                      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                    },
+                  })}
+                  label={t("new_password")}
+                />
+              </div>
             </div>
-          )}
-
-          <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
-            <div>
-              <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
-            </div>
-            <div>
-              <PasswordField
-                {...formMethods.register("newPassword", {
-                  minLength: {
-                    message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
-                    value: passwordMinLength,
-                  },
-                  pattern: {
-                    message: "Should contain a number, uppercase and lowercase letters",
-                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                  },
-                })}
-                label={t("new_password")}
-              />
-            </div>
+            <p className="text-default mt-4 w-full text-sm">
+              {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+            </p>
           </div>
-          <p className="text-default mt-4 max-w-[38rem] text-sm">
-            {t("invalid_password_hint", { passwordLength: passwordMinLength })}
-          </p>
-          <div className="border-subtle mt-8 border-t py-8">
+          <SectionBottomActions align="end">
+            <Button
+              color="primary"
+              type="submit"
+              loading={passwordMutation.isLoading}
+              onClick={() => formMethods.clearErrors("apiError")}
+              disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
+              {t("update")}
+            </Button>
+          </SectionBottomActions>
+          <div className="mt-6">
             <SettingsToggle
+              toggleSwitchAtTheEnd={true}
               title={t("session_timeout")}
               description={t("session_timeout_description")}
-              checked={sessionTimeoutWatch !== undefined}
+              checked={sessionTimeout !== undefined}
               data-testid="session-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+                  setSessionTimeout(undefined);
+
+                  if (metadata.success) {
+                    sessionMutation.mutate({
+                      metadata: { ...metadata.data, sessionTimeout: undefined },
+                    });
+                  }
                 } else {
-                  formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+                  setSessionTimeout(10);
                 }
               }}
-            />
-            {sessionTimeoutWatch && (
-              <div className="mt-4 text-sm">
-                <div className="flex items-center">
-                  <p className="text-default ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
-                  <Select
-                    options={timeoutOptions}
-                    defaultValue={
-                      sessionTimeout
-                        ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
-                        : timeoutOptions[1]
-                    }
-                    isSearchable={false}
-                    className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
-                    onChange={(event) => {
-                      formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
-                    }}
-                  />
+              childrenClassName="lg:ml-0"
+              switchContainerClassName={classNames(
+                "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
+                !!sessionTimeout && "rounded-b-none"
+              )}>
+              <>
+                <div className="border-subtle border-x p-6 pb-8">
+                  <div className="flex flex-col">
+                    <p className="text-default mb-2 font-medium">{t("session_timeout_after")}</p>
+                    <Select
+                      options={timeoutOptions}
+                      defaultValue={
+                        sessionTimeout
+                          ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
+                          : timeoutOptions[1]
+                      }
+                      isSearchable={false}
+                      className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                      onChange={(event) => {
+                        setSessionTimeout(event?.value);
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+                <SectionBottomActions align="end">
+                  <Button
+                    color="primary"
+                    loading={sessionMutation.isLoading}
+                    onClick={() => {
+                      sessionMutation.mutate({
+                        metadata: { ...metadata, sessionTimeout },
+                      });
+                      formMethods.clearErrors("apiError");
+                    }}
+                    disabled={
+                      initialSessionTimeout === sessionTimeout ||
+                      passwordMutation.isLoading ||
+                      sessionMutation.isLoading
+                    }>
+                    {t("update")}
+                  </Button>
+                </SectionBottomActions>
+              </>
+            </SettingsToggle>
           </div>
-          {/* TODO: Why is this Form not submitting? Hacky fix but works */}
-          <Button
-            color="primary"
-            className="mt-8"
-            type="submit"
-            loading={passwordMutation.isLoading || sessionMutation.isLoading}
-            onClick={() => formMethods.clearErrors("apiError")}
-            disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
-            {t("update")}
-          </Button>
         </Form>
       )}
     </>
   );
 };
 
-PasswordView.getLayout = getLayout;
-PasswordView.PageWrapper = PageWrapper;
+const PasswordViewWrapper = () => {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { t } = useLocale();
+  if (isLoading || !user)
+    return <SkeletonLoader title={t("password")} description={t("password_description")} />;
 
-export default PasswordView;
+  return <PasswordView user={user} />;
+};
+
+PasswordViewWrapper.getLayout = getLayout;
+PasswordViewWrapper.PageWrapper = PageWrapper;
+
+export default PasswordViewWrapper;

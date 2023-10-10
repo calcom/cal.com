@@ -22,9 +22,9 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   const token = randomBytes(32).toString("hex");
   await prisma.verificationToken.create({
     data: {
-      identifier: "invite-link-for-teamId-" + teamId,
+      identifier: `invite-link-for-teamId-${teamId}`,
       token,
-      expires: new Date(),
+      expires: new Date(new Date().setHours(168)), // +1 week,
       teamId,
     },
   });

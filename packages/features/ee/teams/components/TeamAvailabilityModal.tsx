@@ -20,7 +20,7 @@ export default function TeamAvailabilityModal(props: Props) {
   const utils = trpc.useContext();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
+    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London"
   );
 
   const { t } = useLocale();
@@ -39,7 +39,7 @@ export default function TeamAvailabilityModal(props: Props) {
             <div className="flex">
               <Avatar
                 size="md"
-                imageSrc={WEBAPP_URL + "/" + props.member?.username + "/avatar.png"}
+                imageSrc={`${WEBAPP_URL}/${props.member?.username}/avatar.png`}
                 alt={props.member?.name || ""}
               />
               <div className="flex items-center justify-center ">
