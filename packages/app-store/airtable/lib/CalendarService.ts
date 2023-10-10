@@ -1,11 +1,12 @@
+import dayjs from "@calcom/dayjs";
+import { formatToLocalizedDate } from "@calcom/lib/date-fns";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { ZEventAppMetadata, ZAddRecordResponse } from "../zod";
-import { getAirtableToken } from "./getAirtableToken";
-import { fetchTables } from "./services";
+import { ZEventAppMetadata, ZAddRecordResponse, appKeysSchema } from "../zod";
+import { fetchTables, addRecord, createMissingFields, deleteRecord } from "./services";
 
 export default class AirtableService implements Calendar {
   private integrationName = "";
@@ -18,73 +19,58 @@ export default class AirtableService implements Calendar {
     this.credential = credential;
   }
 
-  private async getToken(id: number) {
-    return getAirtableToken(id);
+  private getToken() {
+    return appKeysSchema.parse(this.credential.key);
   }
 
-  private async addField(key: string, baseId: string, tableId: string, data: Record<string, string>) {
-    const req = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables/${tableId}/fields`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-type": "application/json",
+  private async getAppData(bookingId?: string | null) {
+    if (!bookingId) {
+      throw new Error("booking id not found");
+    }
+
+    const originalEvent = await prisma.booking.findFirstOrThrow({
+      where: {
+        uid: bookingId,
       },
-      body: JSON.stringify(data),
+      select: {
+        eventType: {
+          select: {
+            metadata: true,
+          },
+        },
+      },
     });
 
-    return await req.json();
-  }
-
-  private async addRecord(key: string, baseId: string, tableId: string, data: Record<string, string>) {
-    const req = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-type": "application/json",
+    const {
+      apps: {
+        airtable: { baseId, tableId },
       },
-      body: JSON.stringify({
-        fields: data,
-        typecast: true,
-      }),
-    });
+    } = ZEventAppMetadata.parse(originalEvent.eventType?.metadata);
 
-    return await req.json();
+    return { baseId, tableId };
   }
 
   async createEvent(event: CalendarEvent) {
     try {
-      if (!event.eventTypeId) {
-        throw new Error("event type id not found");
-      }
+      const { baseId, tableId } = await this.getAppData(event?.uid);
 
-      if (!this.credential.userId) {
-        throw new Error("user id not found");
-      }
-      const token = await this.getToken(this.credential.userId);
-      const originalEvent = await prisma.eventType.findFirstOrThrow({
-        where: {
-          id: event.eventTypeId,
-        },
-        select: {
-          metadata: true,
-        },
-      });
+      const token = this.getToken();
+
+      const tz = event.organizer.timeZone;
+      const language = event.organizer.language.locale;
+      const date = formatToLocalizedDate(dayjs.tz(event.startTime, tz), language, "medium", tz);
+      const startTime = dayjs(event.startTime).tz(tz).format(event.organizer.timeFormat);
+      const endTime = dayjs(event.endTime).tz(tz).format(event.organizer.timeFormat);
 
       const data = {
         title: event.title,
-        startTime: event.startTime,
-        endTime: event.endTime,
+        "start time": `${startTime} - ${date}`,
+        "end time": `${endTime} - ${date}`,
         location: event.location ?? "",
         attendees: event.attendees.map((person) => `${person.name} - ${person.email}`).toString(),
       };
 
       const fields = Object.keys(data);
-
-      const {
-        apps: {
-          airtable: { baseId, tableId },
-        },
-      } = ZEventAppMetadata.parse(originalEvent.metadata);
 
       const tables = (await fetchTables(token.personalAccessToken, baseId)).tables;
 
@@ -94,29 +80,15 @@ export default class AirtableService implements Calendar {
         throw new Error("table not found");
       }
 
-      const currentFields = new Set(currentTable.fields.map((field) => field.name));
-      const fieldsToCreate = new Set<string>();
-      for (const field of fields) {
-        const hasField = currentFields.has(field);
-        if (!hasField) {
-          fieldsToCreate.add(field);
-        }
-      }
-      if (fieldsToCreate.size > 0) {
-        const createFieldPromise: Promise<any>[] = [];
-        fieldsToCreate.forEach((fieldName) => {
-          createFieldPromise.push(
-            this.addField(token.personalAccessToken, baseId, tableId, {
-              name: fieldName,
-              type: "singleLineText",
-            })
-          );
-        });
+      await createMissingFields({
+        table: currentTable,
+        fields,
+        token,
+        baseId,
+        tableId,
+      });
 
-        await Promise.all(createFieldPromise);
-      }
-
-      const addRecordReq = await this.addRecord(token.personalAccessToken, baseId, tableId, data);
+      const addRecordReq = await addRecord(token.personalAccessToken, baseId, tableId, data);
 
       const airtableResponse = ZAddRecordResponse.parse(addRecordReq);
 
@@ -130,9 +102,9 @@ export default class AirtableService implements Calendar {
           airtableResponse,
         },
       });
-    } catch (error: any) {
-      console.error(error);
-      return Promise.reject(error?.message ?? "an unknown error occurred");
+    } catch (error) {
+      this.log.error("meeting:creation:notOk", { error });
+      return Promise.reject("an unknown error occurred");
     }
   }
 
@@ -140,8 +112,26 @@ export default class AirtableService implements Calendar {
     return Promise.resolve([]);
   }
 
-  async deleteEvent() {
-    return Promise.resolve();
+  async deleteEvent(uid: string, event: CalendarEvent) {
+    try {
+      const token = this.getToken();
+      const { baseId, tableId } = await this.getAppData(event?.uid);
+      const { req } = await deleteRecord({
+        baseId,
+        tableId,
+        recordId: uid,
+        key: token.personalAccessToken,
+      });
+
+      if (req.ok) {
+        Promise.resolve("Deleted airtable record");
+      } else {
+        Promise.reject("Error deleting airtable record");
+      }
+    } catch (error) {
+      this.log.error("meeting:deletion:notOk", { error });
+      return Promise.reject("an unknown error occurred");
+    }
   }
 
   async getAvailability() {
