@@ -12,13 +12,15 @@ const SectionBottomActions = ({
   className?: string;
 }) => {
   return (
-    <div
-      className={classNames(
-        "border-subtle bg-muted flex rounded-b-xl border px-6 py-4",
-        align === "end" && "justify-end",
-        className
-      )}>
-      {children}
+    <div className="space-y-0">
+      <div
+        className={classNames(
+          "border-subtle bg-muted flex rounded-b-xl border px-6 py-4",
+          align === "end" && "justify-end",
+          className
+        )}>
+        {children}
+      </div>
     </div>
   );
 };
