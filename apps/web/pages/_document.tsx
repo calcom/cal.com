@@ -46,7 +46,8 @@ class MyDocument extends Document<Props> {
   }
 
   render() {
-    const { isEmbed, embedColorScheme, newLocale } = this.props;
+    const { isEmbed, embedColorScheme } = this.props;
+    const newLocale = this.props.newLocale || "en";
 
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
