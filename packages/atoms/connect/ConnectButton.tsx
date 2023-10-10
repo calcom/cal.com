@@ -15,6 +15,7 @@ export function ConnectButton({
   buttonText,
   onButtonClick,
   stylesClassname,
+  icon,
 }: ConnectButtonProps & AtomsGlobalConfigProps) {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errMsg, setErrMsg] = useState<string>("");
@@ -45,6 +46,7 @@ export function ConnectButton({
         type="button"
         disabled={!isProcessing}
         onClick={(event) => handleSubmit(event)}>
+        {!!icon && icon}
         {buttonText || "Install App"}
       </Button>
       {!!errMsg && <span>{errMsg}</span>}
