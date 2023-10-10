@@ -5,8 +5,11 @@ import React from "react";
 import { TrpcProvider } from "utils/trpc-provider";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
 
 import "../styles/globals.css";
+
+const caller = viewerRouter.createCaller({});
 
 export const metadata: Metadata = {
   icons: {
@@ -64,6 +67,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const fullUrl = headers.get("x-url") ?? "";
   const nonce = headers.get("x-csp") ?? "";
   const { locale, isEmbed, embedColorScheme } = await getInitialProps(fullUrl);
+
+  console.log("HEY", caller);
+  const x = await caller.greeting();
+  console.log(x);
 
   return (
     <html lang={locale} style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>

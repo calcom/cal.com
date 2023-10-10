@@ -211,6 +211,8 @@ const nextConfig = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
+      // @TEMP
+      "superagent-proxy": false,
     };
 
     /**
