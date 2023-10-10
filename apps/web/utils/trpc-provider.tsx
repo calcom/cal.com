@@ -1,6 +1,6 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, Hydrate } from "@tanstack/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 
@@ -62,7 +62,10 @@ const resolveEndpoint = (links: any) => {
   };
 };
 
-export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TrpcProvider: React.FC<{ children: React.ReactNode; pageProps: any }> = ({
+  children,
+  pageProps,
+}) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -117,9 +120,13 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
   );
 
+  const hydratedState = trpc.useDehydratedState(trpcClient, pageProps?.trpcState);
+
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <Hydrate state={hydratedState}>{children}</Hydrate>
+      </QueryClientProvider>
     </trpc.Provider>
   );
 };
