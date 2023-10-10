@@ -268,6 +268,7 @@
   "set_availability": "Set your availability",
   "availability_settings": "Availability Settings",
   "continue_without_calendar": "Continue without calendar",
+  "continue_with": "Continue with {{appName}}",
   "connect_your_calendar": "Connect your calendar",
   "connect_your_video_app": "Connect your video apps",
   "connect_your_video_app_instructions": "Connect your video apps to use them on your event types.",
@@ -2085,5 +2086,8 @@
   "copy_client_secret_info": "After copying the secret you won't be able to view it anymore",
   "add_new_client": "Add new Client",
   "this_app_is_not_setup_already": "This app has not been setup yet",
+  "overlay_my_calendar":"Overlay my calendar",
+  "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
+  "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
