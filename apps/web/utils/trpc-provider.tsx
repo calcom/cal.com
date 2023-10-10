@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 
+import { getFetch } from "@calcom/trpc/client";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -71,10 +72,10 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
   const url =
     typeof window !== "undefined"
-      ? "/api/trpc"
+      ? "/api/trpc/"
       : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/api/trpc`
-      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+      ? `https://${process.env.VERCEL_URL}/api/trpc/`
+      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc/`;
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -90,46 +91,43 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // when condition is true, use normal request
           true: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: url + "/" + endpoint })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpLink({
+                  url: url + endpoint,
+                  fetch: async (input, init?) => {
+                    const fetch = getFetch();
+                    return fetch(input, {
+                      ...init,
+                      credentials: "include",
+                    });
+                  },
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
           // when condition is false, use batch request
           false: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: url + "/" + endpoint })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpBatchLink({
+                  url: url + endpoint,
+                  fetch: async (input, init?) => {
+                    const fetch = getFetch();
+                    return fetch(input, {
+                      ...init,
+                      credentials: "include",
+                    });
+                  },
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
         }),
       ],
-      // queryClientConfig: {
-      //   defaultOptions: {
-      //     queries: {
-      //       /**
-      //        * 1s should be enough to just keep identical query waterfalls low
-      //        * @example if one page components uses a query that is also used further down the tree
-      //        */
-      //       staleTime: 1000,
-      //       /**
-      //        * Retry `useQuery()` calls depending on this function
-      //        */
-      //       retry(failureCount, _err) {
-      //         const err = _err as never as Maybe<TRPCClientErrorLike<AppRouter>>;
-      //         const code = err?.data?.code;
-      //         if (code === "BAD_REQUEST" || code === "FORBIDDEN" || code === "UNAUTHORIZED") {
-      //           // if input data is wrong or you're not authorized there's no point retrying a query
-      //           return false;
-      //         }
-      //         const MAX_QUERY_RETRIES = 3;
-      //         return failureCount < MAX_QUERY_RETRIES;
-      //       },
-      //     },
-      //   },
-      // },
-      /**
-       * @link https://trpc.io/docs/data-transformers
-       */
       transformer: superjson,
     })
   );
