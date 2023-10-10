@@ -1,12 +1,19 @@
 import { expect, type Page } from "@playwright/test";
 
-import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import {
+  addQuestion,
+  goToEventType,
+  goToTab,
+  previewEventType,
+  selectTimeSlot,
+  updateEventType,
+  scheduleSuccessfullyText,
+  rescheduleAndCancel,
+} from "../../fixtures/regularBookings";
 
 const EMAIL = "test@test.com";
 const EMAIL2 = "test2@test.com";
 const PHONE = "+55 (32) 983289947";
-const scheduleSuccessfullyText = "This meeting is scheduled";
-const reschedulePlaceholderText = "Let others know why you need to reschedule";
 
 interface QuestionActions {
   [key: string]: () => Promise<void>;
@@ -23,12 +30,6 @@ type customLocators = {
   shouldUseLastRadioGroupLocator: boolean;
   shouldUseFirstRadioGroupLocator: boolean;
   shouldChangeMultiSelectLocator: boolean;
-};
-
-export const loginUser = async (page: Page, users: Fixtures["users"]) => {
-  const pro = await users.create({ name: "testuser" });
-  await pro.apiLogin();
-  await page.goto("/event-types");
 };
 
 const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
@@ -147,10 +148,9 @@ export const fillAndConfirmBooking = async (
   await expect(scheduleSuccessfullyPage).toBeVisible();
 };
 
-export const initialCommonSteps = async (
+export const setupEventTypeAndExecuteBooking = async (
   bookingPage: Page,
   question: string,
-  users: Fixtures["users"],
   secondQuestion: string,
   message: string,
   options: BookingOptions
@@ -164,60 +164,42 @@ export const initialCommonSteps = async (
     "phone",
   ].includes(question);
 
-  //Logs in a test user and navigates to the event types page.
-  loginUser(bookingPage, users);
-
   // Go to event type settings
-  await bookingPage.getByRole("link", { name: "30 min" }).click();
+  await goToEventType(bookingPage, "30 min");
 
   // Go to advanced tab
-  await bookingPage.getByTestId("vertical-tab-event_advanced_tab_title").click();
+  await goToTab(bookingPage, "event_advanced_tab_title");
 
   // Add first and second question and fill both
-  await bookingPage.getByTestId("add-field").click();
-  await bookingPage.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
-  await bookingPage.getByTestId(`select-option-${question}`).click();
-  await bookingPage.getByLabel("Identifier").dblclick();
-  await bookingPage.getByLabel("Identifier").fill(`${question}-test`);
-  await bookingPage.getByLabel("Label").click();
-  await bookingPage.getByLabel("Label").fill(`${question} test`);
+  await addQuestion(
+    bookingPage,
+    question,
+    `${question}-test`,
+    `${question} test`,
+    firstQuestionHasPlaceholder ? `${question} test` : undefined,
+    options.isRequired
+  );
+  await addQuestion(
+    bookingPage,
+    secondQuestion,
+    `${secondQuestion}-test`,
+    `${secondQuestion} test`,
+    options.hasPlaceholder ? `${secondQuestion} test` : undefined,
+    options.isRequired
+  );
 
-  // Fill the placeholder if the question has one
-  if (firstQuestionHasPlaceholder) {
-    await bookingPage.getByLabel("Placeholder").click();
-    await bookingPage.getByLabel("Placeholder").fill(`${question} test`);
-  }
-  await bookingPage.getByTestId("field-add-save").click();
-  await bookingPage.getByTestId("add-field").click();
-  await bookingPage.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
-  await bookingPage.getByTestId(`select-option-${secondQuestion}`).click();
-  await bookingPage.getByLabel("Identifier").dblclick();
-  await bookingPage.getByLabel("Identifier").fill(`${secondQuestion}-test`);
-  await bookingPage.getByLabel("Label").click();
-  await bookingPage.getByLabel("Label").fill(`${secondQuestion} test`);
-  if (options.hasPlaceholder) {
-    await bookingPage.getByLabel("Placeholder").dblclick();
-    await bookingPage.getByLabel("Placeholder").fill(`${secondQuestion} test`);
-  }
-  if (!options.isRequired) {
-    await bookingPage.getByRole("radio", { name: "No" }).click();
-  }
-  await bookingPage.getByTestId("field-add-save").click();
   await expect(bookingPage.getByTestId(`field-${question}-test`)).toBeVisible();
   await expect(bookingPage.getByTestId(`field-${secondQuestion}-test`)).toBeVisible();
-  await bookingPage.getByTestId("update-eventtype").click();
+
+  // Update the event type
+  await updateEventType(bookingPage);
 
   // Go to booking page
-  const eventtypePromise = bookingPage.waitForEvent("popup");
-  await bookingPage.getByTestId("preview-button").click();
-  const eventTypePage = await eventtypePromise;
+  const eventTypePage = await previewEventType(bookingPage);
 
-  while (await bookingPage.getByRole("button", { name: "View next" }).isVisible()) {
-    await bookingPage.getByRole("button", { name: "View next" }).click();
-  }
+  await selectTimeSlot(eventTypePage);
 
-  await eventTypePage.getByTestId("time").first().click();
-  fillAndConfirmBooking(
+  await fillAndConfirmBooking(
     eventTypePage,
     "Please share anything that will help prepare for our meeting.",
     question,
@@ -226,25 +208,5 @@ export const initialCommonSteps = async (
     options
   );
 
-  // Go to final steps
   await rescheduleAndCancel(eventTypePage);
-};
-const rescheduleAndCancel = async (eventTypePage: Page) => {
-  await eventTypePage.getByText("Reschedule").click();
-  while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
-    await eventTypePage.getByRole("button", { name: "View next" }).click();
-  }
-  await eventTypePage.getByTestId("time").first().click();
-  await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
-  await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
-  await eventTypePage.getByTestId("confirm-reschedule-button").click();
-
-  // Check if the rescheduled page is visible
-  await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
-  await eventTypePage.getByTestId("cancel").click();
-  await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
-  await eventTypePage.getByTestId("confirm_cancel").click();
-
-  // Check if the cancelled page is visible
-  await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
 };
