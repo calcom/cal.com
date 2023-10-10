@@ -11,7 +11,7 @@ import { HttpError } from "@calcom/lib/http-error";
  *                     if the event type doesn't belong to any team,
  *                     or if the user isn't a member of the associated team.
  */
-export default async function checkUserMembership(parentId: number, userId: number) {
+export default async function checkUserMembership(parentId: number, userId?: number) {
   const parentEventType = await prisma.eventType.findUnique({
     where: {
       id: parentId,
