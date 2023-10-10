@@ -1,6 +1,8 @@
 /**
  * This file contains the root router of your tRPC-backend
  */
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
+
 import { router } from "../trpc";
 import { viewerRouter } from "./viewer/_router";
 
@@ -12,6 +14,11 @@ import { viewerRouter } from "./viewer/_router";
  */
 export const appRouter = router({
   viewer: viewerRouter,
+  testing: router({
+    greeting: publicProcedure.query(() => ({
+      hello: "hello tRPC v10!",
+    })),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

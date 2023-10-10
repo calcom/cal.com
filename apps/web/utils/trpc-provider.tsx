@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, Hydrate } from "@tanstack/react-query";
+import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
@@ -8,8 +9,6 @@ import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
 import { splitLink } from "@calcom/trpc/client/links/splitLink";
-
-import { trpc } from "./trpc";
 
 const ENDPOINTS = [
   "admin",
