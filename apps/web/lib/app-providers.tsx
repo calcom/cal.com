@@ -7,7 +7,7 @@ import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ParsedUrlQuery } from "querystring";
-import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -17,9 +17,10 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
-import { useClientViewerI18n } from "@components/I18nLanguageHandler";
+import { useViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -30,10 +31,12 @@ const I18nextAdapter = appWithTranslation<
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithNonceProps & {
-      themeBasis?: string;
-      session: Session;
-    } & Record<string, unknown>
+    WithLocaleProps<
+      WithNonceProps<{
+        themeBasis?: string;
+        session: Session;
+      }>
+    >
   >,
   "Component"
 > & {
@@ -68,8 +71,8 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-  const clientViewerI18n = useClientViewerI18n(props.router.locales || []);
-  const { i18n, locale } = clientViewerI18n.data || {};
+  const clientViewerI18n = useViewerI18n(props.pageProps.newLocale);
+  const i18n = clientViewerI18n.data?.i18n;
 
   const passedProps = {
     ...props,
@@ -77,8 +80,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
       ...props.pageProps,
       ...i18n,
     },
-    router: locale ? { locale } : props.router,
-  } as unknown as ComponentProps<typeof I18nextAdapter>;
+  };
 
   return <I18nextAdapter {...passedProps} />;
 };
@@ -233,7 +235,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
-  const { _nonce, ...restPageProps } = pageProps;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
     pageProps: {
       ...restPageProps,
@@ -243,8 +247,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={pageProps.session ?? undefined}>
-        <CustomI18nextProvider {...propsWithoutNonce}>
+      <CustomI18nextProvider {...propsWithoutNonce}>
+        <SessionProvider session={pageProps.session ?? undefined}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
@@ -260,8 +264,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
               </FeatureFlagsProvider>
             </CalcomThemeProvider>
           </TooltipProvider>
-        </CustomI18nextProvider>
-      </SessionProvider>
+        </SessionProvider>
+      </CustomI18nextProvider>
     </EventCollectionProvider>
   );
 

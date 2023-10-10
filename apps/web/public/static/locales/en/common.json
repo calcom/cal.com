@@ -268,6 +268,7 @@
   "set_availability": "Set your availability",
   "availability_settings": "Availability Settings",
   "continue_without_calendar": "Continue without calendar",
+  "continue_with": "Continue with {{appName}}",
   "connect_your_calendar": "Connect your calendar",
   "connect_your_video_app": "Connect your video apps",
   "connect_your_video_app_instructions": "Connect your video apps to use them on your event types.",
@@ -1535,6 +1536,7 @@
   "problem_registering_domain": "There was a problem with registering the subdomain, please try again or contact an administrator",
   "team_publish": "Publish team",
   "number_text_notifications": "Phone number (Text notifications)",
+  "number_sms_notifications": "Phone number (SMS notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
@@ -1618,6 +1620,7 @@
   "date_overrides_mark_all_day_unavailable_other": "Mark unavailable on selected dates",
   "date_overrides_add_btn": "Add Override",
   "date_overrides_update_btn": "Update Override",
+  "date_successfully_added": "Date override added successfully",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
   "hide_eventtype_details": "Hide event type details",
@@ -2083,5 +2086,8 @@
   "copy_client_secret_info": "After copying the secret you won't be able to view it anymore",
   "add_new_client": "Add new Client",
   "this_app_is_not_setup_already": "This app has not been setup yet",
+  "overlay_my_calendar":"Overlay my calendar",
+  "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
+  "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
