@@ -5,12 +5,11 @@
       "type": "node",
       "request": "launch",
       "name": "Next.js Node Debug",
-      "runtimeExecutable": "/usr/local/bin/yarn",
-      "runtimeArgs": ["playwright", "test", "organization-invitation.e2e.ts"],
+      "runtimeExecutable": "${workspaceFolder}/node_modules/next/dist/bin/next",
       "env": {
         "NODE_OPTIONS": "--inspect"
       },
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/apps/web",
       "console": "integratedTerminal",
       "sourceMapPathOverrides": {
         "meteor://💻app/*": "${workspaceFolder}/*",
