@@ -1,0 +1,25 @@
+name: Yarn Lock Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-check-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      
+      - name: Install Dependencies
+        run: yarn install
+      
+      - name: Lint Code
+        run: yarn lint
+      
+      - name: Check Yarn Lock
+        run: |
+          git diff --exit-code -- yarn.lock
+        continue-on-error: true
+
