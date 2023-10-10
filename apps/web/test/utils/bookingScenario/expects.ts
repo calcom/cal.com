@@ -1,6 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { WebhookTriggerEvents, Booking, BookingReference } from "@prisma/client";
+import type { VEvent } from "node-ical";
 import ical from "node-ical";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
@@ -13,6 +14,12 @@ import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import type { InputEventType } from "./bookingScenario";
 
+type Recurrence = {
+  freq: number;
+  interval: number;
+  count: number;
+};
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
@@ -20,12 +27,13 @@ declare global {
       toHaveEmail(
         expectedEmail: {
           //TODO: Support email HTML parsing to target specific elements
-          htmlToContain?: string;
+          htmlToContain?: string | string[];
           to: string;
           noIcs?: true;
           ics?: {
             filename: string;
             iCalUID: string;
+            recurrence?: Recurrence;
           };
         },
         to: string
@@ -39,16 +47,23 @@ expect.extend({
     emails: Fixtures["emails"],
     expectedEmail: {
       //TODO: Support email HTML parsing to target specific elements
-      htmlToContain?: string;
+      htmlToContain?: string | string[];
       to: string;
-      ics: {
+      ics?: {
         filename: string;
         iCalUID: string;
+        recurrence?: Recurrence;
+        noIcs: true;
       };
-      noIcs: true;
     },
     to: string
   ) {
+    const expectedHtmlsToContain =
+      expectedEmail.htmlToContain instanceof Array
+        ? expectedEmail.htmlToContain
+        : expectedEmail.htmlToContain
+        ? [expectedEmail.htmlToContain]
+        : [];
     const testEmail = emails.get().find((email) => email.to.includes(to));
     const emailsToLog = emails
       .get()
@@ -62,17 +77,15 @@ expect.extend({
     }
     const ics = testEmail.icalEvent;
     const icsObject = ics?.content ? ical.sync.parseICS(ics?.content) : null;
-
     let isHtmlContained = true;
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
-    const isIcsUIDExpected = expectedEmail.ics
-      ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
-      : true;
-
-    if (expectedEmail.htmlToContain) {
-      isHtmlContained = testEmail.html.includes(expectedEmail.htmlToContain);
-    }
+    const iCalUidData = icsObject ? icsObject[expectedEmail.ics?.iCalUID || ""] : null;
+    const isIcsUIDExpected = expectedEmail.ics ? !!iCalUidData : true;
+    assertHasRecurrence(expectedEmail.ics?.recurrence, (iCalUidData as VEvent)?.rrule?.toString() || "");
+    isHtmlContained = expectedHtmlsToContain.every((expectedHtmlToContain) => {
+      return testEmail.html.includes(expectedHtmlToContain);
+    });
 
     isToAddressExpected = expectedEmail.to === testEmail.to;
 
@@ -106,6 +119,22 @@ expect.extend({
         throw new Error("Unknown error");
       },
     };
+
+    function assertHasRecurrence(expectedRecurrence: Recurrence | null | undefined, rrule: string) {
+      if (!expectedRecurrence) {
+        return;
+      }
+
+      const expectedRrule = `FREQ=${
+        expectedRecurrence.freq === 0 ? "YEARLY" : expectedRecurrence.freq === 1 ? "MONTHLY" : "WEEKLY"
+      };COUNT=${expectedRecurrence.count};INTERVAL=${expectedRecurrence.interval}`;
+
+      logger.silly({
+        expectedRrule,
+        rrule,
+      });
+      expect(rrule).toContain(expectedRrule);
+    }
   },
 });
 
@@ -183,19 +212,25 @@ export function expectSuccessfulBookingCreationEmails({
   organizer,
   booker,
   iCalUID,
+  recurrence,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
   iCalUID: string;
+  recurrence?: Recurrence;
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>confirmed_event_type_subject</title>",
+      htmlToContain: [
+        "<title>confirmed_event_type_subject</title>",
+        ...(recurrence ? ["new_event_scheduled_recurring"] : []),
+      ],
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
-        iCalUID: iCalUID,
+        iCalUID: `${iCalUID}`,
+        recurrence,
       },
     },
     `${organizer.email}`
@@ -203,11 +238,15 @@ export function expectSuccessfulBookingCreationEmails({
 
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>confirmed_event_type_subject</title>",
+      htmlToContain: [
+        "<title>confirmed_event_type_subject</title>",
+        ...(recurrence ? ["your_event_has_been_scheduled_recurring"] : []),
+      ],
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
         iCalUID: iCalUID,
+        recurrence,
       },
     },
     `${booker.name} <${booker.email}>`

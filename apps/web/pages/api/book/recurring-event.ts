@@ -47,8 +47,10 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       noEmail: key !== 0,
     };
 
+    const numSlotsToCheckForAvailability = 2;
     const eachRecurringBooking = await handleNewBooking(recurringEventReq, {
       isNotAnApiCall: true,
+      skipAvailabilityCheck: key <= data.length - numSlotsToCheckForAvailability,
     });
 
     createdBookings.push(eachRecurringBooking);
