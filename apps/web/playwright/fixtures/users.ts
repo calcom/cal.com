@@ -289,6 +289,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
+          const teamMatesIds = [];
           for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
@@ -320,7 +321,21 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
               }),
               store.page
             );
+            teamMatesIds.push(teamUser.id);
             store.users.push(teammateFixture);
+          }
+          // Add Teammates to OrgUsers
+          if (scenario.isOrg) {
+            await prisma.team.update({
+              where: {
+                id: team.id,
+              },
+              data: {
+                orgUsers: {
+                  connect: teamMatesIds.map((userId) => ({ id: userId })).concat([{ id: user.id }]),
+                },
+              },
+            });
           }
         }
       }
