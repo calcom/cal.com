@@ -68,7 +68,11 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       await utils.viewer.me.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
-      update(res);
+      await update(res);
+
+      if (res.locale) {
+        window.calNewLocale = res.locale;
+      }
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
