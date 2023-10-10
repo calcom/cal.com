@@ -8,7 +8,7 @@
   "categories": ["other"],
   "publisher": "Nafees Nazik",
   "email": "nafeesnazik21@gmail.com",
-  "description": "hello",
+  "description": "Airtable is a versatile and user-friendly cloud-based database and collaboration platform that empowers individuals and teams to organize, track, and manage a wide range of information and tasks.",
   "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,
