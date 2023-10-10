@@ -25,12 +25,14 @@ export const fetchTables = async (key: string, baseId: string) => {
   return ZTables.parse(res);
 };
 
-export const addField = async (
-  key: string,
-  baseId: string,
-  tableId: string,
-  data: Record<string, string>
-) => {
+interface AddFieldOptions {
+  key: string;
+  baseId: string;
+  tableId: string;
+  data: Record<string, string>;
+}
+
+export const addField = async ({ baseId, data, key, tableId }: AddFieldOptions) => {
   const req = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables/${tableId}/fields`, {
     method: "POST",
     headers: {
@@ -43,12 +45,14 @@ export const addField = async (
   return await req.json();
 };
 
-export const addRecord = async (
-  key: string,
-  baseId: string,
-  tableId: string,
-  data: Record<string, string>
-) => {
+interface AddRecordOptions {
+  key: string;
+  baseId: string;
+  tableId: string;
+  data: Record<string, string>;
+}
+
+export const addRecord = async ({ baseId, data, key, tableId }: AddRecordOptions) => {
   const req = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
     method: "POST",
     headers: {
@@ -83,6 +87,30 @@ export const deleteRecord = async ({ baseId, key, recordId, tableId }: DeleteRec
   return { res, req };
 };
 
+interface UpdateRecordOptions {
+  key: string;
+  baseId: string;
+  tableId: string;
+  recordId: string;
+  data: Record<string, string>;
+}
+
+export const updateRecord = async ({ baseId, key, recordId, tableId, data }: UpdateRecordOptions) => {
+  const req = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-type": "application/json",
+    },
+    body: JSON.stringify({
+      fields: data,
+      typecast: true,
+    }),
+  });
+  const res = await req.json();
+  return { res, req };
+};
+
 interface CreateMissingFieldsOptions {
   table: TTables["tables"][number];
   fields: string[];
@@ -110,9 +138,14 @@ export const createMissingFields = async ({
     const createFieldPromise: Promise<any>[] = [];
     fieldsToCreate.forEach((fieldName) => {
       createFieldPromise.push(
-        addField(token.personalAccessToken, baseId, tableId, {
-          name: fieldName,
-          type: "singleLineText",
+        addField({
+          key: token.personalAccessToken,
+          baseId,
+          tableId,
+          data: {
+            name: fieldName,
+            type: "singleLineText",
+          },
         })
       );
     });

@@ -1,12 +1,13 @@
 import dayjs from "@calcom/dayjs";
 import { formatToLocalizedDate } from "@calcom/lib/date-fns";
+import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { ZEventAppMetadata, ZAddRecordResponse, appKeysSchema } from "../zod";
-import { fetchTables, addRecord, createMissingFields, deleteRecord } from "./services";
+import { ZEventAppMetadata, ZAddOrUpdateRecordResponse, appKeysSchema } from "../zod";
+import { fetchTables, addRecord, createMissingFields, deleteRecord, updateRecord } from "./services";
 
 export default class AirtableService implements Calendar {
   private integrationName = "";
@@ -50,26 +51,35 @@ export default class AirtableService implements Calendar {
     return { baseId, tableId };
   }
 
+  private getTableData(event: CalendarEvent) {
+    const tz = event.organizer.timeZone;
+    const language = event.organizer.language.locale;
+    const date = formatToLocalizedDate(dayjs.tz(event.startTime, tz), language, "medium", tz);
+    const startTime = dayjs(event.startTime).tz(tz).format(event.organizer.timeFormat);
+    const endTime = dayjs(event.endTime).tz(tz).format(event.organizer.timeFormat);
+    const labelValueMap = getLabelValueMapFromResponses(event);
+
+    const data = {
+      Title: event.title,
+      "Start time": `${startTime} - ${date}`,
+      "End time": `${endTime} - ${date}`,
+      Location: event.location ?? "",
+      Attendees: event.attendees.map((person) => `${person.name} - ${person.email}`).toString(),
+      ...(event.additionalNotes && {
+        "Additional notes": event.additionalNotes,
+      }),
+    };
+
+    return data;
+  }
+
   async createEvent(event: CalendarEvent) {
     try {
       const { baseId, tableId } = await this.getAppData(event?.uid);
 
       const token = this.getToken();
 
-      const tz = event.organizer.timeZone;
-      const language = event.organizer.language.locale;
-      const date = formatToLocalizedDate(dayjs.tz(event.startTime, tz), language, "medium", tz);
-      const startTime = dayjs(event.startTime).tz(tz).format(event.organizer.timeFormat);
-      const endTime = dayjs(event.endTime).tz(tz).format(event.organizer.timeFormat);
-
-      const data = {
-        title: event.title,
-        "start time": `${startTime} - ${date}`,
-        "end time": `${endTime} - ${date}`,
-        location: event.location ?? "",
-        attendees: event.attendees.map((person) => `${person.name} - ${person.email}`).toString(),
-      };
-
+      const data = this.getTableData(event);
       const fields = Object.keys(data);
 
       const tables = (await fetchTables(token.personalAccessToken, baseId)).tables;
@@ -88,9 +98,14 @@ export default class AirtableService implements Calendar {
         tableId,
       });
 
-      const addRecordReq = await addRecord(token.personalAccessToken, baseId, tableId, data);
+      const addRecordReq = await addRecord({
+        baseId,
+        tableId,
+        data,
+        key: token.personalAccessToken,
+      });
 
-      const airtableResponse = ZAddRecordResponse.parse(addRecordReq);
+      const airtableResponse = ZAddOrUpdateRecordResponse.parse(addRecordReq);
 
       return Promise.resolve({
         id: airtableResponse.id,
@@ -108,7 +123,36 @@ export default class AirtableService implements Calendar {
     }
   }
 
-  async updateEvent() {
+  async updateEvent(uid: string, event: CalendarEvent) {
+    try {
+      const { baseId, tableId } = await this.getAppData(event?.uid);
+      const data = this.getTableData(event);
+      const token = this.getToken();
+
+      const addRecordReq = await updateRecord({
+        baseId,
+        tableId,
+        data,
+        key: token.personalAccessToken,
+        recordId: uid,
+      });
+
+      const airtableResponse = ZAddOrUpdateRecordResponse.parse(addRecordReq);
+
+      return Promise.resolve({
+        id: airtableResponse.id,
+        uid: airtableResponse.id,
+        type: this.integrationName,
+        password: "",
+        url: "",
+        additionalInfo: {
+          airtableResponse,
+        },
+      });
+    } catch (error) {
+      this.log.error("meeting:update:notOk", { error });
+      return Promise.reject("an unknown error occurred");
+    }
     return Promise.resolve([]);
   }
 

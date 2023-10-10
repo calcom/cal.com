@@ -22,7 +22,7 @@ export const ZEventAppMetadata = z.object({
   }),
 });
 
-export const ZAddRecordResponse = z.object({
+export const ZAddOrUpdateRecordResponse = z.object({
   id: z.string(),
   createdTime: z.string(),
   fields: z.record(z.any()),
