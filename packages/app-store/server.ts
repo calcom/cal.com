@@ -84,11 +84,11 @@ export async function getLocationGroupedOptions(
           : app.categories[0] || app.category;
       if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
-      for (const credential of app.credentials) {
-        const label = `${app.locationOption.label} ${
-          credential.team?.name ? `(${credential.team.name})` : ""
-        }`;
-        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug, credential };
+      for (const { teamName } of app.credentials.map((credential) => ({
+        teamName: credential.team?.name,
+      }))) {
+        const label = `${app.locationOption.label} ${teamName ? `(${teamName})` : ""}`;
+        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug };
         if (apps[groupByCategory]) {
           apps[groupByCategory] = [...apps[groupByCategory], option];
         } else {
