@@ -52,9 +52,7 @@ class MyDocument extends Document<Props> {
     const nonce = nonceParsed.success ? nonceParsed.data : "";
 
     const intlLocale = new Intl.Locale(newLocale);
-    // INFO: Typescript does not know about the Intl.Locale textInfo attribute
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+    // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
     const direction = intlLocale.textInfo?.direction;
     if (!direction) {
       throw new Error("NodeJS major breaking change detected, use getTextInfo() instead.");
