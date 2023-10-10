@@ -155,75 +155,77 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
   };
 
   return (
-    <div className="border-subtle space-y-5 border-x px-6 py-8">
-      <div
-        className={classNames(
-          "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
-          disableFields && "pointer-events-none opacity-40",
-          disableFields && isUserLoading && "animate-pulse"
-        )}>
-        {bookerLayoutOptions.map((layout) => (
-          <div className="w-full" key={layout}>
-            <label>
-              <img
-                className="mb-3 w-full max-w-none cursor-pointer"
-                src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
-                alt="Layout preview"
-              />
-              <CheckboxField
-                value={layout}
-                name={`bookerlayout_${layout}`}
-                description={t(`bookerlayout_${layout}`)}
-                checked={toggleValues[layout]}
-                onChange={(ev) => onLayoutToggleChange(layout, ev.target.checked)}
-              />
-            </label>
-          </div>
-        ))}
-      </div>
-      <div
-        hidden={Object.values(toggleValues).filter((value) => value === true).length <= 1}
-        className={classNames(
-          "transition-opacity",
-          disableFields && "pointer-events-none opacity-40",
-          disableFields && isUserLoading && "animate-pulse"
-        )}>
-        <Label>{t("bookerlayout_default_title")}</Label>
-        <RadioGroup.Root
-          key={defaultLayout}
-          className="border-default flex w-full gap-2 rounded-md border p-1"
-          defaultValue={defaultLayout}
-          onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
+    <div className="space-y-0">
+      <div className="border-subtle space-y-5 border-x px-6 py-8">
+        <div
+          className={classNames(
+            "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
+            disableFields && "pointer-events-none opacity-40",
+            disableFields && isUserLoading && "animate-pulse"
+          )}>
           {bookerLayoutOptions.map((layout) => (
-            <RadioGroup.Item
-              className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={toggleValues[layout] === false}
-              key={layout}
-              value={layout}>
-              {t(`bookerlayout_${layout}`)}
-              <RadioGroup.Indicator />
-            </RadioGroup.Item>
+            <div className="w-full" key={layout}>
+              <label>
+                <img
+                  className="mb-3 w-full max-w-none cursor-pointer"
+                  src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
+                  alt="Layout preview"
+                />
+                <CheckboxField
+                  value={layout}
+                  name={`bookerlayout_${layout}`}
+                  description={t(`bookerlayout_${layout}`)}
+                  checked={toggleValues[layout]}
+                  onChange={(ev) => onLayoutToggleChange(layout, ev.target.checked)}
+                />
+              </label>
+            </div>
           ))}
-        </RadioGroup.Root>
+        </div>
+        <div
+          hidden={Object.values(toggleValues).filter((value) => value === true).length <= 1}
+          className={classNames(
+            "transition-opacity",
+            disableFields && "pointer-events-none opacity-40",
+            disableFields && isUserLoading && "animate-pulse"
+          )}>
+          <Label>{t("bookerlayout_default_title")}</Label>
+          <RadioGroup.Root
+            key={defaultLayout}
+            className="border-default flex w-full gap-2 rounded-md border p-1"
+            defaultValue={defaultLayout}
+            onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
+            {bookerLayoutOptions.map((layout) => (
+              <RadioGroup.Item
+                className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={toggleValues[layout] === false}
+                key={layout}
+                value={layout}>
+                {t(`bookerlayout_${layout}`)}
+                <RadioGroup.Indicator />
+              </RadioGroup.Item>
+            ))}
+          </RadioGroup.Root>
+        </div>
+        {disableFields && (
+          <p className="text-sm">
+            <Trans i18nKey="bookerlayout_override_global_settings">
+              You can manage this for all your event types in{" "}
+              <Link href="/settings/my-account/appearance" className="underline">
+                settings / appearance
+              </Link>{" "}
+              or{" "}
+              <Button
+                onClick={onOverrideSettings}
+                color="minimal"
+                className="p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+                override for this event only
+              </Button>
+              .
+            </Trans>
+          </p>
+        )}
       </div>
-      {disableFields && (
-        <p className="text-sm">
-          <Trans i18nKey="bookerlayout_override_global_settings">
-            You can manage this for all your event types in{" "}
-            <Link href="/settings/my-account/appearance" className="underline">
-              settings / appearance
-            </Link>{" "}
-            or{" "}
-            <Button
-              onClick={onOverrideSettings}
-              color="minimal"
-              className="p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-              override for this event only
-            </Button>
-            .
-          </Trans>
-        </p>
-      )}
     </div>
   );
 };
