@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 
@@ -7,6 +8,29 @@ import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, E
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+const enum EMBED_IFRAME_STATE {
+  NOT_INITIALIZED,
+  INITIALIZED,
+}
+/**
+ * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
+ */
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+
+  // TODO: It should have a dedicated prefill prop
+  // prefill: {},
+
+  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
+  // ui: {layout; theme}
+  layout?: BookerLayouts;
+  // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
+  "ui.color-scheme"?: string;
+  theme?: EmbedThemeConfig;
+};
 
 declare global {
   interface Window {
@@ -17,10 +41,34 @@ declare global {
     };
   }
 }
+
 /**
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 const embedStore = {
+  // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
+  router: {
+    setNextRouter(nextRouter: ReturnType<typeof useRouter>) {
+      this.nextRouter = nextRouter;
+
+      // Empty the queue after running push on nextRouter. This is important because setNextRouter is be called multiple times
+      this.queue.forEach((url) => {
+        nextRouter.push(url);
+        this.queue.splice(0, 1);
+      });
+    },
+    nextRouter: null as null | ReturnType<typeof useRouter>,
+    queue: [] as string[],
+    goto(url: string) {
+      if (this.nextRouter) {
+        this.nextRouter.push(url.toString());
+      } else {
+        this.queue.push(url);
+      }
+    },
+  },
+
+  state: EMBED_IFRAME_STATE.NOT_INITIALIZED,
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
   nonStyles: {} as EmbedNonStylesConfig | undefined,
@@ -148,6 +196,8 @@ const useUrlChange = (callback: (newUrl: string) => void) => {
   const pathname = currentFullUrl?.pathname ?? "";
   const searchParams = currentFullUrl?.searchParams ?? null;
   const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
+  const router = useRouter();
+  embedStore.router.setNextRouter(router);
   useEffect(() => {
     const newUrl = `${pathname}?${searchParams}`;
     if (lastKnownUrl.current !== newUrl) {
@@ -340,8 +390,27 @@ const methods = {
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       unhideBody();
-      sdkActionManager?.fire("linkReady", {});
+      if (!isPrerendering()) {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
+  },
+  connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
+    const currentUrl = new URL(document.URL);
+    const searchParams = currentUrl.searchParams;
+    searchParams.delete("preload");
+    for (const [key, value] of Object.entries(queryObject)) {
+      if (value === undefined) {
+        continue;
+      }
+      if (value instanceof Array) {
+        value.forEach((val) => searchParams.append(key, val));
+      } else {
+        searchParams.set(key, value as string);
+      }
+    }
+
+    connectPreloadedEmbed({ url: currentUrl });
   },
 };
 
@@ -451,58 +520,71 @@ if (isBrowser) {
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
-
-  if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
-    log("Initializing embed-iframe");
-    // HACK
-    const pageStatus = window.CalComPageStatus;
-    // If embed link is opened in top, and not in iframe. Let the page be visible.
-    if (top === window) {
-      unhideBody();
-    }
-
-    sdkActionManager?.on("*", (e) => {
-      const detail = e.detail;
-      log(detail);
-      messageParent(detail);
-    });
-
-    window.addEventListener("message", (e) => {
-      const data: Message = e.data;
-      if (!data) {
-        return;
-      }
-      const method: keyof typeof interfaceWithParent = data.method;
-      if (data.originator === "CAL" && typeof method === "string") {
-        interfaceWithParent[method]?.(data.arg as never);
-      }
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!e.target || !(e.target instanceof Node)) {
-        return;
-      }
-      const mainElement =
-        document.getElementsByClassName("main")[0] ||
-        document.getElementsByTagName("main")[0] ||
-        document.documentElement;
-      if (e.target.contains(mainElement)) {
-        sdkActionManager?.fire("__closeIframe", {});
-      }
-    });
-
-    if (!pageStatus || pageStatus == "200") {
-      keepParentInformedAboutDimensionChanges();
-      sdkActionManager?.fire("__iframeReady", {});
-    } else
-      sdkActionManager?.fire("linkFailed", {
-        code: pageStatus,
-        msg: "Problem loading the link",
-        data: {
-          url: document.URL,
-        },
-      });
+  // If embed link is opened in top, and not in iframe. Let the page be visible.
+  if (top === window) {
+    unhideBody();
   }
+
+  window.addEventListener("message", (e) => {
+    const data: Message = e.data;
+    if (!data) {
+      return;
+    }
+    const method: keyof typeof interfaceWithParent = data.method;
+    if (data.originator === "CAL" && typeof method === "string") {
+      interfaceWithParent[method]?.(data.arg as never);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target || !(e.target instanceof Node)) {
+      return;
+    }
+    const mainElement =
+      document.getElementsByClassName("main")[0] ||
+      document.getElementsByTagName("main")[0] ||
+      document.documentElement;
+    if (e.target.contains(mainElement)) {
+      sdkActionManager?.fire("__closeIframe", {});
+    }
+  });
+
+  sdkActionManager?.on("*", (e) => {
+    const detail = e.detail;
+    log(detail);
+    messageParent(detail);
+  });
+
+  if (url.searchParams.get("preload") !== "true" && window?.isEmbed?.()) {
+    initializeAndSetupEmbed();
+  } else {
+    log(`Preloaded scenario - Skipping initialization and setup`);
+  }
+}
+
+function initializeAndSetupEmbed() {
+  sdkActionManager?.fire("__iframeReady", {});
+
+  // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
+  if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
+    log("Embed Iframe already initialized");
+    return;
+  }
+  embedStore.state = EMBED_IFRAME_STATE.INITIALIZED;
+  log("Initializing embed-iframe");
+  // HACK
+  const pageStatus = window.CalComPageStatus;
+
+  if (!pageStatus || pageStatus == "200") {
+    keepParentInformedAboutDimensionChanges();
+  } else
+    sdkActionManager?.fire("linkFailed", {
+      code: pageStatus,
+      msg: "Problem loading the link",
+      data: {
+        url: document.URL,
+      },
+    });
 }
 
 function runAllUiSetters(uiConfig: UiConfig) {
@@ -517,3 +599,22 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
   }
   document.documentElement.style.colorScheme = colorScheme;
 }
+
+/**
+ * Apply configurations to the preloaded page and then ask parent to show the embed
+ * url has the config as params
+ */
+function connectPreloadedEmbed({ url }: { url: URL }) {
+  // TODO: Use a better way to detect that React has initialized. Currently, we are using setTimeout which is a hack.
+  const MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES = 700;
+  // It can be fired before React has initialized, so use embedStore.router(which is a nextRouter wrapper that supports a queue)
+  embedStore.router.goto(url.toString());
+  setTimeout(() => {
+    // Firing this event would stop the loader and show the embed
+    sdkActionManager?.fire("linkReady", {});
+  }, MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES);
+}
+
+const isPrerendering = () => {
+  return new URL(document.URL).searchParams.get("prerender") === "true";
+};
