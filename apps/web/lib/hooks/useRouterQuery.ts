@@ -6,7 +6,7 @@ export default function useRouterQuery<T extends string>(name: T) {
   const router = useRouter();
 
   const setQuery = (newValue: string | number | null | undefined) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     _searchParams.set(name, newValue as string);
     router.replace(`${pathname}?${_searchParams.toString()}`);
   };
