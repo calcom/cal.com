@@ -28,6 +28,11 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+
+  //Borg
+  adviceOn: z.array(z.string()).optional(),
+  pricePerHour: z.number().optional(),
+  priceCurrency: z.string().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

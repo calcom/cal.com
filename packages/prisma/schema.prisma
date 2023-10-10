@@ -249,7 +249,11 @@ model User {
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
 
-  advice_on        String[]          @default([])
+  // Borg 
+  adviceOn      String[] @default([])
+  pricePerHour  Int?     @default(0)
+  priceCurrency String?  @default("usd")
+
   socialLinks      SocialLink[]
   facts            Fact[]
   projects         Project[]
@@ -951,22 +955,66 @@ model CalendarCache {
   @@unique([credentialId, key])
 }
 
+enum SocialLinkType {
+  FACEBOOK      @map("facebook")
+  TWITTER       @map("twitter")
+  INSTAGRAM     @map("instagram")
+  LINKEDIN      @map("linkedin")
+  YOUTUBE       @map("youtube")
+  GITHUB        @map("github")
+  MEDIUM        @map("medium")
+  DEVTO         @map("devto")
+  STACKEXCHANGE @map("stackexchange")
+  QUORA         @map("quora")
+  REDDIT        @map("reddit")
+  TWITCH        @map("twitch")
+  TIKTOK        @map("tiktok")
+  TELEGARM      @map("telegram")
+  DISCORD       @map("discord")
+  SLACK         @map("slack")
+  WHATSAPP      @map("whatsapp")
+  MASTODON      @map("mastodon")
+  SNAPCHAT      @map("snapchat")
+  PINTEREST     @map("pinterest")
+  TUMBLR        @map("tumblr")
+  VIMEO         @map("vimeo")
+  SOUNDCLOUD    @map("soundcloud")
+  SPOTIFY       @map("spotify")
+  APPLE_MUSIC   @map("apple_music")
+  BANDCAMP      @map("bandcamp")
+  BEHANCE       @map("behance")
+  DRIBBBLE      @map("dribbble")
+  FIVERR        @map("fiverr")
+  FLICKR        @map("flickr")
+  GUMROAD       @map("gumroad")
+  HACKERNEWS    @map("hackernews")
+  WEBSITE       @map("website")
+  UNSPLASH      @map("unsplash")
+  ANGELLIST     @map("angellist")
+  PRODUCTHUNT   @map("producthunt")
+  OTHER         @map("other")
+}
+
 model SocialLink {
-  id     Int    @id @default(autoincrement())
-  name   String
-  key    String
-  url    String
-  userId Int
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int            @id @default(autoincrement())
+  name      String
+  key       SocialLinkType
+  url       String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Fact {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -975,10 +1023,12 @@ model Fact {
 }
 
 model Project {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -987,10 +1037,12 @@ model Project {
 }
 
 model Company {
-  id         Int    @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   linkedInId String
   url        String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   workExperience WorkExperience[]
 }
@@ -999,8 +1051,14 @@ model WorkExperience {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  startDate   DateTime
-  endDate     DateTime
+  startDay    Int?
+  startMonth  Int?
+  startYear   Int
+  endDay      Int?
+  endMonth    Int?
+  endYear     Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -1013,10 +1071,12 @@ model WorkExperience {
 }
 
 model Publication {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   author User[]
 
@@ -1024,41 +1084,49 @@ model Publication {
 }
 
 model Book {
-  isbn        String @id
+  isbn        String   @id
   title       String
   url         String
   description String
   converImage String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   authors User[]
 }
 
 model Podcast {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   hosts            User[]
   mediaAppearences MediaAppearence[]
 }
 
 model Video {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   hosts            User[]
   mediaAppearences MediaAppearence[]
 }
 
 model MediaAppearence {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   url         String
   description String
   mediaType   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   podcastId Int?
   podcast   Podcast? @relation(fields: [podcastId], references: [id], onDelete: Cascade)

@@ -130,6 +130,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       name: true,
       createdDate: true,
       locale: true,
+      adviceOn: true,
+      pricePerHour: true,
+      priceCurrency: true,
     },
   });
 

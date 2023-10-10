@@ -49,5 +49,17 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     organizationId: user.organizationId,
     organization: user.organization,
+    adviceOn: user.adviceOn,
+    pricePerHour: user.pricePerHour,
+    priceCurrency: user.priceCurrency,
+    socialLinks: user.socialLinks,
+    facts: user.facts,
+    projects: user.projects,
+    workExperiences: user.workExperiences,
+    publications: user.publications,
+    books: user.books,
+    podcasts: user.podcasts,
+    videos: user.videos,
+    mediaAppearences: user.mediaAppearences,
   };
 };
