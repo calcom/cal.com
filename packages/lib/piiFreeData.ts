@@ -3,6 +3,14 @@ import type { Credential, SelectedCalendar, DestinationCalendar } from "@prisma/
 import type { EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+function getBooleanStatus(val: unknown) {
+  if (process.env.NODE_ENV === "production") {
+    return `PiiFree:${!!val}`;
+  } else {
+    return val;
+  }
+}
+
 export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
   return {
     eventTypeId: calEvent.eventTypeId,
@@ -16,12 +24,13 @@ export function getPiiFreeCalendarEvent(calEvent: CalendarEvent) {
     recurrence: calEvent.recurrence,
     requiresConfirmation: calEvent.requiresConfirmation,
     uid: calEvent.uid,
+    conferenceCredentialId: calEvent.conferenceCredentialId,
     iCalUID: calEvent.iCalUID,
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
     // Not okay to have title which can have Booker and Organizer names
-    title: !!calEvent.title,
+    title: getBooleanStatus(calEvent.title),
     // .... Add all other props here that we don't want to be logged. It prevents those properties from being logged accidentally
   };
 }
@@ -44,7 +53,7 @@ export function getPiiFreeBooking(booking: {
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
     // Not okay to have title which can have Booker and Organizer names
-    title: !!booking.title,
+    title: getBooleanStatus(booking.title),
     // .... Add all other props here that we don't want to be logged. It prevents those properties from being logged accidentally
   };
 }
@@ -60,7 +69,7 @@ export function getPiiFreeCredential(credential: Partial<Credential>) {
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
-    key: !!credential.key,
+    key: getBooleanStatus(credential.key),
   };
 }
 
@@ -82,7 +91,7 @@ export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<Desti
     /**
      * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
      */
-    externalId: !!destinationCalendar.externalId,
+    externalId: getBooleanStatus(destinationCalendar.externalId),
   };
 }
 
