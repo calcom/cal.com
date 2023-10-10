@@ -7,10 +7,10 @@ on:
 
 jobs:
   lint-and-check-lock:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Install Dependencies
         run: yarn install
