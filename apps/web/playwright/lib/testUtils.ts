@@ -1,10 +1,13 @@
 import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { createHash } from "crypto";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+import { JSDOM } from "jsdom";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import type { API, Messages } from "mailhog";
+import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -273,4 +276,44 @@ export async function createUserWithSeatedEventAndAttendees(
     },
   });
   return { user, eventType, booking };
+}
+
+export async function expectInvitationEmailToBeReceived(
+  page: Page,
+  emails: API | undefined,
+  userEmail: string,
+  subject: string,
+  returnLink?: string
+) {
+  if (!emails) return null;
+  // We need to wait for the email to go through, otherwise it will fail
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(2000);
+  const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
+  expect(receivedEmails?.total).toBe(1);
+  const [firstReceivedEmail] = (receivedEmails as Messages).items;
+  expect(firstReceivedEmail.subject).toBe(subject);
+  if (!returnLink) return;
+  const dom = new JSDOM(firstReceivedEmail.html);
+  const anchor = dom.window.document.querySelector(`a[href*="${returnLink}"]`);
+  return anchor?.getAttribute("href");
+}
+
+export async function getInviteLinkFromConsole(page: Page): Promise<string> {
+  return new Promise((resolve) => {
+    page.on("console", (msg) => {
+      if (msg.text().indexOf("signup?token") > -1) {
+        resolve(msg.text());
+      }
+    });
+  });
+}
+
+export function generateTotpCode(email: string) {
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
+
+  totp.options = { step: 90 };
+  return totp.generate(secret);
 }

@@ -57,9 +57,10 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const flags = useFlagMap();
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const methods = useForm<FormValues>({
     mode: "onChange",
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(isOrgInviteByLink ? signupSchema.omit({ username: true }) : signupSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -74,9 +75,10 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
     }
   };
 
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-
   const signUp: SubmitHandler<FormValues> = async (data) => {
+    if (data.username === undefined && isOrgInviteByLink && orgAutoAcceptEmail) {
+      data = { ...data, username: getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail) };
+    }
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -143,12 +145,6 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     methods.clearErrors("apiError");
                   }
 
-                  if (methods.getValues().username === undefined && isOrgInviteByLink && orgAutoAcceptEmail) {
-                    methods.setValue(
-                      "username",
-                      getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail)
-                    );
-                  }
                   methods.handleSubmit(signUp)(event);
                 }}
                 className="bg-default space-y-6">

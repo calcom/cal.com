@@ -175,7 +175,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
-    if (!IS_PRODUCTION) return { checked: true };
+    if (!IS_PRODUCTION && !process.env.NEXT_PUBLIC_IS_E2E) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")
