@@ -1,12 +1,11 @@
-import * as ReactDOMServer from "react-dom/server";
-
 import * as templates from "./templates";
 
-function renderEmail<K extends keyof typeof templates>(
+async function renderEmail<K extends keyof typeof templates>(
   template: K,
   props: React.ComponentProps<(typeof templates)[K]>
 ) {
   const Component = templates[template];
+  const ReactDOMServer = (await import("react-dom/server")).default;
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error

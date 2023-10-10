@@ -3,6 +3,7 @@ import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 
 import { mergeRouters, router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
@@ -52,5 +53,10 @@ export const viewerRouter = mergeRouters(
     users: userAdminRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
+    testing: router({
+      greeting: publicProcedure.query(() => ({
+        hello: "hello tRPC v10!",
+      })),
+    }),
   })
 );

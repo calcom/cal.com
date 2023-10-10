@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { getFetch } from "@calcom/trpc/client";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -72,10 +71,10 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
   const url =
     typeof window !== "undefined"
-      ? "/api/trpc/"
+      ? "/api/trpc"
       : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/api/trpc/`
-      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc/`;
+      ? `https://${process.env.VERCEL_URL}/api/trpc`
+      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -94,14 +93,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
               ENDPOINTS.map((endpoint) => [
                 endpoint,
                 httpLink({
-                  url: url + endpoint,
-                  fetch: async (input, init?) => {
-                    const fetch = getFetch();
-                    return fetch(input, {
-                      ...init,
-                      credentials: "include",
-                    });
-                  },
+                  url: url + "/" + endpoint,
                 })(runtime),
               ])
             );
@@ -113,14 +105,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
               ENDPOINTS.map((endpoint) => [
                 endpoint,
                 httpBatchLink({
-                  url: url + endpoint,
-                  fetch: async (input, init?) => {
-                    const fetch = getFetch();
-                    return fetch(input, {
-                      ...init,
-                      credentials: "include",
-                    });
-                  },
+                  url: url + "/" + endpoint,
                 })(runtime),
               ])
             );
@@ -131,6 +116,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
       transformer: superjson,
     })
   );
+
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
