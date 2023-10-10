@@ -55,7 +55,7 @@ export const BookerLayoutSelector = ({
   if (flags["booker-layouts"] !== true) return null;
 
   return (
-    <>
+    <div>
       <div className="border-subtle rounded-t-xl border p-6">
         <Label className="mb-0 text-base font-semibold">{title ? title : t("layout")}</Label>
         <p className="text-subtle max-w-full break-words py-1 text-sm">
@@ -84,7 +84,7 @@ export const BookerLayoutSelector = ({
           </>
         )}
       />
-    </>
+    </div>
   );
 };
 
