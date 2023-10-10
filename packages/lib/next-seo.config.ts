@@ -47,6 +47,12 @@ export const seoConfig: {
  * @param path NextJS' useRouter().asPath
  * @returns
  */
-export const buildCanonical = ({ origin, path }: { origin: Location["origin"]; path: Router["asPath"] }) => {
+export const buildCanonical = ({
+  origin,
+  path,
+}: {
+  origin: Location["origin"];
+  path: Router["asPath"] | null;
+}) => {
   return `${origin}${path === "/" ? "" : path}`.split("?")[0];
 };
