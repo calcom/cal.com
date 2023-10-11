@@ -56,7 +56,9 @@ export function NewScheduleButton({
               <Label htmlFor="working-hours">Name</Label>
               <Input id="working-hours" placeholder="Working Hours" />
               <DialogFooter>
-                <Button type="button">Close</Button>
+                <Button type="button" variant="outline" className="mr-2 border-none">
+                  Close
+                </Button>
                 <Button type="submit">Continue</Button>
               </DialogFooter>
             </Form>
