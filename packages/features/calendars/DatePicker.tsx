@@ -92,8 +92,8 @@ const NoAvailabilityOverlay = ({
   const { t } = useLocale();
 
   return (
-    <div className=" bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis  mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
+    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
+      <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
       <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight}>
         {t("view_next_month")}
       </Button>
@@ -139,7 +139,10 @@ const Days = ({
     return dates;
   };
 
-  const includedDates = currentDate.isSame(browsingDate, "month")
+  const utcBrowsingDateWithOffset = browsingDate.utc().add(browsingDate.utcOffset(), "minute");
+  const utcCurrentDateWithOffset = currentDate.utc().add(browsingDate.utcOffset(), "minute");
+
+  const includedDates = utcCurrentDateWithOffset.isSame(utcBrowsingDateWithOffset, "month")
     ? availableDates(props.includedDates)
     : props.includedDates;
 

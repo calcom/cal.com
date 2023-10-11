@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -22,6 +23,7 @@ const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.Time
 export const EventMeta = () => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -35,6 +37,13 @@ export const EventMeta = () => {
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  useEffect(() => {
+    if (!selectedDuration && event?.length) {
+      setSelectedDuration(event.length);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.length, selectedDuration]);
 
   if (hideEventTypeDetails) {
     return null;
