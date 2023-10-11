@@ -1,4 +1,3 @@
-import { prisma } from "@Calcom/prisma";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -34,7 +33,6 @@ describe("Verify API key", () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
-      prisma,
     });
 
     const middleware = {
@@ -57,7 +55,6 @@ describe("Verify API key", () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
-      prisma,
     });
 
     const middleware = {
