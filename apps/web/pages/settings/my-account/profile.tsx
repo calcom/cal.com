@@ -50,7 +50,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
+      <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -279,7 +279,7 @@ const ProfileView = () => {
         }
       />
 
-      <div className="border-subtle mt-6 rounded-xl rounded-b-none border border-b-0 p-6">
+      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="text-base font-semibold text-red-700">{t("danger_zone")}</Label>
         <p className="text-subtle">{t("account_deletion_cannot_be_undone")}</p>
       </div>
