@@ -20,6 +20,7 @@ type Props = {
   toggleSwitchAtTheEnd?: boolean;
   childrenClassName?: string;
   switchContainerClassName?: string;
+  labelClassName?: string;
 };
 
 function SettingsToggle({
@@ -35,6 +36,7 @@ function SettingsToggle({
   toggleSwitchAtTheEnd = false,
   childrenClassName,
   switchContainerClassName,
+  labelClassName,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -47,7 +49,8 @@ function SettingsToggle({
             <div className={classNames("flex justify-between space-x-3", switchContainerClassName)}>
               <div>
                 <div className="flex items-center">
-                  <Label className="text-emphasis text-base font-semibold leading-none">
+                  <Label
+                    className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}>
                     {title}
                     {LockedIcon}
                   </Label>
