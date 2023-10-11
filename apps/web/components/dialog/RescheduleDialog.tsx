@@ -44,7 +44,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
       <DialogContent enableOverflow>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <Clock className="m-auto h-6 w-6" />
+            <Clock className=" light:bg-invert m-auto h-6 w-6 dark:invert" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
