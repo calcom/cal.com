@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import type { EventBusyDate } from "@calcom/types/Calendar";
