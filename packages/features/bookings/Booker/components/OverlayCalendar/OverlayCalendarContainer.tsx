@@ -3,6 +3,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +19,7 @@ import { useOverlayCalendarStore } from "./store";
 
 export function OverlayCalendarContainer() {
   const { t } = useLocale();
+  const isEmbed = useIsEmbed();
   const [continueWithProvider, setContinueWithProvider] = useState(false);
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
@@ -101,6 +103,10 @@ export function OverlayCalendarContainer() {
       setContinueWithProvider(true);
     }
   }, [session, overlayCalendarQueryParam, toggleOverlayCalendarQueryParam]);
+
+  if (isEmbed) {
+    return null;
+  }
 
   return (
     <>
