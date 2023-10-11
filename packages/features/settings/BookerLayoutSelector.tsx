@@ -34,6 +34,7 @@ type BookerLayoutSelectorProps = {
   isDark?: boolean;
 
   isDisabled?: boolean;
+  isOuterBorder?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -45,6 +46,7 @@ export const BookerLayoutSelector = ({
   fallbackToUserSettings,
   isDark,
   isDisabled = false,
+  isOuterBorder = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -55,10 +57,12 @@ export const BookerLayoutSelector = ({
   if (flags["booker-layouts"] !== true) return null;
 
   return (
-    <div>
-      <div className="border-subtle rounded-t-xl border p-6">
-        <Label className="mb-0 text-base font-semibold">{title ? title : t("layout")}</Label>
-        <p className="text-subtle max-w-full break-words py-1 text-sm">
+    <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
+      <div className={classNames(isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border p-6")}>
+        <Label className={classNames("mb-1 font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
+          {title ? title : t("layout")}
+        </Label>
+        <p className="text-subtle max-w-full break-words text-sm leading-tight">
           {description ? description : t("bookerlayout_description")}
         </p>
       </div>
@@ -75,12 +79,15 @@ export const BookerLayoutSelector = ({
               settings={value}
               onChange={onChange}
               isDark={isDark}
+              isOuterBorder={isOuterBorder}
             />
-            <SectionBottomActions align="end">
-              <Button type="submit" disabled={isDisabled} color="primary">
-                {t("update")}
-              </Button>
-            </SectionBottomActions>
+            {!isOuterBorder && (
+              <SectionBottomActions align="end">
+                <Button type="submit" disabled={isDisabled} color="primary">
+                  {t("update")}
+                </Button>
+              </SectionBottomActions>
+            )}
           </>
         )}
       />
@@ -93,11 +100,18 @@ type BookerLayoutFieldsProps = {
   onChange: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
   isDark?: boolean;
+  isOuterBorder?: boolean;
 };
 
 type BookerLayoutState = { [key in BookerLayouts]: boolean };
 
-const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: BookerLayoutFieldsProps) => {
+const BookerLayoutFields = ({
+  settings,
+  onChange,
+  showUserSettings,
+  isDark,
+  isOuterBorder,
+}: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
   const { isLoading: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
@@ -153,9 +167,8 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
     // Sent default layout settings to form, otherwise it would still have 'null' as it's value.
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
-
   return (
-    <div className="border-subtle space-y-5 border-x px-6 py-8">
+    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
@@ -191,7 +204,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
         <Label>{t("bookerlayout_default_title")}</Label>
         <RadioGroup.Root
           key={defaultLayout}
-          className="border-default flex w-full gap-2 rounded-md border p-1"
+          className="border-subtle flex w-full gap-2 rounded-md border p-1"
           defaultValue={defaultLayout}
           onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
           {bookerLayoutOptions.map((layout) => (
@@ -209,18 +222,18 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: Bo
       {disableFields && (
         <p className="text-sm">
           <Trans i18nKey="bookerlayout_override_global_settings">
-            You can manage this for all your event types in{" "}
+            You can manage this for all your event types in Settings {"-> "}
             <Link href="/settings/my-account/appearance" className="underline">
-              settings / appearance
+              Appearance
             </Link>{" "}
             or{" "}
             <Button
               onClick={onOverrideSettings}
               color="minimal"
-              className="p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-              override for this event only
-            </Button>
-            .
+              className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+              Override
+            </Button>{" "}
+            for this event only.
           </Trans>
         </p>
       )}
