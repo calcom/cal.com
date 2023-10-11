@@ -107,12 +107,12 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+        <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {title}
           {LockedIcon}
         </div>
-        <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul ref={parent} className="border-subtle divide-subtle mt-2 divide-y rounded-md border">
+        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
