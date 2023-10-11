@@ -1,4 +1,9 @@
-import type { DailyEventObjectRecordingStarted } from "@daily-co/daily-js";
+import type {
+  DailyEventObjectCustomButtonClick,
+  DailyEventObjectRecordingStarted,
+  DailyTranscriptionDeepgramOptions,
+  DailyEventObjectAppMessage,
+} from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
@@ -34,8 +39,10 @@ export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
   const recordingId = useRef<string | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
 
   useEffect(() => {
+    /** adding a custom tray button @link https://docs.daily.co/reference/daily-js/daily-iframe-class/properties#customTrayButtons* */
     const callFrame = DailyIframe.createFrame({
       theme: {
         colors: {
@@ -51,6 +58,14 @@ export default function JoinCall(props: JoinCallPageProps) {
           supportiveText: "#FFF",
         },
       },
+      customTrayButtons: {
+        transcriptButton: {
+          iconPath: "https://unpkg.com/lucide-static@latest/icons/pen.svg", // TODO
+          iconPathDarkMode: "https://unpkg.com/lucide-static@latest/icons/pen.svg", //TODO
+          label: isTranscribing ? "Stop Transcription" : "Start Transcription",
+          tooltip: isTranscribing ? "Stop transcribing this call" : "Start transcribing this call",
+        },
+      },
       showLeaveButton: true,
       iframeStyle: {
         position: "fixed",
@@ -60,15 +75,49 @@ export default function JoinCall(props: JoinCallPageProps) {
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
+    //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
+    /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
+    const onCustomButtonClick = (event?: DailyEventObjectCustomButtonClick | undefined) => {
+      console.log("event click", event);
+      if (event && event["button_id"] == "transcriptButton") {
+        return isTranscribing ? stopTranscription() : startTranscription();
+      }
+    };
+    const transcriptionOptions: DailyTranscriptionDeepgramOptions = {
+      detect_language: true,
+      model: "whisper",
+    };
+    async function startTranscription() {
+      await callFrame.startTranscription(transcriptionOptions);
+    }
+    async function stopTranscription() {
+      setIsTranscribing(false);
+      await callFrame.stopTranscription();
+    }
+
     callFrame.join();
     callFrame.on("recording-started", onRecordingStarted).on("recording-stopped", onRecordingStopped);
+    callFrame.on("custom-button-click", onCustomButtonClick);
+    /** hndling transcription events @link https://docs.daily.co/reference/daily-js/events/transcription-events#main */
+    callFrame.on("transcription-started", handleTranscriptionStarted);
+    callFrame.on("transcription-stopped", handleTranscriptionStopped);
+    callFrame.on("transcription-error", handleTranscriptionError);
+    /** handle transcription messages @link https://docs.daily.co/reference/daily-js/instance-methods/start-transcription */
+    callFrame.on("app-message", (msg: DailyEventObjectAppMessage | undefined) => {
+      if (msg && msg.data) {
+        const data = msg.data;
+        if (msg?.fromId === "transcription" && data?.is_final) {
+          const userName = callFrame.participants()[data.session_id].user_name;
+          console.log(`${userName} (${data.timestamp}): ${data.text}`);
+        }
+      }
+    });
     return () => {
       callFrame.destroy();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
 
   const onRecordingStopped = () => {
     const data = { recordingId: recordingId.current, bookingUID: booking.uid };
@@ -87,7 +136,17 @@ export default function JoinCall(props: JoinCallPageProps) {
     const response = recordingStartedEventResponse.parse(event);
     recordingId.current = response.recordingId;
   };
-
+  const handleTranscriptionStarted = () => {
+    setIsTranscribing(true);
+  };
+  const handleTranscriptionStopped = () => {
+    setIsTranscribing(false);
+  };
+  const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
+    for (const key in event) {
+      console.log(`${key}: ${event[key]}, ${typeof key}`);
+    }
+  };
   const title = `${APP_NAME} Video`;
   return (
     <>
