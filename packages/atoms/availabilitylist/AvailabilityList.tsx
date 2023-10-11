@@ -1,8 +1,9 @@
 import { Clock } from "@calcom/ui/components/icon";
 
 import { EmptyScreen } from "./EmptyScreen";
+import type { Schedule } from ".prisma/client";
 
-export function AvailabilityList({ schedules }: { schedules: { id: string }[] }) {
+export function AvailabilityList({ schedules }: { schedules: Schedule[] | [] }) {
   return (
     <>
       {schedules.length === 0 ? (
@@ -19,7 +20,9 @@ export function AvailabilityList({ schedules }: { schedules: { id: string }[] })
           Render availability list here
           <div>
             {schedules.map((schedule) => (
-              <h1 key={schedule?.id}>Hi</h1>
+              <h1 key={schedule?.id}>
+                <h1>{schedule?.name}</h1>
+              </h1>
             ))}
           </div>
         </div>
