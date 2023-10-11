@@ -190,7 +190,9 @@ const InstallAppButtonChild = ({
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(pathname);
+      if (pathname !== null) {
+        router.replace(pathname);
+      }
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

@@ -294,7 +294,6 @@ export const EventSetupTab = (
 
               const eventLabel =
                 location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
-
               return (
                 <li
                   key={`${location.type}${index}`}
@@ -393,7 +392,7 @@ export const EventSetupTab = (
   return (
     <div>
       <div className="space-y-4">
-        <div className="border-subtle space-y-6 rounded-md border p-6">
+        <div className="border-subtle space-y-6 rounded-lg border p-6">
           <TextField
             required
             label={t("title")}
@@ -432,7 +431,7 @@ export const EventSetupTab = (
             })}
           />
         </div>
-        <div className="border-subtle rounded-md border p-6">
+        <div className="border-subtle rounded-lg border p-6">
           {multipleDuration ? (
             <div className="space-y-6">
               <div>
@@ -528,7 +527,7 @@ export const EventSetupTab = (
           )}
         </div>
 
-        <div className="border-subtle rounded-md border p-6">
+        <div className="border-subtle rounded-lg border p-6">
           <div>
             <Skeleton as={Label} loadingClassName="w-16">
               {t("location")}
