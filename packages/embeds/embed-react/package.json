@@ -39,7 +39,8 @@
   "exports": {
     ".": {
       "import": "./dist/Cal.es.mjs",
-      "require": "./dist/Cal.umd.js"
+      "require": "./dist/Cal.umd.js",
+      "types": "./dist/embed-react/src/index.d.ts"
     }
   },
   "devDependencies": {
