@@ -75,7 +75,23 @@ async function checkPermissions(req: NextApiRequest) {
   const { userId, prisma, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   if (isAdmin) return;
-  const destinationCalendar = await prisma.destinationCalendar.findFirst({ where: { id, userId } });
+  const userEventTypes = await prisma.eventType.findMany({
+    where: { userId },
+    select: { id: true },
+  });
+
+  const userEventTypeIds = userEventTypes.map((eventType) => eventType.id);
+
+  const destinationCalendar = await prisma.destinationCalendar.findFirst({
+    where: {
+      AND: [
+        { id },
+        {
+          OR: [{ userId }, { eventTypeId: { in: userEventTypeIds } }],
+        },
+      ],
+    },
+  });
   if (!destinationCalendar) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
