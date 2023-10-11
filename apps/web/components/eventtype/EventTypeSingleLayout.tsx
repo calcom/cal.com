@@ -250,7 +250,7 @@ function EventTypeSingleLayout({
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end pt-5">
           {!eventType.metadata?.managedEventConfig && (
             <>
               <div
