@@ -103,7 +103,6 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
-        timezoneId: "Europe/London",
         locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
@@ -118,7 +117,6 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
-        timezoneId: "Europe/London",
         locale: "en-US",
         baseURL: "http://localhost:3100/",
       },
@@ -144,7 +142,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Firefox"], timezoneId: "Europe/London" },
+      use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "@calcom/embed-core--webkit",
@@ -153,7 +151,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Safari"], timezoneId: "Europe/London" },
+      use: { ...devices["Desktop Safari"] },
     },
   ],
 };
