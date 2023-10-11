@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_secret || typeof client_secret !== "string")
     return res.status(400).json({ message: "Google client_secret missing." });
 
-  const redirect_uri = WEBAPP_URL + "/api/teams/googleworkspace/callback";
+  const redirect_uri = `${WEBAPP_URL}/api/teams/googleworkspace/callback`;
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
   if (!code) {
@@ -54,11 +54,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!teamId) {
-    res.redirect(getSafeRedirectUrl(WEBAPP_URL + "/settings") ?? `${WEBAPP_URL}/teams`);
+    res.redirect(getSafeRedirectUrl(`${WEBAPP_URL}/settings`) ?? `${WEBAPP_URL}/teams`);
   }
 
   res.redirect(
-    getSafeRedirectUrl(WEBAPP_URL + `/settings/teams/${teamId}/members?inviteModal=true&bulk=true`) ??
+    getSafeRedirectUrl(`${WEBAPP_URL}/settings/teams/${teamId}/members?inviteModal=true&bulk=true`) ??
       `${WEBAPP_URL}/teams`
   );
 }

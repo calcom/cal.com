@@ -74,18 +74,19 @@ ${
     ? `The email references the following @usernames and emails: ${users
         .map(
           (u) =>
-            (u.id ? `, id: ${u.id}` : "id: (non user)") +
-            (u.username
-              ? u.type === "fromUsername"
-                ? `, username: @${u.username}`
-                : ", username: REDACTED"
-              : ", (no username)") +
-            (u.email
-              ? u.type === "fromEmail"
-                ? `, email: ${u.email}`
-                : ", email: REDACTED"
-              : ", (no email)") +
-            ";"
+            `${
+              (u.id ? `, id: ${u.id}` : "id: (non user)") +
+              (u.username
+                ? u.type === "fromUsername"
+                  ? `, username: @${u.username}`
+                  : ", username: REDACTED"
+                : ", (no username)") +
+              (u.email
+                ? u.type === "fromEmail"
+                  ? `, email: ${u.email}`
+                  : ", email: REDACTED"
+                : ", (no email)")
+            };`
         )
         .join("\n")}`
     : ""

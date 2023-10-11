@@ -47,6 +47,7 @@
     },
     "@calcom/ai#build": {
       "env": [
+        "FRONTEND_URL",
         "BACKEND_URL",
         "APP_ID",
         "APP_URL",

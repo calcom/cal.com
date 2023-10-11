@@ -1,6 +1,10 @@
 declare global {
   // eslint-disable-next-line no-var
   var testEmails: {
+    icalEvent?: {
+      filename: string;
+      content: string;
+    };
     to: string;
     from: string;
     subject: string;
