@@ -71,7 +71,11 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-  const clientViewerI18n = useViewerI18n(props.pageProps.newLocale);
+
+  const session = useSession();
+  const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
+
+  const clientViewerI18n = useViewerI18n(locale);
   const i18n = clientViewerI18n.data?.i18n;
 
   const passedProps = {
@@ -247,8 +251,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <CustomI18nextProvider {...propsWithoutNonce}>
-        <SessionProvider session={pageProps.session ?? undefined}>
+      <SessionProvider session={pageProps.session ?? undefined}>
+        <CustomI18nextProvider {...propsWithoutNonce}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
@@ -264,8 +268,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
               </FeatureFlagsProvider>
             </CalcomThemeProvider>
           </TooltipProvider>
-        </SessionProvider>
-      </CustomI18nextProvider>
+        </CustomI18nextProvider>
+      </SessionProvider>
     </EventCollectionProvider>
   );
 
