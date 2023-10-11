@@ -28,6 +28,7 @@ export const getLocale = async (req: GetTokenParams["req"]): Promise<string> => 
     req.headers instanceof Headers ? req.headers.get("accept-language") : req.headers["accept-language"];
 
   const languages = acceptLanguage ? parse(acceptLanguage) : [];
+  const code: string = languages[0]?.code ?? "";
 
-  return languages[0]?.code || "en";
+  return /^[a-zA-Z]+$/.test(code) ? code : "en";
 };
