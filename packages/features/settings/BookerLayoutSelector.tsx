@@ -167,7 +167,6 @@ const BookerLayoutFields = ({
     // Sent default layout settings to form, otherwise it would still have 'null' as it's value.
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
-
   return (
     <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
@@ -223,7 +222,7 @@ const BookerLayoutFields = ({
       {disableFields && (
         <p className="text-sm">
           <Trans i18nKey="bookerlayout_override_global_settings">
-            You can manage this for all your event types in Settings {"->"}{" "}
+            You can manage this for all your event types in Settings {"-> "}
             <Link href="/settings/my-account/appearance" className="underline">
               Appearance
             </Link>{" "}
@@ -233,7 +232,7 @@ const BookerLayoutFields = ({
               color="minimal"
               className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
               Override
-            </Button>
+            </Button>{" "}
             for this event only.
           </Trans>
         </p>
