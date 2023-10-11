@@ -88,6 +88,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        timezoneId: "Europe/London",
         locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
@@ -102,6 +103,7 @@ const config: PlaywrightTestConfig = {
       },
       use: {
         ...devices["Desktop Chrome"],
+        timezoneId: "Europe/London",
         locale: "en-US",
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
@@ -114,7 +116,12 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3100/" },
+      use: {
+        ...devices["Desktop Chrome"],
+        timezoneId: "Europe/London",
+        locale: "en-US",
+        baseURL: "http://localhost:3100/",
+      },
     },
     {
       name: "@calcom/embed-react",
@@ -123,7 +130,12 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3101/" },
+      use: {
+        ...devices["Desktop Chrome"],
+        timezoneId: "Europe/London",
+        locale: "en-US",
+        baseURL: "http://localhost:3101/",
+      },
     },
     {
       name: "@calcom/embed-core--firefox",
@@ -132,7 +144,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Firefox"] },
+      use: { ...devices["Desktop Firefox"], timezoneId: "Europe/London" },
     },
     {
       name: "@calcom/embed-core--webkit",
@@ -141,7 +153,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Safari"] },
+      use: { ...devices["Desktop Safari"], timezoneId: "Europe/London" },
     },
   ],
 };
