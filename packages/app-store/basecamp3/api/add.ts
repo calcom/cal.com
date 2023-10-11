@@ -24,9 +24,7 @@ async function handler(req: NextApiRequest) {
     client_id,
   };
   const query = stringify(params);
-  const url = `https://launchpad.37signals.com/authorization/new?${query}&redirect_uri=${
-    WEBAPP_URL + "/api/integrations/basecamp3/callback"
-  }`;
+  const url = `https://launchpad.37signals.com/authorization/new?${query}&redirect_uri=${WEBAPP_URL}/api/integrations/basecamp3/callback`;
   return { url };
 }
 

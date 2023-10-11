@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import {
@@ -10,8 +11,7 @@ import {
   getMultipleDurationValue,
 } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -44,6 +44,7 @@ export default function Type({
         hideBranding={isBrandingHidden}
         isSEOIndexable={isSEOIndexable ?? true}
         entity={entity}
+        bookingData={booking}
       />
       <Booker
         username={user}
@@ -62,6 +63,7 @@ Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context);
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
 
@@ -97,7 +99,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   } else if (bookingUid) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
@@ -139,6 +141,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context);
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid, duration: queryDuration } = context.query;
@@ -152,7 +155,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      organization: userOrgQuery(context.req.headers.host ?? "", context.params?.orgSlug),
     },
     select: {
       away: true,
@@ -169,7 +172,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   } else if (bookingUid) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }

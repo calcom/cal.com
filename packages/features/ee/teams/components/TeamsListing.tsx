@@ -71,7 +71,7 @@ export function TeamsListing() {
     },
     {
       icon: <Video className="h-5 w-5 text-purple-500" />,
-      title: "Cal Video" + " " + t("recordings_title"),
+      title: `Cal Video ${t("recordings_title")}`,
       description: t("upgrade_to_access_recordings_description"),
     },
     {

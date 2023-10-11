@@ -31,7 +31,7 @@ export default function Apps({ categories }: inferSSRProps<typeof getServerSideP
           {categories.map((category) => (
             <Link
               key={category.name}
-              href={"/apps/categories/" + category.name}
+              href={`/apps/categories/${category.name}`}
               data-testid={`app-store-category-${category.name}`}
               className="bg-subtle relative flex rounded-sm px-6 py-4 sm:block">
               <div className="self-center">

@@ -34,7 +34,7 @@ const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && G
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
-const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
 const loginWithTotp = async (user: { email: string }) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
