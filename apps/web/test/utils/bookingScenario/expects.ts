@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { WebhookTriggerEvents, Booking, BookingReference } from "@prisma/client";
+import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import ical from "node-ical";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
@@ -182,11 +182,15 @@ export function expectSuccessfulBookingCreationEmails({
   emails,
   organizer,
   booker,
+  guests,
+  otherTeamMembers,
   iCalUID,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
+  guests?: { email: string; name: string }[];
+  otherTeamMembers?: { email: string; name: string }[];
   iCalUID: string;
 }) {
   expect(emails).toHaveEmail(
@@ -212,6 +216,39 @@ export function expectSuccessfulBookingCreationEmails({
     },
     `${booker.name} <${booker.email}>`
   );
+
+  if (otherTeamMembers) {
+    otherTeamMembers.forEach((otherTeamMember) => {
+      expect(emails).toHaveEmail(
+        {
+          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          // Don't know why but organizer and team members of the eventType don'thave their name here like Booker
+          to: `${otherTeamMember.email}`,
+          ics: {
+            filename: "event.ics",
+            iCalUID: iCalUID,
+          },
+        },
+        `${otherTeamMember.email}`
+      );
+    });
+  }
+
+  if (guests) {
+    guests.forEach((guest) => {
+      expect(emails).toHaveEmail(
+        {
+          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          to: `${guest.email}`,
+          ics: {
+            filename: "event.ics",
+            iCalUID: iCalUID,
+          },
+        },
+        `${guest.name} <${guest.email}`
+      );
+    });
+  }
 }
 
 export function expectBrokenIntegrationEmails({
@@ -537,8 +574,9 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
     updateEventCalls: any[];
   },
   expected: {
-    calendarId: string | null;
+    calendarId?: string | null;
     videoCallUrl: string;
+    destinationCalendars: Partial<DestinationCalendar>[];
   }
 ) {
   expect(calendarMock.createEventCalls.length).toBe(1);
@@ -553,6 +591,8 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
               externalId: expected.calendarId,
             }),
           ]
+        : expected.destinationCalendars
+        ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
         : null,
       videoCallData: expect.objectContaining({
         url: expected.videoCallUrl,
@@ -584,7 +624,7 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
   expect(externalId).toBe(expected.externalCalendarId);
 }
 
-export function expectSuccessfulVideoMeetingCreationInCalendar(
+export function expectSuccessfulVideoMeetingCreation(
   videoMock: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMeetingCalls: any[];
@@ -592,19 +632,20 @@ export function expectSuccessfulVideoMeetingCreationInCalendar(
     updateMeetingCalls: any[];
   },
   expected: {
-    externalCalendarId: string;
-    calEvent: Partial<CalendarEvent>;
-    uid: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    credential: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calEvent: any;
   }
 ) {
   expect(videoMock.createMeetingCalls.length).toBe(1);
   const call = videoMock.createMeetingCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
-  expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  const callArgs = call.args;
+  const calEvent = callArgs[0];
+  const credential = call.credential;
+
+  expect(credential).toEqual(expected.credential);
+  expect(calEvent).toEqual(expected.calEvent);
 }
 
 export function expectSuccessfulVideoMeetingUpdationInCalendar(
@@ -622,8 +663,8 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
 ) {
   expect(videoMock.updateMeetingCalls.length).toBe(1);
   const call = videoMock.updateMeetingCalls[0];
-  const bookingRef = call[0];
-  const calendarEvent = call[1];
+  const bookingRef = call.args[0];
+  const calendarEvent = call.args[1];
   expect(bookingRef).toEqual(expect.objectContaining(expected.bookingRef));
   expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
 }
