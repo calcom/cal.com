@@ -11,7 +11,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
-import { SchedulingType, MembershipRole, AppCategories } from "@calcom/prisma/enums";
+import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -229,27 +229,6 @@ export default async function getEventTypeById({
       throw new Error("Event type not found");
     }
   }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId,
-      app: {
-        enabled: true,
-        categories: {
-          hasSome: [AppCategories.conferencing, AppCategories.video, AppCategories.payment],
-        },
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      teamId: true,
-      appId: true,
-      invalid: true,
-    },
-  });
 
   const { locations, metadata, ...restEventType } = rawEventType;
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};

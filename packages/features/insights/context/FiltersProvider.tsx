@@ -114,17 +114,19 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             selectedFilter,
             isAll,
             dateRange,
+            initialConfig,
           } = newConfigFilters;
           const [startTime, endTime] = dateRange || [null, null];
-          const newSearchParams = new URLSearchParams(searchParams);
+          const newSearchParams = new URLSearchParams(searchParams.toString());
           function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
             if (value !== undefined && value !== null) newSearchParams.set(key, value.toString());
           }
+
           setParamsIfDefined("memberUserId", selectedMemberUserId);
-          setParamsIfDefined("teamId", selectedTeamId);
-          setParamsIfDefined("userId", selectedUserId);
+          setParamsIfDefined("teamId", selectedTeamId || initialConfig?.teamId);
+          setParamsIfDefined("userId", selectedUserId || initialConfig?.userId);
           setParamsIfDefined("eventTypeId", selectedEventTypeId);
-          setParamsIfDefined("isAll", isAll);
+          setParamsIfDefined("isAll", isAll || initialConfig?.isAll);
           setParamsIfDefined("startTime", startTime?.toISOString());
           setParamsIfDefined("endTime", endTime?.toISOString());
           setParamsIfDefined("filter", selectedFilter?.[0]);
