@@ -52,6 +52,7 @@ export async function getHandler(req: NextApiRequest) {
       team: { select: { slug: true } },
       users: true,
       owner: { select: { username: true, id: true } },
+      children: { select: { id: true, userId: true } },
     },
   });
   await checkPermissions(req, eventType);
