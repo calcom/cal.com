@@ -5,6 +5,10 @@ import z from "zod";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
+
+type PaypalLink = { href: string; rel: "self" | "action_url"; method: "GET"; description: string };
+
 class Paypal {
   url: string;
   clientId: string;
@@ -12,10 +16,13 @@ class Paypal {
   accessToken: string | null = null;
   expiresAt: number | null = null;
 
-  constructor(opts: { clientId: string; secretKey: string }) {
+  constructor() {
     this.url = IS_PRODUCTION ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
-    this.clientId = opts.clientId;
-    this.secretKey = opts.secretKey;
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error("MISSING_API_CREDENTIALS");
+    }
+    this.clientId = PAYPAL_CLIENT_ID;
+    this.secretKey = PAYPAL_CLIENT_SECRET;
   }
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
@@ -30,6 +37,50 @@ class Paypal {
       },
     });
   };
+
+  async getOnboardingLink(userId: number): Promise<string> {
+    // Refresh acces token if needed
+    await this.getAccessToken();
+    const redirect_uri = encodeURI(`${WEBAPP_URL}/api/integrations/paypal/callback`);
+    const paypalPartnerRes = await fetch(`${this.url}/v2/customer/partner-referrals`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      body: JSON.stringify({
+        trackingId: userId,
+        operations: [
+          {
+            operation: "API_INTEGRATION",
+            api_integration_preference: {
+              rest_api_integration: {
+                integration_method: "PAYPAL",
+                integration_type: "THIRD_PARTY",
+                third_party_details: {
+                  features: ["PAYMENT", "REFUND"],
+                },
+              },
+            },
+          },
+        ],
+        products: ["EXPRESS_CHECKOUT"],
+        legal_consents: [
+          {
+            type: "SHARE_DATA_CONSENT",
+            granted: true,
+          },
+        ],
+        partner_config_override: { redirect_url: redirect_uri },
+      }),
+    });
+    const partnerLinksObj: { links: PaypalLink[] } = await paypalPartnerRes.json();
+    const onboardingLink = partnerLinksObj.links.find((link) => link.rel === "action_url") ?? "";
+    if (!onboardingLink) {
+      throw new Error("Failed to get onboarding redirect url");
+    }
+    return onboardingLink.rel;
+  }
 
   async getAccessToken(): Promise<void> {
     if (this.accessToken && this.expiresAt && this.expiresAt > Date.now()) {

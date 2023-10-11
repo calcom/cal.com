@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Get paypal instance
-    const paypalClient = new Paypal(credentials);
+    const paypalClient = new Paypal();
 
     // capture payment
     const capture = await paypalClient.captureOrder(token);

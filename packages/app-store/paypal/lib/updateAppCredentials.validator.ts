@@ -18,7 +18,7 @@ const handlePaypalValidations = async ({ input }: UpdateAppCredentialsOptions) =
   const { key } = validated.data;
 
   // Test credentials before saving
-  const paypalClient = new Paypal({ clientId: key.client_id, secretKey: key.secret_key });
+  const paypalClient = new Paypal();
   const test = await paypalClient.test();
   if (!test) throw new Error("Provided credentials failed to authenticate");
 

@@ -48,7 +48,7 @@ export async function handlePaypalPaymentSuccess(
   if (!foundCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
   const { webhookId, ...credentials } = foundCredentials;
 
-  const paypalClient = new Paypal(credentials);
+  const paypalClient = new Paypal();
   await paypalClient.getAccessToken();
   await paypalClient.verifyWebhook({
     body: {

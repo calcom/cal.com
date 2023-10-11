@@ -48,10 +48,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       const uid = uuidv4();
 
-      const paypalClient = new Paypal({
-        clientId: this.credentials.client_id,
-        secretKey: this.credentials.secret_key,
-      });
+      const paypalClient = new Paypal();
       const orderResult = await paypalClient.createOrder({
         referenceId: uid,
         amount: payment.amount,
@@ -124,10 +121,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       const uid = uuidv4();
 
-      const paypalClient = new Paypal({
-        clientId: this.credentials.client_id,
-        secretKey: this.credentials.secret_key,
-      });
+      const paypalClient = new Paypal();
       const preference = await paypalClient.createOrder({
         referenceId: uid,
         amount: payment.amount,
