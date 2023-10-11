@@ -12,6 +12,7 @@ import {
   HTTP_GET_OR_POST,
   HTTP_GET_DELETE_PATCH,
 } from "./httpMethods";
+import { rateLimitApiKey } from "./rateLimitApiKey";
 import { verifyApiKey } from "./verifyApiKey";
 import { withPagination } from "./withPagination";
 
@@ -25,6 +26,7 @@ const withMiddleware = label(
     HTTP_DELETE,
     addRequestId,
     verifyApiKey,
+    rateLimitApiKey,
     customPrismaClient,
     extendRequest,
     pagination: withPagination,
@@ -37,6 +39,7 @@ const withMiddleware = label(
     // - Put customPrismaClient before verifyApiKey always.
     "customPrismaClient",
     "verifyApiKey",
+    "rateLimitApiKey",
     "addRequestId",
   ] // <-- Provide a list of middleware to call automatically
 );
