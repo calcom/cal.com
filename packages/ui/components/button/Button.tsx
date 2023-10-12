@@ -124,7 +124,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     size,
     variant = "button",
     type = "button",
-    side = "top",
+    tooltipSide = "top",
     StartIcon,
     EndIcon,
     shallow,
