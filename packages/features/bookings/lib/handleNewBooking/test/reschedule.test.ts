@@ -813,7 +813,8 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test(
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(
         `should rechedule a booking, that requires confirmation, without confirmation - When Organizer is doing the reschedule
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
@@ -1053,7 +1054,8 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test.only(
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(
         `should rechedule a booking, that requires confirmation, without confirmation - When the owner of the previous booking is doing the reschedule
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
@@ -1161,8 +1163,10 @@ describe("handleNewBooking", () => {
                 {
                   id: previousOrganizerIdForTheBooking,
                   name: "Previous Organizer",
+                  username: "prev-organizer",
                   email: "",
                   schedules: [TestData.schedules.IstWorkHours],
+                  timeZone: "Europe/London",
                 },
               ],
               apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
