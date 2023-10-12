@@ -270,7 +270,8 @@ function EventTypeSingleLayout({
                 <Tooltip
                   content={
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                  }>
+                  }
+                  side="bottom">
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
@@ -291,7 +292,7 @@ function EventTypeSingleLayout({
             {!isManagedEventType && (
               <>
                 {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
-                <Tooltip content={t("preview")}>
+                <Tooltip content={t("preview")} side="bottom">
                   <Button
                     color="secondary"
                     data-testid="preview-button"
@@ -308,6 +309,7 @@ function EventTypeSingleLayout({
                   variant="icon"
                   StartIcon={LinkIcon}
                   tooltip={t("copy_link")}
+                  side="bottom"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -319,6 +321,7 @@ function EventTypeSingleLayout({
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
+                  side="bottom"
                   eventId={eventType.id}
                 />
               </>
@@ -329,6 +332,7 @@ function EventTypeSingleLayout({
                 variant="icon"
                 StartIcon={Trash}
                 tooltip={t("delete")}
+                side="bottom"
                 disabled={!hasPermsToDelete}
                 onClick={() => setDeleteDialogOpen(true)}
               />
