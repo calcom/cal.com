@@ -28,7 +28,7 @@ export function Dialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const newSearchParams = new URLSearchParams(searchParams);
+  const newSearchParams = new URLSearchParams(searchParams ?? undefined);
   const { children, name, ...dialogProps } = props;
 
   // only used if name is set
