@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { defaultHandler } from "@calcom/lib/server";
@@ -7,7 +8,7 @@ import prisma from "@calcom/prisma";
 import config from "../config.json";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const teamId = Number(req.query?.teamId);
+  const parsedTeamId = z.coerce.number().safeParse(req.query.teamId);
   const userId = req.session?.user?.id;
   if (!userId) {
     return res.status(401).json({ message: "You must be logged in to do this" });
@@ -18,7 +19,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         select: { id: true },
         where: {
           appId: config.slug,
-          ...(Boolean(teamId) ? { AND: [{ userId: userId }, { teamId }] } : { userId: userId }),
+          ...(parsedTeamId.success
+            ? { AND: [{ userId: userId }, { teamId: parsedTeamId.data }] }
+            : { userId: userId }),
         },
       })
     );
