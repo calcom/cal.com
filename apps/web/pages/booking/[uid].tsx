@@ -106,7 +106,10 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
-  } = querySchema.parse(routerQuery);
+  } = querySchema
+    // UID is now part of useParams, not SearchParams
+    .omit({ uid: true })
+    .parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
