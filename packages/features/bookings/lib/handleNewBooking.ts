@@ -979,48 +979,20 @@ async function handler(
 
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  let requiresConfirmation = eventType?.requiresConfirmation;
-  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
-  if (rcThreshold) {
-    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
-      requiresConfirmation = false;
-    }
-  }
+  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+    eventType,
+    bookingStartTime: reqBody.start,
+    userId,
+    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+    paymentAppData,
+  });
 
-  /**
-   * Tells that the user doing rescheduling is logged in as the earlier booking owner
-   *
-   * If the user is not the owner of the event, new booking can possibly be pending
-   * Otherwise, an owner rescheduling should be always accepted.
-   * Before comparing make sure that userId is set, otherwise undefined === undefined
-   */
-  const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-
-  /**
-   * Tells that the user doing booking(fresh or reschedule) is logged in as the organizer of the event
-   */
-  const isBeingBookedByOrganizer = organizerUser.id === userId;
-
-  const canBookWithoutConfirmation = isBeingBookedByOrganizer || userReschedulingIsOwner;
-  const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || canBookWithoutConfirmation;
-
+  // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
-    canBookWithoutConfirmation && originalRescheduledBooking
+    userReschedulingIsOwner && originalRescheduledBooking
       ? originalRescheduledBooking.attendees.find((attendee) => attendee.email === bookerEmail)
       : null;
 
-  loggerWithEventDetails.debug(
-    "canBookWithoutConfirmation->",
-    safeStringify({
-      isBeingBookedByOrganizer,
-      userReschedulingIsOwner,
-      originalRescheduledBooking,
-      isConfirmedByDefault,
-      canBookWithoutConfirmation,
-      reqUserId: userId,
-      attendeeInfoOnReschedule,
-    })
-  );
   const attendeeLanguage = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.locale : language;
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
@@ -1155,7 +1127,7 @@ async function handler(
       ? [organizerUser.destinationCalendar]
       : null,
     hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: (requiresConfirmation && !canBookWithoutConfirmation) ?? false,
+    requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
@@ -1237,7 +1209,6 @@ async function handler(
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: eventType.title,
     eventDescription: eventType.description,
-    requiresConfirmation: requiresConfirmation || null,
     price: paymentAppData.price,
     currency: eventType.currency,
     length: eventType.length,
@@ -1465,8 +1436,9 @@ async function handler(
             }
           }
 
-          if (noEmail !== true && (!requiresConfirmation || canBookWithoutConfirmation)) {
+          if (noEmail !== true && isConfirmedByDefault) {
             const copyEvent = cloneDeep(evt);
+            loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -1585,8 +1557,9 @@ async function handler(
             ? calendarResult?.updatedEvent[0]?.iCalUID
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-          if (!requiresConfirmation || canBookWithoutConfirmation) {
+          if (noEmail !== true && isConfirmedByDefault) {
             // TODO send reschedule emails to attendees of the old booking
+            loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -2037,7 +2010,7 @@ async function handler(
     safeStringify({
       organizerUser: organizerUser.id,
       attendeesList: attendeesList.map((guest) => ({ timeZone: guest.timeZone })),
-      requiresConfirmation,
+      requiresConfirmation: evt.requiresConfirmation,
       isConfirmedByDefault,
       userReschedulingIsOwner,
     })
@@ -2202,15 +2175,9 @@ async function handler(
           videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
-
-      loggerWithEventDetails.debug("Checking if we can send rescheduled emails", {
-        requiresConfirmation,
-        isBeingBookedByOrganizer,
-        noEmail,
-      });
-
-      if (noEmail !== true && (!requiresConfirmation || canBookWithoutConfirmation)) {
+      if (noEmail !== true && isConfirmedByDefault) {
         const copyEvent = cloneDeep(evt);
+        loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
@@ -2221,7 +2188,7 @@ async function handler(
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!requiresConfirmation && !paymentAppData.price) {
+  } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -2328,7 +2295,7 @@ async function handler(
         }
 
         loggerWithEventDetails.debug(
-          "Sending scheduled emails for booking confirmation",
+          "Emails: Sending scheduled emails for booking confirmation",
           safeStringify({
             calEvent: getPiiFreeCalendarEvent(evt),
           })
@@ -2346,6 +2313,16 @@ async function handler(
         );
       }
     }
+  } else {
+    // If isConfirmedByDefault is false, then booking can't be considered ACCEPTED and thus EventManager has no role to play. Booking is created as PENDING
+    loggerWithEventDetails.debug(
+      `EventManager doesn't need to create or reschedule event for booking ${organizerUser.username}`,
+      safeStringify({
+        calEvent: getPiiFreeCalendarEvent(evt),
+        isConfirmedByDefault,
+        paymentValue: paymentAppData.price,
+      })
+    );
   }
 
   const bookingRequiresPayment =
@@ -2356,7 +2333,7 @@ async function handler(
 
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     loggerWithEventDetails.debug(
-      `Booking ${organizerUser.username} requires confirmation, sending request emails`,
+      `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
       })
@@ -2453,6 +2430,7 @@ async function handler(
     videoCallUrl = booking.location;
   }
 
+  // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
@@ -2474,7 +2452,8 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-  } else if (eventType.requiresConfirmation) {
+    // FIXME: Really don't understand why we have this condition. If isConfirmedByDefault is false, we should have BOOKING_REQUESTED webhook triggered because the booking would have been created in PENDING state only
+  } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
@@ -2552,6 +2531,44 @@ async function handler(
 }
 
 export default handler;
+
+function getRequiresConfirmationFlags({
+  eventType,
+  bookingStartTime,
+  userId,
+  paymentAppData,
+  originalRescheduledBookingOrganizerId,
+}: {
+  eventType: Pick<Awaited<ReturnType<typeof getEventTypesFromDB>>, "metadata" | "requiresConfirmation">;
+  bookingStartTime: string;
+  userId: number | undefined;
+  paymentAppData: { price: number };
+  originalRescheduledBookingOrganizerId: number | undefined;
+}) {
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(bookingStartTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
+
+  // If the user is not the owner of the event, new booking should be always pending.
+  // Otherwise, an owner rescheduling should be always accepted.
+  // Before comparing make sure that userId is set, otherwise undefined === undefined
+  const userReschedulingIsOwner = !!(userId && originalRescheduledBookingOrganizerId === userId);
+  const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
+  return {
+    /**
+     * Organizer of the booking is rescheduling
+     */
+    userReschedulingIsOwner,
+    /**
+     * Booking won't need confirmation to be ACCEPTED
+     */
+    isConfirmedByDefault,
+  };
+}
 
 function handleCustomInputs(
   eventTypeCustomInputs: EventTypeCustomInput[],
