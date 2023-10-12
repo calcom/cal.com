@@ -372,7 +372,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={bookerUrl + "/" + user.username + "/avatar.png"}
+              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -678,7 +678,7 @@ const NavigationItem: React.FC<{
               {item.badge && item.badge}
             </span>
           ) : (
-            <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
+            <SkeletonText className="h-[20px] w-full" />
           )}
         </Link>
       </Tooltip>
@@ -1008,7 +1008,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-2 py-4 md:py-12 lg:px-6">
+      <div className="max-w-full px-2 py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

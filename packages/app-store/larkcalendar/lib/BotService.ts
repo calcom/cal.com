@@ -114,7 +114,7 @@ export async function sendPostMsg(
   const response = await fetch(`https://${LARK_HOST}/open-apis/im/v1/messages?receive_id_type=open_id`, {
     method: "POST",
     headers: {
-      Authorization: "Bearer " + tenantAccessToken,
+      Authorization: `Bearer ${tenantAccessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

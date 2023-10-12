@@ -24,7 +24,7 @@ document.addEventListener("click", (e) => {
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
-
+const prerender = searchParams.get("prerender");
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
 }
@@ -211,13 +211,25 @@ if (only === "all" || only === "ns:fifth") {
     callback,
   });
 }
+
 if (only === "all" || only === "prerender-test") {
-  Cal("init", "prerendertestLightTheme", {
+  Cal("init", "e2ePrerenderLightTheme", {
     debug: true,
     origin: "http://localhost:3000",
   });
-  Cal.ns.prerendertestLightTheme("preload", {
-    calLink: "free",
+  Cal.ns.e2ePrerenderLightTheme("prerender", {
+    calLink: "free/30min",
+    type: "modal",
+  });
+}
+
+if (only === "all" || only === "preload-test") {
+  Cal("init", "preloadTest", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+  Cal.ns.preloadTest("preload", {
+    calLink: "free/30min",
   });
 }
 
@@ -300,6 +312,11 @@ Cal("init", "popupDarkTheme", {
   origin: "http://localhost:3000",
 });
 
+Cal("init", "e2ePopupLightTheme", {
+  debug: true,
+  origin: "http://localhost:3000",
+});
+
 Cal("init", "popupHideEventTypeDetails", {
   debug: true,
   origin: "http://localhost:3000",
@@ -360,6 +377,12 @@ Cal("init", "routingFormDark", {
 });
 
 if (only === "all" || only == "ns:floatingButton") {
+  if (prerender == "true") {
+    Cal.ns.floatingButton("prerender", {
+      calLink: calLink || "pro",
+      type: "floatingButton",
+    });
+  }
   Cal.ns.floatingButton("floatingButton", {
     calLink: calLink || "pro",
     config: {

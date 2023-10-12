@@ -144,17 +144,20 @@ Here is what you need to be able to run Cal.com.
    ```
 
 4. Set up your `.env` file
+
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
    ```sh
    nvm use
    ```
-   
+
    You first might need to install the specific version and then use it:
+
    ```sh
    nvm install && nvm use
    ```
@@ -234,6 +237,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
@@ -249,6 +253,8 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Setting up your first user
 
+##### Approach 1
+
 1. Open [Prisma Studio](https://prisma.io/studio) to look at or modify the database content:
 
    ```sh
@@ -259,6 +265,17 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
    > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
+
+##### Approach 2
+
+Seed the local db by running
+
+```sh
+cd packages/prisma
+yarn db-seed
+```
+
+The above command will populate the local db with dummy users.
 
 ### E2E-Testing
 
@@ -273,6 +290,7 @@ yarn playwright show-report test-results/reports/playwright-html-report
 ```
 
 #### Resolving issues
+
 ##### E2E test browsers not installed
 
 Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
@@ -362,6 +380,10 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 ### Render
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
+
+### Elestio
+
+[![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/cal.com)
 
 <!-- ROADMAP -->
 
@@ -492,9 +514,8 @@ following
 4. Select Basecamp 4 as the product to integrate with.
 5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
 6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
-7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
-For example, `Cal.com (support@cal.com)`.
-
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
+   For example, `Cal.com (support@cal.com)`.
 
 ### Obtaining HubSpot Client ID and Secret
 
@@ -529,6 +550,7 @@ For example, `Cal.com (support@cal.com)`.
 ### Obtaining Zoho Calendar Client ID and Secret
 
 [Follow these steps](./packages/app-store/zohocalendar/)
+
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)

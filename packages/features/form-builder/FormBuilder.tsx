@@ -69,7 +69,7 @@ export const FormBuilder = function FormBuilder({
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
-
+  const [parent] = useAutoAnimate<HTMLUListElement>();
   const { t } = useLocale();
 
   const { fields, swap, remove, update, append } = useFieldArray({
@@ -107,12 +107,12 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+        <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {title}
           {LockedIcon}
         </div>
-        <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-subtle divide-subtle mt-2 divide-y rounded-md border">
+        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
@@ -550,7 +550,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const variant = field.variant || defaultVariant;
   if (!variant) {
     throw new Error(
-      "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
+      `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
   const label =

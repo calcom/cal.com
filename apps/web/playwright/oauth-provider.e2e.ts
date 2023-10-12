@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
 import { test } from "./lib/fixtures";
@@ -65,7 +66,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -96,7 +97,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -150,7 +151,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -181,7 +182,7 @@ test.describe("OAuth Provider", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + tokenData.access_token,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 

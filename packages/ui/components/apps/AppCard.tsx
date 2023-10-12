@@ -55,7 +55,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <div className="flex">
         <img
           src={app.logo}
-          alt={app.name + " Logo"}
+          alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
             "mb-4 h-12 w-12 rounded-sm",
@@ -190,7 +190,9 @@ const InstallAppButtonChild = ({
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(pathname);
+      if (pathname !== null) {
+        router.replace(pathname);
+      }
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

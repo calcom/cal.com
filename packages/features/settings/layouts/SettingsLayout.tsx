@@ -375,12 +375,14 @@ const SettingsSidebarContainer = ({
                                       <ChevronRight className="h-4 w-4" />
                                     )}
                                   </div>
-                                  <img
-                                    src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                    alt={team.name || "Team logo"}
-                                  />
-                                  <p className="w-1/2 truncate">{team.name}</p>
+                                  {!team.parentId && (
+                                    <img
+                                      src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      alt={team.name || "Team logo"}
+                                    />
+                                  )}
+                                  <p className="w-1/2 truncate leading-normal">{team.name}</p>
                                   {!team.accepted && (
                                     <Badge className="ms-3" variant="orange">
                                       Inv.
@@ -517,12 +519,14 @@ const SettingsSidebarContainer = ({
                                       <ChevronRight className="h-4 w-4" />
                                     )}
                                   </div>
-                                  <img
-                                    src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
-                                    className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                    alt={otherTeam.name || "Team logo"}
-                                  />
-                                  <p className="w-1/2 truncate">{otherTeam.name}</p>
+                                  {!otherTeam.parentId && (
+                                    <img
+                                      src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      alt={otherTeam.name || "Team logo"}
+                                    />
+                                  )}
+                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
@@ -684,7 +688,7 @@ export function ShellHeader() {
       <header
         className={classNames(
           "border-subtle mx-auto block justify-between sm:flex",
-          meta.borderInShellHeader && "rounded-t-xl border px-4 py-6 sm:px-6",
+          meta.borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           meta.borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
         <div className="flex w-full items-center">
@@ -699,12 +703,12 @@ export function ShellHeader() {
                 {t(meta.title)}
               </h1>
             ) : (
-              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
+              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
             )}
             {meta.description && isLocaleReady ? (
               <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
             ) : (
-              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
             )}
           </div>
           <div className="ms-auto flex-shrink-0">{meta.CTA}</div>

@@ -91,7 +91,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     attendeeInputType: "attendeeAddress",
     attendeeInputPlaceholder: "enter_address",
     defaultValueVariable: "attendeeAddress",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {
@@ -103,7 +103,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     // HACK:
     variable: "locationAddress",
     defaultValueVariable: "address",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {
@@ -402,8 +402,9 @@ export function getSuccessPageLocationMessage(
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
-      locationToDisplay =
-        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_confirmation_email");
+      locationToDisplay = `${getHumanReadableLocationValue(location, t)}: ${t(
+        "meeting_url_in_confirmation_email"
+      )}`;
     } else {
       locationToDisplay = t("web_conferencing_details_to_follow");
     }

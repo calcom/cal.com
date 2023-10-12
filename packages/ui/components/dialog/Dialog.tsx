@@ -28,7 +28,7 @@ export function Dialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const newSearchParams = new URLSearchParams(searchParams);
+  const newSearchParams = new URLSearchParams(searchParams ?? undefined);
   const { children, name, ...dialogProps } = props;
 
   // only used if name is set
@@ -187,7 +187,7 @@ export function DialogClose(
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
       {/* This will require the i18n string passed in */}
-      <Button color={props.color || "minimal"} {...props}>
+      <Button data-testid="dialog-rejection" color={props.color || "minimal"} {...props}>
         {props.children ? props.children : t("Close")}
       </Button>
     </DialogPrimitive.Close>

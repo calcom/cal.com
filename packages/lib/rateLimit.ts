@@ -7,7 +7,7 @@ import logger from "./logger";
 const log = logger.getChildLogger({ prefix: ["RateLimit"] });
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode" | "common";
+  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api";
   identifier: string;
 };
 
@@ -68,6 +68,12 @@ export function rateLimiter() {
       analytics: true,
       prefix: "ratelimit:slowmode",
       limiter: Ratelimit.fixedWindow(1, "30s"),
+    }),
+    api: new Ratelimit({
+      redis,
+      analytics: true,
+      prefix: "ratelimit:api",
+      limiter: Ratelimit.fixedWindow(10, "60s"),
     }),
   };
 
