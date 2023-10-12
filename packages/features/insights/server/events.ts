@@ -1,9 +1,9 @@
-import type { RawDataInput } from "insights/server/raw-data.schema";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+
+import type { RawDataInput } from "./raw-data.schema";
 
 interface ITimeRange {
   start: Dayjs;
