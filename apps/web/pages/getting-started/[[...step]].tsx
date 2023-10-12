@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { z } from "zod";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -219,10 +220,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (user.completedOnboarding) {
     return { redirect: { permanent: false, destination: "/event-types" } };
   }
+  const locale = await getLocale(context.req);
 
   return {
     props: {
-      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
+      ...(await serverSideTranslations(locale, ["common"])),
       trpcState: ssr.dehydrate(),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },

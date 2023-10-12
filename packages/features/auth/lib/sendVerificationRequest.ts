@@ -27,7 +27,7 @@ const sendVerificationRequest = async ({ identifier, url }: SendVerificationRequ
   transporter.sendMail({
     from: `${process.env.EMAIL_FROM}` || APP_NAME,
     to: identifier,
-    subject: "Your sign-in link for " + APP_NAME,
+    subject: `Your sign-in link for ${APP_NAME}`,
     html: emailTemplate({
       base_url: WEBAPP_URL,
       signin_url: url,

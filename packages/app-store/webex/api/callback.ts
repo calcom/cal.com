@@ -3,8 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
@@ -15,16 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
   const result = await fetch(
-    "https://webexapis.com/v1/access_token?grant_type=authorization_code&client_id" +
-      client_id +
-      "&client_secret=" +
-      client_secret +
-      "&code=" +
-      code +
-      "&redirect_uri=" +
-      redirectUri,
+    `https://webexapis.com/v1/access_token?grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&code=${code}&redirect_uri=${redirectUri}`,
     {
       method: "POST",
       headers: {

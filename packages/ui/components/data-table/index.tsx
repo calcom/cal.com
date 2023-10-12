@@ -17,6 +17,8 @@ import {
 import { useState } from "react";
 import { useVirtual } from "react-virtual";
 
+import classNames from "@calcom/lib/classNames";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
 import type { ActionItem } from "./DataTableSelectionBar";
 import { DataTableSelectionBar } from "./DataTableSelectionBar";
@@ -32,6 +34,7 @@ export interface DataTableProps<TData, TValue> {
   selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
+  onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
@@ -47,6 +50,8 @@ export function DataTable<TData, TValue>({
   tableContainerRef,
   isLoading,
   tableOverlay,
+  /** This should only really be used if you dont have actions in a row. */
+  onRowMouseclick,
   onScroll,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
@@ -97,21 +102,9 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div
-        className="border-subtle rounded-md border"
-        ref={tableContainerRef}
-        onScroll={onScroll}
-        style={{
-          height: "calc(100vh - 30vh)",
-          overflow: "auto",
-        }}>
+      <div className="border-subtle border" ref={tableContainerRef} onScroll={onScroll}>
         <Table>
-          <TableHeader
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-            }}>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -137,7 +130,11 @@ export function DataTable<TData, TValue>({
                 const row = rows[virtualRow.index] as Row<TData>;
 
                 return (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                    className={classNames(onRowMouseclick && "hover:cursor-pointer")}>
                     {row.getVisibleCells().map((cell) => {
                       return (
                         <TableCell key={cell.id}>

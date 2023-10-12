@@ -19,7 +19,9 @@ export const BookingStatusLineChart = () => {
     dateRange,
     selectedEventTypeId,
     isAll,
+    initialConfig,
   } = filter;
+  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
   if (!startDate || !endDate) return null;
@@ -43,6 +45,7 @@ export const BookingStatusLineChart = () => {
       trpc: {
         context: { skipBatch: true },
       },
+      enabled: initialConfigIsReady,
     }
   );
 
