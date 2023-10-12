@@ -268,6 +268,7 @@ function EventTypeSingleLayout({
                   </Skeleton>
                 )}
                 <Tooltip
+                  sideOffset={4}
                   content={
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
                   }
@@ -292,7 +293,7 @@ function EventTypeSingleLayout({
             {!isManagedEventType && (
               <>
                 {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
-                <Tooltip content={t("preview")} side="bottom">
+                <Tooltip content={t("preview")} side="bottom" sideOffset={4}>
                   <Button
                     color="secondary"
                     data-testid="preview-button"
@@ -310,6 +311,7 @@ function EventTypeSingleLayout({
                   StartIcon={LinkIcon}
                   tooltip={t("copy_link")}
                   tooltipSide="bottom"
+                  tooltipOffset={4}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -322,6 +324,7 @@ function EventTypeSingleLayout({
                   variant="icon"
                   tooltip={t("embed")}
                   tooltipSide="bottom"
+                  tooltipOffset={4}
                   eventId={eventType.id}
                 />
               </>
@@ -333,6 +336,7 @@ function EventTypeSingleLayout({
                 StartIcon={Trash}
                 tooltip={t("delete")}
                 tooltipSide="bottom"
+                tooltipOffset={4}
                 disabled={!hasPermsToDelete}
                 onClick={() => setDeleteDialogOpen(true)}
               />
