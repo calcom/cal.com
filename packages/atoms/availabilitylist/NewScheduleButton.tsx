@@ -34,7 +34,6 @@ export function NewScheduleButton({
   const form = useForm<{
     name: string;
   }>();
-  const { register } = form;
 
   return (
     <div>
