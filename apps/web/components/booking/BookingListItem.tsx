@@ -357,12 +357,17 @@ function BookingListItem(booking: BookingItemProps) {
                 <Link href={booking.location} className="text-sm leading-6 text-blue-400 hover:underline">
                   {booking.location.startsWith("https://zoom") ? (
                     <div className="flex items-center gap-1">
-                      <img src="/zoom-logo.png" alt="Zoom Logo" height={16} width={16} />
+                      <img src="/app-store/zoomvideo/icon.svg" alt="Zoom Logo" height={16} width={16} />
                       Join Zoom
                     </div>
                   ) : booking.location.startsWith("https://meet.google") ? (
                     <div className="flex items-center gap-1">
-                      <img src="/google-meet-logo.png" alt="Google Meet Logo" height={16} width={16} />
+                      <img
+                        src="/app-store/googlevideo/logo.webp"
+                        alt="Google Meet Logo"
+                        height={16}
+                        width={16}
+                      />
                       Join Google Meet
                     </div>
                   ) : (
