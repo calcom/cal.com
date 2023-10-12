@@ -118,6 +118,7 @@ export const tabs = [
       { calLink: string; embedType: EmbedType; previewState: PreviewState }
     >(function Preview({ calLink, embedType }, ref) {
       const bookerUrl = useBookerUrl();
+      const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -131,7 +132,8 @@ export const tabs = [
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`}
+          src={iframeSrc}
+          key={iframeSrc}
         />
       );
     }),
