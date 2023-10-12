@@ -353,21 +353,23 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              <div className="text-sm leading-6 text-blue-400">
-                {booking.location.startsWith("https://zoom") ? (
-                  <Link href={booking.location} className="hover:underline">
-                    Join Zoom
-                  </Link>
-                ) : booking.location.startsWith("https://meet.google") ? (
-                  <Link href={booking.location} className="hover:underline">
-                    Join Google Meet
-                  </Link>
-                ) : (
-                  <Link href={booking.location} className="hover:underline">
-                    Join Meeting
-                  </Link>
-                )}
-              </div>
+              {booking.location.startsWith("https://") && (
+                <div className="text-sm leading-6 text-blue-400">
+                  {booking.location.startsWith("https://zoom") ? (
+                    <Link href={booking.location} className="hover:underline">
+                      Join Zoom
+                    </Link>
+                  ) : booking.location.startsWith("https://meet.google") ? (
+                    <Link href={booking.location} className="hover:underline">
+                      Join Google Meet
+                    </Link>
+                  ) : (
+                    <Link href={booking.location} className="hover:underline">
+                      Join Meeting
+                    </Link>
+                  )}
+                </div>
+              )}
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
