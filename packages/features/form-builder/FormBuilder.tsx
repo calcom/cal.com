@@ -30,6 +30,7 @@ import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
+import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
