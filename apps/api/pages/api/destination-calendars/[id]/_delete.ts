@@ -29,8 +29,8 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: OK, destinationCalendar removed successfully
  *       401:
  *        description: Authorization information is missing or invalid.
- *       403:
- *        description: Forbidden
+ *       404:
+ *        description: Destination calendar not found
  */
 export async function deleteHandler(req: NextApiRequest) {
   const { prisma, query } = req;

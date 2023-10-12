@@ -25,7 +25,8 @@ async function authMiddleware(req: NextApiRequest) {
       ],
     },
   });
-  if (!destinationCalendar) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!destinationCalendar)
+    throw new HttpError({ statusCode: 404, message: "Destination calendar not found" });
 }
 
 export default authMiddleware;

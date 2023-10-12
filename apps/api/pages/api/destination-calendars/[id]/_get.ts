@@ -30,8 +30,8 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
- *       403:
- *         description: Forbidden
+ *       404:
+ *         description: Destination calendar not found
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
