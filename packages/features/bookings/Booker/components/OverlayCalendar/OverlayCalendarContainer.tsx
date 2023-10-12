@@ -3,6 +3,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +19,7 @@ import { useOverlayCalendarStore } from "./store";
 
 export function OverlayCalendarContainer() {
   const { t } = useLocale();
+  const isEmbed = useIsEmbed();
   const [continueWithProvider, setContinueWithProvider] = useState(false);
   const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
   const { data: session } = useSession();
@@ -102,9 +104,17 @@ export function OverlayCalendarContainer() {
     }
   }, [session, overlayCalendarQueryParam, toggleOverlayCalendarQueryParam]);
 
+  if (isEmbed) {
+    return null;
+  }
+
   return (
     <>
-      <div className={classNames("hidden gap-2", layout === "week_view" ? "lg:flex" : "md:flex")}>
+      <div
+        className={classNames(
+          "hidden gap-2",
+          layout === "week_view" || layout === "column_view" ? "xl:flex" : "md:flex"
+        )}>
         <div className="flex items-center gap-2 pr-2">
           <Switch
             data-testid="overlay-calendar-switch"

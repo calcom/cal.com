@@ -91,7 +91,7 @@ const zoomAuth = (credential: CredentialPayload) => {
             grant_type: "refresh_token",
           }),
         }),
-      "zoomvideo",
+      "zoom",
       credential.userId
     );
 
