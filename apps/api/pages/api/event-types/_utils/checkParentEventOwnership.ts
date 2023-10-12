@@ -6,8 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
  * Checks if a user, identified by the provided userId, has ownership (or admin rights) over
  * the team associated with the event type identified by the parentId.
  *
- * @param parentId - The ID of the parent event type.
- * @param userId - The ID of the user.
+ * @param req - The current request
  *
  * @throws {HttpError} If the parent event type is not found,
  *                     if the parent event type doesn't belong to any team,
