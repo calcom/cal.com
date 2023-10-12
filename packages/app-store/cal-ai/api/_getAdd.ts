@@ -33,6 +33,21 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
+  // BAD TEMP HACK
+  process.env.CALAI_URL = "http://localhost:3005";
+  process.env.CALAI_API_KEY = "12345";
+
+  await fetch(`${process.env.CALAI_URL}/api/onboard`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.CALAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      userId: session.user.id,
+    }),
+  });
+
   return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
 }
 
