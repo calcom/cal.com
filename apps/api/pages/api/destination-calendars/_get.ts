@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
+import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
 import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
 
 /**
@@ -29,9 +30,10 @@ import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destinati
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, prisma } = req;
+  const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
   const userEventTypes = await prisma.eventType.findMany({
-    where: { userId },
+    where: { userId: { in: userIds } },
     select: { id: true },
   });
 
@@ -40,7 +42,7 @@ async function getHandler(req: NextApiRequest) {
 
   const allDestinationCalendars = await prisma.destinationCalendar.findMany({
     where: {
-      OR: [{ userId }, { eventTypeId: { in: userEventTypeIds } }],
+      OR: [{ userId: { in: userIds } }, { eventTypeId: { in: userEventTypeIds } }],
     },
   });
 

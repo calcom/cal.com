@@ -80,7 +80,7 @@ async function checkPermissions(req: NextApiRequest, userId: number) {
   const { isAdmin } = req;
   const body = schemaDestinationCalendarCreateBodyParams.parse(req.body);
 
-  /* Non-admin users can only create event types for themselves */
+  /* Non-admin users can only create destination calendars for themselves */
   if (!isAdmin && body.userId)
     throw new HttpError({
       statusCode: 401,
@@ -88,12 +88,12 @@ async function checkPermissions(req: NextApiRequest, userId: number) {
     });
   /* Admin users are required to pass in a userId */
   if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
-  /* User should only be able to create for their own event type*/
+  /* User should only be able to create for their own destination calendars*/
   if (!isAdmin && body.eventTypeId) {
     const ownsEventType = await req.prisma.eventType.findFirst({ where: { id: body.eventTypeId, userId } });
     if (!ownsEventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
-  // TODO:: Add check for team event types as well
+  // TODO:: Add support for team event types with validation
 }
 
 export default defaultResponder(postHandler);
