@@ -13,13 +13,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   try {
-    const alreadyInstalled =
-      (await prisma.credential.count({
+    const alreadyInstalled = Boolean(
+      await prisma.credential.findFirst({
+        select: { id: true },
         where: {
           appId: config.slug,
           ...(Boolean(teamId) ? { AND: [{ userId: userId }, { teamId }] } : { userId: userId }),
         },
-      })) > 0;
+      })
+    );
 
     if (alreadyInstalled) {
       throw new Error("App is already installed");
