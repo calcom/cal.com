@@ -1,27 +1,19 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { Trans } from "next-i18next";
-import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import {
-  Button,
   Label,
   Select,
   SettingsToggle,
@@ -30,10 +22,13 @@ import {
   Editor,
   SkeletonContainer,
   SkeletonText,
+  Input,
+  PhoneInput,
+  Button,
 } from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
+import { CornerDownRight } from "@calcom/ui/components/icon";
 
-import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
 
@@ -150,82 +145,61 @@ export const EventSetupTab = (
     selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
   );
 
-  const openLocationModal = (type: EventLocationType["type"], address = "") => {
-    const option = getLocationFromType(type, locationOptions);
-    if (option && option.value === LocationType.InPerson) {
-      const inPersonOption = {
-        ...option,
-        address,
-      };
-      setSelectedLocation(inPersonOption);
-    } else {
-      setSelectedLocation(option);
-    }
-    setShowLocationModal(true);
-  };
+  // const openLocationModal = (type: EventLocationType["type"], address = "") => {
+  //   const option = getLocationFromType(type, locationOptions);
+  //   if (option && option.value === LocationType.InPerson) {
+  //     const inPersonOption = {
+  //       ...option,
+  //       address,
+  //     };
+  //     setSelectedLocation(inPersonOption);
+  //   } else {
+  //     setSelectedLocation(option);
+  //   }
+  //   // setShowLocationModal(true);
+  // };
 
-  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
-    formMethods.setValue(
-      "locations",
-      formMethods.getValues("locations").filter((location) => {
-        if (location.type === LocationType.InPerson) {
-          return location.address !== selectedLocation.address;
-        }
-        return location.type !== selectedLocation.type;
-      }),
-      { shouldValidate: true }
-    );
-  };
+  // const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
+  //   formMethods.setValue(
+  //     "locations",
+  //     formMethods.getValues("locations").filter((location) => {
+  //       if (location.type === LocationType.InPerson) {
+  //         return location.address !== selectedLocation.address;
+  //       }
+  //       return location.type !== selectedLocation.type;
+  //     }),
+  //     { shouldValidate: true }
+  //   );
+  // };
 
-  const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
-    const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
-    const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
-    if (existingIdx !== -1) {
-      const copy = formMethods.getValues("locations");
-      if (editingLocationType !== "") {
-        copy[existingIdx] = {
-          ...details,
-          type: newLocationType,
-        };
-      }
+  // const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
+  //   const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
+  //   const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
+  //   if (existingIdx !== -1) {
+  //     const copy = formMethods.getValues("locations");
+  //     if (editingLocationType !== "") {
+  //       copy[existingIdx] = {
+  //         ...details,
+  //         type: newLocationType,
+  //       };
+  //     }
 
-      formMethods.setValue("locations", [
-        ...copy,
-        ...(newLocationType === LocationType.InPerson && editingLocationType === ""
-          ? [{ ...details, type: newLocationType }]
-          : []),
-      ]);
-    } else {
-      formMethods.setValue(
-        "locations",
-        formMethods.getValues("locations").concat({ type: newLocationType, ...details })
-      );
-    }
+  //     formMethods.setValue("locations", [
+  //       ...copy,
+  //       ...(newLocationType === LocationType.InPerson && editingLocationType === ""
+  //         ? [{ ...details, type: newLocationType }]
+  //         : []),
+  //     ]);
+  //   } else {
+  //     formMethods.setValue(
+  //       "locations",
+  //       formMethods.getValues("locations").concat({ type: newLocationType, ...details })
+  //     );
+  //   }
 
-    setEditingLocationType("");
-    setShowLocationModal(false);
-  };
-
-  const locationFormSchema = z.object({
-    locationType: z.string(),
-    locationAddress: z.string().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    locationPhoneNumber: z
-      .string()
-      .refine((val) => isValidPhoneNumber(val))
-      .optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
-  });
-
-  const locationFormMethods = useForm<{
-    locationType: EventLocationType["type"];
-    locationPhoneNumber?: string;
-    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
-    locationLink?: string; // Currently this only accepts links that are HTTPS://
-    displayLocationPublicly?: boolean;
-  }>({
-    resolver: zodResolver(locationFormSchema),
-  });
+  //   setEditingLocationType("");
+  //   setShowLocationModal(false);
+  // };
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
@@ -236,6 +210,15 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
+    const {
+      fields: locationFields,
+      append,
+      remove,
+      update: updateLocationField,
+    } = useFieldArray({
+      control: formMethods.control,
+      name: "locations",
+    });
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -253,38 +236,170 @@ export const EventSetupTab = (
       : undefined;
 
     const { locationDetails, locationAvailable } = getLocationInfo(props);
+    console.log("fields", locationFields);
+    console.log("formMethods", formMethods.getValues("locations"));
+
+    const LocationInput = (props: {
+      eventLocationType: EventLocationType;
+      defaultValue?: string;
+      index: number;
+    }) => {
+      const { eventLocationType, index, ...remainingProps } = props;
+
+      if (eventLocationType?.organizerInputType === "text") {
+        const { defaultValue, ...rest } = remainingProps;
+
+        return (
+          <Controller
+            name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+            control={formMethods.control}
+            defaultValue={defaultValue}
+            render={({ field: { onChange, value } }) => {
+              return (
+                <Input
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  type="text"
+                  required
+                  onChange={onChange}
+                  value={value}
+                  {...rest}
+                />
+              );
+            }}
+          />
+        );
+      } else if (eventLocationType?.organizerInputType === "phone") {
+        const { defaultValue, ...rest } = remainingProps;
+
+        return (
+          <Controller
+            name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+            control={formMethods.control}
+            defaultValue={defaultValue}
+            render={({ field: { onChange, value } }) => {
+              return (
+                <PhoneInput
+                  required
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  value={value}
+                  onChange={onChange}
+                  {...rest}
+                />
+              );
+            }}
+          />
+        );
+      }
+      return null;
+    };
+
+    const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
 
     return (
       <div className="w-full">
-        {validLocations.length === 0 && (
-          <div className="flex">
-            <LocationSelect
-              placeholder={t("select")}
-              options={locationOptions}
-              isDisabled={shouldLockDisableProps("locations").disabled}
-              defaultValue={defaultValue}
-              isSearchable={false}
-              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              menuPlacement="auto"
-              onChange={(e: SingleValueLocationOption) => {
-                if (e?.value) {
-                  const newLocationType = e.value;
-                  const eventLocationType = getEventLocationType(newLocationType);
-                  if (!eventLocationType) {
-                    return;
-                  }
-                  locationFormMethods.setValue("locationType", newLocationType);
-                  if (eventLocationType.organizerInputType) {
-                    openLocationModal(newLocationType);
-                  } else {
-                    saveLocation(newLocationType);
-                  }
+        <ul ref={animationRef}>
+          {locationFields.map((field, index) => {
+            const eventLocationType = getEventLocationType(field.type);
+            const defaultLocation = formMethods
+              .getValues("locations")
+              ?.find((location: { type: EventLocationType["type"]; address?: string }) => {
+                if (location.type === LocationType.InPerson) {
+                  return location.type === eventLocationType?.type && location.address === field?.address;
+                } else {
+                  return location.type === eventLocationType?.type;
                 }
-              }}
-            />
-          </div>
-        )}
-        {validLocations.length > 0 && (
+              });
+
+            const option = getLocationFromType(field.type, locationOptions);
+
+            return (
+              <div key={field.id}>
+                <Controller
+                  name={`locations.${index}.type`}
+                  control={formMethods.control}
+                  render={({ field: { onChange, value } }) => (
+                    <div>
+                      <LocationSelect
+                        name={`locations[${index}].type`}
+                        placeholder={t("select")}
+                        options={locationOptions}
+                        isDisabled={shouldLockDisableProps("locations").disabled}
+                        defaultValue={option}
+                        isSearchable={false}
+                        className="my-2 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        menuPlacement="auto"
+                        onChange={(e: SingleValueLocationOption) => {
+                          if (e?.value) {
+                            const newLocationType = e.value;
+                            const eventLocationType = getEventLocationType(newLocationType);
+                            if (!eventLocationType) {
+                              return;
+                            }
+                            updateLocationField(index, { type: newLocationType });
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                />
+
+                {eventLocationType?.organizerInputType && (
+                  <div className="flex gap-2">
+                    <div className="flex items-center justify-center">
+                      <CornerDownRight className="h-4 w-4" />
+                    </div>
+                    <div className="w-full">
+                      <LocationInput
+                        defaultValue={
+                          defaultLocation
+                            ? defaultLocation[eventLocationType.defaultValueVariable]
+                            : undefined
+                        }
+                        eventLocationType={eventLocationType}
+                        index={index}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {(validLocations.length === 0 || showEmptyLocationSelect) && (
+            <div className="flex">
+              <LocationSelect
+                placeholder={t("select")}
+                options={locationOptions}
+                isDisabled={shouldLockDisableProps("locations").disabled}
+                defaultValue={defaultValue}
+                isSearchable={false}
+                className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                menuPlacement="auto"
+                onChange={(e: SingleValueLocationOption) => {
+                  if (e?.value) {
+                    const newLocationType = e.value;
+                    const eventLocationType = getEventLocationType(newLocationType);
+                    if (!eventLocationType) {
+                      return;
+                    }
+                    append({ type: newLocationType });
+                  }
+                }}
+              />
+            </div>
+          )}
+          {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+            <li>
+              <Button
+                data-testid="add-location"
+                StartIcon={Plus}
+                color="minimal"
+                onClick={() => setShowEmptyLocationSelect(true)}>
+                {t("add_location")}
+              </Button>
+            </li>
+          )}
+        </ul>
+        {/* {validLocations.length > 0 && (
           <ul ref={animationRef}>
             {validLocations.map((location, index) => {
               const eventLocationType = getEventLocationType(location.type);
@@ -378,7 +493,7 @@ export const EventSetupTab = (
               </li>
             )}
           </ul>
-        )}
+        )} */}
       </div>
     );
   };
@@ -542,33 +657,6 @@ export const EventSetupTab = (
             />
           </div>
         </div>
-
-        {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
-        <EditLocationDialog
-          isOpenDialog={showLocationModal}
-          setShowLocationModal={setShowLocationModal}
-          saveLocation={saveLocation}
-          defaultValues={formMethods.getValues("locations")}
-          selection={
-            selectedLocation
-              ? selectedLocation.address
-                ? {
-                    value: selectedLocation.value,
-                    label: t(selectedLocation.label),
-                    icon: selectedLocation.icon,
-                    address: selectedLocation.address,
-                  }
-                : {
-                    value: selectedLocation.value,
-                    label: t(selectedLocation.label),
-                    icon: selectedLocation.icon,
-                  }
-              : undefined
-          }
-          setSelectedLocation={setSelectedLocation}
-          setEditingLocationType={setEditingLocationType}
-          teamId={eventType.team?.id}
-        />
       </div>
     </div>
   );
