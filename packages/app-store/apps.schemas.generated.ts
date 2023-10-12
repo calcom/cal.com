@@ -4,6 +4,7 @@
 **/
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appDataSchema as cal_ai_zod_ts } from "./cal-ai/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
@@ -39,6 +40,7 @@ import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  "cal-ai": cal_ai_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
   ga4: ga4_zod_ts,

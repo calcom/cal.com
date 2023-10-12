@@ -9,6 +9,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
@@ -110,6 +111,13 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   }
 
   const translateEvent = async (event: CalendarEvent) => {
+    const calAiKeys = await getAppKeysFromSlug("cal-ai");
+    const checkCalAiInstalled = await prisma.credential.findFirst({
+      where: {
+        appId: "cal-ai",
+        userId: event.organizer.id,
+      },
+    });
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
@@ -124,33 +132,45 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
-    // TODO
+    const options = {
+      enable_prejoin_ui: true,
+      enable_knocking: true,
+      enable_screenshare: true,
+      enable_chat: true,
+      exp: exp,
+    };
     /** permission to allow transcription using cal-ai @link https://docs.daily.co/reference/rn-daily-js/instance-methods/start-transcription#main */
-    /** Need to add` permissions: { canAdmin: ["transcription"] },` */
     if (scalePlan === "true" && !!hasTeamPlan === true) {
+      if (calAiKeys && checkCalAiInstalled && calAiKeys["deepgram_api_key"]) {
+        return {
+          privacy: "public",
+          properties: {
+            ...options,
+            enable_recording: "cloud",
+            enable_transcription: `deepgram:${calAiKeys["deepgram_api_key"]}`,
+            permissions: { canAdmin: ["transcription"] },
+          },
+        };
+      } else {
+        return {
+          privacy: "public",
+          properties: { ...options, enable_recording: "cloud" },
+        };
+      }
+    }
+    if (calAiKeys && checkCalAiInstalled && calAiKeys["deepgram_api_key"]) {
       return {
         privacy: "public",
         properties: {
-          enable_prejoin_ui: true,
-          enable_knocking: true,
-          enable_screenshare: true,
-          enable_chat: true,
-          exp: exp,
-          enable_recording: "cloud",
-          enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
+          ...options,
+          enable_transcription: `deepgram:${calAiKeys["deepgram_api_key"]}`,
           permissions: { canAdmin: ["transcription"] },
         },
       };
     }
     return {
       privacy: "public",
-      properties: {
-        enable_prejoin_ui: true,
-        enable_knocking: true,
-        enable_screenshare: true,
-        enable_chat: true,
-        exp: exp,
-      },
+      properties: options,
     };
   };
 

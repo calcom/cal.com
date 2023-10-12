@@ -4,6 +4,7 @@
 **/
 import { appKeysSchema as alby_zod_ts } from "./alby/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appKeysSchema as cal_ai_zod_ts } from "./cal-ai/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
@@ -39,6 +40,7 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  "cal-ai": cal_ai_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
   ga4: ga4_zod_ts,

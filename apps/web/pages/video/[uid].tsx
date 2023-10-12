@@ -60,9 +60,9 @@ export default function JoinCall(props: JoinCallPageProps) {
       },
       customTrayButtons: {
         transcriptButton: {
-          iconPath: "https://unpkg.com/lucide-static@latest/icons/pen.svg", // TODO
-          iconPathDarkMode: "https://unpkg.com/lucide-static@latest/icons/pen.svg", //TODO
-          label: isTranscribing ? "Stop Transcription" : "Start Transcription",
+          iconPath: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", // TODO
+          iconPathDarkMode: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", //TODO
+          label: "Cal.ai",
           tooltip: isTranscribing ? "Stop transcribing this call" : "Start transcribing this call",
         },
       },
@@ -85,7 +85,7 @@ export default function JoinCall(props: JoinCallPageProps) {
     };
     const transcriptionOptions: DailyTranscriptionDeepgramOptions = {
       detect_language: true,
-      model: "whisper",
+      model: "general",
     };
     async function startTranscription() {
       await callFrame.startTranscription(transcriptionOptions);
@@ -144,7 +144,7 @@ export default function JoinCall(props: JoinCallPageProps) {
   };
   const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
     for (const key in event) {
-      console.log(`${key}: ${event[key]}, ${typeof key}`);
+      console.log(`${key}: ${event[key]}`);
     }
   };
   const title = `${APP_NAME} Video`;
