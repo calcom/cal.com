@@ -2,6 +2,7 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { BookingReference, Attendee } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
@@ -111,17 +112,10 @@ type InputBooking = {
   title?: string;
   status: BookingStatus;
   attendees?: { email: string }[];
-  references?: {
-    type: string;
-    uid: string;
-    meetingId?: string;
-    meetingPassword?: string;
-    meetingUrl?: string;
-    bookingId?: number;
-    externalCalendarId?: string;
-    deleted?: boolean;
-    credentialId?: number;
-  }[];
+  references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
+    // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
+    credentialId?: number | null;
+  })[];
 };
 
 export const Timezones = {
@@ -267,15 +261,17 @@ async function addBookingsToDb(
     references: any[];
   })[]
 ) {
+  log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   await prismock.booking.createMany({
     data: bookings,
   });
   log.silly(
-    "TestData: Booking as in DB",
+    "TestData: Bookings as in DB",
     JSON.stringify({
       bookings: await prismock.booking.findMany({
         include: {
           references: true,
+          attendees: true,
         },
       }),
     })
@@ -315,6 +311,15 @@ async function addBookings(bookings: InputBooking[]) {
           //@ts-ignore
           createMany: {
             data: booking.references,
+          },
+        };
+      }
+      if (booking.attendees) {
+        bookingCreate.attendees = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          createMany: {
+            data: booking.attendees,
           },
         };
       }
@@ -839,6 +844,8 @@ export function mockCalendar(
   const createEventCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateEventCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deleteEventCalls: any[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
     lib: {
@@ -888,6 +895,11 @@ export function mockCalendar(
               url: "https://UNUSED_URL",
             });
           },
+          deleteEvent: async (...rest: any[]) => {
+            log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
+            // eslint-disable-next-line prefer-rest-params
+            deleteEventCalls.push(rest);
+          },
           getAvailability: async (): Promise<EventBusyDate[]> => {
             if (calendarData?.getAvailabilityCrash) {
               throw new Error("MockCalendarService.getAvailability fake error");
@@ -902,6 +914,7 @@ export function mockCalendar(
   });
   return {
     createEventCalls,
+    deleteEventCalls,
     updateEventCalls,
   };
 }
@@ -952,11 +965,13 @@ export function mockVideoApp({
     password: "MOCK_PASS",
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
-  log.silly("mockSuccessfulVideoMeetingCreation", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
+  log.silly("mockVideoApp", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateMeetingCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deleteMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
@@ -998,13 +1013,17 @@ export function mockVideoApp({
                 if (!calEvent.organizer) {
                   throw new Error("calEvent.organizer is not defined");
                 }
-                log.silly(
-                  "mockSuccessfulVideoMeetingCreation.updateMeeting",
-                  JSON.stringify({ bookingRef, calEvent })
-                );
+                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
                 return Promise.resolve({
                   type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
                   ...videoMeetingData,
+                });
+              },
+              deleteMeeting: async (...rest: any[]) => {
+                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+                deleteMeetingCalls.push({
+                  credential,
+                  args: rest,
                 });
               },
             };
@@ -1016,6 +1035,7 @@ export function mockVideoApp({
   return {
     createMeetingCalls,
     updateMeetingCalls,
+    deleteMeetingCalls,
   };
 }
 
@@ -1151,6 +1171,31 @@ export function getExpectedCalEventForBookingRequest({
     // Not sure why, but milliseconds are missing in cal Event.
     startTime: bookingRequest.start.replace(".000Z", "Z"),
     endTime: bookingRequest.end.replace(".000Z", "Z"),
+  };
+}
+
+export function getMockBookingReference(
+  bookingReference: Partial<BookingReference> & Pick<BookingReference, "type" | "uid" | "credentialId">
+) {
+  let credentialId = bookingReference.credentialId;
+  if (bookingReference.type === appStoreMetadata.dailyvideo.type) {
+    // Right now we seems to be storing credentialId for `dailyvideo` in BookingReference as null. Another possible value is 0 in there.
+    credentialId = null;
+    log.debug("Ensuring null credentialId for dailyvideo");
+  }
+  return {
+    ...bookingReference,
+    credentialId,
+  };
+}
+
+export function getMockBookingAttendee(attendee: Omit<Attendee, "bookingId">) {
+  return {
+    id: attendee.id,
+    timeZone: attendee.timeZone,
+    name: attendee.name,
+    email: attendee.email,
+    locale: attendee.locale,
   };
 }
 
