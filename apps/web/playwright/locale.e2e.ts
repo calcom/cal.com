@@ -241,6 +241,37 @@ test.describe("authorized user sees changed translations (de->ar) [locale1]", as
 
       expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
       expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
+
+      {
+        const locator = page.getByText("عام"); // "general"
+        expect(await locator.count()).toBeGreaterThanOrEqual(1);
+      }
+
+      {
+        const locator = page.getByText("Allgemein"); // "general"
+        expect(await locator.count()).toEqual(0);
+      }
+    });
+
+    await test.step("should reload and show Arabic translations", async () => {
+      await page.reload();
+
+      await page.waitForLoadState("networkidle");
+
+      {
+        const locator = page.getByText("عام"); // "general"
+        expect(await locator.count()).toBeGreaterThanOrEqual(1);
+      }
+
+      {
+        const locator = page.getByText("Allgemein"); // "general"
+        expect(await locator.count()).toEqual(0);
+      }
+
+      const htmlLocator = page.locator("html");
+
+      expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
+      expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
     });
   });
 });
