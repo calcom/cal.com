@@ -215,7 +215,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {element}
     </Link>
   ) : (
-    <Wrapper data-testid="wrapper" tooltip={props.tooltip} tooltipSide={props.tooltipSide}>
+    <Wrapper data-testid="wrapper" tooltip={props.tooltip} tooltipSide={tooltipSide}>
       {element}
     </Wrapper>
   );
