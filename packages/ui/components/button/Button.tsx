@@ -23,7 +23,7 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
-  side?: "top" | "right" | "bottom" | "left";
+  tooltipSide?: "top" | "right" | "bottom" | "left";
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
@@ -215,7 +215,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {element}
     </Link>
   ) : (
-    <Wrapper data-testid="wrapper" tooltip={props.tooltip} side={props.side}>
+    <Wrapper data-testid="wrapper" tooltip={props.tooltip} tooltipSide={props.tooltipSide}>
       {element}
     </Wrapper>
   );
@@ -224,18 +224,18 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 const Wrapper = ({
   children,
   tooltip,
-  side,
+  tooltipSide,
 }: {
   tooltip?: string;
   children: React.ReactNode;
-  side?: "top" | "right" | "bottom" | "left";
+  tooltipSide?: "top" | "right" | "bottom" | "left";
 }) => {
   if (!tooltip) {
     return <>{children}</>;
   }
 
   return (
-    <Tooltip data-testid="tooltip" content={tooltip} side={side}>
+    <Tooltip data-testid="tooltip" content={tooltip} side={tooltipSide}>
       {children}
     </Tooltip>
   );
