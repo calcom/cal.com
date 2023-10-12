@@ -22,7 +22,7 @@ export default class OrgAutoJoinEmail extends BaseEmail {
     this.orgAutoInviteEvent = orgAutoInviteEvent;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.orgAutoInviteEvent.to,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

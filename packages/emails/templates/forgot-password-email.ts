@@ -23,7 +23,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
     this.passwordEvent = passwordEvent;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

@@ -21,7 +21,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     this.type = type;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.organizer.email];
 
     return {

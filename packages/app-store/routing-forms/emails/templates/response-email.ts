@@ -25,7 +25,7 @@ export default class ResponseEmail extends BaseEmail {
     this.toAddresses = toAddresses;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = this.toAddresses;
     const subject = `${this.form.name} has a new response`;
     return {

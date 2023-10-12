@@ -23,7 +23,7 @@ export default class AccountVerifyEmail extends BaseEmail {
     this.verifyAccountInput = passwordEvent;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

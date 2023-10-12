@@ -16,7 +16,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
     this.metadata = metadata;
     this.t = this.calEvent.attendees[0].language.translate;
   }
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.attendees[0].email];
 
     return {

@@ -24,7 +24,7 @@ export default class TeamInviteEmail extends BaseEmail {
     this.teamInviteEvent = teamInviteEvent;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.teamInviteEvent.to,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

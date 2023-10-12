@@ -19,7 +19,7 @@ export default class SlugReplacementEmail extends BaseEmail {
     this.t = t;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,

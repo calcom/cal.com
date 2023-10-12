@@ -12,7 +12,7 @@ export default class MonthlyDigestEmail extends BaseEmail {
     this.eventData = eventData;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.eventData.admin.email,

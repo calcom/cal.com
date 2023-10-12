@@ -2,7 +2,7 @@ import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,

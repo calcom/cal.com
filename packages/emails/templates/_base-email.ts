@@ -24,7 +24,7 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
   public async sendEmail() {

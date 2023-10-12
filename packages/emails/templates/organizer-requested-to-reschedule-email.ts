@@ -15,7 +15,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
     super({ calEvent });
     this.metadata = metadata;
   }
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.organizer.email];
 
     return {

@@ -28,7 +28,7 @@ export default class DisabledAppEmail extends BaseEmail {
     this.eventTypeId = eventTypeId;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,

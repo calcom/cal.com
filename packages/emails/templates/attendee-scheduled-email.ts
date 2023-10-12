@@ -82,7 +82,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     return icsEvent.value;
   }
 
-  protected async getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const clonedCalEvent = cloneDeep(this.calEvent);
 
     this.getiCalEventAsString();
