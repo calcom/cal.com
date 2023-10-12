@@ -2452,7 +2452,6 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-    // FIXME: Really don't understand why we have this condition. If isConfirmedByDefault is false, we should have BOOKING_REQUESTED webhook triggered because the booking would have been created in PENDING state only
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
