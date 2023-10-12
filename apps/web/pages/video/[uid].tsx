@@ -11,6 +11,7 @@ import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import z from "zod";
 
+import getMeetingTranscript from "@calcom/ai/src/tools/getMeetingTranscript";
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
@@ -40,6 +41,7 @@ export default function JoinCall(props: JoinCallPageProps) {
   const { meetingUrl, meetingPassword, booking } = props;
   const recordingId = useRef<string | null>(null);
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
+  const transcript = useRef<string>("");
 
   useEffect(() => {
     /** adding a custom tray button @link https://docs.daily.co/reference/daily-js/daily-iframe-class/properties#customTrayButtons* */
@@ -78,7 +80,9 @@ export default function JoinCall(props: JoinCallPageProps) {
     //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
     /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
     const onCustomButtonClick = (event?: DailyEventObjectCustomButtonClick | undefined) => {
-      console.log("event click", event);
+      if (!props.calAiCredential) {
+        //TODO open new tab linking to Cal-ai
+      }
       if (event && event["button_id"] == "transcriptButton") {
         return isTranscribing ? stopTranscription() : startTranscription();
       }
@@ -88,11 +92,17 @@ export default function JoinCall(props: JoinCallPageProps) {
       model: "general",
     };
     async function startTranscription() {
+      if (isTranscribing) {
+        return;
+      }
+      setIsTranscribing(true);
       await callFrame.startTranscription(transcriptionOptions);
     }
     async function stopTranscription() {
-      setIsTranscribing(false);
-      await callFrame.stopTranscription();
+      if (isTranscribing) {
+        setIsTranscribing(false);
+        await callFrame.stopTranscription();
+      }
     }
 
     callFrame.join();
@@ -107,7 +117,11 @@ export default function JoinCall(props: JoinCallPageProps) {
       if (msg && msg.data) {
         const data = msg.data;
         if (msg?.fromId === "transcription" && data?.is_final) {
-          const userName = callFrame.participants()[data.session_id].user_name;
+          console.log(`messageData: ${data}`);
+          const userName = data.user_name;
+          const oldTranscript = transcript.current;
+          transcript.current = `${oldTranscript}\n` + `${userName} (${data.timestamp}): ${data.text}`;
+          console.log(`transcript: ${transcript.current}`);
           console.log(`${userName} (${data.timestamp}): ${data.text}`);
         }
       }
@@ -137,14 +151,19 @@ export default function JoinCall(props: JoinCallPageProps) {
     recordingId.current = response.recordingId;
   };
   const handleTranscriptionStarted = () => {
-    setIsTranscribing(true);
+    //TODO - do we need anything here?
   };
   const handleTranscriptionStopped = () => {
-    setIsTranscribing(false);
+    if (!props.calAiCredential || !props.calAiCredential.key || !transcript.current) {
+      return;
+    }
+    //TODO
+    // send the transcript to the transcription meeting handler
+    getMeetingTranscript(props.calAiCredential.key as string, props.booking, transcript.current);
   };
   const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
     for (const key in event) {
-      console.log(`${key}: ${event[key]}`);
+      console.log(`${key}: ${event[key as string]}`);
     }
   };
   const title = `${APP_NAME} Video`;
@@ -250,7 +269,7 @@ function ProgressBar(props: ProgressBarProps) {
   );
 }
 
-interface VideoMeetingInfo {
+export interface VideoMeetingInfo {
   booking: JoinCallPageProps["booking"];
 }
 
@@ -365,7 +384,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
+  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl || !booking.user) {
     return {
       redirect: {
         destination: "/video/no-meeting-found",
@@ -373,7 +392,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
-
+  const aiAppInstalled = await prisma.credential.findFirst({
+    where: {
+      appId: "cal-ai",
+      userId: booking.user.id,
+    },
+  });
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
   const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
@@ -405,6 +429,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      calAiCredential: aiAppInstalled,
       meetingUrl: bookingObj.references[0].meetingUrl ?? "",
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
         meetingPassword: bookingObj.references[0].meetingPassword,
