@@ -13,6 +13,9 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
     await page.goto("/");
     await page.waitForLoadState("load");
 
+    await page.locator("html[lang=de]").waitFor({ state: "attached" });
+    await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
+
     {
       const locator = page.getByText("Willkommen zurück", { exact: true });
       expect(await locator.count()).toEqual(1);
@@ -22,13 +25,6 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
       const locator = page.getByText("Welcome back", { exact: true });
       expect(await locator.count()).toEqual(0);
     }
-
-    // const htmlLocator = page.locator("html");
-
-    // expect(await htmlLocator.getAttribute("lang")).toEqual("de");
-    // expect(await htmlLocator.getAttribute("dir")).toEqual("ltr");
-    await page.locator("html[lang=de]").waitFor({ state: "attached" });
-    await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
   });
 });
 
@@ -41,6 +37,9 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
     await page.goto("/");
     await page.waitForLoadState("load");
 
+    await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+    await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
+
     {
       const locator = page.getByText("أهلاً بك من جديد", { exact: true });
       expect(await locator.count()).toEqual(1);
@@ -50,13 +49,6 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
       const locator = page.getByText("Welcome back", { exact: true });
       expect(await locator.count()).toEqual(0);
     }
-
-    // const htmlLocator = page.locator("html");
-
-    // expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-    // expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
-    await page.locator("html[lang=ar]").waitFor({ state: "attached" });
-    await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
   });
 });
 
@@ -78,6 +70,9 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=de]").waitFor({ state: "attached" });
+      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("Ereignistypen", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -87,13 +82,6 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
         const locator = page.getByText("Event Types", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      //   const htmlLocator = page.locator("html");
-
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("de");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("ltr");
-      await page.locator("html[lang=de]").waitFor({ state: "attached" });
-      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
     });
 
     await test.step("should navigate to /bookings and show German translations", async () => {
@@ -101,6 +89,9 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=de]").waitFor({ state: "attached" });
+      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("Buchungen", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -110,13 +101,6 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
         const locator = page.getByText("Bookings", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      await page.locator("html[lang=de]").waitFor({ state: "attached" });
-      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
-
-      //   const htmlLocator = page.locator("html");
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("de");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("ltr");
     });
 
     await test.step("should reload the /bookings and show German translations", async () => {
@@ -124,6 +108,9 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=de]").waitFor({ state: "attached" });
+      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("Buchungen", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -133,13 +120,6 @@ test.describe("authorized user sees correct translations (de) [locale1]", async 
         const locator = page.getByText("Bookings", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      //   const htmlLocator = page.locator("html");
-
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("de");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("ltr");
-      await page.locator("html[lang=de]").waitFor({ state: "attached" });
-      await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
     });
   });
 });
@@ -162,6 +142,9 @@ test.describe("authorized user sees correct translations (ar)", async () => {
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("أنواع الحدث", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -171,13 +154,6 @@ test.describe("authorized user sees correct translations (ar)", async () => {
         const locator = page.getByText("Event Types", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      //   const htmlLocator = page.locator("html");
-
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
-      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
-      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
     });
 
     await test.step("should navigate to /bookings and show German translations", async () => {
@@ -185,6 +161,9 @@ test.describe("authorized user sees correct translations (ar)", async () => {
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("عمليات الحجز", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -194,13 +173,6 @@ test.describe("authorized user sees correct translations (ar)", async () => {
         const locator = page.getByText("Bookings", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      //   const htmlLocator = page.locator("html");
-
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
-      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
-      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
     });
 
     await test.step("should reload the /bookings and show German translations", async () => {
@@ -208,6 +180,9 @@ test.describe("authorized user sees correct translations (ar)", async () => {
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("عمليات الحجز", { exact: true });
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -217,13 +192,6 @@ test.describe("authorized user sees correct translations (ar)", async () => {
         const locator = page.getByText("Bookings", { exact: true });
         expect(await locator.count()).toEqual(0);
       }
-
-      //   const htmlLocator = page.locator("html");
-
-      //   expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-      //   expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
-      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
-      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
     });
   });
 });
@@ -255,10 +223,8 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
         .getByRole("button", { name: "Einstellungen erfolgreich aktualisiert" })
         .waitFor({ state: "visible" });
 
-      const htmlLocator = page.locator("html");
-
-      expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-      expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
+      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
       {
         const locator = page.getByText("عام", { exact: true }); // "general"
@@ -276,6 +242,9 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
 
       await page.waitForLoadState("networkidle");
 
+      await page.locator("html[lang=ar]").waitFor({ state: "attached" });
+      await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
+
       {
         const locator = page.getByText("عام", { exact: true }); // "general"
         expect(await locator.count()).toBeGreaterThanOrEqual(1);
@@ -285,11 +254,6 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
         const locator = page.getByText("Allgemein", { exact: true }); // "general"
         expect(await locator.count()).toEqual(0);
       }
-
-      const htmlLocator = page.locator("html");
-
-      expect(await htmlLocator.getAttribute("lang")).toEqual("ar");
-      expect(await htmlLocator.getAttribute("dir")).toEqual("rtl");
     });
   });
 });
