@@ -353,7 +353,7 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              {booking.location.startsWith("https://") && (
+              {booking.location && booking.location.startsWith("https://") && (
                 <Link href={booking.location} className="text-sm leading-6 text-blue-400 hover:underline">
                   {booking.location.startsWith("https://zoom") ? (
                     <div className="flex items-center gap-1">
