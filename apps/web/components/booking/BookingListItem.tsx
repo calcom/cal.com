@@ -339,46 +339,76 @@ function BookingListItem(booking: BookingItemProps) {
 
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
         <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
-          <Link href={bookingLink}>
-            <div className="cursor-pointer py-4">
-              <div className="text-emphasis text-sm leading-6">{startTime}</div>
-              <div className="text-subtle text-sm">
-                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
-                <MeetingTimeInTimezones
-                  timeFormat={user?.timeFormat}
-                  userTimezone={user?.timeZone}
-                  startTime={booking.startTime}
-                  endTime={booking.endTime}
-                  attendees={booking.attendees}
-                />
-              </div>
-              {isPending && (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                  {t("unconfirmed")}
-                </Badge>
-              )}
-              {booking.eventType?.team && (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                  {booking.eventType.team.name}
-                </Badge>
-              )}
-              {booking.paid && !booking.payment[0] ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                  {t("error_collecting_card")}
-                </Badge>
-              ) : booking.paid ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
-                  {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-                </Badge>
-              ) : null}
-              {recurringDates !== undefined && (
-                <div className="text-muted mt-2 text-sm">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-                </div>
-              )}
+          <div className="py-4">
+            <div className="text-emphasis text-sm leading-6">{startTime}</div>
+            <div className="text-subtle text-sm">
+              {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
+              {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+              <MeetingTimeInTimezones
+                timeFormat={user?.timeFormat}
+                userTimezone={user?.timeZone}
+                startTime={booking.startTime}
+                endTime={booking.endTime}
+                attendees={booking.attendees}
+              />
             </div>
-          </Link>
+            {booking.location.startsWith("https://") && (
+              <div className="flex items-center text-blue-500">
+                {booking.location.startsWith("https://zoom") ? (
+                  <>
+                    <img
+                      src="/app-store/zoomvideo/icon.svg"
+                      alt="Zoom Video Logo"
+                      class="mr-2 h-4 w-4 rounded-sm"
+                    />
+                    <Link href={booking.location} className="hover:underline">
+                      Join Zoom
+                    </Link>
+                  </>
+                ) : booking.location.startsWith("https://meet.google") ? (
+                  <>
+                    <img
+                      src="/app-store/googlevideo/logo.webp"
+                      alt="Zoom Video Logo"
+                      class="mr-2 h-4 w-4 rounded-sm"
+                    />
+                    <Link href={booking.location} className="hover:underline">
+                      Join Google Meet
+                    </Link>
+                  </>
+                ) : (
+                  <Link href={booking.location} className="hover:underline">
+                    Join Meeting
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {isPending && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("unconfirmed")}
+              </Badge>
+            )}
+            {booking.eventType?.team && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                {booking.eventType.team.name}
+              </Badge>
+            )}
+            {booking.paid && !booking.payment[0] ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("error_collecting_card")}
+              </Badge>
+            ) : booking.paid ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+              </Badge>
+            ) : null}
+            {recurringDates !== undefined && (
+              <div className="text-muted mt-2 text-sm">
+                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              </div>
+            )}
+          </div>
         </td>
         <td className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
@@ -421,7 +451,7 @@ function BookingListItem(booking: BookingItemProps) {
               )}
             </div>
 
-            <div className="cursor-pointer py-4">
+            <div className="py-4">
               <div
                 title={title}
                 className={classNames(
