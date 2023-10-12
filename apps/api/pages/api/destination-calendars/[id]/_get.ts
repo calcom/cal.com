@@ -1,6 +1,5 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
@@ -31,8 +30,8 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
- *       404:
- *         description: DestinationCalendar was not found
+ *       403:
+ *         description: Forbidden
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
@@ -41,34 +40,8 @@ export async function getHandler(req: NextApiRequest) {
   const destinationCalendar = await prisma.destinationCalendar.findUnique({
     where: { id },
   });
-  await checkPermissions(req, id);
 
   return { destinationCalendar: schemaDestinationCalendarReadPublic.parse({ ...destinationCalendar }) };
-}
-
-async function checkPermissions(req: NextApiRequest, id: number) {
-  const { userId, prisma, isAdmin } = req;
-  if (isAdmin) return;
-
-  const userEventTypes = await prisma.eventType.findMany({
-    where: { userId },
-    select: { id: true },
-  });
-
-  const userEventTypeIds = userEventTypes.map((eventType) => eventType.id);
-
-  console.log({ id, userId, userEventTypeIds });
-  const destinationCalendar = await prisma.destinationCalendar.findFirst({
-    where: {
-      AND: [
-        { id },
-        {
-          OR: [{ userId }, { eventTypeId: { in: userEventTypeIds } }],
-        },
-      ],
-    },
-  });
-  if (!destinationCalendar) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(getHandler);

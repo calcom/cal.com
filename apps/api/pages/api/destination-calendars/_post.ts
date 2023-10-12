@@ -69,7 +69,6 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const destination_calendar = await prisma.destinationCalendar.create({ data: { ...parsedBody } });
-  // const destination_calendar = schemaDestinationCalendarReadPublic.parse(data);
 
   return {
     destinationCalendar: schemaDestinationCalendarReadPublic.parse(destination_calendar),

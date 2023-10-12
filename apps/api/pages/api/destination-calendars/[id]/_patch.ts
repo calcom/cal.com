@@ -1,6 +1,5 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import {
@@ -50,49 +49,23 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *      - destination-calendars
  *     responses:
- *       201:
- *         description: OK, destinationCalendar edited successfully
- *       400:
- *        description: Bad request. DestinationCalendar body is invalid.
+ *       200:
+ *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *       403:
+ *        description: Forbidden
  */
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
 
-  await checkPermissions(req);
-
   const destinationCalendar = await prisma.destinationCalendar.update({
     where: { id },
     data: parsedBody,
   });
   return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
-}
-
-async function checkPermissions(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
-  const { id } = schemaQueryIdParseInt.parse(req.query);
-  if (isAdmin) return;
-  const userEventTypes = await prisma.eventType.findMany({
-    where: { userId },
-    select: { id: true },
-  });
-
-  const userEventTypeIds = userEventTypes.map((eventType) => eventType.id);
-
-  const destinationCalendar = await prisma.destinationCalendar.findFirst({
-    where: {
-      AND: [
-        { id },
-        {
-          OR: [{ userId }, { eventTypeId: { in: userEventTypeIds } }],
-        },
-      ],
-    },
-  });
-  if (!destinationCalendar) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(patchHandler);
