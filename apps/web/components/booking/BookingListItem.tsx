@@ -353,6 +353,21 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
+              <div className="text-sm leading-6 text-blue-400">
+                {booking.location.startsWith("https://zoom") ? (
+                  <Link href={booking.location} className="hover:underline">
+                    <img src="https://static.vecteezy.com/system/resources/previews/021/460/215/original/zoom-logo-free-download-free-png.png"  width="20" height="20" />Join Zoom
+                  </Link>
+                ) : booking.location.startsWith("https://meet.google") ? (
+                  <Link href={booking.location} className="hover:underline">
+                    <img src="https://static.vecteezy.com/system/resources/previews/022/101/036/original/google-meet-logo-transparent-free-png.png"  width="20" height="20" />Join Google Meet
+                  </Link>
+                ) : (
+                  <Link href={booking.location} className="hover:underline">
+                    Join Meeting
+                  </Link>
+                )}
+              </div>
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
