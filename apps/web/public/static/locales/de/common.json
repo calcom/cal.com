@@ -683,7 +683,7 @@
   "new_event_type_btn": "Neuer Ereignistyp",
   "new_event_type_heading": "Erstellen Sie Ihren ersten Ereignistyp",
   "new_event_type_description": "Mit Ereignistypen kann man verfügbare Zeiten im Kalendar freigeben, die andere Personen dann buchen können.",
-  "event_type_created_successfully": "Ereignistyp erfolgreich erstellt sddsfffscsecdscze",
+  "event_type_created_successfully": "Ereignistyp erfolgreich erstellt",
   "event_type_updated_successfully": "Termintyp erfolgreich aktualisiert",
   "event_type_deleted_successfully": "Termintyp erfolgreich gelöscht",
   "hours": "Stunden",
