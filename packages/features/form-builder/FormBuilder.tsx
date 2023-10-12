@@ -441,7 +441,7 @@ function FieldEditDialog({
               if (!variantsConfig) {
                 return (
                   <>
-                    {/* <InputField
+                    <InputField
                       required
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
@@ -453,7 +453,7 @@ function FieldEditDialog({
                         fieldForm.getValues("editable") === "system-but-optional"
                       }
                       label={t("identifier")}
-                    /> */}
+                    />
                     <InputField
                       {...fieldForm.register("label")}
                       // System fields have a defaultLabel, so there a label is not required
@@ -497,16 +497,6 @@ function FieldEditDialog({
                         );
                       }}
                     />
-                    <div className="mt-6 flex items-center">
-                      <label class="text-emphasis block pr-1 text-sm font-medium" for=":r4c:">
-                        Identifier
-                      </label>
-                      <span>
-                        <Tooltip content={t("learn_more")}>
-                          <Info className="h-4 w-4 cursor-pointer" />
-                        </Tooltip>
-                      </span>
-                    </div>
                   </>
                 );
               }

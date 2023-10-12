@@ -352,32 +352,32 @@ function BookingListItem(booking: BookingItemProps) {
                 attendees={booking.attendees}
               />
             </div>
-            {booking.location.startsWith("https://") && (
+            {booking?.location.startsWith("https://") && (
               <div className="flex items-center text-blue-500">
-                {booking.location.startsWith("https://zoom") ? (
+                {booking?.location.startsWith("https://zoom") ? (
                   <>
                     <img
                       src="/app-store/zoomvideo/icon.svg"
                       alt="Zoom Video Logo"
-                      class="mr-2 h-4 w-4 rounded-sm"
+                      className="mr-2 h-4 w-4 rounded-sm"
                     />
-                    <Link href={booking.location} className="hover:underline">
+                    <Link href={booking?.location} className="hover:underline">
                       Join Zoom
                     </Link>
                   </>
-                ) : booking.location.startsWith("https://meet.google") ? (
+                ) : booking?.location.startsWith("https://meet.google") ? (
                   <>
                     <img
                       src="/app-store/googlevideo/logo.webp"
                       alt="Zoom Video Logo"
-                      class="mr-2 h-4 w-4 rounded-sm"
+                      className="mr-2 h-4 w-4 rounded-sm"
                     />
-                    <Link href={booking.location} className="hover:underline">
+                    <Link href={booking?.location} className="hover:underline">
                       Join Google Meet
                     </Link>
                   </>
                 ) : (
-                  <Link href={booking.location} className="hover:underline">
+                  <Link href={booking?.location} className="hover:underline">
                     Join Meeting
                   </Link>
                 )}
