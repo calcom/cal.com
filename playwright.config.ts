@@ -55,6 +55,14 @@ if (IS_EMBED_REACT_TEST) {
   });
 }
 
+const DEFAULT_CHROMIUM = {
+  ...devices["Desktop Chrome"],
+  timezoneId: "Europe/London",
+  locale: "en-US",
+  /** If navigation takes more than this, then something's wrong, let's fail fast. */
+  navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+};
+
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -86,13 +94,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: {
-        ...devices["Desktop Chrome"],
-        timezoneId: "Europe/London",
-        locale: "en-US",
-        /** If navigation takes more than this, then something's wrong, let's fail fast. */
-        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/app-store",
@@ -101,12 +103,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: {
-        ...devices["Desktop Chrome"],
-        locale: "en-US",
-        /** If navigation takes more than this, then something's wrong, let's fail fast. */
-        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/embed-core",
@@ -129,9 +126,7 @@ const config: PlaywrightTestConfig = {
       },
       testMatch: /.*\.e2e\.tsx?/,
       use: {
-        ...devices["Desktop Chrome"],
-        timezoneId: "Europe/London",
-        locale: "en-US",
+        ...DEFAULT_CHROMIUM,
         baseURL: "http://localhost:3101/",
       },
     },
