@@ -37,7 +37,6 @@ async function getHandler(req: NextApiRequest) {
     select: { id: true },
   });
 
-  // Extract the IDs of the user's event types
   const userEventTypeIds = userEventTypes.map((eventType) => eventType.id);
 
   const allDestinationCalendars = await prisma.destinationCalendar.findMany({
