@@ -228,7 +228,7 @@ const Wrapper = ({
 }: {
   tooltip?: string;
   children: React.ReactNode;
-  side?: string;
+  side?: "top" | "right" | "bottom" | "left";
 }) => {
   if (!tooltip) {
     return <>{children}</>;
