@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { test } from "./lib/fixtures";
+import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
