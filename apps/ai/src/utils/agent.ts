@@ -6,7 +6,7 @@ import createBookingIfAvailable from "../tools/createBooking";
 import deleteBooking from "../tools/deleteBooking";
 import getAvailability from "../tools/getAvailability";
 import getBookings from "../tools/getBookings";
-import sendBookingLinks from "../tools/sendBookingLinks";
+import sendBookingEmail from "../tools/sendBookingEmail";
 import updateBooking from "../tools/updateBooking";
 import type { EventType } from "../types/eventType";
 import type { User, UserList } from "../types/user";
@@ -35,7 +35,7 @@ const agent = async (
     createBookingIfAvailable(apiKey, userId, users),
     updateBooking(apiKey, userId),
     deleteBooking(apiKey),
-    sendBookingLinks(apiKey, user, users, agentEmail),
+    sendBookingEmail(apiKey, user, users, agentEmail),
   ];
 
   const model = new ChatOpenAI({
