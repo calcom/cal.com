@@ -57,7 +57,7 @@ export function Logout(props: Props) {
         </div>
       </div>
       <Button
-        id="logout-btn"
+        data-testid="logout-btn"
         onClick={navigateToLogin}
         className="flex w-full justify-center"
         loading={btnLoading}>
