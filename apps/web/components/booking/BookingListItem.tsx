@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, getEventLocationTypeFromValue } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -275,6 +275,24 @@ function BookingListItem(booking: BookingItemProps) {
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
 
+  const meetingLink = (link: string) => {
+    const app = getEventLocationTypeFromValue(link);
+    if (app)
+      return (
+        <div className="flex">
+          <Link href={link} className="flex gap-1 text-sm leading-6 text-blue-400 hover:underline">
+            <img src={app.iconUrl} alt={app.label} height={16} width={16} />
+            Join {app.label}
+          </Link>
+        </div>
+      );
+    return (
+      <Link href={link} className="text-sm leading-6 text-blue-400 hover:underline">
+        Metting Link
+      </Link>
+    );
+  };
+
   return (
     <>
       <RescheduleDialog
@@ -353,28 +371,7 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              {booking.location && booking.location.startsWith("https://") && (
-                <Link href={booking.location} className="text-sm leading-6 text-blue-400 hover:underline">
-                  {booking.location.startsWith("https://zoom") ? (
-                    <div className="flex items-center gap-1">
-                      <img src="/app-store/zoomvideo/icon.svg" alt="Zoom Logo" height={16} width={16} />
-                      Join Zoom
-                    </div>
-                  ) : booking.location.startsWith("https://meet.google") ? (
-                    <div className="flex items-center gap-1">
-                      <img
-                        src="/app-store/googlevideo/logo.webp"
-                        alt="Google Meet Logo"
-                        height={16}
-                        width={16}
-                      />
-                      Join Google Meet
-                    </div>
-                  ) : (
-                    "Meeting Link"
-                  )}
-                </Link>
-              )}
+              {booking.location && meetingLink(booking.location)}
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
