@@ -1,3 +1,5 @@
+"use client";
+
 import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
@@ -15,14 +17,17 @@ import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import { type AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function InsightsPage() {
+import { type CreateTRPCReactBase } from "@trpc/react-query/src/createTRPCReact";
+
+export default function InsightsPage({ trpcAppDir }: { trpcAppDir: CreateTRPCReactBase<AppRouter, any> }) {
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = (trpcAppDir || trpc).viewer.me.useQuery();
 
   const features = [
     {
