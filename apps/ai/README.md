@@ -1,4 +1,4 @@
-# Cal.com Email Assistant
+# Cal.ai
 
 Welcome to [Cal.ai](https://cal.ai)!
 
