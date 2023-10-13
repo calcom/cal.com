@@ -289,6 +289,7 @@ function BookingListItem(booking: BookingItemProps) {
         <div className="flex">
           <Link
             href={link}
+            onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-1 text-sm leading-6 text-blue-400 hover:underline">
             <img src={app.iconUrl} alt={app.label} height={16} width={16} />
             Join {app.label}
@@ -296,7 +297,10 @@ function BookingListItem(booking: BookingItemProps) {
         </div>
       );
     return (
-      <Link href={link} className="text-sm leading-6 text-blue-400 hover:underline">
+      <Link
+        href={link}
+        onClick={(e) => e.stopPropagation()}
+        className="text-sm leading-6 text-blue-400 hover:underline">
         Metting Link
       </Link>
     );
