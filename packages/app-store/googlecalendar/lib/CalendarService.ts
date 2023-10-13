@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
+import type { Credentials } from "google-auth-library";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 
@@ -73,7 +74,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   private googleAuth = (credential: CredentialPayload) => {
-    const googleCredentials = googleCredentialSchema.parse(credential.key);
+    const googleCredentials = credential.key as Credentials;
+
+    if (!credential.key) throw new Error("Credential key is missing");
 
     async function getGoogleAuth() {
       const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
