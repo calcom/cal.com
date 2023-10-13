@@ -6,11 +6,6 @@ import { env } from "../../../env.mjs";
 import sendEmail from "../../../utils/sendEmail";
 
 export const POST = async (request: NextRequest) => {
-  const verified = request.headers.get("Authorization") === `Bearer ${env.CALAI_API_KEY}`;
-  if (!verified) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
   const { userId } = await request.json();
 
   const user = await prisma.user.findUnique({
