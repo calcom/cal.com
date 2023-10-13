@@ -30,6 +30,7 @@ import {
  *             required:
  *               - integration
  *               - externalId
+ *               - credentialId
  *             properties:
  *               integration:
  *                 type: string
@@ -37,6 +38,9 @@ import {
  *               externalId:
  *                 type: string
  *                 description: 'The external ID of the integration'
+ *               credentialId:
+ *                 type: integer
+ *                 description: 'The credential ID it is associated with'
  *               eventTypeId:
  *                 type: integer
  *                 description: 'The ID of the eventType it is associated with'
@@ -46,9 +50,6 @@ import {
  *               userId:
  *                 type: integer
  *                 description: 'The user it is associated with'
- *               credentialId:
- *                 type: integer
- *                 description: 'The credential ID it is associated with'
  *     tags:
  *      - destination-calendars
  *     responses:
