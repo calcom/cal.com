@@ -36,7 +36,7 @@ const generateTranscriptSummary = async (booking: VideoMeetingInfo["booking"], t
   });
   //send summary
   sendEmail({
-    html: `Here's the summary of the transcript for your meeting with ${booking.attendees}`,
+    html: `Here's the summary of the transcript for your meeting with ${booking.attendees}\n\n Transcript summary: ${res.text}`,
     subject: `Meeting Transcript for ${booking.title}`,
     text: transcript,
     to: booking.user?.email,
@@ -48,6 +48,11 @@ const getMeetingTranscript = async (
   booking: VideoMeetingInfo["booking"],
   transcript: string
 ) => {
+  console.log(
+    `Inside getMeetingTranscript\n apiKey:${apiKey} booking:${JSON.stringify(
+      booking
+    )} transcript:${transcript}`
+  );
   sendFullTrancript(booking, transcript);
   //send second email with summary generated using langchain
   return;

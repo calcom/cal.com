@@ -8,10 +8,12 @@ import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import z from "zod";
 
 import getMeetingTranscript from "@calcom/ai/src/tools/getMeetingTranscript";
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
@@ -38,9 +40,10 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const { meetingUrl, meetingPassword, booking } = props;
   const recordingId = useRef<string | null>(null);
-  const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
+  const isTranscribing = useRef<boolean>(false);
   const transcript = useRef<string>("");
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export default function JoinCall(props: JoinCallPageProps) {
           iconPath: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", // TODO
           iconPathDarkMode: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", //TODO
           label: "Cal.ai",
-          tooltip: isTranscribing ? "Stop transcribing this call" : "Start transcribing this call",
+          tooltip: !!isTranscribing.current ? "Stop transcribing this call" : "Start transcribing this call",
         },
       },
       showLeaveButton: true,
@@ -79,12 +82,19 @@ export default function JoinCall(props: JoinCallPageProps) {
     });
     //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
     /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
-    const onCustomButtonClick = (event?: DailyEventObjectCustomButtonClick | undefined) => {
-      if (!props.calAiCredential) {
-        //TODO open new tab linking to Cal-ai
+    const onCustomButtonClick = async (event?: DailyEventObjectCustomButtonClick | undefined) => {
+      console.log(`calAiCredential ${JSON.stringify(props.calAiCredential)}`);
+      const calAiKeys = await getAppKeysFromSlug("cal-ai");
+      if (!props.calAiCredential || !props.calAiCredential.key || !props.calAiCredential.key["apiKey"]) {
+        //TODO - this needs to open in a new tab
+        router.push("/apps/cal-ai");
+      }
+      if (!calAiKeys || !calAiKeys["deepgram_api_key"]) {
+        //TODO - this needs to open in a new tab
+        router.push("/settings/admin/apps/automation");
       }
       if (event && event["button_id"] == "transcriptButton") {
-        return isTranscribing ? stopTranscription() : startTranscription();
+        return !!isTranscribing.current ? stopTranscription() : startTranscription();
       }
     };
     const transcriptionOptions: DailyTranscriptionDeepgramOptions = {
@@ -92,15 +102,15 @@ export default function JoinCall(props: JoinCallPageProps) {
       model: "general",
     };
     async function startTranscription() {
-      if (isTranscribing) {
+      if (!!isTranscribing.current) {
         return;
       }
-      setIsTranscribing(true);
+      isTranscribing.current = true;
       await callFrame.startTranscription(transcriptionOptions);
     }
     async function stopTranscription() {
-      if (isTranscribing) {
-        setIsTranscribing(false);
+      if (!!isTranscribing.current) {
+        isTranscribing.current = false;
         await callFrame.stopTranscription();
       }
     }
@@ -153,13 +163,15 @@ export default function JoinCall(props: JoinCallPageProps) {
   const handleTranscriptionStarted = () => {
     //TODO - do we need anything here?
   };
-  const handleTranscriptionStopped = () => {
+  const handleTranscriptionStopped = async () => {
+    console.log("handleTranscriptionStopped is called");
     if (!props.calAiCredential || !props.calAiCredential.key || !transcript.current) {
+      console.log("returning without calling the ai tool");
       return;
     }
     //TODO
     // send the transcript to the transcription meeting handler
-    getMeetingTranscript(props.calAiCredential.key as string, props.booking, transcript.current);
+    await getMeetingTranscript(props.calAiCredential.key as string, props.booking, transcript.current);
   };
   const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
     for (const key in event) {
