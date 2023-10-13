@@ -624,6 +624,31 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
   expect(externalId).toBe(expected.externalCalendarId);
 }
 
+export function expectSuccessfulCalendarEventDeletionInCalendar(
+  calendarMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateEventCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deleteEventCalls: any[];
+  },
+  expected: {
+    externalCalendarId: string;
+    calEvent: Partial<CalendarEvent>;
+    uid: string;
+  }
+) {
+  expect(calendarMock.deleteEventCalls.length).toBe(1);
+  const call = calendarMock.deleteEventCalls[0];
+  const uid = call[0];
+  const calendarEvent = call[1];
+  const externalId = call[2];
+  expect(uid).toBe(expected.uid);
+  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalId).toBe(expected.externalCalendarId);
+}
+
 export function expectSuccessfulVideoMeetingCreation(
   videoMock: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -669,6 +694,26 @@ export function expectSuccessfulVideoMeetingUpdationInCalendar(
   expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
 }
 
+export function expectSuccessfulVideoMeetingDeletionInCalendar(
+  videoMock: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateMeetingCalls: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deleteMeetingCalls: any[];
+  },
+  expected: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bookingRef: any;
+  }
+) {
+  expect(videoMock.deleteMeetingCalls.length).toBe(1);
+  const call = videoMock.deleteMeetingCalls[0];
+  const bookingRefUid = call.args[0];
+  expect(bookingRefUid).toEqual(expected.bookingRef.uid);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
   // Expect previous booking to be cancelled
@@ -678,10 +723,9 @@ export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { fro
     status: BookingStatus.CANCELLED,
   });
 
-  // Expect new booking to be created
+  // Expect new booking to be created but status would depend on whether the new booking requires confirmation or not.
   await expectBookingToBeInDatabase({
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
-    status: BookingStatus.ACCEPTED,
   });
 }
