@@ -6,7 +6,6 @@ import { env } from "../../../env.mjs";
 import sendEmail from "../../../utils/sendEmail";
 
 export const POST = async (request: NextRequest) => {
-  console.log("ONBOARD HIT");
   const verified = request.headers.get("Authorization") === `Bearer ${env.CALAI_API_KEY}`;
   if (!verified) {
     return new Response("Unauthorized", { status: 401 });
