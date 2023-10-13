@@ -483,6 +483,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
         ? {
             create: {
               name: "Working Hours",
+              timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
               availability: {
                 createMany: {
                   data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
