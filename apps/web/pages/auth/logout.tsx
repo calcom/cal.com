@@ -56,7 +56,11 @@ export function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Button onClick={navigateToLogin} className="flex w-full justify-center" loading={btnLoading}>
+      <Button
+        id="logout-btn"
+        onClick={navigateToLogin}
+        className="flex w-full justify-center"
+        loading={btnLoading}>
         {t("go_back_login")}
       </Button>
     </AuthContainer>
