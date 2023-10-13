@@ -13,6 +13,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
@@ -2006,6 +2007,9 @@ describe("handleNewBooking", () => {
             paymentId: createdBooking.paymentId!,
           });
 
+          // FIXME: Right now we need to reset the test Emails because email expects only tests first email content for an email address
+          // Reset Test Emails to test for more Emails
+          resetTestEmails();
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
           expect(webhookResponse?.statusCode).toBe(200);
@@ -2015,6 +2019,12 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+          });
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
           });
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,
