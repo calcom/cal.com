@@ -284,26 +284,45 @@ function BookingListItem(booking: BookingItemProps) {
       linkOrType = "integrations:zoom";
     }
     const app = guessEventLocationType(linkOrType);
-    if (app)
-      return (
-        <div className="flex">
+    if (app) {
+      if (link.startsWith("https")) {
+        return (
+          <div className="flex">
+            <Link
+              href={link}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 text-sm leading-6 text-blue-400 hover:underline">
+              <img src={app.iconUrl} alt={app.label} height={16} width={16} />
+              Join {app.label}
+            </Link>
+          </div>
+        );
+      }
+      const url = booking.references[0].meetingUrl;
+      if (url) {
+        return (
           <Link
-            href={link}
+            href={url}
             onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-1 text-sm leading-6 text-blue-400 hover:underline">
             <img src={app.iconUrl} alt={app.label} height={16} width={16} />
             Join {app.label}
           </Link>
-        </div>
+        );
+      }
+      return null;
+    }
+    if (!app && link.startsWith("https")) {
+      return (
+        <Link
+          href={link}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm leading-6 text-blue-400 hover:underline">
+          Meeting Link
+        </Link>
       );
-    return (
-      <Link
-        href={link}
-        onClick={(e) => e.stopPropagation()}
-        className="text-sm leading-6 text-blue-400 hover:underline">
-        Metting Link
-      </Link>
-    );
+    }
+    return null;
   };
 
   return (
