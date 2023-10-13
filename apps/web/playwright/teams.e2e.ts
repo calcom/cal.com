@@ -136,19 +136,16 @@ test.describe("Teams", () => {
     // TODO: Assert whether the user received an email
   });
   test("Non admin team members cannot create team in org", async ({ page, users }) => {
-    const teamMateNames = ["teammate-1", "teammate-2", "teammate-3", "teammate-4"];
-    const teamMatesObj = teamMateNames.map((name) => {
-      return { name };
-    });
+    const teamMateName = "teammate-1";
+
     const owner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      teammates: teamMatesObj,
+      teammates: [{ name: teamMateName }],
     });
 
     const allUsers = await users.get();
-
-    const memberUser = allUsers.find((user) => user.name === teamMateNames[0]);
+    const memberUser = allUsers.find((user) => user.name === teamMateName);
 
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (memberUser) {
