@@ -4,7 +4,6 @@ import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { csp } from "@lib/csp";
@@ -28,9 +27,12 @@ class MyDocument extends Document<Props> {
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
 
-    const newLocale = ctx.req
-      ? await getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
-      : "en";
+    const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
+
+    const newLocale =
+      ctx.req && getLocaleModule
+        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        : "en";
 
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
