@@ -135,20 +135,25 @@ export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
   invitee: Person,
   newSeat: boolean,
-  showAttendees: boolean
+  showAttendees: boolean,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
+  if (!hostEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
 
-  if (calEvent.team) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+    if (calEvent.team) {
+      for (const teamMember of calEvent.team.members) {
+        emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+      }
     }
   }
 
-  emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
-
+  if (!attendeeEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
+  }
   await Promise.all(emailsToSend);
 };
 
