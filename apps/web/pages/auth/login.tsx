@@ -51,7 +51,8 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+}: // eslint-disable-next-line @typescript-eslint/ban-types
+inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();

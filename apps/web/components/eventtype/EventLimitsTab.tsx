@@ -171,7 +171,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   return (
     <div>
-      <div className="border-subtle space-y-6 rounded-md border p-6">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="beforeBufferTime">
@@ -303,6 +303,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
               title={t("limit_booking_frequency")}
               {...bookingLimitsLocked}
               description={t("limit_booking_frequency_description")}
@@ -317,11 +318,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 }
               }}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0">
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <IntervalLimitsManager
                   disabled={bookingLimitsLocked.disabled}
                   propertyName="bookingLimits"
@@ -340,9 +341,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -359,7 +361,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                   formMethods.setValue("durationLimits", {});
                 }
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
@@ -380,9 +382,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
           return (
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -391,7 +394,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               {...periodTypeLocked}
               checked={isChecked}
               onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   defaultValue={watchPeriodType}
                   value={watchPeriodType}
@@ -478,9 +481,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         }}
       />
       <SettingsToggle
+        labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
-          "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+          "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
           offsetToggle && "rounded-b-none"
         )}
         childrenClassName="lg:ml-0"
@@ -494,10 +498,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             formMethods.setValue("offsetStart", 0);
           }
         }}>
-        <div className="border-subtle rounded-b-md border border-t-0 p-6">
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
           <TextField
             required
             type="number"
+            containerClassName="max-w-80"
             {...offsetStartLockedProps}
             label={t("offset_start")}
             {...formMethods.register("offsetStart")}

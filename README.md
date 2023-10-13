@@ -381,6 +381,10 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
 
+### Elestio
+
+[![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/cal.com)
+
 <!-- ROADMAP -->
 
 ## Roadmap

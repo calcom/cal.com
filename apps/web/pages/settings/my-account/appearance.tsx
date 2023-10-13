@@ -6,8 +6,8 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,7 +35,10 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 space-y-6 rounded-t-xl border border-b-0 px-4 py-6 sm:px-6">
+      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+        <SkeletonText className="h-8 w-1/3" />
+      </div>
+      <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
         <div className="flex items-center justify-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -48,7 +51,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
         <SkeletonText className="h-8 w-full" />
       </div>
-      <div className="rounded-b-xl">
+      <div className="rounded-b-lg">
         <SectionBottomActions align="end">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
         </SectionBottomActions>
@@ -56,9 +59,6 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-
-const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
-const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 const AppearanceView = ({
   user,
@@ -137,7 +137,7 @@ const AppearanceView = ({
   return (
     <div>
       <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+      <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
@@ -149,13 +149,13 @@ const AppearanceView = ({
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
-            theme: values.theme || null,
+            theme: values.theme ?? null,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
-            value={null}
+            value={undefined}
             label={t("theme_system")}
             defaultChecked={user.theme === null}
             register={userThemeFormMethods.register}
@@ -226,11 +226,7 @@ const AppearanceView = ({
                 });
               }
             }}
-            childrenClassName="lg:ml-0"
-            switchContainerClassName={classNames(
-              "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
-              isCustomBrandColorChecked && "rounded-b-none"
-            )}>
+            childrenClassName="lg:ml-0">
             <div className="border-subtle flex flex-col gap-6 border-x p-6">
               <Controller
                 name="brandColor"
@@ -241,7 +237,7 @@ const AppearanceView = ({
                     <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                     <ColorPicker
                       defaultValue={user.brandColor}
-                      resetDefaultValue="#292929"
+                      resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
                       onChange={(value) => {
                         try {
                           checkWCAGContrastColor("#ffffff", value);
@@ -273,7 +269,7 @@ const AppearanceView = ({
                     <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                     <ColorPicker
                       defaultValue={user.darkBrandColor}
-                      resetDefaultValue="#fafafa"
+                      resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
                       onChange={(value) => {
                         try {
                           checkWCAGContrastColor("#101010", value);
@@ -328,7 +324,7 @@ const AppearanceView = ({
           setHideBrandingValue(checked);
           mutation.mutate({ hideBranding: checked });
         }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+        switchContainerClassName="mt-6"
       />
     </div>
   );
