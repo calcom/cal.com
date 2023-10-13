@@ -425,7 +425,7 @@ function EventTypeSingleLayout({
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
             <HorizontalTabs tabs={EventTypeTabs} linkShallow />
           </div>
-          <div className="w-full ltr:mr-2 rtl:ml-2">
+          <div className="w-full overflow-hidden ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
                 "bg-default border-subtle  mt-4 rounded-md sm:mx-0 xl:mt-0",
