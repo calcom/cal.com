@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, getEventLocationTypeFromValue } from "@calcom/app-store/locations";
+import { getEventLocationType, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -276,11 +276,20 @@ function BookingListItem(booking: BookingItemProps) {
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
 
   const meetingLink = (link: string) => {
-    const app = getEventLocationTypeFromValue(link);
+    let linkOrType = link;
+    if (link.startsWith("https://meet.google")) {
+      linkOrType = "integrations:google:meet";
+    }
+    if (link.startsWith("https://zoom")) {
+      linkOrType = "integrations:zoom";
+    }
+    const app = guessEventLocationType(linkOrType);
     if (app)
       return (
         <div className="flex">
-          <Link href={link} className="flex gap-1 text-sm leading-6 text-blue-400 hover:underline">
+          <Link
+            href={link}
+            className="flex items-center gap-1 text-sm leading-6 text-blue-400 hover:underline">
             <img src={app.iconUrl} alt={app.label} height={16} width={16} />
             Join {app.label}
           </Link>
