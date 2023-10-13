@@ -43,6 +43,12 @@ import {
  *               bookingId:
  *                 type: integer
  *                 description: 'The booking ID it is associated with'
+ *               userId:
+ *                 type: integer
+ *                 description: 'The user it is associated with'
+ *               credentialId:
+ *                 type: integer
+ *                 description: 'The credential ID it is associated with'
  *     tags:
  *      - destination-calendars
  *     responses:
@@ -55,17 +61,37 @@ import {
  */
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma, body } = req;
-
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
-
   await checkPermissions(req, userId);
 
-  if (!parsedBody.eventTypeId) {
-    parsedBody.userId = userId;
-  }
+  parsedBody.userId = userId;
 
   if (isAdmin) {
     parsedBody.userId = parsedBody.userId || userId;
+  }
+
+  /* Check if credentialId data matches the ownership and integration passed in */
+  const credential = await prisma.credential.findFirst({
+    where: { type: parsedBody.integration, userId: parsedBody.userId },
+    select: { id: true, type: true, userId: true },
+  });
+
+  if (!credential)
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request, credential id invalid",
+    });
+
+  if (parsedBody.eventTypeId) {
+    const eventType = await prisma.eventType.findFirst({
+      where: { id: parsedBody.eventTypeId, userId: parsedBody.userId },
+    });
+    if (!eventType)
+      throw new HttpError({
+        statusCode: 400,
+        message: "Bad request, eventTypeId invalid",
+      });
+    parsedBody.userId = undefined;
   }
 
   const destination_calendar = await prisma.destinationCalendar.create({ data: { ...parsedBody } });
