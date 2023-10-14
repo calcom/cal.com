@@ -20,7 +20,7 @@ export default function AddToHomescreen() {
             <div className="flex w-0 flex-1 items-center">
               <span className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast flex rounded-lg bg-opacity-30 p-2">
                 <svg
-                  className="h-7 w-7 fill-current text-indigo-500"
+                  className="h-7 w-7 fill-current text-[#5B93F9]"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 50 50"
                   enableBackground="new 0 0 50 50">
