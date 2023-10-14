@@ -616,7 +616,7 @@ describe("handleNewBooking", () => {
 
     describe("Event Type that requires confirmation", () => {
       test(
-        `should reschedule a booking that requires confirmation in PENDING state - When a booker(who is not the organizer himself) is doing the schedule
+        `should reschedule a booking that requires confirmation in PENDING state - When a booker(who is not the organizer himself) is doing the reschedule
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
           2. Should create a new booking in the database in PENDING state
@@ -813,9 +813,8 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      // eslint-disable-next-line playwright/no-skipped-test
-      test.skip(
-        `should rechedule a booking, that requires confirmation, without confirmation - When Organizer is doing the reschedule
+      test(
+        `should rechedule a booking, that requires confirmation, without confirmation - When booker is the organizer of the existing booking as well as the event-type
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
           2. Should create a new booking in the database in ACCEPTED state
@@ -873,6 +872,7 @@ describe("handleNewBooking", () => {
                 {
                   uid: uidOfBookingToBeRescheduled,
                   eventTypeId: 1,
+                  userId: organizer.id,
                   status: BookingStatus.ACCEPTED,
                   startTime: `${plus1DateString}T05:00:00.000Z`,
                   endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -1054,9 +1054,209 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      // eslint-disable-next-line playwright/no-skipped-test
-      test.skip(
-        `should rechedule a booking, that requires confirmation, without confirmation - When the owner of the previous booking is doing the reschedule
+      test(
+        `should rechedule a booking, that requires confirmation, in PENDING state - Even when the rescheduler is the organizer of the event-type but not the organizer of the existing booking
+        1. Should cancel the existing booking
+        2. Should delete existing calendar invite and Video meeting
+        2. Should create a new booking in the database in PENDING state
+        3. Should send booking requested emails to the booker as well as organizer
+        4. Should trigger BOOKING_REQUESTED webhook
+      `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const subscriberUrl = "http://my-webhook.example.com";
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl,
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                requiresConfirmation: true,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  getMockBookingReference({
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: 0,
+                  }),
+                  getMockBookingReference({
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          });
+          await createBookingScenario(scenarioData);
+
+          const videoMock = mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          // Fake the request to be from organizer
+          req.userId = organizer.id;
+
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking.responses).toContain({
+            email: booker.email,
+            name: booker.name,
+          });
+
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+            },
+            to: {
+              description: "",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              // Rescheduled booking sill stays in pending state
+              status: BookingStatus.PENDING,
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: "http://mock-dailyvideo.example.com",
+                },
+                {
+                  type: appStoreMetadata.googlecalendar.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASSWORD",
+                  meetingUrl: "https://UNUSED_URL",
+                  externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                },
+              ],
+            },
+          });
+
+          expectWorkflowToBeTriggered();
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
+          });
+
+          expectBookingRequestedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl,
+            eventType: scenarioData.eventTypes[0],
+          });
+
+          expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
+            bookingRef: {
+              type: appStoreMetadata.dailyvideo.type,
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: "http://mock-dailyvideo.example.com",
+            },
+          });
+
+          expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
+            externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+            calEvent: {
+              videoCallData: expect.objectContaining({
+                url: "http://mock-dailyvideo.example.com",
+              }),
+            },
+            uid: "MOCK_ID",
+          });
+        },
+        timeout
+      );
+
+      test(
+        `should rechedule a booking, that requires confirmation, without confirmation - When the owner of the previous booking is doing the reschedule(but he isn't the organizer of the event-type now)
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
           2. Should create a new booking in the database in ACCEPTED state
@@ -1163,9 +1363,9 @@ describe("handleNewBooking", () => {
                 {
                   id: previousOrganizerIdForTheBooking,
                   name: "Previous Organizer",
-                  username: "prev-organizer",
                   email: "",
                   schedules: [TestData.schedules.IstWorkHours],
+                  username: "prev-organizer",
                   timeZone: "Europe/London",
                 },
               ],
