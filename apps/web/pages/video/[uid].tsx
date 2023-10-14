@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import z from "zod";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
@@ -84,7 +83,7 @@ export default function JoinCall(props: JoinCallPageProps) {
     const onCustomButtonClick = async (event?: DailyEventObjectCustomButtonClick | undefined) => {
       console.log(`calAiCredential ${JSON.stringify(props.calAiCredential)}`);
 
-      if (!props.calAiCredential || !props.calAiCredential.key || !props.calAiCredential.key["apiKey"]) {
+      if (!props.calAiCredential) {
         //TODO - this needs to open in a new tab
         router.push("/apps/cal-ai");
       }
@@ -158,13 +157,10 @@ export default function JoinCall(props: JoinCallPageProps) {
     recordingId.current = response.recordingId;
   };
   const handleTranscriptionStarted = () => {
-    //TODO - do we need anything here?
+    //
   };
   const handleTranscriptionStopped = async () => {
-    if (!props.calAiCredential || !props.calAiCredential.key || !transcript.current) {
-      console.log("returning without calling the ai tool");
-      return;
-    }
+    //
   };
   const handleLeftMeeting = () => {
     //TODO send transcript by email
@@ -413,7 +409,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userId: booking.user.id,
     },
   });
-  const calAiKeys = await getAppKeysFromSlug("cal-ai");
+
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
   const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
@@ -445,8 +441,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      calAiKeys: calAiKeys,
-      calAiCredential: aiAppInstalled,
+      calAiCredential: aiAppInstalled ? true : false,
       meetingUrl: bookingObj.references[0].meetingUrl ?? "",
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
         meetingPassword: bookingObj.references[0].meetingPassword,
