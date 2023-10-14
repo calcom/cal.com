@@ -454,7 +454,8 @@ export default class EventManager {
     // Because we are just cleaning up the events and meetings, we don't want to throw an error if one of them fails.
     (await Promise.allSettled(allPromises)).some((result) => {
       if (result.status === "rejected") {
-        log.error(
+        // Make it a soft error because in case a PENDING booking is rescheduled there would be no calendar events or video meetings.
+        log.warn(
           "Error deleting calendar event or video meeting for booking",
           safeStringify({ error: result.reason })
         );
