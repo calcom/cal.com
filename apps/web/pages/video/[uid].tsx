@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import z from "zod";
 
-import getMeetingTranscript from "@calcom/ai/src/tools/getMeetingTranscript";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -84,12 +83,12 @@ export default function JoinCall(props: JoinCallPageProps) {
     /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
     const onCustomButtonClick = async (event?: DailyEventObjectCustomButtonClick | undefined) => {
       console.log(`calAiCredential ${JSON.stringify(props.calAiCredential)}`);
-      const calAiKeys = await getAppKeysFromSlug("cal-ai");
+
       if (!props.calAiCredential || !props.calAiCredential.key || !props.calAiCredential.key["apiKey"]) {
         //TODO - this needs to open in a new tab
         router.push("/apps/cal-ai");
       }
-      if (!calAiKeys || !calAiKeys["deepgram_api_key"]) {
+      if (!props.calAiKeys || !props.calAiKeys["deepgram_api_key"]) {
         //TODO - this needs to open in a new tab
         router.push("/settings/admin/apps/automation");
       }
@@ -170,8 +169,18 @@ export default function JoinCall(props: JoinCallPageProps) {
       return;
     }
     //TODO
-    // send the transcript to the transcription meeting handler
-    await getMeetingTranscript(props.calAiCredential.key as string, props.booking, transcript.current);
+    const data = {
+      apiKey: props.calAiCredential.key,
+      bookingData: props.booking,
+      transcript: transcript.current,
+    };
+    // handle this
+    fetch("/cal-ai/api/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }).catch((err) => {
+      console.log(err);
+    });
   };
   const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
     for (const key in event) {
@@ -416,6 +425,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userId: booking.user.id,
     },
   });
+  const calAiKeys = await getAppKeysFromSlug("cal-ai");
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
   const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
@@ -447,6 +457,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      calAiKeys: calAiKeys,
       calAiCredential: aiAppInstalled,
       meetingUrl: bookingObj.references[0].meetingUrl ?? "",
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
