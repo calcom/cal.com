@@ -10,6 +10,7 @@ import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "react-hot-toast";
 import z from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -166,10 +167,8 @@ export default function JoinCall(props: JoinCallPageProps) {
     //TODO send transcript by email
     console.log(`Full Transcript: ${transcript.current}`);
   };
-  const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
-    for (const key in event) {
-      console.log(`${key}: ${event[key as string]}`);
-    }
+  const handleTranscriptionError = () => {
+    toast.error("Could not run transcription service for this meeting");
   };
   const title = `${APP_NAME} Video`;
   return (
