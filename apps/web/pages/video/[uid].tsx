@@ -88,10 +88,7 @@ export default function JoinCall(props: JoinCallPageProps) {
         //TODO - this needs to open in a new tab
         router.push("/apps/cal-ai");
       }
-      if (!props.calAiKeys || !props.calAiKeys["deepgram_api_key"]) {
-        //TODO - this needs to open in a new tab
-        router.push("/settings/admin/apps/automation");
-      }
+
       if (event && event["button_id"] == "transcriptButton") {
         return !!isTranscribing.current ? stopTranscription() : startTranscription();
       }

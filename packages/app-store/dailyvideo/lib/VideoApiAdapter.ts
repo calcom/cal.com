@@ -9,7 +9,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
@@ -111,7 +110,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   }
 
   const translateEvent = async (event: CalendarEvent) => {
-    const calAiKeys = await getAppKeysFromSlug("cal-ai");
     const checkCalAiInstalled = await prisma.credential.findFirst({
       where: {
         appId: "cal-ai",
@@ -141,13 +139,13 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     };
     /** permission to allow transcription using cal-ai @link https://docs.daily.co/reference/rn-daily-js/instance-methods/start-transcription#main */
     if (scalePlan === "true" && !!hasTeamPlan === true) {
-      if (calAiKeys && checkCalAiInstalled && calAiKeys["deepgram_api_key"]) {
+      if (checkCalAiInstalled) {
         return {
           privacy: "public",
           properties: {
             ...options,
             enable_recording: "cloud",
-            enable_transcription: `deepgram:${calAiKeys["deepgram_api_key"]}`,
+            enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
             permissions: { canAdmin: ["transcription"] },
           },
         };
@@ -158,12 +156,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         };
       }
     }
-    if (calAiKeys && checkCalAiInstalled && calAiKeys["deepgram_api_key"]) {
+    if (checkCalAiInstalled) {
       return {
         privacy: "public",
         properties: {
           ...options,
-          enable_transcription: `deepgram:${calAiKeys["deepgram_api_key"]}`,
+          enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
           permissions: { canAdmin: ["transcription"] },
         },
       };
