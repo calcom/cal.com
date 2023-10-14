@@ -33,9 +33,10 @@ const BOOKING_LIMITS_MULTIPLE = {
   PER_YEAR: 4,
 };
 
-// prevent tests from crossing year boundaries (if already in Nov, start booking in Jan instead of Dec)
+// prevent tests from crossing year boundaries - if currently in Oct or later, start booking in Jan instead of Nov
+// (we increment months twice when checking multiple limits)
 const firstDayInBookingMonth =
-  dayjs().month() === 10 ? dayjs().add(1, "year").month(0).date(1) : dayjs().add(1, "month").date(1);
+  dayjs().month() >= 9 ? dayjs().add(1, "year").month(0).date(1) : dayjs().add(1, "month").date(1);
 
 // avoid weekly edge cases
 const firstMondayInBookingMonth = firstDayInBookingMonth.day(
