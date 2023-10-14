@@ -45,7 +45,7 @@ export const POST = async (request: NextRequest) => {
   } catch (error) {
     await sendEmail({
       subject: `Re: ${subject}`,
-      text: "Thanks for trying Cal.ai! We're experiencing high demand and are unable to process your request. Please try again later.",
+      text: "Thanks for using Cal.ai! You've reached your daily limit. Please try again tomorrow.",
       to: envelope.from,
       from: aiEmail,
     });
