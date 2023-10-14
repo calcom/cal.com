@@ -396,7 +396,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl || !booking.user) {
+  if (
+    !booking ||
+    booking.references.length === 0 ||
+    !booking.references[0].meetingUrl ||
+    !booking.user ||
+    !booking.user.id
+  ) {
     return {
       redirect: {
         destination: "/video/no-meeting-found",
