@@ -1,8 +1,9 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
@@ -22,6 +23,7 @@ const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.Time
 
 export const EventMeta = () => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
+
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -44,7 +46,15 @@ export const EventMeta = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.length, selectedDuration]);
-
+  const checkAndSetTimezone = useCallback(() => {
+    if (!Boolean(timezone?.length)) {
+      setTimezone(dayjs.tz.guess());
+    }
+  }, [timezone, setTimezone]);
+  useEffect(() => {
+    checkAndSetTimezone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timezone]);
   if (hideEventTypeDetails) {
     return null;
   }

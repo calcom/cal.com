@@ -14,6 +14,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { timezoneLocalStorageKey } from "@calcom/lib/timezone";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import type { PaymentPageProps } from "../pages/payment";
@@ -49,8 +50,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
-    const _timezone =
-      localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+    const _timezone = localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess() || "Europe/London";
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());

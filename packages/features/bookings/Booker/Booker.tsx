@@ -82,7 +82,9 @@ const BookerComponent = ({
   );
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
+
   const selectedDate = useBookerStore((state) => state.selectedDate);
+
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow

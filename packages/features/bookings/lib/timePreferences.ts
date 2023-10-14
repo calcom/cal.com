@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
 import { TimeFormat, detectBrowserTimeFormat, setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
+import { setTimeZoneLocalStorage, timezoneLocalStorageKey } from "@calcom/lib/timezone";
 import { localStorage } from "@calcom/lib/webstorage";
 
 type TimePreferencesStore = {
@@ -10,8 +11,6 @@ type TimePreferencesStore = {
   timezone: string;
   setTimezone: (timeZone: string) => void;
 };
-
-const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
 
 /**
  * This hook is NOT inside the user feature, since
@@ -26,7 +25,7 @@ export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
   },
   timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess() || "Europe/London",
   setTimezone: (timezone: string) => {
-    localStorage.setItem(timezoneLocalStorageKey, timezone);
+    setTimeZoneLocalStorage(timezone);
     set({ timezone });
   },
 }));

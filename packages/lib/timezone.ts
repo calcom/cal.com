@@ -4,6 +4,7 @@ import type { ICity } from "@calcom/ui/components/form/timezone-select";
 
 import isProblematicTimezone from "./isProblematicTimezone";
 
+export const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
 function findPartialMatch(itemsToSearch: string, searchString: string) {
   const searchItems = searchString.split(" ");
   return searchItems.every((i) => itemsToSearch.toLowerCase().indexOf(i.toLowerCase()) >= 0);
@@ -16,7 +17,8 @@ function findFromCity(searchString: string, data: ICity[]): ICity[] {
   }
   return [];
 }
-
+export const setTimeZoneLocalStorage = (timezone: string) =>
+  localStorage.setItem(timezoneLocalStorageKey, timezone);
 export const filterByCities = (tz: string, data: ICity[]): ICity[] => {
   const cityLookup = findFromCity(tz, data);
   return cityLookup.map(({ city, timezone }) => ({ city, timezone }));

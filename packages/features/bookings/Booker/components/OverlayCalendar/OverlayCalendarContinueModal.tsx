@@ -13,6 +13,7 @@ interface IOverlayCalendarContinueModalProps {
 export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModalProps) {
   const router = useRouter();
   const { t } = useLocale();
+
   return (
     <>
       <Dialog open={props.open} onOpenChange={props.onClose}>
