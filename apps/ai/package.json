@@ -8,7 +8,7 @@
     "@t3-oss/env-nextjs": "^0.6.1",
     "langchain": "^0.0.131",
     "mailparser": "^3.6.5",
-    "next": "^13.4.7",
+    "next": "^13.5.4",
     "supports-color": "8.1.1",
     "zod": "^3.22.2"
   },
