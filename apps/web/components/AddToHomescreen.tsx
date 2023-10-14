@@ -20,7 +20,7 @@ export default function AddToHomescreen() {
             <div className="flex w-0 flex-1 items-center">
               <span className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast flex rounded-lg bg-opacity-30 p-2">
                 <svg
-                  className="h-7 w-7 fill-current text-indigo-500"
+                  className="h-7 w-7 fill-current text-[#5B93F9]"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 50 50"
                   enableBackground="new 0 0 50 50">
@@ -29,7 +29,7 @@ export default function AddToHomescreen() {
                   <path d="M35 40H15c-1.7 0-3-1.3-3-3V19c0-1.7 1.3-3 3-3h7v2h-7c-.6 0-1 .4-1 1v18c0 .6.4 1 1 1h20c.6 0 1-.4 1-1V19c0-.6-.4-1-1-1h-7v-2h7c1.7 0 3 1.3 3 3v18c0 1.7-1.3 3-3 3z" />
                 </svg>
               </span>
-              <p className="text-inverted ms-3 text-xs font-medium">
+              <p className="text-inverted ms-3 text-xs font-medium dark:text-white">
                 <span className="inline">{t("add_to_homescreen")}</span>
               </p>
             </div>
@@ -40,7 +40,7 @@ export default function AddToHomescreen() {
                 type="button"
                 className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <X className="text-inverted h-6 w-6" aria-hidden="true" />
+                <X className="text-inverted h-6 w-6 dark:text-white" aria-hidden="true" />
               </button>
             </div>
           </div>
