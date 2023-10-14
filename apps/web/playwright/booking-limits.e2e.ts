@@ -2,10 +2,11 @@ import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
-import { test } from "./lib/fixtures";
+import { type Fixtures, test } from "./lib/fixtures";
 import { bookTimeSlot, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -13,18 +14,23 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
+// used as a multiplier for duration limits
 const EVENT_LENGTH = 30;
+
+// limits used when testing each limit seperately
 const BOOKING_LIMITS_SINGLE = {
-  day: 2,
-  week: 2,
-  month: 2,
-  year: 2,
+  PER_DAY: 2,
+  PER_WEEK: 2,
+  PER_MONTH: 2,
+  PER_YEAR: 2,
 };
+
+// limits used when testing multiple limits together
 const BOOKING_LIMITS_MULTIPLE = {
-  day: 1,
-  week: 2,
-  month: 3,
-  year: 4,
+  PER_DAY: 1,
+  PER_WEEK: 2,
+  PER_MONTH: 3,
+  PER_YEAR: 4,
 };
 
 // prevent tests from crossing year boundaries (if already in Nov, start booking in Jan instead of Dec)
@@ -42,17 +48,46 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   return date.add(1, "month").day(date.day());
 };
 
+const createUserWithLimits = ({
+  users,
+  slug,
+  title,
+  bookingLimits,
+  durationLimits,
+}: {
+  users: Fixtures["users"];
+  slug: string;
+  title?: string;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+}) => {
+  if (!bookingLimits && !durationLimits) {
+    throw new Error("Need to supply at least one of bookingLimits or durationLimits");
+  }
+
+  return users.create({
+    eventTypes: [
+      {
+        title: title ?? slug,
+        slug,
+        length: EVENT_LENGTH,
+        bookingLimits,
+        durationLimits,
+      },
+    ],
+  });
+};
+
 test.describe("Booking limits", () => {
-  entries(BOOKING_LIMITS_SINGLE).forEach(([limitUnit, bookingLimit]) => {
-    const limitValue = bookingLimit;
+  entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
+    const limitUnit = intervalLimitKeyToUnit(limitKey);
 
     // test one limit at a time
     test(limitUnit, async ({ page, users }) => {
       const slug = `booking-limit-${limitUnit}`;
-      const limit = { [`PER_${limitUnit.toUpperCase()}`]: limitValue };
-      const user = await users.create({
-        eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, bookingLimits: limit }],
-      });
+      const singleLimit = { [limitKey]: bookingLimit };
+
+      const user = await createUserWithLimits({ users, slug, bookingLimits: singleLimit });
 
       let slotUrl = "";
 
@@ -127,17 +162,8 @@ test.describe("Booking limits", () => {
 
   test("multiple", async ({ page, users }) => {
     const slug = "booking-limit-multiple";
-    const limits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitUnit, bookingLimit]) => {
-      const limitValue = bookingLimit;
-      return {
-        ...limits,
-        [`PER_${limitUnit.toUpperCase()}`]: limitValue,
-      };
-    }, {} as Record<keyof IntervalLimit, number>);
 
-    const user = await users.create({
-      eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, bookingLimits: limits }],
-    });
+    const user = await createUserWithLimits({ users, slug, bookingLimits: BOOKING_LIMITS_MULTIPLE });
 
     let slotUrl = "";
 
@@ -146,7 +172,9 @@ test.describe("Booking limits", () => {
     // keep track of total bookings across multiple limits
     let bookingCount = 0;
 
-    for (const [limitUnit, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
+    for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
+      const limitUnit = intervalLimitKeyToUnit(limitKey);
+
       const monthUrl = `/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`;
       await page.goto(monthUrl);
 
@@ -223,16 +251,15 @@ test.describe("Booking limits", () => {
 });
 
 test.describe("Duration limits", () => {
-  entries(BOOKING_LIMITS_SINGLE).forEach(([limitUnit, bookingLimit]) => {
-    const limitValue = bookingLimit * EVENT_LENGTH;
+  entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
+    const limitUnit = intervalLimitKeyToUnit(limitKey);
 
     // test one limit at a time
     test(limitUnit, async ({ page, users }) => {
       const slug = `duration-limit-${limitUnit}`;
-      const limit = { [`PER_${limitUnit.toUpperCase()}`]: limitValue };
-      const user = await users.create({
-        eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, durationLimits: limit }],
-      });
+      const singleLimit = { [limitKey]: bookingLimit * EVENT_LENGTH };
+
+      const user = await createUserWithLimits({ users, slug, durationLimits: singleLimit });
 
       let slotUrl = "";
 
@@ -307,17 +334,16 @@ test.describe("Duration limits", () => {
 
   test("multiple", async ({ page, users }) => {
     const slug = "duration-limit-multiple";
-    const limits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitUnit, bookingLimit]) => {
-      const limitValue = bookingLimit * EVENT_LENGTH;
+
+    // multiply all booking limits by EVENT_LENGTH
+    const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
       return {
         ...limits,
-        [`PER_${limitUnit.toUpperCase()}`]: limitValue,
+        [limitKey]: bookingLimit * EVENT_LENGTH,
       };
     }, {} as Record<keyof IntervalLimit, number>);
 
-    const user = await users.create({
-      eventTypes: [{ title: slug, slug, length: EVENT_LENGTH, durationLimits: limits }],
-    });
+    const user = await createUserWithLimits({ users, slug, durationLimits });
 
     let slotUrl = "";
 
@@ -326,7 +352,9 @@ test.describe("Duration limits", () => {
     // keep track of total bookings across multiple limits
     let bookingCount = 0;
 
-    for (const [limitUnit, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
+    for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
+      const limitUnit = intervalLimitKeyToUnit(limitKey);
+
       const monthUrl = `/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`;
       await page.goto(monthUrl);
 
