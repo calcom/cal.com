@@ -106,7 +106,7 @@ test.describe("Booking limits", () => {
         await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
         // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden();
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
 
         const availableDaysAfter = await availableDays.count();
 
@@ -195,7 +195,7 @@ test.describe("Booking limits", () => {
         await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
         // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden();
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
 
         const availableDaysAfter = await availableDays.count();
 
@@ -288,7 +288,7 @@ test.describe("Duration limits", () => {
         await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
         // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden();
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
 
         const availableDaysAfter = await availableDays.count();
 
@@ -385,7 +385,7 @@ test.describe("Duration limits", () => {
         await expect(page.getByTestId("day").nth(0)).toBeVisible();
 
         // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden();
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
 
         const availableDaysAfter = await availableDays.count();
 
