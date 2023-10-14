@@ -132,6 +132,7 @@ export default function JoinCall(props: JoinCallPageProps) {
         }
       }
     });
+    callFrame.on("left-meeting", handleLeftMeeting);
     return () => {
       callFrame.destroy();
     };
@@ -160,24 +161,14 @@ export default function JoinCall(props: JoinCallPageProps) {
     //TODO - do we need anything here?
   };
   const handleTranscriptionStopped = async () => {
-    console.log("handleTranscriptionStopped is called");
     if (!props.calAiCredential || !props.calAiCredential.key || !transcript.current) {
       console.log("returning without calling the ai tool");
       return;
     }
-    //TODO
-    const data = {
-      apiKey: props.calAiCredential.key,
-      bookingData: props.booking,
-      transcript: transcript.current,
-    };
-    // handle this
-    fetch("/cal-ai/api/", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }).catch((err) => {
-      console.log(err);
-    });
+  };
+  const handleLeftMeeting = () => {
+    //TODO send transcript by email
+    console.log(`Full Transcript: ${transcript.current}`);
   };
   const handleTranscriptionError = (event: { action: string; errorMsg: string; callFrameId: string }) => {
     for (const key in event) {
