@@ -26,6 +26,7 @@ Before running the app, please see [env.mjs](./src/env.mjs) for all required env
 
 - An [OpenAI API key](https://platform.openai.com/account/api-keys) with access to GPT-4
 - A [SendGrid API key](https://app.sendgrid.com/settings/api_keys)
+- A [Deepgram API Key](https://console.deepgram.com/) to transcribe calls
 - A default sender email (for example, `me@dev.example.com`)
 - The Cal.ai app's ID and URL (see [add.ts](/packages/app-store/cal-ai/api/index.ts))
 - A unique value for `PARSE_KEY` with `openssl rand -hex 32`
