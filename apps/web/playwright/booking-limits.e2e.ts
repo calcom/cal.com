@@ -6,8 +6,8 @@ import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
-import { type Fixtures, test } from "./lib/fixtures";
-import { bookTimeSlot, todo } from "./lib/testUtils";
+import { test } from "./lib/fixtures";
+import { bookTimeSlot, createUserWithLimits, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -48,36 +48,6 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   return date.add(1, "month").day(date.day());
 };
 
-const createUserWithLimits = ({
-  users,
-  slug,
-  title,
-  bookingLimits,
-  durationLimits,
-}: {
-  users: Fixtures["users"];
-  slug: string;
-  title?: string;
-  bookingLimits?: IntervalLimit;
-  durationLimits?: IntervalLimit;
-}) => {
-  if (!bookingLimits && !durationLimits) {
-    throw new Error("Need to supply at least one of bookingLimits or durationLimits");
-  }
-
-  return users.create({
-    eventTypes: [
-      {
-        title: title ?? slug,
-        slug,
-        length: EVENT_LENGTH,
-        bookingLimits,
-        durationLimits,
-      },
-    ],
-  });
-};
-
 test.describe("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
@@ -87,7 +57,12 @@ test.describe("Booking limits", () => {
       const slug = `booking-limit-${limitUnit}`;
       const singleLimit = { [limitKey]: bookingLimit };
 
-      const user = await createUserWithLimits({ users, slug, bookingLimits: singleLimit });
+      const user = await createUserWithLimits({
+        users,
+        slug,
+        length: EVENT_LENGTH,
+        bookingLimits: singleLimit,
+      });
 
       let slotUrl = "";
 
@@ -163,7 +138,12 @@ test.describe("Booking limits", () => {
   test("multiple", async ({ page, users }) => {
     const slug = "booking-limit-multiple";
 
-    const user = await createUserWithLimits({ users, slug, bookingLimits: BOOKING_LIMITS_MULTIPLE });
+    const user = await createUserWithLimits({
+      users,
+      slug,
+      length: EVENT_LENGTH,
+      bookingLimits: BOOKING_LIMITS_MULTIPLE,
+    });
 
     let slotUrl = "";
 
@@ -259,7 +239,12 @@ test.describe("Duration limits", () => {
       const slug = `duration-limit-${limitUnit}`;
       const singleLimit = { [limitKey]: bookingLimit * EVENT_LENGTH };
 
-      const user = await createUserWithLimits({ users, slug, durationLimits: singleLimit });
+      const user = await createUserWithLimits({
+        users,
+        slug,
+        length: EVENT_LENGTH,
+        durationLimits: singleLimit,
+      });
 
       let slotUrl = "";
 
@@ -343,7 +328,12 @@ test.describe("Duration limits", () => {
       };
     }, {} as Record<keyof IntervalLimit, number>);
 
-    const user = await createUserWithLimits({ users, slug, durationLimits });
+    const user = await createUserWithLimits({
+      users,
+      slug,
+      length: EVENT_LENGTH,
+      durationLimits,
+    });
 
     let slotUrl = "";
 
