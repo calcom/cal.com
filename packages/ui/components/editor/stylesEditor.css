@@ -120,6 +120,8 @@ pre::-webkit-scrollbar-thumb {
   padding: 2px;
   border-top-left-radius: 6px;
   justify-content: end;
+  border-bottom-color: var(--cal-border);
+  border-bottom-width: 1px;
   border-top-right-radius: 6px;
   vertical-align: middle;
 }
