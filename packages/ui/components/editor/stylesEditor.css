@@ -119,7 +119,7 @@ pre::-webkit-scrollbar-thumb {
   background: var(--cal-bg);
   padding: 2px;
   border-top-left-radius: 6px;
-  justify-content: center;
+  justify-content: end;
   border-top-right-radius: 6px;
   vertical-align: middle;
 }
