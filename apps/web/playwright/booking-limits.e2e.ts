@@ -49,6 +49,10 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   return date.add(1, "month").day(date.day());
 };
 
+const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWithLimits>>, date: Dayjs) => {
+  return `/${user.username}/${user.eventTypes.at(-1)?.slug}?month=${date.format("YYYY-MM")}`;
+};
+
 test.describe("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
@@ -67,7 +71,7 @@ test.describe("Booking limits", () => {
 
       let slotUrl = "";
 
-      const monthUrl = `/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`;
+      const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
       await page.goto(monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
@@ -123,9 +127,7 @@ test.describe("Booking limits", () => {
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(
-          `/${user.username}/${slug}?month=${firstMondayInBookingMonth.add(1, "month").format("YYYY-MM")}`
-        );
+        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -156,7 +158,7 @@ test.describe("Booking limits", () => {
     for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
       const limitUnit = intervalLimitKeyToUnit(limitKey);
 
-      const monthUrl = `/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`;
+      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
       await page.goto(monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
@@ -212,7 +214,7 @@ test.describe("Booking limits", () => {
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(`/${user.username}/${slug}?month=${bookingDate.add(1, "month").format("YYYY-MM")}`);
+        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -249,7 +251,7 @@ test.describe("Duration limits", () => {
 
       let slotUrl = "";
 
-      const monthUrl = `/${user.username}/${slug}?month=${firstMondayInBookingMonth.format("YYYY-MM")}`;
+      const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
       await page.goto(monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
@@ -305,9 +307,7 @@ test.describe("Duration limits", () => {
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(
-          `/${user.username}/${slug}?month=${firstMondayInBookingMonth.add(1, "month").format("YYYY-MM")}`
-        );
+        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -346,7 +346,7 @@ test.describe("Duration limits", () => {
     for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
       const limitUnit = intervalLimitKeyToUnit(limitKey);
 
-      const monthUrl = `/${user.username}/${slug}?month=${bookingDate.format("YYYY-MM")}`;
+      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
       await page.goto(monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
@@ -402,7 +402,7 @@ test.describe("Duration limits", () => {
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(`/${user.username}/${slug}?month=${bookingDate.add(1, "month").format("YYYY-MM")}`);
+        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
