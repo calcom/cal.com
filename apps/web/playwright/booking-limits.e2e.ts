@@ -6,7 +6,7 @@ import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot } from "./lib/testUtils";
+import { bookTimeSlot, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -42,8 +42,9 @@ const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   return date.add(1, "month").day(date.day());
 };
 
-// TODO: verify that past bookings count towards limits
-// TODO: consider edge cases, e.g. partial weeks
+todo("Verify that past bookings count towards limits");
+
+todo("Consider edge cases e.g. partial weeks");
 
 ["booking", "duration"].forEach((limitType) => {
   test.describe(`${limitType} limits`, () => {
