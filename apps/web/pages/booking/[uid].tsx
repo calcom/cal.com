@@ -121,7 +121,8 @@ export default function Success(props: SuccessProps) {
   )?.videoCallUrl;
 
   const status = props.bookingInfo?.status;
-  const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
+  const reschedule =
+    props.bookingInfo.status === BookingStatus.ACCEPTED || props.bookingInfo.status === BookingStatus.PENDING;
   const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
 
   const attendeeName =
