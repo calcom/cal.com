@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-form";
 import type { UseFormReturn, SubmitHandler } from "react-hook-form";
@@ -23,8 +24,9 @@ import {
   Input,
   Switch,
   showToast,
+  Tooltip,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2, Info, Edit } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -414,6 +416,9 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
+  const [identifierBadge, setIdentifierBadge] = useState<string>(fieldForm.getValues("label") || "");
+  const [identifierFieldVisible, setIdentifierFieldVisible] = useState<boolean>(false);
+
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
@@ -443,25 +448,15 @@ function FieldEditDialog({
                 return (
                   <>
                     <InputField
-                      required
-                      {...fieldForm.register("name")}
-                      containerClassName="mt-6"
-                      onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
-                      }}
-                      disabled={
-                        fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional"
-                      }
-                      label={t("identifier")}
-                    />
-                    <InputField
                       {...fieldForm.register("label")}
                       // System fields have a defaultLabel, so there a label is not required
                       required={
                         !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
                       }
                       placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                      onChange={(e) => {
+                        setIdentifierBadge(e.target.value);
+                      }}
                       containerClassName="mt-6"
                       label={t("label")}
                     />
@@ -498,6 +493,50 @@ function FieldEditDialog({
                         );
                       }}
                     />
+                    <div className="mt-6">
+                      <div className="mb-2 flex items-center gap-1">
+                        <label className="text-emphasis block text-sm font-medium">Identifier</label>
+                        <Link
+                          href="https://cal.com/docs/core-features/event-types/booking-questions#booking-field-identifier"
+                          target="_blank">
+                          <Tooltip content="Click to learn more ↗" side="top">
+                            <Info className="hover:bg-emphasis h-5 w-5 cursor-pointer rounded p-0.5" />
+                          </Tooltip>
+                        </Link>
+                        {!identifierFieldVisible && identifierBadge !== "" && (
+                          <Badge variant="grayWithoutHover" className="text-subtle">
+                            {identifierBadge?.replaceAll(" ", "-")}
+                            <Tooltip content="Edit identifier" side="top">
+                              <div
+                                onClick={() => {
+                                  fieldForm.setValue("name", identifierBadge?.replaceAll(" ", "-"));
+                                  setIdentifierFieldVisible(true);
+                                }}>
+                                <Edit className=" hover:text-emphasis h-4 w-4 cursor-pointer" />
+                              </div>
+                            </Tooltip>
+                          </Badge>
+                        )}
+                      </div>
+                      {identifierFieldVisible && (
+                        <>
+                          <Input
+                            required
+                            {...fieldForm.register("name")}
+                            onChange={(e) => {
+                              fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                            }}
+                            disabled={
+                              fieldForm.getValues("editable") === "system" ||
+                              fieldForm.getValues("editable") === "system-but-optional"
+                            }
+                          />
+                          <p className="text-subtle text-sm">
+                            You will not be able to edit these later. Letters, numbers & hyphens only.
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </>
                 );
               }
