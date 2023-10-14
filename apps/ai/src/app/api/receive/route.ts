@@ -3,6 +3,7 @@ import { simpleParser } from "mailparser";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import prisma from "@calcom/prisma";
 
 import { env } from "../../../env.mjs";
@@ -31,13 +32,26 @@ export const POST = async (request: NextRequest) => {
 
   const formData = await request.formData();
   const body = Object.fromEntries(formData);
-
-  // body.dkim looks like {@domain-com.22222222.gappssmtp.com : pass}
-  const signature = (body.dkim as string).includes(" : pass");
-
   const envelope = JSON.parse(body.envelope as string);
 
   const aiEmail = envelope.to[0];
+  const subject = body.subject || "Your email";
+
+  try {
+    await checkRateLimitAndThrowError({
+      identifier: `ai:email:${envelope.from}`,
+      rateLimitingType: "ai",
+    });
+  } catch (error) {
+    await sendEmail({
+      subject: `Re: ${subject}`,
+      text: "Thanks for trying Cal.ai! We're experiencing high demand and are unable to process your request. Please try again later.",
+      to: envelope.from,
+      from: aiEmail,
+    });
+
+    return new NextResponse("Exceeded rate limit", { status: 429 });
+  }
 
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email as Source);
@@ -62,11 +76,14 @@ export const POST = async (request: NextRequest) => {
     where: { email: envelope.from },
   });
 
+  // body.dkim looks like {@domain-com.22222222.gappssmtp.com : pass}
+  const signature = (body.dkim as string).includes(" : pass");
+
   // User is not a cal.com user or is using an unverified email.
   if (!signature || !user) {
     await sendEmail({
       html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: `Thanks for your interest in Cal.ai! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
       to: envelope.from,
       from: aiEmail,
@@ -83,7 +100,7 @@ export const POST = async (request: NextRequest) => {
 
     await sendEmail({
       html: `Thanks for using Cal.ai! To get started, the app must be installed. <a href=${url} target="_blank">Click this link</a> to install it.`,
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: `Thanks for using Cal.ai! To get started, the app must be installed. Click this link to install the Cal.ai app: ${url}`,
       to: envelope.from,
       from: aiEmail,
@@ -110,7 +127,7 @@ export const POST = async (request: NextRequest) => {
 
   if ("error" in availability) {
     await sendEmail({
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: "Sorry, there was an error fetching your availability. Please try again.",
       to: user.email,
       from: aiEmail,
@@ -121,7 +138,7 @@ export const POST = async (request: NextRequest) => {
 
   if ("error" in eventTypes) {
     await sendEmail({
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: "Sorry, there was an error fetching your event types. Please try again.",
       to: user.email,
       from: aiEmail,
