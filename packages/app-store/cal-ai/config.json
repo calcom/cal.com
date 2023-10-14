@@ -10,7 +10,7 @@
   "categories": ["automation"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
-  "description": "Cal.ai is your AI scheduling assistant. Get your personal email assistant (username@cal.ai) that you can forward emails to or have a conversation with. Cal.ai will automatically schedule meetings for you.",
+  "description": "Cal.ai is your AI scheduling assistant. Get your personal email assistant (username@cal.ai) that you can forward emails to or have a conversation with. Cal.ai will automatically schedule meetings for you. Inside Cal Video, you can also use Cal.ai to transcribe and summarise video calls which will be sent to you by email afterwards.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",

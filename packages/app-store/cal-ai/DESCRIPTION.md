@@ -5,6 +5,7 @@ items:
   - 3.jpg
   - 4.jpg
   - 5.jpg
+  - 6.jpg
 ---
 
 **FREE TRIAL until December 1st, 2023**
