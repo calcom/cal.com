@@ -33,3 +33,6 @@ items:
 
 ### Or, doing multiple things:
 - Cancel all my meetings tomorrow then book a quick chat with @joe at noon, a long meeting with @jane at 1 (both tomorrow). Also see if Toby is down to grab dinner this week (toby@gmail.com). Finally send me my updated agenda of everything I have coming up in the next couple days.
+
+### Transcribe Video Calls
+After installing Cal.ai, you'll find it inside your Cal Video client. You can click it to transcribe and summarise your conversation and get it sent to your inbox afterwards.
