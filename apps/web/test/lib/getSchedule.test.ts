@@ -1,22 +1,22 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
-import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { getDate, getGoogleCalendarCredential, createBookingScenario} from "../utils/bookingScenario";
 
-// TODO: Mock properly
-prismaMock.eventType.findUnique.mockResolvedValue(null);
-prismaMock.user.findMany.mockResolvedValue([]);
+import {
+  getDate,
+  getGoogleCalendarCredential,
+  createBookingScenario,
+} from "../utils/bookingScenario/bookingScenario";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
-  WEBAPP_URL: "http://localhost:3000"
+  WEBAPP_URL: "http://localhost:3000",
 }));
 
 declare global {
@@ -143,15 +143,14 @@ const TestData = {
   },
 };
 
-
 const cleanup = async () => {
-  await prisma.eventType.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.schedule.deleteMany();
-  await prisma.selectedCalendar.deleteMany();
-  await prisma.credential.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.app.deleteMany();
+  await prismock.eventType.deleteMany();
+  await prismock.user.deleteMany();
+  await prismock.schedule.deleteMany();
+  await prismock.selectedCalendar.deleteMany();
+  await prismock.credential.deleteMany();
+  await prismock.booking.deleteMany();
+  await prismock.app.deleteMany();
 };
 
 beforeEach(async () => {
@@ -200,7 +199,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
       // An event with one accepted booking
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
         input: {
@@ -227,7 +226,7 @@ describe("getSchedule", () => {
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
       // An event with one accepted booking
-      createBookingScenario({
+      await createBookingScenario({
         // An event with length 30 minutes, slotInterval 45 minutes, and minimumBookingNotice 1440 minutes (24 hours)
         eventTypes: [
           {
@@ -296,7 +295,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       // getSchedule returns timeslots in GMT
@@ -328,7 +327,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
@@ -353,7 +352,7 @@ describe("getSchedule", () => {
     });
 
     test("slots are available as per `length`, `slotInterval` of the event", async () => {
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -393,7 +392,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventWith30Length).toHaveTimeSlots(
@@ -429,7 +428,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       // `slotInterval` takes precedence over `length`
       // 4:30 is utc so it is 10:00 in IST
@@ -452,7 +451,7 @@ describe("getSchedule", () => {
         })()
       );
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -493,7 +492,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
@@ -514,7 +513,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
@@ -568,7 +567,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
         input: {
@@ -578,7 +577,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
@@ -642,7 +641,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule({
         input: {
@@ -652,7 +651,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
@@ -700,7 +699,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const schedule = await getSchedule({
         input: {
@@ -710,7 +709,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(schedule).toHaveTimeSlots(
@@ -764,7 +763,7 @@ describe("getSchedule", () => {
         ],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithDateOverride = await getSchedule({
         input: {
@@ -774,7 +773,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
@@ -789,7 +788,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // A Collective Event Type hosted by this user
           {
@@ -852,7 +851,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
-        }
+        },
       });
 
       expect(thisUserAvailability).toHaveTimeSlots(
@@ -884,7 +883,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {
@@ -950,7 +949,7 @@ describe("getSchedule", () => {
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
 
       expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
@@ -980,7 +979,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
 
       // A user with blocked time in another event, still affects Team Event availability
@@ -1009,7 +1008,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {
@@ -1088,7 +1087,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
@@ -1116,7 +1115,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-        }
+        },
       });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
@@ -1139,4 +1138,3 @@ describe("getSchedule", () => {
     });
   });
 });
-

@@ -116,7 +116,7 @@ export default function CreateEventTypeDialog({
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
+      await router.replace(`/event-types/${eventType.id}`);
       showToast(t("event_type_created_successfully"), "success");
     },
     onError: (err) => {

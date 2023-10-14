@@ -7,6 +7,7 @@ import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -29,6 +30,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
 import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
@@ -133,20 +135,25 @@ export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
   invitee: Person,
   newSeat: boolean,
-  showAttendees: boolean
+  showAttendees: boolean,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
+  if (!hostEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
 
-  if (calEvent.team) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+    if (calEvent.team) {
+      for (const teamMember of calEvent.team.members) {
+        emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+      }
     }
   }
 
-  emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
-
+  if (!attendeeEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
+  }
   await Promise.all(emailsToSend);
 };
 
@@ -377,6 +384,10 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
 
 export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
+};
+
+export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
+  await sendEmail(() => new MonthlyDigestEmail(eventData));
 };
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {

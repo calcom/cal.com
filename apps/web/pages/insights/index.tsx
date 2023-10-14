@@ -20,19 +20,6 @@ import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-const Heading = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="min-w-52 hidden md:block">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
-        {t("insights")}
-      </h3>
-      <p className="text-default mt-2 hidden text-sm md:block">{t("insights_subtitle")}</p>
-    </div>
-  );
-};
-
 export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
@@ -57,7 +44,7 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain hideHeadingOnMobile>
+      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
         <UpgradeTip
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
@@ -79,10 +66,6 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="ml-auto mt-0">
-                <Heading />
-              </div>
-
               <Filters />
 
               <div className="mb-4 space-y-6">

@@ -1,12 +1,16 @@
-import type { Credential, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
+import appStore from "@calcom/app-store";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { CredentialPayload } from "@calcom/types/Credential";
+import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
 
@@ -20,7 +24,9 @@ type IntegrationsOptions = {
 type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
-    credentials?: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
     name: true;
     logo: true;
     members: {
@@ -63,7 +69,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       },
       select: {
         id: true,
-        credentials: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
         name: true,
         logo: true,
         members: {
@@ -77,7 +85,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         parent: {
           select: {
             id: true,
-            credentials: true,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
             name: true,
             logo: true,
             members: {
@@ -109,7 +119,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
     userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: Credential[] = userTeams.flatMap((teamApp) => {
+    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? teamApp.credentials.flat() : [];
     });
     if (!includeTeamInstalledApps || teamId) {
@@ -124,33 +134,48 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     ...(appId ? { where: { slug: appId } } : {}),
   });
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
-  let apps = enabledApps.map(
-    ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
+  let apps = await Promise.all(
+    enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
       const userCredentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.type === app.type && c.invalid)
         .map((c) => c.id);
-      const teams = credentials
-        .filter((c) => c.type === app.type && c.teamId)
-        .map((c) => {
-          const team = userTeams.find((team) => team.id === c.teamId);
-          if (!team) {
-            return null;
-          }
-          return {
-            teamId: team.id,
-            name: team.name,
-            logo: team.logo,
-            credentialId: c.id,
-            isAdmin:
-              team.members[0].role === MembershipRole.ADMIN || team.members[0].role === MembershipRole.OWNER,
-          };
-        });
+      const teams = await Promise.all(
+        credentials
+          .filter((c) => c.type === app.type && c.teamId)
+          .map(async (c) => {
+            const team = userTeams.find((team) => team.id === c.teamId);
+            if (!team) {
+              return null;
+            }
+            return {
+              teamId: team.id,
+              name: team.name,
+              logo: team.logo,
+              credentialId: c.id,
+              isAdmin:
+                team.members[0].role === MembershipRole.ADMIN ||
+                team.members[0].role === MembershipRole.OWNER,
+            };
+          })
+      );
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
         avatar: user.avatar,
       };
+
+      // We need to know if app is payment type
+      // undefined it means that app don't require app/setup/page
+      let isSetupAlready = undefined;
+      if (credential && app.categories.includes("payment")) {
+        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]()) as PaymentApp | null;
+        if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
+          const PaymentService = paymentApp.lib.PaymentService;
+          const paymentInstance = new PaymentService(credential);
+          isSetupAlready = paymentInstance.isSetupAlready();
+        }
+      }
 
       return {
         ...app,
@@ -161,8 +186,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         invalidCredentialIds,
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
+        isSetupAlready,
       };
-    }
+    })
   );
 
   if (variant) {

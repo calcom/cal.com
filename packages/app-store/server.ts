@@ -1,10 +1,11 @@
+import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { defaultLocations } from "./locations";
 
@@ -20,11 +21,11 @@ export async function getLocationGroupedOptions(
       disabled?: boolean;
       icon?: string;
       slug?: string;
-      credential?: CredentialDataWithTeamName;
     }[]
   > = {};
 
-  let idToSearchObject = {};
+  // don't default to {}, when you do TS no longer determines the right types.
+  let idToSearchObject: Prisma.CredentialWhereInput;
 
   if ("teamId" in userOrTeamId) {
     const teamId = userOrTeamId.teamId;
@@ -62,13 +63,7 @@ export async function getLocationGroupedOptions(
       },
     },
     select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      teamId: true,
-      appId: true,
-      invalid: true,
+      ...credentialForCalendarServiceSelect,
       team: {
         select: {
           name: true,
@@ -89,11 +84,11 @@ export async function getLocationGroupedOptions(
           : app.categories[0] || app.category;
       if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
-      for (const credential of app.credentials) {
-        const label = `${app.locationOption.label} ${
-          credential.team?.name ? `(${credential.team.name})` : ""
-        }`;
-        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug, credential };
+      for (const { teamName } of app.credentials.map((credential) => ({
+        teamName: credential.team?.name,
+      }))) {
+        const label = `${app.locationOption.label} ${teamName ? `(${teamName})` : ""}`;
+        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug };
         if (apps[groupByCategory]) {
           apps[groupByCategory] = [...apps[groupByCategory], option];
         } else {

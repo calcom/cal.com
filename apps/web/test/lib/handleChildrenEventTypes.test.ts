@@ -1,3 +1,5 @@
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+
 import type { EventType } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 
@@ -5,8 +7,6 @@ import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/li
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
-
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
@@ -30,6 +30,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();
+
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -97,11 +98,12 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
-        id: 123,
-        metadata: { managedEventConfig: {} },
-        locations: [],
-      });
+      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
+        mockFindFirstEventType({
+          id: 123,
+          metadata: { managedEventConfig: {} },
+          locations: [],
+        });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -133,11 +135,21 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId,requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        requiresBookerEmailVerification,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -218,11 +230,12 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users,requiresBookerEmailVerification, ...evType } = mockFindFirstEventType({
-        id: 123,
-        metadata: { managedEventConfig: {} },
-        locations: [],
-      });
+      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
+        mockFindFirstEventType({
+          id: 123,
+          metadata: { managedEventConfig: {} },
+          locations: [],
+        });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -255,11 +268,20 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId,requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        requiresBookerEmailVerification,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,

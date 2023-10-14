@@ -8,10 +8,15 @@ import prisma from "@calcom/prisma";
 import { env } from "../../../env.mjs";
 import { fetchAvailability } from "../../../tools/getAvailability";
 import { fetchEventTypes } from "../../../tools/getEventTypes";
+import { extractUsers } from "../../../utils/extractUsers";
 import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
 import { verifyParseKey } from "../../../utils/verifyParseKey";
+
+// Allow receive loop to run for up to 30 seconds
+// Why so long? the rate determining API call (getAvailability, getEventTypes) can take up to 15 seconds at peak times so we give it a little extra time to complete.
+export const maxDuration = 30;
 
 /**
  * Verifies email signature and app authorization,
@@ -45,6 +50,7 @@ export const POST = async (request: NextRequest) => {
     select: {
       email: true,
       id: true,
+      username: true,
       timeZone: true,
       credentials: {
         select: {
@@ -59,9 +65,9 @@ export const POST = async (request: NextRequest) => {
   // User is not a cal.com user or is using an unverified email.
   if (!signature || !user) {
     await sendEmail({
-      html: `Thanks for your interest in Cal AI! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
+      html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
       subject: `Re: ${body.subject}`,
-      text: `Thanks for your interest in Cal AI! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
+      text: `Thanks for your interest in Cal.ai! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
       to: envelope.from,
       from: aiEmail,
     });
@@ -76,9 +82,9 @@ export const POST = async (request: NextRequest) => {
     const url = env.APP_URL;
 
     await sendEmail({
-      html: `Thanks for using Cal AI! To get started, the app must be installed. <a href=${url} target="_blank">Click this link</a> to install it.`,
+      html: `Thanks for using Cal.ai! To get started, the app must be installed. <a href=${url} target="_blank">Click this link</a> to install it.`,
       subject: `Re: ${body.subject}`,
-      text: `Thanks for using Cal AI! To get started, the app must be installed. Click this link to install the Cal AI app: ${url}`,
+      text: `Thanks for using Cal.ai! To get started, the app must be installed. Click this link to install the Cal.ai app: ${url}`,
       to: envelope.from,
       from: aiEmail,
     });
@@ -89,7 +95,7 @@ export const POST = async (request: NextRequest) => {
   const { apiKey } = credential as { apiKey: string };
 
   // Pre-fetch data relevant to most bookings.
-  const [eventTypes, availability] = await Promise.all([
+  const [eventTypes, availability, users] = await Promise.all([
     fetchEventTypes({
       apiKey,
     }),
@@ -99,6 +105,7 @@ export const POST = async (request: NextRequest) => {
       dateFrom: now(user.timeZone),
       dateTo: now(user.timeZone),
     }),
+    extractUsers(`${parsed.text} ${parsed.subject}`),
   ]);
 
   if ("error" in availability) {
@@ -138,9 +145,11 @@ export const POST = async (request: NextRequest) => {
       user: {
         email: user.email,
         eventTypes,
+        username: user.username,
         timeZone: user.timeZone,
         workingHours,
       },
+      users,
     }),
     headers: {
       "Content-Type": "application/json",

@@ -116,6 +116,7 @@ function ConnectedCalendarsList(props: Props) {
                                 type={item.integration.type}
                                 isChecked={cal.isSelected}
                                 destination={cal.externalId === props.destinationCalendarId}
+                                credentialId={cal.credentialId}
                               />
                             ))}
                           </ul>
@@ -129,7 +130,7 @@ function ConnectedCalendarsList(props: Props) {
                     title={t("something_went_wrong")}
                     message={
                       <span>
-                        <Link href={"/apps/" + item.integration.slug}>{item.integration.name}</Link>:{" "}
+                        <Link href={`/apps/${item.integration.slug}`}>{item.integration.name}</Link>:{" "}
                         {t("calendar_error")}
                       </span>
                     }

@@ -79,7 +79,7 @@ function preprocess<T extends z.ZodType>({
             isPartialSchema,
             field,
           });
-          return newResponses;
+          return;
         }
         if (field.type === "boolean") {
           // Turn a boolean in string to a real boolean
@@ -103,7 +103,11 @@ function preprocess<T extends z.ZodType>({
           newResponses[field.name] = value;
         }
       });
-      return newResponses;
+
+      return {
+        ...parsedResponses,
+        ...newResponses,
+      };
     },
     schema.superRefine(async (responses, ctx) => {
       if (!eventType.bookingFields) {
@@ -137,8 +141,10 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (isRequired && !isPartialSchema && !value)
+        if (isRequired && !isPartialSchema && !value) {
           ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+          return;
+        }
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
@@ -166,6 +172,12 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "multiemail") {
           const emailsParsed = emailSchema.array().safeParse(value);
+
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+
           if (!emailsParsed.success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -218,6 +230,7 @@ function preprocess<T extends z.ZodType>({
               !optionValue
             ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+              return;
             }
 
             if (optionValue) {
@@ -242,14 +255,17 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        throw new Error(`Can't parse unknown booking field type: ${bookingField.type}`);
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Can't parse unknown booking field type: ${bookingField.type}`,
+        });
       }
     })
   );
   if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-    return preprocessed.catch(() => {
-      console.error("Failed to preprocess query params, prefilling will be skipped");
+    return preprocessed.catch(function (res?: { error?: unknown[] }) {
+      console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
       return {};
     });
   }

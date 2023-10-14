@@ -250,11 +250,8 @@ export default function Custom404() {
                 ) : IS_CALCOM ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
-                    <strong className="text-blue-500">
-                      {new URL(WEBSITE_URL).hostname}
-                      {username}
-                    </strong>{" "}
-                    {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+                    <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                    <span className="text-blue-500">{t("register_now")}</span>.
                   </a>
                 ) : (
                   <span className="mt-2 inline-block text-lg">

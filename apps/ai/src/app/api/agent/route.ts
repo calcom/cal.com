@@ -5,6 +5,9 @@ import agent from "../../../utils/agent";
 import sendEmail from "../../../utils/sendEmail";
 import { verifyParseKey } from "../../../utils/verifyParseKey";
 
+// Allow agent loop to run for up to 5 minutes
+export const maxDuration = 300;
+
 /**
  * Launches a LangChain agent to process an incoming email,
  * then sends the response to the user.
@@ -18,21 +21,21 @@ export const POST = async (request: NextRequest) => {
 
   const json = await request.json();
 
-  const { apiKey, userId, message, subject, user, replyTo } = json;
+  const { apiKey, userId, message, subject, user, users, replyTo: agentEmail } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 
   try {
-    const response = await agent(`${subject}\n\n${message}`, user, apiKey, userId);
+    const response = await agent(`${subject}\n\n${message}`, { ...user }, users, apiKey, userId, agentEmail);
 
     // Send response to user
     await sendEmail({
       subject: `Re: ${subject}`,
       text: response.replace(/(?:\r\n|\r|\n)/g, "\n"),
       to: user.email,
-      from: replyTo,
+      from: agentEmail,
     });
 
     return new NextResponse("ok");

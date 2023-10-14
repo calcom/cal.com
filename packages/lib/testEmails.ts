@@ -1,6 +1,10 @@
 declare global {
   // eslint-disable-next-line no-var
   var testEmails: {
+    icalEvent?: {
+      filename: string;
+      content: string;
+    };
     to: string;
     from: string;
     subject: string;
@@ -15,4 +19,8 @@ export const setTestEmail = (email: (typeof globalThis.testEmails)[number]) => {
 
 export const getTestEmails = () => {
   return globalThis.testEmails;
+};
+
+export const resetTestEmails = () => {
+  globalThis.testEmails = [];
 };

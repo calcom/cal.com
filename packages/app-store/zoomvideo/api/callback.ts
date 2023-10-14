@@ -3,18 +3,18 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { getZoomAppKeys } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const { client_id, client_secret } = await getZoomAppKeys();
 
-  const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/zoomvideo/callback");
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/zoomvideo/callback`);
+  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
   const result = await fetch(
-    "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
+    `https://zoom.us/oauth/token?grant_type=authorization_code&code=${code}&redirect_uri=${redirectUri}`,
     {
       method: "POST",
       headers: {
