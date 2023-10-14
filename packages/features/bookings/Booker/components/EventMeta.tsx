@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
@@ -64,6 +65,18 @@ export const EventMeta = () => {
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
+  const eventLocationType = getEventLocationType(event?.locations[0]?.type);
+  if (!eventLocationType) {
+    // It's possible that the location app got uninstalled
+    return null;
+  }
+  if (eventLocationType.variable === "hostDefault") {
+    return null;
+  }
+
+  const translatedLocation = getTranslatedLocation(event!.locations[0], eventLocationType, t);
+  const isInPersonEvent = translatedLocation?.includes("In Person");
+
   return (
     <div className="relative z-10 p-6">
       {isLoading && (
@@ -113,6 +126,7 @@ export const EventMeta = () => {
               </EventMetaBlock>
             )}
             <EventDetails event={event} />
+
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
@@ -120,7 +134,10 @@ export const EventMeta = () => {
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
-                <span className="min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
+                <span
+                  className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                    isInPersonEvent ? "cursor-not-allowed" : ""
+                  }`}>
                   <TimezoneSelect
                     menuPosition="fixed"
                     classNames={{
@@ -132,6 +149,7 @@ export const EventMeta = () => {
                     }}
                     value={timezone}
                     onChange={(tz) => setTimezone(tz.value)}
+                    isDisabled={isInPersonEvent}
                   />
                 </span>
               )}
