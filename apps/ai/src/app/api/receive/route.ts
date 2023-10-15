@@ -156,7 +156,7 @@ export const POST = async (request: NextRequest) => {
     body: JSON.stringify({
       apiKey,
       userId: user.id,
-      message: parsed.text || "",
+      message: parsed.text,
       subject: parsed.subject,
       replyTo: aiEmail,
       user: {
