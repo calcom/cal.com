@@ -460,20 +460,28 @@ export async function createBookingScenario(data: ScenarioData) {
  * - `dateIncrement` adds the increment to current day
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
+ * - `fromDate` starts incrementing from this date (default: today)
  */
 export const getDate = (
-  param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}
+  param: {
+    dateIncrement?: number;
+    monthIncrement?: number;
+    yearIncrement?: number;
+    fromDate?: Date;
+  } = {}
 ) => {
-  let { dateIncrement, monthIncrement, yearIncrement } = param;
+  let { dateIncrement, monthIncrement, yearIncrement, fromDate } = param;
+
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
+  fromDate = fromDate || new Date();
 
-  let _date = new Date().getDate() + dateIncrement;
-  let year = new Date().getFullYear() + yearIncrement;
+  let _date = fromDate.getDate() + dateIncrement;
+  let year = fromDate.getFullYear() + yearIncrement;
 
   // Make it start with 1 to match with DayJS requiremet
-  let _month = new Date().getMonth() + monthIncrement + 1;
+  let _month = fromDate.getMonth() + monthIncrement + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
   const lastDayOfMonth = new Date(year, _month, 0).getDate();
