@@ -287,17 +287,13 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test(
+      const { date: todayDate } = getDate();
+      const { date: tomorrowDate } = getDate({ dateIncrement: 1 });
+
+      // today or tomorrow can't be the 1st day of month for this test to succeed
+      test.skipIf([todayDate, tomorrowDate].includes("01"))(
         `should fail a booking if exceeds booking limits with bookings in the past`,
         async ({}) => {
-          const { date: todayDate } = getDate();
-          const { date: tomorrowDate, dateString: tomorrowDateString } = getDate({ dateIncrement: 1 });
-
-          // today or tomorrow can't be the 1st day of a month for this test to succeed
-          if ([todayDate, tomorrowDate].includes("01")) {
-            return;
-          }
-
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
           const booker = getBooker({
@@ -350,6 +346,8 @@ describe("handleNewBooking", () => {
               organizer,
             })
           );
+
+          const { dateString: tomorrowDateString } = getDate({ dateIncrement: 1 });
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {

@@ -504,9 +504,9 @@ export const getDate = (
   const month = _month < 10 ? `0${_month}` : _month;
 
   return {
-    date,
-    month,
-    year,
+    date: String(date),
+    month: String(month),
+    year: String(year),
     dateString: `${year}-${month}-${date}`,
   };
 };
