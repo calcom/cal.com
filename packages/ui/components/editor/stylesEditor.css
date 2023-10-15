@@ -121,6 +121,9 @@ pre::-webkit-scrollbar-thumb {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   vertical-align: middle;
+  justify-content: end;
+  border-bottom-color: var(--cal-border);
+  border-bottom-width: 1px;
 }
 
 .toolbar button.toolbar-item {
