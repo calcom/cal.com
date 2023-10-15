@@ -79,7 +79,7 @@ export function rateLimiter() {
       redis,
       analytics: true,
       prefix: "ratelimit",
-      limiter: Ratelimit.fixedWindow(10, "1d"),
+      limiter: Ratelimit.fixedWindow(20, "1d"),
     }),
   };
 
