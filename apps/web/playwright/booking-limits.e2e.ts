@@ -1,3 +1,7 @@
+/**
+ * These e2e tests only aim to cover standard cases
+ * Edge cases are currently handled in integration tests only
+ */
 import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -7,7 +11,7 @@ import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, createUserWithLimits, todo } from "./lib/testUtils";
+import { bookTimeSlot, createUserWithLimits } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -227,10 +231,6 @@ test.describe("Booking limits", () => {
       bookingDate = incrementDate(bookingDate, limitUnit);
     }
   });
-
-  todo("Verify that past bookings count towards limits");
-
-  todo("Consider edge cases e.g. partial weeks");
 });
 
 test.describe("Duration limits", () => {
@@ -415,8 +415,4 @@ test.describe("Duration limits", () => {
       bookingDate = incrementDate(bookingDate, limitUnit);
     }
   });
-
-  todo("Verify that past bookings count towards limits");
-
-  todo("Consider edge cases e.g. partial weeks");
 });
