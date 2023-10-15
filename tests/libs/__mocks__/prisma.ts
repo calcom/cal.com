@@ -14,6 +14,7 @@ const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
   const __findManyWebhook = prismock.webhook.findMany;
   const __findManyBooking = prismock.booking.findMany;
+  const __countBooking = prismock.booking.count;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.booking.update = (...rest: any[]) => {
     // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
@@ -74,6 +75,41 @@ const handlePrismockBugs = () => {
       });
     }
     return __findManyBooking(...rest);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismock.booking.count = (...rest: any[]) => {
+    // There is a bug in prismock where it handles Date comparisons incorrectly
+    // Fixing this here by converting to ISO strings
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const where = rest[0]?.where;
+    if (where) {
+      logger.silly("Fixed Prismock bug-4");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (where.startTime?.gte) {
+        where.startTime.gte = where.startTime.gte.toISOString
+          ? where.startTime.gte.toISOString()
+          : where.startTime.gte;
+      }
+      if (where.startTime?.lte) {
+        where.startTime.lte = where.startTime.lte.toISOString
+          ? where.startTime.lte.toISOString()
+          : where.startTime.lte;
+      }
+      if (where.endTime?.gte) {
+        where.endTime.lte = where.endTime.gte.toISOString
+          ? where.endTime.gte.toISOString()
+          : where.endTime.gte;
+      }
+      if (where.endTime?.lte) {
+        where.endTime.lte = where.endTime.lte.toISOString
+          ? where.endTime.lte.toISOString()
+          : where.endTime.lte;
+      }
+    }
+    return __countBooking(...rest);
   };
 };
 
