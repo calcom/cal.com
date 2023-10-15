@@ -477,11 +477,15 @@ export const getDate = (
   yearIncrement = yearIncrement || 0;
   fromDate = fromDate || new Date();
 
-  let _date = fromDate.getDate() + dateIncrement;
-  let year = fromDate.getFullYear() + yearIncrement;
+  fromDate.setDate(fromDate.getDate() + dateIncrement);
+  fromDate.setMonth(fromDate.getMonth() + monthIncrement);
+  fromDate.setFullYear(fromDate.getFullYear() + yearIncrement);
+
+  let _date = fromDate.getDate();
+  let year = fromDate.getFullYear();
 
   // Make it start with 1 to match with DayJS requiremet
-  let _month = fromDate.getMonth() + monthIncrement + 1;
+  let _month = fromDate.getMonth() + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
   const lastDayOfMonth = new Date(year, _month, 0).getDate();
