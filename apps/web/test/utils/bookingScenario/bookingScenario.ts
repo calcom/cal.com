@@ -12,6 +12,7 @@ import "vitest-fetch-mock";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -80,6 +81,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
     timeZone: string;
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: string;
 };
 
 export type InputEventType = {
@@ -710,6 +712,7 @@ export function getOrganizer({
   selectedCalendars,
   destinationCalendar,
   defaultScheduleId,
+  weekStart = "Sunday",
 }: {
   name: string;
   email: string;
@@ -719,6 +722,7 @@ export function getOrganizer({
   selectedCalendars?: InputSelectedCalendar[];
   defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: WeekDays;
 }) {
   return {
     ...TestData.users.example,
@@ -730,6 +734,7 @@ export function getOrganizer({
     selectedCalendars,
     destinationCalendar,
     defaultScheduleId,
+    weekStart,
   };
 }
 
