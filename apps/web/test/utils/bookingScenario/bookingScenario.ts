@@ -19,7 +19,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
@@ -100,7 +100,9 @@ export type InputEventType = {
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type InputBooking = {
   id?: number;
