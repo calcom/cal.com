@@ -12,7 +12,7 @@ import "vitest-fetch-mock";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { type WeekDays } from "@calcom/lib/date-fns";
+import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -509,6 +509,28 @@ export const getDate = (
     year,
     dateString: `${year}-${month}-${date}`,
   };
+};
+
+const isWeekStart = (date: Date, weekStart: WeekDays) => {
+  return date.getDay() === weekdayToWeekIndex(weekStart);
+};
+
+export const getNextMonthNotStartingOnWeekStart = (weekStart: WeekDays, from?: Date) => {
+  const date = from ?? new Date();
+
+  const incrementMonth = (date: Date) => {
+    date.setMonth(date.getMonth() + 1);
+  };
+
+  // start searching from the 1st day of next month
+  incrementMonth(date);
+  date.setDate(1);
+
+  while (isWeekStart(date, weekStart)) {
+    incrementMonth(date);
+  }
+
+  return getDate({ fromDate: date });
 };
 
 export function getMockedCredential({
