@@ -40,7 +40,7 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
-import { ArrowLeft, Sun } from "@calcom/ui/components/icon";
+import { ArrowLeft, Sun, X } from "@calcom/ui/components/icon";
 
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -96,14 +96,20 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   const { goto } = useRouterHelpers();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
-      <div className="mb-2">
-        <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
-          {t("how_you_want_add_cal_site", { appName: APP_NAME })}
-        </h3>
-        <div>
-          <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+      <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+        <div className="mb-2">
+          <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
+            {t("how_you_want_add_cal_site", { appName: APP_NAME })}
+          </h3>
+          <div>
+            <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+          </div>
         </div>
+        <DialogClose color="minimal">
+          <X className="h-8 w-8 cursor-pointer self-center pr-2 " aria-hidden="true" />
+        </DialogClose>
       </div>
+
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
