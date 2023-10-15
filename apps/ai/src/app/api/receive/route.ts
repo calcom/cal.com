@@ -35,7 +35,7 @@ export const POST = async (request: NextRequest) => {
   const envelope = JSON.parse(body.envelope as string);
 
   const aiEmail = envelope.to[0];
-  const subject = body.subject || "Your email";
+  const subject = body.subject || "";
 
   try {
     await checkRateLimitAndThrowError({
@@ -156,7 +156,7 @@ export const POST = async (request: NextRequest) => {
     body: JSON.stringify({
       apiKey,
       userId: user.id,
-      message: parsed.text,
+      message: parsed.text || "",
       subject: parsed.subject,
       replyTo: aiEmail,
       user: {
