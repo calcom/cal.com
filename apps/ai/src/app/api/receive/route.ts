@@ -50,13 +50,19 @@ export const POST = async (request: NextRequest) => {
       from: aiEmail,
     });
 
-    return new NextResponse("Exceeded rate limit", { status: 429 });
+    return new NextResponse("Exceeded rate limit", { status: 200 }); // Don't return 429 to avoid triggering retry logic in SendGrid
   }
 
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email as Source);
 
   if (!parsed.text && !parsed.subject) {
+    await sendEmail({
+      subject: `Re: ${subject}`,
+      text: "Thanks for using Cal.ai! It looks like you forgot to include a message. Please try again.",
+      to: envelope.from,
+      from: aiEmail,
+    });
     return new NextResponse("Email missing text and subject", { status: 400 });
   }
 
@@ -156,8 +162,8 @@ export const POST = async (request: NextRequest) => {
     body: JSON.stringify({
       apiKey,
       userId: user.id,
-      message: parsed.text,
-      subject: parsed.subject,
+      message: parsed.text || "",
+      subject: parsed.subject || "",
       replyTo: aiEmail,
       user: {
         email: user.email,
