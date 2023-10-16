@@ -30,7 +30,7 @@ type Schedule = {
   timezone: string | null;
 };
 
-export function ScheduleListItem({
+export function Availability({
   schedule,
   isDeletable,
   displayOptions,
@@ -112,7 +112,6 @@ export function ScheduleListItem({
             <DropdownMenuItem
               className="min-w-40 focus:ring-muted"
               onClick={() => {
-                console.log("hi");
                 if (!isDeletable) {
                   toast({
                     description: "You are required to have at least one schedule",
