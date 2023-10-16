@@ -79,6 +79,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
 
   useEffect(() => {
     try {
+      // @ts-expect-error TS2790: The operand of a 'delete' operator must be optional.
       delete window.document.documentElement["lang"];
 
       window.document.documentElement.lang = locale;
