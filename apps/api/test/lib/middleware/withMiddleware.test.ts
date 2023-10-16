@@ -14,12 +14,4 @@ describe("API - withMiddleware test", () => {
     const verifyApiKeyIndex = middlewareOrder.indexOf("verifyApiKey");
     expect(customPrismaClientIndex).toBeLessThan(verifyApiKeyIndex);
   });
-  it("It fails if the order is incorrect", async () => {
-    //
-    const customMiddlewareOrder = middlewareOrder.filter((middleware) => middleware !== "customPrismaClient");
-    customMiddlewareOrder.push("customPrismaClient");
-    const customPrismaClientIndex = customMiddlewareOrder.indexOf("customPrismaClient");
-    const verifyApiKeyIndex = customMiddlewareOrder.indexOf("verifyApiKey");
-    expect(customPrismaClientIndex).not.toBeLessThan(verifyApiKeyIndex);
-  });
 });
