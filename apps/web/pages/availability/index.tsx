@@ -1,3 +1,5 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback } from "react";
@@ -9,7 +11,7 @@ import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/compone
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
+import { trpc as _trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
@@ -18,10 +20,13 @@ import { withQuery } from "@lib/QueryCell";
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
-export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
+export function AvailabilityList({
+  schedules,
+  trpcAppDir,
+}: RouterOutputs["viewer"]["availability"]["list"] & { trpcAppDir: any }) {
   const { t } = useLocale();
+  const trpc = trpcAppDir || _trpc;
   const utils = trpc.useContext();
-
   const meQuery = trpc.viewer.me.useQuery();
 
   const router = useRouter();
@@ -127,9 +132,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.availability.list as any);
+const WithQuery = withQuery(_trpc.viewer.availability.list as any);
 
-export default function AvailabilityPage() {
+export default function AvailabilityPage({ trpcAppDir }: { trpcAppDir: any }) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -173,7 +178,7 @@ export default function AvailabilityPage() {
           <AvailabilitySliderTable />
         ) : (
           <WithQuery
-            success={({ data }) => <AvailabilityList {...data} />}
+            success={({ data }) => <AvailabilityList {...data} trpcAppDir={trpcAppDir} />}
             customLoader={<SkeletonLoader />}
           />
         )}
