@@ -52,7 +52,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    validateUsernameForTeam({ username, email, teamId: foundToken?.teamId });
+    validateUsernameForTeam({ username, email, teamId: foundToken?.teamId ?? null });
   } else {
     const usernameAndEmailValidation = await validateUsername(username, email);
     if (!usernameAndEmailValidation.isValid) {

@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { IS_CALCOM } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 

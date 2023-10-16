@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { validateUsernameInTeam } from "@calcom/lib/validateUsername";
+import prisma from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {
   const foundToken = await prisma.verificationToken.findFirst({
@@ -24,7 +25,8 @@ export async function findTokenByToken({ token }: { token: string }) {
   return foundToken;
 }
 
-export function throwIfTokenExpired(expires: Date) {
+export function throwIfTokenExpired(expires?: Date) {
+  if (!expires) return;
   if (dayjs(expires).isBefore(dayjs())) {
     throw new HttpError({
       statusCode: 401,
