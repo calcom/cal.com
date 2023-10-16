@@ -22,11 +22,13 @@ export const getTemporaryOrgRedirect = async ({
     })
   );
   // Not supporting dynamic group for now
-  const redirect = await prisma.tempOrgRedirect.findFirst({
+  const redirect = await prisma.tempOrgRedirect.findUnique({
     where: {
-      type: redirectType,
-      from: slug,
-      fromOrgId: 0,
+      from_type_fromOrgId: {
+        type: redirectType,
+        from: slug,
+        fromOrgId: 0,
+      },
     },
   });
 
