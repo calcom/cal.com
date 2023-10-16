@@ -11,7 +11,7 @@ type InsightsLayoutProps = {
 };
 
 // If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
+export const getProps = async () => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
 
@@ -29,7 +29,7 @@ export const getServerSideProps = async () => {
 export default async function InsightsLayout({ children }: InsightsLayoutProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  const props = await getServerSideProps();
+  const props = await getProps();
 
   return (
     // @ts-expect-error withTrpc expects AppProps
