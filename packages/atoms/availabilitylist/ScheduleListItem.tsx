@@ -1,4 +1,17 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { Globe, MoreHorizontal, Star, Copy, Trash } from "lucide-react";
+import { Fragment } from "react";
+
+import { availabilityAsString } from "@calcom/lib/availability";
 
 type Schedule = {
   isDefault: boolean;
@@ -21,14 +34,22 @@ export function ScheduleListItem({
   schedule,
   isDeletable,
   displayOptions,
+  updateDefault,
+  duplicateFunction,
+  deleteFunction,
 }: {
   schedule: Schedule;
   isDeletable: boolean;
+  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
+  duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
   };
 }) {
+  const { toast } = useToast();
+
   return (
     <li key={schedule.id}>
       <div className="hover:bg-muted flex items-center justify-between py-5 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
@@ -42,16 +63,72 @@ export function ScheduleListItem({
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
-                  <h1 key={availability.id}>Return fragment here</h1>
+                  <Fragment key={availability.id}>
+                    {availabilityAsString(availability, {
+                      hour12: displayOptions?.hour12,
+                    })}
+                    <br />
+                  </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  Display globe here &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+                  <Globe className="h-3.5 w-3.5" />
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
             </p>
           </a>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button type="button" className="mx-5" color="secondary">
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {!schedule.isDefault && (
+              <DropdownMenuItem
+                onClick={() => {
+                  updateDefault({
+                    scheduleId: schedule.id,
+                    isDefault: true,
+                  });
+                }}
+                className="min-w-40 focus:ring-mute min-w-40 focus:ring-muted">
+                <Star />
+                Set as default
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              className="outline-none"
+              onClick={() => {
+                duplicateFunction({
+                  scheduleId: schedule.id,
+                });
+              }}>
+              <Copy />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="min-w-40 focus:ring-muted"
+              onClick={() => {
+                console.log("hi");
+                if (!isDeletable) {
+                  toast({
+                    description: "You are required to have at least one schedule",
+                  });
+                } else {
+                  deleteFunction({
+                    scheduleId: schedule.id,
+                  });
+                }
+              }}>
+              <Trash />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Toaster />
       </div>
     </li>
   );
