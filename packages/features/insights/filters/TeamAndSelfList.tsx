@@ -22,6 +22,11 @@ export const TeamAndSelfList = () => {
   const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
   });
 
   useEffect(() => {
@@ -48,6 +53,7 @@ export const TeamAndSelfList = () => {
       } else if (session.data?.user.id) {
         // default to user
         setConfigFilters({
+          selectedUserId: session.data?.user.id,
           initialConfig: {
             teamId: null,
             userId: session.data?.user.id,

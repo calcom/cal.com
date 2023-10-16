@@ -14,6 +14,10 @@ import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
 import { verifyParseKey } from "../../../utils/verifyParseKey";
 
+// Allow receive loop to run for up to 30 seconds
+// Why so long? the rate determining API call (getAvailability, getEventTypes) can take up to 15 seconds at peak times so we give it a little extra time to complete.
+export const maxDuration = 30;
+
 /**
  * Verifies email signature and app authorization,
  * then hands off to booking agent.
@@ -55,7 +59,7 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
+    where: { email: envelope.from },
   });
 
   // User is not a cal.com user or is using an unverified email.
