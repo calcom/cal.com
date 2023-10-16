@@ -2,7 +2,7 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee } from "@prisma/client";
+import type { BookingReference, Attendee, Booking } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
@@ -102,7 +102,7 @@ export type InputEventType = {
   schedule?: InputUser["schedules"][number];
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
-type InputBooking = {
+type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
   userId?: number;
@@ -117,6 +117,8 @@ type InputBooking = {
     credentialId?: number | null;
   })[];
 };
+
+type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
 
 export const Timezones = {
   "+5:30": "Asia/Kolkata",

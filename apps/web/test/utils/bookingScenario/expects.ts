@@ -139,9 +139,10 @@ export function expectWebhookToHaveBeenCalledWith(
   const parsedBody = JSON.parse((body as string) || "{}");
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
+
   if (parsedBody.payload.metadata?.videoCallUrl) {
     parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl.replace(/\/video\/[a-zA-Z0-9]{22}/, "/video/DYNAMIC_UID")
+      ? parsedBody.payload.metadata.videoCallUrl
       : parsedBody.payload.metadata.videoCallUrl;
   }
   if (data.payload) {
@@ -509,6 +510,7 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location,
   subscriberUrl,
   videoCallUrl,
+  payload,
 }: {
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
@@ -516,10 +518,12 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string;
+  payload?: Record<string, unknown>;
 }) {
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_RESCHEDULED",
     payload: {
+      ...payload,
       metadata: {
         ...(videoCallUrl ? { videoCallUrl } : null),
       },
