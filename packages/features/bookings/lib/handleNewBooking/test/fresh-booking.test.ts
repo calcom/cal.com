@@ -13,6 +13,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
@@ -1213,6 +1214,122 @@ describe("handleNewBooking", () => {
         timeout
       );
 
+      /**
+       * NOTE: We might want to think about making the bookings get ACCEPTED automatically if the booker is the organizer of the event-type. This is a design decision it seems for now.
+       */
+      test(
+        `should make a fresh booking in PENDING state even when the booker is the organizer of the event-type 
+        1. Should create a booking in the database with status PENDING
+        2. Should send emails to the booker as well as organizer for booking request and awaiting approval
+        3. Should trigger BOOKING_REQUESTED webhook
+    `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const subscriberUrl = "http://my-webhook.example.com";
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl,
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                requiresConfirmation: true,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          });
+          await createBookingScenario(scenarioData);
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          req.userId = organizer.id;
+
+          const createdBooking = await handleNewBooking(req);
+
+          await expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.PENDING,
+            location: BookingLocations.CalVideo,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          });
+
+          expectWorkflowToBeTriggered();
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
+          });
+
+          expectBookingRequestedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl,
+            eventType: scenarioData.eventTypes[0],
+          });
+        },
+        timeout
+      );
+
       test(
         `should create a booking for event that requires confirmation based on a booking notice duration threshold, if threshold is not met
             1. Should create a booking in the database with status ACCEPTED
@@ -1720,21 +1837,24 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
           expect(createdBooking).toContain({
             location: BookingLocations.CalVideo,
             paymentUid: paymentUid,
           });
+
           await expectBookingToBeInDatabase({
             description: "",
+            location: BookingLocations.CalVideo,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
           });
+
           expectWorkflowToBeTriggered();
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
@@ -1887,6 +2007,9 @@ describe("handleNewBooking", () => {
             paymentId: createdBooking.paymentId!,
           });
 
+          // FIXME: Right now we need to reset the test Emails because email expects only tests first email content for an email address
+          // Reset Test Emails to test for more Emails
+          resetTestEmails();
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
           expect(webhookResponse?.statusCode).toBe(200);
@@ -1896,6 +2019,12 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+          });
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
           });
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,

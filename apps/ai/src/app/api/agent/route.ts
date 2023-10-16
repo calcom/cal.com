@@ -5,6 +5,9 @@ import agent from "../../../utils/agent";
 import sendEmail from "../../../utils/sendEmail";
 import { verifyParseKey } from "../../../utils/verifyParseKey";
 
+// Allow agent loop to run for up to 5 minutes
+export const maxDuration = 300;
+
 /**
  * Launches a LangChain agent to process an incoming email,
  * then sends the response to the user.
