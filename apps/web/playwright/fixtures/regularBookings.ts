@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
-import type { Fixtures } from "playwright/lib/fixtures";
+
+import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
 export const scheduleSuccessfullyText = "This meeting is scheduled";
@@ -33,6 +34,8 @@ type fillAndConfirmBookingParams = {
   secondQuestion: string;
   options: BookingOptions;
 };
+
+type UserFixture = ReturnType<typeof createUsersFixture>;
 
 const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
   const questionActions: QuestionActions = {
@@ -105,7 +108,7 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
   }
 };
 
-export async function loginUser(users: Fixtures["users"]) {
+export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
 }

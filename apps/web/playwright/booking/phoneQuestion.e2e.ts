@@ -1,5 +1,5 @@
-import { loginUser } from "../../fixtures/regularBookings";
-import { test } from "../../lib/fixtures";
+import { loginUser } from "../fixtures/regularBookings";
+import { test } from "../lib/fixtures";
 
 test.describe("Booking With Phone Question and Each Other Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
