@@ -154,16 +154,12 @@ export function availabilityAsString(
   };
 
   const timeSpan = (availability: Availability) => {
-    return (
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
-        new Date(availability.startTime.toISOString().slice(0, -1))
-      ) +
-      " - " +
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
-        new Date(availability.endTime.toISOString().slice(0, -1))
-      )
-    );
+    return `${new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
+      new Date(availability.startTime.toISOString().slice(0, -1))
+    )} - ${new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
+      new Date(availability.endTime.toISOString().slice(0, -1))
+    )}`;
   };
 
-  return weekSpan(availability) + ", " + timeSpan(availability);
+  return `${weekSpan(availability)}, ${timeSpan(availability)}`;
 }

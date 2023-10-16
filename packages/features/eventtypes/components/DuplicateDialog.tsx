@@ -65,8 +65,13 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully"), "success");
+      await router.replace(`/event-types/${eventType.id}`);
+      showToast(
+        t("event_type_created_successfully", {
+          eventTypeTitle: eventType.title,
+        }),
+        "success"
+      );
     },
     onError: (err) => {
       if (err instanceof HttpError) {

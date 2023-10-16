@@ -184,7 +184,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
-      showToast(t("event_type_updated_successfully"), "success");
+      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -449,7 +449,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        disableBorder={true}
         currentUserMembership={currentUserMembership}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form

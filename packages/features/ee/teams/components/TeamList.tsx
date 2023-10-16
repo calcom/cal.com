@@ -71,7 +71,7 @@ export default function TeamList(props: Props) {
                       title={t("invite_team_member")}
                       description={t("meetings_are_better_with_the_right")}
                       actionButton={{
-                        href: "/settings/teams/" + team.id + "/members",
+                        href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
                       }}
                     />
@@ -97,7 +97,7 @@ export default function TeamList(props: Props) {
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
                       actionButton={{
-                        href: "/event-types?dialog=new&eventPage=team%2F" + team.slug + "&teamId=" + team.id,
+                        href: `/event-types?dialog=new&eventPage=team%2F${team.slug}&teamId=${team.id}`,
                         child: t("create"),
                       }}
                     />
@@ -107,7 +107,7 @@ export default function TeamList(props: Props) {
                       title={t("appearance")}
                       description={t("appearance_description")}
                       actionButton={{
-                        href: "/settings/teams/" + team.id + "/appearance",
+                        href: `/settings/teams/${team.id}/appearance`,
                         child: t("edit"),
                       }}
                     />

@@ -7,6 +7,7 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
@@ -110,7 +111,7 @@ export default class SalesforceCalendarService implements Calendar {
     return new jsforce.Connection({
       clientId: consumer_key,
       clientSecret: consumer_secret,
-      redirectUri: WEBAPP_URL + "/api/integrations/salesforce/callback",
+      redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
       instanceUrl: credentialKey.instance_url,
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,
