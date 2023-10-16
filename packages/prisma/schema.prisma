@@ -956,6 +956,8 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+  userEmail     String?
+  username      String?
 }
 
 model CalendarCache {

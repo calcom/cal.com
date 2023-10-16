@@ -2091,6 +2091,7 @@
   "copy_client_secret_info": "After copying the secret you won't be able to view it anymore",
   "add_new_client": "Add new Client",
   "this_app_is_not_setup_already": "This app has not been setup yet",
+  "as_csv": "as CSV",
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
