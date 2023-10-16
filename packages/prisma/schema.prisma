@@ -253,6 +253,7 @@ model User {
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
+  @@index([username])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
@@ -956,8 +957,6 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
-  userEmail     String?
-  username      String?
 }
 
 model CalendarCache {
