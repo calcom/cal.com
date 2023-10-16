@@ -78,7 +78,31 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
 
   useEffect(() => {
-    window.document.documentElement.lang = locale;
+    try {
+      delete window.document.documentElement["lang"];
+
+      window.document.documentElement.lang = locale;
+
+      // Next.js writes the locale to the same attribute
+      // https://github.com/vercel/next.js/blob/1609da2d9552fed48ab45969bdc5631230c6d356/packages/next/src/shared/lib/router/router.ts#L1786
+      // which can result in a race condition
+      // this property descriptor ensures this never happens
+      Object.defineProperty(window.document.documentElement, "lang", {
+        configurable: true,
+        // value: locale,
+        set: function (this) {
+          // empty setter on purpose
+        },
+        get: function () {
+          return locale;
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      window.document.documentElement.lang = locale;
+    }
+
     window.document.dir = dir(locale);
   }, [locale]);
 
