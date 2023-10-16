@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -78,18 +79,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
 
   useEffect(() => {
     window.document.documentElement.lang = locale;
-
-    let direction = window.document.dir || "ltr";
-
-    try {
-      const intlLocale = new Intl.Locale(locale);
-      // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
-      direction = intlLocale.textInfo?.direction;
-    } catch (error) {
-      console.error(error);
-    }
-
-    window.document.dir = direction;
+    window.document.dir = dir(locale);
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);
