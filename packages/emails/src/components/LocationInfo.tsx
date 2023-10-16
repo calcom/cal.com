@@ -41,7 +41,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
           </a>
         }
         extraInfo={
-          meetingUrl && (
+          meetingUrl && !props.calEvent.requiresConfirmation ? (
             <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
               <>
                 {t("meeting_url")}:{" "}
@@ -50,7 +50,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
                 </a>
               </>
             </div>
-          )
+          ) : null
         }
       />
     );
