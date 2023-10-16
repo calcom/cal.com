@@ -21,7 +21,6 @@ export const getTemporaryOrgRedirect = async ({
       eventTypeSlug,
     })
   );
-  // Not supporting dynamic group for now
   const redirect = await prisma.tempOrgRedirect.findFirst({
     where: {
       type: redirectType,
