@@ -4,10 +4,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
+import { Check, ChevronRight, FileText, Shield, Home } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -34,16 +34,16 @@ export default function Custom404() {
       href: `${WEBSITE_URL}/enterprise`,
     },
     {
-      title: t("documentation"),
-      description: t("documentation_description"),
-      icon: FileText,
-      href: DOCS_URL,
+      title: "Home",
+      description: "Go back home.",
+      icon: Home,
+      href: `${WEBSITE_URL}`,
     },
     {
-      title: t("blog"),
-      description: t("blog_description"),
-      icon: BookOpen,
-      href: `${WEBSITE_URL}/blog`,
+      title: "Get your own booking link",
+      description: "Go to sign up page.",
+      icon: Home,
+      href: `${WEBSITE_URL}/signup`,
     },
   ];
 
@@ -280,9 +280,6 @@ export default function Custom404() {
                     </li>
                   </ul>
                 )}
-                <h2 className="text-subtle text-sm font-semibold uppercase tracking-wide">
-                  {t("popular_pages")}
-                </h2>
                 <ul role="list" className="border-subtle divide-subtle divide-y">
                   {links
                     .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
@@ -312,12 +309,6 @@ export default function Custom404() {
                       </li>
                     ))}
                 </ul>
-                <div className="mt-8">
-                  <Link href="/" className="hover:text-subtle text-emphasis text-base font-medium">
-                    {t("or_go_back_home")}
-                    <span aria-hidden="true"> &rarr;</span>
-                  </Link>
-                </div>
               </div>
             </>
           )}
