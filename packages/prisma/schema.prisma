@@ -253,6 +253,7 @@ model User {
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
+  @@index([username])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
