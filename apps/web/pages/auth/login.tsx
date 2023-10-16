@@ -95,7 +95,7 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <Link href="/signup" className="text-brand-500 font-medium">
+    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </Link>
   );

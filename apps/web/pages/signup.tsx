@@ -356,7 +356,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                   // @NOTE: don't remove username query param as it's required right now for stripe payment page
                   sp.set("username", formMethods.getValues("username"));
                   sp.set("email", formMethods.getValues("email"));
-                  router.push(process.env.NEXT_PUBLIC_WEBAPP_URL + "/auth/sso/saml" + "?" + sp.toString());
+                  router.push(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`);
                 }}>
                 <ShieldCheckIcon className="mr-2 h-5 w-5" />
                 {t("saml_sso")}
