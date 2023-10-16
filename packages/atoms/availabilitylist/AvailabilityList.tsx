@@ -4,8 +4,24 @@ import type { HttpError } from "@calcom/lib/http-error";
 import { Clock } from "@calcom/ui/components/icon";
 
 import { EmptyScreen } from "./EmptyScreen";
-import ScheduleListItem from "./ScheduleListItem";
-import type { Schedule } from ".prisma/client";
+import { Availability } from "./ScheduleListItem";
+
+type Schedule = {
+  isDefault: boolean;
+  id: number;
+  name: string;
+  availability: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    userId: number | null;
+    eventTypeId: number | null;
+    date: Date | null;
+    days: number[];
+    scheduleId: number | null;
+  }[];
+  timezone: string | null;
+};
 
 export function AvailabilityList({
   schedules,
@@ -39,7 +55,7 @@ export function AvailabilityList({
         <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
           <ul className="divide-subtle divide-y" data-testid="schedules">
             {schedules.map((schedule) => (
-              <ScheduleListItem
+              <Availability
                 key={schedule.id}
                 schedule={schedule}
                 isDeletable={schedules.length !== 1}
