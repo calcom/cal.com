@@ -65,11 +65,11 @@ async function postHandler(req: NextApiRequest) {
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
   await checkPermissions(req, userId);
 
-  parsedBody.userId = isAdmin ? parsedBody.userId || userId : userId;
+  const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
 
   /* Check if credentialId data matches the ownership and integration passed in */
   const credential = await prisma.credential.findFirst({
-    where: { type: parsedBody.integration, userId: parsedBody.userId },
+    where: { type: parsedBody.integration, userId: assignedUserId },
     select: { id: true, type: true, userId: true },
   });
 
