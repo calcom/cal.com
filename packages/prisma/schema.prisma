@@ -819,6 +819,8 @@ model WorkflowReminder {
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
+  @@index([method, scheduled, scheduledDate])
+  @@index([cancelled, scheduledDate])
 }
 
 model WebhookScheduledTriggers {
