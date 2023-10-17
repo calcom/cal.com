@@ -26,7 +26,7 @@ import type {
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 
-const log = logger.getChildLogger({ prefix: ["getUserAvailability"] });
+const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
     dateFrom: stringToDayjs,
