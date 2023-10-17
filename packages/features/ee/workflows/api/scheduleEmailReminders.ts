@@ -103,7 +103,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   let pageNumber = 0;
 
   //delete batch_ids with already past scheduled date from scheduled_sends
-  // add pagination
   while (true) {
     const remindersToDelete = await prisma.workflowReminder.findMany({
       where: {
