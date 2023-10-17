@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -92,6 +93,7 @@ function PageWrapper(props: AppProps) {
         ),
         router
       )}
+      <Analytics />
     </AppProviders>
   );
 }

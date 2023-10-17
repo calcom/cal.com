@@ -64,6 +64,7 @@
     "@types/turndown": "^5.0.1",
     "@upstash/ratelimit": "^0.4.3",
     "@upstash/redis": "^1.21.0",
+    "@vercel/analytics": "^1.1.1",
     "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@vercel/og": "^0.5.0",
