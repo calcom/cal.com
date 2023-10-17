@@ -337,11 +337,7 @@ export function expectSuccessfulBookingCreationEmails({
           titleTag: "confirmed_event_type_subject",
           heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
           subHeading: "",
-
           // Don't know why but organizer and team members of the eventType don'thave their name here like Booker
-          to: `${otherTeamMember.email}`,
-          ics: {
-            filename: "event.ics",
             iCalUID: iCalUID,
           },
         },
