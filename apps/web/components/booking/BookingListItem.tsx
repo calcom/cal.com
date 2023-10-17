@@ -367,7 +367,7 @@ function BookingListItem(booking: BookingItemProps) {
                         {t("join_event_location", { eventLocationType: eventLocationType.label })}
                       </>
                     ) : (
-                      <>t("join_meeting")</>
+                      t("join_meeting")
                     )}
                   </div>
                 </Link>
