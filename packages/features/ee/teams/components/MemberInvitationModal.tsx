@@ -143,11 +143,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     if (file) {
       const reader = new FileReader();
-
+      const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
       reader.onload = (e) => {
         const contents = e?.target?.result as string;
-        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
-        newMemberFormMethods.setValue("emailOrUsername", values);
+        const lines = contents.split("\n");
+        const validEmails = [];
+        for (const line of lines) {
+          const columns = line.split(/,|;|\|| /);
+          for (const column of columns) {
+            const email = column.trim().toLowerCase();
+
+            if (emailRegex.test(email)) {
+              validEmails.push(email);
+              break; // Stop checking columns if a valid email is found in this line
+            }
+          }
+        }
+
+        newMemberFormMethods.setValue("emailOrUsername", validEmails);
       };
 
       reader.readAsText(file);
