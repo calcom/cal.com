@@ -355,7 +355,7 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              {booking.location && (
+              {!isPending && booking.location && (
                 <Link
                   href={meetingLink || booking.location}
                   className="text-sm leading-6 text-blue-400 hover:underline">
@@ -367,10 +367,10 @@ function BookingListItem(booking: BookingItemProps) {
                           className="h-4 w-4 rounded-sm"
                           alt={`${eventLocationType.label} logo`}
                         />
-                        Join {eventLocationType.label}
+                        {t("join_event_location", { eventLocationType: eventLocationType.label })}
                       </>
                     ) : (
-                      <>Join Meeting</>
+                      t("join_meeting")
                     )}
                   </div>
                 </Link>
