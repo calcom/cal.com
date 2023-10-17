@@ -59,7 +59,7 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
+    where: { email: envelope.from },
   });
 
   // User is not a cal.com user or is using an unverified email.

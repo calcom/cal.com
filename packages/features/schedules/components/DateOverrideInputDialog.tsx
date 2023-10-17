@@ -179,7 +179,7 @@ const DateOverrideForm = ({
                 color="primary"
                 type="submit"
                 onClick={() => {
-                  showToast(t("date_successfully_added"), "success");
+                  showToast(t("date_successfully_added"), "success", 500);
                 }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">

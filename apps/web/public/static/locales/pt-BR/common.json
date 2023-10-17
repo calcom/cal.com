@@ -682,7 +682,7 @@
   "new_event_type_heading": "Crie seu primeiro evento",
   "new_event_type_description": "Os eventos permitem que você compartilhe links que mostram os horários disponíveis no seu calendário para que os usuários façam agendamentos com você.",
   "event_type_created_successfully": "{{eventTypeTitle}} evento criado com sucesso",
-  "event_type_updated_successfully": "Tipo de evento atualizado com sucesso",
+  "event_type_updated_successfully": "{{eventTypeTitle}} tipo de evento atualizado com sucesso",
   "event_type_deleted_successfully": "Tipo de evento removido com sucesso",
   "hours": "Horas",
   "people": "Pessoas",
