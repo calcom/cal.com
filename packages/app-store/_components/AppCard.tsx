@@ -44,7 +44,7 @@ export default function AppCard({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link
-            href={"/apps/" + app.slug}
+            href={`/apps/${app.slug}`}
             className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
             <img
               className={classNames(
@@ -116,7 +116,7 @@ export default function AppCard({
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
 
         {app?.isInstalled && switchChecked ? (
-          app.isSetupAlready ? (
+          app.isSetupAlready === undefined || app.isSetupAlready ? (
             <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
               <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
                 <Settings className="text-default h-4 w-4" aria-hidden="true" />

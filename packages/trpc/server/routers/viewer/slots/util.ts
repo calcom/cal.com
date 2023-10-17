@@ -8,6 +8,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -266,25 +267,30 @@ export function getRegularOrDynamicEventType(
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
-
-  if (input.debug === true) {
-    logger.setSettings({ minLevel: "debug" });
-  }
   if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 2;
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
-  logger.debug(
-    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
-      input.eventTypeId
-    }`
-  );
+
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
+    logger.settings.minLevel = 2;
+  }
+
+  const loggerWithEventDetails = logger.getSubLogger({
+    prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
+  });
+
+  loggerWithEventDetails.debug(
+    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
+      input.eventTypeId
+    }`
+  );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
     const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
@@ -561,7 +567,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
+      r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
@@ -574,13 +580,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: (eventType.hosts
-          ? eventType.hosts.map((hostUserWithCredentials) => {
-              const { user } = hostUserWithCredentials;
-              return user;
-            })
-          : eventType.users
-        ).map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:
@@ -598,12 +597,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     Object.create(null)
   );
 
-  logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
+  loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
-  logger.debug(
+  loggerWithEventDetails.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
   return {
     slots: computedAvailableSlots,

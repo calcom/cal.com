@@ -26,7 +26,7 @@ export const getFullName = (name: string | { firstName: string; lastName?: strin
   } else {
     nameString = name.firstName;
     if (name.lastName) {
-      nameString = nameString + " " + name.lastName;
+      nameString = `${nameString} ${name.lastName}`;
     }
   }
   return nameString;

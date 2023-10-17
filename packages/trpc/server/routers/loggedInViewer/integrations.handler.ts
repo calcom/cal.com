@@ -166,7 +166,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       };
 
       // We need to know if app is payment type
-      let isSetupAlready = false;
+      // undefined it means that app don't require app/setup/page
+      let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
         const paymentApp = (await appStore[app.dirName as keyof typeof appStore]()) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
