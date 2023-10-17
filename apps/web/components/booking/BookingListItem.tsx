@@ -354,7 +354,7 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              {booking.location && (
+              {!isPending && booking.location && (
                 <Link href={bookingLink} className="text-sm leading-6 text-blue-400 hover:underline">
                   <div className="flex items-center gap-2">
                     {eventLocationType ? (
