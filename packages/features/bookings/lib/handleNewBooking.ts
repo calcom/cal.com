@@ -918,10 +918,6 @@ async function handler(
         dateTo: reqBody.end,
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      },
-      {
-        allRecurringDates,
-        currentRecurringIndex,
       }
     );
 

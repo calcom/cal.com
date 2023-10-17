@@ -2,10 +2,6 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { Availability } from "@calcom/prisma/client";
 
-import logger from "./logger";
-import { safeStringify } from "./safeStringify";
-
-const log = logger.getChildLogger({ prefix: ["date-ranges"] });
 export type DateRange = {
   start: Dayjs;
   end: Dayjs;

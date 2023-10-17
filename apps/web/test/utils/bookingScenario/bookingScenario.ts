@@ -265,7 +265,7 @@ async function addBookingsToDb(
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
 
-  function getDateObj(time) {
+  function getDateObj(time: string | Date) {
     return time instanceof Date ? time : new Date(time);
   }
 
@@ -910,6 +910,7 @@ export function mockCalendar(
               url: "https://UNUSED_URL",
             });
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           deleteEvent: async (...rest: any[]) => {
             log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
             // eslint-disable-next-line prefer-rest-params
@@ -1034,6 +1035,7 @@ export function mockVideoApp({
                   ...videoMeetingData,
                 });
               },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               deleteMeeting: async (...rest: any[]) => {
                 log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
                 deleteMeetingCalls.push({

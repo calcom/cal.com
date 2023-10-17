@@ -7,6 +7,8 @@ import ical from "node-ical";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
 
+import dayjs from "@calcom/dayjs";
+import { DEFAULT_TIMEZONE_BOOKER } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -15,6 +17,16 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import type { InputEventType } from "./bookingScenario";
+
+// This is too complex at the moment, I really need to simplify this.
+// Maybe we can replace the exact match with a partial match approach that would be easier to maintain but we would still need Dayjs to do the timezone conversion
+// Alternative could be that we use some other library to do the timezone conversion?
+function formatDateToWhenFormat({ start, end }: { start: Date; end: Date }, timeZone: string) {
+  const startTime = dayjs(start).tz(timeZone);
+  return `${startTime.format(`dddd, LL`)} | ${startTime.format("h:mma")} - ${dayjs(end)
+    .tz(timeZone)
+    .format("h:mma")} (${timeZone})`;
+}
 
 type Recurrence = {
   freq: number;
@@ -35,6 +47,11 @@ type ExpectedEmail = {
    */
   titleTag?: string;
   to: string;
+  bookingTimeRange?: {
+    start: Date;
+    end: Date;
+    timeZone: string;
+  };
   // TODO: Implement these and more
   // what?: string;
   // when?: string;
@@ -95,6 +112,7 @@ expect.extend({
       titleTag: emailDom.querySelector("title")?.innerText,
       heading: emailDom.querySelector('[data-testid="heading"]')?.innerText,
       subHeading: emailDom.querySelector('[data-testid="subHeading"]')?.innerText,
+      when: emailDom.querySelector('[data-testid="when"]')?.innerText,
     };
 
     const expectedEmailContent = getExpectedEmailContent(expectedEmail);
@@ -181,10 +199,22 @@ expect.extend({
     };
 
     function getExpectedEmailContent(expectedEmail: ExpectedEmail) {
+      const bookingTimeRange = expectedEmail.bookingTimeRange;
+      const when = bookingTimeRange
+        ? formatDateToWhenFormat(
+            {
+              start: bookingTimeRange.start,
+              end: bookingTimeRange.end,
+            },
+            bookingTimeRange.timeZone
+          )
+        : null;
+
       const expectedEmailContent = {
         titleTag: expectedEmail.titleTag,
         heading: expectedEmail.heading,
         subHeading: expectedEmail.subHeading,
+        when: when ? (expectedEmail.ics?.recurrence ? `starting ${when}` : `${when}`) : undefined,
       };
       // Remove undefined props so that they aren't matched, they are intentionally left undefined because we don't want to match them
       Object.keys(expectedEmailContent).filter((key) => {
@@ -291,20 +321,30 @@ export function expectSuccessfulBookingCreationEmails({
   otherTeamMembers,
   iCalUID,
   recurrence,
+  bookingTimeRange,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string };
-  booker: { email: string; name: string };
-  guests?: { email: string; name: string }[];
-  otherTeamMembers?: { email: string; name: string }[];
+  organizer: { email: string; name: string; timeZone: string };
+  booker: { email: string; name: string; timeZone?: string };
+  guests?: { email: string; name: string; timeZone?: string }[];
+  otherTeamMembers?: { email: string; name: string; timeZone?: string }[];
   iCalUID: string;
   recurrence?: Recurrence;
+  bookingTimeRange?: { start: Date; end: Date };
 }) {
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
       heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
       subHeading: "",
+      ...(bookingTimeRange
+        ? {
+            bookingTimeRange: {
+              ...bookingTimeRange,
+              timeZone: organizer.timeZone,
+            },
+          }
+        : null),
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
@@ -320,6 +360,15 @@ export function expectSuccessfulBookingCreationEmails({
       titleTag: "confirmed_event_type_subject",
       heading: recurrence ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled",
       subHeading: "emailed_you_and_any_other_attendees",
+      ...(bookingTimeRange
+        ? {
+            bookingTimeRange: {
+              ...bookingTimeRange,
+              // Using the default timezone
+              timeZone: booker.timeZone || DEFAULT_TIMEZONE_BOOKER,
+            },
+          }
+        : null),
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
@@ -337,7 +386,14 @@ export function expectSuccessfulBookingCreationEmails({
           titleTag: "confirmed_event_type_subject",
           heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
           subHeading: "",
-
+          ...(bookingTimeRange
+            ? {
+                bookingTimeRange: {
+                  ...bookingTimeRange,
+                  timeZone: otherTeamMember.timeZone || DEFAULT_TIMEZONE_BOOKER,
+                },
+              }
+            : null),
           // Don't know why but organizer and team members of the eventType don'thave their name here like Booker
           to: `${otherTeamMember.email}`,
           ics: {
@@ -357,6 +413,14 @@ export function expectSuccessfulBookingCreationEmails({
           titleTag: "confirmed_event_type_subject",
           heading: recurrence ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled",
           subHeading: "emailed_you_and_any_other_attendees",
+          ...(bookingTimeRange
+            ? {
+                bookingTimeRange: {
+                  ...bookingTimeRange,
+                  timeZone: guest.timeZone || DEFAULT_TIMEZONE_BOOKER,
+                },
+              }
+            : null),
           to: `${guest.email}`,
           ics: {
             filename: "event.ics",
@@ -711,10 +775,10 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
 ) {
   const expecteds = expected instanceof Array ? expected : [expected];
   expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
-  for (const [index, call] of Object.entries(calendarMock.createEventCalls)) {
-    const expected = expecteds[index];
+  for (let i = 0; i < calendarMock.createEventCalls.length; i++) {
+    const expected = expecteds[i];
 
-    const calEvent = call[0];
+    const calEvent = calendarMock.createEventCalls[i][0];
 
     expect(calEvent).toEqual(
       expect.objectContaining({

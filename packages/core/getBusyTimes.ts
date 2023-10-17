@@ -184,7 +184,6 @@ export async function getBusyTimes(params: {
       busyTimes,
       bookings: bookings?.map((booking) => getPiiFreeBooking(booking)),
       numCredentials: credentials?.length,
-      allBookings: await prisma.booking.findMany(),
     })}`
   );
   performance.mark("prismaBookingGetEnd");
