@@ -4,7 +4,7 @@ import { Redis } from "@upstash/redis";
 import { isIpInBanListString } from "./getIP";
 import logger from "./logger";
 
-const log = logger.getChildLogger({ prefix: ["RateLimit"] });
+const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
 export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai";

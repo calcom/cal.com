@@ -268,7 +268,7 @@ export function getRegularOrDynamicEventType(
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
   if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 2;
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
@@ -279,10 +279,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
-    logger.setSettings({ minLevel: "debug" });
+    logger.settings.minLevel = 2;
   }
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
