@@ -7,7 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
@@ -366,14 +366,34 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = async (
-  credential: CredentialPayload,
-  uid: string,
-  event: CalendarEvent
-): Promise<unknown> => {
+export const deleteEvent = async ({
+  credential,
+  bookingRefUid,
+  event,
+  externalCalendarId,
+}: {
+  credential: CredentialPayload;
+  bookingRefUid: string;
+  event: CalendarEvent;
+  externalCalendarId?: string | null;
+}): Promise<unknown> => {
   const calendar = await getCalendar(credential);
+  log.debug(
+    "Deleting calendar event",
+    safeStringify({
+      bookingRefUid,
+      event: getPiiFreeCalendarEvent(event),
+    })
+  );
   if (calendar) {
-    return calendar.deleteEvent(uid, event);
+    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+  } else {
+    log.warn(
+      "Could not do deleteEvent - No calendar adapter found",
+      safeStringify({
+        credential: getPiiFreeCredential(credential),
+      })
+    );
   }
 
   return Promise.resolve({});

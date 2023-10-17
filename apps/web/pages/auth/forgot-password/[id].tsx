@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, PasswordField, Form } from "@calcom/ui";
@@ -162,12 +163,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } catch (e) {
     resetPasswordRequest = null;
   }
+  const locale = await getLocale(context.req);
   return {
     props: {
       isRequestExpired: !resetPasswordRequest,
       requestId: id,
       csrfToken: await getCsrfToken({ req: context.req }),
-      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

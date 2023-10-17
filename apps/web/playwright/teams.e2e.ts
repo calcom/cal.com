@@ -135,6 +135,40 @@ test.describe("Teams", () => {
     expect(teamMatesObj.some(({ name }) => name === chosenUser)).toBe(true);
     // TODO: Assert whether the user received an email
   });
+  test("Non admin team members cannot create team in org", async ({ page, users }) => {
+    const teamMateName = "teammate-1";
+
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+      teammates: [{ name: teamMateName }],
+    });
+
+    const allUsers = await users.get();
+    const memberUser = allUsers.find((user) => user.name === teamMateName);
+
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (memberUser) {
+      await memberUser.apiLogin();
+
+      await page.goto("/teams");
+      await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
+      await expect(page.locator("[data-testid=create-team-btn]")).toHaveAttribute("disabled", "");
+
+      const uniqueName = "test-unique-team-name";
+
+      // Go directly to the create team page
+      await page.goto("/settings/teams/new");
+      // Fill input[name="name"]
+      await page.locator('input[name="name"]').fill(uniqueName);
+      await page.locator("text=Continue").click();
+      await expect(page.locator("[data-testid=alert]")).toBeVisible();
+
+      // cleanup
+      const org = await owner.getOrg();
+      await prisma.team.delete({ where: { id: org.teamId } });
+    }
+  });
   test("Can create team with same name as user", async ({ page, users }) => {
     // Name to be used for both user and team
     const uniqueName = "test-unique-name";
