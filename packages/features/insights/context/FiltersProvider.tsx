@@ -3,12 +3,14 @@ import { useState } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { trpc } from "@calcom/trpc";
 
 import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
+  const utils = trpc.useContext();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +107,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             ...configFilters,
             ...newConfigFilters,
           });
-
+          utils.viewer.insights.rawData.invalidate();
           const {
             selectedMemberUserId,
             selectedTeamId,

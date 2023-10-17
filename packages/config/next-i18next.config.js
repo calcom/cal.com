@@ -33,6 +33,10 @@ const config = {
       "zh-TW",
     ],
   },
+  fallbackLng: {
+    default: ["en"],
+    zh: ["zh-CN"],
+  },
   reloadOnPrerender: process.env.NODE_ENV !== "production",
 };
 
