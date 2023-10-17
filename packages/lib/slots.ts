@@ -198,7 +198,7 @@ function buildSlotsWithDateRanges({
       slots.push({
         time: slotStartTime,
       });
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+      slotStartTime = slotStartTime.add(frequency, "minutes");
     }
   });
 
