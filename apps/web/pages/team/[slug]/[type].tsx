@@ -11,11 +11,14 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/client";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+
+import { getTemporaryOrgRedirect } from "../../../lib/getTemporaryOrgRedirect";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -75,6 +78,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
+  const isOrgContext = currentOrgDomain && isValidOrgDomain;
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: teamSlug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
 
   const team = await prisma.team.findFirst({
     where: {
