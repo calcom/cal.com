@@ -44,7 +44,7 @@ Here is the full architecture:
 
 ### Email Router
 
-To expose the AI app, run `ngrok http 3000` (or the AI app's port number) in a new terminal. You may need to install [nGrok](https://ngrok.com/).
+To expose the AI app, run `ngrok http 3005` (or the AI app's port number) in a new terminal. You may need to install [nGrok](https://ngrok.com/).
 
 To forward incoming emails to the serverless function at `/agent`, we use [SendGrid's Inbound Parse](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook).
 
