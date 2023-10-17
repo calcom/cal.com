@@ -18,6 +18,7 @@ import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
@@ -29,6 +30,8 @@ import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -272,6 +275,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
+
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({
     slug: slugify(slug ?? ""),
@@ -279,6 +284,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
   });
+
+  if (!isOrgContext && slug) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: slug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
+
   const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   console.info("gSSP, team/[slug] - ", {
