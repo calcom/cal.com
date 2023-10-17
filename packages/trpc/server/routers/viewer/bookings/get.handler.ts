@@ -3,7 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetInputSchema } from "./get.schema";
@@ -178,6 +178,7 @@ async function getBookings({
         .filter(Boolean);
   const bookingSelect = {
     ...bookingMinimalSelect,
+    metadata: true,
     uid: true,
     recurringEventId: true,
     location: true,
@@ -409,6 +410,9 @@ async function getBookings({
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
     }
+
+    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+
     return {
       ...booking,
       eventType: {
@@ -420,6 +424,7 @@ async function getBookings({
       },
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
+      metadata: bookingMetadata,
     };
   });
   return { bookings, recurringInfo };
