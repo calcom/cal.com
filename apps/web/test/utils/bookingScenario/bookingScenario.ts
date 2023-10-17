@@ -264,8 +264,21 @@ async function addBookingsToDb(
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+
+  function getDateObj(time) {
+    return time instanceof Date ? time : new Date(time);
+  }
+
+  // Make sure that we store the date in Date object always. This is to ensure consistency which Prisma does but not prismock
+  log.silly("Handling Prismock bug-3");
+  const fixedBookings = bookings.map((booking) => {
+    const startTime = getDateObj(booking.startTime);
+    const endTime = getDateObj(booking.endTime);
+    return { ...booking, startTime, endTime };
+  });
+
   await prismock.booking.createMany({
-    data: bookings,
+    data: fixedBookings,
   });
   log.silly(
     "TestData: Bookings as in DB",
@@ -1153,7 +1166,6 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };

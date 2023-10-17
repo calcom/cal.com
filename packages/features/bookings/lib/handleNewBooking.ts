@@ -703,6 +703,7 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
+      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,

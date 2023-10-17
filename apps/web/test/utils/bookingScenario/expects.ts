@@ -337,7 +337,11 @@ export function expectSuccessfulBookingCreationEmails({
           titleTag: "confirmed_event_type_subject",
           heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
           subHeading: "",
+
           // Don't know why but organizer and team members of the eventType don'thave their name here like Booker
+          to: `${otherTeamMember.email}`,
+          ics: {
+            filename: "event.ics",
             iCalUID: iCalUID,
           },
         },
@@ -693,32 +697,42 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateEventCalls: any[];
   },
-  expected: {
-    calendarId?: string | null;
-    videoCallUrl: string;
-    destinationCalendars?: Partial<DestinationCalendar>[];
-  }
+  expected:
+    | {
+        calendarId?: string | null;
+        videoCallUrl: string;
+        destinationCalendars?: Partial<DestinationCalendar>[];
+      }
+    | {
+        calendarId?: string | null;
+        videoCallUrl: string;
+        destinationCalendars?: Partial<DestinationCalendar>[];
+      }[]
 ) {
-  expect(calendarMock.createEventCalls.length).toBe(1);
-  const call = calendarMock.createEventCalls[0];
-  const calEvent = call[0];
+  const expecteds = expected instanceof Array ? expected : [expected];
+  expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
+  for (const [index, call] of Object.entries(calendarMock.createEventCalls)) {
+    const expected = expecteds[index];
 
-  expect(calEvent).toEqual(
-    expect.objectContaining({
-      destinationCalendar: expected.calendarId
-        ? [
-            expect.objectContaining({
-              externalId: expected.calendarId,
-            }),
-          ]
-        : expected.destinationCalendars
-        ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
-        : null,
-      videoCallData: expect.objectContaining({
-        url: expected.videoCallUrl,
-      }),
-    })
-  );
+    const calEvent = call[0];
+
+    expect(calEvent).toEqual(
+      expect.objectContaining({
+        destinationCalendar: expected.calendarId
+          ? [
+              expect.objectContaining({
+                externalId: expected.calendarId,
+              }),
+            ]
+          : expected.destinationCalendars
+          ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
+          : null,
+        videoCallData: expect.objectContaining({
+          url: expected.videoCallUrl,
+        }),
+      })
+    );
+  }
 }
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(

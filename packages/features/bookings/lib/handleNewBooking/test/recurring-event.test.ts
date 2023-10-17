@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
@@ -40,7 +41,8 @@ describe("handleNewBooking", () => {
 			3. Should trigger BOOKING_CREATED webhook
 	  `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
+          .handleRecurringEventBooking;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -128,51 +130,73 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
+        const numOfSlotsToBeBooked = 4;
+        const { req, res } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData,
+          body: Array(numOfSlotsToBeBooked)
+            .fill(mockBookingData)
+            .map((mockBookingData, index) => {
+              return {
+                ...mockBookingData,
+                start: new Date(
+                  new Date(mockBookingData.start).getTime() + index * 1000 * 60 * 60 * 24
+                ).toISOString(), // 1 day apart
+                end: new Date(
+                  new Date(mockBookingData.end).getTime() + index * 1000 * 60 * 60 * 24
+                ).toISOString(), // 1 day apart
+              };
+            }),
         });
 
-        const createdBooking = await handleNewBooking(req);
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        const createdBookings = await handleRecurringEventBooking(req, res);
+        expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
+        for (const [index, createdBooking] of Object.entries(createdBookings)) {
+          logger.debug("Assertion for Booking with index:", index, { createdBooking });
+          expect(createdBooking.responses).toContain({
+            email: booker.email,
+            name: booker.name,
+          });
 
-        expect(createdBooking).toContain({
-          location: "integrations:daily",
-        });
+          expect(createdBooking).toContain({
+            location: "integrations:daily",
+          });
 
-        await expectBookingToBeInDatabase({
-          description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          uid: createdBooking.uid!,
-          eventTypeId: mockBookingData.eventTypeId,
-          status: BookingStatus.ACCEPTED,
-          recurringEventId: mockBookingData.recurringEventId,
-          references: [
-            {
-              type: "daily_video",
-              uid: "MOCK_ID",
-              meetingId: "MOCK_ID",
-              meetingPassword: "MOCK_PASS",
-              meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
-            },
-            {
-              type: "google_calendar",
-              uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-              meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-              meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
-            },
-          ],
-        });
+          await expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.ACCEPTED,
+            recurringEventId: mockBookingData.recurringEventId,
+            references: [
+              {
+                type: "daily_video",
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+              },
+              {
+                type: "google_calendar",
+                uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                meetingPassword: "MOCK_PASSWORD",
+                meetingUrl: "https://UNUSED_URL",
+              },
+            ],
+          });
+
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: "integrations:daily",
+            subscriberUrl: "http://my-webhook.example.com",
+            //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
+          });
+        }
 
         expectWorkflowToBeTriggered();
-        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
-          calendarId: "event-type-1@google-calendar.com",
-          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
-        });
 
         expectSuccessfulBookingCreationEmails({
           booker,
@@ -185,13 +209,24 @@ describe("handleNewBooking", () => {
           },
         });
 
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer,
-          location: "integrations:daily",
-          subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-        });
+        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, [
+          {
+            calendarId: "event-type-1@google-calendar.com",
+            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          },
+          {
+            calendarId: "event-type-1@google-calendar.com",
+            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          },
+          {
+            calendarId: "event-type-1@google-calendar.com",
+            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          },
+          {
+            calendarId: "event-type-1@google-calendar.com",
+            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          },
+        ]);
       },
       timeout
     );
