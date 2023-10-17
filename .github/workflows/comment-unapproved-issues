@@ -1,0 +1,27 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# GitHub recommends pinning actions to a commit SHA.
+# To get a newer version, you will need to update the SHA.
+# You can also reference a tag or branch, but the action may change without warning.
+
+name: Add comment
+on:
+  issues:
+    types:
+      - labeled
+jobs:
+  add-comment:
+    if: github.event.label.name == '🚨 needs approval'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            This feature request has not been reviewed yet by the Product Team and needs approval beforehand. Once approved, this issue is available for anyone to work on. **Make sure to reference this issue in your pull request.** :sparkles: Thank you for your contribution! :sparkles:
