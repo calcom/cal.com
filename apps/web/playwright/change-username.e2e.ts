@@ -43,7 +43,25 @@ test.describe("Change username on settings", () => {
         id: user.id,
       },
     });
+
     expect(newUpdatedUser.username).toBe("demousernamex");
+
+    // User can change username to include dots(or periods)
+    await usernameInput.fill("demo.username");
+    await page.click("[data-testid=update-username-btn]");
+    await Promise.all([
+      page.click("[data-testid=save-username]"),
+      page.getByTestId("toast-success").waitFor(),
+    ]);
+    await page.waitForLoadState("networkidle");
+
+    const updatedUser = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: user.id,
+      },
+    });
+
+    expect(updatedUser.username).toBe("demo.username");
   });
 
   test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {

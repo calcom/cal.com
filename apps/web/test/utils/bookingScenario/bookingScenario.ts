@@ -633,7 +633,7 @@ export const TestData = {
     example: {
       name: "Example",
       email: "example@example.com",
-      username: "example",
+      username: "example.username",
       defaultScheduleId: 1,
       timeZone: Timezones["+5:30"],
     },
