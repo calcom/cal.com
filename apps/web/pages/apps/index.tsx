@@ -54,6 +54,7 @@ function AppsSearch({
       type="search"
       autoComplete="false"
       onChange={onChange}
+      placeholder="Search apps"
     />
   );
 }
