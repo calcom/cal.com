@@ -4,7 +4,6 @@ import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import type { API } from "mailhog";
 
-import dayjs from "@calcom/dayjs";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -12,7 +11,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
-import type { TimeZoneEnum } from "./types";
+import { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export function hashPassword(password: string) {
@@ -477,13 +476,14 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
     password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
-    timeZone: opts?.timeZone ?? dayjs.tz.guess(),
+    timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
     schedules:
       opts?.completedOnboarding ?? true
         ? {
             create: {
               name: "Working Hours",
+              timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
               availability: {
                 createMany: {
                   data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
