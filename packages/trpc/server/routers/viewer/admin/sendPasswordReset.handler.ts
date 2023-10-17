@@ -57,3 +57,5 @@ export const sendPasswordResetHandler = async ({ input }: GetOptions) => {
     success: true,
   };
 };
+
+export default sendPasswordResetHandler;

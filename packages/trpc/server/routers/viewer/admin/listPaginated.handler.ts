@@ -67,3 +67,5 @@ export const listPaginatedHandler = async ({ input }: GetOptions) => {
     },
   };
 };
+
+export default listPaginatedHandler;

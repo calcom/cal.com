@@ -1,62 +1,30 @@
-import { z } from "zod";
-
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
+import { importHandler, router } from "../../../trpc";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
+import { ZAdminToggleFeatureFlagSchema } from "./toggleFeatureFlag.schema";
 
-type AdminRouterHandlerCache = {
-  listPaginated?: typeof import("./listPaginated.handler").listPaginatedHandler;
-  sendPasswordReset?: typeof import("./sendPasswordReset.handler").sendPasswordResetHandler;
-};
+const NAMESPACE = "adminRouter";
 
-const UNSTABLE_HANDLER_CACHE: AdminRouterHandlerCache = {};
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
-  listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listPaginated) {
-      UNSTABLE_HANDLER_CACHE.listPaginated = await import("./listPaginated.handler").then(
-        (mod) => mod.listPaginatedHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listPaginated) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listPaginated({
-      ctx,
-      input,
-    });
+  listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("listPaginated"), () => import("./listPaginated.handler"));
+    return handler(opts);
   }),
-  sendPasswordReset: authedAdminProcedure
-    .input(ZAdminPasswordResetSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.sendPasswordReset) {
-        UNSTABLE_HANDLER_CACHE.sendPasswordReset = await import("./sendPasswordReset.handler").then(
-          (mod) => mod.sendPasswordResetHandler
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.sendPasswordReset) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.sendPasswordReset({
-        ctx,
-        input,
-      });
-    }),
-  toggleFeatureFlag: authedAdminProcedure
-    .input(z.object({ slug: z.string(), enabled: z.boolean() }))
-    .mutation(({ ctx, input }) => {
-      const { prisma, user } = ctx;
-      const { slug, enabled } = input;
-      return prisma.feature.update({
-        where: { slug },
-        data: { enabled, updatedBy: user.id },
-      });
-    }),
+  sendPasswordReset: authedAdminProcedure.input(ZAdminPasswordResetSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("sendPasswordReset"),
+      () => import("./sendPasswordReset.handler")
+    );
+    return handler(opts);
+  }),
+  toggleFeatureFlag: authedAdminProcedure.input(ZAdminToggleFeatureFlagSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("toggleFeatureFlag"),
+      () => import("./toggleFeatureFlag.handler")
+    );
+    return handler(opts);
+  }),
 });
