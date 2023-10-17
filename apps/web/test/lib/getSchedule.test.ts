@@ -678,7 +678,7 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
-            length: 25,
+            length: 30,
             offsetStart: 5,
             users: [
               {
