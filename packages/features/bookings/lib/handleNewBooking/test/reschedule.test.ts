@@ -21,6 +21,8 @@ import {
   BookingLocations,
   getMockBookingReference,
   getMockBookingAttendee,
+  getMockFailingAppStatus,
+  getMockPassingAppStatus,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
@@ -257,6 +259,10 @@ describe("handleNewBooking", () => {
           organizer,
           emails,
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          appsStatus: [
+            getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug }),
+            getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
+          ],
         });
 
         expectBookingRescheduledWebhookToHaveBeenFired({
@@ -631,6 +637,12 @@ describe("handleNewBooking", () => {
           subscriberUrl: "http://my-webhook.example.com",
           payload: {
             uid: createdBooking.uid,
+            appsStatus: [
+              expect.objectContaining(getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug })),
+              expect.objectContaining(
+                getMockFailingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })
+              ),
+            ],
           },
           videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
         });
@@ -1521,6 +1533,7 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           });
+
           expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,

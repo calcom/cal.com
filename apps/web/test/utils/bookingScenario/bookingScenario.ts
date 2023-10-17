@@ -1205,3 +1205,35 @@ export const enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
 }
+
+const getMockAppStatus = ({
+  slug,
+  failures,
+  success,
+}: {
+  slug: string;
+  failures: number;
+  success: number;
+}) => {
+  const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
+    return app.slug === slug;
+  });
+  if (!foundEntry) {
+    throw new Error("App not found for the slug");
+  }
+  const foundApp = foundEntry[1];
+  return {
+    appName: foundApp.slug,
+    type: foundApp.type,
+    failures,
+    success,
+    errors: [],
+  };
+};
+export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 1, success: 0 });
+};
+
+export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 0, success: 1 });
+};
