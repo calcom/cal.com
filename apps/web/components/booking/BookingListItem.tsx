@@ -364,7 +364,7 @@ function BookingListItem(booking: BookingItemProps) {
                           className="h-4 w-4 rounded-sm"
                           alt={`${eventLocationType.label} logo`}
                         />
-                        Join {eventLocationType.label}
+                        {t("join_event_location", { eventLocationType: eventLocationType.label })}
                       </>
                     ) : (
                       <>t("join_meeting")</>
