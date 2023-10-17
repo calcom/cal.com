@@ -592,8 +592,7 @@ describe("handleNewBooking", () => {
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
             metadata: {
-              // FIXME: Should be new video URL
-              videoCallUrl: `http://app.cal.local:3000/video/${createdBooking?.uid}`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
             },
             responses: expect.objectContaining({
               email: booker.email,
@@ -633,8 +632,7 @@ describe("handleNewBooking", () => {
           payload: {
             uid: createdBooking.uid,
           },
-          // Due to a bug probably, videoCallUrl isn't sent in this case.
-          videoCallUrl: `http://app.cal.local:3000/video/${createdBooking?.uid}`,
+          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
         });
       },
       timeout

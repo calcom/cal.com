@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -77,19 +78,33 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
 
   useEffect(() => {
-    window.document.documentElement.lang = locale;
-
-    let direction = window.document.dir || "ltr";
-
     try {
-      const intlLocale = new Intl.Locale(locale);
-      // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
-      direction = intlLocale.textInfo?.direction;
+      // @ts-expect-error TS2790: The operand of a 'delete' operator must be optional.
+      delete window.document.documentElement["lang"];
+
+      window.document.documentElement.lang = locale;
+
+      // Next.js writes the locale to the same attribute
+      // https://github.com/vercel/next.js/blob/1609da2d9552fed48ab45969bdc5631230c6d356/packages/next/src/shared/lib/router/router.ts#L1786
+      // which can result in a race condition
+      // this property descriptor ensures this never happens
+      Object.defineProperty(window.document.documentElement, "lang", {
+        configurable: true,
+        // value: locale,
+        set: function (this) {
+          // empty setter on purpose
+        },
+        get: function () {
+          return locale;
+        },
+      });
     } catch (error) {
       console.error(error);
+
+      window.document.documentElement.lang = locale;
     }
 
-    window.document.dir = direction;
+    window.document.dir = dir(locale);
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);

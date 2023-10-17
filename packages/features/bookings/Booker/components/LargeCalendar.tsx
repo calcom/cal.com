@@ -57,7 +57,9 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         start: dayjs(event.start).toDate(),
         end: dayjs(event.end).toDate(),
         title: "Busy",
-        status: "ACCEPTED",
+        options: {
+          status: "ACCEPTED",
+        },
       } as CalendarEvent;
     });
   }, [overlayEvents, displayOverlay]);

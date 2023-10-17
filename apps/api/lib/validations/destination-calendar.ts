@@ -3,6 +3,7 @@ import { z } from "zod";
 import { _DestinationCalendarModel as DestinationCalendar } from "@calcom/prisma/zod";
 
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick({
+  credentialId: true,
   integration: true,
   externalId: true,
   eventTypeId: true,
@@ -14,6 +15,7 @@ const schemaDestinationCalendarCreateParams = z
   .object({
     integration: z.string(),
     externalId: z.string(),
+    credentialId: z.number(),
     eventTypeId: z.number().optional(),
     bookingId: z.number().optional(),
     userId: z.number().optional(),
@@ -45,4 +47,5 @@ export const schemaDestinationCalendarReadPublic = DestinationCalendar.pick({
   eventTypeId: true,
   bookingId: true,
   userId: true,
+  credentialId: true,
 });
