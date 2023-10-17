@@ -234,11 +234,12 @@ export interface Calendar {
   getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    forceCacheUpdate?: boolean
   ): Promise<EventBusyDate[]>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
-  watchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
   unwatchCalendar?(options: { calendarId: string }): Promise<void>;
 }
 

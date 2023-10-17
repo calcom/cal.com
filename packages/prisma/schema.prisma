@@ -464,6 +464,7 @@ model SelectedCalendar {
   externalId   String
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId Int?
+  metadata     Json?
 
   @@id([userId, integration, externalId])
   @@index([userId])
