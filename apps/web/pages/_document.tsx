@@ -1,10 +1,10 @@
 import type { IncomingMessage } from "http";
+import { dir } from "i18next";
 import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { csp } from "@lib/csp";
@@ -28,9 +28,12 @@ class MyDocument extends Document<Props> {
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
 
-    const newLocale = ctx.req
-      ? await getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
-      : "en";
+    const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
+
+    const newLocale =
+      ctx.req && getLocaleModule
+        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        : "en";
 
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
@@ -48,21 +51,15 @@ class MyDocument extends Document<Props> {
   render() {
     const { isEmbed, embedColorScheme } = this.props;
     const newLocale = this.props.newLocale || "en";
+    const newDir = dir(newLocale);
 
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
 
-    const intlLocale = new Intl.Locale(newLocale);
-    // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
-    const direction = intlLocale.textInfo?.direction;
-    if (!direction) {
-      throw new Error("NodeJS major breaking change detected, use getTextInfo() instead.");
-    }
-
     return (
       <Html
         lang={newLocale}
-        dir={direction}
+        dir={newDir}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
           <script

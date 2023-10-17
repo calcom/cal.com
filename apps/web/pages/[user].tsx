@@ -23,7 +23,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import type { EventType, User } from "@calcom/prisma/client";
+import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
@@ -34,6 +34,8 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import { getTemporaryOrgRedirect } from "../lib/getTemporaryOrgRedirect";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
@@ -261,13 +263,14 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     context.params?.orgSlug
   );
   const usernameList = getUsernameList(context.query.user as string);
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({
     where: {
       username: {
         in: usernameList,
       },
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      organization: isOrgContext ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
     select: {
       id: true,
@@ -275,6 +278,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       email: true,
       name: true,
       bio: true,
+      metadata: true,
       brandColor: true,
       darkBrandColor: true,
       organizationId: true,
@@ -311,6 +315,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     ...user,
     avatar: `/${user.username}/avatar.png`,
   }));
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: usernameList[0],
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
 
   if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
     return {
