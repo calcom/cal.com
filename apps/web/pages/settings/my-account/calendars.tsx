@@ -35,7 +35,7 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle mt-8 space-y-6 rounded-xl border px-4 py-6 sm:px-6">
+      <div className="border-subtle mt-8 space-y-6 rounded-lg border px-4 py-6 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -109,11 +109,11 @@ const CalendarsView = () => {
             selectedDestinationCalendarOption?.externalId === query?.data?.destinationCalendar?.externalId;
           return data.connectedCalendars.length ? (
             <div>
-              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
+              <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
                 <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
                   {t("add_to_calendar")}
                 </h2>
-                <p className="text-default text-sm">{t("add_to_calendar_description")}</p>
+                <p className="text-default text-sm leading-tight">{t("add_to_calendar_description")}</p>
               </div>
               <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 px-4 py-6 sm:px-6">
                 <DestinationCalendarSelector
@@ -137,15 +137,15 @@ const CalendarsView = () => {
                 </Button>
               </SectionBottomActions>
 
-              <div className="border-subtle mt-8 rounded-t-xl border px-4 py-6 sm:px-6">
+              <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
                 <h4 className="text-emphasis text-base font-semibold leading-5">
                   {t("check_for_conflicts")}
                 </h4>
-                <p className="text-default pb-2 text-sm leading-5">{t("select_calendars")}</p>
+                <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
               </div>
 
               <List
-                className="border-subtle flex flex-col gap-6 rounded-b-xl border border-t-0 p-6"
+                className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6"
                 noBorderTreatment>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
@@ -173,7 +173,7 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem className="flex-col rounded-md">
+                      <ListItem className="flex-col rounded-lg">
                         <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
                           {
                             // eslint-disable-next-line @next/next/no-img-element

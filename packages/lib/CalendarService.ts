@@ -121,7 +121,7 @@ export default abstract class BaseCalendarService implements Calendar {
     this.headers = getBasicAuthHeaders({ username, password });
     this.credential = credential;
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getAttendees(event: CalendarEvent) {

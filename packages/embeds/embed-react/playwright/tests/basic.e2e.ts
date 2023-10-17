@@ -6,8 +6,7 @@ import { test } from "@calcom/web/playwright/lib/fixtures";
 test.describe("Inline Embed", () => {
   test("should verify that the iframe got created with correct URL", async ({
     page,
-    getActionFiredDetails,
-    addEmbedListeners,
+    embeds: { getActionFiredDetails, addEmbedListeners },
   }) => {
     //TODO: Do it with page.goto automatically
     await addEmbedListeners("");

@@ -2,8 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -16,7 +16,7 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
  */
 export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
   const ctx = await createContext(context);
-  const locale = await getLocaleFromRequest(context.req);
+  const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
   const ssr = createProxySSGHelpers({
