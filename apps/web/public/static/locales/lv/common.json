@@ -77,5 +77,9 @@
   "you_have_been_invited": "Jūs esat uzaicināts pievienoties komandai {{teamName}}",
   "user_invited_you": "{{user}} uzaicināja jūs pievienoties {{entity}} {{team}} iekš {{appName}}",
   "hidden_team_member_title": "Jūs esat paslēpts šajā komandā",
-  "hidden_team_member_message": "Jūsu vieta nav apmaksāta. Vai nu Jauniniet savu plānu uz PRO, vai paziņojat komandas īpašniekam, lai apmaksā jūsu vietu."
+  "hidden_team_member_message": "Jūsu vieta nav apmaksāta. Vai nu Jauniniet savu plānu uz PRO, vai paziņojat komandas īpašniekam, lai apmaksā jūsu vietu.",
+  "hidden_team_owner_message": "Jums ir nepieciešams Pro konts, lai izmantotu komandas. Līdz jaunināšanai, jūs esat paslēpts.",
+  "link_expires": "p.s. Tas beidzas pēc {{expiresIn}} stundām.",
+  "upgrade_to_per_seat": "Jauniniet uz Par-Vietu",
+  "seat_options_doesnt_support_confirmation": "Vietu opcija neatbalsta apstiprinājuma prasību"
 }
