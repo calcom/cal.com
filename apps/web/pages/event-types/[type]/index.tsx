@@ -8,9 +8,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
-import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,23 +19,16 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type {
-  BookerLayoutSettings,
-  customInputSchema,
-  EventTypeMetaDataSchema,
-} from "@calcom/prisma/zod-utils";
+import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -76,65 +69,6 @@ const EventWebhooksTab = dynamic(() =>
 );
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
-
-export type FormValues = {
-  title: string;
-  eventTitle: string;
-  eventName: string;
-  slug: string;
-  length: number;
-  offsetStart: number;
-  description: string;
-  disableGuests: boolean;
-  requiresConfirmation: boolean;
-  requiresBookerEmailVerification: boolean;
-  recurringEvent: RecurringEvent | null;
-  schedulingType: SchedulingType | null;
-  hidden: boolean;
-  hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
-  locations: {
-    type: EventLocationType["type"];
-    address?: string;
-    attendeeAddress?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-    phone?: string;
-    hostDefault?: string;
-    credentialId?: number;
-    teamName?: string;
-  }[];
-  customInputs: CustomInputParsed[];
-  schedule: number | null;
-  periodType: PeriodType;
-  periodDays: number;
-  periodCountCalendarDays: "1" | "0";
-  periodDates: { startDate: Date; endDate: Date };
-  seatsPerTimeSlot: number | null;
-  seatsShowAttendees: boolean | null;
-  seatsShowAvailabilityCount: boolean | null;
-  seatsPerTimeSlotEnabled: boolean;
-  minimumBookingNotice: number;
-  minimumBookingNoticeInDurationType: number;
-  beforeBufferTime: number;
-  afterBufferTime: number;
-  slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  destinationCalendar: {
-    integration: string;
-    externalId: string;
-  };
-  successRedirectUrl: string;
-  durationLimits?: IntervalLimit;
-  bookingLimits?: IntervalLimit;
-  children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean }[];
-  bookingFields: z.infer<typeof eventTypeBookingFields>;
-  availability?: AvailabilityOption;
-  bookerLayouts: BookerLayoutSettings;
-  multipleDurationEnabled: boolean;
-};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 

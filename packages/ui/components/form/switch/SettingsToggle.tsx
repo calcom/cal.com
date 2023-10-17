@@ -55,7 +55,8 @@ function SettingsToggle({
               <div>
                 <div className="flex items-center">
                   <Label
-                    className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}>
+                    className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}
+                    htmlFor="">
                     {title}
                     {LockedIcon}
                   </Label>

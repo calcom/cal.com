@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
@@ -16,6 +16,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
@@ -107,11 +108,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
