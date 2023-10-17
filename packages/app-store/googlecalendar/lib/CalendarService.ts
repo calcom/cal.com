@@ -2,6 +2,7 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -533,19 +534,22 @@ export default class GoogleCalendarService implements Calendar {
   async watchCalendar({ calendarId }) {
     const calendar = await this.authedCalendar();
     const id = `${this.credential.id}_${slugify(calendarId)}`;
-    await calendar.channels.stop({ requestBody: { id } }).catch(console.warn);
+    await this.unwatchCalendar({ calendarId });
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId,
       requestBody: {
         // An id property string that uniquely identifies this new notification channel within your project. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. The ID value you set is echoed back in the X-Goog-Channel-Id HTTP header of every notification message that you receive for this channel.
-        id,
+        id: uuid(),
         type: "web_hook",
-        address: "https://435d-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
+        address: "https://0241-189-203-86-232.ngrok-free.app/api/integrations/googlecalendar/webhook",
         // address: "https://cal.dev/api/integrations/googlecalendar/webhook",
+        token: process.env.CRON_API_KEY,
         expiration: null,
       },
     });
+    console.log("res", JSON.stringify(res.data));
+    // TODO: Save this into either the credential, selected calendar or a new table
     // Example response
     // {
     //   kind: "api#channel",
@@ -558,7 +562,17 @@ export default class GoogleCalendarService implements Calendar {
   async unwatchCalendar({ calendarId }) {
     const calendar = await this.authedCalendar();
     const id = `${this.credential.id}_${slugify(calendarId)}`;
-    await calendar.channels.stop({ requestBody: { id } }).catch(console.warn);
+    await calendar.channels
+      .stop({
+        requestBody: {
+          // TODO: Save these in DB so we can unwatch
+          resourceId: "jTIWK7916gSqPrP_3eqwQX-klFU",
+          id: "891433de-3eb5-447d-9ab5-8d89c32613aa",
+        },
+      })
+      .catch((err) => {
+        console.warn(JSON.stringify(err));
+      });
   }
 }
 
