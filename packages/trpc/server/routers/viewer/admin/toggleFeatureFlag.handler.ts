@@ -32,5 +32,16 @@ async function handleFeatureToggle({ ctx, input }: GetOptions) {
   if (slug === "calendar-cache" && enabled === false) {
     logger.info("Clearing calendar cache");
     await prisma.calendarCache.deleteMany();
+    // TODO: Toggle off all gCal watchers
+    /**
+    const watchedCalendars = await prisma.selectedCalendar.findMany({
+      where: {
+        metadata: {
+          path: ["kind"],
+          equals: "api#channel",
+        },
+      },
+    });
+     */
   }
 }
