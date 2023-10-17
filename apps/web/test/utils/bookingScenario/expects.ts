@@ -5,13 +5,11 @@ import { parse } from "node-html-parser";
 import ical from "node-ical";
 import { expect } from "vitest";
 import "vitest-fetch-mock";
-import type {
-  AppsStatus,
-  CalendarEvent,
-} from "@calcom/types/Calendar";
+
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
@@ -30,7 +28,7 @@ declare global {
             filename: string;
             iCalUID: string;
           };
-          appsStatus?: AppsStatus[]
+          appsStatus?: AppsStatus[];
         },
         to: string
       ): R;
@@ -49,7 +47,7 @@ expect.extend({
         iCalUID: string;
       };
       noIcs: true;
-      appsStatus: AppsStatus[]
+      appsStatus: AppsStatus[];
     },
     to: string
   ) {
@@ -95,12 +93,11 @@ expect.extend({
 
       return {
         pass: false,
-        message: ()=> `Email content ${isNot ? "is" : "is not"} matching`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
     }
-
 
     isToAddressExpected = expectedEmail.to === testEmail.to;
     if (!isToAddressExpected) {
@@ -112,7 +109,6 @@ expect.extend({
         expected: expectedEmail.to,
       };
     }
-
 
     if (!expectedEmail.noIcs && !isIcsFilenameExpected) {
       return {
@@ -132,27 +128,26 @@ expect.extend({
       };
     }
 
-
     if (expectedEmail.appsStatus) {
-      const actualAppsStatus = emailDom.querySelectorAll('[data-testid="appsStatus"] li').map((li)=> {
-        return li.innerText.trim()
-      })
-      const expectedAppStatus = expectedEmail.appsStatus.map((appStatus)=>{
+      const actualAppsStatus = emailDom.querySelectorAll('[data-testid="appsStatus"] li').map((li) => {
+        return li.innerText.trim();
+      });
+      const expectedAppStatus = expectedEmail.appsStatus.map((appStatus) => {
         if (appStatus.success && !appStatus.failures) {
-          return `${appStatus.appName} ✅`
+          return `${appStatus.appName} ✅`;
         }
-        return `${appStatus.appName} ❌`
-      })
+        return `${appStatus.appName} ❌`;
+      });
 
-      const isAppsStatusCorrect = this.equals(actualAppsStatus, expectedAppStatus)
+      const isAppsStatusCorrect = this.equals(actualAppsStatus, expectedAppStatus);
 
       if (!isAppsStatusCorrect) {
         return {
           pass: false,
           actual: actualAppsStatus,
           expected: expectedAppStatus,
-          message: () => `AppsStatus ${isNot ? "is": "isn't"} matching`
-        }
+          message: () => `AppsStatus ${isNot ? "is" : "isn't"} matching`,
+        };
       }
     }
 
@@ -377,13 +372,13 @@ export function expectSuccessfulBookingRescheduledEmails({
   organizer,
   booker,
   iCalUID,
-  appsStatus
+  appsStatus,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
   iCalUID: string;
-  appsStatus: AppsStatus[]
+  appsStatus: AppsStatus[];
 }) {
   expect(emails).toHaveEmail(
     {
@@ -393,7 +388,7 @@ export function expectSuccessfulBookingRescheduledEmails({
         filename: "event.ics",
         iCalUID,
       },
-      appsStatus
+      appsStatus,
     },
     `${organizer.email}`
   );
