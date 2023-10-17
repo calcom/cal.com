@@ -102,7 +102,8 @@ export function OverlayCalendarContainer() {
       toggleOverlayCalendarQueryParam(false);
       setContinueWithProvider(true);
     }
-  }, [session, overlayCalendarQueryParam, toggleOverlayCalendarQueryParam]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, overlayCalendarQueryParam]);
 
   if (isEmbed) {
     return null;
