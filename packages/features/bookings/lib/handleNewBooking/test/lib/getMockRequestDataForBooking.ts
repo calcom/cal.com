@@ -20,6 +20,8 @@ export function getMockRequestDataForBooking({
     eventTypeId: number;
     rescheduleUid?: string;
     bookingUid?: string;
+    recurringEventId?: string;
+    recurringCount?: number;
     responses: {
       email: string;
       name: string;

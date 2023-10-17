@@ -963,10 +963,17 @@ async function handler(
 
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  const isOrganizerRescheduling = organizerUser.id === userId;
+  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+    eventType,
+    bookingStartTime: reqBody.start,
+    userId,
+    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+    paymentAppData,
+  });
 
+  // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
-    isOrganizerRescheduling && originalRescheduledBooking
+    userReschedulingIsOwner && originalRescheduledBooking
       ? originalRescheduledBooking.attendees.find((attendee) => attendee.email === bookerEmail)
       : null;
 
@@ -1072,14 +1079,6 @@ async function handler(
     t: tOrganizer,
   };
 
-  let requiresConfirmation = eventType?.requiresConfirmation;
-  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
-  if (rcThreshold) {
-    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
-      requiresConfirmation = false;
-    }
-  }
-
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
@@ -1112,7 +1111,7 @@ async function handler(
       ? [organizerUser.destinationCalendar]
       : null,
     hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: requiresConfirmation ?? false,
+    requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
     seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
@@ -1194,7 +1193,6 @@ async function handler(
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: eventType.title,
     eventDescription: eventType.description,
-    requiresConfirmation: requiresConfirmation || null,
     price: paymentAppData.price,
     currency: eventType.currency,
     length: eventType.length,
@@ -1417,13 +1415,14 @@ async function handler(
                 metadata.hangoutLink = updatedEvent.hangoutLink;
                 metadata.conferenceData = updatedEvent.conferenceData;
                 metadata.entryPoints = updatedEvent.entryPoints;
-                handleAppsStatus(results, newBooking);
+                evt.appsStatus = handleAppsStatus(results, newBooking);
               }
             }
           }
 
-          if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
+          if (noEmail !== true && isConfirmedByDefault) {
             const copyEvent = cloneDeep(evt);
+            loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -1542,8 +1541,9 @@ async function handler(
             ? calendarResult?.updatedEvent[0]?.iCalUID
             : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-          if (!requiresConfirmation || isOrganizerRescheduling) {
+          if (noEmail !== true && isConfirmedByDefault) {
             // TODO send reschedule emails to attendees of the old booking
+            loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -1720,8 +1720,35 @@ async function handler(
       }
       const copyEvent = cloneDeep(evt);
       copyEvent.uid = booking.uid;
-      await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+      if (noEmail !== true) {
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
 
+        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+
+        if (eventType.workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+        }
+        await sendScheduledSeatsEmails(
+          copyEvent,
+          invitee[0],
+          newSeat,
+          !!eventType.seatsShowAttendees,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
+        );
+      }
       const credentials = await refreshCredentials(allCredentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
       await eventManager.updateCalendarAttendees(evt, booking);
@@ -1847,12 +1874,6 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
-  // If the user is not the owner of the event, new booking should be always pending.
-  // Otherwise, an owner rescheduling should be always accepted.
-  // Before comparing make sure that userId is set, otherwise undefined === undefined
-  const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-  const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
-
   async function createBooking() {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
@@ -1870,12 +1891,6 @@ async function handler(
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-
-    // If the user is not the owner of the event, new booking should be always pending.
-    // Otherwise, an owner rescheduling should be always accepted.
-    // Before comparing make sure that userId is set, otherwise undefined === undefined
-    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-    const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
 
     const attendeesData = evt.attendees.map((attendee) => {
       //if attendee is team member, it should fetch their locale not booker's locale
@@ -2006,7 +2021,7 @@ async function handler(
     safeStringify({
       organizerUser: organizerUser.id,
       attendeesList: attendeesList.map((guest) => ({ timeZone: guest.timeZone })),
-      requiresConfirmation,
+      requiresConfirmation: evt.requiresConfirmation,
       isConfirmedByDefault,
       userReschedulingIsOwner,
     })
@@ -2074,7 +2089,7 @@ async function handler(
     booking: (Booking & { appsStatus?: AppsStatus[] }) | null
   ) {
     // Taking care of apps status
-    const resultStatus: AppsStatus[] = results.map((app) => ({
+    let resultStatus: AppsStatus[] = results.map((app) => ({
       appName: app.appName,
       type: app.type,
       success: app.success ? 1 : 0,
@@ -2087,8 +2102,7 @@ async function handler(
       if (booking !== null) {
         booking.appsStatus = resultStatus;
       }
-      evt.appsStatus = resultStatus;
-      return;
+      return resultStatus;
     }
     // From down here we can assume reqAppsStatus is not undefined anymore
     // Other status exist, so this is the last booking of a series,
@@ -2103,7 +2117,8 @@ async function handler(
       }
       return prev;
     }, {} as { [key: string]: AppsStatus });
-    evt.appsStatus = Object.values(calcAppsStatus);
+    resultStatus = Object.values(calcAppsStatus);
+    return resultStatus;
   }
 
   let videoCallUrl;
@@ -2143,47 +2158,46 @@ async function handler(
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-    if (results.length > 0 && results.some((res) => !res.success)) {
+    const isThereAnIntegrationError = results && results.some((res) => !res.success);
+    if (isThereAnIntegrationError) {
       const error = {
         errorCode: "BookingReschedulingMeetingFailed",
         message: "Booking Rescheduling failed",
       };
 
-      loggerWithEventDetails.error(`Booking ${organizerUser.name} failed`, safeStringify({ error, results }));
+      loggerWithEventDetails.error(
+        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+        safeStringify({ error, results })
+      );
     } else {
-      const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
         : calendarResult?.updatedEvent?.iCalUID || undefined;
+    }
 
-      if (results.length) {
-        // TODO: Handle created event metadata more elegantly
-        const [updatedEvent] = Array.isArray(results[0].updatedEvent)
-          ? results[0].updatedEvent
-          : [results[0].updatedEvent];
-        if (updatedEvent) {
-          metadata.hangoutLink = updatedEvent.hangoutLink;
-          metadata.conferenceData = updatedEvent.conferenceData;
-          metadata.entryPoints = updatedEvent.entryPoints;
-          handleAppsStatus(results, booking);
-          videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
-        }
-      }
-      if (noEmail !== true && (!requiresConfirmation || isOrganizerRescheduling)) {
-        const copyEvent = cloneDeep(evt);
-        await sendRescheduledEmails({
-          ...copyEvent,
-          additionalInformation: metadata,
-          additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-        });
-      }
+    const { metadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
+      results,
+    });
+
+    videoCallUrl = _videoCallUrl;
+    evt.appsStatus = handleAppsStatus(results, booking);
+
+    // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
+    if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
+      const copyEvent = cloneDeep(evt);
+      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
+      await sendRescheduledEmails({
+        ...copyEvent,
+        additionalInformation: metadata,
+        additionalNotes, // Resets back to the additionalNote input and not the override value
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+      });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!requiresConfirmation && !paymentAppData.price) {
+  } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -2202,7 +2216,7 @@ async function handler(
       };
 
       loggerWithEventDetails.error(
-        `Failure in creating events in some of the integrations ${organizerUser.username} failed`,
+        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
     } else {
@@ -2264,7 +2278,7 @@ async function handler(
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        handleAppsStatus(results, booking);
+        evt.appsStatus = handleAppsStatus(results, booking);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
       }
@@ -2290,7 +2304,7 @@ async function handler(
         }
 
         loggerWithEventDetails.debug(
-          "Sending scheduled emails for booking confirmation",
+          "Emails: Sending scheduled emails for booking confirmation",
           safeStringify({
             calEvent: getPiiFreeCalendarEvent(evt),
           })
@@ -2308,6 +2322,16 @@ async function handler(
         );
       }
     }
+  } else {
+    // If isConfirmedByDefault is false, then booking can't be considered ACCEPTED and thus EventManager has no role to play. Booking is created as PENDING
+    loggerWithEventDetails.debug(
+      `EventManager doesn't need to create or reschedule event for booking ${organizerUser.username}`,
+      safeStringify({
+        calEvent: getPiiFreeCalendarEvent(evt),
+        isConfirmedByDefault,
+        paymentValue: paymentAppData.price,
+      })
+    );
   }
 
   const bookingRequiresPayment =
@@ -2318,7 +2342,7 @@ async function handler(
 
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     loggerWithEventDetails.debug(
-      `Booking ${organizerUser.username} requires confirmation, sending request emails`,
+      `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
       })
@@ -2332,6 +2356,7 @@ async function handler(
         videoCallUrl: getVideoCallUrlFromCalEvent(evt),
       }
     : undefined;
+
   const webhookData = {
     ...evt,
     ...eventTypeInfo,
@@ -2415,6 +2440,7 @@ async function handler(
     videoCallUrl = booking.location;
   }
 
+  // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
@@ -2436,7 +2462,7 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-  } else if (eventType.requiresConfirmation) {
+  } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
@@ -2514,6 +2540,69 @@ async function handler(
 }
 
 export default handler;
+
+function getVideoCallDetails({
+  results,
+}: {
+  results: EventResult<AdditionalInformation & { url?: string | undefined; iCalUID?: string | undefined }>[];
+}) {
+  const firstVideoResult = results.find((result) => result.type.includes("_video"));
+  const metadata: AdditionalInformation = {};
+  let updatedVideoEvent = null;
+
+  if (firstVideoResult && firstVideoResult.success) {
+    updatedVideoEvent = Array.isArray(firstVideoResult.updatedEvent)
+      ? firstVideoResult.updatedEvent[0]
+      : firstVideoResult.updatedEvent;
+
+    if (updatedVideoEvent) {
+      metadata.hangoutLink = updatedVideoEvent.hangoutLink;
+      metadata.conferenceData = updatedVideoEvent.conferenceData;
+      metadata.entryPoints = updatedVideoEvent.entryPoints;
+    }
+  }
+  const videoCallUrl = metadata.hangoutLink || updatedVideoEvent?.url;
+
+  return { videoCallUrl, metadata, updatedVideoEvent };
+}
+
+function getRequiresConfirmationFlags({
+  eventType,
+  bookingStartTime,
+  userId,
+  paymentAppData,
+  originalRescheduledBookingOrganizerId,
+}: {
+  eventType: Pick<Awaited<ReturnType<typeof getEventTypesFromDB>>, "metadata" | "requiresConfirmation">;
+  bookingStartTime: string;
+  userId: number | undefined;
+  paymentAppData: { price: number };
+  originalRescheduledBookingOrganizerId: number | undefined;
+}) {
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(bookingStartTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
+
+  // If the user is not the owner of the event, new booking should be always pending.
+  // Otherwise, an owner rescheduling should be always accepted.
+  // Before comparing make sure that userId is set, otherwise undefined === undefined
+  const userReschedulingIsOwner = !!(userId && originalRescheduledBookingOrganizerId === userId);
+  const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
+  return {
+    /**
+     * Organizer of the booking is rescheduling
+     */
+    userReschedulingIsOwner,
+    /**
+     * Booking won't need confirmation to be ACCEPTED
+     */
+    isConfirmedByDefault,
+  };
+}
 
 function handleCustomInputs(
   eventTypeCustomInputs: EventTypeCustomInput[],

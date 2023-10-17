@@ -1,6 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
+import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
 import { expect } from "vitest";
@@ -9,6 +10,7 @@ import "vitest-fetch-mock";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
@@ -19,55 +21,58 @@ type Recurrence = {
   interval: number;
   count: number;
 };
-
+type ExpectedEmail = {
+  /**
+   * Checks the main heading of the email - Also referred to as title in code at some places
+   */
+  heading?: string;
+  /**
+   * Checks the sub heading of the email - Also referred to as subTitle in code
+   */
+  subHeading?: string;
+  /**
+   * Checks the <title> tag - Not sure what's the use of it, as it is not shown in UI it seems.
+   */
+  titleTag?: string;
+  to: string;
+  // TODO: Implement these and more
+  // what?: string;
+  // when?: string;
+  // who?: string;
+  // where?: string;
+  // additionalNotes?: string;
+  // footer?: {
+  //   rescheduleLink?: string;
+  //   cancelLink?: string;
+  // };
+  ics?: {
+    filename: string;
+    iCalUID: string;
+    recurrence?: Recurrence;
+  };
+  /**
+   * Checks that there is no
+   */
+  noIcs?: true;
+  appsStatus?: AppsStatus[];
+};
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveEmail(
-        expectedEmail: {
-          //TODO: Support email HTML parsing to target specific elements
-          htmlToContain?: string | string[];
-          to: string;
-          noIcs?: true;
-          ics?: {
-            filename: string;
-            iCalUID: string;
-            recurrence?: Recurrence;
-          };
-        },
-        to: string
-      ): R;
+      toHaveEmail(expectedEmail: ExpectedEmail, to: string): R;
     }
   }
 }
 
 expect.extend({
-  toHaveEmail(
-    emails: Fixtures["emails"],
-    expectedEmail: {
-      //TODO: Support email HTML parsing to target specific elements
-      htmlToContain?: string | string[];
-      to: string;
-      ics?: {
-        filename: string;
-        iCalUID: string;
-        recurrence?: Recurrence;
-        noIcs: true;
-      };
-    },
-    to: string
-  ) {
-    const expectedHtmlsToContain =
-      expectedEmail.htmlToContain instanceof Array
-        ? expectedEmail.htmlToContain
-        : expectedEmail.htmlToContain
-        ? [expectedEmail.htmlToContain]
-        : [];
+  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string) {
+    const { isNot } = this;
     const testEmail = emails.get().find((email) => email.to.includes(to));
     const emailsToLog = emails
       .get()
       .map((email) => ({ to: email.to, html: email.html, ics: email.icalEvent }));
+
     if (!testEmail) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
       return {
@@ -77,48 +82,118 @@ expect.extend({
     }
     const ics = testEmail.icalEvent;
     const icsObject = ics?.content ? ical.sync.parseICS(ics?.content) : null;
-    let isHtmlContained = true;
+    const iCalUidData = icsObject ? icsObject[expectedEmail.ics?.iCalUID || ""] : null;
+
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
-    const iCalUidData = icsObject ? icsObject[expectedEmail.ics?.iCalUID || ""] : null;
-    const isIcsUIDExpected = expectedEmail.ics ? !!iCalUidData : true;
+    const isIcsUIDExpected = expectedEmail.ics
+      ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
+      : true;
+    const emailDom = parse(testEmail.html);
+
+    const actualEmailContent = {
+      titleTag: emailDom.querySelector("title")?.innerText,
+      heading: emailDom.querySelector('[data-testid="heading"]')?.innerText,
+      subHeading: emailDom.querySelector('[data-testid="subHeading"]')?.innerText,
+    };
+
+    const expectedEmailContent = getExpectedEmailContent(expectedEmail);
     assertHasRecurrence(expectedEmail.ics?.recurrence, (iCalUidData as VEvent)?.rrule?.toString() || "");
-    isHtmlContained = expectedHtmlsToContain.every((expectedHtmlToContain) => {
-      return testEmail.html.includes(expectedHtmlToContain);
-    });
+
+    const isEmailContentMatched = this.equals(
+      actualEmailContent,
+      expect.objectContaining(expectedEmailContent)
+    );
+
+    if (!isEmailContentMatched) {
+      logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
+
+      return {
+        pass: false,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching`,
+        actual: actualEmailContent,
+        expected: expectedEmailContent,
+      };
+    }
 
     isToAddressExpected = expectedEmail.to === testEmail.to;
-
-    if (!isHtmlContained || !isToAddressExpected) {
+    if (!isToAddressExpected) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
+      return {
+        pass: false,
+        message: () => `To address ${isNot ? "is" : "is not"} matching`,
+        actual: testEmail.to,
+        expected: expectedEmail.to,
+      };
+    }
+
+    if (!expectedEmail.noIcs && !isIcsFilenameExpected) {
+      return {
+        pass: false,
+        actual: ics?.filename,
+        expected: expectedEmail.ics?.filename,
+        message: () => `ICS Filename ${isNot ? "is" : "is not"} matching`,
+      };
+    }
+
+    if (!expectedEmail.noIcs && !isIcsUIDExpected) {
+      return {
+        pass: false,
+        actual: JSON.stringify(icsObject),
+        expected: expectedEmail.ics?.iCalUID,
+        message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
+      };
+    }
+
+    if (expectedEmail.noIcs && ics) {
+      return {
+        pass: false,
+        message: () => `${isNot ? "" : "Not"} expected ics file`,
+      };
+    }
+
+    if (expectedEmail.appsStatus) {
+      const actualAppsStatus = emailDom.querySelectorAll('[data-testid="appsStatus"] li').map((li) => {
+        return li.innerText.trim();
+      });
+      const expectedAppStatus = expectedEmail.appsStatus.map((appStatus) => {
+        if (appStatus.success && !appStatus.failures) {
+          return `${appStatus.appName} ✅`;
+        }
+        return `${appStatus.appName} ❌`;
+      });
+
+      const isAppsStatusCorrect = this.equals(actualAppsStatus, expectedAppStatus);
+
+      if (!isAppsStatusCorrect) {
+        return {
+          pass: false,
+          actual: actualAppsStatus,
+          expected: expectedAppStatus,
+          message: () => `AppsStatus ${isNot ? "is" : "isn't"} matching`,
+        };
+      }
     }
 
     return {
-      pass:
-        isHtmlContained &&
-        isToAddressExpected &&
-        (expectedEmail.noIcs ? true : isIcsFilenameExpected && isIcsUIDExpected),
-      message: () => {
-        if (!isHtmlContained) {
-          return `Email HTML is not as expected. Expected:"${expectedEmail.htmlToContain}" isn't contained in "${testEmail.html}"`;
-        }
-
-        if (!isToAddressExpected) {
-          return `Email To address is not as expected. Expected:${expectedEmail.to} isn't equal to ${testEmail.to}`;
-        }
-
-        if (!isIcsFilenameExpected) {
-          return `ICS Filename is not as expected. Expected:${expectedEmail.ics.filename} isn't equal to ${ics?.filename}`;
-        }
-
-        if (!isIcsUIDExpected) {
-          return `ICS UID is not as expected. Expected:${
-            expectedEmail.ics.iCalUID
-          } isn't present in ${JSON.stringify(icsObject)}`;
-        }
-        throw new Error("Unknown error");
-      },
+      pass: true,
+      message: () => `Email ${isNot ? "is" : "isn't"} correct`,
     };
+
+    function getExpectedEmailContent(expectedEmail: ExpectedEmail) {
+      const expectedEmailContent = {
+        titleTag: expectedEmail.titleTag,
+        heading: expectedEmail.heading,
+        subHeading: expectedEmail.subHeading,
+      };
+      // Remove undefined props so that they aren't matched, they are intentionally left undefined because we don't want to match them
+      Object.keys(expectedEmailContent).filter((key) => {
+        if (expectedEmailContent[key as keyof typeof expectedEmailContent] === undefined) {
+          delete expectedEmailContent[key as keyof typeof expectedEmailContent];
+        }
+      });
+      return expectedEmailContent;
+    }
 
     function assertHasRecurrence(expectedRecurrence: Recurrence | null | undefined, rrule: string) {
       if (!expectedRecurrence) {
@@ -168,9 +243,10 @@ export function expectWebhookToHaveBeenCalledWith(
   const parsedBody = JSON.parse((body as string) || "{}");
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
+
   if (parsedBody.payload.metadata?.videoCallUrl) {
     parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl.replace(/\/video\/[a-zA-Z0-9]{22}/, "/video/DYNAMIC_UID")
+      ? parsedBody.payload.metadata.videoCallUrl
       : parsedBody.payload.metadata.videoCallUrl;
   }
   if (data.payload) {
@@ -226,10 +302,9 @@ export function expectSuccessfulBookingCreationEmails({
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: [
-        "<title>confirmed_event_type_subject</title>",
-        ...(recurrence ? ["new_event_scheduled_recurring"] : []),
-      ],
+      titleTag: "confirmed_event_type_subject",
+      heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
+      subHeading: "",
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
@@ -242,10 +317,9 @@ export function expectSuccessfulBookingCreationEmails({
 
   expect(emails).toHaveEmail(
     {
-      htmlToContain: [
-        "<title>confirmed_event_type_subject</title>",
-        ...(recurrence ? ["your_event_has_been_scheduled_recurring"] : []),
-      ],
+      titleTag: "confirmed_event_type_subject",
+      heading: recurrence ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled",
+      subHeading: "emailed_you_and_any_other_attendees",
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
@@ -260,7 +334,10 @@ export function expectSuccessfulBookingCreationEmails({
     otherTeamMembers.forEach((otherTeamMember) => {
       expect(emails).toHaveEmail(
         {
-          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          titleTag: "confirmed_event_type_subject",
+          heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
+          subHeading: "",
+
           // Don't know why but organizer and team members of the eventType don'thave their name here like Booker
           to: `${otherTeamMember.email}`,
           ics: {
@@ -277,7 +354,9 @@ export function expectSuccessfulBookingCreationEmails({
     guests.forEach((guest) => {
       expect(emails).toHaveEmail(
         {
-          htmlToContain: "<title>confirmed_event_type_subject</title>",
+          titleTag: "confirmed_event_type_subject",
+          heading: recurrence ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled",
+          subHeading: "emailed_you_and_any_other_attendees",
           to: `${guest.email}`,
           ics: {
             filename: "event.ics",
@@ -300,7 +379,7 @@ export function expectBrokenIntegrationEmails({
   // Broken Integration email is only sent to the Organizer
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>broken_integration</title>",
+      titleTag: "broken_integration",
       to: `${organizer.email}`,
       // No ics goes in case of broken integration email it seems
       // ics: {
@@ -313,7 +392,7 @@ export function expectBrokenIntegrationEmails({
 
   // expect(emails).toHaveEmail(
   //   {
-  //     htmlToContain: "<title>confirmed_event_type_subject</title>",
+  //     title: "confirmed_event_type_subject",
   //     to: `${booker.name} <${booker.email}>`,
   //   },
   //   `${booker.name} <${booker.email}>`
@@ -333,7 +412,7 @@ export function expectCalendarEventCreationFailureEmails({
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>broken_integration</title>",
+      titleTag: "broken_integration",
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
@@ -345,7 +424,7 @@ export function expectCalendarEventCreationFailureEmails({
 
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>calendar_event_creation_failure_subject</title>",
+      titleTag: "calendar_event_creation_failure_subject",
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
@@ -361,27 +440,30 @@ export function expectSuccessfulBookingRescheduledEmails({
   organizer,
   booker,
   iCalUID,
+  appsStatus,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
   iCalUID: string;
+  appsStatus?: AppsStatus[];
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>event_type_has_been_rescheduled_on_time_date</title>",
+      titleTag: "event_type_has_been_rescheduled_on_time_date",
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
         iCalUID,
       },
+      appsStatus,
     },
     `${organizer.email}`
   );
 
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>event_type_has_been_rescheduled_on_time_date</title>",
+      titleTag: "event_type_has_been_rescheduled_on_time_date",
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
@@ -401,7 +483,7 @@ export function expectAwaitingPaymentEmails({
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>awaiting_payment_subject</title>",
+      titleTag: "awaiting_payment_subject",
       to: `${booker.name} <${booker.email}>`,
       noIcs: true,
     },
@@ -420,7 +502,7 @@ export function expectBookingRequestedEmails({
 }) {
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>event_awaiting_approval_subject</title>",
+      titleTag: "event_awaiting_approval_subject",
       to: `${organizer.email}`,
       noIcs: true,
     },
@@ -429,7 +511,7 @@ export function expectBookingRequestedEmails({
 
   expect(emails).toHaveEmail(
     {
-      htmlToContain: "<title>booking_submitted_subject</title>",
+      titleTag: "booking_submitted_subject",
       to: `${booker.email}`,
       noIcs: true,
     },
@@ -548,6 +630,7 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location,
   subscriberUrl,
   videoCallUrl,
+  payload,
 }: {
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
@@ -555,10 +638,12 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string;
+  payload?: Record<string, unknown>;
 }) {
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_RESCHEDULED",
     payload: {
+      ...payload,
       metadata: {
         ...(videoCallUrl ? { videoCallUrl } : null),
       },
@@ -615,7 +700,7 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
   expected: {
     calendarId?: string | null;
     videoCallUrl: string;
-    destinationCalendars: Partial<DestinationCalendar>[];
+    destinationCalendars?: Partial<DestinationCalendar>[];
   }
 ) {
   expect(calendarMock.createEventCalls.length).toBe(1);

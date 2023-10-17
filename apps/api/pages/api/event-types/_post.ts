@@ -284,8 +284,8 @@ async function postHandler(req: NextApiRequest) {
   await checkPermissions(req);
 
   if (parsedBody.parentId) {
-    await checkParentEventOwnership(parsedBody.parentId, userId);
-    await checkUserMembership(parsedBody.parentId, parsedBody.userId);
+    await checkParentEventOwnership(req);
+    await checkUserMembership(req);
   }
 
   if (isAdmin && parsedBody.userId) {

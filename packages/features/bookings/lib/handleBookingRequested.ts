@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
+const log = logger.getChildLogger({ prefix: ["[handleBookingRequested] book:user"] });
 
 /**
  * Supposed to do whatever is needed when a booking is requested.
@@ -31,6 +31,7 @@ export async function handleBookingRequested(args: {
 }) {
   const { evt, booking } = args;
 
+  log.debug("Emails: Sending booking requested emails");
   await sendOrganizerRequestEmail({ ...evt });
   await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
