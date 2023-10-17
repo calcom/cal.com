@@ -20,3 +20,7 @@ export const setTestEmail = (email: (typeof globalThis.testEmails)[number]) => {
 export const getTestEmails = () => {
   return globalThis.testEmails;
 };
+
+export const resetTestEmails = () => {
+  globalThis.testEmails = [];
+};

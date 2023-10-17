@@ -4,6 +4,9 @@ import type { AppCategories } from "@prisma/client";
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
+import logger from "@calcom/lib/logger";
+import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -52,7 +55,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
-      appCredentials.push({
+      const credential = {
         id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -65,7 +68,12 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         team: {
           name: "Global",
         },
-      });
+      };
+      logger.debug(
+        `${appMeta.type} is a global app, injecting credential`,
+        safeStringify(getPiiFreeCredential(credential))
+      );
+      appCredentials.push(credential);
     }
 
     /** Check if app has location option AND add it if user has credentials for it */

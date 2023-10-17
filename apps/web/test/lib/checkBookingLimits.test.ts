@@ -23,7 +23,6 @@ const MOCK_DATA: Mockdata = {
 
 describe("Check Booking Limits Tests", () => {
   it("Should return no errors", async () => {
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(0);
     expect(
       checkBookingLimits(MOCK_DATA.bookingLimits, MOCK_DATA.startDate, MOCK_DATA.id)
@@ -31,7 +30,6 @@ describe("Check Booking Limits Tests", () => {
   });
   it("Should throw an error", async () => {
     // Mock there being two a day
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(2);
     expect(
       checkBookingLimits(MOCK_DATA.bookingLimits, MOCK_DATA.startDate, MOCK_DATA.id)
@@ -39,7 +37,6 @@ describe("Check Booking Limits Tests", () => {
   });
 
   it("Should pass with multiple booking limits", async () => {
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(0);
     expect(
       checkBookingLimits(
@@ -53,7 +50,6 @@ describe("Check Booking Limits Tests", () => {
     ).resolves.toBeTruthy();
   });
   it("Should pass with multiple booking limits with one undefined", async () => {
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(0);
     expect(
       checkBookingLimits(
@@ -67,7 +63,6 @@ describe("Check Booking Limits Tests", () => {
     ).resolves.toBeTruthy();
   });
   it("Should handle mutiple limits correctly", async () => {
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(1);
     expect(
       checkBookingLimit({
@@ -77,7 +72,6 @@ describe("Check Booking Limits Tests", () => {
         eventId: MOCK_DATA.id,
       })
     ).resolves.not.toThrow();
-    // @ts-expect-error Prisma v5 typings are not yet available
     prismaMock.booking.count.mockResolvedValue(3);
     expect(
       checkBookingLimit({

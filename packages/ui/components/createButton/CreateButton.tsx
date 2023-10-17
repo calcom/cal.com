@@ -60,7 +60,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
@@ -136,7 +136,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {searchParams.get("dialog") === "new" && CreateDialog}
+      {searchParams?.get("dialog") === "new" && CreateDialog}
     </>
   );
 }
