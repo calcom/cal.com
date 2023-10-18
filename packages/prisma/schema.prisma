@@ -820,6 +820,8 @@ model WorkflowReminder {
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
+  @@index([method, scheduled, scheduledDate])
+  @@index([cancelled, scheduledDate])
 }
 
 model WebhookScheduledTriggers {
@@ -971,4 +973,26 @@ model CalendarCache {
 
   @@id([credentialId, key])
   @@unique([credentialId, key])
+}
+
+enum RedirectType {
+  UserEventType @map("user-event-type")
+  TeamEventType @map("team-event-type")
+  User          @map("user")
+  Team          @map("team")
+}
+
+model TempOrgRedirect {
+  id        Int          @id @default(autoincrement())
+  // Better would be to have fromOrgId and toOrgId as well and then we should have just to instead toUrl
+  from      String
+  // 0 would mean it is non org
+  fromOrgId Int
+  type      RedirectType
+  toUrl     String
+  enabled   Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([from, type, fromOrgId])
 }

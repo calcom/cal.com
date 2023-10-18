@@ -61,7 +61,7 @@ export default class ZohoCrmCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "zohocrm_other_calendar";
     this.auth = this.zohoCrmAuth(credential).then((r) => r);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private createContacts = async (attendees: Person[]) => {
