@@ -23,7 +23,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }:
   const { t, isLocaleReady } = useLocale();
   const { asPath } = useRouter();
 
-  const isCurrent = asPath === href;
+  const isCurrent = asPath.startsWith(href);
 
   return (
     <Link

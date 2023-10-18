@@ -197,19 +197,9 @@ export const bookingsRouter = router({
           ],
         },
         userIds: {
-          AND: [
-            {
-              eventType: {
-                users: {
-                  some: {
-                    id: {
-                      in: input.filters?.userIds,
-                    },
-                  },
-                },
-              },
-            },
-          ],
+          userId: {
+            in: input.filters?.userIds,
+          },
         },
       };
 
