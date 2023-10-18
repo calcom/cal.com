@@ -71,7 +71,7 @@ export default function WebhookListItem(props: {
         "flex w-full justify-between p-4",
         props.lastItem ? "" : "border-subtle border-b"
       )}>
-      <div className="max-w-full truncate">
+      <div className="w-full truncate">
         <div className="flex">
           <Tooltip content={webhook.subscriberUrl}>
             <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
