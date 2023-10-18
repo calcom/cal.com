@@ -1,3 +1,5 @@
+import * as ScrollArea from "@radix-ui/react-scroll-area";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
@@ -13,7 +15,7 @@ export const PeopleFilter = () => {
   if (!data || !data.length) return null;
 
   // Get user names from query
-  const userNames = data?.filter((user) => query.userIds?.includes(user.id)).map((user) => user.name);
+  const userNames = data?.filter((user) => query.userIds?.includes(user.id))?.map((user) => user.name);
 
   return (
     <AnimatedPopover
@@ -37,41 +39,54 @@ export const PeopleFilter = () => {
           className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
         />
       </div>
-      {data &&
-        data.map((user) => (
-          <div
-            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
-            key={`${user.id}`}>
-            <Avatar
-              imageSrc={user.avatar}
-              size="sm"
-              alt={`${user.name} Avatar`}
-              gravatarFallbackMd5="fallback"
-              className="self-center"
-              asChild
-            />
-            <label
-              htmlFor={user.name ?? "NamelessUser"}
-              className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
-              {user.name}
-            </label>
+      <ScrollArea.Root className="h-96 w-72">
+        <ScrollArea.Viewport className="h-full w-full">
+          {data &&
+            [...data]
+              .sort((a, b) => a.name?.localeCompare(b.name || "") ?? 0)
+              .map((user) => (
+                <div
+                  className="item-center max-w-72 flex px-4 py-[6px] focus-within:bg-gray-100 focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+                  key={`${user.id}`}>
+                  <Avatar
+                    imageSrc={user.avatar}
+                    size="sm"
+                    alt={`${user.name} Avatar`}
+                    gravatarFallbackMd5="fallback"
+                    className="self-center"
+                    asChild
+                  />
+                  <label
+                    htmlFor={user.name ?? "NamelessUser"}
+                    className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
+                    {user.name}
+                  </label>
 
-            <input
-              id={user.name ?? "NamelessUser"}
-              name={user.name ?? "NamelessUser"}
-              type="checkbox"
-              checked={query.userIds?.includes(user.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  pushItemToKey("userIds", user.id);
-                } else if (!e.target.checked) {
-                  removeItemByKeyAndValue("userIds", user.id);
-                }
-              }}
-              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
-            />
-          </div>
-        ))}
+                  <input
+                    id={user.name ?? "NamelessUser"}
+                    name={user.name ?? "NamelessUser"}
+                    type="checkbox"
+                    checked={query.userIds?.includes(user.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        pushItemToKey("userIds", user.id);
+                      } else if (!e.target.checked) {
+                        removeItemByKeyAndValue("userIds", user.id);
+                      }
+                    }}
+                    className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+                  />
+                </div>
+              ))}
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar className="ScrollAreaScrollbar" orientation="vertical">
+          <ScrollArea.Thumb className="ScrollAreaThumb" />
+        </ScrollArea.Scrollbar>
+        <ScrollArea.Scrollbar className="ScrollAreaScrollbar" orientation="horizontal">
+          <ScrollArea.Thumb className="ScrollAreaThumb" />
+        </ScrollArea.Scrollbar>
+        <ScrollArea.Corner className="ScrollAreaCorner" />
+      </ScrollArea.Root>
     </AnimatedPopover>
   );
 };
