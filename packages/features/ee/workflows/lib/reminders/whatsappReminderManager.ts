@@ -20,7 +20,7 @@ import {
   whatsappReminderTemplate,
 } from "./templates/whatsapp";
 
-const log = logger.getChildLogger({ prefix: ["[whatsappReminderManager]"] });
+const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
 export const scheduleWhatsappReminder = async (
   evt: BookingInfo,
