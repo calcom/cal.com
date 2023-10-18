@@ -45,7 +45,16 @@ test.describe("Change username on settings", () => {
     });
 
     expect(newUpdatedUser.username).toBe("demousernamex");
+  });
 
+  test("User can change username to include periods(or dots)", async ({ page, users, prisma }) => {
+    const user = await users.create();
+
+    await user.apiLogin();
+    // Try to go homepage
+    await page.goto("/settings/my-account/profile");
+    // Change username from normal to normal
+    const usernameInput = page.locator("[data-testid=username-input]");
     // User can change username to include dots(or periods)
     await usernameInput.fill("demo.username");
     await page.click("[data-testid=update-username-btn]");
@@ -62,6 +71,11 @@ test.describe("Change username on settings", () => {
     });
 
     expect(updatedUser.username).toBe("demo.username");
+
+    // Check if user avatar can be accessed and response headers contain 'image/' in the content type
+    const response = await page.goto("/demo.username/avatar.png");
+    const contentType = response.headers()["content-type"];
+    expect(contentType).toContain("image/");
   });
 
   test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {
