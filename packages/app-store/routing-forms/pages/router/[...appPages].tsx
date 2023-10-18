@@ -15,7 +15,7 @@ import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
-const log = logger.getChildLogger({ prefix: ["[routing-forms]", "[router]"] });
+const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>

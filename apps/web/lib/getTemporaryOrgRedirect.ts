@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RedirectType } from "@calcom/prisma/client";
 
-const log = logger.getChildLogger({ prefix: ["lib", "getTemporaryOrgRedirect"] });
+const log = logger.getSubLogger({ prefix: ["lib", "getTemporaryOrgRedirect"] });
 export const getTemporaryOrgRedirect = async ({
   slug,
   redirectType,

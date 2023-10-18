@@ -21,7 +21,7 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 
-const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials, true)

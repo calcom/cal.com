@@ -440,8 +440,8 @@ class EventsInsights {
     if (!data.length) {
       return "";
     }
-    const header = Object.keys(data[0]).join(",") + "\n";
-    const rows = data.map((obj: any) => Object.values(obj).join(",") + "\n");
+    const header = `${Object.keys(data[0]).join(",")}\n`;
+    const rows = data.map((obj: any) => `${Object.values(obj).join(",")}\n`);
     return header + rows.join("");
   }
 }
