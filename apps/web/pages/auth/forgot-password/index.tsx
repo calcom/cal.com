@@ -2,7 +2,6 @@
 import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
@@ -11,6 +10,7 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
+import { serverSideTranslations } from "@calcom/web/server/lib/serverSideTranslations";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";

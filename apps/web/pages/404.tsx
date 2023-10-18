@@ -52,7 +52,7 @@ export default function Custom404() {
   useEffect(() => {
     const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
     const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
-    if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
+    if (!isValidOrgDomain || !currentOrgDomain) {
       const splitPath = routerUsername.split("/");
       if (splitPath[1] === "team" && splitPath.length === 3) {
         // Accessing a non-existent team

@@ -1,6 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
@@ -9,6 +8,7 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, PasswordField, Form } from "@calcom/ui";
+import { serverSideTranslations } from "@calcom/web/server/lib/serverSideTranslations";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
