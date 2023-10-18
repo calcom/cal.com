@@ -42,7 +42,7 @@ interface ISetLocationDialog {
   teamId?: number;
 }
 
-export const LocationInput = (props: {
+const LocationInput = (props: {
   eventLocationType: EventLocationType;
   locationFormMethods: ReturnType<typeof useForm>;
   id: string;
