@@ -307,61 +307,63 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               </div>
             </div>
             {/* Social Logins */}
-            <div className="mt-6 grid gap-2 md:grid-cols-2">
-              <Button
-                color="secondary"
-                disabled={!!formMethods.formState.errors.username}
-                className={classNames(
-                  "w-full justify-center rounded-md text-center",
-                  formMethods.formState.errors.username ? "opacity-50" : ""
-                )}
-                onClick={async () => {
-                  if (!formMethods.getValues("username")) {
-                    formMethods.trigger("username");
-                    return;
-                  }
-                  const username = formMethods.getValues("username");
-                  const searchQueryParams = new URLSearchParams();
-                  searchQueryParams.set("username", formMethods.getValues("username"));
-                  const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                  localStorage.setItem("username", username);
-                  // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                  const googleAuthUrl = `${baseUrl}/auth/sso/google?${searchQueryParams.toString()}`;
+            {!token && (
+              <div className="mt-6 grid gap-2 md:grid-cols-2">
+                <Button
+                  color="secondary"
+                  disabled={!!formMethods.formState.errors.username}
+                  className={classNames(
+                    "w-full justify-center rounded-md text-center",
+                    formMethods.formState.errors.username ? "opacity-50" : ""
+                  )}
+                  onClick={async () => {
+                    if (!formMethods.getValues("username")) {
+                      formMethods.trigger("username");
+                      return;
+                    }
+                    const username = formMethods.getValues("username");
+                    const searchQueryParams = new URLSearchParams();
+                    searchQueryParams.set("username", formMethods.getValues("username"));
+                    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                    localStorage.setItem("username", username);
+                    // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                    const googleAuthUrl = `${baseUrl}/auth/sso/google?${searchQueryParams.toString()}`;
 
-                  router.push(googleAuthUrl);
-                }}>
-                <img className="text-emphasis mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
-                Google
-              </Button>
-              <Button
-                color="secondary"
-                disabled={!!formMethods.formState.errors.username || !!formMethods.formState.errors.email}
-                className={classNames(
-                  "w-full justify-center rounded-md text-center",
-                  formMethods.formState.errors.username && formMethods.formState.errors.email
-                    ? "opacity-50"
-                    : ""
-                )}
-                onClick={() => {
-                  if (!formMethods.getValues("username")) {
-                    formMethods.trigger("username");
-                  }
-                  if (!formMethods.getValues("email")) {
-                    formMethods.trigger("email");
-                    return;
-                  }
-                  const username = formMethods.getValues("username");
-                  localStorage.setItem("username", username);
-                  const sp = new URLSearchParams();
-                  // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                  sp.set("username", formMethods.getValues("username"));
-                  sp.set("email", formMethods.getValues("email"));
-                  router.push(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`);
-                }}>
-                <ShieldCheckIcon className="mr-2 h-5 w-5" />
-                {t("saml_sso")}
-              </Button>
-            </div>
+                    router.push(googleAuthUrl);
+                  }}>
+                  <img className="text-emphasis mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
+                  Google
+                </Button>
+                <Button
+                  color="secondary"
+                  disabled={!!formMethods.formState.errors.username || !!formMethods.formState.errors.email}
+                  className={classNames(
+                    "w-full justify-center rounded-md text-center",
+                    formMethods.formState.errors.username && formMethods.formState.errors.email
+                      ? "opacity-50"
+                      : ""
+                  )}
+                  onClick={() => {
+                    if (!formMethods.getValues("username")) {
+                      formMethods.trigger("username");
+                    }
+                    if (!formMethods.getValues("email")) {
+                      formMethods.trigger("email");
+                      return;
+                    }
+                    const username = formMethods.getValues("username");
+                    localStorage.setItem("username", username);
+                    const sp = new URLSearchParams();
+                    // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                    sp.set("username", formMethods.getValues("username"));
+                    sp.set("email", formMethods.getValues("email"));
+                    router.push(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`);
+                  }}>
+                  <ShieldCheckIcon className="mr-2 h-5 w-5" />
+                  {t("saml_sso")}
+                </Button>
+              </div>
+            )}
           </div>
           {/* Already have an account & T&C */}
           <div className="mt-6">
@@ -369,19 +371,17 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <Link href="/auth/login" className="text-emphasis hover:underline">
                 {t("already_have_account")}
               </Link>
-              <p className="text-subtle">
-                <Trans i18nKey="signing_up_terms">
-                  By signing up, you agree to our{" "}
+              <div className="text-subtle">
+                <Trans i18nKey="signing_up_terms" as="p">
+                  By signing up, you agree to our
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
                     Terms of Service
-                  </Link>{" "}
-                  and{" "}
+                  </Link>
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
                     Privacy Policy
                   </Link>
-                  .
                 </Trans>
-              </p>
+              </div>
             </div>
           </div>
         </div>
