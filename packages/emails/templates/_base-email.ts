@@ -48,6 +48,17 @@ export default class BaseEmail {
     const payload = this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
+      headers: {
+        "X-SMTPAPI": JSON.stringify({
+          filters: {
+            bypass_list_management: {
+              settings: {
+                enable: 1,
+              },
+            },
+          },
+        }),
+      },
       ...payload,
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };

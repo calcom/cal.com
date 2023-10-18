@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -19,6 +18,7 @@ import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
@@ -31,9 +31,17 @@ import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
 
+import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
+
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: PageProps) {
+function TeamPage({
+  team,
+  isUnpublished,
+  markdownStrippedBio,
+  isValidOrgDomain,
+  currentOrgDomain,
+}: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -44,7 +52,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
-  const orgBranding = useOrgBranding();
 
   useEffect(() => {
     telemetry.event(
@@ -182,8 +189,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
             <Avatar
               alt={teamName}
               imageSrc={
-                !!team.parent && !!orgBranding
-                  ? `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`
+                isValidOrgDomain
+                  ? `/org/${currentOrgDomain}/avatar.png`
                   : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
               }
               size="lg"
@@ -268,6 +275,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req.headers.host ?? "",
     context.params?.orgSlug
   );
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
+
   const flags = await getFeatureFlagMap(prisma);
   const team = await getTeamWithMembers({
     slug: slugify(slug ?? ""),
@@ -275,6 +284,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isTeamView: true,
     isOrgView: isValidOrgDomain && context.resolvedUrl === "/",
   });
+
+  if (!isOrgContext && slug) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: slug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
+
   const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
   console.info("gSSP, team/[slug] - ", {
@@ -354,6 +376,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
+      currentOrgDomain,
     },
   } as const;
 };

@@ -7,7 +7,6 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { classNames } from "@calcom/lib";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
@@ -141,17 +140,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     defaultValue: periodType?.type,
   });
 
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
-
-  const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
-  const durationLimitsLocked = shouldLockDisableProps("durationLimits");
-  const periodTypeLocked = shouldLockDisableProps("periodType");
-  const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
-
   const optionsPeriod = [
     { value: 1, label: t("calendar_days") },
     { value: 0, label: t("business_days") },
@@ -171,13 +159,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   return (
     <div>
-      <div className="border-subtle space-y-6 rounded-md border p-6">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
-            <Label htmlFor="beforeBufferTime">
-              {t("before_event")}
-              {shouldLockIndicator("bookingLimits")}
-            </Label>
+            <Label htmlFor="beforeBufferTime">{t("before_event")}</Label>
             <Controller
               name="beforeBufferTime"
               control={formMethods.control}
@@ -196,7 +181,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={shouldLockDisableProps("bookingLimits").disabled}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -210,10 +194,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
           <div className="w-full">
-            <Label htmlFor="afterBufferTime">
-              {t("after_event")}
-              {shouldLockIndicator("bookingLimits")}
-            </Label>
+            <Label htmlFor="afterBufferTime">{t("after_event")}</Label>
             <Controller
               name="afterBufferTime"
               control={formMethods.control}
@@ -232,7 +213,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={shouldLockDisableProps("bookingLimits").disabled}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -248,20 +228,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         </div>
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
-            <Label htmlFor="minimumBookingNotice">
-              {t("minimum_booking_notice")}
-              {shouldLockIndicator("minimumBookingNotice")}
-            </Label>
-            <MinimumBookingNoticeInput
-              disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
-              {...formMethods.register("minimumBookingNotice")}
-            />
+            <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")}</Label>
+            <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
           </div>
           <div className="w-full">
-            <Label htmlFor="slotInterval">
-              {t("slot_interval")}
-              {shouldLockIndicator("slotInterval")}
-            </Label>
+            <Label htmlFor="slotInterval">{t("slot_interval")}</Label>
             <Controller
               name="slotInterval"
               control={formMethods.control}
@@ -279,7 +250,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={shouldLockDisableProps("slotInterval").disabled}
                     onChange={(val) => {
                       formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
                     }}
@@ -303,8 +273,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
               title={t("limit_booking_frequency")}
-              {...bookingLimitsLocked}
               description={t("limit_booking_frequency_description")}
               checked={isChecked}
               onCheckedChange={(active) => {
@@ -317,17 +287,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 }
               }}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0">
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
-                <IntervalLimitsManager
-                  disabled={bookingLimitsLocked.disabled}
-                  propertyName="bookingLimits"
-                  defaultLimit={1}
-                  step={1}
-                />
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
               </div>
             </SettingsToggle>
           );
@@ -340,15 +305,15 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
               title={t("limit_total_booking_duration")}
               description={t("limit_total_booking_duration_description")}
-              {...durationLimitsLocked}
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
@@ -359,11 +324,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                   formMethods.setValue("durationLimits", {});
                 }
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
-                  disabled={durationLimitsLocked.disabled}
                   step={15}
                   textFieldSuffix={t("minutes")}
                 />
@@ -380,25 +344,23 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
           return (
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
               title={t("limit_future_bookings")}
               description={t("limit_future_bookings_description")}
-              {...periodTypeLocked}
               checked={isChecked}
               onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   defaultValue={watchPeriodType}
                   value={watchPeriodType}
                   onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType)}>
-                  {PERIOD_TYPES.filter((opt) =>
-                    periodTypeLocked.disabled ? watchPeriodType === opt.type : true
-                  ).map((period) => {
+                  {PERIOD_TYPES.map((period) => {
                     if (period.type === "UNLIMITED") return null;
                     return (
                       <div
@@ -407,14 +369,13 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                           watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
                         )}
                         key={period.type}>
-                        {!periodTypeLocked.disabled && (
-                          <RadioGroup.Item
-                            id={period.type}
-                            value={period.type}
-                            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                            <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-                          </RadioGroup.Item>
-                        )}
+                        <RadioGroup.Item
+                          id={period.type}
+                          value={period.type}
+                          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                          <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+                        </RadioGroup.Item>
+
                         {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                         {period.type === "ROLLING" && (
                           <div className="flex items-center">
@@ -423,14 +384,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               type="number"
                               className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                               placeholder="30"
-                              disabled={periodTypeLocked.disabled}
                               {...formMethods.register("periodDays", { valueAsNumber: true })}
                               defaultValue={eventType.periodDays || 30}
                             />
                             <Select
                               options={optionsPeriod}
                               isSearchable={false}
-                              isDisabled={periodTypeLocked.disabled}
                               onChange={(opt) => {
                                 formMethods.setValue(
                                   "periodCountCalendarDays",
@@ -455,7 +414,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                                 <DateRangePicker
                                   startDate={formMethods.getValues("periodDates").startDate}
                                   endDate={formMethods.getValues("periodDates").endDate}
-                                  disabled={periodTypeLocked.disabled}
                                   onDatesChange={({ startDate, endDate }) => {
                                     formMethods.setValue("periodDates", {
                                       startDate,
@@ -478,15 +436,15 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         }}
       />
       <SettingsToggle
+        labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
-          "border-subtle mt-6 rounded-md border py-6 px-4 sm:px-6",
+          "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
           offsetToggle && "rounded-b-none"
         )}
         childrenClassName="lg:ml-0"
         title={t("offset_toggle")}
         description={t("offset_toggle_description")}
-        {...offsetStartLockedProps}
         checked={offsetToggle}
         onCheckedChange={(active) => {
           setOffsetToggle(active);
@@ -494,11 +452,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             formMethods.setValue("offsetStart", 0);
           }
         }}>
-        <div className="border-subtle rounded-b-md border border-t-0 p-6">
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
           <TextField
             required
             type="number"
-            {...offsetStartLockedProps}
+            containerClassName="max-w-80"
             label={t("offset_start")}
             {...formMethods.register("offsetStart")}
             addOnSuffix={<>{t("minutes")}</>}

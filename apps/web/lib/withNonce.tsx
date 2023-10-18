@@ -1,8 +1,8 @@
-import type { GetServerSideProps, GetServerSidePropsContext } from "next";
+import type { GetServerSideProps } from "next";
 
 import { csp } from "@lib/csp";
 
-export type WithNonceProps = {
+export type WithNonceProps<T extends Record<string, any>> = T & {
   nonce?: string;
 };
 
@@ -11,9 +11,16 @@ export type WithNonceProps = {
  * Note that if the Components are not adding any script tag then this is not needed. Even in absence of this, Document.getInitialProps would be able to generate nonce itself which it needs to add script tags common to all pages
  * There is no harm in wrapping a `getServerSideProps` fn with this even if it doesn't add any script tag.
  */
-export default function withNonce(getServerSideProps: GetServerSideProps) {
-  return async (context: GetServerSidePropsContext) => {
+export default function withNonce<T extends Record<string, any>>(
+  getServerSideProps: GetServerSideProps<T>
+): GetServerSideProps<WithNonceProps<T>> {
+  return async (context) => {
     const ssrResponse = await getServerSideProps(context);
+
+    if (!("props" in ssrResponse)) {
+      return ssrResponse;
+    }
+
     const { nonce } = csp(context.req, context.res);
 
     // Skip nonce property if it's not available instead of setting it to undefined because undefined can't be serialized.
@@ -22,10 +29,6 @@ export default function withNonce(getServerSideProps: GetServerSideProps) {
           nonce,
         }
       : null;
-
-    if (!("props" in ssrResponse)) {
-      return ssrResponse;
-    }
 
     // Helps in debugging that withNonce was used but a valid nonce couldn't be set
     context.res.setHeader("x-csp", nonce ? "ssr" : "false");

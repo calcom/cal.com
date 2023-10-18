@@ -29,6 +29,25 @@ describe("processWorkingHours", () => {
       end: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
     });
   });
+  it("should have availability on last day of month in the month were DST starts", () => {
+    const item = {
+      days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+    };
+
+    const timeZone = "Europe/London";
+
+    const dateFrom = dayjs().month(9).date(24); // starts before DST change
+    const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
+
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+
+    const lastAvailableSlot = results[results.length - 1];
+
+    expect(lastAvailableSlot.start.date()).toBe(31);
+  });
+
   it("should return the correct working hours in the month were DST ends", () => {
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
