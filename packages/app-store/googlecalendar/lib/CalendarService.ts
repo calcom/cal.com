@@ -374,7 +374,7 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
     const flags = await getFeatureFlagMap(prisma);
 
-    let googleResult: calendar_v3.Schema$FreeBusyResponse = {};
+    let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     if (!flags["calendar-cache"]) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
@@ -382,10 +382,8 @@ export default class GoogleCalendarService implements Calendar {
         requestBody: { timeMin, timeMax, items },
       });
 
-      googleResult = apires.data;
-    }
-
-    if (!googleResult) {
+      freeBusyResult = apires.data;
+    } else {
       const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
       const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
       const key = JSON.stringify({ timeMin, timeMax, items });
@@ -400,7 +398,7 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       if (cached) {
-        googleResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+        freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
       } else {
         const apires = await calendar.freebusy.query({
           requestBody: { timeMin, timeMax, items },
@@ -426,12 +424,12 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        googleResult = apires.data;
+        freeBusyResult = apires.data;
       }
     }
-    if (!googleResult.calendars) return null;
+    if (!freeBusyResult.calendars) return null;
 
-    const result = Object.values(googleResult.calendars).reduce((c, i) => {
+    const result = Object.values(freeBusyResult.calendars).reduce((c, i) => {
       i.busy?.forEach((busyTime) => {
         c.push({
           start: busyTime.start || "",
